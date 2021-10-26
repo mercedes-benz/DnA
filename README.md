@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
-# My Project
+# DnA (Data and Analytics Platform)
 
 ## Intended Usage
 
