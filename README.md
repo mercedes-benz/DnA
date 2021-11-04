@@ -7,8 +7,6 @@
 
 ## Installation
 
-⚠️ //TODO// Add your information and describe how the project can be used.
-
 Please follow the [installation guide](https://github.com/Daimler/DnA/blob/master/docs/INSTALL.md) to install DnA on your local machine.
 
 ## Contributing
