@@ -2,20 +2,20 @@
 
 ## Getting started
 
-### Docker
+### Docker <img src="https://cdn.iconscout.com/icon/free/png-256/docker-3445553-2878480.png" width="18"/> 
 Install the Docker desktop application from the [official website](https://www.docker.com/products/docker-desktop). 
 
 _For Windows devices:_ 
 
 _Check the option to **Install required Windows components for WSL2**._
 
-### Node.js
+### Node.js <img src="https://i.ibb.co/BctGp6C/node-js-black.png" width="15"/> 
 Install the Node.js application from the [official website](https://nodejs.org/en/download/).
 
-### pgAdmin
+### pgAdmin <img src="https://i.ibb.co/Y0wzqYM/kisspng-postgresql-computer-icons-database-mysql-paragliding-logo-5b496c68718533-6434156415315385364.png" width="19"/>
 Install the pgAdmin application from the [official website](https://www.pgadmin.org/download/).
 
-### PostgreSQL
+### PostgreSQL <img src="https://i.ibb.co/Y0wzqYM/kisspng-postgresql-computer-icons-database-mysql-paragliding-logo-5b496c68718533-6434156415315385364.png" width="19"/>
 Install the PostgreSQL application from the  [official website](https://www.postgresql.org/download/).
 
 ## Setting up the DB
