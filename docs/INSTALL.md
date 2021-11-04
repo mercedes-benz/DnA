@@ -20,6 +20,8 @@ Install the PostgreSQL application from the  [official website](https://www.post
 
 ## Setting up the DB
 
+**Steps to load and start the DB:**
+
 1. Run the following command to load a DB:
 
     ```bash
@@ -31,7 +33,8 @@ Install the PostgreSQL application from the  [official website](https://www.post
     yarn start:db+swagger
     ```
 
-Steps to mount data in pgAdmin:
+**Steps to mount data in pgAdmin:**
+
 1.	Launch pgAdmin
 2.	Create a new server by navigating to: 
     
@@ -48,13 +51,15 @@ You can start the application by running:
 
 ```bash
 yarn install
+```
+
+```bash
 yarn start:web+backend
 ```
 
 ## Extra: Working with Eclipse
 
 To configure lombook follow these steps:
-
 
 1.	Create a new gradle project in eclipse.
 2.	Copy the `src` and `build.gradle` files from the `\dna\packages\backend` path to the new project.
@@ -65,10 +70,9 @@ To configure lombook follow these steps:
 7.	Restart eclipse.
 8.	This will add the below properties in eclipse.ini file
 
-    `-javaagent:C:\Users\User\Downloads\eclipse-jee-2020-06-R-win32-x86_64\eclipse\lombok.jar`
+    `-javaagent:C:\Users\UserName\Downloads\eclipse-jee-2020-06-R-win32-x86_64\eclipse\lombok.jar`
 
 9.	Go to project properties and enable annotation processing. This will automatically rebuild the project.
-
 
 ## FAQ
 Head over to [FAQ](https://github.com/Daimler/DnA/blob/master/docs/FAQ.md) to read about some known issues.
