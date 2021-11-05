@@ -2,6 +2,10 @@
 
 ## Getting started
 
+DnA platform can be installed: <br>
+   + on docker setup but with limitations (JupiterLab, Airflow and KubeFlow components not available) <br>
+   + on Kubernetes cluster
+
 ### Docker <img src="https://i.ibb.co/G2NchfG/docker-logo.png" width="18"/> 
 Install the Docker desktop application from the [official website](https://www.docker.com/products/docker-desktop). 
 
