@@ -1,0 +1,333 @@
+.mainPanel {
+  /*padding: 0 184px 15px 114px;*/
+  display: flex;
+
+  .wrapper {
+    background: #252a33;
+    margin-bottom: 0px;
+    padding: 25px 0;
+    flex: 1 auto;
+    position: relative;
+
+    h3,
+    span.digitalValue {
+      padding: 0 38px;
+    }
+    .row > span {
+      color: #00adef;
+      padding-left: 0px;
+      font-size: 2em;
+      font-stretch: extra-expanded;
+    }
+
+    .contextMenu {
+      float: right;
+      margin: 5px 20px 0 0;
+      &.open .contextMenuTrigger {
+        z-index: 10;
+        position: relative;
+      }
+
+      .contextMenuTrigger {
+        padding: 12px 10px;
+        cursor: pointer;
+
+        &:hover {
+          color: #00adef;
+        }
+      }
+    }
+  }
+}
+
+.primaryPanel {
+  padding-top: 0;
+}
+
+.maturityLevelSection {
+  margin-left: 70px;
+  margin-right: 70px;
+}
+
+.costFactorSection {
+  padding-bottom: 0px;
+}
+
+.valueFactorSection {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.digitalValueSection {
+  padding-top: 0px;
+  .wrapper {
+    width: 100%;
+    .rampUpScrollableWrapper {
+      overflow-x: auto;
+    }
+    .calculatedValue {
+      margin: 40px 0px;
+      label {
+        font-size: var(--font-size-small);
+        font-weight: bold;
+        color: #99a5b3;
+      }
+    }
+  }
+}
+
+.row {
+  display: inline-block;
+  margin-top: 5px;
+}
+
+.row > div {
+  display: block;
+  margin-right: 5px;
+}
+
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 0px;
+
+  .digitalValueWrapper {
+    margin: 60px 70px 30px;
+
+    .addIconButtonWrapper {
+      padding-top: 20px;
+
+      .buttonIcon {
+        width: 55px;
+        height: 55px;
+      }
+
+      button {
+        padding: 0;
+        margin: 0 0 0 30px;
+        background: none;
+        border: none;
+        outline: none;
+        color: #c0c8d0;
+        vertical-align: middle;
+
+        i {
+          vertical-align: top;
+          margin-right: 10px;
+          color: #00adef;
+        }
+
+        &:hover span {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    margin: 40px 70px;
+    > div {
+      width: calc(25% - 7px);
+    }
+
+    &.twoColumn {
+      > div {
+        width: calc(50% - 7px);
+      }
+    }
+
+    .firstColumn {
+      margin-right: -57px;
+      h3 {
+        padding: 0;
+      }
+    }
+
+    .lastColumn {
+      flex: 2;
+      margin: 0 43px;
+    }
+  }
+
+  .formWrapper {
+    margin: 0px 0px 0;
+  }
+
+  .tagsWrapper {
+    margin-top: 0;
+  }
+}
+
+.expansionListWrapper {
+  margin-bottom: 20px;
+  .expansionnPanelContent {
+    label {
+      font-size: var(--font-size-small);
+      font-weight: bold;
+      color: #99a5b3;
+    }
+    .factorInfo {
+      margin: 40px 0px;
+    }
+  }
+}
+
+.pdfLink {
+  color: #d9dfe4;
+
+  &:hover {
+    color: #00adef;
+    text-decoration: none;
+  }
+}
+
+.wrapper {
+  background: #252a33 !important;
+  padding: 25px 38px;
+  width: 100%;
+}
+
+.rampUpScrollableWrapper {
+  position: relative;
+  margin: 10px 0 47px;
+  width: 100%;
+  overflow: auto;
+  .scrollerRight {
+    position: absolute;
+    width: 200px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, rgba(37, 42, 51, 0) 0%, rgba(37, 42, 51, 1) 60%, rgba(37, 42, 51, 1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 15px;
+  }
+  .scrollerLeft {
+    position: absolute;
+    width: 200px;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: linear-gradient(-90deg, rgba(37, 42, 51, 0) 0%, rgba(37, 42, 51, 1) 60%, rgba(37, 42, 51, 1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 15px;
+  }
+  .rampUpContainer {
+    display: table-row;
+    .rampUpItem {
+      display: table-cell;
+      border: 1px solid #697582;
+      border-collapse: collapse;
+      border-left: none;
+      padding: 20px 30px;
+      &:first-child {
+        border-left: 1px solid #697582;
+      }
+    }
+  }
+}
+
+.assessmentSection {
+  .firstPanel {
+    margin-top: 40px;
+  }
+  label {
+    font-size: var(--font-size-small);
+    font-weight: bold;
+    color: #99a5b3;
+  }
+}
+
+.attachmentSection {
+  .firstPanel {
+    margin-top: 40px;
+  }
+}
+
+.attachmentListView {
+  width: 50%;
+  float: left;
+}
+
+.attachmentContainer {
+  max-width: 400px;
+  margin: 20px 70px;
+
+  .attachmentWrapper {
+    position: relative;
+    color: #c0c8d0;
+    padding: 0 50px;
+    margin-bottom: 30px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+    .attachmentIcon {
+      position: absolute;
+      left: 0;
+      font-size: var(--font-size-icon-big);
+      top: 4px;
+      color: #697582;
+    }
+
+    .downloadIcon {
+      position: absolute;
+      right: 0;
+      font-size: var(--font-size-icon-nav);
+      top: 7px;
+      color: #697582;
+      cursor: pointer;
+    }
+
+    .fileNameText {
+      cursor: pointer;
+      &:hover {
+        text-decoration: underline;
+        color: #00adef;
+      }
+    }
+
+    .fileSizeText {
+      color: #697582;
+    }
+  }
+}
+
+.sharingWrapper {
+  padding-left: 40px;
+  label {
+    margin-left: 30px;
+  }
+}
+.infoIcon {
+  text-align: right;
+  font-size: var(--font-size-icon-medium);
+  margin-right: 10px;
+  margin-top: -34px;
+  float: right;
+  i {
+    cursor: pointer;
+    color: #697582;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
+}
+.digitalValueContentsection {
+  width: 880px;
+  text-align: left;
+  h5 {
+    font-size: var(--font-size-default);
+    line-height: 18px;
+    letter-spacing: 0.5px;
+  }
+  p {
+    font-size: var(--font-size-default);
+    line-height: 18px;
+  }
+}

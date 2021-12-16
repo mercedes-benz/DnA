@@ -1,0 +1,181 @@
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .textDesc {
+    color: #697582;
+  }
+
+  .rowLine {
+    display: inline-block;
+  }
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(50% - 7px);
+    }
+  }
+
+  .formWrapper {
+    margin: 60px 70px 0;
+    min-height: 200px;
+  }
+
+  .tagsWrapper {
+    margin-top: 0;
+  }
+
+  .infoIcon {
+    text-align: right;
+    font-size: var(--font-size-icon-medium);
+    margin-right: -23px;
+    margin-top: -9px;
+    i {
+      cursor: pointer;
+      color: #697582;
+
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+}
+
+.complianceInfo {
+  margin: 25px 0 50px 12px;
+  line-height: 18px;
+}
+
+.wrapper {
+  background: #252a33 !important;
+  margin-top: 60px !important;
+  padding: 25px 38px;
+}
+
+.contactWrapper {
+  background: #252a33 !important;
+  margin-top: 15px !important;
+  padding: 25px 38px;
+
+  .addButtonWrapper {
+    padding-top: 20px;
+
+    .buttonIcon {
+      width: 55px;
+      height: 55px;
+    }
+
+    button {
+      padding: 0;
+      margin: 0 0 0 30px;
+      background: none;
+      border: none;
+      outline: none;
+      color: #c0c8d0;
+      vertical-align: middle;
+
+      i {
+        vertical-align: top;
+        margin-right: 10px;
+        color: #00adef;
+      }
+
+      &:hover span {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.memberListWrapper {
+  margin-top: 25px;
+  h4 {
+    margin-bottom: 20px;
+  }
+}
+
+.mbc-modal-wrapper .mbc-modal {
+  min-width: 35vw !important;
+}
+
+.removeConfirmationContent {
+  font-size: var(--font-size-default);
+  width: 315px;
+  margin: 10px auto;
+}
+
+.expertGuidelineSection {
+  max-height: 500px;
+  input {
+    margin-left: -200% !important;
+  }
+}
+
+.greyOut {
+  opacity: 0.5;
+}
+
+.processFlowWrapper {
+  background-image: url(../../../../assets/images/data-compliance-info-bg.png);
+  background-repeat: no-repeat;
+  background-size: 207px;
+  background-position: 0 7px;
+  width: 656px;
+  height: 800px;
+  position: relative;
+  text-align: left;
+  overflow: hidden;
+
+  label {
+    font-size: var(--font-size-sub-headline);
+    line-height: 30px;
+    margin: 0;
+  }
+
+  p {
+    font-size: var(--font-size-default);
+    line-height: 18px;
+    letter-spacing: 0.5px;
+
+    a {
+      text-decoration: underline;
+    }
+  }
+
+  .step1Container {
+    position: absolute;
+    left: 70px;
+  }
+
+  .quickReady {
+    position: absolute;
+    left: 226px;
+    top: 189px;
+  }
+
+  .step2Container {
+    position: absolute;
+    left: 70px;
+    top: 315px;
+  }
+
+  .step3Container {
+    position: absolute;
+    left: 70px;
+    top: 460px;
+  }
+
+  .step4Container {
+    position: absolute;
+    left: 70px;
+    top: 605px;
+  }
+
+  .expertReady {
+    position: absolute;
+    left: 70px;
+    top: 757px;
+  }
+}

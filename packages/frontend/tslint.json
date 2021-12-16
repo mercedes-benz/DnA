@@ -1,0 +1,35 @@
+{
+  "extends": ["tslint:latest", "tslint-react", "tslint-config-prettier", "tslint-plugin-prettier"],
+  "rules": {
+    "prettier": true,
+    "jsx-no-lambda": false,
+    "jsx-no-multiline-js": false,
+    "jsx-alignment": false,
+    "quotemark": [true, "single", "avoid-escape", "jsx-double"],
+    "no-empty-interface": false,
+    "trailing-comma": false,
+    "no-empty": false,
+    "no-console": false,
+    "no-var-requires": false,
+    "no-submodule-imports": false,
+    "no-require-imports": false,
+    "no-implicit-dependencies": false,
+    "object-literal-sort-keys": false,
+    "max-classes-per-file": false,
+    "space-within-parens": [false, 1],
+    "whitespace": {
+      "options": [
+        "check-branch",
+        "check-decl",
+        "check-module",
+        "check-operator",
+        "check-separator",
+        "check-type",
+        "check-typecast",
+        "check-type-operator",
+        "check-rest-spread",
+        "check-preblock"
+      ]
+    }
+  }
+}

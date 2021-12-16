@@ -1,0 +1,28 @@
+.linkContainer {
+  .linkWrapper {
+    position: relative;
+    color: #c0c8d0;
+    padding: 0 50px;
+    margin-bottom: 30px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+    .linkIcon {
+      position: absolute;
+      left: 0;
+      font-size: var(--font-size-icon-big);
+      top: 4px;
+      color: #697582;
+    }
+
+    .fileNameText {
+      cursor: pointer;
+      line-height: 3;
+      color: #c0c8d0;
+      &:hover {
+        text-decoration: underline;
+        color: #00adef;
+      }
+    }
+  }
+}

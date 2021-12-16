@@ -1,0 +1,7 @@
+.vscode/
+node_modules/
+deployment/
+
+packages/*/node_modules/
+packages/*/.vscode/
+packages/*/dist/

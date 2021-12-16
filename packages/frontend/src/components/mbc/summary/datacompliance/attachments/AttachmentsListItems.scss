@@ -1,0 +1,38 @@
+.attachmentWrapper {
+  position: relative;
+  color: #c0c8d0;
+  padding: 0 50px;
+  margin: 0 30px 30px 0;
+  max-width: 400px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+  .attachmentIcon {
+    position: absolute;
+    left: 0;
+    font-size: var(--font-size-icon-big);
+    top: 4px;
+    color: #697582;
+  }
+
+  .downloadIcon {
+    position: absolute;
+    right: 0;
+    font-size: var(--font-size-icon-nav);
+    top: 7px;
+    color: #697582;
+    cursor: pointer;
+  }
+
+  .fileNameText {
+    cursor: pointer;
+    &:hover {
+      text-decoration: underline;
+      color: #00adef;
+    }
+  }
+
+  .fileSizeText {
+    color: #697582;
+  }
+}

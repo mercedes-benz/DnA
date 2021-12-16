@@ -1,0 +1,90 @@
+.mainPanel {
+  padding: 72px 0 30px 114px;
+  display: flex;
+
+  &.hasRightPanel {
+    margin-right: 184px;
+    transition: margin-right 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+
+    &.righPanelOpened {
+      margin-right: 290px;
+    }
+  }
+
+  .wrapper {
+    background: #252a33;
+    margin-bottom: 15px;
+    padding: 25px 0;
+    flex: 1 auto;
+    min-height: 75vh;
+
+    h3 {
+      padding: 0 38px;
+    }
+  }
+}
+
+.rightPanel {
+  display: flex;
+  position: fixed;
+  right: 0;
+  height: calc(100vh - var(--header-size) - 30px);
+
+  .triggerWrapper {
+    width: 60px;
+    .iconTrigger {
+      padding: 10px 10px 10px 18px;
+      cursor: pointer;
+      display: block;
+      border-right: 4px solid transparent;
+      height: 42px;
+      margin-bottom: 20px;
+
+      &:hover i {
+        color: #00adef;
+      }
+
+      i {
+        font-size: var(--font-size-icon-nav);
+      }
+    }
+  }
+}  
+
+:global {
+  .ul-table.solutions {
+    position: relative;
+    margin-top: 30px;
+
+    th.actionColumn {
+      width: 60px;
+    }
+
+    th {
+      label.no-pointer {
+        cursor: default;
+      }
+    }
+
+    .data-row td {
+      &:first-child {
+        padding-left: 38px;
+      }
+
+      &:last-child {
+        padding-right: 38px;
+      }
+
+      padding: 15px 0 15px 10px;
+      font-size: var(--font-size-default);
+      max-width: 20%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &.wrap-text {
+        white-space: normal;
+      }
+    }
+  }
+}

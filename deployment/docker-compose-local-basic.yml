@@ -1,0 +1,76 @@
+version: "2.1"
+services:
+  # Install yarn workspaces
+  base:
+    image: dna-base:all
+    build:
+      context: ../
+      dockerfile: ./deployment/dockerfiles/app/base.Dockerfile
+
+  base-frontend:
+    image: dna-base:frontend
+    build:
+      context: ../packages/frontend/
+      dockerfile: ../../deployment/dockerfiles/app/base-frontend.Dockerfile
+    depends_on:
+      - base
+
+  result-frontend:
+    image: dna-frontend
+    build:
+      context: ../packages/frontend/
+      dockerfile: ../../deployment/dockerfiles/app/result-frontend.Dockerfile
+    environment:
+      - PROJECTSMO_BACKEND_HOST=result-backend
+      - PROJECTSMO_FRONTEND_OIDC_DISABLED=true
+      - PROJECTSMO_FRONTEND_API_BASEURL=http://localhost:7171/api
+      - PROJECTSMO_ENABLEINTERNALUSERINFO=false
+      - PROJECTSMO_ENABLEDATACOMPLIANCE=false
+      - PROJECTSMO_ENABLEJUPYTERWORKSPACE=false
+      - PROJECTSMO_ENABLEDATAIKUWORKSPACE=false
+      - PROJECTSMO_ENABLEMALWARESERVICE=false
+      - PROJECTSMO_ENABLEPIPELINSERVICE=false
+      - PROJECTSMO_DNA_COMPANYNAME=Company_Name
+      - PROJECTSMO_DEPLOY_VERSION=0.91
+      - PROJECTSMO_DNA_APPNAME_HEADER=DnA App
+      - PROJECTSMO_DNA_APPNAME_HOME=Data and Analytics
+      - PROJECTSMO_DNA_CONTACTUS_HTML=<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
+      - PROJECTSMO_DNA_BRAND_LOGO_URL=/images/branding/logo-brand.png
+      - PROJECTSMO_DNA_APP_LOGO_URL=/images/branding/logo-app.png
+    depends_on:
+      - base-frontend
+    ports:
+      - "8080:3000"
+
+  result-backend:
+    image: dna-backend
+    build:
+      context: ../packages/backend/
+      dockerfile: ../../deployment/dockerfiles/app/result-backend.Dockerfile
+    environment:
+      - API_DB_URL=jdbc:postgresql://db:5432/db
+      - OIDC_DISABLED=true
+      - JUPYTER_NOTEBOOK=false
+      - DATAIKU=false
+      - ITSMM=false
+      - ATTACHMENT_MALWARE_SCAN=false
+      - DRD_INTERNAL_USER_ENABLED=false
+    ports:
+      - "7171:7171"
+    depends_on:
+    - db
+
+
+  db:
+    image: postgres:10
+    restart: on-failure
+    environment:
+      - "POSTGRES_USER=admin"
+      - "POSTGRES_PASSWORD=admin"
+      - "POSTGRES_DB=db"
+    # Init db on startup
+    volumes:
+      - ./localdb-init/schema.sql:/docker-entrypoint-initdb.d/01-schema-init.sql
+      - ./localdb-init/data.sql:/docker-entrypoint-initdb.d/02-data-init.sql
+    ports:
+      - "5432:5432"
