@@ -1,0 +1,250 @@
+.pageWrapper {
+  display: flex;
+  flex: 1 auto;
+
+  .mainPanel {
+    margin-right: 184px;
+    padding: 72px 0 30px 114px;
+    width: 100%;
+    h3 {
+      color: #dee3e8;
+      font-size: var(--font-size-section-headline);
+      margin-bottom: 25px;
+      padding: 0;
+    }
+    .portContentsection {
+      margin-top: 20px;
+      .portHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .portTile {
+          background-color: #252a33;
+          display: flex;
+          justify-content: space-between;
+          padding: 24px;
+          width: calc(33% - 6.5px);
+
+          .portTileVal {
+            h5 {
+              font-size: var(--font-size-sub-headline);
+              padding-bottom: 0px;
+              margin: 0;
+              color: #c0c8d0;
+            }
+            span {
+              font-size: var(--font-size-big-double);
+              color: #00adef;
+              display: flex;
+              margin-bottom: 1px;
+            }
+          }
+          .portNavMore {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            label {
+              margin: 0;
+              cursor: pointer;
+              &:hover {
+                i {
+                  color: #00adef;
+                }
+              }
+            }
+            .portNav {
+              justify-content: center;
+              width: 40px;
+              height: 40px;
+              border: 2px solid #3e444e;
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              &:hover {
+                border: 2px solid #00adef;
+                color: #00adef;
+                i {
+                  color: #00adef;
+                }
+              }
+
+              i {
+                margin-top: -5px;
+                color: #c0c8d0;
+              }
+            }
+          }
+        }
+      }
+      .portGraphView {
+        padding: 0;
+      }
+    }
+    .portfolioContainer {
+      .summaryContainer {
+        margin-left: 114px;
+        .summaryText {
+          font-size: var(--font-size-section-headline);
+          color: #bfc3c7;
+          margin-bottom: 2px;
+        }
+        .summaryItemWrapper {
+          margin-top: 55px;
+          display: flex;
+          flex: 1 auto;
+
+          .summaryItem {
+            width: 50%;
+            min-height: 210px;
+            margin-right: 42.5px;
+            border-left: 1px solid #383f49;
+            position: relative;
+            padding-left: 36px;
+
+            .itemHeader {
+              font-size: var(--font-size-sub-headline);
+              line-height: 30px;
+              color: #d9dfe4;
+            }
+
+            .itemValue {
+              color: #00adef;
+              font-size: 65px;
+            }
+
+            .itemFooter {
+              position: absolute;
+              bottom: 0;
+              right: 85px;
+            }
+
+            &:first-child {
+              margin-right: 55px;
+            }
+
+            &:last-child {
+              margin-left: -100px;
+              margin-right: 85px;
+            }
+          }
+        }
+      }
+
+      .widgetsConatinaer {
+        margin-top: 15px;
+        display: flex;
+        flex: 1 auto;
+        justify-content: space-between;
+
+        &.divider {
+          margin-top: 2%;
+        }
+
+        .widgetWrapper {
+          width: calc(50% - 7.5px);
+          min-height: 350px;
+          background-color: #252a33;
+          padding: 20px 25px;
+          position: relative;
+
+          .widgetTitle {
+            font-size: var(--font-size-section-headline);
+            color: #dee3e8;
+            margin-bottom: 2px;
+          }
+
+          .noDataMessage {
+            position: absolute;
+            top: 50%;
+            width: calc(100% - 48px);
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+
+  .rightPanel {
+    display: flex;
+    position: fixed;
+    right: 0;
+    top: 65px;
+    height: calc(100vh - 65px);
+    padding-top: 105px;
+    transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+
+    &.expand {
+      background-color: #000000;
+
+      .triggerWrapper {
+        background-color: #000000;
+      }
+    }
+
+    .panelWrapper {
+      flex: 1 auto;
+      width: 0;
+      overflow: hidden;
+      transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+      opacity: 0;
+
+      &.open {
+        width: 230px;
+        margin-left: 0;
+        opacity: 1;
+        overflow: visible;
+      }
+
+      .panelContent {
+        padding: 10px 20px 20px 30px;
+        border-right: 1px solid #383f49;
+        height: 100%;
+        overflow-y: auto;
+
+        h4 {
+          font-size: var(--font-size-medium);
+          color: #c0c8d0;
+        }
+
+        .actionWrapper {
+          margin: 40px 0;
+
+          .saveSettingsBtn {
+            background-color: #00adef;
+            padding: 0 15px;
+            font-size: var(--font-size-medium);
+            letter-spacing: 1px;
+            margin-right: 12px;
+          }
+        }
+
+        .widgetList {
+          list-style-type: none;
+          padding: 0 9px 0 0;
+          margin-top: 30px;
+
+          li {
+            background-color: #383f49;
+            font-size: var(--font-size-small);
+            color: #c0c8d0;
+            line-height: 18px;
+            padding: 23px 29px 8px 37px;
+            position: relative;
+            margin-bottom: 10px;
+            min-height: 100px;
+
+            .addTrigger {
+              position: absolute;
+              top: 9px;
+              left: 12px;
+              cursor: pointer;
+              color: #00adef;
+            }
+          }
+        }
+      }
+    }
+  }
+}

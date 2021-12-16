@@ -1,0 +1,13 @@
+{
+  "library": "spring-mvc",
+  "dateLibrary": "legacy",
+  "hideGenerationTimestamp": true,
+  "modelPackage": "com.daimler.data.dto.widget",
+  "apiPackage": "com.daimler.data.api.widget",
+  "invokerPackage": "com.daimler.data.service.widget",
+  "importMappings": {
+    "BindingResult":"org.springframework.validation.BindingResult",
+    "GenericMessage":"com.daimler.data.controller.exceptions.GenericMessage",
+    "MessageDescription":"com.daimler.data.controller.exceptions.MessageDescription"
+  }
+}

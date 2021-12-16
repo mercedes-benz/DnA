@@ -1,0 +1,33 @@
+.mainPanel {
+  display: flex;
+
+  .wrapper {
+    background: #252a33;
+    padding: 25px 40px;
+    flex: 1 auto;
+
+    h3 {
+      font-size: var(--font-size-default);
+      margin-bottom: 30px;
+    }
+
+    .imageSection {
+      text-align: center;
+      margin-bottom: 100px;
+      margin-top: 80px;
+      > img {
+        max-width: 850px;
+      }
+    }
+
+    .attachmentSection {
+      width: 50%;
+      float: left;
+      min-height: 300px;
+    }
+    .officerSection {
+      width: 50%;
+      float: left;
+    }
+  }
+}

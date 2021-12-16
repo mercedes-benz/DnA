@@ -1,0 +1,345 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : Lov.yaml
+#  **
+#  ** Module     : core
+#  ** 
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "Lov Maintenance Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "lov"
+   description: "This service is used to maintain LOV used in solutions."
+
+schemes:
+- "https"
+
+paths:
+
+# path to getAll valid configured Business Goals
+#
+#  supprorted http methods GET 
+#
+# path example ../businessgoals
+
+ /businessgoals:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all business Goals."
+   description:  "Get all business Goals. This endpoints will be used to Get all valid available business Goals."
+   operationId: "getAllBusinessGoal"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/BusinessGoalVOCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+# path to getAll valid configured Maturity level
+#
+#  supprorted http methods GET 
+#
+# path example ../maturitylevels
+
+ /maturitylevels:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all Maturity levels."
+   description:  "Get all Maturity levels. This endpoints will be used to Get all valid available Maturity levels."
+   operationId: "getAllMaturityLevel"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/MaturityLevelVOCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+# path to getAll valid configured Strategic Relevance
+#
+#  supprorted http methods GET 
+#
+# path example ../strategicrelevances
+
+ /strategicrelevances:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all strategic relevances."
+   description:  "Get all strategic relevances. This endpoints will be used to Get all valid available strategic relevances."
+   operationId: "getAllStrategicRelevance"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/StrategicRelevanceVOCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"    
+
+# path to getAll valid configured Benefit Relevance
+#
+#  supprorted http methods GET 
+#
+# path example ../benefitrelevances
+
+ /benefitrelevances:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all benefit relevances."
+   description:  "Get all benefit relevances. This endpoints will be used to Get all valid available benefit relevances."
+   operationId: "getAllBenefitRelevance"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/BenefitRelevanceVOCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+# path to getAll valid categories
+#
+#  supprorted http methods GET 
+#
+# path example ../categories
+
+ /categories:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all categories."
+   description:  "Get all categories. This endpoints will be used to Get all valid available categories."
+   operationId: "getAllCategory"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/CategoryVOCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+definitions:
+ BusinessGoalVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of Business Goal"
+    name:
+     type: string
+     description: "Name of the Business Goal"
+     minLength: 1
+  #required:
+  #   - name
+ BusinessGoalVOCollection: 
+  description: "Collection of Business Goal."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/BusinessGoalVO" 
+     
+ MaturityLevelVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of Maturity level"
+    name:
+     type: string
+     description: "Name of Maturity level"
+     minLength: 1
+  #required:
+  #   - name
+ MaturityLevelVOCollection: 
+  description: "Collection of Maturity level."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/MaturityLevelVO" 
+
+ StrategicRelevanceVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of Strategic Relevance"
+    name:
+     type: string
+     description: "Name of Strategic Relevance"
+     minLength: 1
+  #required:
+  #   - name
+ StrategicRelevanceVOCollection: 
+  description: "Collection of Strategic Relevance."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/StrategicRelevanceVO"
+
+ BenefitRelevanceVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of Benefit Relevance"
+    name:
+     type: string
+     description: "Name of Benefit Relevance"
+     minLength: 1
+  #required:
+  #   - name
+ BenefitRelevanceVOCollection: 
+  description: "Collection of Benefit Relevance."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/BenefitRelevanceVO"
+
+ CategoryVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of Category"
+    name:
+     type: string
+     description: "Name of Category"
+     minLength: 1
+  #required:
+  #   - name
+ CategoryVOCollection: 
+  description: "Collection of Category."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/CategoryVO"
+
+ BindingResult:
+  type: object
+ 
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"
+      

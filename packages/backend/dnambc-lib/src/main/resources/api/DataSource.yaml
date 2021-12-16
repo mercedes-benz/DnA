@@ -1,0 +1,209 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : datasource.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core datasource Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "datasources"
+   description: "This service is used to maintain datasource used in solutions."
+
+schemes:
+- "https"
+
+paths:
+
+# path to create a new datasource and fetch all valid datasources or by intent
+#
+#  supprorted http methods GET, POST and DELETE 
+#
+# path example ../datasources
+
+ /datasources:
+  post:
+   tags:
+    - "datasources"
+   summary: "Adds a new datasource."
+   description: "Adds a new non existing datasource which is used in providing solution."
+   operationId: "create"
+   parameters:
+    - name: "datasourceRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new datasource" 
+      required: true
+      schema:
+       $ref: "#/definitions/DataSourceRequestVO"
+   responses:
+    201: 
+     description: "Returns message of success or failure "
+     schema:
+       $ref: "#/definitions/DataSourceVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+  get:
+   tags:
+    - "datasources"
+   summary: "Get all available datasources."
+   description:  "Get all datasources. This endpoints will be used to Get all valid available datasources maintenance records."
+   operationId: "getAll"
+   responses:
+    201:
+     description: "Returns message of success or failure"
+     schema:
+       $ref: "#/definitions/DataSourceCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+# path to delete existing datasources
+#
+#  supported http methods DELETE
+#
+# path examples----
+#   DELETE    .../datasources/xxx
+
+ /datasources/{id}:
+  delete:
+    tags:
+    - "datasources"
+    summary: "Deletes the datasource identified by given ID."
+    description:  "Deletes the datasource identified by given ID"
+    operationId: "delete"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the datasource"
+        required: true
+        type: "string"
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+     
+definitions:
+ DataSourceVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of datasource"
+    name:
+     type: string
+     description: "Name of the datasource"
+     minLength: 1
+     pattern: '[a-zA-Z\s]+'
+  required:
+     - name
+ DataSourceCollection:
+  description: "Collection of datasources."
+  type: array
+  items: 
+     $ref: "#/definitions/DataSourceVO"
+ DataSourceRequestVO:
+  type: object
+  properties:
+    data:
+      description: "Request data containing datasource details to be created"
+      $ref: "#/definitions/DataSourceVO"
+ BindingResult:
+  type: object
+
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"

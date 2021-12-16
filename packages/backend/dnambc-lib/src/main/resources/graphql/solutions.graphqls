@@ -1,0 +1,292 @@
+scalar Date
+
+type SolutionCollection{
+   totalCount: Int,
+   records: [SolutionVO]
+}
+
+type SolutionVO {
+    id: ID!,
+    productName: String,
+    logoDetails: LogoDetailsVO,
+    description: String,
+    businessNeed: String,
+    businessGoal: String,
+    relatedProducts: [String],
+    attachments: [FileDetailsVO],
+    expectedBenefits: String,
+    reasonForHoldOrClose: String,
+    createdDate: String,
+    lastModifiedDate: String,
+    closeDate: String,
+    tags:[String],
+    bookmarked: Boolean,
+    publish: Boolean,
+    createdBy:CreatedByVO,
+    division: SolutionDivisionVO,
+    currentPhase: SolutionCurrentPhase,
+    projectStatus:SolutionProjectstatusVO,
+    locations: [SolutionLocationVO]!,
+    milestones: MilestoneVO!,
+    team: [TeamMemberVO],
+    dataSources: SolutionDatasourceVO,
+    analytics: SolutionAnalyticsVO,
+    sharing: SolutionSharingVO,
+    digitalValue: SolutionDigitalValueVO,
+    dataCompliance: SolutionDataComplianceVO,
+    portfolio: SolutionPortfolioVO,
+    openSegments:[String]
+        
+}
+
+type Query {
+    solutions(published: Boolean,division: String,location: String,phase: String,dataVolume: String,
+    projectStatus: String, useCaseType: String, searchTerm: String,tags: String, offset: Int, limit: Int, sortBy: String,
+    sortOrder: String): SolutionCollection!
+    solution(string: ID):SolutionVO
+    bookmarkedSolutions(userId: String): SolutionCollection!
+}
+
+type SolutionAnalyticsVO{
+	languages: [LanguageVO],
+	algorithms: [AlgorithmVO],
+	visualizations: [VisualizationVO]
+}
+
+type LanguageVO{
+	id: ID!,
+    name: String
+}
+
+type AlgorithmVO{
+	id: ID!,
+    name: String
+}
+
+type VisualizationVO{
+	id: ID!,
+    name: String
+}
+
+type SolutionSharingVO{
+	gitUrl: String,
+	resultUrl: String,
+	result: ResultVO
+}
+
+type ResultVO{
+	id: ID!,
+    name: String
+}
+
+type SolutionDigitalValueVO{
+	digitalValue: Float,
+	digitalValueComment: String,
+    digitalEffort: Float,
+    digitalEffortComment: String,
+	maturityLevel: String,
+	projectControllers: [TeamMemberVO],
+	costDrivers: [CostFactorVO],
+	valueDrivers: [ValueFactorVO],
+	attachments: [FileDetailsVO],
+	assessment: AssessmentDetailsVO,
+	permissions: [TeamMemberVO],
+	changeLogs: [ChangeLogVO],
+    valueCalculator: ValueCalculatorVO
+}
+
+type ValueCalculatorVO{
+    costFactorSummary: CostFactorSummaryVO,
+    valueFactorSummary: ValueFactorSummaryVO,
+    calculatedDigitalValue: CalculatedDigitalValueVO,
+    breakEvenPoint: Float
+}
+
+type CalculatedDigitalValueVO{
+    valueAt: Float,
+    year: String,
+    value: Float
+}
+
+type CostFactorSummaryVO{
+    year: String,
+    value: Float
+}
+
+type ValueFactorSummaryVO{
+    year: String,
+    value: Float
+}
+
+type CostFactorVO{
+	description: String,
+	category: String,
+	value: Float,
+	source: String,
+	rampUp: [CostRampUpYearVO]
+}
+
+type CostRampUpYearVO{
+	year: Float,
+	value: Float
+}
+
+type ValueFactorVO{
+	description: String,
+	category: String,
+	value: Float,
+	source: String,
+	rampUp: [ValueRampUpYearVO]
+}
+
+type ValueRampUpYearVO{
+	year: Float,
+	percent: Float,
+	value: Float
+}
+
+type FileDetailsVO{
+	id: String,
+	fileName: String,
+	fileSize: String
+}
+
+type LogoDetailsVO{
+	id: String,
+	fileName: String,
+	fileSize: String,
+	isPredefined: Boolean
+}
+
+type AssessmentDetailsVO{
+	strategicRelevance: String,
+	commentOnStrategicRelevance: String,
+	benefitRealizationRisk: String,
+	commentOnBenefitRealizationRisk: String
+}
+
+type ChangeLogVO{
+	changeDate: Date,
+	modifiedBy: TeamMemberVO,
+	fieldChanged: String,
+	oldValue: String,
+	newValue: String
+}
+
+type SolutionDataComplianceVO{
+    expertGuidelineNeeded: Boolean;
+    readyForImplementation: Boolean;
+	quickCheck: Boolean,
+	useCaseDescAndEval: Boolean,
+	attachments: [FileDetailsVO],
+	links: [LinkVO],
+	complianceOfficers: [TeamMemberVO] 
+	
+}
+
+type LinkVO{
+	description: String,
+	link: String,
+	label: String
+}
+
+type SolutionPortfolioVO{
+	solutionOnCloud: Boolean,
+    usesExistingInternalPlatforms: Boolean,
+    platforms: [PlatformVO],
+	dnaNotebookId: String,
+	dnaDataikuProjectId: String,
+	dnaSubscriptionAppId: String
+}
+
+type PlatformVO{
+	id: ID!,
+    name: String
+}
+
+type SolutionLocationVO{
+    id: ID!,
+    name: String
+}
+
+type MilestoneVO{
+	phases: [SolutionMilestonePhaseVO],
+	rollouts: SolutionRolloutPhaseVO
+}
+
+type SolutionMilestonePhaseVO{
+	description: String,
+	phase: SolutionPhaseVO,
+	month: Int,
+	year: Int
+}
+
+type SolutionRolloutPhaseVO{
+	details: [SolutionRolloutDetailsVO],
+	description: String
+}
+
+type SolutionRolloutDetailsVO{
+	location: SolutionLocationVO,
+	month: Int,
+	year: Int
+}
+
+
+type SolutionPhaseVO{
+    id: ID!,
+    name: String
+}
+
+type SolutionProjectstatusVO{
+    id: ID!,
+    name: String
+}
+
+type SolutionDivisionVO{
+    id: ID!,
+    name: String!
+    subdivision: SubDivision,
+}
+type SubDivision{
+    id: ID!,
+    name: String
+}
+type SolutionDatasourceVO{
+    dataSources: [String],
+    dataVolume: DataVolumeVO
+}
+
+type DataVolumeVO{
+    id:String!,
+    name: String
+}
+
+type CreatedByVO{
+    id:String!,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String
+}
+
+type TeamMemberVO{
+    shortId: String,
+    userType: UserTypeEnum,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String,
+    company: String,
+    teamMemberPosition: String
+}
+type SolutionCurrentPhase{
+    id: ID!,
+    name: String
+}
+enum UserTypeEnum{
+    INTERNAL,
+    EXTERNAL
+}

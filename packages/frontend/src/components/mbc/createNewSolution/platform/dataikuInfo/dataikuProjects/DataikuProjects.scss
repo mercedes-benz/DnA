@@ -1,0 +1,86 @@
+
+.projectListPanel {
+  .projectList {
+    max-height: 250px;
+    overflow: auto;
+    width: 100%;
+    background-color: #383f49;
+    li {
+      cursor: pointer;
+      padding-left: 10px!important;
+      label {
+        cursor: pointer;
+      }
+      &:hover {
+        background-color: #252a33!important;
+      }
+      &.active, &.active:hover {
+        background-color: #697582!important;
+      }
+    }
+  }
+}
+
+.searchPanel {
+  position: relative;
+  flex: 1 auto;
+  padding: 0 5px 5px 0;
+  background-color: #252a33;
+  input::placeholder {
+    color: #697582;
+    font-size: var(--font-size-default);
+    /*color: #c0c8d0;*/
+  }
+  .searchInputField {
+    background: none;
+    border: none;
+    border-bottom: 1px solid #697582;
+    font-size: var(--font-size-default);
+    padding-right: 40px;
+    margin-right: -20px;
+    height: 40px;
+    color: #c0c8d0;
+    outline: none;
+    width: 100%;
+    opacity: 1;
+    transition: opacity 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+    visibility: visible;
+
+    &.hide {
+      opacity: 0;
+      visibility: hidden;
+      transition: visibility 0ms;
+      transition-delay: 100ms;
+    }
+  }
+
+  > button {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    color: #c0c8d0;
+    font-size: var(--font-size-icon-medium);
+    position: absolute;
+    top: 5px;
+
+    &:hover {
+      color: #ffffff;
+      transition: color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+    }
+
+    > i {
+      vertical-align: sub;
+      &.active:hover {
+        color: #00adef;
+      }
+    }
+
+    &.clearBtn {
+      right: 30px;
+      font-size: var(--font-size-tiny);
+      border-radius: 50%;
+    }
+  }
+}

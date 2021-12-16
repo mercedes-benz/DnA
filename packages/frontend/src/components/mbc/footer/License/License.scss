@@ -1,0 +1,44 @@
+.mainPanel {
+  padding: 72px 184px 30px 114px;
+
+  .wrapper {
+    background: #252a33;
+    margin-bottom: 15px;
+    margin-top: 25px;
+    padding: 25px 38px 50px;
+
+    h3 {
+      margin-bottom: 50px;
+    }
+  }
+  .wrapperPaddingZero {
+    background: #252a33;
+    margin-bottom: 15px;
+    margin-top: 25px;
+    padding: 0;
+    h5 {
+      padding: 25px 25px 10px 35px;
+    }
+    table {
+      tr {
+        height: 50px;
+      }
+    }
+  }
+}
+
+.content {
+  p {
+    width: 80%;
+    margin-bottom: 50px;
+  }
+}
+
+.question {
+  font-family: "Roboto-Medium";
+  color: #c0c8d0;
+  font-size: var(--font-size-default);
+  font-weight: bold;
+  display: block;
+  margin-bottom: 15px;
+}

@@ -1,0 +1,61 @@
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .textDesc {
+    color: #697582;
+  }
+
+  .rowLine {
+    display: inline-block;
+  }
+
+  .platformLayout {
+    display: flex;
+    .platformTags {
+      margin-left: 10px;
+      max-width: 350px;
+    }
+    .leftSection {
+      border-right: 1.5px solid #697582;
+      padding-right: 20px;
+      width: 50%;
+    }
+    .rightSection {
+      padding-left: 20px;
+      width: 50%;
+    }
+    .rightSectionContentWrapper {
+      display: flex;
+      height: 100%;
+      flex-direction: column;
+    }
+  }
+
+  .formWrapper {
+    margin: 60px 70px 0;
+    min-height: 200px;
+  }
+
+  .tagsWrapper {
+    margin-top: 0;
+  }
+}
+
+.wrapper {
+  background: #252a33 !important;
+  margin-top: 60px !important;
+  padding: 25px 38px;
+}
+
+.itPlatformsWrapper {
+  padding-left: 40px;
+}
+
+.hidden {
+  display: none;
+}
+
+.computeInfo {
+  font-size: var(--font-size-smallest);
+}

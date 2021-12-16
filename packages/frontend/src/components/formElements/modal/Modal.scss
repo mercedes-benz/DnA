@@ -1,0 +1,110 @@
+:global {
+  .mbc-modal-wrapper {
+    display: flex;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    overflow: auto;
+
+    &::before {
+      content: '';
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      backdrop-filter: blur(2px);
+    }
+
+    .mbc-modal {
+      background-color: #252a33;
+      padding: 20px 35px 35px;
+      max-width: 90vw;
+      max-height: 90vh;
+      min-width: 50vw;
+      position: relative;
+
+      header {
+        padding-right: 40px;
+        color: #dee3e8;
+
+        h4 > i {
+          height: 55px;
+          width: 55px;
+          margin-right: 25px;
+        }
+      }
+
+      .modal-content.scrollable {
+        max-height: calc(100% - 30px);
+        overflow-y: auto;
+                
+            &::-webkit-scrollbar-thumb {
+            background: #00adef;
+            border-radius: 10px;
+            }
+            &::-webkit-scrollbar-track {
+            background: #293f55;
+            }
+            &::-webkit-scrollbar {
+            display: block;
+            width: 5px;
+            }
+            .modal-contenty::-ms-scrollbar-thumb {
+            background: #00adef;
+            border-radius: 10px;
+            }
+            &::-ms-scrollbar-track {
+            background: #293f55;
+            }
+            &::-ms-scrollbar {
+            display: block;
+            width: 5px;
+            }
+            &::-moz-scrollbar-thumb {
+            background: #00adef;
+            border-radius: 10px;
+            }
+            &::-moz-scrollbar-track {
+            background: #293f55;
+            }
+            &::-moz-scrollbar {
+            display: block;
+            width: 5px;
+            }
+
+      }
+
+      .modal-close-button {
+        position: absolute;
+        background: none;
+        border: none;
+        color: #c0c8d0;
+        padding: 0;
+        top: 20px;
+        right: 24px;
+        outline: none;
+
+        &:hover {
+          color: #00adef;
+        }
+      }
+
+      .footerRight {
+        text-align: right;
+      }
+      .footerCenter {
+        text-align: center;
+      }
+    }
+  }
+}
+
+.hide {
+  display: none;
+}

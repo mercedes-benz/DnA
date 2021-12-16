@@ -1,0 +1,208 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : language.yaml
+#  **
+#  ** Module     : core
+#  ** 
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core language Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "languages"
+   description: "This service is used to maintain languages used in solutions."
+
+schemes:
+- "https"
+
+paths:
+
+# path to create a new language and fetch all valid languages or by intent
+#
+#  supprorted http methods GET, POST and DELETE 
+#
+# path example ../languages
+
+ /languages:
+  post:
+   tags:
+    - "languages"
+   summary: "Adds a new language."
+   description: "Adds a new non existing language which is used in providing solution."
+   operationId: "create"
+   parameters:
+    - name: "languageVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new Language" 
+      required: true
+      schema:
+       $ref: "#/definitions/LanguageRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LanguageVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+  get:
+   tags:
+    - "languages"
+   summary: "Get all available languages."
+   description:  "Get all languages. This endpoints will be used to Get all valid available languages maintenance records."
+   operationId: "getAll"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LanguageCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+# path to delete existing language
+#
+#  supported http methods DELETE
+#
+# path examples----
+#   DELETE    .../languages/xxx
+
+ /languages/{id}:
+  delete:
+    tags:
+    - "languages"
+    summary: "Deletes the language identified by given ID."
+    description:  "Deletes the language identified by given ID"
+    operationId: "delete"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the language"
+        required: true
+        type: "string"
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+     
+definitions:
+ LanguageVO:
+  type: object
+  properties:
+     name:
+      type: string
+      description: "Name of the programming Language"
+      minLength: 1
+#      pattern: '[a-zA-Z\s]+'
+     id:
+      type: string
+      description: "ID of the language"
+  required:
+     - name
+ LanguageCollection: 
+  description: "Collection of languages."
+  type: array
+  items: 
+     $ref: "#/definitions/LanguageVO"
+ LanguageRequestVO:
+  type: object
+  properties:
+    data:
+      description: "Request data containing Language details to be created"
+      $ref: "#/definitions/LanguageVO"
+ BindingResult:
+  type: object
+ 
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"

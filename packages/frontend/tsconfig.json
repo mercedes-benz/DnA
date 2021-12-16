@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "paths": { "*": ["types/*"] },
+    "types": ["node"],
+    "target": "es6",
+    "lib": [
+      "dom",
+      "es2015",
+      "es2016"
+    ],
+    "pretty": true,
+    "module": "esnext",
+    "allowJs": true,
+    "jsx": "react",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "removeComments": true,
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "importHelpers": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    "baseUrl": ".",
+    "downlevelIteration": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "typeRoots": ["node_modules/@types","src/types.ts"]
+  },
+  "include": ["src/**/*","declaration.d.ts"],
+  "exclude": ["node_modules"],
+}
