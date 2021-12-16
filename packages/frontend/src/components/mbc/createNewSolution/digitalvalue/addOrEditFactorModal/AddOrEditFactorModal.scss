@@ -1,0 +1,116 @@
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .textDesc {
+    color: #697582;
+  }
+
+  .rowLine {
+    display: inline-block;
+  }
+
+  .formWrapper {
+    margin: 60px 70px 0;
+  }
+
+  .tagsWrapper {
+    margin-top: 0;
+  }
+}
+
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 7px);
+  }
+}
+
+.actionWrapper {
+  margin: 50px 0 50px;
+  text-align: center;
+}
+
+.rampupWrapper {
+  .rampupTitle {
+    color: #acb8c4;
+    font-size: var(--font-size-smallest);
+  }
+  hr {
+    margin: 25px 0;
+  }
+  .costList {
+    height: 150px;
+    overflow-y: auto;
+  }
+
+  .costFlexLayout {
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(46% - 7px);
+      &:last-child {
+        width: calc(8% - 7px);
+      }
+    }
+  }
+  .valueFlexLayout {
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(31% - 7px);
+      &:last-child {
+        width: calc(7% - 7px);
+      }
+    }
+  }
+
+  .iconWrapper {
+    position: relative;
+    .deleteIcon {
+      position: absolute;
+      right: 0;
+      font-size: var(--font-size-icon-nav);
+      top: 35px;
+      color: #00adef;
+      cursor: pointer;
+    }
+  }
+}
+
+.addOrEditFactorModal {
+  min-height: 350px;
+  min-width: 650px;
+  max-width: 850px;
+}
+
+.addButtonWrapper {
+  margin: 20px 0;
+  &.setBorder {
+    padding: 15px 0 24px;
+    border-bottom: 1px solid #383f49;
+    border-top: 1px solid #383f49;
+  }
+
+  button {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: #c0c8d0;
+    vertical-align: middle;
+    font-size: var(--font-size-default);
+
+    i {
+      vertical-align: top;
+      margin-right: 10px;
+      color: #00adef;
+    }
+
+    &:hover span {
+      text-decoration: underline;
+    }
+  }
+}

@@ -1,0 +1,1165 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : solution.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "core solution Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "solutions"
+    description: "This service is used for solutions maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create a new solution and fetch all valid solution or by intent
+  #
+  #  supprorted http methods GET, POST and DELETE
+  #
+  # path example ../solutions
+
+  /solutions:
+    get:
+      tags:
+        - "solutions"
+      summary: "Get all available solutions."
+      description: "Get all solutions. This endpoints will be used to get all valid available solution records."
+      operationId: "getAll"
+      parameters:
+        - name: published
+          in: query
+          description: Filtering solutions based on publish state. Draft or published, values true or false
+          required: false
+          type: boolean
+        - name: location
+          in: query
+          description: List of IDs of locations of solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: division
+          in: query
+          description: List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]
+          required: false
+          type: string
+        # - name: subDivision
+        #   in: query
+        #   description: List of IDs of subDivisions of solutions, seperated by comma. Example 1,2,3
+        #   required: false
+        #   type: string
+        - name: phase
+          in: query
+          description: List of IDs of current phase of solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: dataVolume
+          in: query
+          description: List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3
+          required: false
+          type: string
+        - name: projectstatus
+          in: query
+          description: ID of current project status of solutions, Example 1
+          required: false
+          type: string
+        - name: useCaseType
+          in: query
+          description: ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1
+          required: false
+          type: string
+          enum: [1, 2]
+        - name: searchTerm
+          in: query
+          description: searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string
+        - name: tags
+          in: query
+          description: tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
+          required: false
+          type: string       
+        - name: offset
+          in: query
+          description: page number from which listing of solutions should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of solutions, Example 15
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort solutions by a given variable like name, phase, division, location or status
+          required: false
+          type: string
+          enum: [productName, currentPhase, division, locations, projectStatus, digitalValue]
+        - name: sortOrder
+          in: query
+          description: Sort solutions based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/SolutionCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    post:
+      tags:
+        - "solutions"
+      summary: "Adds a new solution."
+      description: "Adds a new non existing solution."
+      operationId: "create"
+      parameters:
+        - name: "solutionRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a new solution"
+          required: true
+          schema:
+            $ref: "#/definitions/SolutionRequestVO"    
+      responses:
+        201:
+          description: "Returns message of succes or failure "
+          schema:
+            $ref: "#/definitions/SolutionResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    put:
+      tags:
+        - "solutions"
+      summary: "Update existing solution."
+      description: "Updates an existing solution."
+      operationId: "update"
+      parameters:
+        - name: "solutionRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating an existing solution"
+          required: true
+          schema:
+            $ref: "#/definitions/SolutionRequestVO"
+      responses:
+        200:
+          description: "Updated successfully"
+          schema:
+            $ref: "#/definitions/SolutionResponseVO"
+        204:
+          description: "No solution found to update"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # Fetch solutions by intent
+  #
+  #  Supported http methods GET
+  #
+  # path example ../solutions
+  /solutions/{id}:
+    get:
+      tags:
+        - "solutions"
+      summary: "Get Solution for a given Id."
+      description: "Get solution for a given identifier. This endpoints will be used to get a solution for a given identifier."
+      operationId: "getById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Solution ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/SolutionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    delete:
+      tags:
+        - "solutions"
+      summary: "Delete Solution for a given Id."
+      description: "Delete solution for a given identifier."
+      operationId: "delete"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Solution ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  # Fetch solution's change logs by intent
+  #
+  #  Supported http methods GET
+  #
+  # path example ../changelogs
+  /changelogs/{id}:
+    get:
+      tags:
+        - "solutions"
+      summary: "Get change logs of Solution if exists for a given Id."
+      description: "Get change logs of solution for a given identifier. This endpoints will be used to get a solution change logs for a given identifier."
+      operationId: "getChangeLogsBySolutionId"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Solution ID for which change logs to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/SolutionChangeLogCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"         
+
+definitions:
+  SolutionVO:
+    type: object
+    properties:
+      id:
+        type: string  
+      description:
+        type: string
+        description: "Description about Solution"
+        minLength: 1
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      logoDetails:
+        description: "Logo details of a solution"
+        $ref: "./Logo.yaml#/definitions/LogoDetailsVO"
+      relatedProducts: 
+        description: "Related or dependent products for the solution"
+        type: array
+        items:
+         type: string
+      attachments:
+        description: A set of supporting documents that support the cost and value envisaged for this solution
+        type: array
+        items:
+          $ref: "#/definitions/FileDetailsVO"
+      businessGoal:
+        type: string
+        description: "Description of business goal from the solution"
+      productName:
+        type: string
+        description: "Solution Product name"
+        minLength: 1
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      reasonForHoldOrClose:
+        type: string
+        description: "Reason for Project OnHold/Closed"
+      businessNeed:
+        type: string
+        description: "Solution business needs"
+        minLength: 1
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      expectedBenefits:
+        type: string
+        description: "Expected benefits from Solution"
+        minLength: 1
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      tags:
+        type: array
+        items:
+          type: string
+      projectStatus:
+        $ref: "#/definitions/SolutionProjectStatusVO"
+      division:
+        $ref: "#/definitions/SolutionDivisionVO"
+      locations:
+        type: array
+        items:
+          $ref: "#/definitions/SolutionLocationVO"
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      closeDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      team:
+        type: array
+        items:
+          $ref: "#/definitions/TeamMemberVO"
+      milestones:
+        $ref: "#/definitions/MilestoneVO"
+      dataSources:
+        $ref: "#/definitions/SolutionDataSourceVO"
+      analytics:
+        $ref: "#/definitions/SolutionAnalyticsVO"
+      sharing:
+        $ref: "#/definitions/SolutionSharingVO"
+      digitalValue:
+        $ref: "#/definitions/SolutionDigitalValueVO"
+      dataCompliance:
+        $ref: "#/definitions/SolutionDataComplianceVO"
+      portfolio:
+        $ref: "#/definitions/SolutionPortfolioVO"
+      publish:
+        type: boolean
+        description: "Flag to identify if solution is in draft stage or in published state. Default value is false."
+      openSegments:
+        type: array
+        description: "This attribute stores all the open/input sections that user has completed in the solution creation process"
+        items:
+          type: string
+          enum:
+            [
+              "Description",
+              "Teams",
+              "Milestones",
+              "DataSources",
+              "Platform",
+              "Analytics",
+              "Sharing",
+              "DigitalValue",
+              "DataCompliance"
+            ]
+      currentPhase:
+        $ref: "#/definitions/SolutionCurrentPhase"
+      bookmarked:
+        type: boolean
+        description: "Flag to identify if solution is in bookmarked by user. Display only not required as input."
+    required:
+      - productName
+      - description
+      - businessNeed
+      - expectedBenefits
+      #- tags
+      - projectStatus
+      - locations
+      # currentPhase
+      #     - publish
+      #     - division
+      - team
+      - milestones
+      #     - dataSources
+      #- relatedProducts
+      - businessGoal
+
+  SolutionCollection:
+    description: "Collection of Solutions."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/SolutionVO"
+      analytics:
+        $ref: "#/definitions/SolutionAnalyticsVO"
+
+  SolutionDataSourceVO:
+    type: object
+    properties:
+      dataSources:
+        type: array
+        items:
+          type: string
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      dataVolume:
+        $ref: "#/definitions/DataVolumeVO"
+        description: "DataVolume size for this DataSource"
+
+  MilestoneVO:
+    type: object
+    properties:
+      phases:
+        type: array
+        items:
+          $ref: "#/definitions/SolutionMilestonePhaseVO"
+      rollouts:
+        $ref: "#/definitions/SolutionRolloutPhaseVO"
+        
+  
+  SolutionMilestonePhaseVO:
+    type: object
+    properties:      
+      description:
+        type: string
+        description: "Description of the milestone phase"
+      phase:
+        $ref: "#/definitions/SolutionPhaseVO"
+      month:
+        type: number
+        description: "Month when phase commenced"
+        enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      year:
+        type: number
+        description: "Year when phase commenced"
+        minLength: 4
+        maxLength: 4
+    #      pattern: ^[1-9]\d{3}$
+    required:
+        - month
+        - year
+        - phase
+
+  SolutionPhaseVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of Phase"
+      name:
+        type: string
+        description: "Name of the Phase"
+    #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+    required:
+      - id
+      - name
+  
+  
+  SolutionRolloutPhaseVO:
+    type: object
+    properties:
+      details:
+        type: array
+        items:
+          $ref: "#/definitions/SolutionRolloutDetailsVO"
+      description:
+        type: string
+        description: "Description of the rollout phase"
+          
+  SolutionRolloutDetailsVO:
+    type: object
+    properties:
+      location: 
+        $ref: "#/definitions/SolutionLocationVO"
+      month:
+        type: number
+        description: "Month when phase commenced"
+        enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      year:
+        type: number
+        description: "Year when phase commenced"
+        minLength: 4
+        maxLength: 4
+    #      pattern: ^[1-9]\d{3}$
+    required:
+        - month
+        - year
+        - location
+              
+  TeamMemberVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+      userType:
+        type: string
+        description: "Internal or External"
+        enum: [internal, external]
+      firstName:
+        type: string
+        description: "First Name of the user"
+      #     pattern: '[a-zA-Z]+'
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      #     pattern: '[a-zA-Z]+'
+      department:
+        type: string
+        description: "Department of the user"
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      #     minLength: 10
+      #     maxLength: 10
+      #     pattern: ^[1-9]\d{9}$
+      company:
+        type: string
+        description: "Company name of the external member"
+      teamMemberPosition:
+        type: string
+        description: "Position of team member in project"
+#    required:
+#      - teamMemberPosition
+
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+
+  SolutionProjectStatusVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of ProjectStatus"
+      name:
+        type: string
+        description: "Name of the ProjectStatus"
+    #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+    required:
+      - id
+      - name
+
+  SolutionLocationVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of location"
+      name:
+        type: string
+        description: "Name of the location"
+    #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+    required:
+      - id
+      - name
+
+  SolutionCurrentPhase:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of current phase"
+      name:
+        type: string
+        description: "Name of the current phase"
+    required:
+      - id
+      - name
+
+  SolutionDivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of division
+      name:
+        type: string
+        description: name of division
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      subdivision:
+        $ref: "#/definitions/SubDivision"
+    required:
+      - id
+      - name
+
+  SubDivision:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of subdivision
+      name:
+        type: string
+        description: name of subdivision
+    #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+
+  SolutionAnalyticsVO:
+    type: object
+    properties:
+      languages:
+        type: array
+        items:
+          $ref: "#/definitions/LanguageVO"
+      algorithms:
+        type: array
+        items:
+          $ref: "#/definitions/AlgorithmVO"
+      visualizations:
+        type: array
+        items:
+          $ref: "#/definitions/VisualizationVO"
+
+  LanguageVO:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the programming Language"
+        minLength: 1
+      #      pattern: '[a-zA-Z\s]+'
+      id:
+        type: string
+        description: "ID of the language"
+    required:
+      - name
+
+  AlgorithmVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of Algorithm"
+      name:
+        type: string
+        description: "Name of the Algorithm"
+        minLength: 1
+    #     pattern: '[a-zA-Z\s]+'
+    required:
+      - name
+
+  VisualizationVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of Visualization"
+      name:
+        type: string
+        description: "Name of the Visualization"
+        minLength: 1
+    #       pattern: '[a-zA-Z\s]+'
+    required:
+      - name
+
+  SolutionSharingVO:
+    type: object
+    properties:
+      gitUrl:
+        type: string
+        description: git URL for the solution
+      resultUrl:
+        type: string
+        description: result URL for the solution. Example - tableau,onednatableau, internal workbench urls etc
+      result:
+        $ref: "#/definitions/ResultVO"
+
+  SolutionDigitalValueVO:
+    type: object
+    properties:
+      digitalValue:
+        type: number
+        description: Indicate a preliminary indication of a quantitative value add (e.g. in terms of hours saved, budget, efficiency, etc.). Note :Value considers cash generated yearly run rate in Euro and the yearly operatin / running costs after implementation in Euro.
+      digitalValueComment:
+        type: string
+        description: Comments on digital value of the solutions
+      digitalEffort:
+        type: number
+        description: Indicate the expected effort that is likely to be required to implement the use case (e.g. in terms of deputized FTE, required budget, etc.)
+      digitalEffortComment:
+        type: string
+        description: Comments on digital effort of the solutions
+      maturityLevel:
+        type: string
+        description: Describes the solution maturity level in terms of its realisation
+      projectControllers:
+        description: Describes the project controller responsilble for the solution
+        type: array
+        items:
+          $ref: "#/definitions/TeamMemberVO"
+      costDrivers:
+        description: A set of costs that may be incurred for having this solution
+        type: array
+        items:
+          $ref: "#/definitions/CostFactorVO"
+      valueDrivers:
+        description: A set of values that are projected to achieve in having this solution
+        type: array
+        items:
+          $ref: "#/definitions/ValueFactorVO"
+      attachments:
+        description: A set of supporting documents that support the cost and value envisaged for this solution
+        type: array
+        items:
+          $ref: "#/definitions/FileDetailsVO"
+      assessment:
+        description: Defines the strategic relevance and benefit realization risk
+        $ref: "#/definitions/AssessmentDetailsVO"
+      permissions:
+        type: array
+        description: Users that are allowed to view the digitial value information for this solution
+        items:
+          $ref: "#/definitions/TeamMemberVO"
+      changeLogs:
+        type: array
+        description: A set of changes that happened after the solution was published
+        items:
+          $ref: "#/definitions/ChangeLogVO"
+      valueCalculator:
+        description: Calculated Digital value details for the solution
+        $ref: "#/definitions/ValueCalculatorVO"      
+
+  SolutionPortfolioVO:
+    type: object
+    properties:
+      solutionOnCloud:
+        type: boolean
+        description: Indicidates whether solutions is on cloud or not. Boolean value true/false
+      usesExistingInternalPlatforms:
+        type: boolean
+        description: Indicates whether any existing internal platforms are used in solutions. Boolean value true/false
+      platforms:
+        type: array
+        items:
+          $ref: "#/definitions/PlatformVO"
+        description: Details of list of existing platforms used in solution. Example [{"id":1,"name":"Extello"}]
+      #provisioning notebook
+      dnaNotebookId:
+        type: string  
+        description: "notebook id."
+      dnaDataikuProjectId:
+        type: string
+        description: "Dataiku project id."
+      dnaSubscriptionAppId:
+        type: string
+        description: "malware service subscription app ID." 
+  ResultVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of Result"
+      name:
+        type: string
+        description: "Name of the Result"
+    #    minLength: 1
+  #     pattern: '[a-zA-Z\s]+'
+  # required:
+  #    - name
+
+
+
+  DataVolumeVO:
+    type: object
+    properties: 
+      id:
+       type: string
+       description: "ID of Data Volume"
+      name:
+       type: string
+       description: "Name of the Data Volume"
+  #     minLength: 1
+  #     pattern: '[a-zA-Z\s]+'
+  #  required:
+  #     - name
+
+  PlatformVO:
+    type: object
+    properties: 
+      id:
+       type: string
+       description: "ID of Platform"
+      name:
+       type: string
+       description: "Name of the Platform"
+       minLength: 1
+
+  SolutionDataComplianceVO:
+    type: object
+    properties:
+      quickCheck:
+        description: Initial guidelines
+        type: boolean
+      useCaseDescAndEval:
+        description: Check for useCase Description and useCase Evaluation
+        type: boolean
+      expertGuidelineNeeded:
+        description: Confirmation for Expert Guidelines Needed
+        type: boolean  
+      readyForImplementation:
+        description: Check for Ready for Implementation
+        type: boolean  
+      attachments:
+        description: A set of supporting documents that support the cost and value envisaged for this solution
+        type: array
+        items:
+          $ref: "#/definitions/FileDetailsVO"
+      links:
+        type: array
+        items:
+          $ref: "#/definitions/LinkVO"
+      complianceOfficers:
+        description: Local data compliance contact
+        type: array
+        items:
+          $ref: "#/definitions/TeamMemberVO"
+  
+  LinkVO:
+    type: object
+    properties:
+      description:
+        type: string
+        description: Describes the guidelines link
+      link:
+        type: string
+        description: URL for the guideline documentation
+      label:
+        type: string
+        description: label for link details
+        
+  CostFactorVO:
+    type: object
+    properties:
+      description:
+        type: string
+        description: "Describes the factor"
+      category:
+        type: string
+        description: "Describes the group this factor belongs to"
+      value:
+        type: number
+        description: "Defines the value for the given factor"
+      source:
+        type: string
+        description: "Defines the source from which this factor us derived"
+      rampUp:
+        type: array
+        items:
+          $ref: "#/definitions/CostRampUpYearVO"
+          
+  CostRampUpYearVO: 
+     type: object
+     properties: 
+      year:
+        type: number
+        description: "Describes the rampup year"
+      value:
+        type: number      
+ 
+  ValueFactorVO:
+    type: object
+    properties:
+      description:
+        type: string
+        description: "Describes the factor"
+      category:
+        type: string
+        description: "Describes the group this factor belongs to"
+      value:
+        type: number
+        description: "Defines the value for the given factor"
+      source:
+        type: string
+        description: "Defines the source from which this factor us derived"
+      rampUp:
+        type: array
+        items:
+          $ref: "#/definitions/ValueRampUpYearVO"
+   
+  ValueRampUpYearVO: 
+     type: object
+     properties: 
+      year:
+        type: number
+        description: "Describes the rampup year"
+      percent:
+        type: number
+        description: "Describes the percentage of value for the rampup year"
+      value:
+        type: number
+         
+  FileDetailsVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique id of the file which is used as keyname while saving
+      fileName:
+        type: string
+        description: Defines the file name
+      fileSize:
+        type: string
+        description: Defines the size of the file
+  
+  AssessmentDetailsVO: 
+    type: object
+    properties:
+          strategicRelevance:
+            type: string
+            description: Describes the strategic relevance value high/low
+          commentOnStrategicRelevance:
+            type: string
+          benefitRealizationRisk:
+            type: string
+            description: Describes the benefit realization risk value high/low
+          commentOnBenefitRealizationRisk:
+            type: string
+
+  ChangeLogVO:
+    type: object
+    description: "Describes a single change log record done on the solution"
+    properties:
+      changeDate:
+        type: string
+        format: date
+        description: "Date on which this change occurred"
+      modifiedBy:
+        description: "User who changed the value"
+        $ref: "#/definitions/TeamMemberVO"
+      fieldChanged:
+        type: string
+        description: "Describe the attribute that changed"
+      oldValue:
+        type: string
+        description: "Describes the old value of the changed attribute"
+      newValue:
+        type: string
+        description: "Describes the new value of the changed attribute"
+      changeDescription:
+        type: string
+        description: "Short Description on change/addition/removal of Digital Value"  
+
+  SolutionRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/SolutionVO"
+
+  ValueCalculatorVO:
+    type: object
+    description: "Calculated Digital value details for the solution" 
+    properties:
+      calculatedValueRampUpYears:
+        description: Calculated Digital value Ramp Up details year wise for the solution
+        type: array
+        items:
+          $ref: "#/definitions/CalculatedValueRampUpYearVO"
+      costFactorSummary:
+        description: Digital value Cost factor Summary for given year for the solution
+        $ref: "#/definitions/CostFactorSummaryVO"
+      valueFactorSummary:
+        description: "Digital value, Value factor Summary for given year for the solution"
+        $ref: "#/definitions/ValueFactorSummaryVO"
+      calculatedDigitalValue:
+        description: Calculated Digital value for the solution at 100%
+        $ref: "#/definitions/CalculatedDigitalValueVO"
+      breakEvenPoint:
+        type: number
+        description: Break even point for the digital value at 100% 
+  
+  CalculatedValueRampUpYearVO:
+    type: object
+    description: Calculated Ramp up of the Digital value for the solution
+    properties:
+      year:
+        type: number
+        description: "Describes the rampup year"
+      percent:
+        type: number
+        description: "Describes the percentage of value for the rampup year"
+      value:
+        type: number    
+  
+  CostFactorSummaryVO:
+    type: object
+    description: Overall Cost Factor for the solution at 100%
+    properties:
+      year:
+        type: string
+      value:
+        type: number
+  ValueFactorSummaryVO:
+    type: object
+    description: Overall Value Factor for the solution at 100%
+    properties:
+      year:
+        type: string
+      value:
+        type: number      
+  
+  CalculatedDigitalValueVO:
+    type: object
+    description: Calculated Digital value for the solution at 100%
+    properties:
+      valueAt:
+        type: number
+      year:
+        type: number
+      value:
+        type: number
+
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "error message"
+
+  SolutionResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/SolutionVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  SolutionCollectionResponseVO:
+    description: "Collection of Solutions."
+    type: object
+    properties:
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/SolutionVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+  SolutionChangeLogCollectionVO:
+    description: "Collection of Solutions's change logs."
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/ChangeLogVO"      

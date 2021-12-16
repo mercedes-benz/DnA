@@ -1,0 +1,382 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : userinfo.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+
+
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "core users information Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "users"
+    description: "This service is used to maintain users information."
+
+schemes:
+  - "https"
+
+paths:
+
+  # Fetch all valid userinfo or by intent
+  #
+  #  supprorted http methods GET, POST and DELETE
+  #
+  # path example ../users
+
+  /users:
+    get:
+      tags:
+        - "users"
+      summary: "Get all available users."
+      description:  "Get all users. This endpoints will be used to Get all valid available user maintenance records."
+      operationId: "getAll"
+      parameters:
+        - name: limit
+          in: query
+          description: page size to limit the number of solutions, Example 15
+          required: false
+          type: integer
+        - name: offset
+          in: query
+          description: page number from which listing of solutions should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort users based on given column, example name
+          required: false
+          type: string
+        - name: sortOrder
+          in: query
+          description: Sort users based on given order, example asc,desc
+          required: false
+          type: string
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/UsersCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    put:
+      tags:
+        - "users"
+      summary: "Update User"
+      description:  "Update User. This endpoint can be used to update user details"
+      operationId: "update"
+      parameters:
+        - name: "userRequestVO"
+          in: "body"
+          description: "Request body contains the details of the updated user"
+          required: true
+          schema:
+            $ref: "#/definitions/UserRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/UserInfoVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # Fetch all valid users or by intent
+  #
+  #  supported http methods GET, POST and DELETE
+  #
+  # path example ../users
+
+
+  /users/{id}:
+    get:
+      tags:
+        - "users"
+      summary: "Get specific user for a given userid."
+      description:  "Get specific user for a given userid. This endpoints will be used to Get specific user for a given userid."
+      operationId: "getById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Id of the user for which information to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/UserInfoVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /users/bookmarks:
+    get:
+      tags:
+        - "bookmarks"
+      summary: "Get all bookmarks of a user."
+      description: "Get all bookmarks for a user"
+      operationId: "getAllBookmarks"
+      parameters:
+        - name: userId
+          in: query
+          description: UserId for which the bookmarked solutions to be fetched
+          required: true
+          type: string
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/SolutionCollectionResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    post:
+      tags:
+        - "bookmarks"
+      summary: "Updates bookmarks of a user."
+      description: "Add/modify bookmarks for a user"
+      operationId: "updateBookmark"
+      parameters:
+        - name: "BookmarkRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating the bookmarks  of a user"
+          required: true
+          schema:
+            $ref: "#/definitions/BookmarkRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/BookmarkResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+definitions:
+  UserInfoVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+        minLength: 1
+    #    pattern: '[a-zA-Z\s]+'
+      lastName:
+        type: string
+        description: "Last Name of the user"
+        minLength: 1
+    #    pattern: '[a-zA-Z\s]+'
+      department:
+        type: string
+        description: "Department of the user"
+       # minLength: 1
+        #pattern: '[a-zA-Z\s]+'
+      email:
+        type: string
+        description: "E-Mail of the user"
+       # minLength: 1
+        #pattern: '[a-zA-Z\s]+'
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+       # minLength: 10
+       # maxLength: 10
+       # pattern: ^[1-9]\d{9}$
+      favoriteUsecases:
+        type: array
+        items:
+          $ref: "#/definitions/UserFavoriteUseCaseVO"
+      token:
+        type: string
+      roles:
+        type: array
+        items:
+          $ref: "#/definitions/UserRoleVO"
+      #  required:
+      #     - firstName
+
+#  BookmarkCollection:
+#    description: "Collection of Division."
+#    type: array
+#    items:
+#      type: string
+
+  UsersCollection:
+    description: "Collection of Users."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/UserInfoVO"
+
+  UserRoleVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of User Role"
+      name:
+        type: string
+        description: "Name of the User Role"
+        minLength: 1
+        pattern: '[a-zA-Z\s]+'
+      #  required:
+      #     - name
+  UserRequestVO:
+    type: object
+    properties:
+      data:
+        description: "Request data containing user details to be created/updated"
+        $ref: "#/definitions/UserInfoVO"
+
+  UserFavoriteUseCaseVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Unique ID of this favorite"
+      usecaseId:
+        type: string
+        description: "Solution ID that the user would mark as favorite"
+  BookmarkRequestVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      deleteBookmark:
+        type: boolean
+        description: "Flag if true will delete the bookmarks sent in favoriteUsecases array. If nothing is sent then it defaults to add."
+      favoriteUsecases:
+        type: array
+        items:
+          type: string
+  BookmarkResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/UserInfoVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  BindingResult:
+    type: object
+
+  GenericMessage:
+    type: object
+    properties:
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "error message"
+ 

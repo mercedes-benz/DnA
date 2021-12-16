@@ -1,0 +1,60 @@
+{
+  "private": true,
+  "name": "dna-mbc",
+  "version": "2.0.7",
+  "main": "index.js",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^6.2.0",
+    "husky": ">=6",
+    "lint-staged": ">=10",
+    "yarn": "^1.22.10"
+  },
+  "scripts": {
+    "start:web+backend": "concurrently \"yarn start:backend\" \"yarn start:airflow_backend\" \"yarn start:web\"",
+	  "start:airflow_backend": "cd packages/airflow-backend && ./gradlew bootRun",
+    "start:web": "cd packages/frontend && yarn start",
+    "start:legacy": "cd packages/frontend && yarn start:legacy",
+    "start:backend": "cd packages/backend && ./gradlew bootRun",
+    "start:db+swagger": "cd deployment && docker-compose -f docker-compose-local-db+swagger.yml up -d",
+    "stop:db+swagger": "cd deployment && docker-compose -f docker-compose-local-db+swagger.yml down",
+    "build:web": "cd packages/frontend && yarn build:multi",
+    "test": "jest",
+    "prepare": "husky install",
+    "lint": "cd packages/frontend && eslint src/**/*.{ts,tsx} --ignore-pattern \"/**/*.{d.ts,js}\"",
+    "lint:fix": "yarn run lint --fix --max-warnings=0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "yarn run lint:fix",
+      "prettier --write"
+    ],
+    "*.js": [
+      "prettier --write"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Daimler/DnA.git"
+  },
+  "author": {
+    "name": "Daimler AG",
+    "url": "http://www.daimler.com/"
+  },
+  "contributors": [
+    "Agnel Praveen <agnelpraveen@gmail.com>",
+    "Benson Boon Aluri <boonbaluri@gmail.com>",
+    "Debashis Gosh <deba.cse.93@hotmail.com>",
+    "Kameshwara Rao <kameshbrao@gmail.com>",
+    "Prince Kumar <princekumar6300@gmail.com>",
+    "Rahul Kumar <krahul522@gmail.com>",
+    "Sachin Sharma <sachin.aryans@gmail.com>",
+    "Sathishkumar <sathishkumarkevin@gmail.com>",
+    "Shubham Verma <sbm_verma31@rediffmail.com>",
+    "Vikas Madan <vikasmadan09@gmail.com>",
+    "Vinoth Kumar <kumar434vinoth@gmail.com>"
+  ],
+  "license": "MIT"
+}

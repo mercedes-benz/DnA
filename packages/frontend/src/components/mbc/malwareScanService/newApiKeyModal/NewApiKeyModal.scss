@@ -1,0 +1,35 @@
+.MalwarescanPopContent {
+  color: #acb8c4;
+  display: flex;
+  justify-content: space-between; 
+  flex-direction: column;
+   margin: 0 auto;
+  h3 {
+    color: #acb8c4;
+    font-weight: initial;
+    margin-top: 25px;
+    text-align: center;
+  }
+  p {
+    font-size: var(--font-size-default);
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 17px;
+  }
+ 
+}
+.sandboxbtn {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+}
+
+.plusicon {
+  display: flex;
+  justify-content: center;
+  img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+  }
+}

@@ -1,0 +1,165 @@
+.mainHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 17px 17px 0 20px;
+  position: fixed;
+  height: var(--header-size);
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 999;
+
+  > div {
+    flex: 1 auto;
+
+    &.logoWrapper {
+      max-width: 200px;
+      min-width: 200px;
+    }
+
+    &.appWrapper {
+      display: flex;
+      justify-content: flex-end;
+      .notificationPanel {
+        position: relative;
+        margin: 4px 10px 0 0;
+        .notificationIcon {
+          cursor: pointer;
+          font-size: var(--font-size-icon-medium);
+          margin: 4px 10px 0 0;
+        }
+        .status {
+          background-color: #00adef;
+          border: 3px solid transparent;
+          border-radius: 50%;
+          top: 20px;
+          display: block;
+          height: 6px;
+          position: absolute;
+          right: 13px;
+          width: 6px;
+        }
+      }
+    }
+  }
+}
+
+.menuTrigger {
+  flex: auto;
+  margin-top: 3px;
+  cursor: pointer;
+  color: #c0c8d0;
+  display: inline-block;
+  display: none;
+
+  &:hover {
+    color: #00adef;
+    transition: color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+  }
+
+  .closeIcon {
+    margin: 2px 2px 0 2px;
+    font-size: var(--font-size-icon-medium);
+  }
+
+  .hamburgerIcon {
+    font-size: var(--font-size-icon-nav);
+    margin: 0;
+  }
+}
+
+.center {
+  flex: 1 0 auto;
+}
+
+.appLogo {
+  max-width: 250px;
+  min-width: 240px;
+  > h6 {
+    color: var(--header-text-color) !important;
+    margin: 0 0 0 40px;
+    letter-spacing: 1px !important;
+  }
+
+  > img {
+    width: 42px;
+    margin-right: 0 !important;
+    margin-left: 20 !important;
+  }
+}
+
+.logoCompany {
+  margin: 0 30px 0 0;
+
+  > img {
+    vertical-align: top;
+    height: 40px;
+  }
+}
+.userIcon {
+  /* border: 2px solid #c0c8d0; */
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  text-align: center;
+  font-size: var(--font-size-icon-medium);
+  cursor: pointer;
+  i {
+    margin: 0;
+    color: #c0c8d0;
+  }
+}
+.logoName {
+  padding-left: var(--gap);
+}
+
+.userInfoPanel {
+  display: inline-flex;
+
+  .avatar {
+    position: relative;
+    cursor: pointer;
+    > img {
+      width: 32px;
+    }
+
+    .userIcon {
+      /* border: 2px solid #c0c8d0; */
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      text-align: center;
+      font-size: var(--font-size-icon-medium);
+      cursor: pointer;
+
+      i {
+        margin: 0;
+        color: #c0c8d0;
+      }
+    }
+
+    .status {
+      position: absolute;
+      border: 1px solid #000000;
+      width: 10px;
+      height: 10px;
+      background-color: #00adef;
+      border-radius: 50%;
+      display: block;
+      bottom: -1px;
+      right: 2px;
+    }
+
+    &:hover {
+      .userIcon {
+        border-color: #ffffff;
+        transition: border-color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+
+        i {
+          color: #ffffff;
+          transition: color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+        }
+      }
+    }
+  }
+}

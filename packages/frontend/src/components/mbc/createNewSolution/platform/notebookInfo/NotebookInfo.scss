@@ -1,0 +1,41 @@
+.jupeterCard {
+  background-color: #1c2026;
+  padding: 25px 25px 15px;
+  display: flex;
+  position: relative;
+  width: 100%;
+  label {
+    font-size: var(--font-size-smallest);
+    color: #919294;
+    margin-bottom: 12px;
+  }
+  h6 {
+    margin: 0;
+  }
+  .JuperterCardDesc {
+    color: #b2b4b9;
+    line-height: 17px;
+    margin-bottom: 10px;
+  }
+  .jupeterIcon {
+    margin: 0 15px 0 0;
+    i {
+      font-size: var(--font-size-icon-big);
+    }
+  }
+  .closeICon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: var(--font-size-icon-small);
+    cursor: pointer;
+  }
+}
+
+.computeInfo {
+  font-size: var(--font-size-small);
+  margin: 20px 0;
+}
+.noteBookWrapper {
+  width:100%;
+}

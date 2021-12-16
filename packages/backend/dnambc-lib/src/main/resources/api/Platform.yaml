@@ -1,0 +1,210 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+# 
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : platform.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core platform Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "platforms"
+   description: "This service is used to maintain platform used in solutions."
+
+schemes:
+- "https"
+
+paths:
+
+# path to create a new platform and fetch all valid platforms or by intent
+#
+#  supprorted http methods GET, POST and DELETE 
+#
+# path example ../platforms
+
+ /platforms:
+  post:
+   tags:
+    - "platforms"
+   summary: "Adds a new platforms."
+   description: "Adds a new non existing platforms which is used in providing solution."
+   operationId: "create"
+   parameters:
+    - name: "PlatformRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new platform" 
+      required: true
+      schema:
+       $ref: "#/definitions/PlatformRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/PlatformVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+  get:
+   tags:
+    - "platforms"
+   summary: "Get all available platforms."
+   description:  "Get all platforms. This endpoints will be used to Get all valid available platforms maintenance records."
+   operationId: "getAll"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/PlatformCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+# path to delete existing platforms
+#
+#  supported http methods DELETE
+#
+# path examples----
+#   DELETE    .../platforms/xxx
+
+ /platforms/{id}:
+  delete:
+    tags:
+    - "platforms"
+    summary: "Deletes the platform identified by given ID."
+    description:  "Deletes the platform identified by given ID"
+    operationId: "delete"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the platform"
+        required: true
+        type: "string"
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+     
+definitions:
+ PlatformVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of Platform"
+    name:
+     type: string
+     description: "Name of the Platform"
+     minLength: 1
+#     pattern: '[a-zA-Z\s]+'
+#  required:
+#     - name
+
+ PlatformCollection: 
+  description: "Collection of Platforms."
+  type: array
+  items: 
+     $ref: "#/definitions/PlatformVO"
+ PlatformRequestVO:
+  type: object
+  properties:
+    data:
+      description: "Request data containing platform details to be created"
+      $ref: "#/definitions/PlatformVO"
+ BindingResult:
+  type: object
+ 
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"

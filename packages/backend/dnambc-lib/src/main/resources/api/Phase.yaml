@@ -1,0 +1,134 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : phase.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core phase Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "phases"
+   description: "This service is used to maintain phases used in solutions."
+
+schemes:
+- "https"
+
+paths:
+
+# Fetch all valid phases or by intent
+#
+#  supprorted http methods GET
+#
+# path example ../phases
+
+ /phases:
+  get:
+   tags:
+    - "phases"
+   summary: "Get all available phases."
+   description:  "Get all phases. This endpoints will be used to Get all valid available phases maintenance records."
+   operationId: "getAll"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/PhaseCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  post:
+   tags:
+    - "phases"
+   summary: "This method is not implemented"
+   description: "Not Implemented"
+   operationId: "createPhase"
+   parameters:
+    - name: "phaseVO"
+      in: "body"
+      description: "Request Body that contains data required for creating a new phase"
+      required: true
+      schema:
+       $ref: "#/definitions/PhaseVO"
+   responses:
+    501:
+     description: "Not Implemented"
+
+definitions:
+ PhaseVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of Phase"
+    name:
+     type: string
+     description: "Name of the Phase"
+     minLength: 1
+     pattern: '[a-zA-Z\s]+'
+  required:
+     - name
+ PhaseCollection: 
+  description: "Collection of Phases."
+  type: array
+  items: 
+     $ref: "#/definitions/PhaseVO"
+ 

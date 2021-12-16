@@ -1,0 +1,236 @@
+.mainPanel {
+  padding: 72px 0 30px 114px;
+  display: flex;
+
+  &.hasRightPanel {
+    margin-right: 184px;
+    transition: margin-right 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+
+    &.righPanelOpened {
+      margin-right: 290px;
+    }
+  }
+  .wrapper {
+    width: 100%;
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 10px;
+      .allSolExport {
+        display: flex;
+        align-items: center;
+        position: relative;
+        .contextMenu {
+          float: right;
+          margin: 0 20px 0 0;
+          color: #c0c8d0;
+
+          &.open .contextMenuTrigger {
+            z-index: 10;
+            position: relative;
+          }
+
+          .contextMenuTrigger {
+            padding: 12px 28px;
+            cursor: pointer;
+
+            &:hover {
+              color: #00adef;
+            }
+          }
+        }
+        span {
+          cursor: pointer;
+        }
+      }
+      .solutionsViewMode {
+        height: 29px;
+        display: flex;
+        align-items: center;
+        .iconactive {
+          opacity: 0.5;
+          cursor: default;
+        }
+        .dividerLine {
+          height: 25px;
+          display: inline-block;
+          background-color: #252a33;
+          height: 25px;
+          margin: 0 10px 0 5px;
+          padding: 0;
+          width: 1px;
+        }
+        img {
+          width: 27px;
+          cursor: pointer;
+        }
+      }
+      h3 {
+        margin: 0;
+        color: #dee3e8;
+        font-size: var(--font-size-section-headline);
+        padding: 0;
+      }
+    }
+    .allsolutioncontent {
+      margin-bottom: 15px;
+      flex: 1 auto;
+      position: relative;
+
+      .allsolutionCardviewContent {
+        flex-wrap: wrap;
+        display: flex;
+        justify-content: left;
+        margin-right: -30px;
+      }
+      .allsolutionListviewContent {
+        background-color: #252a33;
+        padding-top: 6px;
+        .solutionsMarginnone {
+          position: relative;
+          margin-top: 20px;
+        }
+      }
+
+      .modalContentWrapper {
+        margin-top: -20px;
+        font-size: var(--font-size-sub-headline);
+        .modalTitle {
+          margin-top: 0px;
+          text-align: center;
+        }
+        .modalContent {
+          margin-top: 20px;
+          font-size: var(--font-size-medium);
+        }
+      }
+    }
+    .solutionIsEmpty{
+      display: flex;
+      flex-direction: column;
+      height: 440px;
+      justify-content: center;
+      position: relative;
+      background-color: #252a33;
+      text-align: center;
+      .linkStyle{
+        color: #00adef;
+        &:hover{
+          cursor: pointer;
+        }
+      }
+    }
+  }
+
+  .rightPanel {
+    display: flex;
+    position: fixed;
+    right: 0;
+    height: calc(100vh - var(--header-size) - 30px);
+
+    .panelWrapper {
+      flex: 1 auto;
+      width: 0;
+      overflow: hidden;
+      transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+      margin-left: 124px;
+      opacity: 0;
+
+      &.open {
+        width: 230px;
+        margin-left: 0;
+        opacity: 1;
+        overflow: visible;
+      }
+
+      .panelContent {
+        padding: 10px 20px 20px 30px;
+        border-right: 1px solid #383f49;
+        height: 100%;
+        overflow-y: auto;
+
+        h4 {
+          font-size: var(--font-size-medium);
+          color: #c0c8d0;
+        }
+
+        > div:last-child {
+          margin-bottom: 180px;
+        }
+      }
+    }
+
+    .triggerWrapper {
+      width: 60px;
+      .iconTrigger {
+        padding: 10px 10px 10px 18px;
+        cursor: pointer;
+        display: block;
+        border-right: 4px solid transparent;
+        height: 42px;
+        margin-bottom: 20px;
+
+        &:hover i {
+          color: #00adef;
+        }
+
+        &.active {
+          border-right: 4px solid #00adef;
+        }
+
+        i {
+          font-size: var(--font-size-icon-nav);
+        }
+        .filterStatus {
+          position: absolute;
+          border: 1px solid #000000;
+          width: 10px;
+          height: 10px;
+          background-color: #00adef;
+          border-radius: 50%;
+          display: block;
+          top: 11px;
+          right: 15px;
+        }
+      }
+    }
+  }
+}
+
+:global {
+  .ul-table.solutions {
+    position: relative;
+    margin-top: 30px;
+
+    th.actionColumn {
+      width: 60px;
+    }
+
+    .data-row td {
+      &:first-child {
+        padding-left: 38px;
+        width: 30%;
+        padding: 15px 0 15px 10px;
+      }
+
+      padding: 15px 0 15px 10px;
+      font-size: var(--font-size-default);
+      max-width: 21%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &.wrap-text {
+        white-space: normal;
+      }
+    }
+  }
+}
+
+.backBtn {
+  position: relative;
+  top: 75px;
+  margin: 0 0 15px 114px;
+}
