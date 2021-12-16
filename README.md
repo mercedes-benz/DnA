@@ -1,13 +1,29 @@
 <!-- SPDX-License-Identifier: MIT -->
-# DnA (Data and Analytics Platform)
 
-## Intended Usage
+## DnA (Data and Analytics Platform) - Intended Usage
 
-⚠️ //TODO// Describe your example! Eg: This project is made for cooking the best Tiramisu. It works best with high quality ingredients and the best tools. Please describe your project as accurately and concisely as possible to help others understand your use case.
+Data & Analytics platform is a end to end solution/project mangement application. It provides capability to capture project metadata which can be further used for analysis and project tracking.
+
+Project metadata includes-
+
+1. Project description
+2. Team member information
+3. Milestone
+4. Datasources
+5. Analytics
+6. Sharing
+7. Digital Value
 
 ## Installation
 
-Please follow the [installation guide](https://github.com/Daimler/DnA/blob/master/docs/INSTALL.md) to install DnA.
+Please follow the [installation guide](./docs/SETUP-DOCKER-COMPOSE.md) to install DnA.
+
+## Upcoming Features
+
+1. Malware Scan as a Service
+2. Pipeline as a Service
+3. Jupyter Notebook as workspace
+4. Kubernetes Deployment
 
 ## Contributing
 

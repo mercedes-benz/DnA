@@ -1,0 +1,13 @@
+.alertmessage {
+  display: flex;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 50px;
+  left: 0;
+  z-index: 999999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: var(--font-size-default);
+}

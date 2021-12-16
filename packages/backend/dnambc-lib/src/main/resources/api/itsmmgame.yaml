@@ -1,0 +1,857 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#  
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : itsmmgame.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core itsmmgame Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "itsmmgame"
+   description: "This service is used to maintain ITSMM Game."
+
+schemes:
+- "https"
+
+paths:
+
+# Start ITSMM Game by invoking api
+#
+#  supprorted http methods GET, POST and DELETE 
+#
+# path example ../itsmmgame/event/{id}/....
+
+
+  /itsmmgame/event:
+    post:
+     tags:
+      - "itsmmgame"
+     summary: "start main game event."
+     description:  "Start ITSMM Game event."
+     operationId: "startGameEvent"
+     parameters:
+       - name: "hostKey"
+         in: "header"
+         description: "hostKey to authorize host access of starting game"
+         type: "string"
+         required: true
+#       - name: itsmmGameStartRequestVO
+#         in: body
+#         description: Request body to start the Game
+#         required: true
+#         schema: 
+#           $ref: "#/definitions/ItsmmGameStartStopVO"
+     responses:
+      200:
+       description: "Returns message of success or failure"
+       schema:
+         $ref: "#/definitions/ItsmmGameEventDetailsResponseVO"
+      204:
+        description: "Fetch complete, no content found."
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"
+  
+    put:
+     tags:
+      - "itsmmgame"
+     summary: "update main game event."
+     description:  "update ITSMM Game event."
+     operationId: "updateGameEvent"
+     parameters:
+       - name: "hostKey"
+         in: "header"
+         description: "hostKey to authorize host access of starting game"
+         type: "string"
+         required: "true"
+       - name: itsmmGameInfoUpdateRequestVO
+         in: body
+         description: Request body to update the Game
+         required: true
+         schema: 
+           $ref: "#/definitions/ItsmmGameEventDetailsVO"
+     responses:
+      200:
+       description: "Returns message of success or failure"
+       schema:
+         $ref: "#/definitions/ItsmmGameEventDetailsResponseVO"
+      204:
+        description: "Fetch complete, no content found."
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"
+       
+    get:
+     tags:
+      - "itsmmgame"
+     summary: "View game event info."
+     description:  "view game info."
+     operationId: "getGameEventInfo"
+     parameters:  
+       - name: "hostKey"
+         in: "header"
+         description: "hostKey to authorize user access"
+         type: "string"
+         required: true
+     responses:
+          200:
+            description: "Returns data containing game info and response message of success or failure"
+            schema:
+              $ref: "#/definitions/ItsmmGameEventDetailsResponseVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+            
+    delete:
+     tags:
+      - "itsmmgame"
+     summary: "stop game event"
+     description:  "stop game event"
+     operationId: "stopGameEvent"
+     parameters: 
+       - name: "hostKey"
+         in: "header"
+         description: "hostKey to authorize user access"
+         type: "string"
+         required: true
+#       - name: itsmmGameStartRequestVO
+#         in: body
+#         description: Request body to start the Game
+#         required: true
+#         schema: 
+#           $ref: "#/definitions/ItsmmGameStartStopVO"
+     responses:
+          200:
+            description: "Returns data containing  game info and response message of success or failure"
+            schema:
+              $ref: "#/definitions/ItsmmGameEventDetailsResponseVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+# Get results and all records of ITSMM Game by invoking api
+#
+#  supprorted http methods GET, DELETE
+#
+# path example ../itsmmgame/event/records
+# ../itsmmgame/event/results
+
+  /itsmmgame/event/records:
+    get:
+     tags:
+      - "itsmmgame"
+     summary: "Get all user records"
+     description:  "get all user records"
+     operationId: "getGameUserRecords"
+     parameters:  
+       - name: "hostKey"
+         in: "header"
+         description: "hostKey to authorize user access"
+         type: "string"
+         required: true
+     responses:
+          200:
+            description: "Returns data containing game user records"
+            schema:
+              $ref: "#/definitions/ItsmmGameUserRecordsVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+            
+    delete:
+     tags:
+      - "itsmmgame"
+     summary: "delete game records"
+     description:  "delete game records"
+     operationId: "deleteRecords"
+     parameters: 
+       - name: "hostKey"
+         in: "header"
+         description: "hostKey to authorize user access"
+         type: "string"
+         required: true
+     responses:
+          200:
+            description: "Returns after records are cleared"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+       
+  /itsmmgame/event/results:
+    get:
+     tags:
+      - "itsmmgame"
+     summary: "Get game results"
+     description:  "get game results"
+     operationId: "getGameResults"
+     parameters:  
+       - name: "hostKey"
+         in: "header"
+         description: "hostKey to authorize user access"
+         type: "string"
+         required: true
+     responses:
+          200:
+            description: "Returns data containing game results"
+            schema:
+              $ref: "#/definitions/ItsmmGameUserResultsWraperVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+            
+# Start ITSMM Game by invoking api
+#
+#  supprorted http methods GET, POST and DELETE 
+#
+# path example ../itsmmgame/event/{id}/....
+
+  /itsmmgame/event/{id}/start:
+    post:
+     tags:
+      - "itsmmgame"
+     summary: "start user game session."
+     description:  "Start ITSMM Game for user."
+     operationId: "startUserGameSession"
+     parameters:
+       - name: "id"
+         in: "path"
+         description: "user shortId"
+         required: true
+         type: "string"
+       - name: "participantKey"
+         in: "header"
+         description: "participantKey to authorize user access"
+         type: "string"
+         required: true
+     responses:
+      200:
+       description: "Returns message of succes or failure"
+       schema:
+         $ref: "#/definitions/ItsmmGameUserDetailsResponseVO"
+      204:
+        description: "Fetch complete, no content found."
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"
+     
+
+  /itsmmgame/event/{id}/info:
+    get:
+      tags:
+        - "itsmmgame"
+      summary: "Get user game details."
+      description: "Get all solutions. This endpoints will be used to get all valid available solution records."
+      operationId: "getUserGameDetails"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "user shortId"
+          required: true
+          type: "string"
+        - name: "participantKey"
+          in: "header"
+          description: "participantKey to authorize user access"
+          type: "string"
+          required: true
+      responses:
+        200:
+          description: "Returns data containing user game details and response message of success or failure"
+          schema:
+            $ref: "#/definitions/ItsmmGameUserDetailsResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+            
+  /itsmmgame/event/{id}/answer:
+    post:
+     tags:
+      - "itsmmgame"
+     summary: "submit user answer."
+     description:  "submit user answer."
+     operationId: "submitUserAnswer"
+     parameters:
+       - name: "id"
+         in: "path"
+         description: "user shortId"
+         required: true
+         type: "string"
+       - name: "participantKey"
+         in: "header"
+         description: "participantKey to authorize user access"
+         type: "string"
+         required: true
+       - name: itsmmGameSubmitAnswerRequestVO
+         in: body
+         description: Request body to submit the Game answer
+         required: true
+         schema: 
+           $ref: "#/definitions/ItsmmGameUserSubmitAnswerRequestVO"
+     responses:
+      200:
+       description: "Returns message of succes or failure"
+       schema:
+         $ref: "#/definitions/ItsmmGameUserDetailsResponseVO"
+      204:
+        description: "Fetch complete, no content found."
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"
+       
+    get:
+     tags:
+      - "itsmmgame"
+     summary: "View solution to correctAnswer."
+     description:  "view answer."
+     operationId: "viewCorrectAnswer"
+     parameters:
+       - name: "id"
+         in: "path"
+         description: "user shortId"
+         required: true
+         type: "string"  
+       - name: "participantKey"
+         in: "header"
+         description: "participantKey to authorize user access"
+         type: "string"
+         required: true
+     responses:
+          200:
+            description: "Returns data containing correct solution and response message of success or failure"
+            schema:
+              $ref: "#/definitions/ItsmmGameViewAnswerResponseVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+# path to upload a file
+#
+#  supprorted http methods GET, POST and DELETE 
+#
+# path example ../attachments
+
+  /warmup-data:
+    post:
+     tags:
+      - "itsmmgame"
+     summary: "Uploads a new file."
+     description: "Uploads file."
+     operationId: "uploadWarmUpData"
+     parameters:
+      - name: "file" 
+        in: "body" 
+        description: "Request Body that contains data or file contents" 
+        required: true
+        schema:
+         $ref: "#/definitions/MultipartFile"
+     responses:
+      201: 
+       description: "Returns message of succes or failure " 
+       schema:
+         $ref: "#/definitions/UploadResponseVO"
+      400:
+       description: "Bad Request"
+       schema:
+         $ref: "#/definitions/UploadResponseVO"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"
+       
+    get:
+      tags:
+      - "itsmmgame"
+      summary: "Downloads the file"
+      description:  "Downloads the file for the given keyName"
+      operationId: "getWarmUpData"
+      responses:
+        200:
+         description: "Successfully downloaded."
+         schema:
+           $ref: "#/definitions/ByteArrayResource"
+        400:
+         description: "Bad request"
+        401:
+         description: "Request does not have sufficient credentials."
+        403:
+         description: "Request is not authorized."
+        404:
+         description: "Invalid id, record not found."
+        500:
+         description: "Internal error"
+       
+  /task-data:
+    post:
+     tags:
+      - "itsmmgame"
+     summary: "Uploads a new file."
+     description: "Uploads file."
+     operationId: "uploadTaskData"
+     parameters:
+      - name: "file" 
+        in: "body" 
+        description: "Request Body that contains data or file contents" 
+        required: true
+        schema:
+         $ref: "#/definitions/MultipartFile"
+     responses:
+      201: 
+       description: "Returns message of succes or failure " 
+       schema:
+         $ref: "#/definitions/UploadResponseVO"
+      400:
+       description: "Bad Request"
+       schema:
+         $ref: "#/definitions/UploadResponseVO"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"
+       
+    get:
+      tags:
+      - "itsmmgame"
+      summary: "Downloads the file"
+      description:  "Downloads the file for the given keyName"
+      operationId: "getTaskData" 
+      responses:
+        200:
+         description: "Successfully downloaded."
+         schema:
+           $ref: "#/definitions/ByteArrayResource"
+        400:
+         description: "Bad request"
+        401:
+         description: "Request does not have sufficient credentials."
+        403:
+         description: "Request is not authorized."
+        404:
+         description: "Invalid id, record not found."
+        500:
+         description: "Internal error"
+         
+definitions:
+
+ UploadResponseVO:
+    type: object
+    properties:
+      fileDetails: 
+        $ref: "#/definitions/FileDetailsVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+         
+ FileDetailsVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique id of the file which is used as keyname while saving
+      fileName:
+        type: string
+        description: Defines the file name
+      fileSize:
+        type: string
+        description: Defines the size of the file
+    required:
+      - id
+      - fileName
+      - fileSize
+      
+ ItsmmGameStartStopVO:
+   type: object
+   properties:
+    data:
+     $ref: "#/definitions/ItsmmGameStartStopRequest" 
+ 
+ ItsmmGameStartStopRequest:
+  type: object
+  properties:
+    shortId:
+      type: string
+      description: user short id
+ 
+ ItsmmGameEventDetailsResponseVO:
+  type: object
+  properties: 
+    data:
+     $ref: "#/definitions/ItsmmGameEventDetailsVO"      
+    responseMessage:
+     $ref: "#/definitions/GenericMessage"
+     
+ ItsmmGameEventDetailsVO:
+  type: object
+  properties:
+    id:
+      type: string
+      description: "id of game event detail"
+    hostKey:
+      type: string
+      description: "hostKey required to authorize host to start or stop game event"
+    participantKey:
+      type: string
+      description: "participantKey required to authorize user participation in game"
+    correctAnswer:
+      type: string
+      description: "correctAnswer against which user answer gets validated"
+    gameStarted:
+      type: boolean
+      description: "boolean showing game started or not status"
+    gameStartTime:
+      type: string
+      format: date
+      description: "start time of game"
+    gameStopped:
+      type: boolean
+      description: "boolean showing game stopped or not status"
+    gameStopTime:
+      type: string
+      format: date
+      description: "stop time of game"
+    currentServerTime:
+      type: string
+      format: date
+      description: "current server time"
+
+ ItsmmGameUserDetailsVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of user-details of ItsmmGame"
+    shortId:
+     type: string
+     description: "shortId of the user"
+    userEventStartTime:
+     type: string
+     format: date
+     description: "User specific event start time" 
+    userEventEndTime:
+     type: string
+     format: date
+     description: "User specific event end time/Answer submitted time"
+    userEventStatus:
+      type: string
+      description: "User specific event status - NOTSTARTED/STARTED/SUBMITTED"
+    solutionSeen:
+     type: boolean
+     description: "Game status"
+    answer:
+     type: string
+     description: "User output - submitted answer value"
+    codeSnippet:
+     type: string
+     description: "User code script used to derive answer"
+    gameStarted:
+      type: boolean
+      description: "boolean showing game started or not status"
+    gameStartTime:
+      type: string
+      format: date
+      description: "start time of game"
+    gameStopped:
+      type: boolean
+      description: "boolean showing game stopped or not status"
+    gameStopTime:
+      type: string
+      format: date
+      description: "stop time of game"
+    currentServerTime:
+      type: string
+      format: date
+      description: "current server time"
+  required:
+     - shortId
+  
+ ItsmmGameUserSubmitAnswerRequestVO:
+  type: object
+  properties:
+    answer:
+      type: string
+      description: user answer output
+    codeSnippet:
+      type: string
+      description: code snippet used to deriver answer
+  required:
+    - answer
+    - codeSnippet
+     
+ ItsmmGameUserDetailsResponseVO:
+  type: object
+  properties:
+    data:
+      $ref: "#/definitions/ItsmmGameUserDetailsVO" 
+    responseMessage:
+      $ref: "#/definitions/GenericMessage"
+
+ ItsmmGameUserDetailsResultVO:
+  type: object
+  properties: 
+#    id:
+#     type: string
+#     description: "ID of user-details of ItsmmGame"
+    shortId:
+     type: string
+     description: "shortId of the user"
+    userEventStartTime:
+     type: string
+     format: date
+     description: "User specific event start time" 
+    userEventEndTime:
+     type: string
+     format: date
+     description: "User specific event end time/Answer submitted time"
+    userEventStatus:
+      type: string
+      description: "User specific event status - NOTSTARTED/STARTED/SUBMITTED"
+    solutionSeen:
+     type: boolean
+     description: "Game status"
+    answer:
+     type: string
+     description: "User output - submitted answer value"
+    codeSnippet:
+     type: string
+     description: "User code script used to derive answer"
+    timeTaken:
+      type: string 
+#      type: integer
+#      format: int64
+      descripton: "Time taken by user to submit answer"
+      
+ ItsmmGameUserRecordsVO:
+  type: object
+  properties:
+    data:
+      type: array
+      items:
+         $ref: "#/definitions/ItsmmGameUserDetailsResultVO"
+  
+ ItsmmGameUserResultsWraperVO:
+  type: object
+  properties:
+    data:
+        $ref: "#/definitions/ItsmmGameUserResultsVO"
+    responseMessage:
+      $ref: "#/definitions/GenericMessage"
+      
+               
+ ItsmmGameUserResultsVO:
+  type: object
+  properties: 
+      participated: 
+        type: integer
+        format: int64
+      notAnswered:
+        type: integer
+        format: int64
+      viewedSolution: 
+        type: integer
+        format: int64
+      overAllEventWinner: 
+          $ref: "#/definitions/ItsmmGameUserDetailsResultVO"
+      submittedCorrectWithoutHint:
+        type: integer
+        format: int64
+      submittedCorrectWithHint:
+        type: integer
+        format: int64
+      sortedwinnersWithoutHint:
+        type: array
+        items:
+          $ref: "#/definitions/ItsmmGameUserDetailsResultVO" 
+      sortedwinnersWithHint:
+        type: array
+        items:
+          $ref: "#/definitions/ItsmmGameUserDetailsResultVO" 
+#      luckyWinner: 
+#          $ref: "#/definitions/ItsmmGameUserDetailsResultVO"
+      
+      
+ ItsmmGameViewAnswerResponseVO:
+  type: object
+  properties:
+    data:
+      $ref: "#/definitions/ItsmmGameUserDetailsVO" 
+    correctAnswer:
+      type: string
+      description: Solution hint
+    responseMessage:
+      $ref: "#/definitions/GenericMessage"
+      
+ BindingResult:
+  type: object
+  
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+    warnings:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"

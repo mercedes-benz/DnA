@@ -1,0 +1,38 @@
+.memberListWrapper {
+  display: inline-flex;
+  color: #c0c8d0;
+  width: 50%;
+
+  &.useFullWidth {
+    width: 100%;
+  }
+
+  .avatarIcon {
+    width: 55px;
+    height: 55px;
+  }
+
+  .avatar {
+    padding: 28px 28px 28px 40px;
+  }
+
+  .details {
+    flex: 1;
+    padding: 28px 0;
+
+    h6 {
+      font-weight: bold;
+      font-size: var(--font-size-small);
+      color: #99a5b3;
+    }
+  }
+
+  .memberDetails {
+    display: flex;
+
+    > div {
+      flex: 1;
+      padding-right: 10px;
+    }
+  }
+}

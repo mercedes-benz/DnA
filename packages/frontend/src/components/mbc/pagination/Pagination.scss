@@ -1,0 +1,30 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 30px 30px 0;
+}
+.pageNumLevel {
+  margin-right: 5px;
+  margin-left: 5px;
+  color: #697582 !important;
+  &:hover {
+    cursor: pointer;
+    text-decoration: underline !important;
+  }
+}
+.pageNumebr {
+  font-size: var(--font-size-sub-headline);
+}
+.spaceLine {
+  border-bottom: #697582 1px solid;
+  padding: 0 30px;
+  margin: 5px 20px 5px 20px;
+  display: inline-block;
+  opacity: 0.3;
+}
+.active {
+  color: #d9dfe4 !important;
+  font-weight: bold;
+}

@@ -1,0 +1,121 @@
+.NotificationPanelContentesection {
+  box-shadow: 0px 5px 15px 0px rgb(0 0 0 / 15%);
+  font-size: var(--font-size-small);
+  left: -139px;
+  margin: 0;
+  padding: 0px 0;
+  position: absolute;
+  text-align: left;
+  top: 14px;
+  width: 310px;
+  background-color: #383f49;
+  .showAllNotificationLink {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    justify-content: center;
+    span {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      i {
+        margin: -5px 0 0 5px;
+      }
+      &:hover {
+        color: #00adef;
+        i {
+          color: #00adef;
+        }
+      }
+    }
+  }
+  .NotificationContenWrraper {
+    background-color: #383f49;
+    margin-top: 5px;
+    min-height: auto;
+    max-height: 320px;
+    overflow-y: auto;
+    &::-webkit-scrollbar-thumb {
+      background: #2d333c;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #383f49;
+    }
+    &::-webkit-scrollbar {
+      display: block;
+      width: 5px;
+    }
+    &::-ms-scrollbar-thumb {
+      background: #2d333c;
+      border-radius: 10px;
+    }
+    &::-ms-scrollbar-track {
+      background: #293f55;
+    }
+    &::-ms-scrollbar {
+      display: block;
+      width: 5px;
+    }
+    &::-moz-scrollbar-thumb {
+      background: #2d333c;
+      border-radius: 10px;
+    }
+    &::-moz-scrollbar-track {
+      background: #293f55;
+    }
+    &::-moz-scrollbar {
+      display: block;
+      width: 5px;
+    }
+    .NotificationPanelContent:last-child {
+      border-bottom: 1px solid transparent;
+    }
+  }
+  .uparrow {
+    border-bottom: 10px solid #383f49;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    left: 143px;
+    position: absolute;
+    top: -28px;
+    z-index: 15;
+  }
+
+  .NotificationPanelContent {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #465161;
+    padding: 13px 13px;
+    align-items: center;
+    i:first-child {
+      color: #a8a4a4;
+    }
+    .closeIcon {
+      cursor: pointer;
+      i {
+        font-size: var(--font-size-icon-small);
+        color: #dad1d1;
+      }
+    }
+    i {
+      font-size: var(--font-size-smallest);
+    }
+    .notificationDetails {
+      padding: 0 11px;
+      span {
+        color: #697582;
+      }
+      label {
+        margin: 0;
+        font-size: var(--font-size-small);
+        line-height: 16px;
+        color: #dad1d1;
+        b {
+          color: #00adef;
+          font-weight: initial;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+.footer {
+  margin-top: 30px;
+  a {
+    text-decoration: underline !important;
+    cursor: pointer;
+  }
+
+  &.forPortfolio {
+    padding: 0;
+  }
+}
+
+.flexLayout {
+  margin: 30px 185px 0 112px;
+  border-top: 1px solid #383F49;
+  display: flex;
+  justify-content: space-between;
+
+  &.forSummary {
+    margin-top: 60px;
+    margin-left: 184px;
+    padding: 0 0 var(--header-size) 0;
+  }
+}
+
+.lpFooter {
+  height: 50px;
+  padding: 0 60px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  font-size: var(--font-size-smallest);
+  background-color: #000000;
+  color: #c5c5c5;
+}
+.lpFooter a {
+  color: #c5c5c5;
+  text-decoration: underline;
+}

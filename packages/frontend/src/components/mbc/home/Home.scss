@@ -1,0 +1,237 @@
+.datmdcBanner {
+  margin-top: 0;
+  height: calc(100vh);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.lpHeadermbdbenzlogo {
+  img {
+    width: 50px;
+    width: 127px;
+  }
+}
+.lpHeadermbdlogo {
+  display: flex;
+  align-items: center;
+  img {
+    width: 42px;
+  }
+  a {
+    display: block;
+  }
+  h6 {
+    margin: 0;
+    padding-right: 10px;
+    font-size: var(--font-size-smallest);
+  }
+}
+
+.landingPage {
+  background-image: url('../../../assets/images/home-background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: initial;
+}
+.datmdcBanner:before {
+  background: linear-gradient(174deg, transparent 50%, #000000 70%);
+  bottom: 0;
+  content: '';
+  height: 100%;
+  opacity: 0.91;
+  position: absolute;
+  right: 0;
+  width: 100%;
+}
+.bannerQuickLinks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 50px;
+  margin-bottom: 40px;
+}
+.bannerDesc {
+  padding: 105px 120px 35px 120px;
+  z-index: 99;
+}
+.quicklinkCard {
+  text-transform: capitalize;
+  margin: 0px 8px;
+  padding: 0 0px 0 0;
+  position: relative;
+  min-width: 32%;
+  .isDisable {
+    a {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    &:hover {
+      i {
+        margin-left: 0px;
+      }
+    }
+  }
+}
+.quicklinkCard {
+  height: auto;
+  overflow: hidden;
+}
+.quicklinkCardNav {
+  background-color: #1c1f26;
+  padding: 10px 30px;
+  position: relative;
+  min-height: 100px;
+}
+
+.quicklinkCardtitle {
+  height: 100px;
+  display: flex;
+  font-size: var(--font-size-smallest);
+  height: 125px;
+  padding: 10px 30px;
+  z-index: 99;
+  position: relative;
+  align-items: flex-end;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+  color: #c5c5c5;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-align: left;
+  align-items: flex-start;
+  h6 {
+    font-size: var(--font-size-sub-headline);
+    color: #c5c5c5;
+    margin-bottom: 3px;
+  }
+  p {
+    color: #c5c5c5;
+    font-size: var(--font-size-smallest);
+    line-height: 16px;
+    padding-right: 150px;
+    text-transform: initial !important;
+  }
+}
+.qcardThree:before {
+  border-bottom: 1.5px solid #c5c5c5;
+  bottom: 0;
+  content: '';
+  height: 5px;
+  opacity: 0.5;
+  position: absolute;
+  width: 84%;
+  left: 30px;
+}
+.quicklinkCard .quicklinkCardtitle:after {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: #fff;
+  right: -20px;
+  bottom: -20px;
+  opacity: 0.5;
+  transition: 0.5s;
+  border-radius: 50%;
+  transform: scale(0);
+  background: -moz-linear-gradient(85deg, #18546f 0%, #070e13 109%);
+  background: -webkit-linear-gradient(85deg, #18546f 0%, #070e13 109%);
+  background: linear-gradient(85deg, #18546f 0%, #070e13 109%);
+}
+.BgTrans .quicklinkCardNav {
+  background: transparent !important;
+}
+.BgTrans:before {
+  background: transparent !important;
+}
+
+.quicklinkCard:hover .quicklinkCardtitle:after {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  transition: 0.5s;
+  transform: scale(12);
+}
+
+.Portfolio_quicklinkCardtitle_3ollf.Portfolio_qcardOne_45lmL {
+  overflow: hidden;
+}
+.qcardOne {
+  background-image: url('../../../assets/images/solutions-bg.png');
+}
+.qcardTwo {
+  background-image: url('../../../assets/images/quick-links-bg.png');
+}
+.qcardThree {
+  background-image: transparent;
+  &:after {
+    content: none !important;
+  }
+}
+
+.quicklinkCardNav ul {
+  display: flex;
+  margin: 0;
+  justify-content: space-between;
+  padding: 0;
+  font-size: var(--font-size-smallest);
+  flex-wrap: wrap;
+}
+
+.quicklinkCard {
+  width: 100%;
+}
+
+.quicklinkCard:before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background: -moz-linear-gradient(85deg, #18546f 0%, #070e13 109%);
+  background: -webkit-linear-gradient(85deg, #18546f 0%, #070e13 109%);
+  background: linear-gradient(85deg, #18546f 0%, #070e13 109%);
+  opacity: 0.91;
+}
+
+.quicklinkCardNav ul li {
+  list-style: none;
+  margin: 0 10px 0 0;
+  min-width: 44%;
+  font-size: var(--font-size-default);
+}
+.quicklinkCardNav ul li a {
+  color: #c9c6c6;
+  padding: 10px 0;
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
+}
+.quicklinkCardNav ul li a span {
+  display: flex;
+  align-items: center;
+}
+.quicklinkCardNav ul li a:hover {
+  color: #00adef !important;
+}
+.btnPrimary {
+  font-size: var(--font-size-smallest);
+  cursor: pointer;
+}
+.quicklinkCardNav ul li i {
+  transition: 0.5s;
+  font-size: var(--font-size-default);
+  margin-top: -5px !important;
+}
+.quicklinkCardNav ul li:hover i {
+  margin-left: 5px;
+  transition: 0.5s;
+}
+.modelsm {
+  min-width: 0vw !important;
+  max-width: 40vw !important;
+}
