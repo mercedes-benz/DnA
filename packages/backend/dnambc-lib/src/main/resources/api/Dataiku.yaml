@@ -1,0 +1,744 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : Dataiku.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  KURAHU
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core dataiku Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "dataiku"
+   description: "This service is used to maintain algorithms used in solutions."
+
+schemes:
+- "https"
+
+paths:
+
+# path to get list of dataiku projects
+#
+#  supprorted http methods GET
+#
+# path example ../dataiku/projects
+
+ /dataiku/projects:
+  get:
+   tags:
+    - "dataiku"
+   summary: "Get all available dataiku projects."
+   description:  "Get all dataiku projects. This endpoints will be used to Get all valid available dataiku projects."
+   operationId: "getAll"
+   parameters:
+     - name: live
+       in: query
+       description: "If requested data from live(Production) or training environment" 
+       required: true
+       type: boolean
+       default: true
+   responses:
+    200:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/DataikuProjectVOCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+# path to get dataiku project by given identifier
+#
+#  supprorted http methods GET
+#
+# path example ../dataiku/projects/{projectKey}
+
+ /dataiku/projects/{projectKey}:
+  get:
+   tags:
+    - "dataiku"
+   summary: "Get dataiku project by given identifier."
+   description:  "Get all dataiku project. This endpoints will be used to Get available dataiku project based on given identifier."
+   operationId: "getByProjectKey"
+   parameters:
+     - name: projectKey
+       in: path
+       description: "ProjectKey for which project to be fetched" 
+       required: true
+       type: string
+     - name: live
+       in: query
+       description: "If requested data from live(Production) or training environment" 
+       required: true
+       type: boolean
+       default: true  
+   responses:
+    200:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/DataikuProjectVO"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+definitions:
+ DataikuProjectVO:
+  type: object
+  properties: 
+    solutionId: 
+      type: string
+      description: "Solution id with which project is mapped"
+    projectKey:
+     type: string
+     description: "projectKey"
+    ownerLogin:
+     type: string
+     description: "ownerLogin"
+    role:
+     type: string
+     description: "role" 
+    projectType:
+     type: string
+     description: "projectType"
+    projectAppType:
+     type: string
+     description: "projectAppType"
+    tutorialProject:
+     type: boolean
+     description: "tutorialProject"
+    disableAutomaticTriggers:
+     type: boolean
+     description: "disableAutomaticTriggers"
+    commitMode:
+     type: string
+     description: "commitMode"
+    name:
+     type: string
+     description: "name"
+    projectStatus:
+     type: string
+     description: "projectStatus"      
+    isProjectAdmin:
+     type: boolean
+     description: "isProjectAdmin"
+    canReadProjectContent:
+     type: boolean
+     description: "canReadProjectContent"
+    canWriteProjectContent:
+     type: boolean
+     description: "canWriteProjectContent"
+    canModerateDashboards:
+     type: boolean
+     description: "canModerateDashboards"
+    canWriteDashboards:
+     type: boolean
+     description: "canWriteDashboards"
+    canManageDashboardAuthorizations:
+     type: boolean
+     description: "canManageDashboardAuthorizations"
+    canManageExposedElements:
+     type: boolean
+     description: "canManageExposedElements"
+    canManageAdditionalDashboardUsers:
+     type: boolean
+     description: "canManageAdditionalDashboardUsers"       
+    canExportDatasetsData:
+     type: boolean
+     description: "canExportDatasetsData" 
+    canReadDashboards:
+     type: boolean
+     description: "canReadDashboards" 
+    canRunScenarios:
+     type: boolean
+     description: "canRunScenarios" 
+    canExecuteApp:
+     type: boolean
+     description: "canExecuteApp"    
+    ownerDisplayName:
+     type: string
+     description: "ownerDisplayName"
+    objectImgHash:
+     type: number
+     description: "objectImgHash"
+    isProjectImg:
+     type: boolean
+     description: "isProjectImg"
+    defaultImgColor:
+     type: string
+     description: "defaultImgColor"   
+    imgPattern:
+     type: number
+     description: "imgPattern"
+    contributors: 
+     type: array
+     items: 
+        $ref: "#/definitions/Contributor"
+    metrics:
+     type: object
+     items:
+       $ref: "#/definitions/Metric"
+    metricsChecks:
+     type: object
+     items:
+       $ref: "#/definitions/MetricsCheck"
+    sparkPipelinesEnabled:
+     type: boolean
+     description: "sparkPipelinesEnabled"      
+    sqlPipelinesEnabled:
+     type: boolean
+     description: "sqlPipelinesEnabled"
+    versionTag:
+     type: object 
+     items:
+      $ref: "#/definitions/VersionTag"
+    creationTag:
+     type: object
+     items:
+      $ref: "#/definitions/VersionTag"   
+    shortDesc:
+     type: string
+     description: "shortDesc"
+    tags:
+     type: array
+     items:
+        type: string 
+    customFields:
+     type: object
+     items:
+      $ref: "#/definitions/CustomField"
+    checklists:
+     type: object
+     items:
+      $ref: "#/definitions/Checklist"
+
+ Checklist:
+  type: object
+  description: "Checklist"
+  properties:
+   checklists:
+    type: array
+    items:
+     $ref: "#/definitions/ChecklistInfo"
+
+ ChecklistInfo:
+  type: object
+  description: "ChecklistInfo"
+  properties:
+   title:
+    type: string
+    description: "title"
+   createdOn:
+    type: string
+    format: date
+    description: "createdOn"
+   items:
+    type: array
+    items:
+     $ref: "#/definitions/ChecklistItem"  
+
+ ChecklistItem:
+  type: object
+  description: "ChecklistItem"
+  properties:
+   done:
+    type: boolean
+    description: "done"
+   text:
+    type: string
+    description: "text"
+   createdOn:
+    type: string
+    format: date
+    description: "createdOn"
+   createdBy:
+    type: string
+    description: "createdBy"
+   stateChangedOn:
+    type: string
+    format: date
+    description: "stateChangedOn"    
+
+ CustomField:
+  type: object
+  description: "CustomField"
+  properties:
+   name:
+    type: string
+    description: "name"
+ 
+ VersionTag:
+  type: object
+  description: "VersionTag"
+  properties:
+   versionNumber:
+    type: number
+    description: "versionNumber"
+   lastModifiedBy:
+    type: object
+    items:
+     $ref: "#/definitions/LoginInfo" 
+   lastModifiedOn:
+    type: string
+    format: date
+    description: "lastModifiedOn"  
+ 
+ LoginInfo:
+  type: object
+  description: "LoginInfo"
+  properties:
+   login:
+    type: string
+    description: "login"
+   
+ 
+ MetricsCheck:
+  type: object
+  description: "MetricsCheck"
+  properties:
+   runOnBuild:
+    type: boolean
+    description: "runOnBuild"
+#   checks:
+#    type: array
+#    items:
+#     $ref: "#/definitions/Check"
+   displayedState:
+    type: array
+    items:
+     $ref: "#/definitions/MetricsCheckDisplayedState"  
+
+ MetricsCheckDisplayedState:
+  type: object
+  description: "MetricsCheckDisplayedState"
+  properties:
+   checks:
+    type: array
+    items:
+     $ref: "#/definitions/Check"
+      
+ Check:
+  type: object
+  description: "Check"
+  properties:
+   name:
+    type: string
+    description: "name"      
+ 
+ 
+ Contributor:
+  type: object
+  description: "Contributor"
+  properties:
+   login:
+    type: string
+    description: "login"
+   displayName:
+    type: string
+    description: "displayName"  
+   email:
+    type: string
+    description: "email"            
+ 
+ Metric:
+  type: object
+  description: "Metric"
+  properties:
+#   probes:
+#    type: array
+#    items:
+#     $ref: "#/definitions/Probe"
+   engineConfig:
+    type: object
+    items:
+     $ref: "#/definitions/EngineConfig"  
+   displayedState:
+    type: object
+    items:
+     $ref: "#/definitions/DisplayedState"
+   
+ Probe:
+  type: object
+  description: "Probe"
+  properties:
+   name:
+    type: string
+    description: "name"
+    
+ EngineConfig:
+  type: object
+  description: "EngineConfig"
+  properties:
+   padRunsWithMetrics:
+    type: boolean
+    description: "padRunsWithMetrics"
+   hive:
+    type: object
+    items:
+     $ref: "#/definitions/Hive"
+   basic:
+    type: object
+    items:
+     $ref: "#/definitions/Basic"  
+   dss:
+    type: object
+    items:
+     $ref: "#/definitions/Dss"
+   sql:
+    type: object
+    items:
+     $ref: "#/definitions/Active"
+   impala:
+    type: object
+    items:
+     $ref: "#/definitions/Active"  
+   spark:
+    type: object
+    items:
+     $ref: "#/definitions/Active"  
+   python:
+    type: object
+    items:
+     $ref: "#/definitions/Active"  
+   
+ Hive:
+  type: object
+  description: "Hive"  
+  properties:
+   active:
+    type: string
+    description: "active"
+#   extraConf:
+#    type: array
+#    items:
+#     $ref: "#/definitions/ExtraConf"
+ 
+ ExtraConf:
+  type: object
+  description: "ExtraConf"   
+  properties:
+   config:
+    type: string
+    description: "config"
+
+ Basic:
+  type: object
+  description: "Basic"
+  properties:
+   name:
+    type: string
+    description: "name"   
+
+ Dss:
+  type: object
+  description: "Dss"
+  properties:
+   active:
+    type: boolean
+    description: "active"
+   selection:
+    type: object
+    items:
+     $ref: "#/definitions/Selection" 
+   partitionSelectionMethod:
+    type: string
+    description: "partitionSelectionMethod"
+   latestPartitionsN:
+    type: integer
+    description: "latestPartitionsN"
+   ordering:
+    type: object
+    items:
+     $ref: "#/definitions/Ordering"  
+   samplingMethod:
+    type: string
+    description: "samplingMethod"
+   maxRecords:
+    type: integer
+    description: "maxRecords"    
+   targetRatio:
+    type: number
+    description: "targetRatio"
+   withinFirstN:
+    type: integer
+    description: "withinFirstN"
+   maxReadUncompressedBytes:
+    type: integer
+    description: "maxReadUncompressedBytes"
+       
+     
+ Selection:
+  type: object
+  description: "Selection"
+  properties:
+   useMemTable:
+    type: boolean
+    description: "useMemTable"
+   filter:
+    type: object
+    items:
+     $ref: "#/definitions/Filter"
+     
+ Filter:
+  type: object
+  description: "filter"
+  properties:
+   distinct:
+    type: boolean
+    description: "distinct"
+   enabled:
+    type: boolean
+    description: "enabled"     
+ 
+ Ordering:
+  type: object
+  description: "Ordering"
+  properties:
+   enabled:
+    type: boolean
+    description: "enabled"
+#   rules:
+#    type: array
+#    items:
+#     $ref: "#/definitions/Rule"
+  
+ Rule:
+  type: object
+  description: "Rule"
+  properties:
+   name: 
+    type: string
+    description: "name"     
+    
+ Active:
+  type: object
+  description: "active"
+  properties:
+   active:
+    type: boolean
+    description: "active"
+#   extraConf:
+#    type: array
+#    items:
+#     $ref: "#/definitions/ExtraConf"    
+     
+ DisplayedState:
+  type: object
+  description: "DisplayedState"
+  properties:
+   name:
+    type: string
+#   columns:
+#    type: array
+#    items:
+#     $ref: "#/definitions/Column"
+#   metrics:    
+#    type: array
+#    items:
+#     $ref: "#/definitions/DisplayedStateMetric"
+     
+ Column:
+  type: object
+  description: "Column"
+  properties:
+   name:
+    type: string
+    description: "name"    
+    
+ DisplayedStateMetric:
+  type: object
+  description: "DisplayedStateMetric"
+  properties:
+   name:
+    type: string
+    description: "name" 
+
+ DataikuProjectVOCollection: 
+  type: object
+  description: "Collection of ProjectVO."
+  properties:
+   totalCount:
+    type: integer
+    description: "Total Record Count"
+   data:
+    type: array
+    items: 
+      $ref: "#/definitions/DataikuProjectVO"
+ 
+ 
+ DataikuPermission:
+  type: object
+  description: "Permission object"
+  properties:
+   owner:
+    type: string
+    description: "Owner"
+   permissions:
+    type: array
+    items:
+     $ref: "#/definitions/Permission"
+#   additionalDashboardUsers:
+#    type: object
+#    items:
+#     $ref: "#/definitions/AdditionalDashboardUser"
+#   dashboardAuthorizations:
+#    type: object
+#    items:
+#     $ref: "#/definitions/DashboardAuthorization"
+      
+ Permission:
+  type: object
+  description: "Permission"
+  properties:
+   user:
+    type: string
+    description: "user"
+   group:
+    type: string
+    description: "user" 
+   admin:
+    type: boolean
+    description: "admin"
+   readProjectContent:
+    type: boolean
+    description: "readProjectContent"
+   writeProjectContent:
+    type: boolean
+    description: "writeProjectContent"
+   exportDatasetsData:
+    type: boolean
+    description: "exportDatasetsData"
+   readDashboards:
+    type: boolean
+    description: "readDashboards"
+   writeDashboards:
+    type: boolean
+    description: "writeDashboards"
+   moderateDashboards:
+    type: boolean
+    description: "moderateDashboards"
+   runScenarios:
+    type: boolean
+    description: "runScenarios"
+   manageDashboardAuthorizations:
+    type: boolean
+    description: "manageDashboardAuthorizations"
+   manageExposedElements:
+    type: boolean
+    description: "manageExposedElements"
+   manageAdditionalDashboardUsers:
+    type: boolean
+    description: "manageAdditionalDashboardUsers"
+   executeApp:
+    type: boolean
+    description: "executeApp"
+    
+    
+ DataikuUserRole:
+  type: object
+  description: "DataikuUserRole"
+  properties:
+   login:
+    type: string
+    description: "login"
+   sourceType:
+    type: string
+    description: "sourceType"
+   displayName:
+    type: string
+    description: "displayName"
+   groups:
+    type: array
+    items:
+      type: string
+   email:
+    type: string
+    description: "email"
+   userProfile:
+    type: string
+    description: "userProfile"
+ 
+ BindingResult:
+  type: object
+  
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"
+ 

@@ -1,0 +1,19 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"modelPackage": "com.daimler.data.dto.dashboard",
+	"apiPackage": "com.daimler.data.api.dashboard",
+	"invokerPackage": "com.daimler.data.service.dashboard",
+	"importMappings": {
+		"BindingResult": "org.springframework.validation.BindingResult",
+		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
+		"ByteArrayResource": "org.springframework.core.io.ByteArrayResource",
+		"MultipartFile": "org.springframework.web.multipart.MultipartFile",
+		"SolutionPhaseVO": "com.daimler.data.dto.solution.SolutionPhaseVO",
+		"DataVolumeVO": "com.daimler.data.dto.solution.DataVolumeVO",
+		"SolutionLocationVO": "com.daimler.data.dto.solution.SolutionLocationVO",
+		"CalculatedDigitalValueVO": "com.daimler.data.dto.solution.CalculatedDigitalValueVO"
+	}
+}

@@ -1,0 +1,294 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+# 
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : notebook.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core notebook Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+tags:
+ - name: "notebooks"
+   description: "This service is used for jupyter notebook operations."
+
+schemes:
+- "https"
+
+paths:
+
+# path to get details of existing notebooks using userid from authorization details in header
+#
+#  supported http methods GET
+#
+# path examples----
+#   details GET .../notebooks
+
+ /notebooks:
+   get:
+     tags:
+      - "notebooks"
+     summary: "Get notebooks details."
+     description: "Get notebooks details."
+     operationId: "getNotebookDetails"
+     responses:
+      201:
+       description: "Returns message of succes or failure"
+       schema:
+         $ref: "#/definitions/NotebookVO"
+      204:
+        description: "Fetch complete, no content found."
+      400:
+       description: "Bad request."
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"
+
+   put:
+     tags:
+      - "notebooks"
+     summary: "Edit notebook details"
+     description: "Edit notebook details."
+     operationId: "updateNotebookDetails"
+     parameters:
+      -  name: "NotebookVO"
+         in: "body"
+         description: "Request Body that contains data required for updating notebook detail"
+         required: true
+         schema:
+           $ref: "#/definitions/NotebookVO"
+     responses:
+       201:
+        description: "Successfully started."
+        schema:
+          $ref: "#/definitions/NotebookResponseVO"
+       200:
+        description: "Successfully started."
+        schema:
+          $ref: "#/definitions/NotebookResponseVO"
+       400:
+        description: "Bad request"
+       401:
+        description: "Request does not have sufficient credentials."
+       403:
+        description: "Request is not authorized."
+       404:
+        description: "Invalid id, record not found."
+       500:
+        description: "Internal error"
+        
+# Fetch solutions by intent
+#
+#  Supported http methods GET
+#
+# path example ../notebooks/{id}
+ /notebooks/{id}:
+    get:
+      tags:
+        - "notebooks"
+      summary: "Get notebook for a given Id."
+      description: "Get notebook for a given identifier. This endpoints will be used to get a notebook for a given identifier."
+      operationId: "getById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Notebook ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/NotebookVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"        
+       
+# path to start or stop existing notebooks using userid from authorization details in header
+#
+#  supported http methods POST, DEL
+#
+# path examples----
+#   start POST   .../notebooks/server?newuser=true
+#   start POST      .../notebooks/server?newuser=false
+#   stop DEL  .../notebooks/server
+
+ /notebooks/server:
+   post:
+    tags:
+    - "notebooks"
+    summary: "start existing notebooks using user"
+    description:  "start existing notebooks using user"
+    operationId: "startNotebook" 
+    parameters:
+      - name: "newUser"
+        in: "query"
+        description: "Is user new or already having existing notebook"
+        required: true
+        type: "string"
+      - name: "NotebookVO"
+        in: "body"
+        description: "Request Body that contains data required for creating a new notebook detail"
+        required: true
+        schema:
+          $ref: "#/definitions/NotebookVO"
+    responses:
+      201:
+       description: "Successfully started."
+       schema:
+         $ref: "#/definitions/NotebookResponseVO"
+      200:
+       description: "Successfully started."
+       schema:
+         $ref: "#/definitions/NotebookResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+   delete:
+    tags:
+    - "notebooks"
+    summary: "stops existing notebooks using user"
+    description:  "stop existing notebooks using user"
+    operationId: "stopNotebook"
+    responses:
+      200:
+       description: "Successfully stopped."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+     
+definitions:
+ 
+ NotebookResponseVO:
+    type: object
+    properties:
+      data: 
+        $ref: "#/definitions/NotebookVO"
+      responseMesage: 
+        $ref: "#/definitions/GenericMessage"
+      
+ NotebookVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique id of the file which is used as keyname while saving
+      name:
+        type: string
+        description: Name of notebook
+      description:
+        type: string
+        description: Description of notebook
+      createdOn:
+        type: string
+        format: date
+        description: created on date
+      userId:
+        type: string
+        description: created by user, shortid of user
+      solutionId:
+        type: string
+        description: solution id for which notebook was opened
+    required:
+      - name
+      - description
+        
+        
+ BindingResult:
+  type: object
+  
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+    warnings:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"
+ 

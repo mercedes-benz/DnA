@@ -1,0 +1,183 @@
+.mainPanel {
+  padding: 32px 184px 30px 114px;
+
+  .wrapper {
+    width: 100%;
+    position: relative;
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0px;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: var(--font-size-section-headline);
+      color: #dee3e8;
+      margin-top: 12px;
+      margin-bottom: 22px;
+      color: #dee3e8;
+    }
+  }
+
+  .content {
+    background-color: #252a33;
+    padding: 0 0 0px 0px;
+  }
+}
+.infoPopup {
+  width: 500px;
+}
+
+.contentForCodeEditor {
+  padding: 18px 38px 38px 38px;
+  .dagCodeEditorTile {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    color: #d9dfe4;
+    font-size: var(--font-size-icon-medium);
+    position: relative;
+    justify-content: center;
+    i {
+      padding-left: 10px;
+      cursor: pointer;
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
+  .dagCodeEditorContent {
+    margin: 20px 0 30px 30px;
+    border: 1.5px solid #696262;
+    padding: 30px;
+    .dagNameNotExisteDagContent {
+      color: #e84d47;
+      font-size: var(--font-size-smallest);
+      line-height: 12px;
+      padding-top: 8px;
+    }
+  }
+
+  .addBtn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .fullScr {
+    position: absolute;
+    right: 0;
+  }
+  .logo {
+    display: none;
+    img {
+      height: 40px;
+    }
+  }
+  .DagCodeError {
+    margin: 20px 0;
+    text-align: right;
+    color: #e84d47;
+    font-size: var(--font-size-smallest);
+    line-height: 12px;
+  }
+}
+
+.codeEditorFs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  margin: 0;
+  background-color: #252a33;
+  padding: 10px 24px;
+  height:100%;
+  .dagCodeEditorContent {
+    margin: 0;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    height: 76vh;
+    padding: 30px 20px;
+  }
+  .dagCodeEditorTile {
+    justify-content: center;
+    margin: 0 !important;
+    padding: 7px 0;
+  }
+  .logo {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+.actionBtn {
+  background-color: transparent;
+  border: 0;
+  font-size: var(--font-size-default);
+  i {
+    font-size: var(--font-size-icon-small);
+  }
+}
+.actionBtnDelete {
+  color: #fff !important;
+  padding: 0px 19px;
+  font-size: var(--font-size-smallest);
+  height: 25px;
+}
+.radioBtnGrp {
+  display: flex;
+  justify-content: flex-start;
+  .radioBtn {
+    display: flex;
+    justify-content: space-between;
+    label:last-child {
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+.createBtn {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.disable {
+  button {
+    background-color: #697582 !important;
+    border-color: #697582 !important;
+    cursor: default !important;
+    pointer-events: none;
+    color: #90a9c2 !important;
+  }
+}
+
+@keyframes fsbtn1 {
+  0% {
+    bottom: 10px;
+    left: 14px;
+  }
+  50% {
+    bottom: 6px;
+    left: 9px;
+  }
+  100% {
+    bottom: 10px;
+    left: 14px;
+  }
+}
+@keyframes fsbtn2 {
+  0% {
+    right: 11px;
+    top: 10px;
+  }
+  50% {
+    right: 9px;
+    top: 7px;
+  }
+  100% {
+    right: 11px;
+    top: 10px;
+  }
+}

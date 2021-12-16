@@ -1,0 +1,85 @@
+.fullScr {
+  width: 40px;
+  height: 40px;
+  color: #acb8c4;
+  border: 2px solid #3e444e;
+  margin-left: 12px;
+  position: relative;
+  cursor: pointer;
+  i {
+    color: #c0c8d0 !important;
+    font-size: var(--font-size-small) !important;
+    margin: 0 !important;
+    &:first-child {
+      position: absolute;
+      bottom: 6px;
+      left: 9px;
+      transform: rotate(134deg);
+      transition: 0.5s;
+      padding: 0 !important;
+    }
+    &:last-child {
+      position: absolute;
+      right: 9px;
+      top: 6px;
+      transform: rotate(314deg);
+      transition: 0.5s;
+      padding: 0 !important;
+    }
+  }
+  &:hover i:first-child {
+    animation: fsbtn1 1s infinite;
+  }
+  &:hover i:last-child {
+    animation: fsbtn2 1s infinite;
+  }
+}
+.fullScreenActivated {
+  .fullScr {
+    i {
+      &:last-child {
+        transform: rotate(133deg);
+        right: 4px;
+        top: 9px;
+      }
+      &:first-child {
+        transform: rotate(310deg);
+        left: 4px;
+        top: 14px;
+      }
+    }
+    &:hover i {
+      animation: none;
+    }
+  }
+}
+
+@keyframes fsbtn1 {
+  0% {
+    bottom: 6px;
+    left: 9px;
+  }
+  50% {
+    bottom: 1px;
+    left: 5px;
+  }
+  100% {
+    bottom: 6px;
+    left: 9px;
+  }
+}
+
+@keyframes fsbtn2 {
+  0% {
+    right: 9px;
+    top: 6px;
+  }
+  50% {
+    right: 5px;
+    top: 2px;
+  }
+  100% {
+    right: 9px;
+    top: 6px;
+  }
+}

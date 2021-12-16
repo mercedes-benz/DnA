@@ -1,0 +1,22 @@
+{
+  "library": "spring-mvc",
+  "dateLibrary": "legacy",
+  "hideGenerationTimestamp": true,
+  "modelPackage": "com.daimler.data.dto.userinfo",
+  "apiPackage": "com.daimler.data.api.userinfo",
+  "invokerPackage": "com.daimler.data.service.userinfo",
+  "importMappings": {
+    "BindingResult": "org.springframework.validation.BindingResult",
+    "GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+    "MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
+    "SolutionVO": "com.daimler.data.dto.solution.SolutionVO",
+    "SolutionCollectionResponseVO": "com.daimler.data.dto.solution.SolutionCollectionResponseVO",
+    "SolutionProjectStatusVO": "com.daimler.data.dto.solution.SolutionProjectStatusVO",
+    "SolutionDivisionVO": "com.daimler.data.dto.solution.SolutionDivisionVO",
+    "SolutionLocationVO": "com.daimler.data.dto.solution.SolutionLocationVO",
+    "CreatedByVO": "com.daimler.data.dto.solution.CreatedByVO",
+    "TeamMemberVO": "com.daimler.data.dto.solution.TeamMemberVO",
+    "MilestoneVO": "com.daimler.data.dto.solution.MilestoneVO",
+    "SolutionDataSourceVO": "com.daimler.data.dto.solution.SolutionDataSourceVO"
+  }
+}

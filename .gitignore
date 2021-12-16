@@ -1,0 +1,94 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+dist/
+coverage/
+/lib/
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+gradle-wrapper.jar
+*.rar
+*.tar
+*.tgz
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sqlite
+/mock/response/mock-db.json
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+database_tss_data.sql
+database_full.sql
+
+# Testing #
+###########
+/temp/
+/coverage/
+/errorShots/
+
+# IDE #
+#######
+.idea/
+*.iml
+
+# Node + NPM #
+##############
+node_modules/
+
+packages/app/package-lock\.json
+
+package-lock\.json
+project_plan.xlsx
+deployment/db/dump14112019.sql
+deployment/kubernetes/db/prod/dump14112019.sql
+deployment/kubernetes/db/dev/dump14112019.sql
+dump14112019.sql
+deployment/kubernetes/db/dev/db.sql
+Questions-To-Etecture.xlsx
+~$Questions-To-Etecture.xlsx
+deployment/kubernetes/db/dev/db.sql
+dump14112019.sql
+deployment/kubernetes/db/prod/dump26112019.sql
+deployment/build_log.txt
+~$Data@MBC_Rewrite_Project_Plan.xlsx
+Data@MBC2_final.pptx
+tests/cucumber-tests/target/*
+tests/cucumber-tests/bin/*
+tests/cucumber-tests/com.mbrd.datambc/target/*
+tests/cucumber-tests/.settings/*
+tests/cucumber-tests/.classpath
+tests/cucumber-tests/.factorypath
+tests/cucumber-tests/.project
+tests/cucumber-tests/com.mbrdi.datambc/target/test-classes/*
+
+# IGNORE SECRETS #
+*-secrets.yaml
+deployment/kubernetes/airflow/client-secret.json
+deployment/kubernetes/airflow/values-dev.yaml
+deployment/kubernetes/airflow/generated.yaml
+
+#Folders to remove
+.vscode

@@ -1,0 +1,35 @@
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .textDesc {
+    color: #697582;
+  }
+
+  .rowLine {
+    display: inline-block;
+  }
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    > div {
+      width: calc(50% - 7px);
+    }
+  }
+
+  .formWrapper {
+    margin: 60px 70px 0;
+    min-height: 200px;
+  }
+
+  .tagsWrapper {
+    margin-top: 0;
+  }
+}
+
+.wrapper {
+  background: #252a33 !important;
+  margin-top: 60px !important;
+  padding: 25px 38px;
+}

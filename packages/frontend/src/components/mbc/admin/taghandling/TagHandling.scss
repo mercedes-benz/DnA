@@ -1,0 +1,54 @@
+.mainPanel {
+  padding: 0px 0 30px 40px;
+  display: flex;
+
+  .wrapper {
+    background: #252a33;
+    flex: 1 auto;
+    .searchPanel {
+      display: flex;
+      > div {
+        margin-right: 25px;
+      }
+      .customContainer {
+        width: 220px;
+      }
+    }
+    .tablePanel {
+      margin-left: -40px;
+    }
+    h3 {
+      padding: 0 38px;
+    }
+  }
+}
+
+.modalContentWrapper {
+  margin-top: -20px;
+  font-size: var(--font-size-sub-headline);
+  .modalTitle {
+    margin-top: 0px;
+    text-align: center;
+  }
+  .modalContent {
+    margin-top: 20px;
+    font-size: var(--font-size-medium);
+  }
+}
+
+.tagIsEmpty{
+  display: flex;
+  flex-direction: column;
+  height: 440px;
+  justify-content: center;
+  position: relative;
+  background-color: #252a33;
+  text-align: center;
+  width: calc(100% - 40px);
+  .linkStyle{
+    color: #00adef;
+    &:hover{
+      cursor: pointer;
+    }
+  }
+}
