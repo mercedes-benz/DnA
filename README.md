@@ -16,9 +16,9 @@ Project metadata includes-
 
 ## Installation
 
-Please follow the [installation guide](./docs/SETUP-DOCKER-COMPOSE.md) to install DnA. Under docker only limited feature set is available - meaning only Transparency of Data & Analytics initiatives/solutions (most of other features require Kubernetes specifics so it is not possible to run it under Docker).
+If you just want to try DnA Platform please follow the [installation guide](./docs/SETUP-DOCKER-COMPOSE.md) to install it. Docker installation has only limited feature set and may not be suitable for production environment deployment. From the feature list only Transparency of Data & Analytics initiatives/solutions is available (most of other features require Kubernetes specifics so it is not possible to run it under Docker).
 
-We are currently preparing Kubernetes Helm chart (available in January 2022) where entire system will be available - including Jupyter notebooks with Kale, Apache Airflow, Kubeflow Pipeline. Stay tuned on this frequency for this :)
+For a full production installation we would recomend Kubernetes installation. We are currently preparing Kubernetes Helm chart (available in January 2022) where entire system will be available - including Jupyter notebooks with Kale, Apache Airflow, Kubeflow Pipeline. Stay tuned on this frequency for this :). In the mean time you can use previous docker instruction to deploy images in Kubernetes.
 
 ## Upcoming Features
 
