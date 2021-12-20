@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 
-## DnA (Data and Analytics Platform) - Intended Usage
+## DnA (Data and Analytics Platform)
 
 Data & Analytics platform is a end to end solution/project mangement application. It provides capability to capture project metadata which can be further used for analysis and project tracking.
 
@@ -18,7 +18,7 @@ Project metadata includes-
 
 Please follow the [installation guide](./docs/SETUP-DOCKER-COMPOSE.md) to install DnA. Under docker only limited feature set is available - meaning only Transparency of Data & Analytics initiatives/solutions (most of other features require Kubernetes specifics so it is not possible to run it under Docker).
 
-We are currently preparing Kubernetes Helm chart (available in January 2022) where entire system will be available - including Jupyter notebooks with Kale, Apache Airflow, Kubeflow Pipeline). Stay tuned on this frequency for this :)
+We are currently preparing Kubernetes Helm chart (available in January 2022) where entire system will be available - including Jupyter notebooks with Kale, Apache Airflow, Kubeflow Pipeline. Stay tuned on this frequency for this :)
 
 ## Upcoming Features
 
