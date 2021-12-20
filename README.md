@@ -10,11 +10,9 @@ After we have realized transparency feature and rolled it out, we have checked o
 
 1. Availability of data
 2. Clearity on data governance/protection todo's and their execution
-3. Having tech platform and onboarding time to it
+3. Having tech platform and onboarding time to it using full self service approach not needing anybody to do something for you
 
-Data & Analytics platform is a end to end solution/project mangement application. It provides capability to capture project metadata which can be further used for analysis and project tracking.
-
-Project metadata includes-
+Transparency feature enables you to capture project metadata which can be further used for analysis and project tracking, those project metadata includes:
 
 1. Project description (what do you want to achieve, for whom and why)
 2. Team member information (who is working in which role in this innitiative)
