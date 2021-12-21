@@ -2,11 +2,15 @@
 
 ## DnA Platform (Data and Analytics Platform)
 
-Idea of the DnA Platform originated from the common challenge every bigger company has and this is: need for a transparency. In all parts of the company you have some innitiatives working with data, learning from data and developing services based on this data which is in nature very good, but...
+Idea of the DnA Platform originated from the common challenge every bigger company has and this is: need for a transparency. 
+
+[Transparency feature](./docs/DnATransparency.md)
+
+In all parts of the company you have some innitiatives working with data, learning from data and developing services based on this data which is in nature very good, but...
 Soon you will start to notice that two parts of the company are doing very similar, if not the same, innitiative but they are not aware about each other and because of this company is focusing on to many things in a not so efficient way (eg. double spending of resources and budget).
 DnA Platform provides this kind of transparency accross organization, connecting people and sharing ideas.
 
-After we have realized [Transparency feature](./docs/DnATransparency.md) and rolled it out, we have checked other hurdles organization have to sucessfully realize data and analytics initiatives. Some of them are probably also familiar to you also:
+After we have realized transparency feature and rolled it out, we have checked other hurdles organization have to sucessfully realize data and analytics initiatives. Some of them are probably also familiar to you also:
 
 1. Availability of data
 2. Clearity on data governance/protection todo's and their execution
