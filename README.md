@@ -2,21 +2,23 @@
 
 ## DnA Platform (Data and Analytics Platform)
 
-Idea of the DnA Platform originated from the common challenge every bigger company has and this is: need for a transparency. 
+Idea of the DnA Platform originated from the common challenge every bigger company has - need for a transparency in area of data and anylytics. Soon after that further features were envisioned and realized, this time with an idea to enable self service, cloud independant platform based fully on open source that will simplify life and speed up work of everybody who is working with data. Lets look on those features DnA Platform enables you out of the box.
 
-[Transparency feature](./docs/DnATransparency.md)
+[Transparency feature](./docs/DnATransparency.md) helps you get a transparency on different initiatives and enables collaboration between people working on similar challenges
 
 After we have realized transparency feature and rolled it out, we have checked other hurdles organization have to sucessfully realize data and analytics initiatives. Some of them are probably also familiar to you also:
 
-1. Availability of data
-2. Clearity on data governance/protection todo's and their execution
-3. Having tech platform and onboarding time to it using full self service approach not needing anybody to do something for you
+1. Having tech platform to do the work and minimize onboarding time to it using full self service approach not needing anybody to do something for you
+2. Availability of data
+3. Clearity on data governance/protection todo's and their execution
 
+As already transparency feature enables users to upload certain documents we had to ensure that nobody would upload malitious document so we realized the idea of
 
+[Malware Scan As A Service](./docs/MalwareScanAsAService.md) which provides simple REST API to check all kind of different attachments for malitious code.
 
 ## Installation
 
-If you just want to try DnA Platform please follow the [installation guide](./docs/SETUP-DOCKER-COMPOSE.md) to install it. Docker installation has only limited feature set and may not be suitable for production environment deployment. From the feature list only Transparency of Data & Analytics initiatives/solutions is available (most of other features require Kubernetes specifics so it is not possible to run it under Docker).
+If you just want to try DnA Platform please follow the [installation guide](./docs/SETUP-DOCKER-COMPOSE.md) to install it. Docker installation has only limited feature set and may not be suitable for production environment deployment. From the feature list only Transparency feature of Data & Analytics initiatives/solutions is available (most of other features require Kubernetes specifics so it is not possible to run it under Docker).
 
 For a full production installation we would recomend Kubernetes installation. We are currently preparing Kubernetes Helm chart (available in January 2022) where entire system will be available - including Jupyter notebooks with Kale, Apache Airflow, Kubeflow Pipeline. Stay tuned on this frequency for this :). In the mean time you can use previous docker instruction to deploy images in Kubernetes.
 
