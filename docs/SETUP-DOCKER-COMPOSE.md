@@ -23,7 +23,7 @@ cd <<Clonned Folder>>/deployment/
 
 docker-compose -f docker-compose-local-basic.yml up
 ```
-
+Open the web site by going to http://localhost:8080 in your browser.
 If you made any changes on source files add `--build --force-recreate` args to docker-compose command.
 
 ##### Links-
