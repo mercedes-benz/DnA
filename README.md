@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 
 <p align="center">
-<img alt="DnA Logo" src="./packages/frontend/public/images/branding/logo-app.png" height="150" style="background: black;max-width: 100%;">
+<img alt="DnA Logo" src="./packages/frontend/public/images/branding/logo-app.png" height="150" style="background:black; max-width:100%">
 </p>
 <h1 align="center">DnA Platform
 <p align="center">
@@ -37,7 +37,9 @@ The [Data Pipeline Feature](./docs/DnADataPipeline.md) integrates the [Apache Ai
 
 Finally, after the data preparation, the DnA platform offers the Jupyter Notebooks as an environment to perform computations.
 
-[Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md) is based on  [JupyterHub](https://github.com/jupyterhub/jupyterhub) and enables users to start working on their models without any additional software installation. 
+[Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md) is based on  [JupyterHub](https://github.com/jupyterhub/jupyterhub) and enables users to start working on their models without any additional software installation.
+
+[Dataiku integration feature](./docs/DnADataikuWorkspace.md) is only feature that does not follow open source principle completely as Dataiku is licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration.
 
 ## Upcoming Features
 
