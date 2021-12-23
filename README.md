@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 
 <p align="center">
-<img alt="DnA Logo" src="./packages/frontend/public/images/branding/logo-app.png" height="150">
+<img alt="DnA Logo" src="./packages/frontend/public/images/branding/logo-app.png" height="150" style="background: black;max-width: 100%;">
 </p>
 <h1 align="center">DnA Platform
 <p align="center">
