@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 
 <p align="center">
-<img alt="DnA Logo" src="https://raw.githubusercontent.com/Daimler/DnA/master/packages/frontend/public/images/branding/logo-app.png?token=AFPPAHVQ4CQ3ZPV53UNTHMDBZR6OI" height="150">
+<img alt="DnA Logo" src="./packages/frontend/public/images/branding/logo-app.png" height="150">
 </p>
 <h1 align="center">DnA Platform
 <p align="center">
