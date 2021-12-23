@@ -5,13 +5,11 @@
 </p>
 <h1 align="center">DnA Platform
 <p align="center">
-<a href="#">
-<img alt="GitHub License" src="https://badgen.net/badge/license/MIT/blue">
-</a> 
-<a href="https://github.com/badges/Daimler/DnA/contributors" alt="Contributors">
-<img src="https://img.shields.io/github/contributors/Daimler/DnA" /></a>
-<a href="https://github.com/badges/Daimler/DnA/downloads" alt="Downloads">
-<img src="https://img.shields.io/github/downloads/Daimler/Dna/total" /></a>  
+<a href="https://github.com/Daimler/DnA/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Daimler/DnA?color=blue"></a>
+<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/Daimler/DnA?color=blue">
+<a href="https://github.com/Daimler/DnA/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Daimler/DnA?color=blue"></a>
+<a href="https://github.com/Daimler/DnA/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Daimler/DnA?color=blue"></a>
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/Daimler/DnA?color=blue">  
 </h1>
 </p>
 
