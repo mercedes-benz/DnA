@@ -36,7 +36,7 @@ services:
       - PROJECTSMO_DNA_APPNAME_HOME=Data and Analytics
       - PROJECTSMO_DNA_CONTACTUS_HTML=<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
       - PROJECTSMO_DNA_BRAND_LOGO_URL=/images/branding/logo-brand.png
-      - PROJECTSMO_DNA_APP_LOGO_URL=/images/branding/logo-app.png
+      - PROJECTSMO_DNA_APP_LOGO_URL=/images/branding/logo-app-white.png
     depends_on:
       - base-frontend
     ports:
