@@ -39,7 +39,7 @@ Finally, after the data preparation, the DnA platform offers the Jupyter Noteboo
 
 [Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md) is based on  [JupyterHub](https://github.com/jupyterhub/jupyterhub) and enables users to start working on their models without any additional software installation.
 
-[Dataiku integration feature](./docs/DnADataikuWorkspace.md) is only feature that does not follow open source principle completely as Dataiku is licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration.
+[Dataiku integration feature](./docs/DnADataikuWorkspace.md) is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).
 
 ## Upcoming Features
 
