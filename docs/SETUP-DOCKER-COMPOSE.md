@@ -8,7 +8,7 @@ Prerequisites for this are:
 * Docker
 * Docker Compose
 
-as a fisrt step you need to clone the Git Repo to your local computer, this is done by opening terminal/command prompt (or some visual git client you may have) and executing:
+as a first step you need to clone the Git Repo to your local computer, this is done by opening terminal/command prompt (or some visual git client you may have) and executing:
 
 ```
 git clone https://github.com/Daimler/DnA.git
