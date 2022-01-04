@@ -17,7 +17,6 @@ services:
 
   result-frontend:
     image: dna-frontend
-    platform: linux/amd64
     build:
       context: ../packages/frontend/
       dockerfile: ../../deployment/dockerfiles/app/result-frontend.Dockerfile
@@ -45,7 +44,6 @@ services:
 
   result-backend:
     image: dna-backend
-    platform: linux/amd64
     build:
       context: ../packages/backend/
       dockerfile: ../../deployment/dockerfiles/app/result-backend.Dockerfile
@@ -65,7 +63,6 @@ services:
 
   db:
     image: postgres:10
-    platform: linux/amd64
     restart: on-failure
     environment:
       - "POSTGRES_USER=admin"
