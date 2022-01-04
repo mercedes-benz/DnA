@@ -64,4 +64,4 @@ cd deployment/
 * Status: invalid from flag value dna-base:frontend: pull access denied for dna-base, repository does not exist or may require 'docker login': denied: requested access to the resource is denied, Code: 1
 ```
 
-If you are facing the above issue, it could be the reason for the timeout of node modules installed inside the docker image. Please run same the docker-compose up command again.
+If you are facing the above issue, it could be the reason for the timeout of node modules installed inside the docker image. Please run same the docker-compose up command again. Please run the same docker-compose up command again. 
