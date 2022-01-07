@@ -1,6 +1,6 @@
 #### **Set up local DnA Platform instance with docker-compose**
 
-Docker Compose will help to start the application locally on your computer and support to develop and debug as a docker container in the local machine.
+Docker Compose will help to start the application locally on your computer and support to develop and debugging as a docker container in the local machine.
 
 Prerequisites for this are:
 
@@ -14,34 +14,23 @@ as a first step you need to clone the Git Repo to your local computer, this is d
 git clone https://github.com/Daimler/DnA.git
 ```
 
-If you are using Docker Desktop Version run below command or skip this step
-
-Linux Shell
-
-```
-export DOCKER_BUILDKIT=0
-```
-
-Powershell
-
-```
-$Env:DOCKER_BUILDKIT = 0
-```
-To disable the option permanently [FAQ](./FAQ.md)
-
-Once when cloning is finalized you will have copy of the entire repository locally and now you can simply start the application with (replace <`<Cloned Folder>`> with actual location on your computer):
+Once when cloning is finalized you will have a copy of the entire repository locally (replace <`<Cloned Folder>`> with actual location on your computer) and now you can simply start the application
 
 ```
 cd <<Clonned Folder>>/deployment/
 
-docker-compose -f docker-compose-local-basic.yml build
 docker-compose -f docker-compose-local-basic.yml up
 ```
 
-Wait for a few seconds and then open the website by going to http://localhost:8080 in your browser.
-If you made any changes on source files add `--build --force-recreate` args to docker-compose command.
+Wait for a few seconds and then open the website by going to http://localhost:8080 in your browser. If you made any changes on source files add `--build --force-recreate` args to docker-compose command. If you facing any issue with docker-compose, please refer [FAQ](./FAQ.md)
 
-DnA Platform can be configured quite a lot, have a look on possible config parameters:
+To stop the application
+
+```
+docker-compose -f docker-compose-local-basic.yml down
+```
+
+DnA Platform can be configured quite a lot, have a look at possible config parameters:
 
 * [Environment Variables](./APP-ENV-CONFIG.md)
 
