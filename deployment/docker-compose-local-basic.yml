@@ -1,20 +1,5 @@
-version: "2.1"
+version: "3.5"
 services:
-  # Install yarn workspaces
-  base:
-    image: dna-base:all
-    build:
-      context: ../
-      dockerfile: ./deployment/dockerfiles/app/base.Dockerfile
-
-  base-frontend:
-    image: dna-base:frontend
-    build:
-      context: ../packages/frontend/
-      dockerfile: ../../deployment/dockerfiles/app/base-frontend.Dockerfile
-    depends_on:
-      - base
-
   result-frontend:
     image: dna-frontend
     build:
@@ -37,8 +22,6 @@ services:
       - PROJECTSMO_DNA_CONTACTUS_HTML=<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
       - PROJECTSMO_DNA_BRAND_LOGO_URL=/images/branding/logo-brand.png
       - PROJECTSMO_DNA_APP_LOGO_URL=/images/branding/logo-app-white.png
-    depends_on:
-      - base-frontend
     ports:
       - "8080:3000"
 
@@ -55,11 +38,16 @@ services:
       - ITSMM=false
       - ATTACHMENT_MALWARE_SCAN=false
       - DRD_INTERNAL_USER_ENABLED=false
-    ports:
-      - "7171:7171"
     depends_on:
       - db
-
+    ports:
+      - "7171:7171"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
 
   db:
     image: postgres:10
