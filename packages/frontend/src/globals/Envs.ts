@@ -37,45 +37,45 @@ export const Envs = {
   OAUTH2_AUTH_URL:
     getInjectedEnv('OAUTH2_AUTH_URL') ||
     process.env.OAUTH2_AUTH_URL ||
-    'https:/xxxxx.okta.com/oauth2/v1/authorize',
+    'https://xxxxx',
   OAUTH2_LOGOUT_URL:
     getInjectedEnv('OAUTH2_LOGOUT_URL') ||
     process.env.OAUTH2_LOGOUT_URL ||
-    'https:/xxxxx.okta.com/oauth2/v1/logout',
+    'https://xxxxx',
   OAUTH2_REVOKE_URL:
     getInjectedEnv('OAUTH2_REVOKE_URL') ||
     process.env.OAUTH2_REVOKE_URL ||
-    'https:/xxxxx.okta.com/oauth2/v1/revoke',
+    'https://xxxxx',
   OAUTH2_TOKEN_URL:
     getInjectedEnv('OAUTH2_TOKEN_URL') ||
     process.env.OAUTH2_TOKEN_URL ||
-    'https:/xxxxx.okta.com/oauth2/v1/token',
+    'https://xxxxx',
   OIDC_PROVIDER: getInjectedEnv('OIDC_PROVIDER') || process.env.OIDC_PROVIDER || 'INTERNAL',
   JUPYTER_NOTEBOOK_URL:
     getInjectedEnv('JUPYTER_NOTEBOOK_URL') ||
     process.env.JUPYTER_NOTEBOOK_URL ||
-    'https://xxxxx.com/notebooks',
+    'https://xxxxx',
   JUPYTER_NOTEBOOK_OIDC_POPUP_URL:
     getInjectedEnv('JUPYTER_NOTEBOOK_OIDC_POPUP_URL') ||
     process.env.JUPYTER_NOTEBOOK_OIDC_POPUP_URL ||
-    'https://xxxxx.com/notebooks/hub/oauth_login?next=',
+    'https://xxxxx',
   JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME:
     getInjectedEnv('JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME') ||
     parseInt(process.env.JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME || '5000', 10),
   DATAIKU_LIVE_APP_URL:
-    getInjectedEnv('DATAIKU_LIVE_APP_URL') || process.env.DATAIKU_LIVE_APP_URL || 'https://xxxxx.com',
+    getInjectedEnv('DATAIKU_LIVE_APP_URL') || process.env.DATAIKU_LIVE_APP_URL || 'https://xxxxx',
   DATAIKU_TRAINING_APP_URL:
     getInjectedEnv('DATAIKU_TRAINING_APP_URL') ||
     process.env.DATAIKU_TRAINING_APP_URL ||
-    'https://xxxxx.com',
+    'https://xxxxx',
   DNA_SWAGGER_UI_URL:
     getInjectedEnv('DNA_SWAGGER_UI_URL') ||
     process.env.DNA_SWAGGER_UI_URL ||
-    'https://xxxxx.com/avscan/swagger-ui.html#/',
+    'https://xxxxx',
   DATAIKU_FERRET_URL:
     getInjectedEnv('DATAIKU_FERRET_URL') ||
     process.env.DATAIKU_FERRET_URL ||
-    '***REMOVED***',
+    'https://xxxxx',
   DNA_APPNAME_HEADER: getInjectedEnv('DNA_APPNAME_HEADER') || process.env.DNA_APPNAME_HEADER || 'xxxxx',
   DNA_APPNAME_HOME: getInjectedEnv('DNA_APPNAME_HOME') || process.env.DNA_APPNAME_HOME || 'xxxxx',
   DNA_CONTACTUS_HTML:
@@ -89,12 +89,12 @@ export const Envs = {
       </p>
       <p>
         Mattermost:&nbsp;
-        <a href="***REMOVED***" target="_blank" rel="noreferrer">
-          ***REMOVED***
+        <a href="https://xxxxx" target="_blank" rel="noreferrer">
+          https://xxxxx
         </a>
       </p>
       <p>
-        Email:&nbsp;<a href="mailto:xxxxx@xxxxx.com">xxxxx@xxxxx.com</a>
+        Email:&nbsp;<a href="mailto:xxxxx">xxxxx</a>
       </p>
     </div>
   `,
