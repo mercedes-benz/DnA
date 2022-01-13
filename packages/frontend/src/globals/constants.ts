@@ -47,7 +47,7 @@ export enum SOLUTION_LOGO_IMAGE_TYPES {
   BANNER = 'banners',
 }
 
-export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://***REMOVED***';
+export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://xxxxx';
 
 export const ATTACH_FILES_TO_ACCEPT =
   '.doc,.docx,.odt,.pptx,.rtf,.pdf,.bmp,.gif,.png,.jpg,.jpeg,.csv,.xsl,.xlsx,.ppt,.txt,.zip';
