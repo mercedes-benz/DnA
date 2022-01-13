@@ -99,7 +99,7 @@ const DataikuProjects = (props: IDataikuProjectsProps) => {
       ) : (
         <div>
           There is no live project available, please create a project. In order to create a new Dataiku Live project,
-          please send an email to <a href="mailto:xxxxx@xxxxx.com">xxxxx@xxxxx.com</a>
+          please send an email to <a href="mailto:xxxxx">xxxxx</a>
           {props.showError && (
             <p className="error-message">You dont have any live dataiku project. Please create the dataiku project.</p>
           )}

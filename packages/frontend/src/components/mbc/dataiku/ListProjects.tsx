@@ -290,14 +290,14 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       <React.Fragment>
         There is no Live project available, in order to create a new Dataiku Live project, please send an email to
         &nbsp;
-        <a href="mailto:xxxxx@xxxxx.com">xxxxx@xxxxx.com</a>
+        <a href="mailto:xxxxx">xxxxx</a>
       </React.Fragment>
     );
     const liveProjectSearchEmpty = (
       <React.Fragment>
         Searched result could not be found in Live projects, in order to create a new Dataiku Live project, please send
         an email to &nbsp;
-        <a href="mailto:xxxxx@xxxxx.com">xxxxx@xxxxx.com</a>
+        <a href="mailto:xxxxx">xxxxx</a>
       </React.Fragment>
     );
     const trainingProjectEmpty = (
@@ -335,7 +335,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
           <div className={Styles.modalContent}>
             <p>
               In order to create a new Dataiku Live project, please send an email to &nbsp;
-              <a href="mailto:xxxxx@xxxxx.com">xxxxx@xxxxx.com</a>
+              <a href="mailto:xxxxx">xxxxx</a>
             </p>
           </div>
         </div>
