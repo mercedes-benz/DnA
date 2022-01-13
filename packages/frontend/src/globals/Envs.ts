@@ -76,8 +76,8 @@ export const Envs = {
     getInjectedEnv('DATAIKU_FERRET_URL') ||
     process.env.DATAIKU_FERRET_URL ||
     'https://xxxxx',
-  DNA_APPNAME_HEADER: getInjectedEnv('DNA_APPNAME_HEADER') || process.env.DNA_APPNAME_HEADER || 'xxxxx',
-  DNA_APPNAME_HOME: getInjectedEnv('DNA_APPNAME_HOME') || process.env.DNA_APPNAME_HOME || 'xxxxx',
+  DNA_APPNAME_HEADER: getInjectedEnv('DNA_APPNAME_HEADER') || process.env.DNA_APPNAME_HEADER || 'DnA App',
+  DNA_APPNAME_HOME: getInjectedEnv('DNA_APPNAME_HOME') || process.env.DNA_APPNAME_HOME || 'Data and Analytics',
   DNA_CONTACTUS_HTML:
     getInjectedEnv('DNA_CONTACTUS_HTML') ||
     process.env.DNA_CONTACTUS_HTML ||
