@@ -165,7 +165,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <p>
             You start with the{' '}
             <a
-              href="***REMOVED***"
+              href=""
               target="_blank"
               rel="noreferrer"
             >
@@ -184,7 +184,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <p>
             If yes, you fill in the{' '}
             <a
-              href="***REMOVED***"
+              href=""
               target="_blank"
               rel="noreferrer"
             >
@@ -200,7 +200,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <p>
             Your Use Case Description forms the basis for the{' '}
             <a
-              href="***REMOVED***"
+              href=""
               target="_blank"
               rel="noreferrer"
             >
@@ -216,7 +216,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <label>Step 4</label>
           <p>
             For critical Use Cases you can seek consultation from your{' '}
-            <a href="***REMOVED***" target="_blank" rel="noreferrer">
+            <a href="" target="_blank" rel="noreferrer">
               Local Compliance Officer
             </a>{' '}
             (1st level support).
@@ -364,7 +364,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             modalWidth={'35vw'}
             show={this.state.showInfoModal}
             content={contentForInfoModal}
-            moreInfoLink="***REMOVED***"
+            moreInfoLink=""
             onCancel={this.onInfoModalCancel}
           />
         )}
