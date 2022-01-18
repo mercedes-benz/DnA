@@ -17,7 +17,7 @@
 
 The idea of the DnA Platform originated from the common challenge every big company has - the need for transparency in the data and analytics area. In addition, several features were envisioned and realized, this time with the idea to enable a self-service and cloud-independent platform based holistically on open-source software. The goal is to simplify life and speed up the work of everybody who is working with data. Let's look at the features DnA Platform offers out of the box.
 
-The [Transparency feature](./docs/DnATransparency.md) feature helps you get transparency on different initiatives and enables collaboration between people working on similar challenges.
+The [Transparency feature](./docs/DnATransparency.md) helps you get transparency on different initiatives and enables collaboration between people working on similar challenges.
 
 Furthermore, there are several hurdles that organizations usually face to successfully realize data and analytics initiatives. Some of the widely common cases are:
 
