@@ -26,7 +26,6 @@ Thus, all project-related communication should happen only through these channel
 Issue-related communication should happen within the concerned issue.
 
 ## Contributions
-Currently the repo stays private but we intend to make this public in Q2-2022. 
 
 If you would like to contribute code you can do so through GitHub by forking the repository and sending a pull request.
 
