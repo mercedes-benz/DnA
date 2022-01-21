@@ -7,6 +7,7 @@
 |---------------------|-----------------------------------|---------------------------------------------|---------------------------------------------------------------------------------------------------|------------|
 | Kameshwara Rao | <kameshwara.rao@daimler.com> | [kameshbrao](https://github.com/kameshbrao)   | Daimler TSS GmbH, [imprint](https://github.com/Daimler/daimler-foss/blob/master/LEGAL_IMPRINT.md) | 2021-12-24 |
 | Josip Skafar | <josip.skafar@daimler.com> | [josipskafar](https://github.com/josipskafar)   | Daimler TSS GmbH, [imprint](https://github.com/Daimler/daimler-foss/blob/master/LEGAL_IMPRINT.md) | 2021-12-24 |
+| Konstantinos Loizas | <konstantinos.loizas@daimler.com> | [konsloiz](https://github.com/konsloiz)   | Daimler TSS GmbH, [imprint](https://github.com/Daimler/daimler-foss/blob/master/LEGAL_IMPRINT.md) | 2021-12-24 |
 
 
 ## Emeritus Maintainers
