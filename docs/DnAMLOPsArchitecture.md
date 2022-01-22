@@ -23,6 +23,6 @@ Furthermore, everything is reachable via the handy and user-friendly UI of Kubef
 
 <a name="Dna-MLOPs-Architecture">
 <p align="center">
-<img alt="DnA - MLOPs Architecture" src="./docs/images/MLOPs-Architecture.png" style="max-width:100%">
+<img alt="DnA - MLOPs Architecture" src="/docs/images/MLOPs-Architecture.png" style="max-width:100%">
 </p>
 </a>
