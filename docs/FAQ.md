@@ -77,5 +77,14 @@ result-frontend_1 | docker-start.sh: line 9: $'\r': command not found
 result-frontend_1 | docker-start.sh: line 10: $'\r': command not found
 ```
 
-If you are getting the above command not found error then, Open the docker-start.sh file in Notepad++, then look in the bottom right hand corner. You'll see "Windows (CRLF)" change it to "Unix (LF)" and this will resolve the issue.
-And if this method doesn't work then remove the extra empty lines from the script and run docker compose up command again.
+If you are getting the above command not found error then, Open the docker-start.sh file in Notepad++, then look in the bottom right-hand corner. You'll see "Windows (CRLF)" change it to "Unix (LF)" and this will resolve the issue.
+And if this method doesn't work then try to enable the WSL2 engine on the docker desktop step.
+
+#### 4. Enable WSL Engine on Docker Desktop
+
+Before enabling the WSL engine, please verify wsl engine is installed on your system. If not present download the WSL2 kernel and install it [WSL2 Package](https://docs.microsoft.com/en-us/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package).
+
+1. Start Docker Desktop from the Windows Start menu.
+2. From the Docker menu, select **Settings** >**General**.
+3. Select the **Use WSL 2 based engine** check box.
+4. Click **Apply & Restart**.
