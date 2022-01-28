@@ -8,6 +8,8 @@ Prerequisites for this are:
 * Docker
 * Docker Compose
 
+**Note:** For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL
+
 as a first step you need to clone the Git Repo to your local computer, this is done by opening terminal/command prompt (or some visual git client you may have) and executing:
 
 ```
