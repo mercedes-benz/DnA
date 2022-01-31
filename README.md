@@ -17,27 +17,16 @@
 
 The idea of the DnA Platform originated from the common challenge every big company has - the need for transparency in the data and analytics area. In addition, several features were envisioned and realized, this time with the idea to enable a self-service and cloud-independent platform based holistically on open-source software. The goal is to simplify life and speed up the work of everybody who is working with data. Let's look at the features DnA Platform offers out of the box.
 
-The [Transparency feature](./docs/DnATransparency.md) helps you get transparency on different initiatives and enables collaboration between people working on similar challenges.
+| Feature Name  | Description  | Availability in Github  | 
+|---|---|---|
+| [Solution Transparency feature](./docs/DnATransparency.md)    | Feature that enables you getting transparency on different initiatives around Data/ML/AI and collaboration between people working on similar activities.  | Since 24.12.2021  | 
+| [Malware Scan As A Service Feature](./docs/DnAMalwareScanAsAService.md)  |  Feature that provides a simple REST API to check all kinds of attachments for malicious code, abstracting the [ClamAV](https://github.com/Cisco-Talos/clamav) scanner usage and making it ready for web world.  | End of February 2022   | 
+|  [Data Pipeline Feature](./docs/DnADataPipeline.md)  | This feature integrates [Apache Airflow](https://github.com/apache/airflow) as major component in DnA Platform, enabling processing and transforming of data  |  End of February 2022  | 
+|  [Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md)  | Feature based on [JupyterHub](https://github.com/jupyterhub/jupyterhub) enables users to start working on their models without any additional software installation.   |  End of February 2022   |  
+| [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | Is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).  |   End of February 2022  |  
 
-Furthermore, there are several hurdles that organizations usually face to successfully realize data and analytics initiatives. Some of the widely common cases are:
 
-1. Usage of the self-service approach to minimize onboarding time
-2. Availability of data
-3. Clarity on data governance/protection to-do's and their execution
-
-Since the transparency feature enables users to upload certain documents and to ensure that nobody would upload malicious files, we realized the idea of Malware Scan.
-
-[Malware Scan As A Service Feature](./docs/DnAMalwareScanAsAService.md) provides a simple REST API to check all kinds of attachments for malicious code, abstracting the [ClamAV](https://github.com/Cisco-Talos/clamav) scanner usage and making it ready for web world.
-
-Processing and transforming data is the core process of every data platform.
-
-The [Data Pipeline Feature](./docs/DnADataPipeline.md) integrates the [Apache Airflow](https://github.com/apache/airflow) as major component in DnA Platform.
-
-Finally, after the data preparation, the DnA platform offers the Jupyter Notebooks as an environment to perform computations.
-
-[Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md) is based on  [JupyterHub](https://github.com/jupyterhub/jupyterhub) and enables users to start working on their models without any additional software installation.
-
-[Dataiku integration feature](./docs/DnADataikuWorkspace.md) is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).
+ 
 
 ## Upcoming Features
 
