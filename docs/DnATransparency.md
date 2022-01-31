@@ -11,3 +11,15 @@ Transparency feature enables you to capture project metadata which can be furthe
 5. Analytics (where and whit which tools/platforms are you realizing it)
 6. Sharing (haw can you share and collaborate with rest of organization)
 7. Digital Value (what is really digital value that you are planning to generate with this solution)
+
+<a name="DnA Platform - Solution transparency - All solutions">
+<p align="center">
+<img alt="DnA Platform - Solution transparency - All Solutions" src="/docs/images/DnAAllSolutions.png" style="max-width:100%">
+</p>
+</a>
+
+<a name="DnA Platform - Solution transparency -Create Solution">
+<p align="center">
+<img alt="DnA Platform - Solution transparency - Create Solution" src="/docs/images/CreateSolution.png" style="max-width:100%">
+</p>
+</a>
