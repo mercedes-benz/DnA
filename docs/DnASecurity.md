@@ -3,7 +3,7 @@
 For every major change of the DnA Architecture we are performing so called Security Profiling. 
 Security Profile provides information on the current security state of D&A Platform. 
 It serves as entry point concerning Information Security in the project and describes potential vulnerabilities as well as possible countermeasures. 
-Security profiling is performed by certified Information Security Architect. 
+Security profiling is performed by certified [Information Security Architect](https://en.wikipedia.org/wiki/Certified_Information_Systems_Security_Professional) .
 We are still evaluating how can we disclose this confidential document to the open source community. 
 For now please raise an issue to contact us for further details on this topic.  
 
