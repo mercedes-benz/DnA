@@ -75,4 +75,4 @@ Locate the "**.env**" in` root dir`, update the following properties-
 ##### Links
 
 * [About DNA deployment.](/README.md)
-* [Local run using Docker Compose](./SETUP-DOCKER-COMPOSE.md)
+* [Local run using Docker Compose](./Install.md)
