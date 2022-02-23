@@ -10,3 +10,8 @@ Notification service (bell icon) up right will keep you informed about all thing
 <img alt="DnA Platform - DnA Portal" src="/docs/images/SplashPage.png" style="max-width:100%">
 </p>
 </a>
+
+<br><br>
+Entire feature set of DnA Platform is available also directly using API’s which are located in following Swagger location after installation: <br>
+https://*yourwebsite*/swagger-ui.html
+
