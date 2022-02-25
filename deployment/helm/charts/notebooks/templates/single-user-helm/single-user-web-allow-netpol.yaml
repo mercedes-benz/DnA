@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: single-user-web-allow-netpol
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      component: singleuser-server
+  ingress:
+    - from: []
+    # - from:
+    #   - podSelector: 
+    #       matchLabels:
+    #         component: jupyter
+    # - ports:
+    #   - port: 8081
+    #   from: []
+  #   - ports:
+  #     - port: 8080
+  #       protocol: TCP
+  # policyTypes:
+  # - Ingress

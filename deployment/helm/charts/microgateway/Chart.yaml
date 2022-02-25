@@ -1,0 +1,10 @@
+apiVersion: v1
+appVersion: 3.1.4-oneapi.1
+description: Malware Scan Microgateway Service for Kubernetes.
+home: ""
+icon: https://avatars3.githubusercontent.com/u/19557821?s=200&v=4
+maintainers:
+- email: Kameshwara Rao
+  name: Kameshwara Rao
+name: microgateway
+version: 4.2.1

@@ -1,0 +1,53 @@
+# Default values for clamav.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+appName: clamav
+namespace: clamav
+app:
+  backend:
+    name: clamav-rest
+    image: ""
+    replicaCount: 1
+    secrets:
+      name: oneapi-secrets
+      onapibasicauthtoken: 
+    config:
+      clamav_backend_url: clamav-service
+      clamav_backend_port: 3310
+      max_file_size: 10MB
+      max_request_size: 11MB
+      api_request_limit: 20
+      with_in: 2
+      time_unit: seconds
+      auth_api_host: ""
+      restricted_url_pattern: /avscan/api/v1/scan.*
+      loggingPath: /tmp/clamav/log
+      loggingEnvironment: dev
+
+image: 
+  repo: ""
+  replicaCount: 1
+  pullPolicy: Always
+
+ingress:
+  host: "" 
+
+imagePullSecret: 
+  name: harbor-pull-secret
+cert:
+  certManager: ""
+
+Storage:
+  storageClass: cinder
+  accessModes: ReadWriteOnce
+  size: 5G
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1000Mi"
+    cpu: "500m"

@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: {{ .Chart.Name }}-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ .Chart.Name }}-backend
+  template:
+    metadata:
+      labels:
+        name: {{ .Chart.Name }}-backend
+    spec:
+      initContainers:
+        - name: git-clone-init
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: Always
+          volumeMounts:
+          - name: dag-repo
+            mountPath: /git
+          - name: git-secrets
+            mountPath: /git-secrets
+          command: ["/bin/sh", "-c"]
+          args: ["/tmp/airflow-git-init.sh"]
+      containers:
+        - name: {{ .Chart.Name }}-backend-rest
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: Always
+          env:
+            - name: AUTH_SERVER_URI
+              value: {{ .Values.backend.apiUrl }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.client.secret
+                  name: {{ .Values.backend.secret.name }}
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.client.id
+                  name: {{ .Values.backend.secret.name }}
+            - name: OIDC_USER_INFO_URL
+              value: {{ .Values.backend.oidcInfoUrl }}
+            - name: OIDC_TOKEN_INTROSPECTION_URL
+              value: {{ .Values.backend.oidcIntrospectionUrl }}
+            - name: OIDC_TOKEN_REVOCATION_URL
+              value: {{ .Values.backend.oidcRevocationUrl }}
+            - name: OIDC_DISABLED
+              value: {{ .Values.backend.oidcDisabled | quote }}
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: jwt.secret.key
+                  name: {{ .Values.backend.secret.name }}
+            - name: AIRFLOW_GIT_URI
+              value: {{ .Values.backend.gitUrl }}
+            - name: AIRFLOW_GIT_MOUNTPATH
+              value: {{ .Values.backend.gitMountPath }}
+            - name: AIRFLOW_GIT_TOKEN
+              valueFrom:
+                 secretKeyRef:
+                  key: airflow.git.token
+                  name: {{ .Values.backend.secret.name }}
+            - name: AIRFLOW_GIT_BRANCH
+              value: {{ .Values.backend.gitBranch }}
+            - name: DAG_PATH
+              value: {{ .Values.backend.dag.path }}
+            - name: DAG_FILE_EXTENSION
+              value: {{ .Values.backend.dag.ext }}
+            - name: JWT_BYPASS_URIS
+              value: "/api/login;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate"
+            - name: API_DB_URL
+              value: {{ .Values.backend.dbUrl }}
+            - name: API_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: airflow.db.username
+                  name: {{ .Values.backend.secret.name }}
+            - name: API_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: airflow.db.password
+                  name: {{ .Values.backend.secret.name }}
+            - name: CORS_ORIGIN_URL
+              value: {{ .Values.backend.crossOriginUrl  | quote }}
+            - name: AIRFLOW_DAG_MENU_CREATE_WAIT_TIME
+              value: {{ .Values.backend.dag.waitTime | quote }} 
+            - name: AIRFLOW_DAGMENU_CREATE_RETRY
+              value: {{ .Values.backend.dag.retry | quote }}
+            - name: LOGGING_PATH
+              value: {{ .Values.backend.loggingPath | quote }}
+            - name: LOGGING_ENVIRONMENT
+              value: {{ .Values.backend.loggingEnvironment | quote }}          
+          ports:
+            - containerPort: {{ .Values.backend.containerPort }}
+              name: api-http
+              protocol: TCP
+          resources:
+            requests:
+              memory: {{ .Values.backendResources.requests.memory | quote }}
+              cpu: {{ .Values.backendResources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.backendResources.limits.memory | quote }}
+              cpu: {{ .Values.backendResources.limits.cpu | quote }}
+          volumeMounts:
+            - mountPath: /git
+              name: dag-repo
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+        runAsGroup: 1000
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}
+      volumes:
+        - name: dag-repo
+          persistentVolumeClaim:
+            claimName: {{ .Chart.Name }}-dags
+        - name: git-secrets
+          secret:
+            secretName: {{ .Chart.Name }}-git-sync-secret
