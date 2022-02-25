@@ -1,6 +1,6 @@
 # How to convert a Jupyter Notebook into a Kubeflow Pipeline
 
-*The DnA platform offers a holistic open-source [MLOps pipeline](https://github.com/mercedes-benz/DnA/blob/kubeflow-tutorial-pipelines/docs/DnAMLOPsArchitecture.md) utilizing existing FOSS solutions. This tutorial demonstrates the three simple steps required for the conversion of a Jupyter Notebook into a [Kubeflow Pipeline](https://github.com/kubeflow/pipelines) using [Kale](https://github.com/kubeflow-kale/kale) directly from the DnA Platform enviroment.*
+*The DnA platform offers a holistic open-source [MLOps pipeline](https://github.com/mercedes-benz/DnA/blob/kubeflow-tutorial-pipelines/docs/DnAMLOPsArchitecture.md) utilizing existing FOSS solutions. This tutorial demonstrates the three simple steps required for the conversion of a Jupyter Notebook into a [Kubeflow Pipeline](https://github.com/kubeflow/pipelines) using [Kale](https://github.com/kubeflow-kale/kale) directly from the DnA Platform environment.*
 
 **Step 1**:
 
