@@ -1,0 +1,7 @@
+{
+  "flag_simulate": false,
+  "azure_ad_connection": {
+    "mode": "PRESET",
+    "name": "{{azure_ad_sync_preset_name}}"
+  }
+}
