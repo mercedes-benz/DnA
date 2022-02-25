@@ -1,0 +1,29 @@
+{
+    "id": "azure-ad-project",
+    "version": "1.0.11",
+    "meta": {
+        "label": "Azure Active Directory Project",
+        "description": "Generating project structure expected by Azure AD Integration",
+        "author": "admin",
+        "icon": "icon-windows",
+        "tags": ["Azure", "Cloud", "Governance"],
+        "url": "",
+        "licenseInfo": "Apache Software License"
+    },
+    "params": [
+        {
+            "name": "group_prefix",
+            "label": "Group Prefix",
+            "type": "STRING",
+            "description": "Group names in AD should start with this prefix to grant permissions for this Dataiku instance",
+            "mandatory": true
+        },
+        {
+            "name": "is_automation_node",
+            "label": "Is automation node flag",
+            "type": "STRING",
+            "defaultValue": "false",
+            "description": "Flag to specify whether the plugin will be installed on automation node or somewhere else"
+        }
+    ]
+}
