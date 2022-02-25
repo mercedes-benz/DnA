@@ -1,0 +1,16 @@
+.journal
+.mainlock
+.wlock
+.ts
+.git
+*.pyc
+.coverage
+.htmlcov
+.DS_Store
+.idea
+.pytest_cache
+.vscode
+dist
+python-tests
+setup.cfg
+test-env

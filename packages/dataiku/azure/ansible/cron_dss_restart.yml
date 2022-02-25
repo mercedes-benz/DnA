@@ -1,0 +1,22 @@
+---
+- hosts: all
+  gather_facts: false
+  become: true
+
+  tasks:
+  - name: Stop cron process
+      cron:
+        name: "Restart Dataiku"
+        state: absent
+      tags: [stop_schedule_dataiku_restart]
+      
+    - name: Start cron process.
+      cron:
+        name: "Restart Dataiku"
+        minute: "0"
+        hour: "4"
+        day: "*"
+        month: "*"
+        weekday: "0"
+        job: "/etc/init.d/dataiku restart"
+      tags: [start_schedule_dataiku_restart]

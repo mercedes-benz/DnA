@@ -1,0 +1,13 @@
+{
+    "id": "azure-ad-sync",
+    "version": "1.0.7",
+    "meta": {
+        "label": "Azure Active Directory Sync",
+        "description": "Syncing DSS users with AAD groups",
+        "author": "Dataiku",
+        "icon": "icon-windows",
+        "tags": ["Azure", "Cloud", "Governance"],
+        "url": "https://www.dataiku.com/product/plugins/azure-ad-sync/",
+        "licenseInfo": "Apache Software License"
+    }
+}
