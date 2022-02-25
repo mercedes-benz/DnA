@@ -1,0 +1,9 @@
+version: "2.1"
+services:
+    
+  dashboard-backend:
+    image: ${DASHBOARD_BACKEND:-dashboard_backend}
+    build:
+      context: ../packages/dashboard-backend/
+      dockerfile: $PWD/dockerfiles/dashboard/dashboard-backend.Dockerfile
+  
