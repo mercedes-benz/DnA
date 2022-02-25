@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "airflow-git-sync.name" . }}
+  namespace: {{ .Values.namespace }}
+data:
+  GIT_SYNC_REPO: {{ .Values.gitSync.repo }}
+  GIT_SYNC_DEST: {{ .Values.gitSync.dest }}
+  GIT_SYNC_BRANCH: {{ .Values.gitSync.branch }}
+  GIT_SYNC_SSH: {{ .Values.gitSync.ssh | quote }}
+  GIT_SYNC_ROOT: {{ .Values.gitSync.root }}

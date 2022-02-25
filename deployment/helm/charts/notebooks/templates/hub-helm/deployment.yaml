@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hub
+  namespace: {{ .Values.namespace }}
+  labels:
+    component: jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: jupyter
+  template:
+    metadata:
+      labels:
+        component: jupyter
+    spec:
+      serviceAccountName: hub
+      containers:
+        - name: jupyter-hub
+          image: {{ .Values.app.image.name }}
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          command: ["jupyterhub", "--config", "/srv/jupyterhub/jupyterhub_config.py"]
+          ports:
+            - containerPort: 8081
+          env:
+            - name: CONFIGPROXY_AUTH_TOKEN
+              value: {{ .Values.app.jupyter.config.configproxy_auth_token | quote }}
+            - name: KF_PIPELINES_ENDPOINT
+              value: {{ .Values.app.jupyter.config.kf_pipelines_endpoint}}:80   
+          volumeMounts:
+            - mountPath: /srv/jupyterhub/jupyterhub_config.py
+              subPath: jupyterhub_config.py
+              name: {{ .Values.app.ConfigMapName.name }}
+            #- mountPath: /etc/jupyterhub/config/
+            #  name: config
+            #- mountPath: /etc/jupyterhub/secret/
+            #  name: secret
+            - mountPath: /svr/jupyterhub/
+              name: hub-db-dir
+          resources:
+            requests:
+              cpu: 100m
+      securityContext:
+        runAsUser: 1000
+      volumes:
+        - name: {{ .Values.app.ConfigMapName.name }}
+          configMap:
+            name: {{ .Values.app.ConfigMapName.name }}
+        #- name: config
+        #  configMap:
+        #    name: {{ .Values.app.ConfigMapName.name }}
+        #- name: secret
+        #  secret:
+        #    secretName: hub-secret
+        - name: hub-db-dir
+          persistentVolumeClaim:
+            claimName: hub-db-dir
