@@ -1,0 +1,6 @@
+{
+  "dssApiKey": "{{dataiku_api_key.stdout}}",
+  "dssHost": "http://localhost:{{dss_port}}",
+  "group_prefix": "{{dss_instance_id}}",
+  "aut_node_ssl_chain": "{{aut_node_ssl_chain}}"
+}
