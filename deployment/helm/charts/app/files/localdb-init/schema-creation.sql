@@ -101,7 +101,7 @@ ALTER TABLE dai_admin.parameters_history OWNER TO admin;
 --
 
 CREATE TABLE public.algorithm_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -113,7 +113,7 @@ ALTER TABLE public.algorithm_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.appsubscription_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -125,7 +125,7 @@ ALTER TABLE public.appsubscription_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.benefitrelevance_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -137,7 +137,7 @@ ALTER TABLE public.benefitrelevance_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.businessgoal_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -149,7 +149,7 @@ ALTER TABLE public.businessgoal_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.category_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -161,7 +161,7 @@ ALTER TABLE public.category_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.dataiku_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -173,7 +173,7 @@ ALTER TABLE public.dataiku_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.datasource_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -185,7 +185,7 @@ ALTER TABLE public.datasource_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.datavolume_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -197,7 +197,7 @@ ALTER TABLE public.datavolume_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.division_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -209,7 +209,7 @@ ALTER TABLE public.division_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.itsmmgameeventdetails_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -221,7 +221,7 @@ ALTER TABLE public.itsmmgameeventdetails_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.itsmmgameuserdetails_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -233,7 +233,7 @@ ALTER TABLE public.itsmmgameuserdetails_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.language_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -245,7 +245,7 @@ ALTER TABLE public.language_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.location_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -257,7 +257,7 @@ ALTER TABLE public.location_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.maturitylevel_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -269,7 +269,7 @@ ALTER TABLE public.maturitylevel_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.notebook_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -281,7 +281,7 @@ ALTER TABLE public.notebook_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.phase_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -293,7 +293,7 @@ ALTER TABLE public.phase_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.platform_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -305,7 +305,7 @@ ALTER TABLE public.platform_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.projectstatus_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -317,7 +317,7 @@ ALTER TABLE public.projectstatus_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.relatedproduct_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -329,7 +329,7 @@ ALTER TABLE public.relatedproduct_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.result_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -341,7 +341,7 @@ ALTER TABLE public.result_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.solution_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -353,7 +353,7 @@ ALTER TABLE public.solution_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.strategicrelevance_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -365,7 +365,7 @@ ALTER TABLE public.strategicrelevance_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.tag_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -377,7 +377,7 @@ ALTER TABLE public.tag_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.topic_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -389,7 +389,7 @@ ALTER TABLE public.topic_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.userinfo_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL,
     is_logged_in character varying,
     token character varying
@@ -403,7 +403,7 @@ ALTER TABLE public.userinfo_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.userrole_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -415,7 +415,7 @@ ALTER TABLE public.userrole_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.userwidgetpref_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -427,7 +427,7 @@ ALTER TABLE public.userwidgetpref_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.visualization_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
@@ -439,9 +439,29 @@ ALTER TABLE public.visualization_nsql OWNER TO admin;
 --
 
 CREATE TABLE public.widget_nsql (
-    id text NOT NULL,
+    id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
 
 
 ALTER TABLE public.widget_nsql OWNER TO admin;
+
+--
+-- DDL Script start
+--
+
+create table public.datastrategydomain_nsql
+(
+id TEXT primary key,
+data jsonb not null
+);
+
+create table public.skill_nsql
+(
+id TEXT primary key,
+data jsonb not null
+);
+
+--
+-- DDL Script end
+--
