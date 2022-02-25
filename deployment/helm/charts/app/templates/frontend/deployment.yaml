@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}frontend
+    zone: web
+    
+spec:
+  replicas: {{ .Values.app.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}frontend
+  template:
+    metadata:
+      labels:
+        zone: web
+        app: {{ .Values.appName }}frontend
+    spec:
+      containers:
+        - env:
+          - name: PROJECTSMO_BACKEND_HOST
+            value: {{ .Values.appName }}backend
+          - name: PROJECTSMO_BACKEND_PORT
+            value: "80"
+          - name: PROJECTSMO_FRONTEND_OIDC_DISABLED
+            value: {{ .Values.app.frontend.config.oidcdisabled | quote }}
+          - name: OIDC_DISABLED
+            value: {{ .Values.app.frontend.config.oidcdisabled | quote }}
+          - name: OIDC_PROVIDER
+            value: {{ .Values.app.frontend.config.oidcprovider | squote }}
+          - name: PROJECTSMO_DEPLOY_VERSION
+            value: "0.91"
+          - name: PROJECTSMO_FRONTEND_API_BASEURL
+            value: {{ .Values.app.frontend.config.apibaseurl }}
+          - name: PROJECTSMO_FRONTEND_OAUTH2_TOKEN_URL
+            value: {{ .Values.app.frontend.config.oauth2tokenurl }}
+          - name: PROJECTSMO_FRONTEND_OAUTH2_AUTH_URL
+            value: {{ .Values.app.frontend.config.oauth2authurl }}
+          - name: PROJECTSMO_FRONTEND_OAUTH2_REVOKE_URL
+            value: {{ .Values.app.frontend.config.oauth2revokeurl }}
+          - name: PROJECTSMO_FRONTEND_OAUTH2_LOGOUT_URL
+            value: {{ .Values.app.frontend.config.oauth2logouturl }}
+          - name: PROJECTSMO_FRONTEND_OAUTH2_INTROSPECTION_URL
+            value: {{ .Values.app.frontend.config.oauth2introspectionurl }}
+          - name: PROJECTSMO_FRONTEND_OAUTH2_USERINFO_URL
+            value: {{ .Values.app.frontend.config.oauth2userinfourl }}
+          - name: PROJECTSMO_FRONTEND_CLIENT_IDS
+            value: dce5fd33-360d-45fb-8611-0da9440047d2
+          - name: PROJECTSMO_FRONTEND_REDIRECT_URLS
+            value: {{ .Values.app.frontend.config.redirecturls }}
+          - name: PROJECTSMO_JUPYTER_NOTEBOOK_URL
+            value: {{ .Values.app.frontend.config.jupyternotebookurl }}
+          - name: PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_URL
+            value: {{ .Values.app.frontend.config.jupyternotebookoidcpopupurl | quote }}
+          - name: PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME
+            value: "5000"
+          - name: PROJECTSMO_DATAIKU_LIVE_APP_URL
+            value: {{ .Values.app.frontend.config.dataikuliveappurl }}
+          - name: PROJECTSMO_DATAIKU_TRAINING_APP_URL
+            value: {{ .Values.app.frontend.config.dataikutrainingappurl }}
+          - name: PROJECTSMO_MALWARE_SCAN_SWAGGER_UI_URL
+            value: {{ .Values.app.frontend.config.dnaswaggeruiurl }}
+          - name: PROJECTSMO_DATAIKU_FERRET_URL
+            value: {{ .Values.app.frontend.config.dataikuferreturl }}
+          - name: 'PROJECTSMO_DNA_APPNAME_HEADER'
+            value: {{ .Values.app.frontend.config.dnaappnameheader | squote }}
+          - name: 'PROJECTSMO_DNA_APPNAME_HOME'
+            value: {{ .Values.app.frontend.config.dnaappnamehome | squote }}
+          - name: 'PROJECTSMO_DNA_CONTACTUS_HTML'
+            value: {{ .Values.app.frontend.config.dnacontactushtml | squote }}
+          - name: 'PROJECTSMO_DNA_BRAND_LOGO_URL'
+            value: {{ .Values.app.frontend.config.dnabrandlogourl | squote }}
+          - name: 'PROJECTSMO_DNA_APP_LOGO_URL'
+            value: {{ .Values.app.frontend.config.dnaapplogourl | squote }} 
+          - name: 'PROJECTSMO_ENABLE_INTERNAL_USER_INFO'
+            value: {{ .Values.app.frontend.config.enableinternaluserinfo | squote }}  
+          - name: 'PROJECTSMO_ENABLE_DATA_COMPLIANCE'
+            value: {{ .Values.app.frontend.config.enabledatacompliance | squote }}
+          - name: 'PROJECTSMO_ENABLE_REPORTS'
+            value: {{ .Values.app.frontend.config.enabledreports | squote }}   
+          - name: 'PROJECTSMO_ENABLE_JUPYTER_WORKSPACE'
+            value: {{ .Values.app.frontend.config.enablejupyterworkspace | squote }} 
+          - name: 'PROJECTSMO_ENABLE_DATAIKU_WORKSPACE'
+            value: {{ .Values.app.frontend.config.enabledataikuworkspace | squote }} 
+          - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE'
+            value: {{ .Values.app.frontend.config.enablemalwareservice | squote }} 
+          - name: 'PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE'
+            value: {{ .Values.app.frontend.config.enabledatapipelinservice | squote }} 
+          - name: 'PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE'
+            value: {{ .Values.app.frontend.config.enabledmlpipelineservice | squote }}
+          - name: 'PROJECTSMO_ML_PIPELINE_URL'
+            value: {{ .Values.app.frontend.config.mlpipelineurl | squote }}  
+          - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_ONEAPI_INFO'
+            value: {{ .Values.app.frontend.config.enablemalwareapiinfo | squote }}  
+          - name: 'PROJECTSMO_DNA_COMPANY_NAME' 
+            value: {{ .Values.app.frontend.config.dnacompanyname | squote }} 
+          - name: 'PROJECTSMO_ENABLE_NOTIFICATION'
+            value: {{ .Values.app.frontend.config.enablenotification | squote }}
+          image: {{ .Values.app.frontend.image }}
+          imagePullPolicy: Always
+          name: frontend
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: {{ .Release.Name }}-configmap
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          resources: {}
+      securityContext:
+        runAsUser: 1001
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}
+      volumes:
+        - name: {{ .Release.Name }}-configmap
+          configMap:
+            name: {{ .Release.Name }}-configmap

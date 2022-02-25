@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.image.replicaCount }}
+  selector:
+    matchLabels:
+      name: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: clamd
+          image: {{ .Values.image.repo }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # env:
+          #   - name: UPDATE
+          #     value: "false"
+          ports:
+            - containerPort: 3310
+              name: api
+              protocol: TCP
+          resources: {}
+          # volumeMounts:
+          #   - mountPath: /var/lib/clamav
+          #     name: avdata
+          # livenessProbe:
+          #   exec:
+          #     command:
+          #     - /readyness.sh
+          #   initialDelaySeconds: 20
+          #   timeoutSeconds: 2
+        # - name: freshclam
+        #   image: ""
+        #   imagePullPolicy: Always
+        #   env:
+        #     - name: UPDATE_ONLY
+        #       value: "true"
+        #   resources: {}
+        #   volumeMounts:
+        #   - mountPath: /var/lib/clamav
+        #     name: avdata
+        #   livenessProbe:
+        #     exec:
+        #       command:
+        #       - /readyness.sh
+        #     initialDelaySeconds: 20
+        #     timeoutSeconds: 2
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}
+      # volumes:
+      #   - name: avdata
+      #     persistentVolumeClaim:
+      #       claimName: clamav-db-dir
+

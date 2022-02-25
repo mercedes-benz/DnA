@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: {{ .Chart.Name }}-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ .Chart.Name }}-backend
+  template:
+    metadata:
+      labels:
+        name: {{ .Chart.Name }}-backend
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-service
+          image: {{ .Values.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: API_DB_URL
+              value: {{ .Values.dbUrl }}
+            - name: API_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.username
+                  name: {{ .Values.secret.name }}
+            - name: API_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.password
+                  name: {{ .Values.secret.name }}
+            - name: DNA_URI
+              value: {{ .Values.appUrl }}
+            - name: DNA_AUTH_ENABLE
+              value: {{ .Values.enableAuth | quote}}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+              name: api
+              protocol: TCP
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "airflow-logs" . }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/resource-policy": {{ .Values.volumes.airflowLogsClaim.resourcePolicy }}
+spec:
+  accessModes:
+    - {{ .Values.volumes.airflowLogsClaim.accessMode }}
+  storageClassName: {{ .Values.volumes.airflowLogsClaim.storage.className }}
+  resources:
+    requests:
+      storage: {{ .Values.volumes.airflowLogsClaim.storage.size}}

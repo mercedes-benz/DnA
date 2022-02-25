@@ -9,13 +9,15 @@ services:
       - PROJECTSMO_BACKEND_HOST=result-backend
       - PROJECTSMO_FRONTEND_OIDC_DISABLED=true
       - PROJECTSMO_FRONTEND_API_BASEURL=http://localhost:7171/api
-      - PROJECTSMO_ENABLEINTERNALUSERINFO=false
-      - PROJECTSMO_ENABLEDATACOMPLIANCE=false
-      - PROJECTSMO_ENABLEJUPYTERWORKSPACE=false
-      - PROJECTSMO_ENABLEDATAIKUWORKSPACE=false
-      - PROJECTSMO_ENABLEMALWARESERVICE=false
-      - PROJECTSMO_ENABLEPIPELINSERVICE=false
-      - PROJECTSMO_DNA_COMPANYNAME=Company_Name
+      - PROJECTSMO_ENABLE_INTERNAL_USER_INFO=false
+      - PROJECTSMO_ENABLE_DATA_COMPLIANCE=false
+      - PROJECTSMO_ENABLE_REPORTS=false
+      - PROJECTSMO_ENABLE_JUPYTER_WORKSPACE=false
+      - PROJECTSMO_ENABLE_DATAIKU_WORKSPACE=false
+      - PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE=false
+      - PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE=false
+      - PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE=false
+      - PROJECTSMO_DNA_COMPANY_NAME=Company_Name
       - PROJECTSMO_DEPLOY_VERSION=0.91
       - PROJECTSMO_DNA_APPNAME_HEADER=DnA App
       - PROJECTSMO_DNA_APPNAME_HOME=Data and Analytics
@@ -58,7 +60,7 @@ services:
       - "POSTGRES_DB=db"
     # Init db on startup
     volumes:
-      - ./localdb-init/schema.sql:/docker-entrypoint-initdb.d/01-schema-init.sql
-      - ./localdb-init/data.sql:/docker-entrypoint-initdb.d/02-data-init.sql
+      - ./kubernetes/helm/charts/app/files/localdb-init/schema-creation.sql:/docker-entrypoint-initdb.d/01-schema-init.sql
+      - ./kubernetes/helm/charts/app/files/localdb-init/schema-data.sql:/docker-entrypoint-initdb.d/02-data-init.sql
     ports:
       - "5432:5432"

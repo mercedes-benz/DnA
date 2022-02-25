@@ -1,0 +1,134 @@
+# Default values for microgateway.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+# Proxy to use. For a list, see:
+proxy: ""
+noProxy: ""
+
+replicaCount: 1
+
+apigee:
+  # environment variables 
+  debug: "*" # Enable DEBUG mode with "*"
+  key: 
+  secret: 
+  org: internal
+  env: development
+  # if introspection is required add the introspection credentials
+  #introspection_client_id: 
+  #introspection_client_secret: 
+  
+  # validate target https certificates (1=enabled; 0=disabled)
+  node_tls_reject_unauthorized: 1
+
+  certs:
+    # key and cert will be mount under /home/node/certs/[host].key|.cert
+    # - host: example.org
+    #  key: put base64 encoded key here
+    #  cert: put base64 encoded certificate here
+  config:
+    # content of apigee config. Make sure that the whole content has the correct indent of two spaces!
+    # edge_config, analytics and oauth is already defined
+    edgemicro:
+      port: 8080
+      max_connections: 1000
+      max_connections_hard: 5000
+      max_times: 300
+      config_change_poll_interval: 86400
+      logging:
+        to_console: true
+        level: debug
+        stack_trace: false
+      plugins:
+        sequence:
+          - cors-oneapi
+          - spikearrest
+          #- introspection
+          # ApiKey Security needs 'oauth' plugin. Confusing. I know.
+          - oauth
+          #- quota
+          #- app-to-header
+          - backend-basicauth
+          #- backend-jwt
+      proxies:
+        # References an Apigee Proxy Configuration
+        ###################################
+        # !!! REPLACE WITH YOUR PROXY !!! #
+        ###################################
+        - edgemicro_malwarescanapi_v1
+      # In case a proxy is needed for accessing the API backend (target-server)
+      proxy:
+        url:
+        enabled: false    
+    headers:
+      x-forwarded-for: true
+      x-forwarded-host: true
+      x-request-id: true
+      x-response-time: true
+      via: true
+    backend-basicauth:
+      username: 'admin'
+      password: 'password123'
+    cors-oneapi:
+      cors-allow-credentials: true
+    backend-jwt:
+      header_attribute_name: x-claims
+      sign_secret: 'my-secret'
+      claims:
+        - iss
+        - sub
+        - client_id
+        - scope
+        - app_name
+        - custom_client_identification
+    spikearrest:
+      timeUnit: minute
+      allow: 6000
+      bufferSize: 600
+    # client certificate configuration
+    # targets:
+    #   - host: 'example.org'
+    #     ssl:
+    #       client:
+    #         key: /home/node/certs/example.org.key # Don't change this, will be set via certs.key
+    #         cert: /home/node/certs/example.org.crt # Don't change this, will be set via certs.cert
+    #         passphrase: 'optional'
+
+image:
+  repository: ""
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30005
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+   cpu: 100m
+   memory: 128Mi
+  requests:
+   cpu: 100m
+   memory: 128Mi
+
+# Optionaly an ingress route can be defined. Routing options are configured in here.
+ingress:
+  enabled: true
+  basePath: /malware-scan/api/v1
+  # Define a list of hosts for the routing. If an empty list is provided routing will be enabled for all hostnames
+  hosts: [" "]
+  # Ingress annotation e.g. for rewriting the target proxy-basepath with traefik
+  annotations: {}
+    #traefik.ingress.kubernetes.io/rewrite-target: /malware_scan_api
+  # Add custom labels to ingress route
+  labels: {}
