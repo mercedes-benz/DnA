@@ -175,6 +175,8 @@ clamav:
     pullPolicy: Always
   ingress:
     host: "" 
+  imagePullSecret: 
+    name: harbor-pull-secret
   cert:
     certManager: acme
   resources:
@@ -228,6 +230,8 @@ naas:
       
   ingress:
     host: ""
+  imagePullSecret: 
+   name: harbor-pull-secret
   cert:
     certManager: acme
   
@@ -297,6 +301,8 @@ dashboard:
     appPassword: ""
   appUrl: http://dna-backend-service.dna.svc.cluster.local:80
   enableAuth: true
+  imagePullSecret: 
+    name: harbor-pull-secret
   cert:
     certManager: acme
   host: ""
@@ -312,6 +318,8 @@ dashboard:
 airflow:
   enabled: false
   namespace: airflow
+  imagePullSecret: 
+    name: harbor-pull-secret
   cert:
     certManager: acme
   backend:
@@ -426,6 +434,16 @@ microgateway:
 vault:
   enabled: false
   namespace: vault
+  global:
+  # enabled is the master enabled switch. Setting this to true or false
+  # will enable or disable all the components within this chart by default.
+    enabled: true
+  # Image pull secret to use for registry authentication.
+    imagePullSecrets: [ ]
+  # imagePullSecrets:
+  #   - name: image-pull-secret
+  # TLS for end-to-end encrypted transport
+  tlsDisable: true
   server:
     image:
       repository: /docker.io_vault
