@@ -6,7 +6,7 @@
 
 Users can launch their own Jupyter Notebooks instance by clicking on the "My Workspaces" tab.
 
-<img alt="DnA - Launching a Jupyter Notebook instance" src="/docs/images/DnANotebooks.gif" style="max-width:100%">
+<img alt="DnA - Launching a Jupyter Notebook instance" src="/docs/images/DnAJNotebooks.gif" style="max-width:100%">
 
 **Step 2**:
 
