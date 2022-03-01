@@ -96,18 +96,18 @@ spec:
         configMap:
           name: {{ .Release.Name }}-schemainit-datainit-sqlint
           items:
-          - key: "schema-data.sql"
-            path: "schema-data.sql"
-          - key: "dashboard-data-dump.sql"
-            path: "dashboard-data-dump.sql"
-          - key: "schema-creation.sql"
-            path: "schema-creation.sql"
-          - key: "dashboard-schema-creation.sql"
-            path: "dashboard-schema-creation.sql"
-          - key: "updateScript.sh"
-            path: "updateScript.sh"
+          - key: "02-schema-creation.sql"
+            path: "02-schema-creation.sql"
+          - key: "02-schema-data.sql"
+            path: "02-schema-data.sql"
+          - key: "03-dashboard-schema-creation.sql"
+            path: "03-dashboard-schema-creation.sql"
+          - key: "04-dashboard-data-dump.sql"
+            path: "04-dashboard-data-dump.sql"
           - key: "airflow-db.sql"
             path: "airflow-db.sql"
+          - key: "updateScript.sh"
+            path: "updateScript.sh"
   volumeClaimTemplates:
   - metadata:
       name: *name
