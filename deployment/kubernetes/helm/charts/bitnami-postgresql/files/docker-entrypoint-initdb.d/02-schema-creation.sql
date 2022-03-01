@@ -23,9 +23,7 @@ SET row_security = off;
 CREATE SCHEMA dai_admin;
 
 ALTER SCHEMA dai_admin OWNER TO admin;
-
 GRANT dai_admin to admin;
-
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
@@ -447,3 +445,21 @@ CREATE TABLE public.widget_nsql (
 
 
 ALTER TABLE public.widget_nsql OWNER TO admin;
+--
+-- DDL Script start
+--
+
+create table public.datastrategydomain_nsql
+(
+id TEXT primary key,
+data jsonb not null
+);
+
+create table public.skill_nsql
+(
+id TEXT primary key,
+data jsonb not null
+);
+--
+-- DDL Script end
+--
