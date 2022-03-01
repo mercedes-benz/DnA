@@ -1,7 +1,8 @@
+\c db;
 COPY public.userrole_nsql (id, data) FROM stdin;
 1	{"name": "User"}
 3	{"name": "Admin"}
-
+\.
 
 --
 -- Data for Name: location_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -250,7 +251,7 @@ COPY public.location_nsql (id, data) FROM stdin;
 241	{"name": "Yemen", "is_row": "true"}
 242	{"name": "Zambia", "is_row": "true"}
 243	{"name": "Zimbabwe", "is_row": "true"}
-
+\.
 
 --
 -- Data for Name: benefitrelevance_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -262,7 +263,7 @@ COPY public.benefitrelevance_nsql (id, data) FROM stdin;
 4	{"name": "Relatively Low"}
 5	{"name": "Low"}
 6	{"name": "Very Low"}
-
+\.
 
 --
 -- Data for Name: category_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -275,7 +276,7 @@ COPY public.category_nsql (id, data) FROM stdin;
 5	{"name": "Tags"}
 6	{"name": "Visualization"}
 7	{"name": "Related Products"}
-
+\.
 
 --
 -- Data for Name: maturitylevel_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -287,7 +288,7 @@ COPY public.maturitylevel_nsql (id, data) FROM stdin;
 4	{"name": "Implemented"}
 6	{"name": "Rejected"}
 5	{"name": "Savings Realized / Incoming"}
-
+\.
 
 --
 -- Data for Name: projectstatus_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -298,7 +299,7 @@ COPY public.projectstatus_nsql (id, data) FROM stdin;
 3	{"name": "CRITICAL"}
 4	{"name": "INACTIVE"}
 5	{"name": "CLOSED"}
-
+\.
 
 --
 -- Data for Name: phase_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -310,7 +311,7 @@ COPY public.phase_nsql (id, data) FROM stdin;
 4	{"name": "PILOT"}
 5	{"name": "SERIE"}
 6	{"name": "ROLLOUT"}
-
+\.
 
 --
 -- Data for Name: datavolume_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -320,7 +321,7 @@ COPY public.datavolume_nsql (id, data) FROM stdin;
 2	{"name": "100 MB - 1GB"}
 3	{"name": "1 GB - 100 GB"}
 4	{"name": ">100 GB"}
-
+\.
 
 --
 -- Data for Name: result_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -329,21 +330,21 @@ COPY public.result_nsql (id, data) FROM stdin;
 1	{"name": "DASHBOARD"}
 2	{"name": "SHAREPOINT"}
 3	{"name": "SERVICE"}
-
+\.
 
 --
 -- Data for Name: businessgoal_nsql; Type: TABLE DATA; Schema: public; Owner: admin
 --
 COPY public.businessgoal_nsql (id, data) FROM stdin;
 1	{"name": "Dummy Value"}
-
+\.
 
 --
 -- Data for Name: division_nsql; Type: TABLE DATA; Schema: public; Owner: admin
 --
 COPY public.division_nsql (id, data) FROM stdin;
 1	{"name": "Dummy Value", "subdivisions": [{"id": "1", "name": "Dummy Value 1"},{"id": "2", "name": "Dummy Value 2"}]}
-
+\.
 
 --
 -- Data for Name: strategicrelevance_nsql; Type: TABLE DATA; Schema: public; Owner: admin
@@ -356,7 +357,7 @@ COPY public.strategicrelevance_nsql (id, data) FROM stdin;
 4	{"name": "Relatively High"}
 5	{"name": "High"}
 6	{"name": "Very High"}
-
+\.
 
 --Inserting Dummy Value Admin User
 INSERT INTO public.userinfo_nsql
