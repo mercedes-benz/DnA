@@ -1,3 +1,5 @@
+\c dashboard;
+
 CREATE SEQUENCE IF NOT EXISTS dashboard_sequence
   START WITH 1000 INCREMENT BY 1;
   
@@ -104,9 +106,10 @@ CREATE TABLE IF NOT EXISTS connection_type_sql
     name             VARCHAR(255)     
 );
 
-CREATE TABLE IF NOT EXISTS datawarehouse_nsql (
-    id text NOT NULL,
-    data jsonb NOT NULL
+CREATE TABLE IF NOT EXISTS data_warehouse_sql
+(
+    id               BIGINT             DEFAULT nextval('dashboard_sequence') PRIMARY KEY,
+    name             VARCHAR(255)     
 );
 
 CREATE TABLE IF NOT EXISTS tag_sql
@@ -116,17 +119,6 @@ CREATE TABLE IF NOT EXISTS tag_sql
 );
 
 CREATE TABLE IF NOT EXISTS report_nsql (
-    id text NOT NULL,
-    data jsonb NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS customer_department_sql
-(
-    id               BIGINT             DEFAULT nextval('dashboard_sequence') PRIMARY KEY,
-    name             VARCHAR(255)       
-);
-
-CREATE TABLE IF NOT EXISTS userwidgetpref_nsql (
     id text NOT NULL,
     data jsonb NOT NULL
 );
