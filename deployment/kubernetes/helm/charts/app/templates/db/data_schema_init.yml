@@ -37,8 +37,8 @@ data:
     psql -c "GRANT dai_public_compat to {{ .Values.app.db.secrets.appUserName }}";
 
     psql -c "\connect {{ .Values.app.db.dbname }} {{ .Values.app.db.secrets.appUserName }}";
-    psql -f /srv/postgresql/home/postgres/dbscripts/custom/schema-creation.sql -U {{ .Values.app.db.secrets.appUserName }} -d {{ .Values.app.db.dbname }};
-    psql -f /srv/postgresql/home/postgres/dbscripts/custom/schema-data.sql -U {{ .Values.app.db.secrets.appUserName }} -d {{ .Values.app.db.dbname }};
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/02-schema-creation.sql -U {{ .Values.app.db.secrets.appUserName }} -d {{ .Values.app.db.dbname }};
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/02-schema-data.sql -U {{ .Values.app.db.secrets.appUserName }} -d {{ .Values.app.db.dbname }};
 
     psql -c "alter role {{ .Values.app.db.secrets.appUserName }} with password {{ .Values.app.db.secrets.appUserName | squote }}";
     psql -c "alter role ${PGDBADM} with password '${PGDBADMPW}'";
@@ -65,8 +65,8 @@ data:
     psql -c "grant usage on schema public to {{ .Values.app.db.dashboardDB.dashboardUserName }}";
 
     psql -c "\connect {{ .Values.app.db.dashboardDB.dashboarddbName }} {{ .Values.app.db.dashboardDB.dashboardUserName }} "; 
-    psql -f /srv/postgresql/home/postgres/dbscripts/custom/dashboard-schema-creation.sql -U {{ .Values.app.db.dashboardDB.dashboardUserName }} -d {{ .Values.app.db.dashboardDB.dashboarddbName }};
-    psql -f /srv/postgresql/home/postgres/dbscripts/custom/dashboard-data-dump.sql -U {{ .Values.app.db.dashboardDB.dashboardUserName }} -d {{ .Values.app.db.dashboardDB.dashboarddbName }};
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/03-dashboard-schema-creation.sql -U {{ .Values.app.db.dashboardDB.dashboardUserName }} -d {{ .Values.app.db.dashboardDB.dashboarddbName }};
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/04-dashboard-data-dump.sql -U {{ .Values.app.db.dashboardDB.dashboardUserName }} -d {{ .Values.app.db.dashboardDB.dashboarddbName }};
 
     pg_ctl stop
     sleep 5
