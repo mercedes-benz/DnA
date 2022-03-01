@@ -22,4 +22,4 @@ git config core.hooksPath .githooks
 
 Note: Above, the command needs to run every *first-time clone of the repo*. Not required to run for commit and other git operations.
 
-Checkout the [Branch naming convention](docs/GitStrategy.md) to define the branch name.
+Checkout the [Branch naming convention](../docs/GitStrategy.md) to define the branch name.
