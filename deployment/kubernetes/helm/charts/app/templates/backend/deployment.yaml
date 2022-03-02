@@ -1,0 +1,180 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}backend
+    zone: web
+spec:
+  replicas: {{ .Values.app.backend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}backend
+  template:
+    metadata:
+      labels:
+        zone: web
+        app: {{ .Values.appName }}backend
+    spec:
+      containers:
+        - env:
+            - name: ITSMM
+              value: {{ .Values.app.backend.config.enableItsmm | quote }}
+            - name: JUPYTER_NOTEBOOK
+              value: {{ .Values.app.backend.config.enableJupyterNotebook | quote }}
+            - name: DATAIKU
+              value: {{ .Values.app.backend.config.enableDataiku | quote }}
+            - name: ATTACHMENT_MALWARE_SCAN
+              value: {{ .Values.app.backend.config.enableAttachmentScan | quote }}
+            - name: DRD_INTERNAL_USER_ENABLED
+              value: {{ .Values.app.backend.config.enableInternalUser | quote }}            
+            - name: REDIRECT_URL
+              value: {{ .Values.app.backend.config.redirectUrl }}
+            - name: API_DB_URL
+              value: {{ .Values.app.backend.config.dbUri }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.client.secret
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: oidc.client.id
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: OIDC_USER_INFO_URL
+              value: {{ .Values.app.backend.config.oidcuserinfourl }}
+            - name: OIDC_TOKEN_INTROSPECTION_URL
+              value: {{ .Values.app.backend.config.oidctokenintrospectionurl }}
+            - name: OIDC_TOKEN_REVOCATION_URL
+              value: {{ .Values.app.backend.config.oidctokenrevocationurl }}
+            - name: OIDC_PROVIDER
+              value: {{ .Values.app.backend.config.oidcprovider | quote }}
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: jwt.secret.key
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: INTERNAL_USER_REQUEST_URL
+              value: {{ .Values.app.backend.config.internaluserrequesturl }}
+            - name: INTERNAL_USER_CERT_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: drd.cert.password
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: INTERNAL_USER_CERT_FILE
+              value: {{ .Values.app.backend.config.internalcertfile }}
+            - name: INACTIVE_SOLUTION_DURATION_YRS
+              value: "2"
+            - name: OIDC_DISABLED
+              value: {{ .Values.app.backend.config.oidcdisabled | quote }}
+            - name: API_DB_USER
+{{- if not .Values.bitnamipostgresql.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.username
+                  name: {{ .Values.app.db.secrets.name }}
+{{- else }}
+              value: {{ .Values.bitnamipostgresql.global.postgresql.postgresqlUsername }}
+{{- end }}
+            - name: API_DB_PASS
+{{- if not .Values.bitnamipostgresql.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.password
+                  name: {{ .Values.app.db.secrets.name }}
+{{- else }}
+              value: {{ .Values.bitnamipostgresql.global.postgresql.postgresqlPassword }}
+{{- end }}
+            - name: S3_EP_URL
+              value: {{ .Values.app.backend.config.s3epurl}}
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: s3.access.key
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: S3_BUCKET_NAME
+              value: {{ .Values.app.backend.config.s3bucketname }}
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: s3.secret.key
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: S3_MAX_PARALLEL_UPLOADTHREADS
+              value: "20"
+            - name: S3_MIN_FILESIZE
+              value: "1024"
+            - name: S3_MAX_FILESIZE
+              value: "5242880"
+            - name: CORS_ORIGIN_URL
+              value: {{ .Values.app.backend.config.corosoriginurl | quote }}
+            - name: JUPYTER_NOTEBOOK_BASEURI
+              value: {{ .Values.app.backend.config.jupyternotebookurl }}
+            - name: JUPYTER_NOTEBOOK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: notebook.secret.token
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: VAULT_HOST
+              value: {{ .Values.app.backend.config.vaulthost }}
+            - name: VAULT_PORT
+              value: {{ .Values.app.backend.config.vaultport | quote }}
+            - name: VAULT_SCHEME
+              value: http
+            - name: VAULT_AUTHENTICATION
+              value: TOKEN
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: vault.root.token
+                  name: {{ .Values.app.vault.secret.name }}
+            - name: VAULT_MOUNTPATH
+              value: kv
+            - name: DATAIKU_PROD_URI
+              value: {{ .Values.app.backend.config.dataikuproduri }}
+            - name: DATAIKU_PROD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: dataiku.prod.apikey
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: DATAIKU_PROD_ADMIN_GROUP
+              value: az_096_ART-ENAB-DSS--DEV--ADMINISTRATOR      
+            - name: DATAIKU_TRAINING_URI
+              value: {{ .Values.app.backend.config.dataikutraininguri }}
+            - name: DATAIKU_TRAINING_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: dataiku.training.apikey
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: DATAIKU_TRAINING_ADMIN_GROUP
+              value: az_096_ART-ENAB-DSS--TRAINING--ADMINISTRATOR
+            - name: AVSCAN_URI
+              value: {{ .Values.app.backend.config.avscanuri }}
+            - name: AVSCAN_APP_ID
+              value: {{ .Values.app.backend.config.avscanappid }}
+            - name: NAAS_BROKER
+              value: {{ .Values.app.backend.config.naasbroker }}
+            - name: LOGGING_ENVIRONMENT
+              value: {{ .Values.app.backend.config.loggingEnvironment | quote }}
+            - name: LOGGING_PATH
+              value: {{ .Values.app.backend.config.loggingPath | quote }}
+            - name: DATAIKU_PROJECTS_URI_PATH
+              value: {{ .Values.app.backend.config.dataikuProjectUri | quote }}
+            - name: AVSCAN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: avscan.apikey
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: JWT_TOKEN_EXPIRY_TIME_IN_MIN
+              value: "90"             
+          image: {{ .Values.app.backend.image }}
+          imagePullPolicy: Always
+          name: backend
+          ports:
+            - containerPort: 7171
+          resources: {}     
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}

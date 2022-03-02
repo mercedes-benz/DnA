@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "airflow.name" . }}-weballow-netpol
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      name: {{ include "airflow-service.name" . }}
+  ingress:
+    - from:
+      - podSelector: 
+          matchLabels:
+              name: {{ include "airflow-service.name" . }}
+    - ports:
+      - port: {{ .Values.service.port }}
