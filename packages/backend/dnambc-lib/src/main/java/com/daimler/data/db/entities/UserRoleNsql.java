@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "userrole_nsql")
-public class UserRoleNsql extends BaseEntity<UserRole>
-        implements Serializable {
+public class UserRoleNsql extends BaseEntity<UserRole> implements Serializable {
 
-    private static final long serialVersionUID = 1062902031581244085L;
+	private static final long serialVersionUID = 1062902031581244085L;
 
-    public UserRoleNsql() {
-        super();
-    }
-
+	public UserRoleNsql() {
+		super();
+	}
 
 }

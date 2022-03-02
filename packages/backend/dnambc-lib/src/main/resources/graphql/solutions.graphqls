@@ -11,7 +11,7 @@ type SolutionVO {
     logoDetails: LogoDetailsVO,
     description: String,
     businessNeed: String,
-    businessGoal: String,
+    businessGoals: [String],
     relatedProducts: [String],
     attachments: [FileDetailsVO],
     expectedBenefits: String,
@@ -35,8 +35,11 @@ type SolutionVO {
     digitalValue: SolutionDigitalValueVO,
     dataCompliance: SolutionDataComplianceVO,
     portfolio: SolutionPortfolioVO,
-    openSegments:[String]
-        
+    openSegments:[String],
+    skills: [String],
+    dataStrategyDomain: String,
+    existingSolution: Boolean,
+    requestedFTECount: Int    
 }
 
 type Query {

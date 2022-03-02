@@ -38,9 +38,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class UserRole implements Serializable {
 
-    private static final long serialVersionUID = -1099242680726380699L;
+	private static final long serialVersionUID = -1099242680726380699L;
 
-    private String name;
+	private String name;
 
 //    public UserRole() {
 //        super();
@@ -58,6 +58,5 @@ public class UserRole implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

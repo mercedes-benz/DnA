@@ -37,12 +37,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RampUpYear implements Serializable{
-	
+public class RampUpYear implements Serializable {
+
 	private static final long serialVersionUID = 152482308131566126L;
-	
+
 	private int year;
 	private BigDecimal percent;
 	private BigDecimal value;
-	
+
 }

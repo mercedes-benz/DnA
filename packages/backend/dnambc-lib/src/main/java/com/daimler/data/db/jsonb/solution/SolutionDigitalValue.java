@@ -49,7 +49,7 @@ public class SolutionDigitalValue implements Serializable {
 	private String digitalEffortComment;
 
 	private static final long serialVersionUID = -147664283453030921L;
-	
+
 	private String maturityLevel;
 	private List<SolutionTeamMember> projectControllers;
 	private List<CostDriver> costDrivers;

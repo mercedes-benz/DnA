@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class AlgorithmCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<AlgorithmNsql, String>
-        implements AlgorithmCustomRepository {
+public class AlgorithmCustomRepositoryImpl extends CommonDataRepositoryImpl<AlgorithmNsql, String>
+		implements AlgorithmCustomRepository {
 
 }

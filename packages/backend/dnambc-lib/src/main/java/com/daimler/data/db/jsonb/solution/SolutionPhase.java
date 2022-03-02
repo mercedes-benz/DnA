@@ -36,13 +36,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolutionPhase implements Serializable{
-	
+public class SolutionPhase implements Serializable {
+
 	private static final long serialVersionUID = -6062902528095302918L;
-	
+
 	private String id;
 	private String name;
-	
+
 //	public SolutionPhase() {
 //		super();
 //	}
@@ -65,6 +65,5 @@ public class SolutionPhase implements Serializable{
 //	public void setName(String name) {
 //		this.name = name;
 //	}
-	
-	
+
 }

@@ -40,6 +40,9 @@ import com.daimler.data.service.tag.TagService;
 import com.daimler.data.service.userinfo.UserInfoService;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,121 +56,126 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@Api(value = "Tag API", tags = {"tags"})
+@Api(value = "Tag API", tags = { "tags" })
 @RequestMapping("/api")
 @Slf4j
 public class TagController implements TagsApi {
 
-    @Autowired
-    private UserStore userStore;
+	@Autowired
+	private UserStore userStore;
 
-    @Autowired
-    private UserInfoService userInfoService;
+	@Autowired
+	private UserInfoService userInfoService;
 
-    @Autowired
-    private TagService tagService;
+	@Autowired
+	private TagService tagService;
 
-    @Override
-    @ApiOperation(value = "Adds a new tag.", nickname = "create", notes = "Adds a new non existing tag which is used in providing solution.", response = TagVO.class, tags = {"tags",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Tag added successfully", response = TagVO.class),
-            @ApiResponse(code = 400, message = "Bad Request"),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Invalid input"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/tags",
-            produces = {"application/json"},
-            consumes = {"application/json"},
-            method = RequestMethod.POST)
-    public ResponseEntity<TagVO> create(@Valid TagRequestVO tagRequestVO) {
+	@Override
+	@ApiOperation(value = "Adds a new tag.", nickname = "create", notes = "Adds a new non existing tag which is used in providing solution.", response = TagVO.class, tags = {
+			"tags", })
+	@ApiResponses(value = { @ApiResponse(code = 201, message = "Tag added successfully", response = TagVO.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/tags", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<TagVO> create(@Valid TagRequestVO tagRequestVO) {
 
-        TagVO requestTagVO = tagRequestVO.getData();
-        try {
-            TagVO existingTagVO = tagService.getByUniqueliteral("name", requestTagVO.getName());
-            if (existingTagVO != null && existingTagVO.getName() != null)
-                return new ResponseEntity<>(existingTagVO, HttpStatus.CONFLICT);
-            requestTagVO.setId(null);
-            TagVO tagVo = tagService.create(requestTagVO);
-            if (tagVo != null && tagVo.getId() != null) {
-                return new ResponseEntity<>(tagVo, HttpStatus.CREATED);
-            } else
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+		TagVO requestTagVO = tagRequestVO.getData();
+		try {
+			TagVO existingTagVO = tagService.getByUniqueliteral("name", requestTagVO.getName());
+			if (existingTagVO != null && existingTagVO.getName() != null) {
+				log.info("Tag with name {} already exists, returning with conflict", requestTagVO.getName());
+				return new ResponseEntity<>(existingTagVO, HttpStatus.CONFLICT);
+			}
+			requestTagVO.setId(null);
+			TagVO tagVo = tagService.create(requestTagVO);
+			if (tagVo != null && tagVo.getId() != null) {
+				log.info("Tag with name {} created successfully", requestTagVO.getName());
+				return new ResponseEntity<>(tagVo, HttpStatus.CREATED);
+			} else
+				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			log.error("Failed to create tag with name {} with exception {}", requestTagVO.getName(),
+					e.getLocalizedMessage());
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
-    }
+	}
 
-    @Override
-    @ApiOperation(value = "Deletes the tag identified by given ID.", nickname = "delete", notes = "Deletes the tag identified by given ID", response = GenericMessage.class, tags = {"tags",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
-            @ApiResponse(code = 400, message = "Bad request."),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/tags/{id}",
-            produces = {"application/json"},
-            method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> delete(@ApiParam(value = "Id of the tag",required=true) @PathVariable("id") String id) {
-        try {
-            CreatedByVO currentUser = this.userStore.getVO();
-            String userId = currentUser != null ? currentUser.getId() : "";
-            if (userId != null && !"".equalsIgnoreCase(userId)) {
-                UserInfoVO userInfoVO = userInfoService.getById(userId);
-                if (userInfoVO != null) {
-                    List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-                    if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-                        boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-                        if (userId == null || !isAdmin) {
-                            MessageDescription notAuthorizedMsg = new MessageDescription();
-                            notAuthorizedMsg.setMessage("Not authorized to delete tags. User does not have admin privileges.");
-                            GenericMessage errorMessage = new GenericMessage();
-                            errorMessage.addErrors(notAuthorizedMsg);
-                            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-                        }
-                    }
-                }
-            }
-            tagService.deleteTag(id);
-            GenericMessage successMsg  = new GenericMessage();
-            successMsg.setSuccess("success");
-            return new ResponseEntity<>(successMsg, HttpStatus.OK);
-        } catch (EntityNotFoundException e) {
-            log.error(e.getLocalizedMessage());
-            MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(invalidMsg);
-            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-            MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(exceptionMsg);
-            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+	@Override
+	@ApiOperation(value = "Deletes the tag identified by given ID.", nickname = "delete", notes = "Deletes the tag identified by given ID", response = GenericMessage.class, tags = {
+			"tags", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/tags/{id}", produces = { "application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> delete(
+			@ApiParam(value = "Id of the tag", required = true) @PathVariable("id") String id) {
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						if (userId == null || !isAdmin) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg
+									.setMessage("Not authorized to delete tags. User does not have admin privileges.");
+							log.debug("User not authorized to delete tags. Doesnt have admin privileges");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				}
+			}
+			tagService.deleteTag(id);
+			GenericMessage successMsg = new GenericMessage();
+			log.info("Tag with id {} deleted successfully", id);
+			successMsg.setSuccess("success");
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error("Exception {} while deleting tag with id {}, ID not found", e.getLocalizedMessage(), id);
+			MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to delete tag with id {} with exception {} ", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-    @Override
-    @ApiOperation(value = "Get all available tags.", nickname = "getAll", notes = "Get all tags. This endpoints will be used to Get all valid available tag maintenance records.", response = TagCollection.class, tags = {"tags",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully completed fetching all tags", response = TagCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/tags",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    public ResponseEntity<TagCollection> getAll() {
-        final List<TagVO> tags = tagService.getAll();
-        TagCollection tagCollection = new TagCollection();
-        if (tags != null && tags.size() > 0) {
-            tagCollection.addAll(tags);
-            return new ResponseEntity<>(tagCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(tagCollection, HttpStatus.NO_CONTENT);
-        }
-    }
+	@Override
+	@ApiOperation(value = "Get all available tags.", nickname = "getAll", notes = "Get all tags. This endpoints will be used to Get all valid available tag maintenance records.", response = TagCollection.class, tags = {
+			"tags", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Successfully completed fetching all tags", response = TagCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/tags", produces = { "application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<TagCollection> getAll() {
+		final List<TagVO> tags = tagService.getAll();
+		TagCollection tagCollection = new TagCollection();
+		if (tags != null && tags.size() > 0) {
+			tagCollection.addAll(tags);
+			log.debug("Returning available tags");
+			return new ResponseEntity<>(tagCollection, HttpStatus.OK);
+		} else {
+			log.debug("No tags available, returning empty");
+			return new ResponseEntity<>(tagCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

@@ -1,0 +1,157 @@
+buildscript {
+    ext {
+        springBootVersion = "2.4.3"
+        releaseVersion = "1.0.0"
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("gradle.plugin.org.hidetake:gradle-swagger-generator-plugin:2.18.2")
+		classpath("org.apache.maven.plugins:maven-dependency-plugin:3.1.2")
+    }
+
+}
+
+
+plugins {
+    // the plugins DSL is replacing apply plugin over time for Java-plugins. It is therefore favoured over the legacy "apply plugin:" approach
+    id "java"
+    id "eclipse"
+    id "jacoco"
+}
+
+apply plugin: "io.spring.dependency-management"
+apply plugin: "org.springframework.boot"
+apply plugin: "maven-publish"
+apply plugin: "org.hidetake.swagger.generator"
+
+repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+}
+
+group 'com.daimler.mbc.dna'
+version = releaseVersion
+
+sourceCompatibility = 1.14
+targetCompatibility = 1.14
+tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+
+//__________________________________________________________//
+//_____________________ SWAGGER CONFIGURATION ______________//
+swaggerSources {
+	
+    
+    notifications {
+        def notificationsYaml = "${rootDir}/naas-lib/src/main/resources/api/notification.yaml"
+        def notificationsJson = "${rootDir}/naas-lib/src/main/resources/api/notification.json"
+        inputFile = file(notificationsYaml)
+
+        def ignoreFile = "${rootDir}/naas-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(notificationsJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
+
+}
+
+compileJava {
+    dependsOn processResources
+    dependsOn swaggerSources.notifications.code
+    source "${swaggerSources.notifications.code.outputDir}/src/main/java"
+}
+
+sourceSets {
+    unitTest {
+        java { srcDir 'src/test/groovy' }
+        resources { srcDir 'src/test/resources' }
+        compileClasspath += sourceSets.main.runtimeClasspath
+    }
+    main {
+        java { srcDirs += "${swaggerSources.notifications.code.outputDir}/src/main/java"}
+    }
+}
+
+
+
+dependencies {
+
+	//2nd level caching dependency 
+	implementation 'org.springframework.boot:spring-boot-starter-cache:2.4.3'
+    implementation group: 'net.sf.ehcache', name: 'ehcache', version: '2.10.4'
+
+
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
+	
+	
+    implementation group: 'org.json', name: 'json', version: '20190722'
+
+    implementation('ch.qos.logback:logback-classic:1.2.3')
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'jul-to-slf4j', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.30'
+
+    implementation('ch.qos.logback:logback-core:1.2.3')
+    
+    implementation 'io.swagger:swagger-annotations:1.6.2'
+    swaggerCodegen 'io.swagger:swagger-codegen-cli:2.4.10'
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
+    implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
+    
+    implementation('org.springframework.boot:spring-boot-starter-web')
+	implementation('org.apache.tomcat.embed:tomcat-embed-jasper:10.0.5')
+	
+    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '3.0.0'
+    implementation('io.springfox:springfox-swagger-ui:2.9.2')
+
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+
+    implementation 'org.projectlombok:lombok:1.18.10'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+
+	
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '2.5.5'
+	
+	// https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-vault-config
+	//implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.0.3'
+
+	
+	implementation('org.springframework.boot:spring-boot-starter-aop')
+	implementation 'commons-io:commons-io:2.9.0'
+    
+	repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+    }
+
+}

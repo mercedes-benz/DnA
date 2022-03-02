@@ -37,13 +37,11 @@ import com.daimler.data.db.jsonb.RelatedProduct;
 @Entity
 @Table(name = "relatedproduct_nsql")
 public class RelatedProductNsql extends BaseEntity<RelatedProduct> implements Serializable {
-	
+
 	private static final long serialVersionUID = 1828071901560397416L;
 
-    public RelatedProductNsql()  {
-	  super();
-    }
+	public RelatedProductNsql() {
+		super();
+	}
 
-	
 }
- 

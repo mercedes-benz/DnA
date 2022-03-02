@@ -14,10 +14,12 @@ spring:
       ddl-auto: none
 
   datasource:
+    hikari:
+      connection-timeout: 4000
     platform: postgres
     url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
-    username: ${API_DB_USER:admin}
-    password: ${API_DB_PASS:admin}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
 
   servlet:
@@ -26,6 +28,11 @@ spring:
       max-request-size: 5MB
       
   cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
     vault:
       host: ${VAULT_HOST:localhost}
       port: ${VAULT_PORT:8200}
@@ -37,6 +44,10 @@ spring:
       kv:
        enabled: true    
 
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
 #DNA feature configuration allowed or not(true/false) 
 dna:
   feature:
@@ -118,6 +129,11 @@ matomo:
 
   
 dataiku:
+  apacCorpdir: ${APAC_CORPDIR:xxxxx}
+  emeaCorpdir: ${EMEA_CORPDIR:xxxxx}
+  projectsUriPath: ${DATAIKU_PROJECTS_URI_PATH:xxxxx}
+  userRoleUriPath: ${DATAIKU_USER_ROLE_URI_PATH:xxxxx}
+  projectPermissionUriPath: ${DATAIKU_PERMISSION_URI_PATH:xxxxx}
   production:
     uri: ${DATAIKU_PROD_URI:xxxxx}
     apiKey: ${DATAIKU_PROD_API_KEY:xxxxx}
@@ -132,7 +148,14 @@ avscan:
   appid: ${AVSCAN_APP_ID:xxxxx}
   apiKey: ${AVSCAN_API_KEY:xxxxx} 
 
+swagger.headers.authorization.token: {SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers
+management.endpoint.loggers.enabled: true
+
 logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
   level:
     com:
       daimler:

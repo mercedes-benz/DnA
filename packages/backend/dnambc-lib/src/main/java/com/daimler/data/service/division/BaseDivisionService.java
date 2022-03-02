@@ -47,22 +47,21 @@ import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 
 @Service
-public class BaseDivisionService
-        extends BaseCommonService<DivisionVO, DivisionNsql, String>
-        implements DivisionService {
+public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionNsql, String>
+		implements DivisionService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseDivisionService.class);
-	
-    @Autowired
-    private DivisionCustomRepository customRepo;
-    @Autowired
-    private DivisionRepository jpaRepo;
-    @Autowired
-    private DivisionAssembler assembler;
 
-    public BaseDivisionService() {
-        super();
-    }
+	@Autowired
+	private DivisionCustomRepository customRepo;
+	@Autowired
+	private DivisionRepository jpaRepo;
+	@Autowired
+	private DivisionAssembler assembler;
+
+	public BaseDivisionService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseDivisionService(DivisionCustomRepository customRepo
@@ -74,19 +73,17 @@ public class BaseDivisionService
 //        this.assembler = assembler;
 //    }
 
+	@Override
+	public List<SubdivisionVO> getSubDivisionsById(String id) {
+		Optional<DivisionNsql> entityOptional = jpaRepo.findById(id);
+		DivisionNsql entity = entityOptional != null ? entityOptional.get() : null;
+		return assembler.toSubDivisionVoList(entity);
+	}
 
-    @Override
-    public List<SubdivisionVO> getSubDivisionsById(String id) {
-        Optional<DivisionNsql> entityOptional = jpaRepo.findById(id);
-        DivisionNsql entity = entityOptional != null ? entityOptional.get() : null;
-        return assembler.toSubDivisionVoList(entity);
-    }
-
-    @Override
+	@Override
 	public List<DivisionVO> getDivisionsByIds(List<String> ids) {
-		LOGGER.trace("Entering getDivisionsByIds");
 
-		LOGGER.debug("Adding SubdivisionVO object with Empty/None value...");
+		LOGGER.debug("In getDivisionsByIds, Adding SubdivisionVO object with Empty/None value...");
 		SubdivisionVO emptySubDivisionVO = new SubdivisionVO();
 		emptySubDivisionVO.setId(ConstantsUtility.EMPTY_VALUE);
 		emptySubDivisionVO.setName(ConstantsUtility.NONE_VALUE);
@@ -95,10 +92,9 @@ public class BaseDivisionService
 		List<DivisionVO> divisionsVO = entityList.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
 
 		if (!ObjectUtils.isEmpty(divisionsVO)) {
-			LOGGER.info("Appending Subdivision object with Empty/None value");
+			LOGGER.debug("In getDivisionsByIds, Appending Subdivision object with Empty/None value");
 			divisionsVO.get(0).getSubdivisions().add(0, emptySubDivisionVO);
 		}
-		LOGGER.trace("Returning from getDivisionsByIds");
 		return divisionsVO;
 	}
 

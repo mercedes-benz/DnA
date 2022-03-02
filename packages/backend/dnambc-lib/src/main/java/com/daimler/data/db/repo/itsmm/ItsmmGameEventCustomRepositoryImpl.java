@@ -33,9 +33,7 @@ import com.daimler.data.db.entities.ItsmmGameEventDetailNsql;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
 @Repository
-public class ItsmmGameEventCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<ItsmmGameEventDetailNsql, String>
-        implements ItsmmGameEventCustomRepository {
+public class ItsmmGameEventCustomRepositoryImpl extends CommonDataRepositoryImpl<ItsmmGameEventDetailNsql, String>
+		implements ItsmmGameEventCustomRepository {
 
-	
 }

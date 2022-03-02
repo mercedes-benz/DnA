@@ -84,15 +84,15 @@ public class AppSubscriptionController implements SubscribeApi {
 
 	@Autowired
 	AppSubscriptionService vService;
-	
+
 	@Autowired
-    private UserStore userStore;
-	
+	private UserStore userStore;
+
 	@Autowired
-    private UserInfoService userInfoService;
-	
+	private UserInfoService userInfoService;
+
 	@Autowired
-    private SolutionService solutionService;
+	private SolutionService solutionService;
 
 	@Override
 	@ApiOperation(value = "Validate API key.", nickname = "validateApiKey", notes = "Validate API key, check if user has sent valid API key.", response = ApiKeyValidationResponseVO.class, tags = {
@@ -108,14 +108,16 @@ public class AppSubscriptionController implements SubscribeApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<ApiKeyValidationResponseVO> validateApiKey(
 			@ApiParam(value = "Request Body that contains data required to validate api key", required = true) @Valid @RequestBody ApiKeyValidationRequestVO apiKeyValidateRequestVO) {
-		LOGGER.trace("Entering validateApiKey");
 		ApiKeyValidationVO requestApiKeyValidationVO = apiKeyValidateRequestVO.getData();
 		ApiKeyValidationResponseVO response = new ApiKeyValidationResponseVO();
+		String appId = "";
+		if(apiKeyValidateRequestVO!= null && apiKeyValidateRequestVO.getData()!= null)
+			appId = apiKeyValidateRequestVO.getData().getAppId();
 		try {
-			LOGGER.info("Validating api key..");
+			LOGGER.info("Validating api key for appId {}",appId);
 			return vService.validateApiKey(requestApiKeyValidationVO);
 		} catch (Exception e) {
-			LOGGER.error("Exception occurred:{}", e.getMessage());
+			LOGGER.error("Exception {} occurred, while validating apiKey for appId {} ", e.getMessage(), appId);
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
 			message.setMessage(e.getMessage());
@@ -140,13 +142,13 @@ public class AppSubscriptionController implements SubscribeApi {
 	@RequestMapping(value = "/subscription", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<SubscriptionDetailsCollection> getAll(
-			@ApiParam(value = "Flag to check If user want to view in admin mode", defaultValue = "false") @Valid @RequestParam(value = "admin", required = false, defaultValue="false") Boolean admin,
+			@ApiParam(value = "Flag to check If user want to view in admin mode", defaultValue = "false") @Valid @RequestParam(value = "admin", required = false, defaultValue = "false") Boolean admin,
 			@ApiParam(value = "page number from which listing of subscribed service should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of subscribed service, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "Application Id of subscribed service.") @Valid @RequestParam(value = "appId", required = false) String appId,
 			@ApiParam(value = "Field which will be used to sort record.") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Order(asc,des) in which record will get sorted.") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-		LOGGER.trace("Entering getAll");
+			@ApiParam(value = "Order(asc,desc) in which record will get sorted.") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
+			@ApiParam(value = "searchTerm to filter subscription. SearchTerm is used to search appName and description of subscription. Example \"DNA\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm) {
 		try {
 			int defaultLimit = 10;
 			if (offset == null || offset < 0) {
@@ -154,6 +156,12 @@ public class AppSubscriptionController implements SubscribeApi {
 			}
 			if (limit == null || limit < 0) {
 				limit = defaultLimit;
+			}
+			if (sortOrder != null && !sortOrder.equals("asc") && !sortOrder.equals("desc")) {
+				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+			}
+			if (sortOrder == null) {
+				sortOrder = "asc";
 			}
 			String recordStatus = ConstantsUtility.OPEN;
 			SubscriptionDetailsCollection subscriptionDetailsCollection = new SubscriptionDetailsCollection();
@@ -170,12 +178,13 @@ public class AppSubscriptionController implements SubscribeApi {
 			}
 			LOGGER.debug("Check whether user wants to view in admin mode");
 			isAdmin = (admin && isAdmin) ? true : false;
-			Long count = vService.getCount(userId, isAdmin, recordStatus, appId);
+			Long count = vService.getCount(userId, isAdmin, recordStatus, appId, searchTerm);
 			if (count < offset) {
 				offset = 0;
 			}
-				
-			List<SubscriptionVO> subscriptionsVO = vService.getAllWithFilters(userId, isAdmin, recordStatus, appId, sortBy, sortOrder, offset, limit);
+
+			List<SubscriptionVO> subscriptionsVO = vService.getAllWithFilters(userId, isAdmin, recordStatus, appId,
+					sortBy, sortOrder, offset, limit, searchTerm);
 			if (!ObjectUtils.isEmpty(subscriptionsVO)) {
 				subscriptionDetailsCollection.setData(subscriptionsVO);
 				subscriptionDetailsCollection.setTotalCount(count.intValue());
@@ -204,37 +213,38 @@ public class AppSubscriptionController implements SubscribeApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<SubscriptionResponseVO> subscribeApplication(
 			@ApiParam(value = "Request Body that contains data required for subscribe a new application", required = true) @Valid @RequestBody SubscriptionRequestVO subscriptionRequestVO) {
-		LOGGER.trace("Entering subscribeApplication");
 		SubscriptionVO requestSubscriptionVO = subscriptionRequestVO.getData();
 		SubscriptionResponseVO response = new SubscriptionResponseVO();
 		try {
 			CreatedByVO currentUser = this.userStore.getVO();
-            String userId = currentUser != null ? currentUser.getId() : null;
-            if(vService.isApplicationSubscriptionExist(requestSubscriptionVO, userId)) {
-            	List<MessageDescription> messages = new ArrayList<>();
+			String userId = currentUser != null ? currentUser.getId() : null;
+			if (vService.isApplicationSubscriptionExist(requestSubscriptionVO, userId)) {
+				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
-				message.setMessage("Application is already subscribed with name "+requestSubscriptionVO.getAppName());
+				message.setMessage("Application is already subscribed with name " + requestSubscriptionVO.getAppName());
+				LOGGER.info("Application is already subscribed with name {}",requestSubscriptionVO.getAppName());
 				messages.add(message);
 				response.setData(requestSubscriptionVO);
 				response.setErrors(messages);
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-            }
-			SubscriptionVO subscriptionVO = vService.createApiKey(requestSubscriptionVO,userId);
+			}
+			SubscriptionVO subscriptionVO = vService.createApiKey(requestSubscriptionVO, userId);
 			if (subscriptionVO != null && subscriptionVO.getId() != null) {
-				LOGGER.info("Service subscribed successfully");
+				LOGGER.info("Service subscribed successfully for appName {}",requestSubscriptionVO.getAppName());
 				response.setData(subscriptionVO);
 				return new ResponseEntity<>(response, HttpStatus.CREATED);
 			} else {
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("Failed to save due to internal error");
+				LOGGER.info("Failed to subscribe with unknown error for appName {}",requestSubscriptionVO.getAppName());
 				messages.add(message);
 				response.setData(requestSubscriptionVO);
 				response.setErrors(messages);
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} catch (Exception e) {
-			LOGGER.error("Exception occurred:{}", e.getMessage());
+			LOGGER.error("Exception occurred:{} appName {}", e.getMessage(),requestSubscriptionVO.getAppName());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
 			message.setMessage(e.getMessage());
@@ -245,19 +255,18 @@ public class AppSubscriptionController implements SubscribeApi {
 		}
 	}
 
-	@ApiOperation(value = "Delete subscription of a service for a given Id.", nickname = "delete", notes = "Delete subscription of a service for a given identifier.", response = GenericMessage.class, tags={ "subscribe", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/subscription/{id}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.DELETE)
+	@ApiOperation(value = "Delete subscription of a service for a given Id.", nickname = "delete", notes = "Delete subscription of a service for a given identifier.", response = GenericMessage.class, tags = {
+			"subscribe", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/subscription/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
 	@Override
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Subscription ID to be deleted", required = true) @PathVariable("id") String id) {
@@ -279,6 +288,7 @@ public class AppSubscriptionController implements SubscribeApi {
 							MessageDescription notAuthorizedMsg = new MessageDescription();
 							notAuthorizedMsg.setMessage(
 									"Not authorized to delete subscription. Only subscriber or an admin can delete the subscription.");
+							LOGGER.info("Not authorized to delete subscription. Only subscriber or an admin can delete the subscription. subscription id {}", id);
 							GenericMessage errorMessage = new GenericMessage();
 							errorMessage.addErrors(notAuthorizedMsg);
 							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
@@ -286,22 +296,22 @@ public class AppSubscriptionController implements SubscribeApi {
 					}
 				}
 			}
-			SubscriptionVO SubscriptionVO = vService.deleteSubscriptionById(id,userId, existingSubscriptionVO);
+			SubscriptionVO SubscriptionVO = vService.deleteSubscriptionById(id, userId, existingSubscriptionVO);
 			String solutionId = existingSubscriptionVO.getSolutionId();
-			if(solutionId!=null) {
+			if (solutionId != null) {
 				SolutionVO solutionVO = solutionService.getById(solutionId);
 				SolutionPortfolioVO portfolio = solutionVO.getPortfolio();
-				if(portfolio!=null) {
+				if (portfolio != null) {
 					List<PlatformVO> platforms = portfolio.getPlatforms();
 					List<PlatformVO> updatedPlatforms = new ArrayList<>();
-					if(platforms!=null && !platforms.isEmpty()) {
+					if (platforms != null && !platforms.isEmpty()) {
 						int size = platforms.size();
-						for(PlatformVO platform: platforms) {
-							if(platform != null && platform.getName()!= null) {
-								if(!platform.getName().contains("Malware")) {
+						for (PlatformVO platform : platforms) {
+							if (platform != null && platform.getName() != null) {
+								if (!platform.getName().contains("Malware")) {
 									updatedPlatforms.add(platform);
-								}else {
-									if(size<2)
+								} else {
+									if (size < 2)
 										portfolio.setUsesExistingInternalPlatforms(false);
 								}
 							}
@@ -310,24 +320,24 @@ public class AppSubscriptionController implements SubscribeApi {
 					portfolio.setPlatforms(updatedPlatforms);
 					solutionVO.setPortfolio(portfolio);
 					solutionService.create(solutionVO);
-					LOGGER.info("On Subscription delete, updated Solution platform details successfully");
+					LOGGER.info("Updated Solution platform details successfully");
 				}
-				
+
 			}
 			if (SubscriptionVO != null && SubscriptionVO.getId() != null) {
 				GenericMessage successMsg = new GenericMessage();
 				successMsg.setSuccess("Success");
-				LOGGER.info("Subscription deleted successfully");
+				LOGGER.info("Subscription deleted successfully for id {}", id);
 				return new ResponseEntity<>(successMsg, HttpStatus.OK);
 			} else {
 				MessageDescription exceptionMsg = new MessageDescription("Failed to delete subscription");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(exceptionMsg);
-				LOGGER.info("Subscription deletion Failed");
+				LOGGER.info("Subscription deletion Failed for id {}", id);
 				return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
-			LOGGER.error("Failed to delete due to internal error {}", e.getMessage());
+			LOGGER.error("Failed to delete due to internal error {} for id {}", e.getMessage(),id);
 			MessageDescription exceptionMsg = new MessageDescription(e.getMessage());
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
@@ -392,7 +402,6 @@ public class AppSubscriptionController implements SubscribeApi {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<SubscriptionResponseVO> refreshApiKeyByAppId(
 			@ApiParam(value = "Subscription appId for which apiKey to be refreshed", required = true) @PathVariable("appId") String appId) {
-		LOGGER.trace("Entering refreshApiKeyByAppId");
 		SubscriptionResponseVO response = new SubscriptionResponseVO();
 		try {
 			SubscriptionVO existingSubscriptionVO = vService.getByUniqueliteral("appId", appId);
@@ -420,29 +429,29 @@ public class AppSubscriptionController implements SubscribeApi {
 					}
 				}
 			}
-			
-			SubscriptionVO subscriptionVO = vService.refreshApiKeyByAppId(appId,userId,existingSubscriptionVO);
-			if(subscriptionVO!=null && subscriptionVO.getId()!=null) {
-				LOGGER.info("Api Key refreshed successfully");
+
+			SubscriptionVO subscriptionVO = vService.refreshApiKeyByAppId(appId, userId, existingSubscriptionVO);
+			if (subscriptionVO != null && subscriptionVO.getId() != null) {
+				LOGGER.info("Api Key refreshed successfully for appId {}",appId);
 				response.setData(subscriptionVO);
 				return new ResponseEntity<>(response, HttpStatus.OK);
-			}else {
-				LOGGER.info("Invalid appId");
+			} else {
+				LOGGER.info("Invalid appId {}",appId);
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription errMsg = new MessageDescription();
 				errMsg.setMessage("Invalid appId");
 				response.setErrors(messages);
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
-		}catch (Exception e) {
-			LOGGER.error("Error occured while refreshing apiKey: {}",e.getMessage());
+		} catch (Exception e) {
+			LOGGER.error("Error occured while refreshing apiKey for appid {} exception is : {}",appId, e.getMessage());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription errMsg = new MessageDescription();
 			errMsg.setMessage(e.getMessage());
 			response.setErrors(messages);
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
+
 	}
 
 	@ApiOperation(value = "Update expiry days of a service subscription for a given Id.", nickname = "update", notes = "Set expiry of a service subscription for a given identifier.", response = SubscriptionResponseVO.class, tags = {
@@ -460,7 +469,6 @@ public class AppSubscriptionController implements SubscribeApi {
 	@Override
 	public ResponseEntity<SubscriptionResponseVO> update(
 			@ApiParam(value = "Request Body that contains data required for updating expiry of an existing subscription", required = true) @Valid @RequestBody SubscriptionExpireRequestVO expireRequestVO) {
-		LOGGER.trace("Entering update subscription");
 		SubscriptionExpireVO expireVO = expireRequestVO.getData();
 		SubscriptionResponseVO response = new SubscriptionResponseVO();
 		SubscriptionVO mergedSubscriptionVO = null;
@@ -473,19 +481,22 @@ public class AppSubscriptionController implements SubscribeApi {
 			if (userInfoService.isAdmin(userId)) {
 				mergedSubscriptionVO = vService.updateSubscription(userId, expireVO);
 				if (mergedSubscriptionVO != null && StringUtils.hasText(mergedSubscriptionVO.getId())) {
+					LOGGER.info("Updated subscription for appId {}",expireVO.getAppId());
 					status = HttpStatus.OK;
 				} else {
 					message = new MessageDescription();
 					message.setMessage("No subscription found for given id. Update cannot happen");
+					LOGGER.info("Updat subscription for appId {} is unsuccessful",expireVO.getAppId());
 					status = HttpStatus.NOT_FOUND;
 				}
 			} else {
 				message = new MessageDescription();
 				message.setMessage("Not authorized to update subscription. Only admin can update.");
+				LOGGER.info("Updat subscription for appId {} is unsucessful, no previliges",expireVO.getAppId());
 				status = HttpStatus.FORBIDDEN;
 			}
 		} catch (Exception e) {
-			LOGGER.error("Exception occurred:{}", e.getMessage());
+			LOGGER.error("Exception occurred:{} for updating subscription of appId {} ", e.getMessage(),expireVO.getAppId());
 			message = new MessageDescription();
 			message.setMessage(e.getMessage());
 			status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -496,9 +507,7 @@ public class AppSubscriptionController implements SubscribeApi {
 			response.setErrors(messages);
 		}
 		response.setData(mergedSubscriptionVO);
-		LOGGER.trace("Returning from update subscription");
 		return new ResponseEntity<>(response, status);
 	}
-
 
 }
