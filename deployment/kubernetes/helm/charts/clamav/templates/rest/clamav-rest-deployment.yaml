@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.backend.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: {{ .Values.app.backend.name }}
+spec:
+  replicas: {{ .Values.app.backend.replicaCount }}
+  selector:
+    matchLabels:
+      name: {{ .Values.app.backend.name }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.app.backend.name }}
+    spec:
+      containers:
+        - name: clamd-rest
+          image: {{ .Values.app.backend.image }} 
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: CLAMAV_BACKEND_URL
+              value: {{ .Values.app.backend.config.clamav_backend_url }}
+            - name: CLAMAV_BACKEND_PORT
+              value: {{ .Values.app.backend.config.clamav_backend_port | quote }}
+            - name: MAX_FILE_SIZE
+              value: {{ .Values.app.backend.config.max_file_size | quote }}
+            - name: MAX_REQUEST_SIZE
+              value: {{ .Values.app.backend.config.max_request_size | quote }}
+            - name: API_REQUEST_LIMIT
+              value: {{ .Values.app.backend.config.api_request_limit | quote }}
+            - name: WITH_IN
+              value: {{ .Values.app.backend.config.with_in | quote }}
+            - name: TIME_UNIT
+              value: {{ .Values.app.backend.config.time_unit | quote }}
+            - name: AUTH_API_HOST
+              value: {{ .Values.app.backend.config.auth_api_host }}
+            - name: RESTRICTED_URL_PATTERN
+              value: {{ .Values.app.backend.config.restricted_url_pattern | quote }}
+            - name: ONEAPI_BASICAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: onapi.basicauth.token
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: LOGGING_PATH
+              value: {{ .Values.app.backend.config.loggingPath | quote }}
+            - name: LOGGING_ENVIRONMENT
+              value: {{ .Values.app.backend.config.loggingEnvironment | quote }}
+          ports:
+            - containerPort: 8181
+              name: api
+              protocol: TCP
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory | quote }}
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.resources.limits.memory | quote }}
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+          # volumeMounts:
+          #   - mountPath: /var/lib/clamav
+          #     name: avdata
+          # livenessProbe:
+          #   exec:
+          #     command:
+          #     - /readyness.sh
+          #   initialDelaySeconds: 20
+          #   timeoutSeconds: 2
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}
+      # volumes:
+      #   - name: avdata
+      #     persistentVolumeClaim:
+      #       claimName: clamav-db-dir

@@ -1,0 +1,61 @@
+# Default values for notebooks.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+appName: notebooks
+namespace: notebooks
+#imagePullSecret: 
+#  name: harbor-pull-secret
+app:
+  jupyter:
+    config:
+      configproxy_auth_token: ""
+      kf_pipelines_endpoint: ""
+
+  image:
+    name: ""
+    pullPolicy: Always
+
+  profileListImages:
+    default: ""
+    tensorflow: ""
+    chronos: ""
+
+
+  proxy:
+    image: ""
+
+  ConfigMapName:
+    name: hub-config
+    KubeSpawnerimage: ""
+    serviceAccount: hub 
+    securitycontext: ""
+    OAuthauthenticator: ""
+    OAuthclientid: ""
+    OAuthclientsecret: ""
+    OAuthcallback: ""
+    OAuthauthorizeurl: ""
+    OAuthtokenurl: ""
+    OAuthuserdataurl: ""
+    OAuthusrkey: ""
+    OAuthloginsvc: ""
+    prespawn_hook: ""
+    enableUserNS: "False"
+    userNameSpaceTemplate: kubeflow
+
+ingress:
+  host: ""
+
+cert:
+  certManager: "" 
+
+Storage:
+  storageClass: cinder
+  accessModes: ReadWriteOnce
+  size: 1G
+
+resources:
+  cpu: 1
+  memory: 4G
+  
+

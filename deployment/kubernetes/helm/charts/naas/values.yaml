@@ -1,0 +1,53 @@
+# Default values for naas.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+appName: naas
+namespace: naas
+app:
+  backend:
+    replicaCount: 1
+    image: ""
+    secrets:
+      name: postgres-secrets
+    config:
+      api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
+      naas_broker: ""
+      max_poll_records: 6000
+      dna_uri: http://dna-backend-service.dna.svc.cluster.local:80
+      dna_auth_enable: true
+      poll_time: 5000
+      naas_central_topic: dnaCentralEventTopic
+      naas_centralread_topic: dnaCentralReadTopic
+      naas_centraldelte_topic: dnaCentralDeleteTopic
+      loggingPath: /tmp/naas/log
+      loggingEnvironment: dev
+
+  db: 
+    secrets: 
+      name: postgres-secrets
+      backupUserName: ""
+      backupUserPassword: "" 
+      dbAdminUserName: ""
+      dbAdminPassword: ""
+      patroniUserPassword: ""
+      appUserName: ""
+      appPassword: ""
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1000Mi"
+      cpu: "500m"
+
+image:
+  pullPolicy: Always
+
+ingress:
+  host: ""
+
+imagePullSecret: 
+  name: harbor-pull-secret
+cert:
+  certManager: ""

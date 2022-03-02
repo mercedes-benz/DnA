@@ -92,3 +92,6 @@ deployment/kubernetes/airflow/generated.yaml
 
 #Folders to remove
 .vscode
+
+#helm
+*.lock
