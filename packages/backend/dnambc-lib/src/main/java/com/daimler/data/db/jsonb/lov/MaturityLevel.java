@@ -36,10 +36,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaturityLevel  implements Serializable{
+public class MaturityLevel implements Serializable {
 
 	private static final long serialVersionUID = 4763546849279810310L;
 	private String name;
-	
 
 }

@@ -33,17 +33,14 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
 @Entity
 @Table(name = "datavolume_nsql")
-public class DataVolumeNsql extends BaseEntity<DataVolume>
-        implements Serializable {
+public class DataVolumeNsql extends BaseEntity<DataVolume> implements Serializable {
 
-    private static final long serialVersionUID = 4857908075537600169L;
+	private static final long serialVersionUID = 4857908075537600169L;
 
-    public DataVolumeNsql() {
-        super();
-    }
-
+	public DataVolumeNsql() {
+		super();
+	}
 
 }

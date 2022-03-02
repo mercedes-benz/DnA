@@ -38,12 +38,11 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class UserFavoriteUseCase implements Serializable {
 
-    private static final long serialVersionUID = -5471958263658241317L;
+	private static final long serialVersionUID = -5471958263658241317L;
 
-    String id;
-    String usecaseId;
-    String userinfoId;
-
+	String id;
+	String usecaseId;
+	String userinfoId;
 
 //    public UserFavoriteUseCase() {
 //        super();
@@ -86,6 +85,5 @@ public class UserFavoriteUseCase implements Serializable {
 //    public void setUserinfoId(String userinfoId) {
 //        this.userinfoId = userinfoId;
 //    }
-
 
 }

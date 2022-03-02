@@ -35,33 +35,31 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
-public class UserRoleAssembler
-        implements GenericAssembler<UserRoleVO, UserRoleNsql> {
+public class UserRoleAssembler implements GenericAssembler<UserRoleVO, UserRoleNsql> {
 
-    @Override
-    public UserRoleVO toVo(UserRoleNsql entity) {
-        UserRoleVO userroleVO = null;
-        if (Objects.nonNull(entity)) {
-            userroleVO = new UserRoleVO();
-            userroleVO.setId(entity.getId());
-            userroleVO.setName(entity.getData().getName());
-        }
-        return userroleVO;
-    }
+	@Override
+	public UserRoleVO toVo(UserRoleNsql entity) {
+		UserRoleVO userroleVO = null;
+		if (Objects.nonNull(entity)) {
+			userroleVO = new UserRoleVO();
+			userroleVO.setId(entity.getId());
+			userroleVO.setName(entity.getData().getName());
+		}
+		return userroleVO;
+	}
 
-
-    @Override
-    public UserRoleNsql toEntity(UserRoleVO vo) {
-        UserRoleNsql userroleNsql = null;
-        if (Objects.nonNull(vo)) {
-            userroleNsql = new UserRoleNsql();
-            UserRole userrole = new UserRole();
-            userrole.setName(vo.getName() );
-            userroleNsql.setData(userrole);
-            if (vo.getId() != null)
-                userroleNsql.setId(vo.getId());
-        }
-        return userroleNsql;
-    }
+	@Override
+	public UserRoleNsql toEntity(UserRoleVO vo) {
+		UserRoleNsql userroleNsql = null;
+		if (Objects.nonNull(vo)) {
+			userroleNsql = new UserRoleNsql();
+			UserRole userrole = new UserRole();
+			userrole.setName(vo.getName());
+			userroleNsql.setData(userrole);
+			if (vo.getId() != null)
+				userroleNsql.setId(vo.getId());
+		}
+		return userroleNsql;
+	}
 
 }

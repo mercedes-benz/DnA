@@ -39,47 +39,47 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
-public class ResultAssembler
-        implements GenericAssembler<ResultVO, ResultNsql> {
+public class ResultAssembler implements GenericAssembler<ResultVO, ResultNsql> {
 
-    @Override
-    public ResultVO toVo(ResultNsql entity) {
-        ResultVO resultVO = null;
-        if (Objects.nonNull(entity)) {
-            resultVO = new ResultVO();
-            resultVO.setId(entity.getId());
-            resultVO.setName(entity.getData().getName());
-        }
-        return resultVO;
-    }
+	@Override
+	public ResultVO toVo(ResultNsql entity) {
+		ResultVO resultVO = null;
+		if (Objects.nonNull(entity)) {
+			resultVO = new ResultVO();
+			resultVO.setId(entity.getId());
+			resultVO.setName(entity.getData().getName());
+		}
+		return resultVO;
+	}
 
-    @Override
-    public ResultNsql toEntity(ResultVO vo) {
-        ResultNsql resultNsql = null;
-        if (Objects.nonNull(vo)) {
-            resultNsql = new ResultNsql();
-            Result result = new Result();
-            result.setName(vo.getName() );
-            resultNsql.setData(result);
-            if (vo.getId() != null)
-                resultNsql.setId(vo.getId());
-        }
-        return resultNsql;
-    }
-    
-    public List<ResultVO> filterOldResults(List<ResultVO> resultsVO){
-    	if (resultsVO != null && resultsVO.size() > 0) {
-        	String[] oldResults = {"SHAREPOINT","SERVICE"};
-        	List<String> resultFilters = Arrays.asList(oldResults);
-        	List<ResultVO> newResultsVO = new ArrayList<>();
-        	newResultsVO = resultsVO.stream().filter(result -> !resultFilters.contains(result.getName())).collect(Collectors.toList());
-        	ResultVO miscResult = new ResultVO();
-        	miscResult.setId("2");
-        	miscResult.setName("Miscellaneous");
-        	newResultsVO.add(miscResult);
-        	return newResultsVO;
-    	}
-    	else return resultsVO;
-    }
+	@Override
+	public ResultNsql toEntity(ResultVO vo) {
+		ResultNsql resultNsql = null;
+		if (Objects.nonNull(vo)) {
+			resultNsql = new ResultNsql();
+			Result result = new Result();
+			result.setName(vo.getName());
+			resultNsql.setData(result);
+			if (vo.getId() != null)
+				resultNsql.setId(vo.getId());
+		}
+		return resultNsql;
+	}
+
+	public List<ResultVO> filterOldResults(List<ResultVO> resultsVO) {
+		if (resultsVO != null && resultsVO.size() > 0) {
+			String[] oldResults = { "SHAREPOINT", "SERVICE" };
+			List<String> resultFilters = Arrays.asList(oldResults);
+			List<ResultVO> newResultsVO = new ArrayList<>();
+			newResultsVO = resultsVO.stream().filter(result -> !resultFilters.contains(result.getName()))
+					.collect(Collectors.toList());
+			ResultVO miscResult = new ResultVO();
+			miscResult.setId("2");
+			miscResult.setName("Miscellaneous");
+			newResultsVO.add(miscResult);
+			return newResultsVO;
+		} else
+			return resultsVO;
+	}
 
 }

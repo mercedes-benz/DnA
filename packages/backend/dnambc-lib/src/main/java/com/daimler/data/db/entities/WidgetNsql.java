@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "widget_nsql")
-public class WidgetNsql extends BaseEntity<Widget>
-        implements Serializable {
+public class WidgetNsql extends BaseEntity<Widget> implements Serializable {
 
 	private static final long serialVersionUID = 7763402689628479559L;
 
 	public WidgetNsql() {
-        super();
-    }
-
+		super();
+	}
 
 }

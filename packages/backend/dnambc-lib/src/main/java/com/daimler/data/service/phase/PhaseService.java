@@ -31,6 +31,5 @@ import com.daimler.data.db.entities.PhaseNsql;
 import com.daimler.data.dto.phase.PhaseVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface PhaseService
-        extends CommonService<PhaseVO, PhaseNsql, String> {
+public interface PhaseService extends CommonService<PhaseVO, PhaseNsql, String> {
 }

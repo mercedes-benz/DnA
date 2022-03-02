@@ -1,0 +1,14 @@
+{
+"library": "spring-mvc",
+"dateLibrary": "legacy",
+"useTags": true,
+"hideGenerationTimestamp": true,
+"modelPackage": "com.daimler.dna.airflow.dto",
+"apiPackage": "com.daimler.dna.airflow.api",
+"invokerPackage": "com.daimler.dna.airflow.service",
+"importMappings": {
+"BindingResult":"org.springframework.validation.BindingResult",
+"GenericMessage":"com.daimler.dna.airflow.exceptions.GenericMessage",
+"MessageDescription":"com.daimler.dna.airflow.exceptions.MessageDescription"
+}
+}

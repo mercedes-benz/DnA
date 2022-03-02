@@ -34,34 +34,36 @@ import com.daimler.data.db.repo.platform.PlatformRepository;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BasePlatformService
-        extends BaseCommonService<PlatformVO, PlatformNsql, String>
-        implements PlatformService {
+@Slf4j
+public class BasePlatformService extends BaseCommonService<PlatformVO, PlatformNsql, String>
+		implements PlatformService {
 
-    @Autowired
-    private PlatformCustomRepository customRepo;
-    @Autowired
-    private PlatformRepository jpaRepo;
-    @Autowired
-    private PlatformAssembler assembler;
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private PlatformCustomRepository customRepo;
+	@Autowired
+	private PlatformRepository jpaRepo;
+	@Autowired
+	private PlatformAssembler assembler;
+	@Autowired
+	private SolutionService solutionService;
 
+	public BasePlatformService() {
+		super();
+	}
 
-    public BasePlatformService() {
-        super();
-    }
-
-
-    @Override
-    public boolean deletePlatform(String id) {
-        PlatformNsql platformEntity = jpaRepo.getOne(id);
-        String name = platformEntity.getData().getName();
-        solutionService.deleteTagForEachSolution(name, null, SolutionService.TAG_CATEGORY.PLATFORM);
-        return deleteById(id);
-    }
+	@Override
+	public boolean deletePlatform(String id) {
+		PlatformNsql platformEntity = jpaRepo.getOne(id);
+		String name = platformEntity.getData().getName();
+		log.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to platform {}", id);
+		solutionService.deleteTagForEachSolution(name, null, SolutionService.TAG_CATEGORY.PLATFORM);
+		return deleteById(id);
+	}
 }

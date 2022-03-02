@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.userwidgetpref;
 import com.daimler.data.db.entities.UserWidgetPreferenceNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface UserWidgetPrefCustomRepository
-        extends CommonDataRepository<UserWidgetPreferenceNsql, String> {
+public interface UserWidgetPrefCustomRepository extends CommonDataRepository<UserWidgetPreferenceNsql, String> {
 
 }

@@ -32,6 +32,9 @@ import com.daimler.data.dto.solution.CreatedByVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,23 +43,24 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 public class UserStore {
 
-    private LoginController.UserInfo userInfo;
+	private LoginController.UserInfo userInfo;
 
+	private static Logger LOGGER = LoggerFactory.getLogger(UserStore.class);
 
-    public void clear(){
-        this.userInfo = null;
-    }
+	public void clear() {
+		this.userInfo = null;
+		LOGGER.debug("In UserStore.clear , clearing user");
+	}
 
-    public CreatedByVO getVO(){
-        CreatedByVO vo = new CreatedByVO();
-        vo.setId(this.userInfo.getId());
-        vo.setFirstName(this.userInfo.getFirstName());
-        vo.setLastName(this.userInfo.getLastName());
-        vo.setDepartment(this.userInfo.getDepartment());
-        vo.setEmail(this.userInfo.getEmail());
-        vo.setMobileNumber(this.userInfo.getMobileNumber());
-        return vo;
-    }
-
+	public CreatedByVO getVO() {
+		CreatedByVO vo = new CreatedByVO();
+		vo.setId(this.userInfo.getId());
+		vo.setFirstName(this.userInfo.getFirstName());
+		vo.setLastName(this.userInfo.getLastName());
+		vo.setDepartment(this.userInfo.getDepartment());
+		vo.setEmail(this.userInfo.getEmail());
+		vo.setMobileNumber(this.userInfo.getMobileNumber());
+		return vo;
+	}
 
 }

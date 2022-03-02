@@ -36,7 +36,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WidgetPreference implements Serializable{
+public class WidgetPreference implements Serializable {
 
 	private static final long serialVersionUID = 7070773742847220267L;
 
@@ -44,7 +44,7 @@ public class WidgetPreference implements Serializable{
 	private int columnPosition;
 	private int rowPosition;
 	private WidgetInfo widget;
-	
+
 //	public WidgetPreference() {
 //		super();
 //	}
@@ -88,5 +88,5 @@ public class WidgetPreference implements Serializable{
 //	public void setWidget(WidgetInfo widget) {
 //		this.widget = widget;
 //	}
-	
+
 }

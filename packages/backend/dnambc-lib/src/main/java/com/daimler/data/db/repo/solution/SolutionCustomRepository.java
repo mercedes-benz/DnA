@@ -27,59 +27,242 @@
 
 package com.daimler.data.db.repo.solution;
 
-import com.daimler.data.db.entities.SolutionNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
 import java.math.BigDecimal;
-
 import java.util.List;
 import java.util.Map;
+
+import com.daimler.data.db.entities.SolutionNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.dto.SolDigitalValueDTO;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
 import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
 
-public interface SolutionCustomRepository 
-					extends CommonDataRepository<SolutionNsql, String> {
+public interface SolutionCustomRepository extends CommonDataRepository<SolutionNsql, String> {
 
-	List<SolutionNsql> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes, List<Map<String, List<String>>> divisions, List<String> locations,
-			List<String> statuses, String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> relatedProducts, int offset, int limit,
-										 String sortBy, String sortOrder);
+	/**
+	 * To get all the solution with filter.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @param relatedProducts
+	 * @param offset
+	 * @param limit
+	 * @param sortBy
+	 * @param sortOrder
+	 * @return List<SolutionNsql>
+	 */
+	List<SolutionNsql> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
+			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, int offset, int limit,
+			String sortBy, String sortOrder);
 
-	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes, List<Map<String, List<String>>> divisions,
-			List<String> locations, List<String> statuses, 
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms,List<String> tags);
+	/**
+	 * To get Solution count with filter.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return solutionCount{Long}
+	 */
+	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes,
+			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags);
 
+	/**
+	 * To get All solution with filter using native query.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @param relatedProducts
+	 * @param offset
+	 * @param limit
+	 * @param sortBy
+	 * @param sortOrder
+	 * @return List<SolutionNsql>
+	 */
 	List<SolutionNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> phases,
-			List<String> dataVolumes, List<Map<String, List<String>>> divisions, List<String> locations,
-			List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> relatedProducts,
-			int offset, int limit, String sortBy, String sortOrder);
-
-	Long getCountUsingNativeQuery(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, int offset, int limit,
+			String sortBy, String sortOrder);
 
-	Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+	/**
+	 * To get SOlution count using Native query.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return solutionCount{Long}
+	 */
+	Long getCountUsingNativeQuery(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
 
-	BigDecimal getDigitalValuesSum(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+	/**
+	 * To get count of all the solutions which have Notebook Associated.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return count{Long}
+	 */
+	Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
 
+	/**
+	 * To get Sum of all the digital values of the solutions.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return sum{BigDecimal}
+	 */
+	BigDecimal getDigitalValuesSum(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+
+	/**
+	 * To get Data volume of all the solutions.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return List<DatasourceWidgetVO>
+	 */
 	List<DatasourceWidgetVO> getSolutionDataVolume(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
 
+	/**
+	 * To get Location wise solutions
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return List<LocationWidgetVO>
+	 */
 	List<LocationWidgetVO> getSolutionLocations(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+
+	/**
+	 * To get Milestones of all the solutions.
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return List<MilestoneWidgetVO>
+	 */
+	List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+
+	/**
+	 * To Fetch Digital Value summary
+	 * 
+	 * @param published
+	 * @param phases
+	 * @param dataVolumes
+	 * @param divisions
+	 * @param locations
+	 * @param statuses
+	 * @param solutionType
+	 * @param userId
+	 * @param isAdmin
+	 * @param bookmarkedSolutions
+	 * @param searchTerms
+	 * @param tags
+	 * @return List<SolDigitalValueDTO>
+	 */
+	List<SolDigitalValueDTO> getDigitalValueUsingNativeQuery(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
 			List<String> searchTerms, List<String> tags);
-	
-	List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes, List<Map<String, List<String>>> divisions, List<String> locations,
-			List<String> statuses, String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms,
-			List<String> tags);
 }

@@ -39,9 +39,8 @@ import java.util.List;
 @AllArgsConstructor
 public class Widget implements Serializable {
 
-
 	private static final long serialVersionUID = 775507003125492842L;
-	
+
 	private String name;
 	private String widgetTitle;
 	private String widgetDescription;
@@ -50,11 +49,11 @@ public class Widget implements Serializable {
 	private String yaxisTitle;
 	private List<WidgetEntry> dataEntries;
 	private List<WidgetUserRole> accessRoles;
-	
+
 //    public Widget() {
 //        super();
 //    }
-    
+
 //	public Widget(String name, List<WidgetEntry> dataEntries, List<WidgetUserRole> accessRoles) {
 //		super();
 //		this.name = name;
@@ -85,6 +84,5 @@ public class Widget implements Serializable {
 //	public void setAccessRoles(List<WidgetUserRole> accessRoles) {
 //		this.accessRoles = accessRoles;
 //	}
-    
 
 }

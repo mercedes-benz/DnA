@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.result;
 import com.daimler.data.db.entities.ResultNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface ResultCustomRepository
-        extends CommonDataRepository<ResultNsql, String> {
+public interface ResultCustomRepository extends CommonDataRepository<ResultNsql, String> {
 
 }

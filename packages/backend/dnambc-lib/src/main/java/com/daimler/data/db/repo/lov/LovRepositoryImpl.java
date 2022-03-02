@@ -43,6 +43,7 @@ import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
 import com.daimler.data.db.entities.lov.MaturityLevelNsql;
 import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
+import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 
 @Repository
 public class LovRepositoryImpl implements LovRepository {
@@ -52,7 +53,8 @@ public class LovRepositoryImpl implements LovRepository {
 
 	/**
 	 * getAllBusinessGoal
-	 * <P> Fetch all business Goal from Database 
+	 * <P>
+	 * Fetch all business Goal from Database
 	 * 
 	 * @return List<BusinessGoalNsql>
 	 */
@@ -68,7 +70,8 @@ public class LovRepositoryImpl implements LovRepository {
 
 	/**
 	 * getAllBenefitRelevance
-	 * <P> Fetch all Benefit relevances from Database 
+	 * <P>
+	 * Fetch all Benefit relevances from Database
 	 * 
 	 * @return List<BenefitRelevanceNsql>
 	 */
@@ -84,7 +87,8 @@ public class LovRepositoryImpl implements LovRepository {
 
 	/**
 	 * getAllStrategicRelevance
-	 * <P> Fetch all Strategic relevances from Database 
+	 * <P>
+	 * Fetch all Strategic relevances from Database
 	 * 
 	 * @return List<StrategicRelevanceNsql>
 	 */
@@ -100,7 +104,8 @@ public class LovRepositoryImpl implements LovRepository {
 
 	/**
 	 * getAllMaturityLevel
-	 * <P> Fetch all Maturity Level from Database 
+	 * <P>
+	 * Fetch all Maturity Level from Database
 	 * 
 	 * @return List<MaturityLevelNsql>
 	 */
@@ -116,7 +121,8 @@ public class LovRepositoryImpl implements LovRepository {
 
 	/**
 	 * getAllCategory
-	 * <P> Fetch all Category from Database 
+	 * <P>
+	 * Fetch all Category from Database
 	 * 
 	 * @return List<CategoryNsql>
 	 */
@@ -127,6 +133,16 @@ public class LovRepositoryImpl implements LovRepository {
 		Root<CategoryNsql> root = cq.from(CategoryNsql.class);
 		CriteriaQuery<CategoryNsql> getAll = cq.select(root);
 		TypedQuery<CategoryNsql> getAllQuery = em.createQuery(getAll);
+		return getAllQuery.getResultList();
+	}
+
+	@Override
+	public List<DataStrategyDomainNsql> getAllStrategyDomain() {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<DataStrategyDomainNsql> cq = cb.createQuery(DataStrategyDomainNsql.class);
+		Root<DataStrategyDomainNsql> root = cq.from(DataStrategyDomainNsql.class);
+		CriteriaQuery<DataStrategyDomainNsql> getAll = cq.select(root);
+		TypedQuery<DataStrategyDomainNsql> getAllQuery = em.createQuery(getAll);
 		return getAllQuery.getResultList();
 	}
 

@@ -38,9 +38,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Phase implements Serializable {
 
-    private static final long serialVersionUID = -2432286159462255287L;
+	private static final long serialVersionUID = -2432286159462255287L;
 
-    private String name;
+	private String name;
 
 //    public Phase() {
 //        super();
@@ -58,6 +58,5 @@ public class Phase implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }
