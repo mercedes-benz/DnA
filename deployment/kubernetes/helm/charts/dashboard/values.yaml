@@ -1,0 +1,24 @@
+namespace: dashboard
+image: ""
+imagePullPolicy: Always
+imagePullSecret: 
+  name: harbor-pull-secret
+cert:
+  certManager: ""
+dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
+secret:
+  name: dashboard-secrets
+  appUserName: ""
+  appPassword: ""
+appUrl: http://dna-backend-service.dna.svc.cluster.local:80
+enableAuth: true
+containerPort: 7173
+host: ""
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1000Mi"
+    cpu: "500m"
+

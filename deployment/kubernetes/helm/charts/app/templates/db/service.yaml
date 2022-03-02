@@ -1,0 +1,21 @@
+{{- if not .Values.bitnamipostgresql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: &name postgresql
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: *name
+    cluster-name: &cluster_name postgresql-cluster
+spec:
+  type: NodePort
+  ports:
+  - port: 64000
+    name: postgresql
+    targetPort: postgresql
+    protocol: TCP
+  selector:
+    app: *name
+    cluster-name: *cluster_name
+    role: master
+{{ end }}

@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: my-cluster-network-policy-kafka-naas
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      strimzi.io/name: my-cluster-kafka
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              name: {{ .Chart.Name }}-backend
+          namespaceSelector:
+            matchLabels:
+              app: {{ .Chart.Name }}-backend # makesure the naas namespace is labelled accordingly using kubectl label namespace/naas-dev app=naas-backend
+  policyTypes:
+    - Ingress
