@@ -35,13 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "projectstatus_nsql")
-public class ProjectStatusNsql extends BaseEntity<ProjectStatus>
-        implements Serializable {
+public class ProjectStatusNsql extends BaseEntity<ProjectStatus> implements Serializable {
 
-    private static final long serialVersionUID = 5229123029871377531L;
+	private static final long serialVersionUID = 5229123029871377531L;
 
-    public ProjectStatusNsql() {
-        super();
-    }
+	public ProjectStatusNsql() {
+		super();
+	}
 
 }

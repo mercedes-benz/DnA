@@ -41,29 +41,27 @@ public class RelatedproductAssembler implements GenericAssembler<RelatedProductV
 	@Override
 	public RelatedProductVO toVo(RelatedProductNsql entity) {
 		// TODO Auto-generated method stub
-		RelatedProductVO  relatedProductVO = null;
-        if (Objects.nonNull(entity)) {
-        	relatedProductVO = new RelatedProductVO();
-        	relatedProductVO.setId(entity.getId());
-        	if(entity.getData()!=null)
-        	relatedProductVO.setName(entity.getData().getName());
-        }
-        return relatedProductVO;
+		RelatedProductVO relatedProductVO = null;
+		if (Objects.nonNull(entity)) {
+			relatedProductVO = new RelatedProductVO();
+			relatedProductVO.setId(entity.getId());
+			if (entity.getData() != null)
+				relatedProductVO.setName(entity.getData().getName());
+		}
+		return relatedProductVO;
 	}
 
 	@Override
 	public RelatedProductNsql toEntity(RelatedProductVO vo) {
 		RelatedProductNsql relatedProductNsql = null;
-        if (Objects.nonNull(vo)) {
-        	relatedProductNsql = new RelatedProductNsql();
-            RelatedProduct relatedProduct = new RelatedProduct();
-            relatedProduct.setName(vo.getName() );
-            relatedProductNsql.setData(relatedProduct);
-            if (vo.getId() != null)
-            	relatedProductNsql.setId(vo.getId());
-        }
-        return relatedProductNsql;
-    }
+		if (Objects.nonNull(vo)) {
+			relatedProductNsql = new RelatedProductNsql();
+			RelatedProduct relatedProduct = new RelatedProduct();
+			relatedProduct.setName(vo.getName());
+			relatedProductNsql.setData(relatedProduct);
+			if (vo.getId() != null)
+				relatedProductNsql.setId(vo.getId());
+		}
+		return relatedProductNsql;
+	}
 }
-	
-

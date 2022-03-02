@@ -25,23 +25,38 @@
  * LICENSE END 
  */
 
-package com.daimler.data.logging;
+package com.daimler.dna.notifications.common.event.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import java.io.Serializable;
+import java.util.List;
+import java.util.UUID;
 
-@Component
-@ConfigurationProperties(prefix = "service.logging")
-public class ApplicationLoggingProperties {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    private String environment;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class GenericEventRecord implements Serializable {
 
-    public String getEnvironment() {
-        return environment;
-    }
+	private static final long serialVersionUID = -646154079735583154L;
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
+//	private java.lang.CharSequence uuid;
+//	private java.lang.CharSequence user_id;
+//	private java.lang.Boolean mail_required;
+//	private java.lang.CharSequence message;
+//	private java.lang.CharSequence time;
+
+	private String uuid;
+	private String resourceId;
+	private String publishingAppName;
+	private String eventType;
+	private String publishingUser;
+	private String message;
+	private String messageDetails;
+	private Boolean mailRequired;
+	private String time;
+	private List<String> subscribedUsers;
 
 }

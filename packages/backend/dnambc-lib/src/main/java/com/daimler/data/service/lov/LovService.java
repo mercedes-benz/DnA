@@ -32,13 +32,51 @@ import java.util.List;
 import com.daimler.data.dto.lov.BenefitRelevanceVO;
 import com.daimler.data.dto.lov.BusinessGoalVO;
 import com.daimler.data.dto.lov.CategoryVO;
+import com.daimler.data.dto.lov.DataStrategyDomainVO;
 import com.daimler.data.dto.lov.MaturityLevelVO;
 import com.daimler.data.dto.lov.StrategicRelevanceVO;
 
 public interface LovService {
+
+	/**
+	 * To fetch all business Goals.
+	 * 
+	 * @return businessGoals {List<BusinessGoalVO>}
+	 */
 	List<BusinessGoalVO> getAllBusinessGoal();
+
+	/**
+	 * To fetch all Benefit Relevances
+	 * 
+	 * @return benefitRelevances {List<BenefitRelevanceVO>}
+	 */
 	List<BenefitRelevanceVO> getAllBenefitRelevance();
+
+	/**
+	 * To fetch all Strategic Relevances
+	 * 
+	 * @return strategicRelevances {List<StrategicRelevanceVO>}
+	 */
 	List<StrategicRelevanceVO> getAllStrategicRelevance();
+
+	/**
+	 * To fetch all maturityLevels
+	 * 
+	 * @return maturityLevels {List<MaturityLevelVO>}
+	 */
 	List<MaturityLevelVO> getAllMaturityLevel();
+
+	/**
+	 * To fetch all categories
+	 * 
+	 * @return categories {List<CategoryVO>}
+	 */
 	List<CategoryVO> getAllCategory();
+
+	/**
+	 * To fetch all strategyDomains
+	 * 
+	 * @return strategyDomains {List<DataStrategyDomainVO>}
+	 */
+	List<DataStrategyDomainVO> getAllStrategyDomain();
 }

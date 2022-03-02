@@ -27,14 +27,14 @@
 
 package com.daimler.data.db.jsonb.solution;
 
+import java.util.Date;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.daimler.data.db.jsonb.RelatedProduct;
-
-import java.util.Date;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -45,59 +45,65 @@ public class Solution {
 	private String productName;
 	private String description;
 	private String businessNeed;
-	private String businessGoal;
+	private List<String> businessGoals;
 	private String expectedBenefits;
 	private String reasonForHoldOrClose;
-	
+
 	private List<SolutionLocation> locations;
 	private SolutionDivision division;
 	private SolutionProjectStatus projectStatus;
 	private boolean publish;
-	
+
 	private List<String> tags;
 
 	private List<String> openSegments;
-	
+
 	private List<SolutionTeamMember> teamMembers;
-	
+
 	private List<SolutionMilestone> milestones;
-	
+
 	private SolutionRollOut rollout;
-	
+
 	private List<SolutionDatasource> dataSources;
-	
+
 	private List<SolutionLanguage> languages;
-	
+
 	private List<SolutionAlgorithm> algorithms;
-	
+
 	private List<SolutionVisualization> visualizations;
-	
+
 	private String gitUrl;
 	private String resultUrl;
 	private SolutionResult result;
-	
-	private SolutionDigitalValue digitalValueDetails; 
+
+	private SolutionDigitalValue digitalValueDetails;
 	private SolutionDataCompliance dataComplianceDetails;
-	
+
 	private SolutionDataVolume totalDataVolume;
-	
+
 	private boolean solutionOnCloud;
 	private boolean usesExistingInternalPlatforms;
 	private String dnaNotebookId;
 	private String dataikuProjectKey;
 	private String dnaSubscriptionAppId;
 	private List<SolutionPlatform> platforms;
-	
+
 	private Date createdDate;
 	private Date lastModifiedDate;
 	private Date closeDate;
 	private CreatedBy createdBy;
-	
+
 	private CurrentPhase currentPhase;
-	
+
 	private List<FileDetails> attachments;
-	
+
 	private List<String> relatedProducts;
-	
+
 	private LogoDetails logoDetails;
+	
+	private List<SkillSummary> skills;
+	private String dataStrategyDomain;
+	private boolean existingSolution;
+	private Integer requestedFTECount;
+	
 }

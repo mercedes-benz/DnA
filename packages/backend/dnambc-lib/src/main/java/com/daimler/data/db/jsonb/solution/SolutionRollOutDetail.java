@@ -39,5 +39,5 @@ public class SolutionRollOutDetail {
 	private SolutionLocation location;
 	private int month;
 	private int year;
-	
+
 }

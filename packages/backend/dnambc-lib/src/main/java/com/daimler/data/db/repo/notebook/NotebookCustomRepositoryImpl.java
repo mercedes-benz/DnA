@@ -33,8 +33,7 @@ import com.daimler.data.db.entities.NotebookNsql;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
 @Repository
-public class NotebookCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<NotebookNsql, String>
-        implements NotebookCustomRepository {
+public class NotebookCustomRepositoryImpl extends CommonDataRepositoryImpl<NotebookNsql, String>
+		implements NotebookCustomRepository {
 
 }

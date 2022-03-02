@@ -37,28 +37,28 @@ import java.util.Objects;
 @Component
 public class VisualizationAssembler implements GenericAssembler<VisualizationVO, VisualizationNsql> {
 
-    @Override
-    public VisualizationVO toVo(VisualizationNsql entity) {
-        VisualizationVO visualizationVO = null;
-        if (Objects.nonNull(entity)) {
-            visualizationVO = new VisualizationVO();
-            visualizationVO.setId(entity.getId());
-            visualizationVO.setName(entity.getData().getName());
-        }
-        return visualizationVO;
-    }
+	@Override
+	public VisualizationVO toVo(VisualizationNsql entity) {
+		VisualizationVO visualizationVO = null;
+		if (Objects.nonNull(entity)) {
+			visualizationVO = new VisualizationVO();
+			visualizationVO.setId(entity.getId());
+			visualizationVO.setName(entity.getData().getName());
+		}
+		return visualizationVO;
+	}
 
-    @Override
-    public VisualizationNsql toEntity(VisualizationVO vo) {
-        VisualizationNsql visualizationNsql = null;
-        if (Objects.nonNull(vo)) {
-            visualizationNsql = new VisualizationNsql();
-            Visualization visualization = new Visualization();
-            visualization.setName(vo.getName() );
-            visualizationNsql.setData(visualization);
-            if (vo.getId() != null)
-                visualizationNsql.setId(vo.getId());
-        }
-        return visualizationNsql;
-    }
+	@Override
+	public VisualizationNsql toEntity(VisualizationVO vo) {
+		VisualizationNsql visualizationNsql = null;
+		if (Objects.nonNull(vo)) {
+			visualizationNsql = new VisualizationNsql();
+			Visualization visualization = new Visualization();
+			visualization.setName(vo.getName());
+			visualizationNsql.setData(visualization);
+			if (vo.getId() != null)
+				visualizationNsql.setId(vo.getId());
+		}
+		return visualizationNsql;
+	}
 }

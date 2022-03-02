@@ -44,99 +44,96 @@ import java.util.Map;
 @Slf4j
 public class JWTGenerator {
 
-   // private static Logger log = LoggerFactory.getLogger(JWTGenerator.class);
+	// private static Logger log = LoggerFactory.getLogger(JWTGenerator.class);
 
-    private static String SECRET_KEY;
-    
-    private static int TOKEN_EXPIRY;
+	private static String SECRET_KEY;
 
-    @Value("${jwt.secret.key}")
-    public void setSecretKey(String secretKey) {
-        SECRET_KEY = secretKey;
-    }
-    
-    @Value("${jwt.secret.tokenExpiry}")
-    public void setTokenExpiry(int tokenExpiry) {
-    	TOKEN_EXPIRY = tokenExpiry;
-    }
-    
+	private static int TOKEN_EXPIRY;
 
-    public static String createJWT(Map<String, Object> tokenData) {
+	@Value("${jwt.secret.key}")
+	public void setSecretKey(String secretKey) {
+		SECRET_KEY = secretKey;
+	}
 
-        final JwtBuilder jwtBuilder = Jwts.builder();
-        jwtBuilder.setClaims(tokenData);
-        final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
-        return token;
-    }
+	@Value("${jwt.secret.tokenExpiry}")
+	public void setTokenExpiry(int tokenExpiry) {
+		TOKEN_EXPIRY = tokenExpiry;
+	}
 
-    public static String createJWT(LoginController.UserInfo userInfo) {
+	public static String createJWT(Map<String, Object> tokenData) {
 
-        final Map<String, Object> tokenData = new HashMap<>();
-        tokenData.put("id", userInfo.getId());
-        tokenData.put("firstName", userInfo.getFirstName());
-        tokenData.put("lastName", userInfo.getLastName());
-        tokenData.put("email", userInfo.getEmail());
-        tokenData.put("nounce",Math.random());
-        tokenData.put("mobileNumber", userInfo.getMobileNumber());
-        tokenData.put("department", userInfo.getDepartment());
-        tokenData.put("digiRole", userInfo.getDigiRole());
+		final JwtBuilder jwtBuilder = Jwts.builder();
+		jwtBuilder.setClaims(tokenData);
+		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+		return token;
+	}
 
-        final JwtBuilder jwtBuilder = Jwts.builder();
-        jwtBuilder.setClaims(tokenData);
-        final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
-        return token;
-    }
-    
-    public static String generateJWT(LoginController.UserInfo userInfo, String authToken) {
+	public static String createJWT(LoginController.UserInfo userInfo) {
 
-        final Map<String, Object> tokenData = new HashMap<>();
-        tokenData.put("id", userInfo.getId());
-        tokenData.put("firstName", userInfo.getFirstName());
-        tokenData.put("lastName", userInfo.getLastName());
-        tokenData.put("email", userInfo.getEmail());
-        tokenData.put("nounce",Math.random());
-        tokenData.put("mobileNumber", userInfo.getMobileNumber());
-        tokenData.put("department", userInfo.getDepartment());
-        tokenData.put("digiRole", userInfo.getDigiRole());
-        tokenData.put("authToken", authToken);
-        final JwtBuilder jwtBuilder = Jwts.builder();
-        jwtBuilder.setClaims(tokenData);
-        jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY*60*1000));
-        final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
-        return token;
-    }
-    
-    
-    public static String refreshJWT( Claims claims, String authToken) {
+		final Map<String, Object> tokenData = new HashMap<>();
+		tokenData.put("id", userInfo.getId());
+		tokenData.put("firstName", userInfo.getFirstName());
+		tokenData.put("lastName", userInfo.getLastName());
+		tokenData.put("email", userInfo.getEmail());
+		tokenData.put("nounce", Math.random());
+		tokenData.put("mobileNumber", userInfo.getMobileNumber());
+		tokenData.put("department", userInfo.getDepartment());
+		tokenData.put("digiRole", userInfo.getDigiRole());
 
-        final Map<String, Object> tokenData = new HashMap<>();
-        tokenData.put("id", (String) claims.get("id"));
-        tokenData.put("firstName",(String) claims.get("firstName"));
-        tokenData.put("lastName", (String) claims.get("lastName"));
-        tokenData.put("email",(String) claims.get("email"));
-        tokenData.put("nounce",Math.random());
-        tokenData.put("mobileNumber",(String) claims.get("mobileNumber"));
-        tokenData.put("department", (String) claims.get("department"));
-        tokenData.put("digiRole",(List) claims.get("digiRole"));
-        tokenData.put("authToken", authToken);
-        final JwtBuilder jwtBuilder = Jwts.builder();
-        jwtBuilder.setClaims(tokenData);
-        jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY*60*1000));
-        final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
-        return token;
-    }
+		final JwtBuilder jwtBuilder = Jwts.builder();
+		jwtBuilder.setClaims(tokenData);
+		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+		return token;
+	}
 
-    public static Claims decodeJWT(String jwt) {
-        try {
-            //This line will throw an exception if it is not a signed JWS (as expected)
-            Claims claims = Jwts.parser()
-                    .setSigningKey(DatatypeConverter.parseBase64Binary(SECRET_KEY))
-                    .parseClaimsJws(jwt).getBody();
-            return claims;
-        } catch (ExpiredJwtException | MalformedJwtException | SignatureException
-                | UnsupportedJwtException | IllegalArgumentException e) {
-            log.error("Error parsing JWT:" + e.getMessage());
-            return null;
-        }
-    }
+	public static String generateJWT(LoginController.UserInfo userInfo, String authToken) {
+
+		final Map<String, Object> tokenData = new HashMap<>();
+		tokenData.put("id", userInfo.getId());
+		tokenData.put("firstName", userInfo.getFirstName());
+		tokenData.put("lastName", userInfo.getLastName());
+		tokenData.put("email", userInfo.getEmail());
+		tokenData.put("nounce", Math.random());
+		tokenData.put("mobileNumber", userInfo.getMobileNumber());
+		tokenData.put("department", userInfo.getDepartment());
+		tokenData.put("digiRole", userInfo.getDigiRole());
+		tokenData.put("authToken", authToken);
+		final JwtBuilder jwtBuilder = Jwts.builder();
+		jwtBuilder.setClaims(tokenData);
+		jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY * 60 * 1000));
+		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+		return token;
+	}
+
+	public static String refreshJWT(Claims claims, String authToken) {
+
+		final Map<String, Object> tokenData = new HashMap<>();
+		tokenData.put("id", (String) claims.get("id"));
+		tokenData.put("firstName", (String) claims.get("firstName"));
+		tokenData.put("lastName", (String) claims.get("lastName"));
+		tokenData.put("email", (String) claims.get("email"));
+		tokenData.put("nounce", Math.random());
+		tokenData.put("mobileNumber", (String) claims.get("mobileNumber"));
+		tokenData.put("department", (String) claims.get("department"));
+		tokenData.put("digiRole", (List) claims.get("digiRole"));
+		tokenData.put("authToken", authToken);
+		final JwtBuilder jwtBuilder = Jwts.builder();
+		jwtBuilder.setClaims(tokenData);
+		jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY * 60 * 1000));
+		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+		return token;
+	}
+
+	public static Claims decodeJWT(String jwt) {
+		try {
+			// This line will throw an exception if it is not a signed JWS (as expected)
+			Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(SECRET_KEY))
+					.parseClaimsJws(jwt).getBody();
+			return claims;
+		} catch (ExpiredJwtException | MalformedJwtException | SignatureException | UnsupportedJwtException
+				| IllegalArgumentException e) {
+			log.error("Error parsing JWT:" + e.getMessage());
+			return null;
+		}
+	}
 }
