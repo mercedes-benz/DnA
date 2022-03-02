@@ -29,6 +29,8 @@ package com.daimler.data.application.config;
 
 import java.util.concurrent.Executors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,49 +49,51 @@ import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 @Configuration
 public class AmazonS3Config {
 
-    @Value("${storage.bucketname}")
-    private String bucketname;
-    
-    @Value("${storage.accesskey}")
-    private String accessKey;
-    
-    @Value("${storage.secretkey}")
-    private String secretKey;
-    
-    @Value("${storage.endpointurl}")
-    private String endpointUrl;
-    
-    @Value("${storage.maxParallelUploads}")
-    private int maxUploadThreads;
-    
-    @Value("${storage.minFileSize}")
-    private int minFileSize;
-    
-    @Value("${storage.maxFileSize}")
-    private int maxFileSize;
-    
-    @Bean
-    public AmazonS3 awsS3Client() {
-    	System.setProperty(SDKGlobalConfiguration.DISABLE_CERT_CHECKING_SYSTEM_PROPERTY,"true");
-    	
-        AWSCredentials credentials = new BasicAWSCredentials(accessKey,secretKey);
-        AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(credentials);
-        AmazonS3 client = AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(true).withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpointUrl, null)).withCredentials(credentialsProvider).build();
-        return client;	
-    }
-    
-    @Bean
-    public TransferManager transferManager(){
-      TransferManager tm = TransferManagerBuilder.standard()
-                    .withS3Client(awsS3Client())
-                    .withDisableParallelDownloads(false)
-                    .withMinimumUploadPartSize(Long.valueOf(minFileSize))
-                    .withMultipartUploadThreshold(Long.valueOf(maxFileSize))
-                    .withMultipartCopyPartSize(Long.valueOf(minFileSize))
-                    .withMultipartCopyThreshold(Long.valueOf(maxFileSize))
-                    .withExecutorFactory(()-> Executors.newFixedThreadPool(maxUploadThreads))
-                    .build();
-      return tm;
-    }
-	
+	private static Logger LOGGER = LoggerFactory.getLogger(AmazonS3Config.class);
+
+	@Value("${storage.bucketname}")
+	private String bucketname;
+
+	@Value("${storage.accesskey}")
+	private String accessKey;
+
+	@Value("${storage.secretkey}")
+	private String secretKey;
+
+	@Value("${storage.endpointurl}")
+	private String endpointUrl;
+
+	@Value("${storage.maxParallelUploads}")
+	private int maxUploadThreads;
+
+	@Value("${storage.minFileSize}")
+	private int minFileSize;
+
+	@Value("${storage.maxFileSize}")
+	private int maxFileSize;
+
+	@Bean
+	public AmazonS3 awsS3Client() {
+		System.setProperty(SDKGlobalConfiguration.DISABLE_CERT_CHECKING_SYSTEM_PROPERTY, "true");
+		AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
+		AWSCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(credentials);
+		AmazonS3 client = AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(true)
+				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpointUrl, null))
+				.withCredentials(credentialsProvider).build();
+		LOGGER.debug("Returning AWS S3 Client as bean");
+		return client;
+	}
+
+	@Bean
+	public TransferManager transferManager() {
+		TransferManager tm = TransferManagerBuilder.standard().withS3Client(awsS3Client())
+				.withDisableParallelDownloads(false).withMinimumUploadPartSize(Long.valueOf(minFileSize))
+				.withMultipartUploadThreshold(Long.valueOf(maxFileSize))
+				.withMultipartCopyPartSize(Long.valueOf(minFileSize))
+				.withMultipartCopyThreshold(Long.valueOf(maxFileSize))
+				.withExecutorFactory(() -> Executors.newFixedThreadPool(maxUploadThreads)).build();
+		LOGGER.debug("Returning AWS S3 TransferManager as bean");
+		return tm;
+	}
+
 }

@@ -38,9 +38,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Algorithm implements Serializable {
 
-    private static final long serialVersionUID = -7477338063032638875L;
+	private static final long serialVersionUID = -7477338063032638875L;
 
-    private String name;
+	private String name;
 
 //    public Algorithm() {
 //        super();
@@ -58,6 +58,5 @@ public class Algorithm implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

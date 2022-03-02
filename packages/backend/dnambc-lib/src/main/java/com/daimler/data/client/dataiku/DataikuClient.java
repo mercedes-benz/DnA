@@ -38,32 +38,38 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public interface DataikuClient {
 
 	/**
-	 * <p>To get all projects of dataiku PRODUCTION/TRAINING</p>
+	 * <p>
+	 * To get all projects of dataiku PRODUCTION/TRAINING
+	 * </p>
 	 * 
 	 * @param live
 	 * @return DataikuProjectVOCollection
-	 * @throws JsonProcessingException 
-	 * @throws Exception 
+	 * @throws JsonProcessingException
+	 * @throws Exception
 	 */
 	public Optional<List<DataikuProjectVO>> getAllDataikuProjects(Boolean live);
-	
+
 	/**
-	 * <p> To get user role </p>
+	 * <p>
+	 * To get user role
+	 * </p>
 	 * 
 	 * @param userId
 	 * @return DataikuUserRole
 	 */
 	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live);
-	
+
 	/**
-	 * <p> To get dataiku project permission </p>
+	 * <p>
+	 * To get dataiku project permission
+	 * </p>
 	 * 
 	 * @param projectKey
 	 * @param live
 	 * @return DataikuPermission
 	 */
 	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live);
-	
+
 	/**
 	 * To get Dataiku project by given project key
 	 * 

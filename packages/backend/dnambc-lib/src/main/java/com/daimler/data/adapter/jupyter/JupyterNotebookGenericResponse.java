@@ -38,5 +38,5 @@ public class JupyterNotebookGenericResponse {
 
 	private String status;
 	private String message;
-	
+
 }

@@ -58,55 +58,56 @@ import javax.validation.Valid;
 @RequestMapping("/api")
 public class DivisionController implements DivisionsApi, SubdivisionsApi {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(DivisionController.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(DivisionController.class);
 
-    @Autowired
-    private DivisionService divisionService;
+	@Autowired
+	private DivisionService divisionService;
 
-    @Override
-    @ApiOperation(value = "Get all available divisions.", nickname = "getAll", notes = "Get all divisions. This endpoints will be used to Get all valid available divisions maintenance records.", response = DivisionCollection.class, tags = {
-            "divisions", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully completed fetching all divisions", response = DivisionCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/divisions", produces = { "application/json" }, method = RequestMethod.GET)
-    public ResponseEntity<DivisionCollection> getAll(
-            @ApiParam(value = "Ids of the division for which sub-divisions are to be fetched") @Valid @RequestParam(value = "ids", required = false) List<String> ids) {
-        LOGGER.trace("Processing getAll");
-        try {
-            DivisionCollection divisionCollection = new DivisionCollection();
-            LOGGER.info("Fetching Divisions for given Ids:{}", ids);
-            List<DivisionVO> divisions = divisionService.getDivisionsByIds(ids);
-            if (!ObjectUtils.isEmpty(divisions)) {
-                divisionCollection.addAll(divisions);
-                return new ResponseEntity<>(divisionCollection, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(divisionCollection, HttpStatus.NO_CONTENT);
-            }
-        } catch (Exception e) {
-            LOGGER.error("Exception Occured: {}", e.getMessage());
-            throw e;
-        }
-    }
+	@Override
+	@ApiOperation(value = "Get all available divisions.", nickname = "getAll", notes = "Get all divisions. This endpoints will be used to Get all valid available divisions maintenance records.", response = DivisionCollection.class, tags = {
+			"divisions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Successfully completed fetching all divisions", response = DivisionCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/divisions", produces = { "application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<DivisionCollection> getAll(
+			@ApiParam(value = "Ids of the division for which sub-divisions are to be fetched") @Valid @RequestParam(value = "ids", required = false) List<String> ids) {
+		try {
+			DivisionCollection divisionCollection = new DivisionCollection();
+			LOGGER.info("Fetching Divisions for given Ids:{}", ids);
+			List<DivisionVO> divisions = divisionService.getDivisionsByIds(ids);
+			if (!ObjectUtils.isEmpty(divisions)) {
+				divisionCollection.addAll(divisions);
+				return new ResponseEntity<>(divisionCollection, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(divisionCollection, HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception Occured: {}", e.getMessage());
+			throw e;
+		}
+	}
 
-    @ApiOperation(value = "Get all available subdivisions for a given division id.", nickname = "getById", notes = "Get all subdivisions. This endpoints will be used to Get all valid available subdivisions for a given division-id maintenance records.", response = SubdivisionCollection.class, tags = {
-            "subdivisions", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of succes or failure", response = SubdivisionCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/subdivisions/{id}", produces = { "application/json" }, method = RequestMethod.GET)
-    public ResponseEntity<SubdivisionCollection> getById(
-            @ApiParam(value = "Id of the division for which sub-divisions are tobe fetched", required = true) @PathVariable("id") String id) {
-        final List<SubdivisionVO> subdivisions = divisionService.getSubDivisionsById(id);
-        SubdivisionCollection subdivisionCollection = new SubdivisionCollection();
-        if (subdivisions != null && subdivisions.size() > 0) {
-            subdivisionCollection.addAll(subdivisions);
-            return new ResponseEntity<>(subdivisionCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(subdivisionCollection, HttpStatus.NO_CONTENT);
-        }
-    }
+	@ApiOperation(value = "Get all available subdivisions for a given division id.", nickname = "getById", notes = "Get all subdivisions. This endpoints will be used to Get all valid available subdivisions for a given division-id maintenance records.", response = SubdivisionCollection.class, tags = {
+			"subdivisions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = SubdivisionCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/subdivisions/{id}", produces = { "application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<SubdivisionCollection> getById(
+			@ApiParam(value = "Id of the division for which sub-divisions are tobe fetched", required = true) @PathVariable("id") String id) {
+		final List<SubdivisionVO> subdivisions = divisionService.getSubDivisionsById(id);
+		SubdivisionCollection subdivisionCollection = new SubdivisionCollection();
+		if (subdivisions != null && subdivisions.size() > 0) {
+			subdivisionCollection.addAll(subdivisions);
+			LOGGER.debug("Returning all available subdivisions");
+			return new ResponseEntity<>(subdivisionCollection, HttpStatus.OK);
+		} else {
+			LOGGER.debug("No subdivisions found, returning empty");
+			return new ResponseEntity<>(subdivisionCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

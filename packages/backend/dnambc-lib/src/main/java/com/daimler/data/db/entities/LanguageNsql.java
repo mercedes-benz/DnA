@@ -35,12 +35,11 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "language_nsql")
-public class LanguageNsql extends BaseEntity<Language>
-        implements Serializable {
+public class LanguageNsql extends BaseEntity<Language> implements Serializable {
 
-    private static final long serialVersionUID = -7715637669188213350L;
+	private static final long serialVersionUID = -7715637669188213350L;
 
-    public LanguageNsql() {
-    }
+	public LanguageNsql() {
+	}
 
 }

@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SolutionLanguage {
-	
-		private String id;
-		private String name;
+
+	private String id;
+	private String name;
 }

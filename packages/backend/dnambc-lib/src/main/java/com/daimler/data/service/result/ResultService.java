@@ -31,6 +31,5 @@ import com.daimler.data.db.entities.ResultNsql;
 import com.daimler.data.dto.result.ResultVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface ResultService
-        extends CommonService<ResultVO, ResultNsql, String> {
+public interface ResultService extends CommonService<ResultVO, ResultNsql, String> {
 }

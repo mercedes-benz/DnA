@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.location;
 import com.daimler.data.db.entities.LocationNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface LocationCustomRepository
-        extends CommonDataRepository<LocationNsql, String> {
+public interface LocationCustomRepository extends CommonDataRepository<LocationNsql, String> {
 
 }

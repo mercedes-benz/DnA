@@ -53,121 +53,127 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@Api(value = "Algorithm API", tags = {"algorithms"})
+@Api(value = "Algorithm API", tags = { "algorithms" })
 @RequestMapping("/api")
 @Slf4j
 public class AlgorithmController implements AlgorithmsApi {
 
-    @Autowired
-    private UserStore userStore;
+	@Autowired
+	private UserStore userStore;
 
-    @Autowired
-    private UserInfoService userInfoService;
+	@Autowired
+	private UserInfoService userInfoService;
 
-    @Autowired
-    private AlgorithmService algorithmService;
+	@Autowired
+	private AlgorithmService algorithmService;
 
-    @Override
-    @ApiOperation(value = "Adds a new algorithms.", nickname = "createAlgorithm", notes = "Adds a new non existing algorithms which is used in providing solution.", response = AlgorithmVO.class, tags = {"algorithms",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Algorithm added successfully", response = AlgorithmVO.class),
-            @ApiResponse(code = 400, message = "Bad Request"),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Invalid input"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/algorithms",
-            produces = {"application/json"},
-            consumes = {"application/json"},
-            method = RequestMethod.POST)
-    public ResponseEntity<AlgorithmVO> createAlgorithm(@Valid AlgorithmRequestVO algorithmRequestVO) {
+	@Override
+	@ApiOperation(value = "Adds a new algorithms.", nickname = "createAlgorithm", notes = "Adds a new non existing algorithms which is used in providing solution.", response = AlgorithmVO.class, tags = {
+			"algorithms", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Algorithm added successfully", response = AlgorithmVO.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/algorithms", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<AlgorithmVO> createAlgorithm(@Valid AlgorithmRequestVO algorithmRequestVO) {
 
-        AlgorithmVO requestAlgorithmVO = algorithmRequestVO.getData();
-        try {
-            AlgorithmVO existingAlgorithmVO = algorithmService.getByUniqueliteral("name", requestAlgorithmVO.getName());
-            if (existingAlgorithmVO != null && existingAlgorithmVO.getName() != null)
-                return new ResponseEntity<>(existingAlgorithmVO, HttpStatus.CONFLICT);
-            requestAlgorithmVO.setId(null);
-            AlgorithmVO algorithmVo = algorithmService.create(requestAlgorithmVO);
-            if (algorithmVo != null && algorithmVo.getId() != null) {
-                return new ResponseEntity<>(algorithmVo, HttpStatus.CREATED);
-            } else
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+		AlgorithmVO requestAlgorithmVO = algorithmRequestVO.getData();
+		try {
+			AlgorithmVO existingAlgorithmVO = algorithmService.getByUniqueliteral("name", requestAlgorithmVO.getName());
+			if (existingAlgorithmVO != null && existingAlgorithmVO.getName() != null)
+				return new ResponseEntity<>(existingAlgorithmVO, HttpStatus.CONFLICT);
+			requestAlgorithmVO.setId(null);
+			AlgorithmVO algorithmVo = algorithmService.create(requestAlgorithmVO);
+			if (algorithmVo != null && algorithmVo.getId() != null) {
+				log.debug("Algorithm {} created successfully", requestAlgorithmVO.getName());
+				return new ResponseEntity<>(algorithmVo, HttpStatus.CREATED);
+			} else {
+				log.debug("Algorithm {} creation failed with unknown error ", requestAlgorithmVO.getName());
+				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			log.error("Failed to create algorithm {} with exception {} ", requestAlgorithmVO.getName(),
+					e.getLocalizedMessage());
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
-    }
+	}
 
-    @Override
-    @ApiOperation(value = "Deletes the algorithm identified by given ID.", nickname = "delete", notes = "Deletes the algorithm identified by given ID", response = GenericMessage.class, tags = {"algorithms",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
-            @ApiResponse(code = 400, message = "Bad request."),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/algorithms/{id}",
-            produces = {"application/json"},
-            method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> delete(@ApiParam(value = "Id of the algorithm", required = true) @PathVariable("id") String id) {
-        try {
-            CreatedByVO currentUser = this.userStore.getVO();
-            String userId = currentUser != null ? currentUser.getId() : "";
-            if (userId != null && !"".equalsIgnoreCase(userId)) {
-                UserInfoVO userInfoVO = userInfoService.getById(userId);
-                if (userInfoVO != null) {
-                    List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-                    if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-                        boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-                        if (userId == null || !isAdmin) {
-                            MessageDescription notAuthorizedMsg = new MessageDescription();
-                            notAuthorizedMsg.setMessage("Not authorized to delete Algorithms. User does not have admin privileges.");
-                            GenericMessage errorMessage = new GenericMessage();
-                            errorMessage.addErrors(notAuthorizedMsg);
-                            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-                        }
-                    }
-                }
-            }
-            algorithmService.deleteAlgorithm(id);
-            GenericMessage successMsg = new GenericMessage();
-            successMsg.setSuccess("success");
-            return new ResponseEntity<>(successMsg, HttpStatus.OK);
-        } catch (EntityNotFoundException e) {
-            log.error(e.getLocalizedMessage());
-            MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(invalidMsg);
-            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-            MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(exceptionMsg);
-            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+	@Override
+	@ApiOperation(value = "Deletes the algorithm identified by given ID.", nickname = "delete", notes = "Deletes the algorithm identified by given ID", response = GenericMessage.class, tags = {
+			"algorithms", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/algorithms/{id}", produces = { "application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> delete(
+			@ApiParam(value = "Id of the algorithm", required = true) @PathVariable("id") String id) {
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						if (userId == null || !isAdmin) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg.setMessage(
+									"Not authorized to delete Algorithms. User does not have admin privileges.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							log.debug("User {} cannot delete algorithms, insufficient privileges", userId);
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				}
+			}
+			algorithmService.deleteAlgorithm(id);
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			log.debug("Algorithm {} deleted successfully", id);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error(e.getLocalizedMessage());
+			MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			log.error("No algorithm found with id {}, failed to delete", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to delete algorithm {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-    @Override
-    @ApiOperation(value = "Get all available algorithms.", nickname = "getAll", notes = "Get all algorithms. This endpoints will be used to Get all valid available algorithms maintenance records.", response = AlgorithmCollection.class, tags = {"algorithms",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully completed fetching all algorithms", response = AlgorithmCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/algorithms",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    public ResponseEntity<AlgorithmCollection> getAll() {
-        final List<AlgorithmVO> algorithms = algorithmService.getAll();
-        AlgorithmCollection algorithmCollection = new AlgorithmCollection();
-        if (algorithms != null && algorithms.size() > 0) {
-            algorithmCollection.addAll(algorithms);
-            return new ResponseEntity<>(algorithmCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(algorithmCollection, HttpStatus.NO_CONTENT);
-        }
-    }
+	@Override
+	@ApiOperation(value = "Get all available algorithms.", nickname = "getAll", notes = "Get all algorithms. This endpoints will be used to Get all valid available algorithms maintenance records.", response = AlgorithmCollection.class, tags = {
+			"algorithms", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Successfully completed fetching all algorithms", response = AlgorithmCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/algorithms", produces = { "application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<AlgorithmCollection> getAll() {
+		final List<AlgorithmVO> algorithms = algorithmService.getAll();
+		AlgorithmCollection algorithmCollection = new AlgorithmCollection();
+		log.debug("Sending all algorithms");
+		if (algorithms != null && algorithms.size() > 0) {
+			algorithmCollection.addAll(algorithms);
+			return new ResponseEntity<>(algorithmCollection, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(algorithmCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

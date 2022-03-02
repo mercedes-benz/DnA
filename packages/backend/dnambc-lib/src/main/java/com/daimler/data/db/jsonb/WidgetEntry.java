@@ -36,13 +36,13 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WidgetEntry implements Serializable{
+public class WidgetEntry implements Serializable {
 
 	private static final long serialVersionUID = 6736536161970161980L;
 
 	private String key;
-    private String value;
-	
+	private String value;
+
 //    public WidgetEntry() {
 //		super();
 //	}
@@ -68,7 +68,5 @@ public class WidgetEntry implements Serializable{
 //	public void setValue(String value) {
 //		this.value = value;
 //	}
-	
-	
-    
+
 }

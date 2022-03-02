@@ -38,19 +38,18 @@ import com.daimler.data.dto.itsmmgame.ItsmmGameEventDetailsVO;
 import com.daimler.data.service.common.BaseCommonService;
 
 @Service
-public class BaseItsmmGameEventService
-        extends BaseCommonService<ItsmmGameEventDetailsVO, ItsmmGameEventDetailNsql, String>
-        implements ItsmmGameEventService {
+public class BaseItsmmGameEventService extends
+		BaseCommonService<ItsmmGameEventDetailsVO, ItsmmGameEventDetailNsql, String> implements ItsmmGameEventService {
 
-    @Autowired
-    private ItsmmGameEventCustomRepository customRepo;
-    @Autowired
-    private ItsmmGameEventRepository jpaRepo;
-    @Autowired
-    private ItsmmGameEventAssembler algoAssembler;
+	@Autowired
+	private ItsmmGameEventCustomRepository customRepo;
+	@Autowired
+	private ItsmmGameEventRepository jpaRepo;
+	@Autowired
+	private ItsmmGameEventAssembler algoAssembler;
 
-    public BaseItsmmGameEventService() {
-        super();
-    }
+	public BaseItsmmGameEventService() {
+		super();
+	}
 
 }

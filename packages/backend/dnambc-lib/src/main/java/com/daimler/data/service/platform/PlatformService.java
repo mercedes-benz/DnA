@@ -31,8 +31,7 @@ import com.daimler.data.db.entities.PlatformNsql;
 import com.daimler.data.dto.platform.PlatformVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface PlatformService
-        extends CommonService<PlatformVO, PlatformNsql, String> {
+public interface PlatformService extends CommonService<PlatformVO, PlatformNsql, String> {
 
-    boolean deletePlatform(String id);
+	boolean deletePlatform(String id);
 }

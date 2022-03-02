@@ -38,9 +38,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Language implements Serializable {
 
-    private static final long serialVersionUID = 5977725021095023669L;
+	private static final long serialVersionUID = 5977725021095023669L;
 
-    private String name;
+	private String name;
 
 //    public Language() {
 //        super();
@@ -58,6 +58,5 @@ public class Language implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

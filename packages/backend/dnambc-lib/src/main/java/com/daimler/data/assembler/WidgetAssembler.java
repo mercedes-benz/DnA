@@ -45,95 +45,97 @@ import java.util.stream.Collectors;
 @Component
 public class WidgetAssembler implements GenericAssembler<WidgetVO, WidgetNsql> {
 
-    @Override
-    public WidgetVO toVo(WidgetNsql entity) {
-    	WidgetVO widgetVO = null;
-        if (Objects.nonNull(entity)) {
-        	widgetVO = new WidgetVO();
-        	Widget widget = entity.getData();
-        	widgetVO.setId(entity.getId());
-        	if(widget!=null) {
-        		BeanUtils.copyProperties(widget, widgetVO);
-        		if(widget.getWidgetChartType()!=null){
-        			widgetVO.setWidgetChartType(WidgetVO.WidgetChartTypeEnum.valueOf(widget.getWidgetChartType()));
+	@Override
+	public WidgetVO toVo(WidgetNsql entity) {
+		WidgetVO widgetVO = null;
+		if (Objects.nonNull(entity)) {
+			widgetVO = new WidgetVO();
+			Widget widget = entity.getData();
+			widgetVO.setId(entity.getId());
+			if (widget != null) {
+				BeanUtils.copyProperties(widget, widgetVO);
+				if (widget.getWidgetChartType() != null) {
+					widgetVO.setWidgetChartType(WidgetVO.WidgetChartTypeEnum.valueOf(widget.getWidgetChartType()));
 				}
-        		List<WidgetEntry> dataEntries = widget.getDataEntries();
-        		if (dataEntries != null && !dataEntries.isEmpty()) {
-        			List<WidgetEntryVO> widgetEntriesVO = new ArrayList<>();
-        			widgetEntriesVO = dataEntries.stream().map(n -> this.toWidgetEntryVO(n)).collect(Collectors.toList());
-        			widgetVO.setDataEntries(widgetEntriesVO);
-        		}
-                    
-        		List<WidgetUserRole> accessRoles = widget.getAccessRoles();
-        		if (accessRoles != null && !accessRoles.isEmpty()) {
-        			List<UserRoleVO> widgetUserRolesVO = new ArrayList<>();
-        			widgetUserRolesVO = accessRoles.stream().map(n -> this.toWidgetUserRoleVO(n)).collect(Collectors.toList());
-        			widgetVO.setAccessRoles(widgetUserRolesVO);
-        		}
-        	}
-        }
-        return widgetVO;
-    }
+				List<WidgetEntry> dataEntries = widget.getDataEntries();
+				if (dataEntries != null && !dataEntries.isEmpty()) {
+					List<WidgetEntryVO> widgetEntriesVO = new ArrayList<>();
+					widgetEntriesVO = dataEntries.stream().map(n -> this.toWidgetEntryVO(n))
+							.collect(Collectors.toList());
+					widgetVO.setDataEntries(widgetEntriesVO);
+				}
 
-    private WidgetEntryVO toWidgetEntryVO(WidgetEntry widgetEntry) {
-    	WidgetEntryVO vo = new WidgetEntryVO();
-    	if(widgetEntry != null) {
-    		BeanUtils.copyProperties(widgetEntry, vo);
-    	}
-    	return vo;
-    }
-    
-    private UserRoleVO toWidgetUserRoleVO(WidgetUserRole widgetUserRole) {
-    	UserRoleVO vo = new UserRoleVO();
-    	if(widgetUserRole != null) {
-    		BeanUtils.copyProperties(widgetUserRole, vo);
-    	}
-    	return vo;
-    }
-    
-    @Override
-    public WidgetNsql toEntity(WidgetVO vo) {
-    	WidgetNsql widgetNsql = null;
-        if (Objects.nonNull(vo)) {
-        	widgetNsql = new WidgetNsql();
-            Widget widget = new Widget();
-            BeanUtils.copyProperties(vo,widget);
-            List<UserRoleVO> userRolesVO = vo.getAccessRoles();
-            if(userRolesVO !=null && !userRolesVO.isEmpty()) {
-            	List<WidgetUserRole> widgetUserRoles = new ArrayList<>();
-            	widgetUserRoles = userRolesVO.stream().map(n -> this.toWidgetUserRole(n)).collect(Collectors.toList());
-            	widget.setAccessRoles(widgetUserRoles);
-            }
-            List<WidgetEntryVO> widgetEntriesVO = vo.getDataEntries();
-            if(widgetEntriesVO !=null && !widgetEntriesVO.isEmpty()) {
-            	List<WidgetEntry> widgetEntries = new ArrayList<>();
-            	widgetEntries = widgetEntriesVO.stream().map(n -> this.toWidgetEntry(n)).collect(Collectors.toList());
-            	widget.setDataEntries(widgetEntries);
-            }
-            if(vo.getWidgetChartType()!=null){
-            	widget.setWidgetChartType(vo.getWidgetChartType().name());
+				List<WidgetUserRole> accessRoles = widget.getAccessRoles();
+				if (accessRoles != null && !accessRoles.isEmpty()) {
+					List<UserRoleVO> widgetUserRolesVO = new ArrayList<>();
+					widgetUserRolesVO = accessRoles.stream().map(n -> this.toWidgetUserRoleVO(n))
+							.collect(Collectors.toList());
+					widgetVO.setAccessRoles(widgetUserRolesVO);
+				}
 			}
-            widget.setName(vo.getName() );
-            widgetNsql.setData(widget);
-            if (vo.getId() != null)
-            	widgetNsql.setId(vo.getId());
-        }
-        return widgetNsql;
-    }
-    
-    private WidgetUserRole toWidgetUserRole(UserRoleVO widgetUserRoleVO ) {
-    	WidgetUserRole widgetUserRole = new WidgetUserRole();
-    	if(widgetUserRoleVO != null) {
-    		BeanUtils.copyProperties(widgetUserRoleVO, widgetUserRole);
-    	}
-    	return widgetUserRole;
-    }
+		}
+		return widgetVO;
+	}
 
-    private WidgetEntry toWidgetEntry(WidgetEntryVO widgetEntryVO) {
-    	WidgetEntry widgetEntry = new WidgetEntry();
-    	if(widgetEntryVO != null) {
-    		BeanUtils.copyProperties(widgetEntryVO, widgetEntry);
-    	}
-    	return widgetEntry;
-    }
+	private WidgetEntryVO toWidgetEntryVO(WidgetEntry widgetEntry) {
+		WidgetEntryVO vo = new WidgetEntryVO();
+		if (widgetEntry != null) {
+			BeanUtils.copyProperties(widgetEntry, vo);
+		}
+		return vo;
+	}
+
+	private UserRoleVO toWidgetUserRoleVO(WidgetUserRole widgetUserRole) {
+		UserRoleVO vo = new UserRoleVO();
+		if (widgetUserRole != null) {
+			BeanUtils.copyProperties(widgetUserRole, vo);
+		}
+		return vo;
+	}
+
+	@Override
+	public WidgetNsql toEntity(WidgetVO vo) {
+		WidgetNsql widgetNsql = null;
+		if (Objects.nonNull(vo)) {
+			widgetNsql = new WidgetNsql();
+			Widget widget = new Widget();
+			BeanUtils.copyProperties(vo, widget);
+			List<UserRoleVO> userRolesVO = vo.getAccessRoles();
+			if (userRolesVO != null && !userRolesVO.isEmpty()) {
+				List<WidgetUserRole> widgetUserRoles = new ArrayList<>();
+				widgetUserRoles = userRolesVO.stream().map(n -> this.toWidgetUserRole(n)).collect(Collectors.toList());
+				widget.setAccessRoles(widgetUserRoles);
+			}
+			List<WidgetEntryVO> widgetEntriesVO = vo.getDataEntries();
+			if (widgetEntriesVO != null && !widgetEntriesVO.isEmpty()) {
+				List<WidgetEntry> widgetEntries = new ArrayList<>();
+				widgetEntries = widgetEntriesVO.stream().map(n -> this.toWidgetEntry(n)).collect(Collectors.toList());
+				widget.setDataEntries(widgetEntries);
+			}
+			if (vo.getWidgetChartType() != null) {
+				widget.setWidgetChartType(vo.getWidgetChartType().name());
+			}
+			widget.setName(vo.getName());
+			widgetNsql.setData(widget);
+			if (vo.getId() != null)
+				widgetNsql.setId(vo.getId());
+		}
+		return widgetNsql;
+	}
+
+	private WidgetUserRole toWidgetUserRole(UserRoleVO widgetUserRoleVO) {
+		WidgetUserRole widgetUserRole = new WidgetUserRole();
+		if (widgetUserRoleVO != null) {
+			BeanUtils.copyProperties(widgetUserRoleVO, widgetUserRole);
+		}
+		return widgetUserRole;
+	}
+
+	private WidgetEntry toWidgetEntry(WidgetEntryVO widgetEntryVO) {
+		WidgetEntry widgetEntry = new WidgetEntry();
+		if (widgetEntryVO != null) {
+			BeanUtils.copyProperties(widgetEntryVO, widgetEntry);
+		}
+		return widgetEntry;
+	}
 }

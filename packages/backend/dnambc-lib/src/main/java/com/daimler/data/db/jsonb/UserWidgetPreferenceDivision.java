@@ -40,13 +40,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserWidgetPreferenceDivision implements Serializable{
+public class UserWidgetPreferenceDivision implements Serializable {
 
 	private static final long serialVersionUID = -2211420228360901362L;
 	private String id;
-    private String name;
-    //private SubDivision subdivision;
-    private List<SubDivision> subdivisions;
+	private String name;
+	// private SubDivision subdivision;
+	private List<SubDivision> subdivisions;
 
 //    public UserWidgetPreferenceDivision(String id, String name, SubDivision subdivision){
 //    	//super();

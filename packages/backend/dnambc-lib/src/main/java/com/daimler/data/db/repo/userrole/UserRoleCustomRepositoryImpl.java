@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class UserRoleCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<UserRoleNsql, String>
-        implements UserRoleCustomRepository {
+public class UserRoleCustomRepositoryImpl extends CommonDataRepositoryImpl<UserRoleNsql, String>
+		implements UserRoleCustomRepository {
 
 }

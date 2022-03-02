@@ -42,17 +42,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
-public class DivisionAssembler
-        implements GenericAssembler<DivisionVO, DivisionNsql> {
+public class DivisionAssembler implements GenericAssembler<DivisionVO, DivisionNsql> {
 
-    @Override
-    public DivisionVO toVo(DivisionNsql entity) {
-        DivisionVO divisionVO = null;
-        if (Objects.nonNull(entity)) {
-            divisionVO = new DivisionVO();
-            divisionVO.setId(entity.getId());
-            divisionVO.setName(entity.getData().getName());
-            List<SubdivisionVO> subdivisionVOs = new ArrayList<SubdivisionVO>();
+	@Override
+	public DivisionVO toVo(DivisionNsql entity) {
+		DivisionVO divisionVO = null;
+		if (Objects.nonNull(entity)) {
+			divisionVO = new DivisionVO();
+			divisionVO.setId(entity.getId());
+			divisionVO.setName(entity.getData().getName());
+			List<SubdivisionVO> subdivisionVOs = new ArrayList<SubdivisionVO>();
 			if (null != entity.getData().getSubdivisions() && !entity.getData().getSubdivisions().isEmpty()) {
 				for (SubDivision subDivision : entity.getData().getSubdivisions()) {
 					SubdivisionVO vo = new SubdivisionVO();
@@ -60,58 +59,58 @@ public class DivisionAssembler
 					subdivisionVOs.add(vo);
 				}
 			}
-            divisionVO.setSubdivisions(subdivisionVOs);
-        }
-        return divisionVO;
-    }
+			divisionVO.setSubdivisions(subdivisionVOs);
+		}
+		return divisionVO;
+	}
 
-    @Override
-    public DivisionNsql toEntity(DivisionVO vo) {
-        DivisionNsql divisionNsql = null;
-        if (Objects.nonNull(vo)) {
-            divisionNsql = new DivisionNsql();
-            Division division = new Division();
-            division.setName(vo.getName() );
-            divisionNsql.setData(division);
-            if (vo.getId() != null)
-                divisionNsql.setId(vo.getId());
-        }
-        return divisionNsql;
-    }
+	@Override
+	public DivisionNsql toEntity(DivisionVO vo) {
+		DivisionNsql divisionNsql = null;
+		if (Objects.nonNull(vo)) {
+			divisionNsql = new DivisionNsql();
+			Division division = new Division();
+			division.setName(vo.getName());
+			divisionNsql.setData(division);
+			if (vo.getId() != null)
+				divisionNsql.setId(vo.getId());
+		}
+		return divisionNsql;
+	}
 
-    public List<SubdivisionVO> toSubDivisionVoList(DivisionNsql entity) {
-        List<SubdivisionVO> subdivisionsVo = new ArrayList<>();
-        if (Objects.nonNull(entity)) {
-            Division division = entity.getData();
-            if (division != null) {
-                List<SubDivision> subDivisions = division.getSubdivisions();
-                if (subDivisions != null && !subDivisions.isEmpty())
-                    subdivisionsVo = subDivisions.stream().map(n -> this.toSubDivisionVo(n)).collect(Collectors.toList());
-            }
-        }
-        return subdivisionsVo;
+	public List<SubdivisionVO> toSubDivisionVoList(DivisionNsql entity) {
+		List<SubdivisionVO> subdivisionsVo = new ArrayList<>();
+		if (Objects.nonNull(entity)) {
+			Division division = entity.getData();
+			if (division != null) {
+				List<SubDivision> subDivisions = division.getSubdivisions();
+				if (subDivisions != null && !subDivisions.isEmpty())
+					subdivisionsVo = subDivisions.stream().map(n -> this.toSubDivisionVo(n))
+							.collect(Collectors.toList());
+			}
+		}
+		return subdivisionsVo;
 
-    }
+	}
 
-    public SubdivisionVO toSubDivisionVo(SubDivision subdivision) {
-        SubdivisionVO vo = null;
-        if (subdivision != null) {
-            vo = new SubdivisionVO();
-            vo.setId(subdivision.getId());
-            vo.setName(subdivision.getName());
-        }
-        return vo;
-    }
+	public SubdivisionVO toSubDivisionVo(SubDivision subdivision) {
+		SubdivisionVO vo = null;
+		if (subdivision != null) {
+			vo = new SubdivisionVO();
+			vo.setId(subdivision.getId());
+			vo.setName(subdivision.getName());
+		}
+		return vo;
+	}
 
-
-    public SubDivision toSubDivision(SubdivisionVO subdivisionVo) {
-        SubDivision subdivision = null;
-        if (subdivisionVo != null) {
-            subdivision = new SubDivision();
-            subdivision.setId(subdivisionVo.getId());
-            subdivision.setName(subdivisionVo.getName());
-        }
-        return subdivision;
-    }
+	public SubDivision toSubDivision(SubdivisionVO subdivisionVo) {
+		SubDivision subdivision = null;
+		if (subdivisionVo != null) {
+			subdivision = new SubDivision();
+			subdivision.setId(subdivisionVo.getId());
+			subdivision.setName(subdivisionVo.getName());
+		}
+		return subdivision;
+	}
 
 }

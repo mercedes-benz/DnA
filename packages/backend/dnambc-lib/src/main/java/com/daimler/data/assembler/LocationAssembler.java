@@ -37,28 +37,28 @@ import java.util.Objects;
 @Component
 public class LocationAssembler implements GenericAssembler<LocationVO, LocationNsql> {
 
-    public LocationVO toVo(LocationNsql entity) {
-        LocationVO locationVO = null;
-        if (Objects.nonNull(entity)) {
-            locationVO = new LocationVO();
-            locationVO.setId(entity.getId());
-            locationVO.setIsRow(entity.getData().isIs_row());
-            locationVO.setName(entity.getData().getName());
-        }
-        return locationVO;
-    }
+	public LocationVO toVo(LocationNsql entity) {
+		LocationVO locationVO = null;
+		if (Objects.nonNull(entity)) {
+			locationVO = new LocationVO();
+			locationVO.setId(entity.getId());
+			locationVO.setIsRow(entity.getData().isIs_row());
+			locationVO.setName(entity.getData().getName());
+		}
+		return locationVO;
+	}
 
-    public LocationNsql toEntity(LocationVO vo) {
-        LocationNsql locationNsql = null;
-        if (Objects.nonNull(vo)) {
-            locationNsql = new LocationNsql();
-            Location location = new Location();
-            location.setIs_row(vo.isIsRow());
-            location.setName(vo.getName());
-            locationNsql.setId(vo.getId());
-            locationNsql.setData(location);
-        }
-        return locationNsql;
-    }
+	public LocationNsql toEntity(LocationVO vo) {
+		LocationNsql locationNsql = null;
+		if (Objects.nonNull(vo)) {
+			locationNsql = new LocationNsql();
+			Location location = new Location();
+			location.setIs_row(vo.isIsRow());
+			location.setName(vo.getName());
+			locationNsql.setId(vo.getId());
+			locationNsql.setData(location);
+		}
+		return locationNsql;
+	}
 
 }

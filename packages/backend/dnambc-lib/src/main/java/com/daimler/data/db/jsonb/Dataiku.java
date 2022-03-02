@@ -38,10 +38,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Dataiku implements Serializable {
 
-    private static final long serialVersionUID = -7477338063032638875L;
+	private static final long serialVersionUID = -7477338063032638875L;
 
-    private String projectKey;
-    private String solutionId;
-
+	private String projectKey;
+	private String solutionId;
 
 }

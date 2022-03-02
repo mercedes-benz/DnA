@@ -39,7 +39,7 @@ import java.io.Serializable;
 public class Tag implements Serializable {
 
 	private static final long serialVersionUID = 8540510586879228017L;
-	
+
 	private String name;
 
 //    public Tag() {
@@ -58,6 +58,5 @@ public class Tag implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

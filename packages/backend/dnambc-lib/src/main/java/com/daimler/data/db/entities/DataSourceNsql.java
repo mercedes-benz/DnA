@@ -35,13 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "datasource_nsql")
-public class DataSourceNsql extends BaseEntity<DataSource>
-        implements Serializable {
+public class DataSourceNsql extends BaseEntity<DataSource> implements Serializable {
 
-    private static final long serialVersionUID = 4857908075537600169L;
+	private static final long serialVersionUID = 4857908075537600169L;
 
-    public DataSourceNsql() {
-        super();
-    }
+	public DataSourceNsql() {
+		super();
+	}
 
 }
