@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "userwidgetpref_nsql")
-public class UserWidgetPreferenceNsql extends BaseEntity<UserWidgetPreference>
-        implements Serializable {
+public class UserWidgetPreferenceNsql extends BaseEntity<UserWidgetPreference> implements Serializable {
 
 	private static final long serialVersionUID = -1325911428564809118L;
 
 	public UserWidgetPreferenceNsql() {
-        super();
-    }
-
+		super();
+	}
 
 }

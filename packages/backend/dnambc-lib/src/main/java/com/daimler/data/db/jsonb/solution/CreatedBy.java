@@ -35,14 +35,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatedBy {
-	
+
 	private String id;
 	private String firstName;
 	private String lastName;
 	private String department;
 	private String email;
 	private String mobileNumber;
-	
+
 //	public CreatedBy() {
 //		super();
 //	}
@@ -105,5 +105,5 @@ public class CreatedBy {
 //	public void setMobileNumber(String mobileNumber) {
 //		this.mobileNumber = mobileNumber;
 //	}
-	
+
 }

@@ -39,16 +39,16 @@ import java.util.List;
 @AllArgsConstructor
 public class UserInfo implements Serializable {
 
-    private static final long serialVersionUID = 4606219323373826458L;
+	private static final long serialVersionUID = 4606219323373826458L;
 
-    String firstName;
-    String lastName;
-    String email;
-    String mobileNumber;
-    String department;
+	String firstName;
+	String lastName;
+	String email;
+	String mobileNumber;
+	String department;
 
-    List<UserInfoRole> roles;
-    List<UserFavoriteUseCase> favoriteUsecases;
+	List<UserInfoRole> roles;
+	List<UserFavoriteUseCase> favoriteUsecases;
 
 //    public UserInfo() {
 //        super();
@@ -121,6 +121,5 @@ public class UserInfo implements Serializable {
 //    public void setFavoriteUsecases(List<UserFavoriteUseCase> favoriteUsecases) {
 //        this.favoriteUsecases = favoriteUsecases;
 //    }
-
 
 }

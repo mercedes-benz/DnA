@@ -37,29 +37,29 @@ import java.util.Objects;
 @Component
 public class PlatformAssembler implements GenericAssembler<PlatformVO, PlatformNsql> {
 
-    @Override
-    public PlatformVO toVo(PlatformNsql entity) {
-        PlatformVO platformVO = null;
-        if (Objects.nonNull(entity)) {
-            platformVO = new PlatformVO();
-            platformVO.setId(entity.getId());
-            platformVO.setName(entity.getData().getName());
-        }
-        return platformVO;
-    }
+	@Override
+	public PlatformVO toVo(PlatformNsql entity) {
+		PlatformVO platformVO = null;
+		if (Objects.nonNull(entity)) {
+			platformVO = new PlatformVO();
+			platformVO.setId(entity.getId());
+			platformVO.setName(entity.getData().getName());
+		}
+		return platformVO;
+	}
 
-    @Override
-    public PlatformNsql toEntity(PlatformVO vo) {
-        PlatformNsql platformNsql = null;
-        if (Objects.nonNull(vo)) {
-            platformNsql = new PlatformNsql();
-            Platform platform = new Platform();
-            platform.setName(vo.getName() );
-            platformNsql.setData(platform);
-            if (vo.getId() != null)
-                platformNsql.setId(vo.getId());
-        }
-        return platformNsql;
-    }
+	@Override
+	public PlatformNsql toEntity(PlatformVO vo) {
+		PlatformNsql platformNsql = null;
+		if (Objects.nonNull(vo)) {
+			platformNsql = new PlatformNsql();
+			Platform platform = new Platform();
+			platform.setName(vo.getName());
+			platformNsql.setData(platform);
+			if (vo.getId() != null)
+				platformNsql.setId(vo.getId());
+		}
+		return platformNsql;
+	}
 
 }

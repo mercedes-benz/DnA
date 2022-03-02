@@ -137,9 +137,14 @@ paths:
         type: string
       - name: sortOrder
         in: query
-        description: Order(asc,des) in which record will get sorted.
+        description: Order(asc,desc) in which record will get sorted.
         required: false
         type: string    
+      - name: searchTerm
+        in: query
+        description: searchTerm to filter subscription. SearchTerm is used to search appName and description of subscription. Example "DNA"
+        required: false
+        type: string  
    responses:
     200:
      description: "Returns message of succes or failure"

@@ -41,6 +41,8 @@ import com.daimler.data.service.userinfo.UserInfoService;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,123 +55,131 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@Api(value = "DataSource API", tags = {"datasources"})
+@Api(value = "DataSource API", tags = { "datasources" })
 @RequestMapping("/api")
 @Slf4j
 public class DataSourceController implements DatasourcesApi {
 
+	@Autowired
+	private UserStore userStore;
 
-    @Autowired
-    private UserStore userStore;
+	@Autowired
+	private UserInfoService userInfoService;
 
-    @Autowired
-    private UserInfoService userInfoService;
+	@Autowired
+	private DataSourceService datasourceService;
 
-    @Autowired
-    private DataSourceService datasourceService;
+	@Override
+	@ApiOperation(value = "Adds a new datasources.", nickname = "create", notes = "Adds a new non existing datasource which is used in providing solution.", response = DataSourceVO.class, tags = {
+			"datasources", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "DataSource added successfully", response = DataSourceVO.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datasources", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	@CacheEvict(value = "data-sources", allEntries = true)
+	public ResponseEntity<DataSourceVO> create(@Valid DataSourceRequestVO requestVO) {
+		DataSourceVO requestDatasourceVO = requestVO.getData();
+		try {
+			DataSourceVO existingdatasourceVo = datasourceService.getByUniqueliteral("name",
+					requestDatasourceVO.getName());
+			if (existingdatasourceVo != null && existingdatasourceVo.getName() != null)
+				return new ResponseEntity<>(existingdatasourceVo, HttpStatus.CONFLICT);
+			requestDatasourceVO.setId(null);
+			DataSourceVO datasourceVo = datasourceService.create(requestDatasourceVO);
+			if (datasourceVo != null && datasourceVo.getId() != null) {
+				log.info("Datasource {} created successfully", requestDatasourceVO.getName());
+				return new ResponseEntity<>(datasourceVo, HttpStatus.CREATED);
+			} else {
+				log.info("Failed to created datasource {} with unknown error", requestDatasourceVO.getName());
+				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			log.error("Failed with exception {} while creating datasource {}", e.getLocalizedMessage(),
+					requestDatasourceVO.getName());
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
-    @Override
-    @ApiOperation(value = "Adds a new datasources.", nickname = "create", notes = "Adds a new non existing datasource which is used in providing solution.", response = DataSourceVO.class, tags = {"datasources",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "DataSource added successfully", response = DataSourceVO.class),
-            @ApiResponse(code = 400, message = "Bad Request"),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Invalid input"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/datasources",
-            produces = {"application/json"},
-            consumes = {"application/json"},
-            method = RequestMethod.POST)
-    public ResponseEntity<DataSourceVO> create(@Valid DataSourceRequestVO requestVO) {
-        DataSourceVO requestDatasourceVO = requestVO.getData();
-        try {
-            DataSourceVO existingdatasourceVo = datasourceService.getByUniqueliteral("name", requestDatasourceVO.getName());
-            if (existingdatasourceVo != null && existingdatasourceVo.getName() != null)
-                return new ResponseEntity<>(existingdatasourceVo, HttpStatus.CONFLICT);
-            requestDatasourceVO.setId(null);
-            DataSourceVO datasourceVo = datasourceService.create(requestDatasourceVO);
-            if (datasourceVo != null && datasourceVo.getId() != null) {
-                return new ResponseEntity<>(datasourceVo, HttpStatus.CREATED);
-            } else
-                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+	}
 
-    }
+	@Override
+	@ApiOperation(value = "Deletes the datasource identified by given ID.", nickname = "delete", notes = "Deletes the datasource identified by given ID", response = GenericMessage.class, tags = {
+			"datasources", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datasources/{id}", produces = { "application/json" }, method = RequestMethod.DELETE)
+	@CacheEvict(value = "data-sources", allEntries = true)
+	public ResponseEntity<GenericMessage> delete(
+			@ApiParam(value = "Id of the datasource", required = true) @PathVariable("id") String id) {
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						if (userId == null || !isAdmin) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg.setMessage(
+									"Not authorized to delete Data Sources. User does not have admin privileges.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							log.info("User not authorized to delete datasource");
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				}
+			}
+			datasourceService.deleteDataSource(id);
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			log.info("Datasource {} deleted successfully", id);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
 
-    @Override
-    @ApiOperation(value = "Deletes the datasource identified by given ID.", nickname = "delete", notes = "Deletes the datasource identified by given ID", response = GenericMessage.class, tags = {"datasources",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
-            @ApiResponse(code = 400, message = "Bad request."),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/datasources/{id}",
-            produces = {"application/json"},
-            method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> delete(@ApiParam(value = "Id of the datasource",required=true) @PathVariable("id") String id) {
-        try {
-            CreatedByVO currentUser = this.userStore.getVO();
-            String userId = currentUser != null ? currentUser.getId() : "";
-            if (userId != null && !"".equalsIgnoreCase(userId)) {
-                UserInfoVO userInfoVO = userInfoService.getById(userId);
-                if (userInfoVO != null) {
-                    List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-                    if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-                        boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-                        if (userId == null || !isAdmin) {
-                            MessageDescription notAuthorizedMsg = new MessageDescription();
-                            notAuthorizedMsg.setMessage("Not authorized to delete Data Sources. User does not have admin privileges.");
-                            GenericMessage errorMessage = new GenericMessage();
-                            errorMessage.addErrors(notAuthorizedMsg);
-                            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-                        }
-                    }
-                }
-            }
-            datasourceService.deleteDataSource(id);
-            GenericMessage successMsg = new GenericMessage();
-            successMsg.setSuccess("success");
-            return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error("Failed to delete datasource {}, no entity found", id);
+			MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed with exception {} while deleting datasource {} ", e.getLocalizedMessage(), id);
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-        } catch (
-                EntityNotFoundException e) {
-            log.error(e.getLocalizedMessage());
-            MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(invalidMsg);
-            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-            MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(exceptionMsg);
-            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Override
-    @ApiOperation(value = "Get all available datasources.", nickname = "getAll", notes = "Get all datasources. This endpoints will be used to Get all valid available datasources maintenance records.", response = DataSourceCollection.class, tags = {"datasources",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully completed fetching all datasources", response = DataSourceCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/datasources",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    public ResponseEntity<DataSourceCollection> getAll() {
-        final List<DataSourceVO> datasources = datasourceService.getAll();
-        DataSourceCollection datasourceCollection = new DataSourceCollection();
-        if (datasources != null && datasources.size() > 0) {
-            datasourceCollection.addAll(datasources);
-            return new ResponseEntity<>(datasourceCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(datasourceCollection, HttpStatus.NO_CONTENT);
-        }
-    }
+	@Override
+	@ApiOperation(value = "Get all available datasources.", nickname = "getAll", notes = "Get all datasources. This endpoints will be used to Get all valid available datasources maintenance records.", response = DataSourceCollection.class, tags = {
+			"datasources", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Successfully completed fetching all datasources", response = DataSourceCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datasources", produces = { "application/json" }, method = RequestMethod.GET)
+	@Cacheable("data-sources")
+	public ResponseEntity<DataSourceCollection> getAll() {
+		final List<DataSourceVO> datasources = datasourceService.getAll();
+		DataSourceCollection datasourceCollection = new DataSourceCollection();
+		if (datasources != null && datasources.size() > 0) {
+			datasourceCollection.addAll(datasources);
+			log.debug("Returning all available datasources");
+			return new ResponseEntity<>(datasourceCollection, HttpStatus.OK);
+		} else {
+			log.debug("No datasources found, returning empty");
+			return new ResponseEntity<>(datasourceCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

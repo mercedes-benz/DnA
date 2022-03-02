@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.notebook;
 import com.daimler.data.db.entities.NotebookNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface NotebookCustomRepository
-        extends CommonDataRepository<NotebookNsql, String> {
+public interface NotebookCustomRepository extends CommonDataRepository<NotebookNsql, String> {
 
 }

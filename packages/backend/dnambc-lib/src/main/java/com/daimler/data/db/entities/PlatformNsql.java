@@ -33,17 +33,14 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
 @Entity
 @Table(name = "platform_nsql")
-public class PlatformNsql extends BaseEntity<Platform>
-        implements Serializable {
+public class PlatformNsql extends BaseEntity<Platform> implements Serializable {
 
-    private static final long serialVersionUID = 6808664716437801321L;
+	private static final long serialVersionUID = 6808664716437801321L;
 
-    public PlatformNsql() {
-        super();
-    }
-
+	public PlatformNsql() {
+		super();
+	}
 
 }

@@ -36,7 +36,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AssessmentDetails implements Serializable{
+public class AssessmentDetails implements Serializable {
 
 	private static final long serialVersionUID = 6848130589980062644L;
 
@@ -44,5 +44,5 @@ public class AssessmentDetails implements Serializable{
 	private String commentOnStrategicRelevance;
 	private String benefitRealizationRisk;
 	private String commentOnBenefitRealizationRisk;
-	
+
 }

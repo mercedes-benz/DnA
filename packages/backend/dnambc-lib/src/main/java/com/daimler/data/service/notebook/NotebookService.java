@@ -32,6 +32,6 @@ import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface NotebookService extends CommonService<NotebookVO, NotebookNsql, String> {
-	public void updateSolutionIdofDnaNotebook(String dnaNotebookId, String solutionId);
+	public void updateSolutionIdofDnaNotebook(String updateType, String dnaNotebookId, String solutionId);
 
 }

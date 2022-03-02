@@ -37,14 +37,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserWidgetPreference implements Serializable{
-	
+public class UserWidgetPreference implements Serializable {
+
 	private static final long serialVersionUID = -4436074412571705112L;
 
 	private String userId;
 	private FilterPreferences filterPreferences;
 	private List<WidgetPreference> widgetPreferences;
-	
+
 //	public UserWidgetPreference() {
 //		super();
 //	}
@@ -75,6 +75,5 @@ public class UserWidgetPreference implements Serializable{
 //	public void setWidgetPreferences(List<WidgetPreference> widgetPreferences) {
 //		this.widgetPreferences = widgetPreferences;
 //	}
-	
-	
+
 }

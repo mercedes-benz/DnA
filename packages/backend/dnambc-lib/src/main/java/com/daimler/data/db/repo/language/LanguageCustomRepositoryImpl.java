@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class LanguageCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<LanguageNsql, String>
-        implements LanguageCustomRepository {
+public class LanguageCustomRepositoryImpl extends CommonDataRepositoryImpl<LanguageNsql, String>
+		implements LanguageCustomRepository {
 
 }

@@ -33,6 +33,7 @@ import com.daimler.data.db.entities.RelatedProductNsql;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
 @Repository
-public class RelatedProductCustomRepositoryImpl extends CommonDataRepositoryImpl<RelatedProductNsql, String> implements RelatedProductCustomRepository {
+public class RelatedProductCustomRepositoryImpl extends CommonDataRepositoryImpl<RelatedProductNsql, String>
+		implements RelatedProductCustomRepository {
 
 }

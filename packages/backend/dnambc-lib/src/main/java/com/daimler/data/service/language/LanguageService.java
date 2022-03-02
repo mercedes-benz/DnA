@@ -31,8 +31,7 @@ import com.daimler.data.db.entities.LanguageNsql;
 import com.daimler.data.dto.language.LanguageVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface LanguageService
-        extends CommonService<LanguageVO, LanguageNsql, String> {
+public interface LanguageService extends CommonService<LanguageVO, LanguageNsql, String> {
 
-    boolean deleteLanguage(String id);
+	boolean deleteLanguage(String id);
 }

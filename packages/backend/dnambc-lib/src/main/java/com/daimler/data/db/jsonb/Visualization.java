@@ -38,9 +38,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Visualization implements Serializable {
 
-    private static final long serialVersionUID = -5713269170785026941L;
+	private static final long serialVersionUID = -5713269170785026941L;
 
-    private String name;
+	private String name;
 
 //    public Visualization() {
 //        super();
@@ -58,6 +58,5 @@ public class Visualization implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

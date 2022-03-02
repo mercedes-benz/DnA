@@ -36,14 +36,12 @@ import com.daimler.data.db.jsonb.ItsmmGameUserDetail;
 
 @Entity
 @Table(name = "itsmmgameuserdetails_nsql")
-public class ItsmmGameUserDetailNsql extends BaseEntity<ItsmmGameUserDetail>
-        implements Serializable {
+public class ItsmmGameUserDetailNsql extends BaseEntity<ItsmmGameUserDetail> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	public ItsmmGameUserDetailNsql() {
-        super();
-    }
-
+		super();
+	}
 
 }

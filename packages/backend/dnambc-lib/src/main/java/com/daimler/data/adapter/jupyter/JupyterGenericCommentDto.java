@@ -37,5 +37,5 @@ import lombok.NoArgsConstructor;
 public class JupyterGenericCommentDto {
 
 	private String description;
-	
+
 }
