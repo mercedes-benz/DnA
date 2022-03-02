@@ -1,0 +1,19 @@
+version: "2.1"
+services:
+  result-frontend:
+    image: ${IMAGE_RESULT_FRONTEND:-dna_frontend}
+    build:
+      context: ../packages/frontend/
+      dockerfile: $PWD/dockerfiles/app/result-frontend.Dockerfile
+    environment:
+      - "PROJECTSMO_BACKEND_HOST=result-backend"
+    ports:
+      - "8080:80"
+
+  result-backend:
+    image: ${IMAGE_RESULT_BACKEND:-dna_backend}
+    build:
+      context: ../packages/backend/
+      dockerfile: $PWD/dockerfiles/app/result-backend.Dockerfile
+
+  
