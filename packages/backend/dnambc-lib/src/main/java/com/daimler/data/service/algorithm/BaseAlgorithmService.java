@@ -34,34 +34,36 @@ import com.daimler.data.db.repo.algorithm.AlgorithmRepository;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseAlgorithmService
-        extends BaseCommonService<AlgorithmVO, AlgorithmNsql, String>
-        implements AlgorithmService {
+@Slf4j
+public class BaseAlgorithmService extends BaseCommonService<AlgorithmVO, AlgorithmNsql, String>
+		implements AlgorithmService {
 
-    @Autowired
-    private AlgorithmCustomRepository customRepo;
-    @Autowired
-    private AlgorithmRepository jpaRepo;
-    @Autowired
-    private AlgorithmAssembler algoAssembler;
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private AlgorithmCustomRepository customRepo;
+	@Autowired
+	private AlgorithmRepository jpaRepo;
+	@Autowired
+	private AlgorithmAssembler algoAssembler;
+	@Autowired
+	private SolutionService solutionService;
 
+	public BaseAlgorithmService() {
+		super();
+	}
 
-    public BaseAlgorithmService() {
-        super();
-    }
-
-
-    @Override
-    public boolean deleteAlgorithm(String id) {
-        AlgorithmNsql algorithmNsql = jpaRepo.getOne(id);
-        String name = algorithmNsql.getData().getName();
-        solutionService.deleteTagForEachSolution(name, null, SolutionService.TAG_CATEGORY.ALGO);
-        return deleteById(id);
-    }
+	@Override
+	public boolean deleteAlgorithm(String id) {
+		AlgorithmNsql algorithmNsql = jpaRepo.getOne(id);
+		String name = algorithmNsql.getData().getName();
+		log.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to algorithm {}", id);
+		solutionService.deleteTagForEachSolution(name, null, SolutionService.TAG_CATEGORY.ALGO);
+		return deleteById(id);
+	}
 }

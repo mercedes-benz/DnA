@@ -36,7 +36,6 @@ import com.daimler.data.db.entities.ItsmmGameEventDetailNsql;
 import com.daimler.data.db.jsonb.ItsmmGameEventDetail;
 import com.daimler.data.dto.itsmmgame.ItsmmGameEventDetailsVO;
 
-
 @Component
 public class ItsmmGameEventAssembler implements GenericAssembler<ItsmmGameEventDetailsVO, ItsmmGameEventDetailNsql> {
 
@@ -45,9 +44,9 @@ public class ItsmmGameEventAssembler implements GenericAssembler<ItsmmGameEventD
 	@Override
 	public ItsmmGameEventDetailsVO toVo(ItsmmGameEventDetailNsql entity) {
 		ItsmmGameEventDetailsVO vo = new ItsmmGameEventDetailsVO();
-		if(entity != null) {
+		if (entity != null) {
 			ItsmmGameEventDetail data = entity.getData();
-			if(data!=null) {
+			if (data != null) {
 				BeanUtils.copyProperties(data, vo);
 				vo.setGameStarted(data.getGameStarted());
 				vo.setGameStopped(data.getGameStopped());
@@ -61,7 +60,7 @@ public class ItsmmGameEventAssembler implements GenericAssembler<ItsmmGameEventD
 	public ItsmmGameEventDetailNsql toEntity(ItsmmGameEventDetailsVO vo) {
 		ItsmmGameEventDetailNsql entity = new ItsmmGameEventDetailNsql();
 		ItsmmGameEventDetail data = new ItsmmGameEventDetail();
-		if(vo!=null) {
+		if (vo != null) {
 			BeanUtils.copyProperties(vo, data);
 			data.setGameStarted(vo.isGameStarted());
 			data.setGameStopped(vo.isGameStopped());

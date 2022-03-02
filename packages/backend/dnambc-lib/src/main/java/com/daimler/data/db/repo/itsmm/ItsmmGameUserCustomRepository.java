@@ -32,11 +32,10 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.dto.itsmmgame.ItsmmGameUserRecordsVO;
 import com.daimler.data.dto.itsmmgame.ItsmmGameUserResultsWraperVO;
 
-public interface ItsmmGameUserCustomRepository
-        extends CommonDataRepository<ItsmmGameUserDetailNsql, String> {
+public interface ItsmmGameUserCustomRepository extends CommonDataRepository<ItsmmGameUserDetailNsql, String> {
 
 	public ItsmmGameUserResultsWraperVO getResults(String correctAnswer);
 
 	public ItsmmGameUserRecordsVO getRecords();
-	
+
 }

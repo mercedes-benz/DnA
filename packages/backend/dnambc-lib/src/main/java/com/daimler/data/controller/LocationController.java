@@ -35,6 +35,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,34 +47,34 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@Api(value = "Location API",tags = {"locations"})
+@Api(value = "Location API", tags = { "locations" })
 @RequestMapping("/api")
-public class LocationController
-        implements LocationsApi {
+@Slf4j
+public class LocationController implements LocationsApi {
 
-    @Autowired
-    private LocationService locationServices;
+	@Autowired
+	private LocationService locationServices;
 
-
-    @Override
-    @ApiOperation(value = "Get all available locations.", nickname = "getAll", notes = "Get all locations. This endpoints will be used to Get all valid available locations maintenance records.", response = LocationCollection.class, tags = {"locations",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of succes or failure", response = LocationCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/locations",
-            produces = {"application/json"},
-            consumes = {"application/json"},
-            method = RequestMethod.GET)
-    public ResponseEntity<LocationCollection> getAll() {
-        final List<LocationVO> locations = locationServices.getAllSortedByUniqueLiteralAsc("name");
-        LocationCollection locationCollection = new LocationCollection();
-        if (locations != null && locations.size() > 0) {
-            locationCollection.addAll(locations);
-            return new ResponseEntity<>(locationCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(locationCollection, HttpStatus.NO_CONTENT);
-        }
-    }
+	@Override
+	@ApiOperation(value = "Get all available locations.", nickname = "getAll", notes = "Get all locations. This endpoints will be used to Get all valid available locations maintenance records.", response = LocationCollection.class, tags = {
+			"locations", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LocationCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/locations", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<LocationCollection> getAll() {
+		final List<LocationVO> locations = locationServices.getAllSortedByUniqueLiteralAsc("name");
+		LocationCollection locationCollection = new LocationCollection();
+		if (locations != null && locations.size() > 0) {
+			locationCollection.addAll(locations);
+			log.debug("Returning all available locations");
+			return new ResponseEntity<>(locationCollection, HttpStatus.OK);
+		} else {
+			log.debug("No locations found, returning empty");
+			return new ResponseEntity<>(locationCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

@@ -36,8 +36,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogoDetails implements Serializable{
-	
+public class LogoDetails implements Serializable {
+
 	private static final long serialVersionUID = 3635828893667504821L;
 
 	private String id;

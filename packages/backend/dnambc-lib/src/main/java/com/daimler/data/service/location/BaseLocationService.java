@@ -37,20 +37,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseLocationService
-        extends BaseCommonService<LocationVO, LocationNsql, String>
-        implements LocationService {
+public class BaseLocationService extends BaseCommonService<LocationVO, LocationNsql, String>
+		implements LocationService {
 
-    @Autowired
-    private LocationCustomRepository customRepo;
-    @Autowired
-    private LocationRepository jpaRepo;
-    @Autowired
-    private LocationAssembler algoAssembler;
+	@Autowired
+	private LocationCustomRepository customRepo;
+	@Autowired
+	private LocationRepository jpaRepo;
+	@Autowired
+	private LocationAssembler algoAssembler;
 
-    public BaseLocationService() {
-        super();
-    }
+	public BaseLocationService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseLocationService(LocationCustomRepository customRepo
@@ -61,8 +60,5 @@ public class BaseLocationService
 //        this.jpaRepo = jpaRepo;
 //        this.algoAssembler = algoAssembler;
 //    }
-
-
-
 
 }

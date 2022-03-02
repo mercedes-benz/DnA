@@ -37,20 +37,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseDataVolumeService
-        extends BaseCommonService<DataVolumeVO, DataVolumeNsql, String>
-        implements DataVolumeService {
+public class BaseDataVolumeService extends BaseCommonService<DataVolumeVO, DataVolumeNsql, String>
+		implements DataVolumeService {
 
-    @Autowired
-    private DataVolumeCustomRepository customRepo;
-    @Autowired
-    private DataVolumeRepository jpaRepo;
-    @Autowired
-    private DataVolumeAssembler assembler;
+	@Autowired
+	private DataVolumeCustomRepository customRepo;
+	@Autowired
+	private DataVolumeRepository jpaRepo;
+	@Autowired
+	private DataVolumeAssembler assembler;
 
-    public BaseDataVolumeService() {
-        super();
-    }
+	public BaseDataVolumeService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseDataVolumeService(DataVolumeCustomRepository customRepo
@@ -61,6 +60,5 @@ public class BaseDataVolumeService
 //        this.jpaRepo = jpaRepo;
 //        this.assembler = assembler;
 //    }
-
 
 }

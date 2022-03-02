@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "topic_nsql")
-public class TopicNsql extends BaseEntity<Topic>
-        implements Serializable {
+public class TopicNsql extends BaseEntity<Topic> implements Serializable {
 
-    private static final long serialVersionUID = 1561797059271765712L;
+	private static final long serialVersionUID = 1561797059271765712L;
 
-    public TopicNsql() {
-        super();
-    }
-
+	public TopicNsql() {
+		super();
+	}
 
 }

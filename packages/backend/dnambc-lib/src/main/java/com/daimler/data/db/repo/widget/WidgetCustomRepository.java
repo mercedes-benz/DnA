@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.widget;
 import com.daimler.data.db.entities.WidgetNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface WidgetCustomRepository
-        extends CommonDataRepository<WidgetNsql, String> {
+public interface WidgetCustomRepository extends CommonDataRepository<WidgetNsql, String> {
 
 }

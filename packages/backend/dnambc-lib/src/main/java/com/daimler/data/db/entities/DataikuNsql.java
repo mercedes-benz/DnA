@@ -36,14 +36,12 @@ import com.daimler.data.db.jsonb.Dataiku;
 
 @Entity
 @Table(name = "dataiku_nsql")
-public class DataikuNsql extends BaseEntity<Dataiku>
-        implements Serializable {
+public class DataikuNsql extends BaseEntity<Dataiku> implements Serializable {
 
-    private static final long serialVersionUID = 4857908075537600169L;
+	private static final long serialVersionUID = 4857908075537600169L;
 
-    public DataikuNsql() {
-        super();
-    }
-
+	public DataikuNsql() {
+		super();
+	}
 
 }

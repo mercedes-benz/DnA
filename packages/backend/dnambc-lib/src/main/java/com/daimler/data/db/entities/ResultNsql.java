@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "result_nsql")
-public class ResultNsql extends BaseEntity<Result>
-        implements Serializable {
+public class ResultNsql extends BaseEntity<Result> implements Serializable {
 
-    private static final long serialVersionUID = -7780423645757963518L;
+	private static final long serialVersionUID = -7780423645757963518L;
 
-    public ResultNsql() {
-        super();
-    }
-
+	public ResultNsql() {
+		super();
+	}
 
 }

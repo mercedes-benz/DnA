@@ -37,26 +37,25 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.WebApplicationInitializer;
 
 @SpringBootApplication
-@ComponentScan({"com.daimler.data.db.entities", "com.daimler.data.db.repo",
-        "com.daimler.data.controller","com.daimler.data.graphql",
-        "com.daimler.data.service", "com.daimler.data.assembler",
-        "com.daimler.data.logging", "com.daimler.data.application.config",
-        "com.daimler.data.util", "com.daimler.data.task","com.daimler.data.adapter.jupyter",
-        "com.daimler.data.application.itsmm","com.daimler.data.application.filter",
-        "com.daimler.data.client.dataiku","com.daimler.data.application.intercepter"})
-public class Application
-        extends SpringBootServletInitializer implements WebApplicationInitializer {
+@ComponentScan({ "com.daimler.data.db.entities", "com.daimler.data.db.repo", "com.daimler.data.controller",
+		"com.daimler.data.graphql", "com.daimler.data.service", "com.daimler.data.assembler",
+		"com.daimler.data.logging", "com.daimler.data.application.config", "com.daimler.data.util",
+		"com.daimler.data.task", "com.daimler.data.adapter.jupyter", "com.daimler.data.application.itsmm",
+		"com.daimler.data.application.filter", "com.daimler.data.client.dataiku",
+		"com.daimler.data.application.intercepter", "com.daimler.dna.notifications",
+		"com.daimler.data.application.logging" })
+public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Application.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 
-    public static void main(String[] args) {
-        LOG.info("Starting up the demo {} application");
-        SpringApplication.run(Application.class, args);
-    }
+	public static void main(String[] args) {
+		LOG.info("Starting up the dna application");
+		SpringApplication.run(Application.class, args);
+	}
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        return builder.sources(Application.class);
-    }
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+		return builder.sources(Application.class);
+	}
 
 }

@@ -33,11 +33,10 @@ import com.daimler.data.dto.itsmmgame.ItsmmGameUserRecordsVO;
 import com.daimler.data.dto.itsmmgame.ItsmmGameUserResultsWraperVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface ItsmmGameUserService
-        extends CommonService<ItsmmGameUserDetailsVO, ItsmmGameUserDetailNsql, String> {
+public interface ItsmmGameUserService extends CommonService<ItsmmGameUserDetailsVO, ItsmmGameUserDetailNsql, String> {
 
 	public ItsmmGameUserResultsWraperVO getResults(String answer);
-	
+
 	public ItsmmGameUserRecordsVO getRecords();
 
 }

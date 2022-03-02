@@ -56,33 +56,35 @@ import com.daimler.data.dto.dataiku.Permission;
 public class BaseDataikuService implements DataikuService {
 
 	private Logger LOGGER = LoggerFactory.getLogger(BaseDataikuService.class);
-	
+
 	@Autowired
 	private DataikuClient dataikuClient;
-	
+
 	@Value("${dataiku.production.adminGroup}")
 	private String prodAdminGroup;
-	
+
 	@Value("${dataiku.training.adminGroup}")
 	private String trainingAdminGroup;
-	
+
 	@Autowired
 	private DataikuCustomRepository customRepo;
-	
+
 	@Autowired
 	private DataikuRepository jpaRepo;
-	
+
 	private static final String DATAIKU_ADMINISTRATOR = "DATAIKU-ADMINISTRATOR";
 	private static final String ADMINISTRATOR = "ADMINISTRATOR";
 	private static final String CONTRIBUTOR = "CONTRIBUTOR";
 	private static final String READ_ONLY = "READ-ONLY";
-	
+
 	public BaseDataikuService() {
 		super();
 	}
 
 	/**
-	 * <p> getAll DataikuProjects identified for user. </p>
+	 * <p>
+	 * getAll DataikuProjects identified for user.
+	 * </p>
 	 * 
 	 * @param userId
 	 * @param isAdmin
@@ -92,9 +94,8 @@ public class BaseDataikuService implements DataikuService {
 	@Override
 	@Transactional
 	public List<DataikuProjectVO> getAllDataikuProjects(String userId, Boolean live) {
-		LOGGER.trace("Entering getAllDataikuProjects");
 		List<DataikuProjectVO> res = null;
-		LOGGER.debug("Calling dataiku for user Role...");
+		LOGGER.debug("Calling dataiku for user Role of userId {} ", userId);
 		Optional<DataikuUserRole> userRole = dataikuClient.getDataikuUserRole(userId, live);
 		LOGGER.debug("Calling dataiku for projects...");
 		Optional<List<DataikuProjectVO>> projects = dataikuClient.getAllDataikuProjects(live);
@@ -153,22 +154,21 @@ public class BaseDataikuService implements DataikuService {
 				}
 			}
 		}
-		
+
 		List<DataikuNsql> entities = jpaRepo.findAll();
-		if(res!= null && !res.isEmpty()) {
+		if (res != null && !res.isEmpty()) {
 			res = res.stream().map(project -> {
-				
+
 				String key = project.getProjectKey();
-				if(key!=null) {
-					DataikuNsql matchingEntity = entities.stream().filter(n -> key.equalsIgnoreCase(n.getData().getProjectKey())).findAny().orElse(null);
-					if(matchingEntity!=null && matchingEntity.getData()!=null)
+				if (key != null) {
+					DataikuNsql matchingEntity = entities.stream()
+							.filter(n -> key.equalsIgnoreCase(n.getData().getProjectKey())).findAny().orElse(null);
+					if (matchingEntity != null && matchingEntity.getData() != null)
 						project.setSolutionId(matchingEntity.getData().getSolutionId());
 				}
 				return project;
 			}).collect(Collectors.toList());
 		}
-		
-		LOGGER.trace("Returning from getAllDataikuProjects");
 		return res;
 	}
 
@@ -181,14 +181,12 @@ public class BaseDataikuService implements DataikuService {
 	@Override
 	@Transactional
 	public DataikuProjectVO getByProjectKey(String projectKey, Boolean live) {
-		LOGGER.trace("Entering getByProjectKey");
 		return dataikuClient.getDataikuProject(projectKey, live).get();
 	}
 
 	@Override
 	@Transactional
 	public void updateSolutionIdOfDataIkuProjectId(String dataikuProjectId, String solutionId) {
-		LOGGER.trace("Start updateSolutionIdOfDataIkuProjectId...");
 //		DataikuNsql dataikuEntity = customRepo.findbyUniqueLiteral("projectKey", dataikuProjectId);
 //		if(dataikuEntity!= null && dataikuEntity.getData()!=null) {
 //			Dataiku jsonb= dataikuEntity.getData(); 
@@ -203,83 +201,82 @@ public class BaseDataikuService implements DataikuService {
 //			dataikuEntity.setData(jsonb);
 //			jpaRepo.save(dataikuEntity);
 //		}
-		
-		if(solutionId!=null) {
+
+		if (solutionId != null) {
 			DataikuNsql dataikuEntity = customRepo.findbyUniqueLiteral("solutionId", solutionId);
-			if(dataikuEntity!= null && dataikuEntity.getData()!=null) {
-				if(dataikuProjectId!=null && !"".equals(dataikuProjectId)) {
+			if (dataikuEntity != null && dataikuEntity.getData() != null) {
+				if (dataikuProjectId != null && !"".equals(dataikuProjectId)) {
 					String preProjectId = dataikuEntity.getId();
-					if(!preProjectId.equalsIgnoreCase(dataikuProjectId)) {
-						Dataiku jsonb= dataikuEntity.getData(); 
+					if (!preProjectId.equalsIgnoreCase(dataikuProjectId)) {
+						Dataiku jsonb = dataikuEntity.getData();
 						jsonb.setSolutionId(null);
 						dataikuEntity.setData(jsonb);
 						customRepo.update(dataikuEntity);
-						LOGGER.trace("linked dataiku project {} to solution {}",preProjectId, solutionId);
-						//unlinked
+						LOGGER.debug("linked dataiku project {} to solution {}", preProjectId, solutionId);
+						// unlinked
 						dataikuEntity = customRepo.findbyUniqueLiteral("projectKey", dataikuProjectId);
-						if(dataikuEntity!= null && dataikuEntity.getData()!=null) {
-							jsonb= dataikuEntity.getData(); 
+						if (dataikuEntity != null && dataikuEntity.getData() != null) {
+							jsonb = dataikuEntity.getData();
 							jsonb.setSolutionId(solutionId);
 							dataikuEntity.setData(jsonb);
 							customRepo.update(dataikuEntity);
-							//linked
-							LOGGER.trace("linked dataiku project {} to solution {}",dataikuProjectId, solutionId);
-						}else {
+							// linked
+							LOGGER.debug("linked dataiku project {} to solution {}", dataikuProjectId, solutionId);
+						} else {
 							dataikuEntity = new DataikuNsql();
-							jsonb= new Dataiku();
+							jsonb = new Dataiku();
 							jsonb.setProjectKey(dataikuProjectId);
 							jsonb.setSolutionId(solutionId);
 							dataikuEntity.setData(jsonb);
 							jpaRepo.save(dataikuEntity);
-							//initial link
-							LOGGER.trace("linked dataiku project {} to solution {}",dataikuProjectId, solutionId);
+							// initial link
+							LOGGER.debug("linked dataiku project {} to solution {}", dataikuProjectId, solutionId);
 						}
 					}
-				}else {
-					Dataiku jsonb= dataikuEntity.getData(); 
+				} else {
+					Dataiku jsonb = dataikuEntity.getData();
 					jsonb.setSolutionId(null);
 					dataikuEntity.setData(jsonb);
 					customRepo.update(dataikuEntity);
-					LOGGER.trace("unlinked dataiku project {} from solution {}",dataikuProjectId, solutionId);
-					//unlinked
+					LOGGER.debug("unlinked dataiku project {} from solution {}", dataikuProjectId, solutionId);
+					// unlinked
 				}
-			}else {
-				if(dataikuProjectId != null  && !"".equals(dataikuProjectId)) {
+			} else {
+				if (dataikuProjectId != null && !"".equals(dataikuProjectId)) {
 					dataikuEntity = customRepo.findbyUniqueLiteral("projectKey", dataikuProjectId);
-					if(dataikuEntity!= null && dataikuEntity.getData()!=null) {
-						Dataiku jsonb= dataikuEntity.getData(); 
+					if (dataikuEntity != null && dataikuEntity.getData() != null) {
+						Dataiku jsonb = dataikuEntity.getData();
 						jsonb.setSolutionId(solutionId);
 						dataikuEntity.setData(jsonb);
 						customRepo.update(dataikuEntity);
-						LOGGER.trace("linked dataiku project {} to solution {}",dataikuProjectId, solutionId);
-						//linked
-					}else {
+						LOGGER.debug("linked dataiku project {} to solution {}", dataikuProjectId, solutionId);
+						// linked
+					} else {
 						dataikuEntity = new DataikuNsql();
-						Dataiku jsonb= new Dataiku();
+						Dataiku jsonb = new Dataiku();
 						jsonb.setProjectKey(dataikuProjectId);
 						jsonb.setSolutionId(solutionId);
 						dataikuEntity.setData(jsonb);
 						jpaRepo.save(dataikuEntity);
-						LOGGER.trace("linked dataiku project {} to solution {}",dataikuProjectId, solutionId);
-						//initial link
+						LOGGER.debug("linked dataiku project {} to solution {}", dataikuProjectId, solutionId);
+						// initial link
 					}
 				}
 			}
-			
-		}else {
-			if(dataikuProjectId != null  && !"".equals(dataikuProjectId)) {
+
+		} else {
+			if (dataikuProjectId != null && !"".equals(dataikuProjectId)) {
 				DataikuNsql dataikuEntity = customRepo.findbyUniqueLiteral("projectKey", dataikuProjectId);
-				if(dataikuEntity!= null && dataikuEntity.getData()!=null) {
-					Dataiku jsonb= dataikuEntity.getData(); 
+				if (dataikuEntity != null && dataikuEntity.getData() != null) {
+					Dataiku jsonb = dataikuEntity.getData();
 					jsonb.setSolutionId(solutionId);
 					dataikuEntity.setData(jsonb);
 					customRepo.update(dataikuEntity);
-					LOGGER.trace("unlinked dataiku project {} from solution, on solution delete",dataikuProjectId);
-					//unlinked
+					LOGGER.debug("unlinked dataiku project {} from solution, on solution delete", dataikuProjectId);
+					// unlinked
 				}
 			}
 		}
-		LOGGER.trace("Returning from updateSolutionIdOfDataIkuProjectId...");
 	}
-	
+
 }

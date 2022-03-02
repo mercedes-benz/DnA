@@ -38,8 +38,8 @@ import java.util.List;
 @AllArgsConstructor
 public class Division {
 
-    private String name;
-    private List<SubDivision> subdivisions;
+	private String name;
+	private List<SubDivision> subdivisions;
 
 //    public Division() {
 //        super();
@@ -66,6 +66,5 @@ public class Division {
 //    public void setSubdivisions(List<SubDivision> subdivisions) {
 //        this.subdivisions = subdivisions;
 //    }
-
 
 }

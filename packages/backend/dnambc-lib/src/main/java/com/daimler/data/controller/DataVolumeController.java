@@ -43,44 +43,44 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
-@Api(value = "DataVolume API", tags = {"datavolumes"})
+@Api(value = "DataVolume API", tags = { "datavolumes" })
 @RequestMapping("/api")
 @Slf4j
-public class DataVolumeController
-        implements DatavolumesApi {
+public class DataVolumeController implements DatavolumesApi {
 
+	@Autowired
+	private DataVolumeService datavolumeService;
 
-    @Autowired
-    private DataVolumeService datavolumeService;
-
-
-    @Override
-    @ApiOperation(value = "Get all available datavolumes.", nickname = "getAll", notes = "Get all datavolumes. This endpoints will be used to Get all valid available datavolumes maintenance records.", response = DataVolumeCollection.class, tags={ "datavolumes", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of succes or failure", response = DataVolumeCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-            @ApiResponse(code = 400, message = "Bad request."),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Method not allowed"),
-            @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/datavolumes",
-            produces = { "application/json" },
-            consumes = { "application/json" },
-            method = RequestMethod.GET)
-    public ResponseEntity<DataVolumeCollection> getAll() {
-        final List<DataVolumeVO> datavolumes = datavolumeService.getAll();
-        DataVolumeCollection datavolumeCollection = new DataVolumeCollection();
-        if (datavolumes != null && datavolumes.size() > 0) {
-            datavolumeCollection.addAll(datavolumes);
-            return new ResponseEntity<>(datavolumeCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(datavolumeCollection, HttpStatus.NO_CONTENT);
-        }
-    }
-
+	@Override
+	@ApiOperation(value = "Get all available datavolumes.", nickname = "getAll", notes = "Get all datavolumes. This endpoints will be used to Get all valid available datavolumes maintenance records.", response = DataVolumeCollection.class, tags = {
+			"datavolumes", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = DataVolumeCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/datavolumes", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<DataVolumeCollection> getAll() {
+		final List<DataVolumeVO> datavolumes = datavolumeService.getAll();
+		Comparator<DataVolumeVO> comparator = Comparator.comparing(DataVolumeVO::getId);
+		datavolumes.sort(comparator);
+		DataVolumeCollection datavolumeCollection = new DataVolumeCollection();
+		if (datavolumes != null && datavolumes.size() > 0) {
+			datavolumeCollection.addAll(datavolumes);
+			log.debug("Returning all available datavolumes");
+			return new ResponseEntity<>(datavolumeCollection, HttpStatus.OK);
+		} else {
+			log.debug("No datavolumes found, returning empty");
+			return new ResponseEntity<>(datavolumeCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }
