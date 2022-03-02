@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.platform;
 import com.daimler.data.db.entities.PlatformNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface PlatformCustomRepository
-        extends CommonDataRepository<PlatformNsql, String> {
+public interface PlatformCustomRepository extends CommonDataRepository<PlatformNsql, String> {
 
 }

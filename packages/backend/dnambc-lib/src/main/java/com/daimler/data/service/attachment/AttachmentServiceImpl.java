@@ -67,31 +67,30 @@ import com.daimler.data.dto.logo.LogoVO;
 import com.daimler.data.util.ConstantsUtility;
 
 @Service
-public class AttachmentServiceImpl implements AttachmentService{
+public class AttachmentServiceImpl implements AttachmentService {
 
 	private Logger log = LoggerFactory.getLogger(AttachmentServiceImpl.class);
-	
-	private static final List<String> contentTypes = Arrays.asList("bmp", "gif", "jpeg", "jpg", "xls", "xlsx",
-			"doc", "docx", "odt", "txt", "pdf", "png", "pptx", "ppt", "rtf", "csv");
+
+	private static final List<String> contentTypes = Arrays.asList("bmp", "gif", "jpeg", "jpg", "xls", "xlsx", "doc",
+			"docx", "odt", "txt", "pdf", "png", "pptx", "ppt", "rtf", "csv");
 
 	@Autowired
 	private AmazonS3 s3Client;
-	
+
 	@Autowired
 	private TransferManager transferManager;
 
-    @Value("${storage.bucketname}")
-    private String bucketName;
-    
-    @Value("${dna.feature.attachmentMalwareScan}")
-    private boolean attachmentMalwareScan;
-    
-    @Autowired
-    private AVScannerClient aVScannerClient;
-    
+	@Value("${storage.bucketname}")
+	private String bucketName;
+
+	@Value("${dna.feature.attachmentMalwareScan}")
+	private boolean attachmentMalwareScan;
+
+	@Autowired
+	private AVScannerClient aVScannerClient;
+
 	@Override
 	public FileDetailsVO uploadFileToS3Bucket(MultipartFile multiPartFile, String keyName) throws Exception {
-		log.trace("Entering uploadFileToS3Bucket.");
 		FileDetailsVO fileDetails = new FileDetailsVO();
 		try {
 			String fileName = multiPartFile.getOriginalFilename();
@@ -99,11 +98,11 @@ public class AttachmentServiceImpl implements AttachmentService{
 			long fileSize = multiPartFile.getSize();
 			fileDetails.setFileSize(formatedSize(fileSize));
 			if (isValidAttachment(fileName)) {
-				if(attachmentMalwareScan) {
-					log.debug("Scanning for malware..");
+				if (attachmentMalwareScan) {
+					log.debug("Scanning for malware for file {}", multiPartFile.getName());
 					FileScanDetailsVO fileScanDetailsVO = this.scan(multiPartFile, fileDetails);
 					if (ObjectUtils.isEmpty(fileScanDetailsVO)) {
-						log.info("File is infected with malware.");
+						log.info("File {} is infected with malware.", multiPartFile.getName());
 						return fileDetails;
 					}
 				}
@@ -111,7 +110,7 @@ public class AttachmentServiceImpl implements AttachmentService{
 				fileDetails.setId(keyName);
 				ObjectMetadata metadata = new ObjectMetadata();
 				metadata.setContentLength(fileSize);
-				log.info("File sent to transferManager");
+				log.debug("File {} sent to transferManager", multiPartFile.getName());
 				Upload upload = transferManager.upload(bucketName, keyName, multiPartFile.getInputStream(), metadata);
 				log.debug("TransferManager Started uploading file, with fileName {} and keyName {}", fileName, keyName);
 //		        upload.waitForCompletion();
@@ -119,12 +118,13 @@ public class AttachmentServiceImpl implements AttachmentService{
 			} else {
 				List<MessageDescription> errors = new ArrayList<MessageDescription>();
 				MessageDescription md = new MessageDescription();
-				md.setMessage("File type is not supported.");
+				md.setMessage("File type is not supported");
+				log.info("File {} is not of supported file types", multiPartFile.getName());
 				errors.add(md);
 				fileDetails.setErrors(errors);
 			}
 		} catch (Exception e) {
-			log.error("Failed while uploading with exception {} ", e.getMessage());
+			log.error("Failed while uploading file {} with exception {} ", multiPartFile.getName(), e.getMessage());
 			throw e;
 		}
 		return fileDetails;
@@ -138,118 +138,115 @@ public class AttachmentServiceImpl implements AttachmentService{
 	 * @return FileScanDetailsVO
 	 */
 	private FileScanDetailsVO scan(MultipartFile multiPartFile, FileDetailsVO fileDetails) {
-		log.trace("Entering scan.");
 		FileScanDetailsVO fileScanDetailsVO = null;
 		List<MessageDescription> errors = new ArrayList<MessageDescription>();
 		MessageDescription md = null;
 		Optional<FileScanDetailsVO> aVScannerRes = aVScannerClient.scan(multiPartFile);
 		if (!aVScannerRes.isEmpty()) {
 			if (aVScannerRes.get().getDetected() != null && !aVScannerRes.get().getDetected()) {
-				log.info("No malware found.");
+				log.debug("No malware found for file {}", multiPartFile.getName());
 				fileScanDetailsVO = aVScannerRes.get();
 			} else {
-				log.info("Malware found in attachment:{}", aVScannerRes.get().getErrorMessage());
+				log.info("Malware found in file {} ErrorMessage:{}", multiPartFile.getName(),
+						aVScannerRes.get().getErrorMessage());
 				md = new MessageDescription();
 				md.setMessage(aVScannerRes.get().getErrorMessage());
 				errors.add(md);
 				fileDetails.setErrors(errors);
 			}
 		} else {
-			log.info("Got empty response from malware service.");
+			log.info("Got empty response from malware service for file {}", multiPartFile.getName());
 			md = new MessageDescription();
 			md.setMessage("Error occured while scanning for malware.");
 			errors.add(md);
 			fileDetails.setErrors(errors);
 		}
-		log.trace("Returning from scan.");
 		return fileScanDetailsVO;
 	}
-	
+
 	@Override
 	public void deleteFileFromS3Bucket(String keyName) {
-			s3Client.deleteObject(new DeleteObjectRequest(bucketName, keyName));
-			log.debug("File with keyName {} removed successfully", keyName);
+		s3Client.deleteObject(new DeleteObjectRequest(bucketName, keyName));
+		log.debug("File with keyName {} removed successfully", keyName);
 	}
-	
-	
+
 	@Override
-	public List<FileDetailsVO> getAvailableFilesFromBucket(){
+	public List<FileDetailsVO> getAvailableFilesFromBucket() {
 		List<FileDetailsVO> files = new ArrayList<>();
-		ListObjectsRequest listObjectsRequest =  new ListObjectsRequest().withBucketName(bucketName).withPrefix("logo/");
-	    ObjectListing objects = s3Client.listObjects(listObjectsRequest);
-	    List<S3ObjectSummary> summaries = objects.getObjectSummaries();
-		    for (S3ObjectSummary item : summaries) {
-		    	FileDetailsVO file = new FileDetailsVO();
-		    	file.setFileSize(formatedSize(item.getSize()));
-		    	file.setId(item.getKey());
-		    	files.add(file);
-		    }
-	    return files;
+		ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName).withPrefix("logo/");
+		ObjectListing objects = s3Client.listObjects(listObjectsRequest);
+		List<S3ObjectSummary> summaries = objects.getObjectSummaries();
+		for (S3ObjectSummary item : summaries) {
+			FileDetailsVO file = new FileDetailsVO();
+			file.setFileSize(formatedSize(item.getSize()));
+			file.setId(item.getKey());
+			files.add(file);
+		}
+		return files;
 	}
-	
+
 	@Override
 	public byte[] getFile(String keyName) throws Exception {
 		try {
 			S3Object s3Object = s3Client.getObject(new GetObjectRequest(bucketName, keyName));
 			S3ObjectInputStream stream = s3Object.getObjectContent();
-            byte[] content = IOUtils.toByteArray(stream);
-            s3Object.close();
-            log.info("downloaded file with keyName {}  successfully", keyName);
-            return content;
-        } catch (Exception e) {
-            log.error("Failed while downloading file with keyName {}  with exception {} ", keyName, e.getMessage());
-            throw e;
-        }
+			byte[] content = IOUtils.toByteArray(stream);
+			s3Object.close();
+			log.info("downloaded file with keyName {}  successfully", keyName);
+			return content;
+		} catch (Exception e) {
+			log.error("Failed while downloading file with keyName {}  with exception {} ", keyName, e.getMessage());
+			throw e;
+		}
 	}
-	
+
 	public String formatedSize(long size) {
-		long valueinMb = size/1048576;
-		long valueinKb = size/1024;
-		if(size > 1024) {
-			if(size < 1048576) {
-				return valueinKb +" KB";
+		long valueinMb = size / 1048576;
+		long valueinKb = size / 1024;
+		if (size > 1024) {
+			if (size < 1048576) {
+				return valueinKb + " KB";
+			} else {
+				return valueinMb + " MB";
 			}
-			else {
-				return valueinMb +" MB";
-			}
-				
-		}else 
+
+		} else
 			return "1KB";
 	}
 
 	@Override
 	public LogoDetailsVO uploadLogoToS3Bucket(LogoVO logo) throws Exception {
 		LogoDetailsVO logoDetails = new LogoDetailsVO();
-        String keyName = UUID.randomUUID().toString();
-        logoDetails.setId(keyName);
-        logoDetails.setFileName(logo.getFileName());
-        long fileSize = logo.getLogo().length;
-        logoDetails.setFileSize(formatedSize(fileSize));
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(fileSize);
-        log.info("File sent to transferManager");
-        String path  = ConstantsUtility.S3_PATH_TO_UPLOAD_LOGO+keyName;
-        try {
-           InputStream is = new ByteArrayInputStream(logo.getLogo());
-           Upload upload = transferManager.upload(bucketName, path,is ,metadata);
-           log.debug("TransferManager Started uploading file, with fileName {} and keyName {}", logo.getFileName(), keyName);
+		String keyName = UUID.randomUUID().toString();
+		logoDetails.setId(keyName);
+		logoDetails.setFileName(logo.getFileName());
+		long fileSize = logo.getLogo().length;
+		logoDetails.setFileSize(formatedSize(fileSize));
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentLength(fileSize);
+		log.debug("File {} sent to transferManager", logo.getFileName());
+		String path = ConstantsUtility.S3_PATH_TO_UPLOAD_LOGO + keyName;
+		try {
+			InputStream is = new ByteArrayInputStream(logo.getLogo());
+			Upload upload = transferManager.upload(bucketName, path, is, metadata);
+			log.debug("TransferManager Started uploading file, with fileName {} and keyName {}", logo.getFileName(),
+					keyName);
 //        upload.waitForCompletion();
 //        log.debug("Upload completed for file with fileName {} and keyName {} ", fileName, keyName);
-        }catch(Exception e) {
-        	log.error("Failed while uploading with exception {} ", e.getMessage());
-        	throw e;
-        }
-        return logoDetails;
+		} catch (Exception e) {
+			log.error("Failed while uploading file {} with exception {} ", logo.getFileName(), e.getMessage());
+			throw e;
+		}
+		return logoDetails;
 	}
 
-	
 	private boolean isValidAttachment(String fileName) {
 		boolean isValid = false;
 		String extension = FilenameUtils.getExtension(fileName);
-	    if(contentTypes.contains(extension.toLowerCase())) {
-	        isValid = true;
-	    }
-	    return isValid;
+		if (contentTypes.contains(extension.toLowerCase())) {
+			isValid = true;
+		}
+		return isValid;
 	}
-	
+
 }

@@ -42,17 +42,17 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FilterPreferences implements Serializable{
+public class FilterPreferences implements Serializable {
 
 	private static final long serialVersionUID = 4051188801188093512L;
 
 	private String useCaseType;
 	private List<SolutionPhase> phases;
-	private List<UserWidgetPreferenceDivision >divisions;
+	private List<UserWidgetPreferenceDivision> divisions;
 	private List<SolutionLocation> locations;
 	private SolutionProjectStatus solutionStatus;
 	private List<Tag> tags;
-	
+
 //	public FilterPreferences() {
 //		super();
 //	}

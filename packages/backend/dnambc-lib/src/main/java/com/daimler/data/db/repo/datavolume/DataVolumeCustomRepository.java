@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.datavolume;
 import com.daimler.data.db.entities.DataVolumeNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface DataVolumeCustomRepository
-        extends CommonDataRepository<DataVolumeNsql, String> {
+public interface DataVolumeCustomRepository extends CommonDataRepository<DataVolumeNsql, String> {
 
 }

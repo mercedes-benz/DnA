@@ -36,10 +36,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolutionProjectStatus  implements Serializable{
-	
+public class SolutionProjectStatus implements Serializable {
+
 	private String id;
 	private String name;
-	
-	
+
 }

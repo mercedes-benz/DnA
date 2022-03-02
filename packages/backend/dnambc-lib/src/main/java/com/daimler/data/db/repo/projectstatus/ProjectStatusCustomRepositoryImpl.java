@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class ProjectStatusCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<ProjectStatusNsql, String>
-        implements ProjectStatusCustomRepository {
+public class ProjectStatusCustomRepositoryImpl extends CommonDataRepositoryImpl<ProjectStatusNsql, String>
+		implements ProjectStatusCustomRepository {
 
 }

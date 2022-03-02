@@ -31,6 +31,6 @@ import com.daimler.data.db.entities.RelatedProductNsql;
 import com.daimler.data.dto.relatedProduct.RelatedProductVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface  RelatedProductService extends CommonService<RelatedProductVO, RelatedProductNsql, String> {
-    boolean deleteRelatedProduct(String id);
+public interface RelatedProductService extends CommonService<RelatedProductVO, RelatedProductNsql, String> {
+	boolean deleteRelatedProduct(String id);
 }

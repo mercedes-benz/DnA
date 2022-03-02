@@ -39,34 +39,41 @@ import com.daimler.data.dto.relatedProduct.RelatedProductVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
-public class BaseRelatedProductService  extends BaseCommonService<RelatedProductVO, RelatedProductNsql, String>  implements RelatedProductService{
+@Slf4j
+public class BaseRelatedProductService extends BaseCommonService<RelatedProductVO, RelatedProductNsql, String>
+		implements RelatedProductService {
 
-	 @Autowired
-	    private RelatedProductCustomRepository relatedProductCustomRepo;
-	    @Autowired
-	    private RelatedProductRepository jpaRepo;
-	    @Autowired
-	    private RelatedproductAssembler relatedProductAssembler;
-		@Autowired
-	    private SolutionService solutionService;
-	    
-	    public BaseRelatedProductService() {
-			super();
-		}	
+	@Autowired
+	private RelatedProductCustomRepository relatedProductCustomRepo;
+	@Autowired
+	private RelatedProductRepository jpaRepo;
+	@Autowired
+	private RelatedproductAssembler relatedProductAssembler;
+	@Autowired
+	private SolutionService solutionService;
 
-		/**
-	     * deleteRelatedProduct
-	     * <P> delete related product by given Id
-	     * 
-	     * @param relatedProductIdToDelete
-	     */
-		@Transactional
-		@Override
-		public boolean deleteRelatedProduct(final String relatedProductIdToDelete) {
-			RelatedProductNsql relatedProductEntity = jpaRepo.getOne(relatedProductIdToDelete);	
-			String relatedProductName = relatedProductEntity.getData().getName();
-			solutionService.deleteTagForEachSolution(null, relatedProductName, SolutionService.TAG_CATEGORY.RELATEDPRODUCT);
-			return deleteById(relatedProductIdToDelete);
-		}
+	public BaseRelatedProductService() {
+		super();
+	}
+
+	/**
+	 * deleteRelatedProduct
+	 * <P>
+	 * delete related product by given Id
+	 * 
+	 * @param relatedProductIdToDelete
+	 */
+	@Transactional
+	@Override
+	public boolean deleteRelatedProduct(final String relatedProductIdToDelete) {
+		RelatedProductNsql relatedProductEntity = jpaRepo.getOne(relatedProductIdToDelete);
+		String relatedProductName = relatedProductEntity.getData().getName();
+		log.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to relatedProduct {}",
+				relatedProductIdToDelete);
+		solutionService.deleteTagForEachSolution(null, relatedProductName, SolutionService.TAG_CATEGORY.RELATEDPRODUCT);
+		return deleteById(relatedProductIdToDelete);
+	}
 }

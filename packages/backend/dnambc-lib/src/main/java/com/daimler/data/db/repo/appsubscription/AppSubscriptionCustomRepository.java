@@ -43,10 +43,13 @@ public interface AppSubscriptionCustomRepository extends CommonDataRepository<Ap
 	 * @param sortBy
 	 * @param offset
 	 * @param limit
+	 * @param appName
+	 * @param searchTerm
 	 * @return List<AppSubscriptionNsql>
 	 */
 	public List<AppSubscriptionNsql> getAllWithFilters(String userId, boolean isAdmin, String recordStatus,
-			String appId, String sortBy,  String sortOrder, int offset, int limit,String appName);
+			String appId, String sortBy, String sortOrder, int offset, int limit, String appName, String searchTerm);
+
 	/**
 	 * To return count based on given filter
 	 * 
@@ -56,5 +59,5 @@ public interface AppSubscriptionCustomRepository extends CommonDataRepository<Ap
 	 * @param appId
 	 * @return count
 	 */
-	public Long getCount(String userId, boolean isAdmin, String recordStatus, String appId);
+	public Long getCount(String userId, boolean isAdmin, String recordStatus, String appId, String searchTerm);
 }

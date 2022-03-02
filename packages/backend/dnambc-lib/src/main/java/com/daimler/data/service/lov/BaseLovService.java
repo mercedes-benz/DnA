@@ -30,6 +30,7 @@ package com.daimler.data.service.lov;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,11 +41,13 @@ import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
 import com.daimler.data.db.entities.lov.MaturityLevelNsql;
 import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
+import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 import com.daimler.data.db.repo.lov.LovRepository;
 import com.daimler.data.db.repo.solution.SolutionRepository;
 import com.daimler.data.dto.lov.BenefitRelevanceVO;
 import com.daimler.data.dto.lov.BusinessGoalVO;
 import com.daimler.data.dto.lov.CategoryVO;
+import com.daimler.data.dto.lov.DataStrategyDomainVO;
 import com.daimler.data.dto.lov.MaturityLevelVO;
 import com.daimler.data.dto.lov.StrategicRelevanceVO;
 import com.daimler.data.service.common.BaseCommonService;
@@ -69,9 +72,10 @@ public class BaseLovService implements LovService {
 
 	/**
 	 * getAllBusinessGoal
-	 * <P> Fetch all valid Business Goal
+	 * <P>
+	 * Fetch all valid Business Goal
 	 * 
-	 * @return List<BusinessGoalVO> 
+	 * @return List<BusinessGoalVO>
 	 * 
 	 */
 	@Override
@@ -83,9 +87,10 @@ public class BaseLovService implements LovService {
 
 	/**
 	 * getAllBenefitRelevance
-	 * <P> Fetch all valid Benefit Relevance
+	 * <P>
+	 * Fetch all valid Benefit Relevance
 	 * 
-	 * @return List<BenefitRelevanceVO> 
+	 * @return List<BenefitRelevanceVO>
 	 * 
 	 */
 	@Override
@@ -97,9 +102,10 @@ public class BaseLovService implements LovService {
 
 	/**
 	 * getAllStrategicRelevance
-	 * <P> Fetch all valid Strategic Relevance
+	 * <P>
+	 * Fetch all valid Strategic Relevance
 	 * 
-	 * @return List<StrategicRelevanceVO> 
+	 * @return List<StrategicRelevanceVO>
 	 * 
 	 */
 	@Override
@@ -111,9 +117,10 @@ public class BaseLovService implements LovService {
 
 	/**
 	 * getAllMaturityLevel
-	 * <P> Fetch all valid Maturity level
+	 * <P>
+	 * Fetch all valid Maturity level
 	 * 
-	 * @return List<MaturityLevelVO> 
+	 * @return List<MaturityLevelVO>
 	 * 
 	 */
 	@Override
@@ -125,9 +132,10 @@ public class BaseLovService implements LovService {
 
 	/**
 	 * getAllCategory
-	 * <P> Fetch all valid Category
+	 * <P>
+	 * Fetch all valid Category
 	 * 
-	 * @return List<CategoryVO> 
+	 * @return List<CategoryVO>
 	 * 
 	 */
 	@Override
@@ -135,6 +143,12 @@ public class BaseLovService implements LovService {
 	public List<CategoryVO> getAllCategory() {
 		List<CategoryNsql> categories = lovRepository.getAllCategory();
 		return lovAssembler.toCategoryVOList(categories);
+	}
+
+	@Override
+	public List<DataStrategyDomainVO> getAllStrategyDomain() {
+		List<DataStrategyDomainNsql> strategyDomains = lovRepository.getAllStrategyDomain();
+		return lovAssembler.toStrategyDomainVOList(strategyDomains);
 	}
 
 }

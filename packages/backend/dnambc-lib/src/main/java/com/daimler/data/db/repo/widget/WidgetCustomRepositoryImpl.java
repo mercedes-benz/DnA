@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class WidgetCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<WidgetNsql, String>
-        implements WidgetCustomRepository {
+public class WidgetCustomRepositoryImpl extends CommonDataRepositoryImpl<WidgetNsql, String>
+		implements WidgetCustomRepository {
 
 }

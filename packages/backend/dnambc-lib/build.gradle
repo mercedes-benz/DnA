@@ -517,7 +517,18 @@ swaggerSources {
         }
     }  
     
-    
+    skill {
+        def skillYaml = "${rootDir}/dnambc-lib/src/main/resources/api/Skill.yaml"
+        def skillJson = "${rootDir}/dnambc-lib/src/main/resources/api/Skill.json"
+        inputFile = file(skillYaml)
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(skillJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }  
 
 }
 
@@ -578,6 +589,8 @@ compileJava {
     source "${swaggerSources.dataiku.code.outputDir}/src/main/java"
     dependsOn swaggerSources.dashboard.code
     source "${swaggerSources.dashboard.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.skill.code
+    source "${swaggerSources.skill.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -614,6 +627,7 @@ sourceSets {
 		java { srcDirs += "${swaggerSources.appSubscription.code.outputDir}/src/main/java"}
 		java { srcDirs += "${swaggerSources.dataiku.code.outputDir}/src/main/java"}	
 		java { srcDirs += "${swaggerSources.dashboard.code.outputDir}/src/main/java"}
+		java { srcDirs += "${swaggerSources.skill.code.outputDir}/src/main/java"}
     }
 }
 
@@ -713,6 +727,13 @@ configurations {
 
 dependencies {
 
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
+    
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
+
+
     implementation group: 'org.json', name: 'json', version: '20190722'
 
     implementation('ch.qos.logback:logback-classic:1.2.3')
@@ -789,6 +810,11 @@ dependencies {
     implementation group: 'org.piwik.java.tracking', name: 'matomo-java-tracker', version: '1.6'
 	
 	
+
+	//2nd level caching dependency 
+	implementation 'org.springframework.boot:spring-boot-starter-cache:2.4.3'
+    implementation group: 'net.sf.ehcache', name: 'ehcache', version: '2.10.4'
+
     testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}") {
         exclude(module: 'commons-logging')
     }

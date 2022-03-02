@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.topic;
 import com.daimler.data.db.entities.TopicNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface TopicCustomRepository
-        extends CommonDataRepository<TopicNsql, String> {
+public interface TopicCustomRepository extends CommonDataRepository<TopicNsql, String> {
 
 }

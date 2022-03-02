@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.phase;
 import com.daimler.data.db.entities.PhaseNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface PhaseCustomRepository
-        extends CommonDataRepository<PhaseNsql, String> {
+public interface PhaseCustomRepository extends CommonDataRepository<PhaseNsql, String> {
 
 }

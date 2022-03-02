@@ -31,6 +31,5 @@ import com.daimler.data.db.entities.ProjectStatusNsql;
 import com.daimler.data.dto.projectstatus.ProjectStatusVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface ProjectStatusService
-        extends CommonService<ProjectStatusVO, ProjectStatusNsql, String> {
+public interface ProjectStatusService extends CommonService<ProjectStatusVO, ProjectStatusNsql, String> {
 }
