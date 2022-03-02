@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hub-web-allow-netpol
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      component: jupyter
+  ingress:
+    - from: []
+    # - from:
+    #   - podSelector: 
+    #       matchLabels:
+    #         component: hub
+    # - ports:
+    #   - port: 8081
+    #   from: []
+  #   - ports:
+  #     - port: 8080
+  #       protocol: TCP
+  # policyTypes:
+  # - Ingress

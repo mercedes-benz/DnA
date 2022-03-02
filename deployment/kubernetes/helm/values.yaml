@@ -1,0 +1,485 @@
+# Default values for helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+appName: dna
+
+app:
+  enabled: true
+  namespace: helm-test
+  imagePullSecret: 
+    name: harbor-pull-secret
+    key: "=" 
+  cert:
+    certManager: acme
+  replicaCount: 1
+  traefik:
+    image: ""
+  ingress:
+    namespace: ingress
+    host: ""
+    lbIP: ""
+  app:
+    backend:
+      replicaCount: 1
+      image: backend:latest
+      secrets: 
+        name: app-secrets
+        notebooksecrettoken: ""
+        oidcclientid: ""
+        oidcclientsecret: ""
+        drdcertpassword: ""
+        jwtsecretkey: ""
+        s3accesskey: ""
+        s3secretkey: ""
+        dataikuprodapikey: ""
+        dataikutrainingapikey: ""
+        avscanapikey: ""
+      config:
+        enableItsmm: false
+        enableJupyterNotebook: false
+        enableDataiku: false
+        enableAttachmentScan: false
+        enableInternalUser: false
+        redirectUrl: ""
+        dbUri: jdbc:postgresql://postgresql:64000/db
+        oidcuserinfourl: ""
+        oidctokenintrospectionurl: ""
+        oidcprovider: INTERNAL
+        oidctokenrevocationurl: ""
+        internaluserrequesturl: ""
+        internalcertfile: ""
+        oidcdisabled: true
+        s3bucketname: ""
+        s3epurl: ""
+        corosoriginurl: ""
+        jupyternotebookurl: ""
+        vaulthost: vault.vault.svc.cluster.local
+        vaultport: 8200
+        dataikuproduri: ""
+        dataikutraininguri: ""
+        avscanappid: ""
+        naasbroker: broker01.kafka.svc.cluster.local:8001
+        loggingEnvironment: dev
+        loggingPath: /tmp/app/log
+        dataikuProjectUri: /projects/
+        avscanuri: ""
+
+    frontend:
+      replicaCount: 1
+      image: dna-frontend
+      config: 
+        oidcdisabled: true
+        oidcprovider: INTERNAL
+        apibaseurl: api
+        jupyternotebookurl: ""
+        jupyternotebookoidcpopupurl: ""
+        dataikuliveappurl: ""
+        dataikutrainingappurl: ""
+        oauth2tokenurl: ""
+        oauth2authurl: ""
+        oauth2revokeurl: ""
+        oauth2logouturl: ""
+        oauth2introspectionurl: ""
+        oauth2userinfourl: ""
+        redirecturls: ""
+        dnaswaggeruiurl: ""
+        dataikuferreturl: ""
+        mlpipelineurl: ""
+        dnaappnameheader: ""
+        dnaappnamehome: ""
+        dnacontactushtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
+        dnabrandlogourl: /images/branding/logo-brand.png
+        dnaapplogourl: /images/branding/logo-app.png
+        enableinternaluserinfo: true
+        enabledatacompliance: true
+        enabledreports: false
+        enablejupyterworkspace: false
+        enabledataikuworkspace: false
+        enablemalwareservice: false
+        enabledatapipelinservice: false
+        enablepipelinservice: false
+        enabledmlpipelineservice: false
+        enablemalwareapiinfo: false
+        enablenotification: false
+        dnacompanyname: XYZ
+        
+    ngnixconf:
+      jupyserver: http://proxy-public:8000
+      grafanaserver: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
+      avscanserver: http://clamav-rest-service.clamav.svc.cluster.local:8181
+      avscanmgwserver: http://microgateway.clamav.svc.cluster.local:80
+      airflowserver: http://airflow.airflow.svc.cluster.local:8080
+      naasserver: http://naas-backend-service.naas.svc.cluster.local:7272
+      dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
+
+    db: 
+      replicaCount: 1
+      image: postgresql:10.3-2.1.0
+      pgssl: "NO"
+      dbname: db
+      secrets: 
+        name: postgres-secrets
+        backupUserName: ""
+        backupUserPassword: ""
+        dbAdminUserName: ""
+        dbAdminPassword: ""
+        patroniUserPassword: ""
+        appUserName: ""
+        appPassword: ""
+      airflowDB:
+        airflowUserName: ""
+        airflowdbName: ""
+        airflowdbPwd: ""
+      dashboardDB:
+        dashboardUserName: ""
+        dashboarddbName: ""
+        dashboarddbPwd: ""
+      
+    vault:
+      secret:
+        name: vault-secrets
+        rootToken: ""
+
+  bitnamipostgresql:
+    enabled: false
+
+#Subchart properties for bitnami postgresql
+bitnamipostgresql:
+  enabled: false
+  namespace: bitnami
+  global:
+    postgresql:
+      postgresqlDatabase: db
+      postgresqlUsername: admin
+      postgresqlPassword: admin
+      servicePort: 64000
+
+#Subchart properties for clamav
+clamav:
+  enabled: false
+  namespace: clamav
+  app:
+    backend:
+      name: clamav-rest
+      image: malwarescan-backend:latest
+      secrets:
+        name: oneapi-secrets
+        onapibasicauthtoken: ""
+      config: 
+        auth_api_host: http://dna-backend-service.dna.svc.cluster.local:80/api/subscription/validate
+        loggingPath: /tmp/clamav/log
+        loggingEnvironment: dev
+  image:
+    repo: clamav:latest
+    pullPolicy: Always
+  ingress:
+    host: "" 
+  imagePullSecret: 
+    name: harbor-pull-secret
+  cert:
+    certManager: acme
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1000Mi"
+      cpu: "500m"
+  Storage:
+    storageClass: cinder
+    accessModes: ReadWriteOnce
+    size: 5G
+      
+#Subchart properties for naas
+naas:
+  enabled: false
+  namespace: naas
+  app:
+    backend:
+      image: naas-backend
+      secrets:
+        name: postgres-secrets
+      config:
+        api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
+        naas_broker: broker01.kafka.svc.cluster.local:8001
+        dna_uri: http://dna-backend-service.dna.svc.cluster.local:80
+        naas_central_topic: CentralEventTopic
+        naas_centralread_topic: CentralReadTopic
+        naas_centraldelte_topic: CentralDeleteTopic
+        loggingPath: /tmp/naas/log
+        loggingEnvironment: dev
+    db: 
+      secrets: 
+        name: postgres-secrets
+        backupUserName: ""
+        backupUserPassword: "" 
+        dbAdminUserName: ""
+        dbAdminPassword: ""
+        patroniUserPassword: ""
+        appUserName: ""
+        appPassword: ""
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1000Mi"
+        cpu: "500m"
+      
+  ingress:
+    host: ""
+  imagePullSecret: 
+   name: harbor-pull-secret
+  cert:
+    certManager: acme
+  
+#Subchart properties for notebooks
+notebooks:
+  enabled: false
+  namespace: notebooks
+  app:
+    jupyter:
+      config:
+        configproxy_auth_token: ""
+        kf_pipelines_endpoint: http://ml-pipeline-ui.kubeflow
+    image:
+      name: jupyterhub:1.0
+      pullPolicy: Always
+    
+    proxy:
+      image: configurable-http-proxy:latest
+      
+    profileListImages:
+      default: pyspark-notebook:1.0-default
+      tensorflow: pyspark-notebook:1.0-tensorflow
+      chronos: pyspark-notebook:1.0-chronos    
+    
+    ConfigMapName:
+      name: hub-config
+      KubeSpawnerimage: pyspark-notebook:1.0-default
+      securitycontext: ""
+      serviceAccount: "hub"
+      OAuthauthenticator: GenericOAuthenticator
+      OAuthclientid: ""
+      OAuthclientsecret: ""
+      OAuthcallback: ""
+      OAuthauthorizeurl: ""
+      OAuthtokenurl: ""
+      OAuthuserdataurl: ""
+      OAuthusrkey: sub
+      OAuthloginsvc: OIDC
+      prespawn_hook: ""
+      enableUserNS: "False"
+      userNameSpaceTemplate: kubeflow
+
+  ingress:
+    host: ""
+
+  cert:
+    certManager: acme
+
+  Storage:
+    storageClass: cinder
+    accessModes: ReadWriteOnce
+    size: 1G
+  
+  resources:
+    cpu: 1
+    memory: 4G
+
+#Subchart properties for dashboard
+dashboard:
+  enabled: false
+  namespace: dashboard
+  image: dashboard-backend
+  dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
+  secret:
+    name: dashboard-secrets
+    appUserName: ""
+    appPassword: ""
+  appUrl: http://dna-backend-service.dna.svc.cluster.local:80
+  enableAuth: true
+  imagePullSecret: 
+    name: harbor-pull-secret
+  cert:
+    certManager: acme
+  host: ""
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1000Mi"
+      cpu: "500m"
+
+#Subchart properties for airflow
+airflow:
+  enabled: false
+  namespace: airflow
+  imagePullSecret: 
+    name: harbor-pull-secret
+  cert:
+    certManager: acme
+  backend:
+    image: airflow-backend:latest
+    dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
+    secret:
+      name: airflow-backend-secrets
+      dbPassword: ""
+      dbUsername: ""
+      gitToken: ""
+      jwtKey: ""
+      oidcClientId: ""
+      oidcClientSecret: ""
+    host: ""
+    crossOriginUrl: ""
+    apiUrl: http://dna-backend-service.dna.svc.cluster.local:80
+    oidcInfoUrl: ""
+    oidcIntrospectionUrl: ""
+    oidcRevocationUrl: ""
+    oidcDisabled: false
+    gitBranch: master
+    gitUrl: ""
+    loggingPath: /tmp/airflow/log
+    loggingEnvironment: dev
+  
+  pullSecretData: 
+  secret:
+    gitUserName: ""
+    gitPassword: ""
+    knownHosts: ""
+    postgresql:
+      sqlAlchemyConn: ""
+    clientSecret: ""
+
+  gitSync:
+    image: git-sync:3.3.0
+    repo: ""
+    branch: master
+  
+  configuration:
+    webserver:
+      baseUrl: ""
+      path: /pipelines
+      secretKey: ""
+    
+    kubernetes:
+      gitSyncContainerRepository: git-sync
+  
+  docker:
+    image:
+      name: airflow
+      tag: 1.10.15
+
+  service:
+    port: 8080
+
+  db:
+    port: 64000
+
+  backendResources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1000Mi
+      cpu: 500m
+
+  volumes:
+    logsPath: /usr/local/airflow/logs
+    dagsPath: /usr/local/airflow/dags/git-sync/dags
+    gitDagsPath: /usr/local/airflow/dags
+    airflowLogsClaim:
+      resourcePolicy: keep
+      accessMode: ReadWriteOnce
+      storage:
+        className: cinder-retain
+        size: 10Gi
+  
+  oidc:
+    logout:
+      uri: "" 
+
+  Storage:
+    storageClass: cinder-retain
+    accessModes: ReadWriteOnce
+    size: 5Gi
+
+#Subchart properties for microgateway
+microgateway:
+  enabled: false
+  namespace: clamav
+  proxy: ""
+  noProxy: ""
+  apigee:
+    key: ""
+    secret: ""
+    config:
+      proxy:
+        url: ""
+        enabled: false    
+  image:
+    repository: edgemicro
+    tag: latest
+    pullPolicy: IfNotPresent
+  ingress:
+    enabled: true
+    basePath: /malware-scan/api/v1
+    # Define a list of hosts for the routing. If an empty list is provided routing will be enabled for all hostnames
+    hosts: [""]
+
+#Subchart properties for vault
+vault:
+  enabled: false
+  namespace: vault
+  global:
+  # enabled is the master enabled switch. Setting this to true or false
+  # will enable or disable all the components within this chart by default.
+    enabled: true
+  # Image pull secret to use for registry authentication.
+    imagePullSecrets: [ ]
+  # imagePullSecrets:
+  #   - name: image-pull-secret
+  # TLS for end-to-end encrypted transport
+  tlsDisable: true
+  server:
+    image:
+      repository: /docker.io_vault
+      tag: 1.3.0
+      pullPolicy: IfNotPresent
+    dataStorage:
+      enabled: true
+      # Size of the PVC created
+      size: 10Gi
+      # Name of the storage class to use.  If null it will use the
+      # configured default Storage Class.
+      storageClass: cinder-retain
+      # Access Mode of the storage device being used for the PVC
+      accessMode: ReadWriteOnce
+
+    # This configures the Vault Statefulset to create a PVC for audit
+    # logs.  Once Vault is deployed, initialized and unseal, Vault must
+    # be configured to use this for audit logs.  This will be mounted to
+    # /vault/audit
+    # See https://www.vaultproject.io/docs/audit/index.html to know more
+    auditStorage:
+      enabled: true
+      # Size of the PVC created
+      size: 10Gi
+      # Name of the storage class to use.  If null it will use the
+      # configured default Storage Class.
+      storageClass: cinder-retain
+      # Access Mode of the storage device being used for the PVC
+      accessMode: ReadWriteOnce
+  ui:
+  # True if you want to create a Service entry for the Vault UI.
+  #
+  # serviceType can be used to control the type of service created. For
+  # example, setting this to "LoadBalancer" will create an external load
+  # balancer (for supported K8S installations) to access the UI.
+    enabled: false
+    serviceType: "ClusterIP"
+    serviceNodePort: null
+    externalPort: 8200

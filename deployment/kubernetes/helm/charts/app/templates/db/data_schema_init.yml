@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-schemainit-datainit-sqlint
+  namespace: {{ .Values.namespace }}
+data:
+#Creating schema and initilizing with data for db
+  schema-creation.sql: |-
+{{ .Files.Get "files/localdb-init/schema-creation.sql" | indent 4}}
+  schema-data.sql: |-
+{{ .Files.Get "files/localdb-init/schema-data.sql" | indent 4}}
+#Creating schema and initilizing it with data for "dashboard" db
+  dashboard-schema-creation.sql: |-
+{{ .Files.Get "files/localdb-init/dashboard-schema-creation.sql" | indent 4}}
+  dashboard-data-dump.sql: |-
+{{ .Files.Get "files/localdb-init/dashboard-data-dump.sql" | indent 4}}
+#Updatescript
+  updateScript.sh: |-
+    RIP="0.0.0.0/0"
+    sed -i -- 's/scram-sha-256/md5/g' $PGDATA/pg_hba.conf
+    sed -i -- 's/password_encryption = scram-sha-256/password_encryption = md5/g' $PGDATA/postgresql.conf
+    sed -i -- 's/password_encryption = scram-sha-256/password_encryption = md5/g' $PGDATA/dai_harden_include/postgresql.dai_harden_base_misc.conf
+    #Adding dashboard user to pg_hba.conf for executing script
+    sed -i -- '86 i local          {{ .Values.app.db.dashboardDB.dashboardUserName }}      all            trust' $PGDATA/pg_hba.conf
+    sed -i -- '87 i local          {{ .Values.app.db.airflowDB.airflowUserName }}      all            trust' $PGDATA/pg_hba.conf
+    #sed -i -- 's/password_encryption = scram-sha-256/password_encryption = md5/g' $PGDATA/base
+    #sed -i -- 's/password_encryption = scram-sha-256/password_encryption = md5/g' $PGDATA/postgresql.dai_harden_base_misc.conf
+
+    sed -i -- '$ a host           {{ .Values.app.db.dbname }}             all            '$RIP' md5' $PGDATA/pg_hba.conf
+    sed -i -- '$ a host           postgres       patroni        '$RIP' md5' $PGDATA/pg_hba.conf
+    sed -i -- '$ a host           replication    backupuser     '$RIP' md5' $PGDATA/pg_hba.conf
+    sed -i -- '$ a host           {{ .Values.app.db.dashboardDB.dashboarddbName }}      all            '$RIP' md5' $PGDATA/pg_hba.conf
+    sed -i -- '$ a host           {{ .Values.app.db.airflowDB.airflowdbName }}        all            '$RIP' md5' $PGDATA/pg_hba.conf
+
+    psql -c "CREATE user {{ .Values.app.db.secrets.appUserName }} password {{ .Values.app.db.secrets.appPassword | squote }}";
+    psql -c "GRANT dai_db_connect to {{ .Values.app.db.secrets.appUserName }}";
+    psql -c "GRANT dai_public_compat to {{ .Values.app.db.secrets.appUserName }}";
+
+    psql -c "\connect {{ .Values.app.db.dbname }} {{ .Values.app.db.secrets.appUserName }}";
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/02-schema-creation.sql -U {{ .Values.app.db.secrets.appUserName }} -d {{ .Values.app.db.dbname }};
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/02-schema-data.sql -U {{ .Values.app.db.secrets.appUserName }} -d {{ .Values.app.db.dbname }};
+
+    psql -c "alter role {{ .Values.app.db.secrets.appUserName }} with password {{ .Values.app.db.secrets.appUserName | squote }}";
+    psql -c "alter role ${PGDBADM} with password '${PGDBADMPW}'";
+    psql -c "alter role patroni with password '${PATRONIUSERPW}'";
+    psql -c "alter role ${PGBACKUPUSER} with password '${PGBACKUPUSERPW}'";
+
+    #commands for airflow configuration
+    psql -c "CREATE user {{ .Values.app.db.airflowDB.airflowUserName }}";
+    psql -c "CREATE database {{ .Values.app.db.airflowDB.airflowdbName }}";
+    psql -c "alter user {{ .Values.app.db.airflowDB.airflowUserName }} with password {{ .Values.app.db.airflowDB.airflowdbPwd | squote }}";
+    psql -c "GRANT dai_db_connect to {{ .Values.app.db.airflowDB.airflowUserName }}";
+    psql -c "GRANT dai_public_compat to {{ .Values.app.db.airflowDB.airflowUserName }}";
+    psql -c "grant all privileges on database {{ .Values.app.db.airflowDB.airflowdbName }} to {{ .Values.app.db.airflowDB.airflowUserName }}";
+    psql -c "grant usage on schema public to {{ .Values.app.db.airflowDB.airflowUserName }}";
+    #psql -f /srv/postgresql/home/postgres/dbscripts/custom/airflow-db.sql -U {{ .Values.app.db.airflowDB.airflowUserName }} -d {{ .Values.app.db.airflowDB.airflowdbName }};
+
+    #commands for dashboard configuration
+    psql -c "CREATE user {{ .Values.app.db.dashboardDB.dashboardUserName }}";
+    psql -c "CREATE database {{ .Values.app.db.dashboardDB.dashboarddbName }}";
+    psql -c "alter user {{ .Values.app.db.dashboardDB.dashboardUserName }} with password {{ .Values.app.db.dashboardDB.dashboarddbPwd | squote }}";
+    psql -c "GRANT dai_db_connect to {{ .Values.app.db.dashboardDB.dashboardUserName }}";
+    psql -c "GRANT dai_public_compat to {{ .Values.app.db.dashboardDB.dashboardUserName }}";
+    psql -c "grant all privileges on database {{ .Values.app.db.dashboardDB.dashboarddbName }} to {{ .Values.app.db.dashboardDB.dashboardUserName }}";
+    psql -c "grant usage on schema public to {{ .Values.app.db.dashboardDB.dashboardUserName }}";
+
+    psql -c "\connect {{ .Values.app.db.dashboardDB.dashboarddbName }} {{ .Values.app.db.dashboardDB.dashboardUserName }} "; 
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/03-dashboard-schema-creation.sql -U {{ .Values.app.db.dashboardDB.dashboardUserName }} -d {{ .Values.app.db.dashboardDB.dashboarddbName }};
+    psql -f /srv/postgresql/home/postgres/dbscripts/custom/04-dashboard-data-dump.sql -U {{ .Values.app.db.dashboardDB.dashboardUserName }} -d {{ .Values.app.db.dashboardDB.dashboarddbName }};
+
+    pg_ctl stop
+    sleep 5
+    pg_ctl start
+    sleep 5
+
+#airflow-db-tables
+  airflow-db.sql: |-
+{{ .Files.Get "files/localdb-init/airflow-db.sql" | indent 4}}

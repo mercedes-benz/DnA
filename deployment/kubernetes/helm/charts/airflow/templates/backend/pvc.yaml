@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Chart.Name }}-dags
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+    - {{ .Values.Storage.accessModes }}
+  storageClassName: {{ .Values.Storage.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.Storage.size }}
