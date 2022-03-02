@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.division;
 import com.daimler.data.db.entities.DivisionNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface DivisionCustomRepository
-        extends CommonDataRepository<DivisionNsql, String> {
+public interface DivisionCustomRepository extends CommonDataRepository<DivisionNsql, String> {
 
 }

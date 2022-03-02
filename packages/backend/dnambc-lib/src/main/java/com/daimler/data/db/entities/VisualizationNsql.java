@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "visualization_nsql")
-public class VisualizationNsql extends BaseEntity<Visualization>
-        implements Serializable {
+public class VisualizationNsql extends BaseEntity<Visualization> implements Serializable {
 
-    private static final long serialVersionUID = 7796187072804027019L;
+	private static final long serialVersionUID = 7796187072804027019L;
 
-    public VisualizationNsql() {
-        super();
-    }
-
+	public VisualizationNsql() {
+		super();
+	}
 
 }

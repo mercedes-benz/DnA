@@ -35,13 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "phase_nsql")
-public class PhaseNsql extends BaseEntity<Phase>
-        implements Serializable {
+public class PhaseNsql extends BaseEntity<Phase> implements Serializable {
 
-    private static final long serialVersionUID = 4857908075537600169L;
+	private static final long serialVersionUID = 4857908075537600169L;
 
-    public PhaseNsql() {
-        super();
-    }
+	public PhaseNsql() {
+		super();
+	}
 
 }

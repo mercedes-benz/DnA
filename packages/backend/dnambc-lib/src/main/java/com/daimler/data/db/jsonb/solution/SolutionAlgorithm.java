@@ -35,8 +35,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SolutionAlgorithm {
-	
-		private String id;
-		private String name;
-		
+
+	private String id;
+	private String name;
+
 }

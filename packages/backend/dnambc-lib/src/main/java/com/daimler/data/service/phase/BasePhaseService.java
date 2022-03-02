@@ -37,20 +37,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BasePhaseService
-        extends BaseCommonService<PhaseVO, PhaseNsql, String>
-        implements PhaseService {
+public class BasePhaseService extends BaseCommonService<PhaseVO, PhaseNsql, String> implements PhaseService {
 
-    @Autowired
-    private PhaseCustomRepository customRepo;
-    @Autowired
-    private PhaseRepository jpaRepo;
-    @Autowired
-    private PhaseAssembler assembler;
+	@Autowired
+	private PhaseCustomRepository customRepo;
+	@Autowired
+	private PhaseRepository jpaRepo;
+	@Autowired
+	private PhaseAssembler assembler;
 
-    public BasePhaseService() {
-        super();
-    }
+	public BasePhaseService() {
+		super();
+	}
 
 //    @Autowired
 //    public BasePhaseService(PhaseCustomRepository customRepo

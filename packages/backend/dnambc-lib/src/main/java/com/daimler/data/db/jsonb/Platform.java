@@ -38,8 +38,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Platform implements Serializable {
 
-    private static final long serialVersionUID = -6208566864386153562L;
-    private String name;
+	private static final long serialVersionUID = -6208566864386153562L;
+	private String name;
 
 //    public Platform() {
 //        super();
@@ -57,6 +57,5 @@ public class Platform implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

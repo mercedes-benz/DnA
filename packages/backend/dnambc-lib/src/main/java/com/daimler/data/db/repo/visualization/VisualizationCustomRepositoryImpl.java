@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class VisualizationCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<VisualizationNsql, String>
-        implements VisualizationCustomRepository {
+public class VisualizationCustomRepositoryImpl extends CommonDataRepositoryImpl<VisualizationNsql, String>
+		implements VisualizationCustomRepository {
 
 }

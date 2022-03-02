@@ -31,8 +31,6 @@ import com.daimler.data.db.entities.VisualizationNsql;
 import com.daimler.data.dto.visualization.VisualizationVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface VisualizationService
-        extends CommonService<VisualizationVO, VisualizationNsql, String> {
-    boolean deleteVisualization(String id);
+public interface VisualizationService extends CommonService<VisualizationVO, VisualizationNsql, String> {
+	boolean deleteVisualization(String id);
 }
-

@@ -32,6 +32,6 @@ import com.daimler.data.dto.itsmmgame.ItsmmGameEventDetailsVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface ItsmmGameEventService
-        extends CommonService<ItsmmGameEventDetailsVO, ItsmmGameEventDetailNsql, String> {
+		extends CommonService<ItsmmGameEventDetailsVO, ItsmmGameEventDetailNsql, String> {
 
 }

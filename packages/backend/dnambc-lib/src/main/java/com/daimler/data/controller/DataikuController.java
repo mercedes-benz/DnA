@@ -61,11 +61,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Dataiku API", tags = { "dataiku" })
 @RequestMapping("/api")
 @ConditionalOnExpression("${dna.feature.dataiku}")
+@Slf4j
 public class DataikuController implements DataikuApi {
 	private static Logger LOGGER = LoggerFactory.getLogger(DataikuController.class);
 
@@ -92,8 +94,7 @@ public class DataikuController implements DataikuApi {
 	@RequestMapping(value = "/dataiku/projects", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<DataikuProjectVOCollection> getAll(
-			@NotNull @ApiParam(value = "If requested data from live(Production) or training environment", required = true, defaultValue = "true") @Valid @RequestParam(value = "live", required = true, defaultValue="true") Boolean live) {		
-		LOGGER.trace("Entering getAll");
+			@NotNull @ApiParam(value = "If requested data from live(Production) or training environment", required = true, defaultValue = "true") @Valid @RequestParam(value = "live", required = true, defaultValue = "true") Boolean live) {
 		DataikuProjectVOCollection col = null;
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
@@ -103,9 +104,13 @@ public class DataikuController implements DataikuApi {
 			col.setData(projects);
 			col.setTotalCount(projects.size());
 		}
-		LOGGER.trace("Returning from getAll");
-		return col != null ? new ResponseEntity<>(col, HttpStatus.OK)
-				: new ResponseEntity<>(col, HttpStatus.NO_CONTENT);
+		if (col != null) {
+			log.debug("Returning projects found for user {} ", userId);
+			return new ResponseEntity<>(col, HttpStatus.OK);
+		} else {
+			log.debug("No dataiku projects found for user {} ", userId);
+			return new ResponseEntity<>(col, HttpStatus.NO_CONTENT);
+		}
 	}
 
 	@ApiOperation(value = "Get dataiku project by given identifier.", nickname = "getByProjectKey", notes = "Get all dataiku project. This endpoints will be used to Get available dataiku project based on given identifier.", response = DataikuProjectVO.class, tags = {
@@ -126,8 +131,13 @@ public class DataikuController implements DataikuApi {
 			@NotNull @ApiParam(value = "If requested data from live(Production) or training environment", required = true, defaultValue = "true") @Valid @RequestParam(value = "live", required = true, defaultValue = "true") Boolean live) {
 		LOGGER.trace("Entering getByProjectKey");
 		DataikuProjectVO projectVO = vService.getByProjectKey(projectKey, live);
-		return projectVO != null ? new ResponseEntity<>(projectVO, HttpStatus.OK)
-				: new ResponseEntity<>(projectVO, HttpStatus.NO_CONTENT);
+		if (projectVO != null) {
+			log.debug("Returning project found {} ", projectKey);
+			return new ResponseEntity<>(projectVO, HttpStatus.OK);
+		} else {
+			log.debug("No project found {} ", projectKey);
+			return new ResponseEntity<>(projectVO, HttpStatus.NO_CONTENT);
+		}
 	}
 
 }

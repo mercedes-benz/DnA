@@ -32,16 +32,18 @@ import java.util.List;
 import com.daimler.data.dto.dataiku.DataikuProjectVO;
 
 public interface DataikuService {
-	
+
 	/**
-	 * <p> getAll DataikuProjects identified for user. </p>
+	 * <p>
+	 * getAll DataikuProjects identified for user.
+	 * </p>
 	 * 
 	 * @param userId
 	 * @param isAdmin
 	 * @param environment
 	 */
 	public List<DataikuProjectVO> getAllDataikuProjects(String userId, Boolean live);
-	
+
 	/**
 	 * get Dataiku project by given projectKey
 	 * 
@@ -49,9 +51,9 @@ public interface DataikuService {
 	 * @return DataikuProjectVO
 	 */
 	public DataikuProjectVO getByProjectKey(String projectKey, Boolean live);
-	
+
 	/**
-	 * map dataiku project with solution 
+	 * map dataiku project with solution
 	 * 
 	 * @param dataikuProjectId
 	 * @param solutionId

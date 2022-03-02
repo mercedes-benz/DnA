@@ -27,11 +27,10 @@
 
 package com.daimler.data.application.config;
 
- 
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,55 +46,43 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
- 
-
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
 
-    @Bean
-    public Docket api() {
-        
-        RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
-                    .description("Authorization header")
-                    .query(q -> q.defaultValue("eyJhbGciOiJIUzUxMiJ9.eyJmaXJzdE5hbWUiOiJEZW1vIiwibGFzdE5hbWUiOiJVc2VyIiwibW9iaWxlTnVtYmVyIjoiMDE3MDEyMzQ1NjciLCJkaWdpUm9sZSI6W3sicm9sZUlkIjoiMyIsInJvbGVOYW1lIjoiQURNSU4ifV0sImlkIjoiREVNVVNFUiIsImRlcGFydG1lbnQiOiJURS9TVCIsImVtYWlsIjoiZGVtb3VzZXJAd2ViLmRlIn0._kCdmFDLi_cA6iP82wqrRU1bpYxkqOn0dtR0bFbrF7rC9nfWqIfNgaTg8hftTj02UYpiaWOBLPH3xXcqvL2xDQ"))
-                    .query(q -> q.model(m -> m.scalarModel(ScalarType.STRING)))
-                    .in(ParameterType.HEADER)
-                    .required(true)
-                    .build();
-        RequestParameter contentTypeParamBuilder = new RequestParameterBuilder().name("Content-Type")
-                    .description("content type")
-                    .query(q -> q.defaultValue("application/json"))
-                    .query(q -> q.model(m -> m.scalarModel(ScalarType.STRING)))
-                    .in(ParameterType.HEADER)
-                    .required(true)
-                    .build();
-       List<RequestParameter> globalRequestHeaderParms = new ArrayList<>();
-       globalRequestHeaderParms.add(authParamBuilder);
-       globalRequestHeaderParms.add(contentTypeParamBuilder);
-       
-       return new Docket(DocumentationType.SWAGGER_2).select()
-                .apis(RequestHandlerSelectors
-                        .any())
-                .paths(PathSelectors.any())
-                .build()
-                .pathMapping("/")
-                .apiInfo(apiEndPointsInfo())
-                .globalRequestParameters(globalRequestHeaderParms);
-    }
 
- 
+	@Value("${swagger.headers.authorization.token}")
+	private String defaultAuthToken;
+	
+	
+	@Bean
+	public Docket api() {
 
-    private ApiInfo apiEndPointsInfo() {
-        return new ApiInfoBuilder().title("DNA REST API Documentation")
-                .description("REST API uri document management. Description of all the available APIs along with request and response formats. Also provides "
-                        + " options to try calling to execute running APIs and check")
-                .license("MIT License, Copyright (c) 2019 Daimler TSS GmbH")
-                .licenseUrl("https://github.com/Daimler/DnA/blob/master/LICENSE")
-                .version("1.0.0")
-                .build();
-    }
+		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
+				.description("Authorization header")
+				.query(q -> q.defaultValue(
+						defaultAuthToken))
+				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
+				.build();
+		RequestParameter contentTypeParamBuilder = new RequestParameterBuilder().name("Content-Type")
+				.description("content type").query(q -> q.defaultValue("application/json"))
+				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
+				.build();
+		List<RequestParameter> globalRequestHeaderParms = new ArrayList<>();
+		globalRequestHeaderParms.add(authParamBuilder);
+		globalRequestHeaderParms.add(contentTypeParamBuilder);
 
- 
+		return new Docket(DocumentationType.SWAGGER_2).select().apis(RequestHandlerSelectors.any())
+				.paths(PathSelectors.any()).build().pathMapping("/").apiInfo(apiEndPointsInfo())
+				.globalRequestParameters(globalRequestHeaderParms);
+	}
+
+	private ApiInfo apiEndPointsInfo() {
+		return new ApiInfoBuilder().title("DNA REST API Documentation").description(
+				"REST API uri document management. Description of all the available APIs along with request and response formats. Also provides "
+						+ " options to try calling to execute running APIs and check")
+				.license("MIT License, Copyright (c) 2019 Daimler TSS GmbH")
+				.licenseUrl("https://github.com/Daimler/DnA/blob/master/LICENSE").version("1.0.0").build();
+	}
 
 }

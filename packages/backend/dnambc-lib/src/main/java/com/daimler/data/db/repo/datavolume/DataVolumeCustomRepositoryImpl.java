@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class DataVolumeCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<DataVolumeNsql, String>
-        implements DataVolumeCustomRepository {
+public class DataVolumeCustomRepositoryImpl extends CommonDataRepositoryImpl<DataVolumeNsql, String>
+		implements DataVolumeCustomRepository {
 
 }

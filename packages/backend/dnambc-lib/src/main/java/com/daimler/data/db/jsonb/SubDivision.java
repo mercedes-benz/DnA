@@ -39,7 +39,7 @@ import lombok.NoArgsConstructor;
 public class SubDivision implements Serializable {
 
 	private String id;
-    private String name;
+	private String name;
 
 //    public SubDivision() {
 //        super();

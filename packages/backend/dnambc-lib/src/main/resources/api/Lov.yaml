@@ -217,6 +217,37 @@ paths:
     500:
      description: "Internal error"
 
+# path to getAll valid data domain strategy
+#
+#  supprorted http methods GET 
+#
+# path example ../categories
+
+ /strategydomains:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all data domain strategy."
+   description:  "Get all data domain strategy. This endpoints will be used to Get all valid available data domain strategy."
+   operationId: "getAllStrategyDomain"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/DataStrategyDomainVOCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
 definitions:
  BusinessGoalVO:
   type: object
@@ -322,6 +353,30 @@ definitions:
     type: array
     items: 
      $ref: "#/definitions/CategoryVO"
+     
+#data strategy domain     
+ DataStrategyDomainVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of dataStrategyDomain"
+      name:
+        type: string
+        description: "Name of the dataStrategyDomain"
+    required:
+      - id
+      - name            
+     
+#Data strategy domain collection     
+ DataStrategyDomainVOCollection:   
+  description: "Collection of Data strategy domain."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/DataStrategyDomainVO"     
 
  BindingResult:
   type: object

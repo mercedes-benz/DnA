@@ -70,167 +70,153 @@ import java.security.cert.X509Certificate;
 @Configuration
 //@EnableWebMvc
 @EnableScheduling
-public class WebConfig
-        implements WebMvcConfigurer {
+public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${drd.certificate-file}")
-    private String certificateFile;
+	@Value("${drd.certificate-file}")
+	private String certificateFile;
 
-    @Value("${drd.certificate-pass}")
-    private String certificatePass;
+	@Value("${drd.certificate-pass}")
+	private String certificatePass;
 
-    //@Value("${environment}")
-    //private String env;
+	// @Value("${environment}")
+	// private String env;
 
-    @Value("${allowedCorsOriginPatternUrl}")
-    private String corsOriginUrl;
+	@Value("${allowedCorsOriginPatternUrl}")
+	private String corsOriginUrl;
 
+	@Autowired
+	private JWTAuthenticationFilter filter;
 
-    
-    @Autowired
-    private JWTAuthenticationFilter filter;
-    
-    @Autowired
-    private MatomoIntercepter tracker;
-    
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
+	@Autowired
+	private MatomoIntercepter tracker;
 
-        registry.addMapping("/**").allowedMethods("GET", "PUT", "POST", "OPTIONS");
-    }
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
 
-    @Bean
-    public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
-        TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+		registry.addMapping("/**").allowedMethods("GET", "PUT", "POST", "OPTIONS");
+	}
 
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .loadTrustMaterial(null, acceptingTrustStrategy)
-                .build();
+	@Bean
+	public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+		TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
 
-        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+		SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
+				.build();
 
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setSSLSocketFactory(csf)
-                .build();
+		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
 
-        HttpComponentsClientHttpRequestFactory requestFactory =
-                new HttpComponentsClientHttpRequestFactory();
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
 
-        requestFactory.setHttpClient(httpClient);
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper());
-        restTemplate.getMessageConverters().add(converter);
-        return restTemplate;
-    }
+		requestFactory.setHttpClient(httpClient);
 
-    @Bean
-    @Lazy
-    public RestTemplate drdRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException, IOException, CertificateException, UnrecoverableKeyException {
+		RestTemplate restTemplate = new RestTemplate(requestFactory);
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setObjectMapper(new ObjectMapper());
+		restTemplate.getMessageConverters().add(converter);
+		return restTemplate;
+	}
 
-        KeyStore clientStore = KeyStore.getInstance("PKCS12");
-        // if(env.equalsIgnoreCase("local")){
-        Resource resource = new ClassPathResource(certificateFile);
-        clientStore.load(resource.getInputStream(), certificatePass.toCharArray());
+	@Bean
+	@Lazy
+	public RestTemplate drdRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException,
+			IOException, CertificateException, UnrecoverableKeyException {
+
+		KeyStore clientStore = KeyStore.getInstance("PKCS12");
+		// if(env.equalsIgnoreCase("local")){
+		Resource resource = new ClassPathResource(certificateFile);
+		clientStore.load(resource.getInputStream(), certificatePass.toCharArray());
 //        }else{
 //            clientStore.load(new FileInputStream(certificateFile), certificatePass.toCharArray());
 //        }
 
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-                .useProtocol("TLS")
-                .loadTrustMaterial(new TrustSelfSignedStrategy())
-                .loadKeyMaterial(clientStore, certificatePass.toCharArray())
-                .build();
+		SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().useProtocol("TLS")
+				.loadTrustMaterial(new TrustSelfSignedStrategy())
+				.loadKeyMaterial(clientStore, certificatePass.toCharArray()).build();
 
-        SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
 
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setSSLSocketFactory(csf)
-                .build();
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
 
-        HttpComponentsClientHttpRequestFactory requestFactory =
-                new HttpComponentsClientHttpRequestFactory();
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
-        requestFactory.setConnectTimeout(10000); // 10 seconds
-        requestFactory.setReadTimeout(10000); // 10 seconds
-        requestFactory.setHttpClient(httpClient);
+		requestFactory.setConnectTimeout(10000); // 10 seconds
+		requestFactory.setReadTimeout(10000); // 10 seconds
+		requestFactory.setHttpClient(httpClient);
 
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new ObjectMapper());
-        restTemplate.getMessageConverters().add(converter);
-        return restTemplate;
-    }
+		RestTemplate restTemplate = new RestTemplate(requestFactory);
+		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+		converter.setObjectMapper(new ObjectMapper());
+		restTemplate.getMessageConverters().add(converter);
+		return restTemplate;
+	}
 
-    @Bean
-    public FilterRegistrationBean corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        //config.addAllowedOrigin("*");
-        config.addAllowedOriginPattern(corsOriginUrl);
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("OPTIONS");
-        config.addAllowedMethod("HEAD");
-        config.addAllowedMethod("GET");
-        config.addAllowedMethod("PUT");
-        config.addAllowedMethod("POST");
-        config.addAllowedMethod("DELETE");
-        config.addAllowedMethod("PATCH");
-        source.registerCorsConfiguration("/**", config);
-        final FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
-        bean.setOrder(0);
-        return bean;
-    }
+	@Bean
+	public FilterRegistrationBean corsFilter() {
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowCredentials(true);
+		// config.addAllowedOrigin("*");
+		config.addAllowedOriginPattern(corsOriginUrl);
+		config.addAllowedHeader("*");
+		config.addAllowedMethod("OPTIONS");
+		config.addAllowedMethod("HEAD");
+		config.addAllowedMethod("GET");
+		config.addAllowedMethod("PUT");
+		config.addAllowedMethod("POST");
+		config.addAllowedMethod("DELETE");
+		config.addAllowedMethod("PATCH");
+		source.registerCorsConfiguration("/**", config);
+		final FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+		bean.setOrder(0);
+		return bean;
+	}
 
+	@Bean
+	public FilterRegistrationBean<JWTAuthenticationFilter> authtenticatonFilter() {
+		FilterRegistrationBean<JWTAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
 
-    @Bean
-    public FilterRegistrationBean<JWTAuthenticationFilter> authtenticatonFilter() {
-        FilterRegistrationBean<JWTAuthenticationFilter> registrationBean
-                = new FilterRegistrationBean<>();
+		registrationBean.setFilter(filter);
+		registrationBean.addUrlPatterns("/api/*");
 
-        registrationBean.setFilter(filter);
-        registrationBean.addUrlPatterns("/api/*");
+		return registrationBean;
+	}
 
-        return registrationBean;
-    }
+	@Bean(destroyMethod = "destroy")
+	public ThreadLocalTargetSource threadLocalTenantStore() {
+		ThreadLocalTargetSource result = new ThreadLocalTargetSource();
+		result.setTargetBeanName("userStore");
+		return result;
+	}
 
+	@Primary
+	@Bean(name = "proxiedThreadLocalTargetSource")
+	public ProxyFactoryBean proxiedThreadLocalTargetSource(ThreadLocalTargetSource threadLocalTargetSource) {
+		ProxyFactoryBean result = new ProxyFactoryBean();
+		result.setTargetSource(threadLocalTargetSource);
+		return result;
+	}
 
-    @Bean(destroyMethod = "destroy")
-    public ThreadLocalTargetSource threadLocalTenantStore() {
-        ThreadLocalTargetSource result = new ThreadLocalTargetSource();
-        result.setTargetBeanName("userStore");
-        return result;
-    }
-    @Primary
-    @Bean(name = "proxiedThreadLocalTargetSource")
-    public ProxyFactoryBean proxiedThreadLocalTargetSource(ThreadLocalTargetSource threadLocalTargetSource) {
-        ProxyFactoryBean result = new ProxyFactoryBean();
-        result.setTargetSource(threadLocalTargetSource);
-        return result;
-    }
-    @Bean(name = "userStore")
-    @Scope(scopeName = "prototype")
-    public UserStore userStore() {
-        return new UserStore();
-    }
+	@Bean(name = "userStore")
+	@Scope(scopeName = "prototype")
+	public UserStore userStore() {
+		return new UserStore();
+	}
 
+	@Bean
+	public GraphQLScalarType dateTimeType() {
+		return ExtendedScalars.DateTime;
+	}
 
-    @Bean
-    public GraphQLScalarType dateTimeType() {
-        return ExtendedScalars.DateTime;
-    }
+	@Bean
+	public GraphQLScalarType dateType() {
+		return ExtendedScalars.Date;
+	}
 
-    @Bean
-    public GraphQLScalarType dateType() {
-        return ExtendedScalars.Date;
-    }
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(tracker);
+	}
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(tracker);
-    }
-    
-    
 }
