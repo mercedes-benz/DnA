@@ -31,8 +31,7 @@ import com.daimler.data.db.entities.UserRoleNsql;
 import com.daimler.data.dto.userrole.UserRoleVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface UserRoleService
-        extends CommonService<UserRoleVO, UserRoleNsql, String> {
+public interface UserRoleService extends CommonService<UserRoleVO, UserRoleNsql, String> {
 
-    UserRoleNsql getRoleUser();
+	UserRoleNsql getRoleUser();
 }

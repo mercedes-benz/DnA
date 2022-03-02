@@ -38,40 +38,40 @@ import java.util.Objects;
 @Component
 public class NotebookAssembler implements GenericAssembler<NotebookVO, NotebookNsql> {
 
-    @Override
-    public NotebookVO toVo(NotebookNsql entity) {
-    	NotebookVO notebookVO = null;
-        if (Objects.nonNull(entity)) {
-        	notebookVO = new NotebookVO();
-        	notebookVO.setId(entity.getId());
-        	Notebook notebook = entity.getData();
-        	if(notebook != null) {
-        		notebookVO.setName(notebook.getName());
-        		notebookVO.setDescription(notebook.getDescription());
-        		notebookVO.setCreatedOn(notebook.getCreatedOn());
-        		notebookVO.setUserId(notebook.getUserId());
-        		notebookVO.setSolutionId(notebook.getSolutionId());
-        		
-        	}
-        }
-        return notebookVO;
-    }
+	@Override
+	public NotebookVO toVo(NotebookNsql entity) {
+		NotebookVO notebookVO = null;
+		if (Objects.nonNull(entity)) {
+			notebookVO = new NotebookVO();
+			notebookVO.setId(entity.getId());
+			Notebook notebook = entity.getData();
+			if (notebook != null) {
+				notebookVO.setName(notebook.getName());
+				notebookVO.setDescription(notebook.getDescription());
+				notebookVO.setCreatedOn(notebook.getCreatedOn());
+				notebookVO.setUserId(notebook.getUserId());
+				notebookVO.setSolutionId(notebook.getSolutionId());
 
-    @Override
-    public NotebookNsql toEntity(NotebookVO vo) {
-    	NotebookNsql notebookNsql = null;
-        if (Objects.nonNull(vo)) {
-        	notebookNsql = new NotebookNsql();
-            Notebook notebook = new Notebook();
-            notebook.setName(vo.getName());
-            notebook.setSolutionId(vo.getSolutionId());
-            notebook.setDescription(vo.getDescription());
-            notebook.setCreatedOn(vo.getCreatedOn());
-            notebook.setUserId(vo.getUserId());
-            notebookNsql.setData(notebook);
-            if (vo.getId() != null)
-            	notebookNsql.setId(vo.getId());
-        }
-        return notebookNsql;
-    }
+			}
+		}
+		return notebookVO;
+	}
+
+	@Override
+	public NotebookNsql toEntity(NotebookVO vo) {
+		NotebookNsql notebookNsql = null;
+		if (Objects.nonNull(vo)) {
+			notebookNsql = new NotebookNsql();
+			Notebook notebook = new Notebook();
+			notebook.setName(vo.getName());
+			notebook.setSolutionId(vo.getSolutionId());
+			notebook.setDescription(vo.getDescription());
+			notebook.setCreatedOn(vo.getCreatedOn());
+			notebook.setUserId(vo.getUserId());
+			notebookNsql.setData(notebook);
+			if (vo.getId() != null)
+				notebookNsql.setId(vo.getId());
+		}
+		return notebookNsql;
+	}
 }

@@ -274,7 +274,6 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			sharingVO.setGitUrl(solution.getGitUrl());
 			vo.setSharing(sharingVO);
 
-			// Added by Rahul
 			// Setting attachments
 			List<FileDetails> solutionFileDetailsList = solution.getAttachments();
 			List<FileDetailsVO> solutionFileDetailsVOList = new ArrayList<>();
@@ -495,7 +494,6 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 
 			}
 			vo.setDataCompliance(solutionDataComplianceVO);
-			// Added by Rahul End
 
 			SolutionPortfolioVO solutionPortfolioVO = new SolutionPortfolioVO();
 			List<SolutionPlatform> platforms = solution.getPlatforms();
@@ -516,12 +514,32 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			solutionPortfolioVO.setDnaDataikuProjectId(solution.getDataikuProjectKey());
 			solutionPortfolioVO.setDnaSubscriptionAppId(solution.getDnaSubscriptionAppId());
 			vo.setPortfolio(solutionPortfolioVO);
-
+			
+			//Setting SkillSummaryVO
+			if(!ObjectUtils.isEmpty(solution.getSkills())) {
+				List<SkillSummaryVO> skillsVO  = solution.getSkills().stream().map(n -> toSkillSummaryVO(n))
+						.collect(Collectors.toList());
+				vo.setSkills(skillsVO);
+			}
+			
 			vo.setId(entity.getId());
 		}
 		return vo;
 	}
 
+	/*
+	 * To convert SkillSummary to SkillSummaryVO 
+	 * 
+	 */
+	private SkillSummaryVO toSkillSummaryVO(SkillSummary skillSummary) {
+		SkillSummaryVO skillSummaryVO = null;
+		if (skillSummary != null) {
+			skillSummaryVO = new SkillSummaryVO();
+			BeanUtils.copyProperties(skillSummary, skillSummaryVO);
+		}
+		return skillSummaryVO;
+	}
+	
 	private TeamMemberVO toTeamMemberVO(SolutionTeamMember teamMember) {
 		TeamMemberVO teamMemberVO = new TeamMemberVO();
 		if (teamMember != null) {
@@ -879,7 +897,6 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 			}
 
-			// Added by Rahul
 			// Setting attachments
 			List<FileDetailsVO> fileDetailsVOList = vo.getAttachments();
 			List<FileDetails> fileDetailsList = new ArrayList<>();
@@ -1035,7 +1052,6 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 
 			}
 			solution.setDataComplianceDetails(dataComplianceDetails);
-			// Added by Rahul End
 
 			SolutionPortfolioVO solutionPortfolioVO = vo.getPortfolio();
 			if (solutionPortfolioVO != null) {
@@ -1057,11 +1073,35 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 				solution.setPlatforms(platforms);
 			}
+			
+			// Setting if existing solution
+			solution.setExistingSolution(vo.isExistingSolution() != null ? vo.isExistingSolution() : false);
+			
+			//Setting SkillSummary
+			if(!ObjectUtils.isEmpty(vo.getSkills())) {
+				List<SkillSummary> skills = vo.getSkills().stream().map(n -> toSkillSummary(n))
+						.collect(Collectors.toList());
+				solution.setSkills(skills);
+			}
+			
+
 			entity.setData(solution);
 		}
 		return entity;
 	}
 
+	/*
+	 * Converting SkillSummaryVO to SkillSummary (vo to entity)
+	 */
+	private SkillSummary toSkillSummary(SkillSummaryVO skillSummaryVO) {
+		SkillSummary skillSummary = null;
+		if(skillSummaryVO!=null) {
+			skillSummary = new SkillSummary();
+			BeanUtils.copyProperties(skillSummaryVO, skillSummary);
+		}
+		return skillSummary;
+	}
+	
 	public SolutionCollection applyBookMarkflag(List<SolutionVO> solutionVOListVO, List<String> bookmarkedSolutions,
 			String userId) {
 		if (solutionVOListVO != null && solutionVOListVO.size() > 0) {

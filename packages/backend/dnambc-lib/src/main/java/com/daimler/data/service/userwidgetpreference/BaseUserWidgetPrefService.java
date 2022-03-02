@@ -37,28 +37,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseUserWidgetPrefService 
-			extends BaseCommonService<UserWidgetPreferenceVO, UserWidgetPreferenceNsql, String>
-        		implements UserWidgetPrefService {
-    @Autowired
+public class BaseUserWidgetPrefService extends
+		BaseCommonService<UserWidgetPreferenceVO, UserWidgetPreferenceNsql, String> implements UserWidgetPrefService {
+	@Autowired
 	private UserWidgetPrefCustomRepository customRepo;
-    @Autowired
-    private UserWidgetPrefRepository jpaRepo;
-    @Autowired
-    private UserWidgetPrefAssembler userWidgetPrefAssembler;
+	@Autowired
+	private UserWidgetPrefRepository jpaRepo;
+	@Autowired
+	private UserWidgetPrefAssembler userWidgetPrefAssembler;
 
-    public BaseUserWidgetPrefService() {
-        super();
-    }
+	public BaseUserWidgetPrefService() {
+		super();
+	}
 
-    /*@Autowired
-    public BaseUserWidgetPrefService(UserWidgetPrefCustomRepository customRepo
-            , UserWidgetPrefRepository jpaRepo
-            , UserWidgetPrefAssembler userWidgetPrefAssembler) {
-        super(customRepo, jpaRepo, userWidgetPrefAssembler);
-        this.customRepo = customRepo;
-        this.jpaRepo = jpaRepo;
-        this.userWidgetPrefAssembler = userWidgetPrefAssembler;
-    }*/
+	/*
+	 * @Autowired public BaseUserWidgetPrefService(UserWidgetPrefCustomRepository
+	 * customRepo , UserWidgetPrefRepository jpaRepo , UserWidgetPrefAssembler
+	 * userWidgetPrefAssembler) { super(customRepo, jpaRepo,
+	 * userWidgetPrefAssembler); this.customRepo = customRepo; this.jpaRepo =
+	 * jpaRepo; this.userWidgetPrefAssembler = userWidgetPrefAssembler; }
+	 */
 
 }

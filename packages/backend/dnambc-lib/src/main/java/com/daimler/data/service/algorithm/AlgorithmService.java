@@ -31,9 +31,8 @@ import com.daimler.data.db.entities.AlgorithmNsql;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface AlgorithmService
-        extends CommonService<AlgorithmVO, AlgorithmNsql, String> {
+public interface AlgorithmService extends CommonService<AlgorithmVO, AlgorithmNsql, String> {
 
-    boolean deleteAlgorithm(String id);
+	boolean deleteAlgorithm(String id);
 
 }

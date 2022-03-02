@@ -41,18 +41,17 @@ import com.daimler.data.db.jsonb.ItsmmGameUserDetail;
 import com.daimler.data.dto.itsmmgame.ItsmmGameUserDetailsResultVO;
 import com.daimler.data.dto.itsmmgame.ItsmmGameUserDetailsVO;
 
-
 @Component
 public class ItsmmGameUserAssembler implements GenericAssembler<ItsmmGameUserDetailsVO, ItsmmGameUserDetailNsql> {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(ItsmmGameUserAssembler.class);
-	
+
 	@Override
 	public ItsmmGameUserDetailsVO toVo(ItsmmGameUserDetailNsql entity) {
 		ItsmmGameUserDetailsVO vo = new ItsmmGameUserDetailsVO();
-		if(entity!=null) {
+		if (entity != null) {
 			ItsmmGameUserDetail data = entity.getData();
-			if(data!=null) {
+			if (data != null) {
 				BeanUtils.copyProperties(data, vo);
 				vo.setSolutionSeen(data.getSolutionSeen());
 			}
@@ -64,7 +63,7 @@ public class ItsmmGameUserAssembler implements GenericAssembler<ItsmmGameUserDet
 	@Override
 	public ItsmmGameUserDetailNsql toEntity(ItsmmGameUserDetailsVO vo) {
 		ItsmmGameUserDetailNsql entity = new ItsmmGameUserDetailNsql();
-		if(vo!=null) {
+		if (vo != null) {
 			ItsmmGameUserDetail detailsJson = new ItsmmGameUserDetail();
 			BeanUtils.copyProperties(vo, detailsJson);
 			detailsJson.setSolutionSeen(vo.isSolutionSeen());
@@ -73,16 +72,16 @@ public class ItsmmGameUserAssembler implements GenericAssembler<ItsmmGameUserDet
 		}
 		return entity;
 	}
-	
+
 	public ItsmmGameUserDetailsResultVO toResultsVO(ItsmmGameUserDetail record) {
 		ItsmmGameUserDetailsResultVO vo = new ItsmmGameUserDetailsResultVO();
-		if(record!=null) {
+		if (record != null) {
 			BeanUtils.copyProperties(record, vo);
-			Long time= record.getTimeTaken();
+			Long time = record.getTimeTaken();
 			String timeTaken = "";
-			if(time == Long.MAX_VALUE) {
+			if (time == Long.MAX_VALUE) {
 				timeTaken = "N.A.";
-			}else {
+			} else {
 				long millis = time % 1000;
 				long second = (time / 1000) % 60;
 				long minute = (time / (1000 * 60)) % 60;
@@ -93,11 +92,11 @@ public class ItsmmGameUserAssembler implements GenericAssembler<ItsmmGameUserDet
 		}
 		return vo;
 	}
-	
+
 	public List<ItsmmGameUserDetailsResultVO> toResultsVO(List<ItsmmGameUserDetail> records) {
 		List<ItsmmGameUserDetailsResultVO> resultsVO = new ArrayList<>();
-		if(records!=null && !records.isEmpty()) {
-			resultsVO = records.stream().map(n->toResultsVO(n)).collect(Collectors.toList());
+		if (records != null && !records.isEmpty()) {
+			resultsVO = records.stream().map(n -> toResultsVO(n)).collect(Collectors.toList());
 		}
 		return resultsVO;
 	}

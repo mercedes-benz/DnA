@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.language;
 import com.daimler.data.db.entities.LanguageNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface LanguageCustomRepository
-        extends CommonDataRepository<LanguageNsql, String> {
+public interface LanguageCustomRepository extends CommonDataRepository<LanguageNsql, String> {
 
 }

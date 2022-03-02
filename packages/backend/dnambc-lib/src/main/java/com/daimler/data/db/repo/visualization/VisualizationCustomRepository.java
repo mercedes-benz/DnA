@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.visualization;
 import com.daimler.data.db.entities.VisualizationNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface VisualizationCustomRepository
-        extends CommonDataRepository<VisualizationNsql, String> {
+public interface VisualizationCustomRepository extends CommonDataRepository<VisualizationNsql, String> {
 
 }

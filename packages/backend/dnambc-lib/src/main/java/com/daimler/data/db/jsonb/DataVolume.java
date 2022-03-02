@@ -38,8 +38,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class DataVolume implements Serializable {
 
-    private static final long serialVersionUID = -5598239300529473359L;
-    private String name;
+	private static final long serialVersionUID = -5598239300529473359L;
+	private String name;
 
 //    public DataVolume() {
 //        super();
@@ -57,6 +57,5 @@ public class DataVolume implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

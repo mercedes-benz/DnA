@@ -40,20 +40,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AppSubscription implements Serializable{
+public class AppSubscription implements Serializable {
 	private static final long serialVersionUID = -7477338063032638875L;
-	
+
 	private String appName;
-    private String description;
-    private String appId;
-    private String createdBy;
-    private Date createdDate;
-    private String updatedBy;
-    private Date updatedDate;
-    private String recordStatus;
-    private Integer expiryDays;
-    private Integer usageCount;
-    private String solutionId;
-    private Date lastUsedOn;
-    private Date expireOn;
+	private String description;
+	private String appId;
+	private String createdBy;
+	private Date createdDate;
+	private String updatedBy;
+	private Date updatedDate;
+	private String recordStatus;
+	private Integer expiryDays;
+	private Integer usageCount;
+	private String solutionId;
+	private Date lastUsedOn;
+	private Date expireOn;
 }

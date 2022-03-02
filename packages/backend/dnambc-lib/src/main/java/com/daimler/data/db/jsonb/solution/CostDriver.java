@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 public class CostDriver implements Serializable {
 
 	private static final long serialVersionUID = 2482337524967171938L;
-	
+
 	private List<Factor> costFactors;
-	
+
 }

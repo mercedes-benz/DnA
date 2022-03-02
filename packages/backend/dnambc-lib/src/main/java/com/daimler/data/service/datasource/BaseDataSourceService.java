@@ -35,36 +35,39 @@ import com.daimler.data.db.repo.solution.SolutionCustomRepository;
 import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class BaseDataSourceService
-        extends BaseCommonService<DataSourceVO, DataSourceNsql, String>
-        implements DataSourceService {
+@Slf4j
+public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataSourceNsql, String>
+		implements DataSourceService {
 
-    @Autowired
-    private DataSourceCustomRepository customRepo;
-    @Autowired
-    private DataSourceRepository jpaRepo;
-    @Autowired
-    private DataSourceAssembler assembler;
+	@Autowired
+	private DataSourceCustomRepository customRepo;
+	@Autowired
+	private DataSourceRepository jpaRepo;
+	@Autowired
+	private DataSourceAssembler assembler;
 
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private SolutionService solutionService;
 
-    public BaseDataSourceService() {
-        super();
-    }
+	public BaseDataSourceService() {
+		super();
+	}
 
-
-    @Transactional
-    @Override
-    public boolean deleteDataSource(final String id){
-        DataSourceNsql dsEntity = jpaRepo.getOne(id);
-        String dsName = dsEntity.getData().getName();
-        solutionService.deleteTagForEachSolution(dsName, null, SolutionService.TAG_CATEGORY.DS);
-        return deleteById(id);
-    }
+	@Transactional
+	@Override
+	public boolean deleteDataSource(final String id) {
+		DataSourceNsql dsEntity = jpaRepo.getOne(id);
+		String dsName = dsEntity.getData().getName();
+		log.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to datasource {}", id);
+		solutionService.deleteTagForEachSolution(dsName, null, SolutionService.TAG_CATEGORY.DS);
+		return deleteById(id);
+	}
 }

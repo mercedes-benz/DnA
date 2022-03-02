@@ -36,6 +36,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,38 +52,38 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@Api(value = "Result API",tags = {"results"})
+@Api(value = "Result API", tags = { "results" })
 @RequestMapping("/api")
-public class ResultController
-        implements ResultsApi {
+public class ResultController implements ResultsApi {
 
+	private static Logger LOG = LoggerFactory.getLogger(ResultController.class);
 
-    @Autowired
-    private ResultService resultService;
-    
-    @Autowired
-    private ResultAssembler resultAssembler;
+	@Autowired
+	private ResultService resultService;
 
-    @Override
-    @ApiOperation(value = "Get all available results.", nickname = "getAll", notes = "Get all results. This endpoints will be used to Get all valid available results maintenance records.", response = ResultCollection.class, tags = {"results",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully completed fetching all results", response = ResultCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/results",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    public ResponseEntity<ResultCollection> getAll() {
-        final List<ResultVO> resultsVo = resultService.getAll();
-        ResultCollection resultCollection = new ResultCollection();
-        if (resultsVo != null && resultsVo.size() > 0) {
-        	List<ResultVO> filteredResultsVO = resultAssembler.filterOldResults(resultsVo);
-        	resultCollection.addAll(filteredResultsVO);
-            return new ResponseEntity<>(resultCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(resultCollection, HttpStatus.NO_CONTENT);
-        }
-    }
+	@Autowired
+	private ResultAssembler resultAssembler;
 
+	@Override
+	@ApiOperation(value = "Get all available results.", nickname = "getAll", notes = "Get all results. This endpoints will be used to Get all valid available results maintenance records.", response = ResultCollection.class, tags = {
+			"results", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Successfully completed fetching all results", response = ResultCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/results", produces = { "application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<ResultCollection> getAll() {
+		final List<ResultVO> resultsVo = resultService.getAll();
+		ResultCollection resultCollection = new ResultCollection();
+		if (resultsVo != null && resultsVo.size() > 0) {
+			List<ResultVO> filteredResultsVO = resultAssembler.filterOldResults(resultsVo);
+			resultCollection.addAll(filteredResultsVO);
+			LOG.debug("Returning available results");
+			return new ResponseEntity<>(resultCollection, HttpStatus.OK);
+		} else {
+			LOG.debug("No results available, returning");
+			return new ResponseEntity<>(resultCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

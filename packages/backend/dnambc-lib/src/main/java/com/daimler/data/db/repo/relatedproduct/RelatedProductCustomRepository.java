@@ -30,6 +30,6 @@ package com.daimler.data.db.repo.relatedproduct;
 import com.daimler.data.db.entities.RelatedProductNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface RelatedProductCustomRepository  extends CommonDataRepository<RelatedProductNsql, String>{
+public interface RelatedProductCustomRepository extends CommonDataRepository<RelatedProductNsql, String> {
 
 }

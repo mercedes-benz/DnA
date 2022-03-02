@@ -73,11 +73,21 @@ public class DataikuClientImp implements DataikuClient {
 	@Autowired
 	RestTemplate restTemplate;
 
-	private static final String PROJECTS = "/projects/";
-	private static final String USER_ROLES = "/admin/users/";
-	private static final String PERMISSIONS = "/permissions";
-	private static final String EMEA_CORPDIR = "@emea.corpdir.net";
-	private static final String APAC_CORPDIR = "@apac.corpdir.net";
+	@Value("${dataiku.apacCorpdir}")
+	private String apacCorpdir;
+	
+	@Value("${dataiku.emeaCorpdir}")
+	private String emeaCorpdir;
+	
+	@Value("${dataiku.projectsUriPath}")
+	private String projectsUriPath;
+	
+	@Value("${dataiku.userRoleUriPath}")
+	private String userRoleUriPath;
+	
+	@Value("${dataiku.projectPermissionUriPath}")
+	private String projectPermissionUriPath;
+	
 
 	/**
 	 * <p>
@@ -92,17 +102,16 @@ public class DataikuClientImp implements DataikuClient {
 	@SuppressWarnings({ "rawtypes" })
 	@Override
 	public Optional<List<DataikuProjectVO>> getAllDataikuProjects(Boolean live) {
-		LOGGER.trace("Entering getAllDataikuProjects");
 		List<DataikuProjectVO> projects = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, PROJECTS);
+			String dataikuUri = setDataikuUri(live, headers, projectsUriPath);
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
 			if (response != null && response.hasBody()) {
-				LOGGER.info("Success from dataiku");
+				LOGGER.info("Successfully fetched projects from dataiku");
 				projects = new ArrayList<>();
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -117,12 +126,13 @@ public class DataikuClientImp implements DataikuClient {
 		} catch (Exception e) {
 			LOGGER.error("Error occured while calling dataiku service:{}", e.getMessage());
 		}
-		LOGGER.trace("returning from getAllDataikuProjects");
 		return Optional.ofNullable(projects);
 	}
 
 	/**
-	 * <p> To get user role </p>
+	 * <p>
+	 * To get user role
+	 * </p>
 	 * 
 	 * @param userId
 	 * @return DataikuUserRole
@@ -130,27 +140,26 @@ public class DataikuClientImp implements DataikuClient {
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live) {
-		LOGGER.trace("Entering getDataikuUserRole");
 		DataikuUserRole userRole = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, USER_ROLES);
+			String dataikuUri = setDataikuUri(live, headers, userRoleUriPath);
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = null;
 			try {
-				LOGGER.info("Fetching details from @emea.corpdir.net");
-				response = restTemplate.exchange(dataikuUri + userId.toLowerCase() + EMEA_CORPDIR, HttpMethod.GET,
+				LOGGER.debug("Fetching details of user {} from emea", userId);
+				response = restTemplate.exchange(dataikuUri + userId.toLowerCase() +"@"+ emeaCorpdir, HttpMethod.GET,
 						entity, String.class);
 			} catch (Exception e) {
-				LOGGER.error("error:{}", e.getMessage());
-				LOGGER.info("Fetching details from @apac.corpdir.net");
-				response = restTemplate.exchange(dataikuUri + userId.toLowerCase() + APAC_CORPDIR, HttpMethod.GET,
+				LOGGER.error("Error occuried while fetching dataiku user role error:{}", e.getMessage());
+				LOGGER.debug("Fetching details of user {} from apac", userId);
+				response = restTemplate.exchange(dataikuUri + userId.toLowerCase() +"@"+ apacCorpdir, HttpMethod.GET,
 						entity, String.class);
 			}
 			if (response != null && response.hasBody()) {
-				LOGGER.info("Success from dataiku");
+				LOGGER.debug("Successfully fetched user details");
 				userRole = new DataikuUserRole();
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -165,12 +174,13 @@ public class DataikuClientImp implements DataikuClient {
 		} catch (Exception e) {
 			LOGGER.error("Error occured while calling dataiku user role service:{}", e.getMessage());
 		}
-		LOGGER.trace("returning from getDataikuUserRole");
 		return Optional.ofNullable(userRole);
 	}
 
 	/**
-	 * <p> To get dataiku project permission </p>
+	 * <p>
+	 * To get dataiku project permission
+	 * </p>
 	 * 
 	 * @param projectKey
 	 * @return DataikuPermission
@@ -178,18 +188,17 @@ public class DataikuClientImp implements DataikuClient {
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live) {
-		LOGGER.trace("Entering getDataikuProjectPermission");
 		DataikuPermission permission = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, PROJECTS);
-			dataikuUri = dataikuUri + projectKey + PERMISSIONS;
+			String dataikuUri = setDataikuUri(live, headers, projectsUriPath);
+			dataikuUri = dataikuUri + projectKey + projectPermissionUriPath;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
 			if (response != null && response.hasBody()) {
-				LOGGER.debug("Success from dataiku");
+				LOGGER.debug("In getDataikuProjectPermission,  Success from dataiku");
 				permission = new DataikuPermission();
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -198,29 +207,28 @@ public class DataikuClientImp implements DataikuClient {
 			}
 
 		} catch (JsonParseException e) {
-			LOGGER.error("JsonParseException occured:{}", e.getMessage());
+			LOGGER.error("In getDataikuProjectPermission, JsonParseException occured:{}", e.getMessage());
 		} catch (JsonMappingException e) {
-			LOGGER.error("JsonMappingException occured:{}", e.getMessage());
+			LOGGER.error("In getDataikuProjectPermission, JsonMappingException occured:{}", e.getMessage());
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling dataiku user role service:{}", e.getMessage());
+			LOGGER.error("In getDataikuProjectPermission, Error occured while calling dataiku user role service:{}",
+					e.getMessage());
 		}
-		LOGGER.trace("returning from getDataikuProjectPermission");
 		return Optional.ofNullable(permission);
 	}
 
 	@Override
 	public Optional<DataikuProjectVO> getDataikuProject(String projectKey, Boolean live) {
-		LOGGER.trace("Entering getDataikuProject");
 		DataikuProjectVO project = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, PROJECTS+projectKey);
+			String dataikuUri = setDataikuUri(live, headers, projectsUriPath + projectKey);
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
 			if (response != null && response.hasBody()) {
-				LOGGER.info("Success from dataiku");
+				LOGGER.debug("In getDataikuProject, Success from dataiku");
 				project = new DataikuProjectVO();
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -229,18 +237,16 @@ public class DataikuClientImp implements DataikuClient {
 				});
 			}
 		} catch (JsonParseException e) {
-			LOGGER.error("JsonParseException occured:{}", e.getMessage());
+			LOGGER.error("In getDataikuProject, JsonParseException occured:{}", e.getMessage());
 		} catch (JsonMappingException e) {
-			LOGGER.error("JsonMappingException occured:{}", e.getMessage());
+			LOGGER.error("In getDataikuProject, JsonMappingException occured:{}", e.getMessage());
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling dataiku service:{}", e.getMessage());
+			LOGGER.error("In getDataikuProject, Error occured while calling dataiku service:{}", e.getMessage());
 		}
-		LOGGER.trace("returning from getDataikuProject");
 		return Optional.ofNullable(project);
-		
-		
+
 	}
-	
+
 	/**
 	 * Setting dataiku uri and basic auth
 	 * 
@@ -250,7 +256,6 @@ public class DataikuClientImp implements DataikuClient {
 	 * @param uriExtension
 	 */
 	private String setDataikuUri(Boolean live, HttpHeaders headers, String uriExtension) {
-		LOGGER.debug("Entering setDataikuUri.");
 		String dataikuUri = "";
 		if (live) {
 			LOGGER.debug("Forming uri for production environment");

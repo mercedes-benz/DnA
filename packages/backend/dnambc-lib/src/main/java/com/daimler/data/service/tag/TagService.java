@@ -31,9 +31,8 @@ import com.daimler.data.db.entities.TagNsql;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface TagService
-        extends CommonService<TagVO, TagNsql, String> {
+public interface TagService extends CommonService<TagVO, TagNsql, String> {
 
-    boolean deleteTag(String id);
+	boolean deleteTag(String id);
 
 }

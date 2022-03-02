@@ -31,7 +31,6 @@ import com.daimler.data.db.entities.WidgetNsql;
 import com.daimler.data.dto.widget.WidgetVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface WidgetService
-        extends CommonService<WidgetVO, WidgetNsql, String> {
+public interface WidgetService extends CommonService<WidgetVO, WidgetNsql, String> {
 
 }

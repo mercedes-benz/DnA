@@ -30,6 +30,6 @@ package com.daimler.data.db.repo.location;
 import com.daimler.data.db.entities.LocationNsql;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LocationRepository extends JpaRepository<LocationNsql, String>{
+public interface LocationRepository extends JpaRepository<LocationNsql, String> {
 
 }
