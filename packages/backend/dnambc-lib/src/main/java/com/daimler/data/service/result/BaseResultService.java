@@ -37,20 +37,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseResultService
-        extends BaseCommonService<ResultVO, ResultNsql, String>
-        implements ResultService {
+public class BaseResultService extends BaseCommonService<ResultVO, ResultNsql, String> implements ResultService {
 
-    @Autowired
-    private ResultCustomRepository customRepo;
-    @Autowired
-    private ResultRepository jpaRepo;
-    @Autowired
-    private ResultAssembler assembler;
+	@Autowired
+	private ResultCustomRepository customRepo;
+	@Autowired
+	private ResultRepository jpaRepo;
+	@Autowired
+	private ResultAssembler assembler;
 
-    public BaseResultService() {
-        super();
-    }
+	public BaseResultService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseResultService(ResultCustomRepository customRepo

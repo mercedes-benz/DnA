@@ -38,29 +38,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseVisualizationService
-        extends BaseCommonService<VisualizationVO, VisualizationNsql, String>
-        implements VisualizationService {
+public class BaseVisualizationService extends BaseCommonService<VisualizationVO, VisualizationNsql, String>
+		implements VisualizationService {
 
-    @Autowired
-    private VisualizationCustomRepository customRepo;
-    @Autowired
-    private VisualizationRepository jpaRepo;
-    @Autowired
-    private VisualizationAssembler assembler;
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private VisualizationCustomRepository customRepo;
+	@Autowired
+	private VisualizationRepository jpaRepo;
+	@Autowired
+	private VisualizationAssembler assembler;
+	@Autowired
+	private SolutionService solutionService;
 
-    public BaseVisualizationService() {
-        super();
-    }
+	public BaseVisualizationService() {
+		super();
+	}
 
-
-    @Override
-    public boolean deleteVisualization(String id) {
-        VisualizationNsql visualizationNsql = jpaRepo.getOne(id);
-        String name = visualizationNsql.getData().getName();
-        solutionService.deleteTagForEachSolution(name, null, SolutionService.TAG_CATEGORY.VISUALIZATION);
-        return deleteById(id);
-    }
+	@Override
+	public boolean deleteVisualization(String id) {
+		VisualizationNsql visualizationNsql = jpaRepo.getOne(id);
+		String name = visualizationNsql.getData().getName();
+		solutionService.deleteTagForEachSolution(name, null, SolutionService.TAG_CATEGORY.VISUALIZATION);
+		return deleteById(id);
+	}
 }

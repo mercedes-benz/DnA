@@ -34,9 +34,9 @@ import com.daimler.data.service.common.CommonService;
 
 import java.util.List;
 
-public interface DivisionService
-        extends CommonService<DivisionVO, DivisionNsql, String> {
+public interface DivisionService extends CommonService<DivisionVO, DivisionNsql, String> {
 
-    List<SubdivisionVO> getSubDivisionsById(String idx);
-    List<DivisionVO> getDivisionsByIds(List<String> ids);
+	List<SubdivisionVO> getSubDivisionsById(String idx);
+
+	List<DivisionVO> getDivisionsByIds(List<String> ids);
 }

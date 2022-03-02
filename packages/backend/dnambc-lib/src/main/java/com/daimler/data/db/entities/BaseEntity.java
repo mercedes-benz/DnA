@@ -40,41 +40,37 @@ import java.util.Objects;
 import java.util.UUID;
 
 @MappedSuperclass
-@TypeDefs({
-        @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
-})
+@TypeDefs({ @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class) })
 public class BaseEntity<T> {
 
-    @Id
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id;
+	@Id
+	@Column(name = "id", updatable = false, nullable = false)
+	private String id;
 
-    @Type(type = "jsonb")
-    @Column(columnDefinition = "jsonb")
-    private T data;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private T data;
 
-    @PrePersist
-    public void populateId() {
-        if (Objects.isNull(this.getId()))
-            this.setId(UUID.randomUUID().toString());
-    }
+	@PrePersist
+	public void populateId() {
+		if (Objects.isNull(this.getId()))
+			this.setId(UUID.randomUUID().toString());
+	}
 
+	public String getId() {
+		return this.id;
+	}
 
-    public String getId() {
-        return this.id;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public T getData() {
+		return data;
+	}
 
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-
+	public void setData(T data) {
+		this.data = data;
+	}
 
 }

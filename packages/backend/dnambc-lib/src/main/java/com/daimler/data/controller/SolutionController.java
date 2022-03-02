@@ -67,515 +67,528 @@ import java.util.stream.Collectors;
 @SuppressWarnings(value = "unused")
 public class SolutionController implements SolutionsApi, ChangelogsApi {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(SolutionController.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(SolutionController.class);
 
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private SolutionService solutionService;
 
-    @Autowired
-    private UserStore userStore;
+	@Autowired
+	private UserStore userStore;
 
-    @Autowired
-    private UserInfoService userInfoService;
+	@Autowired
+	private UserInfoService userInfoService;
 
-    @Autowired
-    private SolutionAssembler solutionAssembler;
+	@Autowired
+	private SolutionAssembler solutionAssembler;
 
-    @Override
-    @ApiOperation(value = "Adds a new solution.", nickname = "create", notes = "Adds a new non existing solution.", response = SolutionResponseVO.class, tags = {
-            "solutions", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Solution added successfully", response = SolutionResponseVO.class),
-            @ApiResponse(code = 400, message = "Bad Request"),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/solutions", produces = { "application/json" }, consumes = {
-            "application/json" }, method = RequestMethod.POST)
-    public ResponseEntity<SolutionResponseVO> create(
-            @ApiParam(value = "Request Body that contains data required for creating a new solution", required = true) @Valid @RequestBody SolutionRequestVO solutionRequestVO) {
-        SolutionVO requestSolutionVO = solutionRequestVO.getData();
-        SolutionResponseVO response = new SolutionResponseVO();
-        try {
-            String uniqueProductName = requestSolutionVO.getProductName();
-            SolutionVO existingSolutionVO = solutionService.getByUniqueliteral("productName", uniqueProductName);
-            if (existingSolutionVO != null && existingSolutionVO.getProductName() != null) {
-                response.setData(existingSolutionVO);
-                List<MessageDescription> messages = new ArrayList<>();
-                MessageDescription message = new MessageDescription();
-                message.setMessage("Solution already exists.");
-                messages.add(message);
-                response.setErrors(messages);
-                return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-            }
-            requestSolutionVO.setCreatedBy(this.userStore.getVO());
-            requestSolutionVO.setCreatedDate(new Date());
-            requestSolutionVO.setId(null);
-            requestSolutionVO.setProductName(uniqueProductName);
+	@Override
+	@ApiOperation(value = "Adds a new solution.", nickname = "create", notes = "Adds a new non existing solution.", response = SolutionResponseVO.class, tags = {
+			"solutions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Solution added successfully", response = SolutionResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/solutions", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<SolutionResponseVO> create(
+			@ApiParam(value = "Request Body that contains data required for creating a new solution", required = true) @Valid @RequestBody SolutionRequestVO solutionRequestVO) {
+		SolutionVO requestSolutionVO = solutionRequestVO.getData();
+		SolutionResponseVO response = new SolutionResponseVO();
+		try {
+			String uniqueProductName = requestSolutionVO.getProductName();
+			SolutionVO existingSolutionVO = solutionService.getByUniqueliteral("productName", uniqueProductName);
+			if (existingSolutionVO != null && existingSolutionVO.getProductName() != null) {
+				response.setData(existingSolutionVO);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Solution already exists.");
+				messages.add(message);
+				response.setErrors(messages);
+				LOGGER.debug("Solution {} already exists, returning as CONFLICT", uniqueProductName);
+				return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+			}
+			requestSolutionVO.setCreatedBy(this.userStore.getVO());
+			requestSolutionVO.setCreatedDate(new Date());
+			requestSolutionVO.setId(null);
+			requestSolutionVO.setProductName(uniqueProductName);
 
-            if (requestSolutionVO.isPublish() == null)
-                requestSolutionVO.setPublish(false);
+			if (requestSolutionVO.isPublish() == null)
+				requestSolutionVO.setPublish(false);
 
-            // Adding change logs for Solution Digital Value
-            // if(null!=requestSolutionVO.getDigitalValue() ||
-            // null!=existingSolutionVO.getDigitalValue()) {
-            // requestSolutionVO.setDigitalValue(solutionAssembler.digitalValueCompare(requestSolutionVO.getDigitalValue(),
-            // null, userStore));
-            // }
+			// Adding change logs for Solution Digital Value
+			// if(null!=requestSolutionVO.getDigitalValue() ||
+			// null!=existingSolutionVO.getDigitalValue()) {
+			// requestSolutionVO.setDigitalValue(solutionAssembler.digitalValueCompare(requestSolutionVO.getDigitalValue(),
+			// null, userStore));
+			// }
 
-            // Calculating DIgital Value
-            if (null != requestSolutionVO.getDigitalValue()) {
-                ValueCalculatorVO valueCalculatorVO = solutionAssembler
-                        .valueCalculator(requestSolutionVO.getDigitalValue());
-                requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
-            }
+			// Calculating DIgital Value
+			if (null != requestSolutionVO.getDigitalValue()) {
+				ValueCalculatorVO valueCalculatorVO = solutionAssembler
+						.valueCalculator(requestSolutionVO.getDigitalValue());
+				requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
+			}
 
-            SolutionVO solutionVO = solutionService.create(requestSolutionVO);
-            if (solutionVO != null && solutionVO.getId() != null) {
-                response.setData(solutionVO);
-                return new ResponseEntity<>(response, HttpStatus.CREATED);
-            } else {
-                List<MessageDescription> messages = new ArrayList<>();
-                MessageDescription message = new MessageDescription();
-                message.setMessage("Failed to save due to internal error");
-                messages.add(message);
-                response.setData(requestSolutionVO);
-                response.setErrors(messages);
-                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } catch (Exception e) {
-            LOGGER.error("Exception occurred:{}", e.getMessage());
-            List<MessageDescription> messages = new ArrayList<>();
-            MessageDescription message = new MessageDescription();
-            message.setMessage(e.getMessage());
-            messages.add(message);
-            response.setData(requestSolutionVO);
-            response.setErrors(messages);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+			SolutionVO solutionVO = solutionService.create(requestSolutionVO);
+			if (solutionVO != null && solutionVO.getId() != null) {
+				response.setData(solutionVO);
+				LOGGER.debug("Solution {} created successfully", uniqueProductName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			} else {
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to save due to internal error");
+				messages.add(message);
+				response.setData(requestSolutionVO);
+				response.setErrors(messages);
+				LOGGER.error("Solution {} , failed to create", uniqueProductName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred:{} while creating solution {} ", e.getMessage(),
+					requestSolutionVO.getProductName());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage(e.getMessage());
+			messages.add(message);
+			response.setData(requestSolutionVO);
+			response.setErrors(messages);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-    @Override
-    public ResponseEntity<SolutionCollection> getAll(
-            @ApiParam(value = "Filtering solutions based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
-            @ApiParam(value = "List of IDs of locations of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "location", required = false) String location,
-            @ApiParam(value = "List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division,
-            @ApiParam(value = "List of IDs of current phase of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "phase", required = false) String phase,
-            @ApiParam(value = "List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "dataVolume", required = false) String dataVolume,
-            @ApiParam(value = "ID of current project status of solutions, Example 1") @Valid @RequestParam(value = "projectstatus", required = false) String projectstatus,
-            @ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
-            @ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
-            @ApiParam(value = "searchTerm to filter solutions. Example Java,R") @Valid @RequestParam(value = "tags", required = false) String tags,
-            @ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-            @ApiParam(value = "page size to limit the number of solutions, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-            @ApiParam(value = "Sort solutions by a given variable like name, phase, division, location or status") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-            @ApiParam(value = "Sort solutions based on the given order, example asc,desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-        try {
-            int defaultLimit = 10;
-            if (offset == null || offset < 0)
-                offset = 0;
-            if (limit == null || limit < 0) {
-                limit = defaultLimit;
-            }
-            if (sortOrder != null && !sortOrder.equals("asc") && !sortOrder.equals("desc")) {
-                return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-            }
-            if (sortOrder == null) {
-                sortOrder = "asc";
-            }
-            String[] phases = null;
-            List<String> phasesList = new ArrayList<>();
-            if (phase != null && !"".equals(phase))
-                phases = phase.split(",");
-            if (phases != null && phases.length > 0)
-                phasesList = Arrays.asList(phases);
+	@Override
+	public ResponseEntity<SolutionCollection> getAll(
+			@ApiParam(value = "Filtering solutions based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+			@ApiParam(value = "List of IDs of locations of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "location", required = false) String location,
+			@ApiParam(value = "List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division,
+			@ApiParam(value = "List of IDs of current phase of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "phase", required = false) String phase,
+			@ApiParam(value = "List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "dataVolume", required = false) String dataVolume,
+			@ApiParam(value = "ID of current project status of solutions, Example 1") @Valid @RequestParam(value = "projectstatus", required = false) String projectstatus,
+			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
+			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
+			@ApiParam(value = "searchTerm to filter solutions. Example Java,R") @Valid @RequestParam(value = "tags", required = false) String tags,
+			@ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "page size to limit the number of solutions, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "Sort solutions by a given variable like name, phase, division, location or status") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort solutions based on the given order, example asc,desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		try {
+			int defaultLimit = 10;
+			if (offset == null || offset < 0)
+				offset = 0;
+			if (limit == null || limit < 0) {
+				limit = defaultLimit;
+			}
+			if (sortOrder != null && !sortOrder.equals("asc") && !sortOrder.equals("desc")) {
+				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+			}
+			if (sortOrder == null) {
+				sortOrder = "asc";
+			}
+			String[] phases = null;
+			List<String> phasesList = new ArrayList<>();
+			if (phase != null && !"".equals(phase))
+				phases = phase.split(",");
+			if (phases != null && phases.length > 0)
+				phasesList = Arrays.asList(phases);
 
-            String[] dataVolumes = null;
-            List<String> dataVolumesList = new ArrayList<>();
-            if (dataVolume != null && !"".equals(dataVolume))
-                dataVolumes = dataVolume.split(",");
-            if (dataVolumes != null && dataVolumes.length > 0)
-                dataVolumesList = Arrays.asList(dataVolumes);
+			String[] dataVolumes = null;
+			List<String> dataVolumesList = new ArrayList<>();
+			if (dataVolume != null && !"".equals(dataVolume))
+				dataVolumes = dataVolume.split(",");
+			if (dataVolumes != null && dataVolumes.length > 0)
+				dataVolumesList = Arrays.asList(dataVolumes);
 
-            List<Map<String, List<String>>> divisionsList = new ArrayList<Map<String, List<String>>>();
-            if (!StringUtils.isEmpty(division)) {
-                boolean hasEmptySubdivision = false;
-                LOGGER.debug("Checking for EMPTY subdivision in query");
-                if (division.contains(ConstantsUtility.EMPTY_VALUE)) {
-                    hasEmptySubdivision = true;
-                }
-                Map<String, List<String>> divisionMap = new HashMap<String, List<String>>();
-                List<String> subdivisionsList = new ArrayList<String>();
-                division = division.substring(1, division.length() - 1);
-                String[] divisionSplit = division.split("},", 0);
-                for (int i = 0; i < divisionSplit.length; i++) {
-                    divisionSplit[i] = divisionSplit[i].replaceAll("[\\{\\}\\[\\]]", "");
-                    String[] divSubdivSplitArray = divisionSplit[i].split(",");
-                    subdivisionsList = new ArrayList<String>();
-                    divisionMap = new HashMap<String, List<String>>();
-                    if (null != divSubdivSplitArray) {
-                        if (divSubdivSplitArray.length > 1) {
-                            for (int j = 1; j < divSubdivSplitArray.length; j++) {
-                                subdivisionsList.add(divSubdivSplitArray[j]);
-                            }
-                        }
-                        if (hasEmptySubdivision && !subdivisionsList.contains(ConstantsUtility.EMPTY_VALUE)) {
-                            LOGGER.debug("Appending EMPTY in subdivisionList");
-                            subdivisionsList.add(ConstantsUtility.EMPTY_VALUE);
-                        }
-                        divisionMap.put(divSubdivSplitArray[0], subdivisionsList);
-                    }
-                    divisionsList.add(divisionMap);
-                }
-            }
+			List<Map<String, List<String>>> divisionsList = new ArrayList<Map<String, List<String>>>();
+			if (!StringUtils.isEmpty(division)) {
+				boolean hasEmptySubdivision = false;
+				LOGGER.debug("Checking for EMPTY subdivision in query");
+				if (division.contains(ConstantsUtility.EMPTY_VALUE)) {
+					hasEmptySubdivision = true;
+				}
+				Map<String, List<String>> divisionMap = new HashMap<String, List<String>>();
+				List<String> subdivisionsList = new ArrayList<String>();
+				division = division.substring(1, division.length() - 1);
+				String[] divisionSplit = division.split("},", 0);
+				for (int i = 0; i < divisionSplit.length; i++) {
+					divisionSplit[i] = divisionSplit[i].replaceAll("[\\{\\}\\[\\]]", "");
+					String[] divSubdivSplitArray = divisionSplit[i].split(",");
+					subdivisionsList = new ArrayList<String>();
+					divisionMap = new HashMap<String, List<String>>();
+					if (null != divSubdivSplitArray) {
+						if (divSubdivSplitArray.length > 1) {
+							for (int j = 1; j < divSubdivSplitArray.length; j++) {
+								subdivisionsList.add(divSubdivSplitArray[j]);
+							}
+						}
+						if (hasEmptySubdivision && !subdivisionsList.contains(ConstantsUtility.EMPTY_VALUE)) {
+							LOGGER.debug("Appending EMPTY in subdivisionList");
+							subdivisionsList.add(ConstantsUtility.EMPTY_VALUE);
+						}
+						divisionMap.put(divSubdivSplitArray[0], subdivisionsList);
+					}
+					divisionsList.add(divisionMap);
+				}
+			}
 
-            String[] locations = null;
-            List<String> locationsList = new ArrayList<>();
-            if (location != null && !"".equals(location))
-                locations = location.split(",");
-            if (locations != null && locations.length > 0)
-                locationsList = Arrays.asList(locations);
+			String[] locations = null;
+			List<String> locationsList = new ArrayList<>();
+			if (location != null && !"".equals(location))
+				locations = location.split(",");
+			if (locations != null && locations.length > 0)
+				locationsList = Arrays.asList(locations);
 
-            String[] statuses = null;
-            List<String> statusesList = new ArrayList<>();
-            if (projectstatus != null && !"".equals(projectstatus))
-                statuses = projectstatus.split(",");
-            if (statuses != null && statuses.length > 0)
-                statusesList = Arrays.asList(statuses);
+			String[] statuses = null;
+			List<String> statusesList = new ArrayList<>();
+			if (projectstatus != null && !"".equals(projectstatus))
+				statuses = projectstatus.split(",");
+			if (statuses != null && statuses.length > 0)
+				statusesList = Arrays.asList(statuses);
 
-            Boolean isAdmin = false;
-            CreatedByVO currentUser = this.userStore.getVO();
-            String userId = currentUser != null ? currentUser.getId() : null;
-            List<String> bookmarkedSolutions = new ArrayList<>();
-            if (userId != null && !"".equalsIgnoreCase(userId)) {
-                UserInfoVO userInfoVO = userInfoService.getById(userId);
-                if (userInfoVO != null) {
-                    List<UserRoleVO> userRoles = userInfoVO.getRoles();
-                    if (userRoles != null && !userRoles.isEmpty())
-                        isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
-                    List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
-                    if (favSolutions != null && !favSolutions.isEmpty())
-                        bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
-                                .collect(Collectors.toList());
-                }
-            }
+			Boolean isAdmin = false;
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : null;
+			List<String> bookmarkedSolutions = new ArrayList<>();
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoles = userInfoVO.getRoles();
+					if (userRoles != null && !userRoles.isEmpty())
+						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
+					if (favSolutions != null && !favSolutions.isEmpty())
+						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
+								.collect(Collectors.toList());
+				}
+			}
 
-            List<String> searchTerms = new ArrayList<>();
-            if (searchTerm != null && !"".equalsIgnoreCase(searchTerm)) {
-                searchTerms = Arrays.asList(searchTerm.split(","));
-            }
-            List<String> listOfTags = new ArrayList<>();
-            if (tags != null && !"".equalsIgnoreCase(tags)) {
-                listOfTags = Arrays.asList(tags.split(","));
-            }
-            Long count = solutionService.getCount(published, phasesList, dataVolumesList, divisionsList, locationsList,
-                    statusesList, useCaseType, userId, isAdmin, bookmarkedSolutions, searchTerms, listOfTags);
-            SolutionCollection solutionCollection = new SolutionCollection();
+			List<String> searchTerms = new ArrayList<>();
+			if (searchTerm != null && !"".equalsIgnoreCase(searchTerm)) {
+				searchTerms = Arrays.asList(searchTerm.split(","));
+			}
+			List<String> listOfTags = new ArrayList<>();
+			if (tags != null && !"".equalsIgnoreCase(tags)) {
+				listOfTags = Arrays.asList(tags.split(","));
+			}
+			Long count = solutionService.getCount(published, phasesList, dataVolumesList, divisionsList, locationsList,
+					statusesList, useCaseType, userId, isAdmin, bookmarkedSolutions, searchTerms, listOfTags);
+			SolutionCollection solutionCollection = new SolutionCollection();
 
-            if (count < offset)
-                offset = 0;
+			if (count < offset)
+				offset = 0;
 
-            List<SolutionVO> solutionVOListVO = solutionService.getAllWithFilters(published, phasesList,
-                    dataVolumesList, divisionsList, locationsList, statusesList, useCaseType, userId, isAdmin,
-                    bookmarkedSolutions, searchTerms, listOfTags, offset, limit, sortBy, sortOrder);
-            if ("locations".equalsIgnoreCase(sortBy)) {
-                List<SolutionVO> sortedSolutionVOList = this.sortSolutionsBasedOnLocations(solutionVOListVO, sortOrder);
-                int fromIndex = offset > 0 ? (offset > count ? 0 : offset) : 0;
-                int listSize = sortedSolutionVOList.size();
-                if (limit == 0)
-                    limit = listSize;
-                int limitAndFromIndexSum = fromIndex + limit;
-                int toIndex = limitAndFromIndexSum > listSize ? listSize : limitAndFromIndexSum;
-                solutionVOListVO = sortedSolutionVOList != null && !sortedSolutionVOList.isEmpty()
-                        ? sortedSolutionVOList.subList(fromIndex, toIndex)
-                        : sortedSolutionVOList;
-            }
+			List<SolutionVO> solutionVOListVO = solutionService.getAllWithFilters(published, phasesList,
+					dataVolumesList, divisionsList, locationsList, statusesList, useCaseType, userId, isAdmin,
+					bookmarkedSolutions, searchTerms, listOfTags, offset, limit, sortBy, sortOrder);
+			LOGGER.debug("Solutions fetched successfully");
+			if ("locations".equalsIgnoreCase(sortBy)) {
+				List<SolutionVO> sortedSolutionVOList = this.sortSolutionsBasedOnLocations(solutionVOListVO, sortOrder);
+				int fromIndex = offset > 0 ? (offset > count ? 0 : offset) : 0;
+				int listSize = sortedSolutionVOList.size();
+				if (limit == 0)
+					limit = listSize;
+				int limitAndFromIndexSum = fromIndex + limit;
+				int toIndex = limitAndFromIndexSum > listSize ? listSize : limitAndFromIndexSum;
+				solutionVOListVO = sortedSolutionVOList != null && !sortedSolutionVOList.isEmpty()
+						? sortedSolutionVOList.subList(fromIndex, toIndex)
+						: sortedSolutionVOList;
+				LOGGER.debug("Sorted solutions fetched based on locations");
+			}
 
-            if (solutionVOListVO != null && solutionVOListVO.size() > 0) {
-                solutionCollection = solutionAssembler.applyBookMarkflag(solutionVOListVO, bookmarkedSolutions, userId);
-                if (!isAdmin)
-                    solutionCollection = solutionAssembler.maskDigitalValues(solutionVOListVO, userId, true);
-                solutionCollection.setTotalCount(count.intValue());
-                return new ResponseEntity<>(solutionCollection, HttpStatus.OK);
-            } else {
-                solutionCollection.setTotalCount(count.intValue());
-                return new ResponseEntity<>(solutionCollection, HttpStatus.NO_CONTENT);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+			if (solutionVOListVO != null && solutionVOListVO.size() > 0) {
+				solutionCollection = solutionAssembler.applyBookMarkflag(solutionVOListVO, bookmarkedSolutions, userId);
+				if (!isAdmin)
+					solutionCollection = solutionAssembler.maskDigitalValues(solutionVOListVO, userId, true);
+				solutionCollection.setTotalCount(count.intValue());
+				return new ResponseEntity<>(solutionCollection, HttpStatus.OK);
+			} else {
+				solutionCollection.setTotalCount(count.intValue());
+				return new ResponseEntity<>(solutionCollection, HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to fetch solutions with exception {} ", e.getMessage());
+			throw e;
+		}
 
-    }
+	}
 
-    private List<SolutionVO> sortSolutionsBasedOnLocations(List<SolutionVO> solutionVOListVO, String sortOrder) {
-        if (solutionVOListVO != null && !solutionVOListVO.isEmpty()) {
-            if ("asc".equalsIgnoreCase(sortOrder))
-                solutionVOListVO.forEach(n -> n.getLocations()
-                        .sort(Comparator.comparing(SolutionLocationVO::getName, String.CASE_INSENSITIVE_ORDER)));
-            else
-                solutionVOListVO.forEach(n -> n.getLocations().sort(
-                        Comparator.comparing(SolutionLocationVO::getName, String.CASE_INSENSITIVE_ORDER).reversed()));
-            Collections.sort(solutionVOListVO, new Comparator<SolutionVO>() {
-                @Override
-                public int compare(SolutionVO vo1, SolutionVO vo2) {
-                    String loc1 = toLocationsNameString(vo1.getLocations());
-                    String loc2 = toLocationsNameString(vo2.getLocations());
-                    if (loc1 == null) {
-                        if (loc2 == null)
-                            return 0;
-                        else
-                            return "asc".equalsIgnoreCase(sortOrder) ? -1 : 1;
-                    } else {
-                        if (loc2 == null)
-                            return "asc".equalsIgnoreCase(sortOrder) ? 1 : -1;
-                        else {
-                            int value = loc1.compareToIgnoreCase(loc2);
-                            return "asc".equalsIgnoreCase(sortOrder) ? value : -1 * value;
-                        }
-                    }
-                }
-            });
-        }
-        return solutionVOListVO;
-    }
+	private List<SolutionVO> sortSolutionsBasedOnLocations(List<SolutionVO> solutionVOListVO, String sortOrder) {
+		if (solutionVOListVO != null && !solutionVOListVO.isEmpty()) {
+			if ("asc".equalsIgnoreCase(sortOrder))
+				solutionVOListVO.forEach(n -> n.getLocations()
+						.sort(Comparator.comparing(SolutionLocationVO::getName, String.CASE_INSENSITIVE_ORDER)));
+			else
+				solutionVOListVO.forEach(n -> n.getLocations().sort(
+						Comparator.comparing(SolutionLocationVO::getName, String.CASE_INSENSITIVE_ORDER).reversed()));
+			Collections.sort(solutionVOListVO, new Comparator<SolutionVO>() {
+				@Override
+				public int compare(SolutionVO vo1, SolutionVO vo2) {
+					String loc1 = toLocationsNameString(vo1.getLocations());
+					String loc2 = toLocationsNameString(vo2.getLocations());
+					if (loc1 == null) {
+						if (loc2 == null)
+							return 0;
+						else
+							return "asc".equalsIgnoreCase(sortOrder) ? -1 : 1;
+					} else {
+						if (loc2 == null)
+							return "asc".equalsIgnoreCase(sortOrder) ? 1 : -1;
+						else {
+							int value = loc1.compareToIgnoreCase(loc2);
+							return "asc".equalsIgnoreCase(sortOrder) ? value : -1 * value;
+						}
+					}
+				}
+			});
+		}
+		return solutionVOListVO;
+	}
 
-    private String toLocationsNameString(List<SolutionLocationVO> locations) {
-        String names = "";
-        if (locations != null && !locations.isEmpty()) {
-            names = locations.stream().map(n -> n.getName()).collect(Collectors.joining(","));
-        }
-        return names;
-    }
+	private String toLocationsNameString(List<SolutionLocationVO> locations) {
+		String names = "";
+		if (locations != null && !locations.isEmpty()) {
+			names = locations.stream().map(n -> n.getName()).collect(Collectors.joining(","));
+		}
+		return names;
+	}
 
-    @Override
-    public ResponseEntity<SolutionVO> getById(String id) {
-        Boolean isAdmin = false;
-        CreatedByVO currentUser = this.userStore.getVO();
-        String userId = currentUser != null ? currentUser.getId() : null;
-        if (userId != null && !"".equalsIgnoreCase(userId)) {
-            UserInfoVO userInfoVO = userInfoService.getById(userId);
-            if (userInfoVO != null) {
-                List<UserRoleVO> userRoles = userInfoVO.getRoles();
-                if (userRoles != null && !userRoles.isEmpty())
-                    isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
-            }
-        }
-        SolutionVO solutionVO = solutionService.getById(id);
-        if (solutionVO != null) {
-            if (!isAdmin)
-                solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false);
-            return new ResponseEntity<>(solutionVO, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(new SolutionVO(), HttpStatus.NO_CONTENT);
-        }
-    }
+	@Override
+	public ResponseEntity<SolutionVO> getById(String id) {
+		Boolean isAdmin = false;
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		if (userId != null && !"".equalsIgnoreCase(userId)) {
+			UserInfoVO userInfoVO = userInfoService.getById(userId);
+			if (userInfoVO != null) {
+				List<UserRoleVO> userRoles = userInfoVO.getRoles();
+				if (userRoles != null && !userRoles.isEmpty())
+					isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+			}
+		}
+		SolutionVO solutionVO = solutionService.getById(id);
+		if (solutionVO != null) {
+			if (!isAdmin)
+				solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false);
+			LOGGER.debug("Solution {} fetched successfully", id);
+			return new ResponseEntity<>(solutionVO, HttpStatus.OK);
+		} else {
+			LOGGER.debug("No solution {} found", id);
+			return new ResponseEntity<>(new SolutionVO(), HttpStatus.NO_CONTENT);
+		}
+	}
 
-    @Override
-    @ApiOperation(value = "update existing solution.", nickname = "update", notes = "update existing solution.", response = SolutionResponseVO.class, tags = {
-            "solutions", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Solution updated successfully", response = SolutionResponseVO.class),
-            @ApiResponse(code = 204, message = "Solution not found", response = SolutionResponseVO.class),
-            @ApiResponse(code = 400, message = "Bad Request"),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/solutions", produces = { "application/json" }, consumes = {
-            "application/json" }, method = RequestMethod.PUT)
-    public ResponseEntity<SolutionResponseVO> update(
-            @ApiParam(value = "Request Body that contains data required for updating an existing solution", required = true) @Valid @RequestBody SolutionRequestVO solutionRequestVO) {
-        SolutionVO requestSolutionVO = solutionRequestVO.getData();
-        SolutionResponseVO response = new SolutionResponseVO();
-        try {
-            String id = requestSolutionVO.getId();
-            List<MessageDescription> notFoundmessages = new ArrayList<>();
-            MessageDescription notFoundmessage = new MessageDescription();
-            notFoundmessage.setMessage("No Solution found for given id. Update cannot happen");
-            notFoundmessages.add(notFoundmessage);
-            response.setErrors(notFoundmessages);
-            ResponseEntity<SolutionResponseVO> notFoundResponse = new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
-            if (id == null || id.isEmpty() || id.trim().isEmpty()) {
-                return notFoundResponse;
-            }
-            SolutionVO existingSolutionVO = solutionService.getById(id);
-            SolutionVO mergedsolutionVO = null;
-            if (requestSolutionVO.isPublish() == null)
-                requestSolutionVO.setPublish(false);
-            if (existingSolutionVO != null && existingSolutionVO.getId() != null) {
-                // FIX for createby issue. This should have been sent from the client but
-                // missing.
-                CreatedByVO createdBy = existingSolutionVO.getCreatedBy();
-                String creatorId = "";
-                if (createdBy != null)
-                    creatorId = createdBy.getId();
-                CreatedByVO currentUser = this.userStore.getVO();
-                String userId = currentUser != null ? currentUser.getId() : "";
-                if (userId != null && !"".equalsIgnoreCase(userId)) {
-                    UserInfoVO userInfoVO = userInfoService.getById(userId);
-                    if (userInfoVO != null) {
-                        List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-                        if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-                            boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-                            boolean isTeamMember = existingSolutionVO.getTeam().stream()
-                                    .anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-                            if (userId == null || (!userId.equalsIgnoreCase(creatorId) && !isAdmin) && !isTeamMember) {
-                                List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
-                                MessageDescription notAuthorizedMsg = new MessageDescription();
-                                notAuthorizedMsg.setMessage(
-                                        "Not authorized to edit solution. Only user who created the solution or with admin role can edit.");
-                                notAuthorizedMsgs.add(notAuthorizedMsg);
-                                response.setErrors(notAuthorizedMsgs);
-                                ResponseEntity<SolutionResponseVO> notAuthorizedResponse = new ResponseEntity<>(
-                                        response, HttpStatus.FORBIDDEN);
-                                return notAuthorizedResponse;
-                            }
-                        }
-                    }
-                }
-                requestSolutionVO.setCreatedBy(createdBy);
-                requestSolutionVO.setCreatedDate(existingSolutionVO.getCreatedDate());
-                requestSolutionVO.lastModifiedDate(new Date());
-                // Apply closeDate if status of the solution is changed from Active to Closed
-                if (requestSolutionVO.getProjectStatus().getName().equals("Active")
-                        || requestSolutionVO.getProjectStatus().getName().equals("On hold")) {
-                    requestSolutionVO.setCloseDate(null);
-                } else if (requestSolutionVO.getProjectStatus().getName().equals("Closed")) {
-                    SolutionProjectStatusVO currentProjectStatus = existingSolutionVO.getProjectStatus();
-                    if (currentProjectStatus != null && (currentProjectStatus.getName().equals("Active")
-                            || currentProjectStatus.getName().equals("On hold"))) {
-                        requestSolutionVO.setCloseDate(new Date());
-                    } else {
-                        requestSolutionVO.setCloseDate(existingSolutionVO.getCloseDate());
-                    }
-                }
+	@Override
+	@ApiOperation(value = "update existing solution.", nickname = "update", notes = "update existing solution.", response = SolutionResponseVO.class, tags = {
+			"solutions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Solution updated successfully", response = SolutionResponseVO.class),
+			@ApiResponse(code = 204, message = "Solution not found", response = SolutionResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/solutions", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<SolutionResponseVO> update(
+			@ApiParam(value = "Request Body that contains data required for updating an existing solution", required = true) @Valid @RequestBody SolutionRequestVO solutionRequestVO) {
+		SolutionVO requestSolutionVO = solutionRequestVO.getData();
+		SolutionResponseVO response = new SolutionResponseVO();
+		try {
+			String id = requestSolutionVO.getId();
+			List<MessageDescription> notFoundmessages = new ArrayList<>();
+			MessageDescription notFoundmessage = new MessageDescription();
+			notFoundmessage.setMessage("No Solution found for given id. Update cannot happen");
+			notFoundmessages.add(notFoundmessage);
+			response.setErrors(notFoundmessages);
+			ResponseEntity<SolutionResponseVO> notFoundResponse = new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+			if (id == null || id.isEmpty() || id.trim().isEmpty()) {
+				LOGGER.debug("No solution found for given id {} , updated cannot happen.", id);
+				return notFoundResponse;
+			}
+			SolutionVO existingSolutionVO = solutionService.getById(id);
+			SolutionVO mergedsolutionVO = null;
+			if (requestSolutionVO.isPublish() == null)
+				requestSolutionVO.setPublish(false);
+			if (existingSolutionVO != null && existingSolutionVO.getId() != null) {
+				// FIX for createby issue. This should have been sent from the client but
+				// missing.
+				CreatedByVO createdBy = existingSolutionVO.getCreatedBy();
+				String creatorId = "";
+				if (createdBy != null)
+					creatorId = createdBy.getId();
+				CreatedByVO currentUser = this.userStore.getVO();
+				String userId = currentUser != null ? currentUser.getId() : "";
+				if (userId != null && !"".equalsIgnoreCase(userId)) {
+					UserInfoVO userInfoVO = userInfoService.getById(userId);
+					if (userInfoVO != null) {
+						List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+						if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+							boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+							boolean isTeamMember = existingSolutionVO.getTeam().stream()
+									.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
+							if (userId == null || (!userId.equalsIgnoreCase(creatorId) && !isAdmin) && !isTeamMember) {
+								List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+								MessageDescription notAuthorizedMsg = new MessageDescription();
+								notAuthorizedMsg.setMessage(
+										"Not authorized to edit solution. Only user who created the solution or with admin role can edit.");
+								notAuthorizedMsgs.add(notAuthorizedMsg);
+								response.setErrors(notAuthorizedMsgs);
+								LOGGER.debug("Solution {} cannot be edited. User {} not authorized", id, userId);
+								ResponseEntity<SolutionResponseVO> notAuthorizedResponse = new ResponseEntity<>(
+										response, HttpStatus.FORBIDDEN);
+								return notAuthorizedResponse;
+							}
+						}
+					}
+				}
+				requestSolutionVO.setCreatedBy(createdBy);
+				requestSolutionVO.setCreatedDate(existingSolutionVO.getCreatedDate());
+				requestSolutionVO.lastModifiedDate(new Date());
+				// Apply closeDate if status of the solution is changed from Active to Closed
+				if (requestSolutionVO.getProjectStatus().getName().equals("Active")
+						|| requestSolutionVO.getProjectStatus().getName().equals("On hold")) {
+					requestSolutionVO.setCloseDate(null);
+				} else if (requestSolutionVO.getProjectStatus().getName().equals("Closed")) {
+					SolutionProjectStatusVO currentProjectStatus = existingSolutionVO.getProjectStatus();
+					if (currentProjectStatus != null && (currentProjectStatus.getName().equals("Active")
+							|| currentProjectStatus.getName().equals("On hold"))) {
+						requestSolutionVO.setCloseDate(new Date());
+					} else {
+						requestSolutionVO.setCloseDate(existingSolutionVO.getCloseDate());
+					}
+				}
 
-                // Adding change logs for Solution Digital Value
-                Gson gson = new Gson();
-                if (null != existingSolutionVO.getDigitalValue()
-                        && !gson.toJson(existingSolutionVO.getDigitalValue())
-                                .equals(ConstantsUtility.SOLUTIONDIGITALVALUEVO_EMPTY)
-                        && !gson.toJson(existingSolutionVO.getDigitalValue())
-                                .equals(ConstantsUtility.SOLUTIONDIGITALVALUEVO_EMPTY_1)) {
-                    requestSolutionVO.setDigitalValue(solutionAssembler.digitalValueCompare(
-                            requestSolutionVO.getDigitalValue(), existingSolutionVO.getDigitalValue(), currentUser));
-                }
+				// Adding change logs for Solution Digital Value
+				Gson gson = new Gson();
+				if (null != existingSolutionVO.getDigitalValue()
+						&& !gson.toJson(existingSolutionVO.getDigitalValue())
+								.equals(ConstantsUtility.SOLUTIONDIGITALVALUEVO_EMPTY)
+						&& !gson.toJson(existingSolutionVO.getDigitalValue())
+								.equals(ConstantsUtility.SOLUTIONDIGITALVALUEVO_EMPTY_1)) {
+					requestSolutionVO.setDigitalValue(solutionAssembler.digitalValueCompare(
+							requestSolutionVO.getDigitalValue(), existingSolutionVO.getDigitalValue(), currentUser));
+				}
 
-                // Calculating DIgital Value
-                if (null != requestSolutionVO.getDigitalValue()) {
-                    SolutionDigitalValueVO digitalValueRequest = new SolutionDigitalValueVO();
-                    digitalValueRequest = SolutionAssembler.cloneDigitalValueVO(requestSolutionVO.getDigitalValue());
-                    ValueCalculatorVO valueCalculatorVO = solutionAssembler.valueCalculator(digitalValueRequest);
-                    requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
-                }
+				// Calculating DIgital Value
+				if (null != requestSolutionVO.getDigitalValue()) {
+					SolutionDigitalValueVO digitalValueRequest = new SolutionDigitalValueVO();
+					digitalValueRequest = SolutionAssembler.cloneDigitalValueVO(requestSolutionVO.getDigitalValue());
+					ValueCalculatorVO valueCalculatorVO = solutionAssembler.valueCalculator(digitalValueRequest);
+					requestSolutionVO.getDigitalValue().setValueCalculator(valueCalculatorVO);
+				}
 
-                mergedsolutionVO = solutionService.create(requestSolutionVO);
-                if (mergedsolutionVO != null && mergedsolutionVO.getId() != null) {
-                    response.setData(mergedsolutionVO);
-                    response.setErrors(null);
-                    return new ResponseEntity<>(response, HttpStatus.OK);
-                } else {
-                    List<MessageDescription> messages = new ArrayList<>();
-                    MessageDescription message = new MessageDescription();
-                    message.setMessage("Failed to update due to internal error");
-                    messages.add(message);
-                    response.setData(requestSolutionVO);
-                    response.setErrors(messages);
-                    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            } else {
-                return notFoundResponse;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            List<MessageDescription> messages = new ArrayList<>();
-            MessageDescription message = new MessageDescription();
-            message.setMessage("Failed to update due to internal error. " + e.getMessage());
-            messages.add(message);
-            response.setData(requestSolutionVO);
-            response.setErrors(messages);
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+				mergedsolutionVO = solutionService.create(requestSolutionVO);
+				if (mergedsolutionVO != null && mergedsolutionVO.getId() != null) {
+					response.setData(mergedsolutionVO);
+					response.setErrors(null);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				} else {
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Failed to update due to internal error");
+					messages.add(message);
+					response.setData(requestSolutionVO);
+					response.setErrors(messages);
+					LOGGER.debug("Solution {} cannot be edited. Failed with unknown internal error", id);
+					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			} else {
+				LOGGER.debug("No Solution {} found to edit.", id);
+				return notFoundResponse;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Solution {} cannot be edited. Failed due to internal error {} ", requestSolutionVO.getId(),
+					e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to update due to internal error. " + e.getMessage());
+			messages.add(message);
+			response.setData(requestSolutionVO);
+			response.setErrors(messages);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-    @ApiOperation(value = "Delete Solution for a given Id.", nickname = "delete", notes = "Delete solution for a given identifier.", response = GenericMessage.class, tags = {
-            "solutions", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-            @ApiResponse(code = 400, message = "Bad request."),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Method not allowed"),
-            @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/solutions/{id}", produces = { "application/json" }, consumes = {
-            "application/json" }, method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> delete(
-            @ApiParam(value = "Solution ID to be deleted", required = true) @PathVariable("id") String id) {
+	@ApiOperation(value = "Delete Solution for a given Id.", nickname = "delete", notes = "Delete solution for a given identifier.", response = GenericMessage.class, tags = {
+			"solutions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/solutions/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> delete(
+			@ApiParam(value = "Solution ID to be deleted", required = true) @PathVariable("id") String id) {
 
-        try {
-            CreatedByVO currentUser = this.userStore.getVO();
-            String userId = currentUser != null ? currentUser.getId() : "";
-            if (userId != null && !"".equalsIgnoreCase(userId)) {
-                UserInfoVO userInfoVO = userInfoService.getById(userId);
-                SolutionVO solution = solutionService.getById(id);
-                if (userInfoVO != null) {
-                    List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-                    if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-                        boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-                        String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
-                        boolean isOwner = (createdBy != null && createdBy.equals(userId));
-                        boolean isTeamMember = solution.getTeam().stream()
-                                .anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-                        if (!isAdmin && !isOwner && !isTeamMember) {
-                            MessageDescription notAuthorizedMsg = new MessageDescription();
-                            notAuthorizedMsg.setMessage(
-                                    "Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
-                            GenericMessage errorMessage = new GenericMessage();
-                            errorMessage.addErrors(notAuthorizedMsg);
-                            // log.error(notAuthorizedMsg.getMessage());
-                            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-                        }
-                    }
-                }
-            }
-            solutionService.deleteById(id);
-            GenericMessage successMsg = new GenericMessage();
-            successMsg.setSuccess("success");
-            // log.info("Solution deleted successfully");
-            return new ResponseEntity<>(successMsg, HttpStatus.OK);
-        } catch (EntityNotFoundException e) {
-            MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(invalidMsg);
-            // log.error(invalidMsg.getMessage());
-            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(exceptionMsg);
-            // log.error(exceptionMsg.getMessage());
-            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				SolutionVO solution = solutionService.getById(id);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
+						boolean isOwner = (createdBy != null && createdBy.equals(userId));
+						boolean isTeamMember = solution.getTeam().stream()
+								.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
+						if (!isAdmin && !isOwner && !isTeamMember) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg.setMessage(
+									"Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							// log.error(notAuthorizedMsg.getMessage());
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				}
+			}
+			solutionService.deleteById(id);
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			LOGGER.info("Solution {} deleted successfully", id);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			LOGGER.error("No Solution with the given id {} , couldnt delete.", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			LOGGER.error("Failed to delete solution with id {} , due to internal error.", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
-    /**
-     * getChangeLogsById fetch change logs for solution of given id
-     * 
-     * @param id
-     * @return SolutionChangeLogsCollectionVO
-     */
-    @Override
-    public ResponseEntity<SolutionChangeLogCollectionVO> getChangeLogsBySolutionId(String id) {
-        List<ChangeLogVO> changeLogsVO = solutionService.getChangeLogsBySolutionId(id);
-        if (changeLogsVO != null && !changeLogsVO.isEmpty()) {
-            SolutionChangeLogCollectionVO solutionChangeLogCollectionVO = new SolutionChangeLogCollectionVO();
-            solutionChangeLogCollectionVO.setData(changeLogsVO);
-            return new ResponseEntity<>(solutionChangeLogCollectionVO, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(new SolutionChangeLogCollectionVO(), HttpStatus.NO_CONTENT);
-        }
+	/**
+	 * getChangeLogsById fetch change logs for solution of given id
+	 * 
+	 * @param id
+	 * @return SolutionChangeLogsCollectionVO
+	 */
+	@Override
+	public ResponseEntity<SolutionChangeLogCollectionVO> getChangeLogsBySolutionId(String id) {
+		List<ChangeLogVO> changeLogsVO = solutionService.getChangeLogsBySolutionId(id);
+		if (changeLogsVO != null && !changeLogsVO.isEmpty()) {
+			SolutionChangeLogCollectionVO solutionChangeLogCollectionVO = new SolutionChangeLogCollectionVO();
+			solutionChangeLogCollectionVO.setData(changeLogsVO);
+			return new ResponseEntity<>(solutionChangeLogCollectionVO, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(new SolutionChangeLogCollectionVO(), HttpStatus.NO_CONTENT);
+		}
 
-    }
+	}
 
 }

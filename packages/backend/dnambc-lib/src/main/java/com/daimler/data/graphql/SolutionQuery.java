@@ -43,42 +43,41 @@ import java.util.Optional;
 @Component
 public class SolutionQuery implements GraphQLQueryResolver {
 
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private SolutionService solutionService;
 
-    @Autowired
-    private UserInfoService userInfoService;
+	@Autowired
+	private UserInfoService userInfoService;
 
-    @Autowired
-    private SolutionController solutionController;
+	@Autowired
+	private SolutionController solutionController;
 
-    public Optional<SolutionVO> getSolution(String id) {
-        return Optional.of(this.solutionService.getById(id));
+	public Optional<SolutionVO> getSolution(String id) {
+		return Optional.of(this.solutionService.getById(id));
 
-    }
+	}
 
-    public SolutionCollection getSolutions(Boolean published, String division, String location,
-                                           String phase,String dataVolume, String projectstatus, String useCaseType,String searchTerm,String tags,
-                                           int offset, int limit, String sortBy, String sortOrder) {
+	public SolutionCollection getSolutions(Boolean published, String division, String location, String phase,
+			String dataVolume, String projectstatus, String useCaseType, String searchTerm, String tags, int offset,
+			int limit, String sortBy, String sortOrder) {
 
-        ResponseEntity<SolutionCollection> solutions = solutionController.getAll(published, location, division,
-                phase, dataVolume, projectstatus,useCaseType,searchTerm,tags,offset,limit, sortBy,sortOrder);
+		ResponseEntity<SolutionCollection> solutions = solutionController.getAll(published, location, division, phase,
+				dataVolume, projectstatus, useCaseType, searchTerm, tags, offset, limit, sortBy, sortOrder);
 
-        if (solutions != null && solutions.getBody() != null) {
-            return solutions.getBody();
-        } else {
-            return null;
-        }
+		if (solutions != null && solutions.getBody() != null) {
+			return solutions.getBody();
+		} else {
+			return null;
+		}
 
-    }
+	}
 
-    public SolutionCollection getBookmarkedSolutions(String userId){
-        List<SolutionVO> solutionVOList  = userInfoService.getAllBookMarkedSolutionsForUser(userId);
-        SolutionCollection response = new SolutionCollection();
-        response.setTotalCount(solutionVOList!=null?solutionVOList.size():0);
-        response.setRecords(solutionVOList);
-        return response;
-    }
-
+	public SolutionCollection getBookmarkedSolutions(String userId) {
+		List<SolutionVO> solutionVOList = userInfoService.getAllBookMarkedSolutionsForUser(userId);
+		SolutionCollection response = new SolutionCollection();
+		response.setTotalCount(solutionVOList != null ? solutionVOList.size() : 0);
+		response.setRecords(solutionVOList);
+		return response;
+	}
 
 }

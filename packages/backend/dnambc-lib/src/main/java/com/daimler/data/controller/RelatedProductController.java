@@ -61,148 +61,157 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@Api(value = "RelatedProducts API",tags = {"relatedProducts"})
+@Api(value = "RelatedProducts API", tags = { "relatedProducts" })
 @RequestMapping("/api")
-public class RelatedProductController
-        implements RelatedProductsApi{
-	 
+@Slf4j
+public class RelatedProductController implements RelatedProductsApi {
+
 	@Autowired
-	 private RelatedProductService relatedProductService;
-	
-	 @Autowired
-	    private UserStore userStore;
-	 
-	 @Autowired
-	    private UserInfoService userInfoService;
-	    
+	private RelatedProductService relatedProductService;
+
+	@Autowired
+	private UserStore userStore;
+
+	@Autowired
+	private UserInfoService userInfoService;
+
 	@Override
-	@ApiOperation(value = "Adds a new relatedproduct.", nickname = "createRelatedProduct", notes = "Adds a new non existing relatedProduct which is used in providing solution.", response = RelatedProductResponse.class, tags={ "relatedProducts", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = RelatedProductResponse.class),
-        @ApiResponse(code = 400, message = "Bad Request", response = com.daimler.data.controller.exceptions.GenericMessage.class),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/relatedproducts",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.POST)
-	public
-    ResponseEntity<RelatedProductResponse> createRelatedProduct(@ApiParam(value = "Request Body that contains data required for creating a new relatedProduct" ,required=true )  @Valid @RequestBody RelatedProductRequestVO relatedProductRequestVO)
-    {
-		 RelatedProductVO requestRelatedProductVO = relatedProductRequestVO.getData();
+	@ApiOperation(value = "Adds a new relatedproduct.", nickname = "createRelatedProduct", notes = "Adds a new non existing relatedProduct which is used in providing solution.", response = RelatedProductResponse.class, tags = {
+			"relatedProducts", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = RelatedProductResponse.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = com.daimler.data.controller.exceptions.GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/relatedproducts", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<RelatedProductResponse> createRelatedProduct(
+			@ApiParam(value = "Request Body that contains data required for creating a new relatedProduct", required = true) @Valid @RequestBody RelatedProductRequestVO relatedProductRequestVO) {
+		RelatedProductVO requestRelatedProductVO = relatedProductRequestVO.getData();
 		RelatedProductResponse relatedProductResponse = new RelatedProductResponse();
 		relatedProductResponse.setData(requestRelatedProductVO);
-	        try {
-	            RelatedProductVO existingRelatedProductVO = relatedProductService.getByUniqueliteral("name", requestRelatedProductVO.getName());
-				if (existingRelatedProductVO != null && existingRelatedProductVO.getName() != null) {
-	            	relatedProductResponse.setData(existingRelatedProductVO);
-	            	List<MessageDescription> messages = new ArrayList<>();
-	                MessageDescription message = new MessageDescription();
-	                message.setMessage("Related Product `"+existingRelatedProductVO.getName()+"` already exists.");
-	                messages.add(message);
-	                relatedProductResponse.setErrors(messages);
-	            	return new ResponseEntity<>(relatedProductResponse, HttpStatus.CONFLICT);
-	            }	
-	            requestRelatedProductVO.setId(null);
-	            RelatedProductVO relatedProductVo = relatedProductService.create(requestRelatedProductVO);
-	            if (relatedProductVo != null && relatedProductVo.getId() != null) {
-	            	relatedProductResponse.setData(relatedProductVo);
-	                return new ResponseEntity<>(relatedProductResponse, HttpStatus.CREATED);
-	            } else
-	                return new ResponseEntity<>(relatedProductResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-	        } catch (Exception e) {
-	       //     log.error(e.getLocalizedMessage());
-	            return new ResponseEntity<>(relatedProductResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-	        }
+		try {
+			RelatedProductVO existingRelatedProductVO = relatedProductService.getByUniqueliteral("name",
+					requestRelatedProductVO.getName());
+			if (existingRelatedProductVO != null && existingRelatedProductVO.getName() != null) {
+				relatedProductResponse.setData(existingRelatedProductVO);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Related Product `" + existingRelatedProductVO.getName() + "` already exists.");
+				messages.add(message);
+				relatedProductResponse.setErrors(messages);
+				log.info("Related product {} already exists, cannot create. Returning with conflict.",
+						existingRelatedProductVO.getName());
+				return new ResponseEntity<>(relatedProductResponse, HttpStatus.CONFLICT);
+			}
+			requestRelatedProductVO.setId(null);
+			RelatedProductVO relatedProductVo = relatedProductService.create(requestRelatedProductVO);
+			if (relatedProductVo != null && relatedProductVo.getId() != null) {
+				relatedProductResponse.setData(relatedProductVo);
+				log.info("Related product {} created successfully", requestRelatedProductVO.getName());
+				return new ResponseEntity<>(relatedProductResponse, HttpStatus.CREATED);
+			} else
+				log.info("Unknown error occured while creating Related-product {} ",
+						requestRelatedProductVO.getName());
+			return new ResponseEntity<>(relatedProductResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			log.error("Exception {} , occured while creating Related-product {}", e.getLocalizedMessage(),
+					requestRelatedProductVO.getName());
+			return new ResponseEntity<>(relatedProductResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
-    }
+	}
 
 	@Override
-    @ApiOperation(value = "Deletes the tag identified by given ID.", nickname = "delete", notes = "Deletes the tag identified by given ID", response = com.daimler.data.controller.exceptions.GenericMessage.class, tags={ "relatedProducts", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successfully deleted.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 404, message = "Invalid id, record not found."),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/relatedProducts/{id}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.DELETE)
-    public ResponseEntity<com.daimler.data.controller.exceptions.GenericMessage> delete(@ApiParam(value = "Id of the relatedproduct",required=true) @PathVariable("id") String id)
-    {
+	@ApiOperation(value = "Deletes the tag identified by given ID.", nickname = "delete", notes = "Deletes the tag identified by given ID", response = com.daimler.data.controller.exceptions.GenericMessage.class, tags = {
+			"relatedProducts", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully deleted.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 404, message = "Invalid id, record not found."),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/relatedProducts/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<com.daimler.data.controller.exceptions.GenericMessage> delete(
+			@ApiParam(value = "Id of the relatedproduct", required = true) @PathVariable("id") String id) {
 		try {
-	            CreatedByVO currentUser = this.userStore.getVO();
-	            
-	            String userId = currentUser != null ? currentUser.getId() : "";
-	            System.out.println("userid is  : "+ userId);
-	            if (userId != null && !"".equalsIgnoreCase(userId)) {
-	                UserInfoVO userInfoVO = userInfoService.getById(userId);
-	                if (userInfoVO != null) {
-	                    List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
-	                    if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
-	                        boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
-	                        if (userId == null || !isAdmin) {
-	                            MessageDescription notAuthorizedMsg = new MessageDescription();
-	                            notAuthorizedMsg.setMessage("Not authorized to delete related products. User does not have admin privileges.");
-	                            GenericMessage errorMessage = new GenericMessage();
-	                            errorMessage.addErrors(notAuthorizedMsg);
-	                            return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-	                        }
-	                    }
-	                }
-	            }
-	            //relatedProductService.deleteById(id);
-				relatedProductService.deleteRelatedProduct(id);
-	            GenericMessage successMsg  = new GenericMessage();
-	            successMsg.setSuccess("success");
-	            return new ResponseEntity<>(successMsg, HttpStatus.OK);
-	        } catch (EntityNotFoundException e) {
-	            //log.error(e.getLocalizedMessage());
-	            MessageDescription invalidMsg = new MessageDescription("No related product with the given id");
-	            GenericMessage errorMessage = new GenericMessage();
-	            errorMessage.addErrors(invalidMsg);
-	            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-	        } catch (Exception e) {
-	           // log.error(e.getLocalizedMessage());
-	        	e.printStackTrace();
-	            MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
-	            GenericMessage errorMessage = new GenericMessage();
-	            errorMessage.addErrors(exceptionMsg);
-	            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-	        }
-    }
-    
-    @Override
-     @ApiOperation(value = "Get all realtedProducts.", nickname = "getAll", notes = "Get all related products. This endpoints will be used to Get all valid available relatedproducts.", response = RelatedProductVOCollection.class, tags={ "relatedProducts", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of succes or failure", response = RelatedProductVOCollection.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/relatedproducts",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-  public  ResponseEntity<RelatedProductVOCollection> getAll(){
-    	final List<RelatedProductVO> relatedProducts = relatedProductService.getAll();
-    	
-    	 RelatedProductVOCollection relatedProductVOCollection = new RelatedProductVOCollection();
-         if (relatedProducts != null && relatedProducts.size() > 0) {
-             relatedProductVOCollection.addAll(relatedProducts);
-             return new ResponseEntity<>(relatedProductVOCollection, HttpStatus.OK);
-         } else {
-             return new ResponseEntity<>(relatedProductVOCollection, HttpStatus.NO_CONTENT);
-         }
-    	
-    }  	
-    	      
+			CreatedByVO currentUser = this.userStore.getVO();
+
+			String userId = currentUser != null ? currentUser.getId() : "";
+			
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						if (userId == null || !isAdmin) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg.setMessage(
+									"Not authorized to delete related products. User does not have admin privileges.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							log.debug("User not authorized to delete Related-product");
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				}
+			}
+			// relatedProductService.deleteById(id);
+			relatedProductService.deleteRelatedProduct(id);
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			log.info("Related-product {} deleted successfully", id);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			// log.error(e.getLocalizedMessage());
+			MessageDescription invalidMsg = new MessageDescription("No related product with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			log.info("Related-product {} not found to be deleted", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to delete related product {} with exception", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get all realtedProducts.", nickname = "getAll", notes = "Get all related products. This endpoints will be used to Get all valid available relatedproducts.", response = RelatedProductVOCollection.class, tags = {
+			"relatedProducts", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = RelatedProductVOCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/relatedproducts", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<RelatedProductVOCollection> getAll() {
+		final List<RelatedProductVO> relatedProducts = relatedProductService.getAll();
+
+		RelatedProductVOCollection relatedProductVOCollection = new RelatedProductVOCollection();
+		if (relatedProducts != null && relatedProducts.size() > 0) {
+			relatedProductVOCollection.addAll(relatedProducts);
+			log.debug("Returning all available related-products");
+			return new ResponseEntity<>(relatedProductVOCollection, HttpStatus.OK);
+		} else {
+			log.debug("No related-products found, returning empty");
+			return new ResponseEntity<>(relatedProductVOCollection, HttpStatus.NO_CONTENT);
+		}
+
+	}
+
 }

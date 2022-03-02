@@ -38,9 +38,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class DataSource implements Serializable {
 
-    private static final long serialVersionUID = -5328996450105156344L;
+	private static final long serialVersionUID = -5328996450105156344L;
 
-    private String name;
+	private String name;
 //
 //    public DataSource() {
 //        super();
@@ -58,6 +58,5 @@ public class DataSource implements Serializable {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
 
 }

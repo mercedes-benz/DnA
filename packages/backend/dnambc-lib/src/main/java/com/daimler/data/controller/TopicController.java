@@ -35,6 +35,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,35 +47,33 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@Api(value = "Topic API",tags = {"topics"})
+@Api(value = "Topic API", tags = { "topics" })
 @RequestMapping("/api")
-public class TopicController
-        implements TopicsApi {
+@Slf4j
+public class TopicController implements TopicsApi {
 
+	@Autowired
+	private TopicService topicService;
 
-    @Autowired
-    private TopicService topicService;
-
-
-    @Override
-    @ApiOperation(value = "Get all available topics.", nickname = "getAll", notes = "Get all topics. This endpoints will be used to Get all valid available topics maintenance records.", response = TopicCollection.class, tags = {"topics",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully completed fetching all topics", response = TopicCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/topics",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    public ResponseEntity<TopicCollection> getAll() {
-        final List<TopicVO> topicsVo = topicService.getAll();
-        TopicCollection topicCollection = new TopicCollection();
-        if (topicsVo != null && topicsVo.size() > 0) {
-            topicCollection.addAll(topicsVo);
-            return new ResponseEntity<>(topicCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(topicCollection, HttpStatus.NO_CONTENT);
-        }
-    }
-
+	@Override
+	@ApiOperation(value = "Get all available topics.", nickname = "getAll", notes = "Get all topics. This endpoints will be used to Get all valid available topics maintenance records.", response = TopicCollection.class, tags = {
+			"topics", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Successfully completed fetching all topics", response = TopicCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/topics", produces = { "application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<TopicCollection> getAll() {
+		final List<TopicVO> topicsVo = topicService.getAll();
+		TopicCollection topicCollection = new TopicCollection();
+		if (topicsVo != null && topicsVo.size() > 0) {
+			topicCollection.addAll(topicsVo);
+			log.debug("Returning available topics");
+			return new ResponseEntity<>(topicCollection, HttpStatus.OK);
+		} else {
+			log.debug("No topics to return");
+			return new ResponseEntity<>(topicCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

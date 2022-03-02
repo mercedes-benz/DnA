@@ -38,10 +38,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangeLogs implements Serializable {
-	
+
 	private static final long serialVersionUID = -4336964443644784894L;
 
-	//private String changeDate;
+	// private String changeDate;
 	private Date changeDate;
 	private SolutionTeamMember modifiedBy;
 	private String fieldChanged;

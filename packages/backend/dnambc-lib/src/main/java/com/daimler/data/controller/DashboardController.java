@@ -55,6 +55,8 @@ import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
 import com.daimler.data.dto.dashboard.SolCountWidgetResponseVO;
 import com.daimler.data.dto.dashboard.SolDSWidgetResponseVO;
 import com.daimler.data.dto.dashboard.SolDigitalValueWidgetResponseVO;
+import com.daimler.data.dto.dashboard.SolDigitalValuesummaryResponseVO;
+import com.daimler.data.dto.dashboard.SolDigitalValuesummaryVO;
 import com.daimler.data.dto.dashboard.SolLocWidgetResponseVO;
 import com.daimler.data.dto.dashboard.SolMilestoneWidgetResponseVO;
 import com.daimler.data.dto.solution.CreatedByVO;
@@ -62,7 +64,6 @@ import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.dashboard.DashboardService;
-import com.daimler.data.service.solution.SolutionService;
 import com.daimler.data.service.userinfo.UserInfoService;
 
 import io.swagger.annotations.Api;
@@ -128,13 +129,12 @@ public class DashboardController implements DashboardApi {
 				}
 			}
 			List<DatasourceWidgetVO> datasources = dashboardService.getSolDatasource(published, assembler.toList(phase),
-					assembler.toList(dataVolume), assembler.toDivisions(division), assembler.toList(location),
-					assembler.toList(projectstatus), useCaseType, userId, isAdmin, bookmarkedSolutions,
-					assembler.toList(searchTerm), assembler.toList(tags));
+					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
+					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
+					assembler.toList(tags));
 
 			SolDSWidgetResponseVO resVO = new SolDSWidgetResponseVO();
 			resVO.setDataSources(datasources);
-			LOGGER.info("Entering getSolutionCount.");
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
 		} catch (Exception e) {
 			LOGGER.error("Internal server error occured::{}", e.getMessage());
@@ -184,13 +184,12 @@ public class DashboardController implements DashboardApi {
 				}
 			}
 			List<LocationWidgetVO> locations = dashboardService.getSolLocation(published, assembler.toList(phase),
-					assembler.toList(dataVolume), assembler.toDivisions(division), assembler.toList(location),
-					assembler.toList(projectstatus), useCaseType, userId, isAdmin, bookmarkedSolutions,
-					assembler.toList(searchTerm), assembler.toList(tags));
+					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
+					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
+					assembler.toList(tags));
 
 			SolLocWidgetResponseVO resVO = new SolLocWidgetResponseVO();
 			resVO.setLocations(locations);
-			LOGGER.info("Entering getSolutionCount.");
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
 		} catch (Exception e) {
 			LOGGER.error("Internal server error occured::{}", e.getMessage());
@@ -241,16 +240,15 @@ public class DashboardController implements DashboardApi {
 				}
 			}
 			List<MilestoneWidgetVO> milestones = dashboardService.getSolMilestone(published, assembler.toList(phase),
-					assembler.toList(dataVolume), assembler.toDivisions(division), assembler.toList(location),
-					assembler.toList(projectstatus), useCaseType, userId, isAdmin, bookmarkedSolutions,
-					assembler.toList(searchTerm), assembler.toList(tags));
+					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
+					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
+					assembler.toList(tags));
 
 			SolMilestoneWidgetResponseVO resVO = new SolMilestoneWidgetResponseVO();
 			resVO.setMilestones(milestones);
-			LOGGER.info("Entering getSolutionCount.");
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
 		} catch (Exception e) {
-			e.printStackTrace();
+			
 			LOGGER.error("Internal server error occured::{}", e.getMessage());
 			SolMilestoneWidgetResponseVO resVO = new SolMilestoneWidgetResponseVO();
 			List<MessageDescription> errors = Arrays.asList(new MessageDescription(e.getMessage()));
@@ -298,13 +296,12 @@ public class DashboardController implements DashboardApi {
 				}
 			}
 			Long totalCount = dashboardService.getSolCountWithNotebook(published, assembler.toList(phase),
-					assembler.toList(dataVolume), assembler.toDivisions(division), assembler.toList(location),
-					assembler.toList(projectstatus), useCaseType, userId, isAdmin, bookmarkedSolutions,
-					assembler.toList(searchTerm), assembler.toList(tags));
+					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
+					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
+					assembler.toList(tags));
 
 			SolCountWidgetResponseVO resVO = new SolCountWidgetResponseVO();
 			resVO.setTotalCount(totalCount.intValue());
-			LOGGER.info("Entering getSolutionCount.");
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
 		} catch (Exception e) {
 			LOGGER.error("Internal server error occured::{}", e.getMessage());
@@ -336,7 +333,6 @@ public class DashboardController implements DashboardApi {
 			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
 			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
 			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags) {
-		LOGGER.info("Entering getSolutionCount.");
 		try {
 			Boolean isAdmin = false;
 			CreatedByVO currentUser = this.userStore.getVO();
@@ -356,12 +352,11 @@ public class DashboardController implements DashboardApi {
 			}
 
 			Long totalCount = dashboardService.getSolCount(published, assembler.toList(phase),
-					assembler.toList(dataVolume), assembler.toDivisions(division), assembler.toList(location),
-					assembler.toList(projectstatus), useCaseType, userId, isAdmin, bookmarkedSolutions,
-					assembler.toList(searchTerm), assembler.toList(tags));
+					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
+					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
+					assembler.toList(tags));
 			SolCountWidgetResponseVO resVO = new SolCountWidgetResponseVO();
 			resVO.setTotalCount(totalCount.intValue());
-			LOGGER.info("Entering getSolutionCount.");
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
 
 		} catch (Exception e) {
@@ -412,17 +407,71 @@ public class DashboardController implements DashboardApi {
 				}
 			}
 
-			BigDecimal totalDigitalValue = dashboardService.getSolDigitalValue(published,
-					assembler.toList(phase), assembler.toList(dataVolume), assembler.toDivisions(division),
-					assembler.toList(location), assembler.toList(projectstatus), useCaseType, userId, isAdmin,
-					bookmarkedSolutions, assembler.toList(searchTerm), assembler.toList(tags));
+			BigDecimal totalDigitalValue = dashboardService.getSolDigitalValue(published, assembler.toList(phase),
+					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
+					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
+					assembler.toList(tags));
 			SolDigitalValueWidgetResponseVO resVO = new SolDigitalValueWidgetResponseVO();
 			resVO.setTotalDigitalValue(totalDigitalValue);
-			LOGGER.info("Entering getSolutionCount.");
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
 		} catch (Exception e) {
 			LOGGER.error("Internal server error occured::{}", e.getMessage());
 			SolDigitalValueWidgetResponseVO resVO = new SolDigitalValueWidgetResponseVO();
+			List<MessageDescription> errors = Arrays.asList(new MessageDescription(e.getMessage()));
+			resVO.setErrors(errors);
+			return new ResponseEntity<>(resVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get summary of Digital values.", nickname = "getDigitalValuesummary", notes = "Get Digital Value summary of solution with given filter.", response = SolDigitalValuesummaryResponseVO.class, tags = {
+			"dashboard", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure.", response = SolDigitalValuesummaryResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 404, message = "Invalid id, record not found."),
+			@ApiResponse(code = 500, message = "Internal error.") })
+	@RequestMapping(value = "/dashboard/digitalvaluesummary", method = RequestMethod.GET)
+	public ResponseEntity<SolDigitalValuesummaryResponseVO> getDigitalValuesummary(
+			@ApiParam(value = "Filtering solutions based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
+			@ApiParam(value = "List of IDs of locations of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "location", required = false) String location,
+			@ApiParam(value = "List of IDs of divisions and subdivisions under each division of solutions. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division,
+			@ApiParam(value = "List of IDs of current phase of solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "phase", required = false) String phase,
+			@ApiParam(value = "List of IDs of dataVolume of dataSources for solutions, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "dataVolume", required = false) String dataVolume,
+			@ApiParam(value = "ID of current project status of solutions, Example 1") @Valid @RequestParam(value = "projectstatus", required = false) String projectstatus,
+			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
+			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
+			@ApiParam(value = "tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags) {
+		try {
+			Boolean isAdmin = false;
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : null;
+			List<String> bookmarkedSolutions = new ArrayList<>();
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId);
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoles = userInfoVO.getRoles();
+					if (userRoles != null && !userRoles.isEmpty())
+						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
+					if (favSolutions != null && !favSolutions.isEmpty())
+						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
+								.collect(Collectors.toList());
+				}
+			}
+
+			List<SolDigitalValuesummaryVO> solDigitalValuesummaryVO = dashboardService.getSolDigitalValueSummary(
+					published, assembler.toList(phase), assembler.toList(dataVolume), division,
+					assembler.toList(location), assembler.toList(projectstatus), useCaseType, userId, isAdmin,
+					bookmarkedSolutions, assembler.toList(searchTerm), assembler.toList(tags));
+			SolDigitalValuesummaryResponseVO resVO = new SolDigitalValuesummaryResponseVO();
+			resVO.setSolDigitalValuesummary(solDigitalValuesummaryVO);
+			return new ResponseEntity<>(resVO, HttpStatus.OK);
+		} catch (Exception e) {
+			LOGGER.error("Internal server error occured::{}", e.getMessage());
+			SolDigitalValuesummaryResponseVO resVO = new SolDigitalValuesummaryResponseVO();
 			List<MessageDescription> errors = Arrays.asList(new MessageDescription(e.getMessage()));
 			resVO.setErrors(errors);
 			return new ResponseEntity<>(resVO, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.tag;
 import com.daimler.data.db.entities.TagNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface TagCustomRepository
-        extends CommonDataRepository<TagNsql, String> {
+public interface TagCustomRepository extends CommonDataRepository<TagNsql, String> {
 
 }

@@ -30,8 +30,6 @@ package com.daimler.data.db.repo.itsmm;
 import com.daimler.data.db.entities.ItsmmGameEventDetailNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface ItsmmGameEventCustomRepository
-        extends CommonDataRepository<ItsmmGameEventDetailNsql, String> {
+public interface ItsmmGameEventCustomRepository extends CommonDataRepository<ItsmmGameEventDetailNsql, String> {
 
-	
 }

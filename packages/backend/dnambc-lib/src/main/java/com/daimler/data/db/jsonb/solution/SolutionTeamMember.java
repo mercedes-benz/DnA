@@ -46,7 +46,7 @@ public class SolutionTeamMember {
 	private String mobileNumber;
 	private String company;
 	private String teamMemberPosition;
-	
+
 //	public SolutionTeamMember() {
 //		super();
 //	}
@@ -136,5 +136,5 @@ public class SolutionTeamMember {
 //	public void setTeamMemberPosition(String teamMemberPosition) {
 //		this.teamMemberPosition = teamMemberPosition;
 //	}
-		
+
 }

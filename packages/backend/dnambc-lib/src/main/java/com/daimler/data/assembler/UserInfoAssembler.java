@@ -27,7 +27,6 @@
 
 package com.daimler.data.assembler;
 
-
 import com.daimler.data.controller.LoginController;
 import com.daimler.data.controller.LoginController.UserRole;
 import com.daimler.data.db.entities.UserInfoNsql;
@@ -46,113 +45,112 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class UserInfoAssembler
-        implements GenericAssembler<UserInfoVO, UserInfoNsql> {
+public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoNsql> {
 
-    @Override
-    public UserInfoVO toVo(UserInfoNsql entity) {
-        UserInfoVO userInfoVO = null;
-        if (entity != null) {
-            userInfoVO = new UserInfoVO();
-            userInfoVO.setId(entity.getId());
+	@Override
+	public UserInfoVO toVo(UserInfoNsql entity) {
+		UserInfoVO userInfoVO = null;
+		if (entity != null) {
+			userInfoVO = new UserInfoVO();
+			userInfoVO.setId(entity.getId());
 			/* userInfoVO.setToken(entity.getToken()); */
-            UserInfo userData = entity.getData();
-            if (userData != null) {
-                userInfoVO.setDepartment(userData.getDepartment());
-                userInfoVO.setEmail(userData.getEmail());
-                userInfoVO.setFirstName(userData.getFirstName());
-                userInfoVO.setLastName(userData.getLastName());
-                userInfoVO.setMobileNumber(userData.getMobileNumber());
+			UserInfo userData = entity.getData();
+			if (userData != null) {
+				userInfoVO.setDepartment(userData.getDepartment());
+				userInfoVO.setEmail(userData.getEmail());
+				userInfoVO.setFirstName(userData.getFirstName());
+				userInfoVO.setLastName(userData.getLastName());
+				userInfoVO.setMobileNumber(userData.getMobileNumber());
 
-                List<UserFavoriteUseCase> favoriteUsecases = userData.getFavoriteUsecases();
-                if (favoriteUsecases != null && !favoriteUsecases.isEmpty()) {
-                    List<UserFavoriteUseCaseVO> favoriteUsecaseVOList = new ArrayList<>();
-                    favoriteUsecases.forEach(favUseCase ->{
-                        UserFavoriteUseCaseVO userFavoriteUsecaseVO = new UserFavoriteUseCaseVO();
-                        userFavoriteUsecaseVO.setId(favUseCase.getId());
-                        userFavoriteUsecaseVO.setUsecaseId(favUseCase.getUsecaseId());
-                        favoriteUsecaseVOList.add(userFavoriteUsecaseVO);
-                    });
-                    userInfoVO.setFavoriteUsecases(favoriteUsecaseVOList);
-                }
+				List<UserFavoriteUseCase> favoriteUsecases = userData.getFavoriteUsecases();
+				if (favoriteUsecases != null && !favoriteUsecases.isEmpty()) {
+					List<UserFavoriteUseCaseVO> favoriteUsecaseVOList = new ArrayList<>();
+					favoriteUsecases.forEach(favUseCase -> {
+						UserFavoriteUseCaseVO userFavoriteUsecaseVO = new UserFavoriteUseCaseVO();
+						userFavoriteUsecaseVO.setId(favUseCase.getId());
+						userFavoriteUsecaseVO.setUsecaseId(favUseCase.getUsecaseId());
+						favoriteUsecaseVOList.add(userFavoriteUsecaseVO);
+					});
+					userInfoVO.setFavoriteUsecases(favoriteUsecaseVOList);
+				}
 
-                List<UserInfoRole> roles = userData.getRoles();
-                if (roles != null && !roles.isEmpty()) {
-                    List<UserRoleVO> rolesVO = new ArrayList<>();
-                    rolesVO = roles.stream().map(x -> {
-                        UserRoleVO roleVO = new UserRoleVO();
-                        roleVO.setId(x.getId());
-                        roleVO.setName(x.getName());
-                        return roleVO;
-                    }).collect(Collectors.toList());
-                    userInfoVO.setRoles(rolesVO);
-                }
-            }
-        }
-        return userInfoVO;
-    }
+				List<UserInfoRole> roles = userData.getRoles();
+				if (roles != null && !roles.isEmpty()) {
+					List<UserRoleVO> rolesVO = new ArrayList<>();
+					rolesVO = roles.stream().map(x -> {
+						UserRoleVO roleVO = new UserRoleVO();
+						roleVO.setId(x.getId());
+						roleVO.setName(x.getName());
+						return roleVO;
+					}).collect(Collectors.toList());
+					userInfoVO.setRoles(rolesVO);
+				}
+			}
+		}
+		return userInfoVO;
+	}
 
-    public UserInfoNsql toEntity(LoginController.UserInfo userInfo, List<UserInfoRole> userRoles) {
-        UserInfoNsql entity = new UserInfoNsql();
-        entity.setId(userInfo.getId());
-        UserInfo userData = new UserInfo();
-        userData.setEmail(userInfo.getEmail());
-        userData.setDepartment(userInfo.getDepartment());
-        userData.setFirstName(userInfo.getFirstName());
-        userData.setLastName(userInfo.getLastName());
-        userData.setMobileNumber(userInfo.getMobileNumber());
-        userData.setFavoriteUsecases(new ArrayList<>());
-        userData.setRoles(userRoles);
-        entity.setData(userData);
-        return entity;
-    }
+	public UserInfoNsql toEntity(LoginController.UserInfo userInfo, List<UserInfoRole> userRoles) {
+		UserInfoNsql entity = new UserInfoNsql();
+		entity.setId(userInfo.getId());
+		UserInfo userData = new UserInfo();
+		userData.setEmail(userInfo.getEmail());
+		userData.setDepartment(userInfo.getDepartment());
+		userData.setFirstName(userInfo.getFirstName());
+		userData.setLastName(userInfo.getLastName());
+		userData.setMobileNumber(userInfo.getMobileNumber());
+		userData.setFavoriteUsecases(new ArrayList<>());
+		userData.setRoles(userRoles);
+		entity.setData(userData);
+		return entity;
+	}
 
-    @Override
-    public UserInfoNsql toEntity(UserInfoVO vo) {
+	@Override
+	public UserInfoNsql toEntity(UserInfoVO vo) {
 
-        UserInfoNsql entity = new UserInfoNsql();
-        if(vo !=null) {
-            String id = vo.getId();
-            if(!StringUtils.isEmpty(id)) {
-                entity.setId(id);
-            }
-        }
+		UserInfoNsql entity = new UserInfoNsql();
+		if (vo != null) {
+			String id = vo.getId();
+			if (!StringUtils.isEmpty(id)) {
+				entity.setId(id);
+			}
+		}
 		/* entity.setToken(vo.getToken()); */
-        UserInfo jsonData = new UserInfo();
-        BeanUtils.copyProperties(vo,jsonData);
+		UserInfo jsonData = new UserInfo();
+		BeanUtils.copyProperties(vo, jsonData);
 
-        List<UserInfoRole> jsonRoles = new ArrayList<>();
-        vo.getRoles().stream().forEach(userRoleVO -> {
-            UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(),userRoleVO.getName());
-            jsonRoles.add(jsonRole);
-        });
-        jsonData.setRoles(jsonRoles);
+		List<UserInfoRole> jsonRoles = new ArrayList<>();
+		vo.getRoles().stream().forEach(userRoleVO -> {
+			UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(), userRoleVO.getName());
+			jsonRoles.add(jsonRole);
+		});
+		jsonData.setRoles(jsonRoles);
 
-        if(vo.getFavoriteUsecases() !=  null){
-            List<UserFavoriteUseCase> jsonFavUsecases = new ArrayList<>();
-            vo.getFavoriteUsecases().stream().forEach(usecaseVO -> {
-                UserFavoriteUseCase jsonFavUsecase = new UserFavoriteUseCase();
-                jsonFavUsecase.setUsecaseId(usecaseVO.getUsecaseId());
-                jsonFavUsecases.add(jsonFavUsecase);
-            });
-            jsonData.setFavoriteUsecases(jsonFavUsecases);
-        }
-        entity.setData(jsonData);
-        return entity;
-    }
+		if (vo.getFavoriteUsecases() != null) {
+			List<UserFavoriteUseCase> jsonFavUsecases = new ArrayList<>();
+			vo.getFavoriteUsecases().stream().forEach(usecaseVO -> {
+				UserFavoriteUseCase jsonFavUsecase = new UserFavoriteUseCase();
+				jsonFavUsecase.setUsecaseId(usecaseVO.getUsecaseId());
+				jsonFavUsecases.add(jsonFavUsecase);
+			});
+			jsonData.setFavoriteUsecases(jsonFavUsecases);
+		}
+		entity.setData(jsonData);
+		return entity;
+	}
 
-    public List<UserRole> toUserRoles(List<UserRoleVO> rolesVO) {
-        List<UserRole> userRoles = new ArrayList<>();
-        if (rolesVO != null && !rolesVO.isEmpty()) {
-            userRoles = rolesVO.stream().map(x -> {
-                UserRole userRole = new UserRole();
-                BeanUtils.copyProperties(x, userRole);
-                //userRole.setId(x.getId());
-                //userRole.setName(x.getName());
-                return userRole;
-            }).collect(Collectors.toList());
-        }
-        return userRoles;
-    }
+	public List<UserRole> toUserRoles(List<UserRoleVO> rolesVO) {
+		List<UserRole> userRoles = new ArrayList<>();
+		if (rolesVO != null && !rolesVO.isEmpty()) {
+			userRoles = rolesVO.stream().map(x -> {
+				UserRole userRole = new UserRole();
+				BeanUtils.copyProperties(x, userRole);
+				// userRole.setId(x.getId());
+				// userRole.setName(x.getName());
+				return userRole;
+			}).collect(Collectors.toList());
+		}
+		return userRoles;
+	}
 
 }

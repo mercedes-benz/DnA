@@ -47,12 +47,11 @@ import com.daimler.data.db.entities.AppSubscriptionNsql;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
 @Repository
-public class AppSubscriptionCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<AppSubscriptionNsql, String>
-        implements AppSubscriptionCustomRepository {
+public class AppSubscriptionCustomRepositoryImpl extends CommonDataRepositoryImpl<AppSubscriptionNsql, String>
+		implements AppSubscriptionCustomRepository {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(AppSubscriptionCustomRepositoryImpl.class);
-	
+
 	/**
 	 * get All Subscribed record based on filer parameter
 	 * 
@@ -65,14 +64,17 @@ public class AppSubscriptionCustomRepositoryImpl
 	 */
 	@Override
 	public List<AppSubscriptionNsql> getAllWithFilters(String userId, boolean isAdmin, String recordStatus,
-			String appId, String sortBy, String sortOrder, int offset, int limit, String appName) {
-		LOGGER.trace("Entering getAllWithFilters");
+			String appId, String sortBy, String sortOrder, int offset, int limit, String appName, String searchTerm) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<AppSubscriptionNsql> cq = cb.createQuery(AppSubscriptionNsql.class);
 		Root<AppSubscriptionNsql> root = cq.from(AppSubscriptionNsql.class);
 		CriteriaQuery<AppSubscriptionNsql> getAll = cq.select(root);
-
-		Predicate consolidatedPredicate = buildPredicate(cb, root, userId, isAdmin, recordStatus, appId, appName);
+		LOGGER.debug(
+				"Get all requested with filters userid{} isAdmin {} recordStat {} appId {} sortBy {} sortOrder {} offset {} "
+						+ "limit {} appName {} searchTerm {}",
+				userId, isAdmin, recordStatus, appId, sortBy, sortOrder, offset, limit, appName, searchTerm);
+		Predicate consolidatedPredicate = buildPredicate(cb, root, userId, isAdmin, recordStatus, appId, appName,
+				searchTerm);
 		cq.where(consolidatedPredicate);
 		Object[] literalExpressionAndProperties = this.getLiteralForVariable(cb, root, sortBy);
 		Expression<?>[] sortByExpressions = (Expression<?>[]) literalExpressionAndProperties[0];
@@ -97,7 +99,6 @@ public class AppSubscriptionCustomRepositoryImpl
 			getAllQuery.setFirstResult(offset);
 		if (limit > 0)
 			getAllQuery.setMaxResults(limit);
-		LOGGER.trace("Exiting getAllWithFilters");
 		return getAllQuery.getResultList();
 	}
 
@@ -109,19 +110,18 @@ public class AppSubscriptionCustomRepositoryImpl
 	 * @return count
 	 */
 	@Override
-	public Long getCount(String userId,boolean isAdmin, String recordStatus, String appId) {
-		LOGGER.trace("Entering getCount");
+	public Long getCount(String userId, boolean isAdmin, String recordStatus, String appId, String searchTerm) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
-	    CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-	    Root<AppSubscriptionNsql> root = cq.from(AppSubscriptionNsql.class);
-	    CriteriaQuery<Long> getAll = cq.select(cb.count(root));
-	    Predicate consolidatedPredicate = buildPredicate(cb,root,userId,isAdmin,recordStatus, appId, null); 
-	    cq.where(consolidatedPredicate);
-	    TypedQuery<Long> getAllQuery = em.createQuery(getAll);
-	    LOGGER.trace("Exiting getCount");
-	    return getAllQuery.getSingleResult();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+		Root<AppSubscriptionNsql> root = cq.from(AppSubscriptionNsql.class);
+		CriteriaQuery<Long> getAll = cq.select(cb.count(root));
+		Predicate consolidatedPredicate = buildPredicate(cb, root, userId, isAdmin, recordStatus, appId, null,
+				searchTerm);
+		cq.where(consolidatedPredicate);
+		TypedQuery<Long> getAllQuery = em.createQuery(getAll);
+		return getAllQuery.getSingleResult();
 	}
-	
+
 	/**
 	 * Build predicate with given parameters
 	 * 
@@ -133,8 +133,7 @@ public class AppSubscriptionCustomRepositoryImpl
 	 * @return Predicate
 	 */
 	private Predicate buildPredicate(CriteriaBuilder cb, Root<AppSubscriptionNsql> root, String userId, boolean isAdmin,
-			String recordStatus, String appId, String appName) {
-		LOGGER.trace("Entering buildPredicate");
+			String recordStatus, String appId, String appName, String searchTerm) {
 		Predicate pMain = cb.isNotNull(root.get("id"));
 		if (StringUtils.hasText(userId) && !isAdmin) {
 			LOGGER.debug("Adding userId in query predicate");
@@ -155,8 +154,7 @@ public class AppSubscriptionCustomRepositoryImpl
 		if (StringUtils.hasText(appId)) {
 			LOGGER.debug("Adding appId in query predicate");
 			Predicate inAppIdPredicate = cb.equal(
-					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("appId")),
-					appId);
+					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("appId")), appId);
 
 			pMain = cb.and(pMain, inAppIdPredicate);
 		}
@@ -168,27 +166,72 @@ public class AppSubscriptionCustomRepositoryImpl
 
 			pMain = cb.and(pMain, inAppNamePredicate);
 		}
-		LOGGER.trace("Exiting buildPredicate");
+		if (StringUtils.hasText(searchTerm)) {
+			LOGGER.debug("Adding searchTerm in query predicate");
+			Predicate tempAppNameCondition = cb.like(cb.lower(
+					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("appName"))),
+					"%" + searchTerm.toLowerCase() + "%");
+			Predicate tempDescriptionCondition = cb.like(cb.lower(
+					cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("description"))),
+					"%" + searchTerm.toLowerCase() + "%");
+			Predicate consolidateTempKeyCondition = cb.or(tempAppNameCondition, tempDescriptionCondition);
+			pMain = cb.and(pMain, consolidateTempKeyCondition);
+
+		}
 		return pMain;
 	}
-	
+
 	private Object[] getLiteralForVariable(CriteriaBuilder cb, Root<AppSubscriptionNsql> root, String inputVariable) {
 		List<Expression<?>> expressions = new ArrayList<>();
 		boolean isNumber = false;
-		if(inputVariable != null) {
-			switch(inputVariable) {
-				case  "appName" : expressions.add(root.get("data")); expressions.add(cb.literal("appName")); break;
-				case  "createdBy" : expressions.add(root.get("data")); expressions.add(cb.literal("createdBy")); break;
-				case  "createdDate" : expressions.add(root.get("data")); expressions.add(cb.literal("createdDate")); isNumber = true; break;
-				case  "updatedBy" : expressions.add(root.get("data")); expressions.add(cb.literal("updatedBy")); break;
-				case  "updatedDate" : expressions.add(root.get("data")); expressions.add(cb.literal("updatedDate")); isNumber = true; break;
-				case  "expireOn" : expressions.add(root.get("data")); expressions.add(cb.literal("expireOn")); isNumber = true; break;
-				case  "lastUsedOn" : expressions.add(root.get("data")); expressions.add(cb.literal("lastUsedOn")); isNumber = true; break;
-				case  "usageCount" : expressions.add(root.get("data")); expressions.add(cb.literal("usageCount")); isNumber = true; break;
-				default : break;
+		if (inputVariable != null) {
+			switch (inputVariable) {
+			case "appName":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("appName"));
+				break;
+			case "createdBy":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("createdBy"));
+				break;
+			case "createdDate":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("createdDate"));
+				isNumber = true;
+				break;
+			case "updatedBy":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("updatedBy"));
+				break;
+			case "updatedDate":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("updatedDate"));
+				isNumber = true;
+				break;
+			case "expireOn":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("expireOn"));
+				isNumber = true;
+				break;
+			case "lastUsedOn":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("lastUsedOn"));
+				isNumber = true;
+				break;
+			case "usageCount":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("usageCount"));
+				isNumber = true;
+				break;
+			case "description":
+				expressions.add(root.get("data"));
+				expressions.add(cb.literal("description"));
+				break;
+			default:
+				break;
 			}
 		}
-		return new Object[]{expressions.toArray(new Expression[expressions.size()]),isNumber};
+		return new Object[] { expressions.toArray(new Expression[expressions.size()]), isNumber };
 	}
-	
+
 }

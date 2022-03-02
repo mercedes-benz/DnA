@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 public class CostFactorSummary implements Serializable {
 
 	private static final long serialVersionUID = -147664283453030921L;
-	
+
 	private BigDecimal value;
 	private String year;
 }

@@ -31,35 +31,34 @@ import java.io.Serializable;
 
 public class Location implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    private String name;
-    private boolean is_row;
+	private static final long serialVersionUID = 1L;
+	private String name;
+	private boolean is_row;
 
-    public Location() {
-        super();
-    }
+	public Location() {
+		super();
+	}
 
-    public Location(String name, boolean is_row) {
-        super();
-        this.name = name;
-        this.is_row = is_row;
-    }
+	public Location(String name, boolean is_row) {
+		super();
+		this.name = name;
+		this.is_row = is_row;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public boolean isIs_row() {
-        return is_row;
-    }
+	public boolean isIs_row() {
+		return is_row;
+	}
 
-    public void setIs_row(boolean is_row) {
-        this.is_row = is_row;
-    }
-
+	public void setIs_row(boolean is_row) {
+		this.is_row = is_row;
+	}
 
 }

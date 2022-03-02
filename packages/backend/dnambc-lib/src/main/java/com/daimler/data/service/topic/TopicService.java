@@ -31,6 +31,5 @@ import com.daimler.data.db.entities.TopicNsql;
 import com.daimler.data.dto.topic.TopicVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface TopicService
-        extends CommonService<TopicVO, TopicNsql, String> {
+public interface TopicService extends CommonService<TopicVO, TopicNsql, String> {
 }

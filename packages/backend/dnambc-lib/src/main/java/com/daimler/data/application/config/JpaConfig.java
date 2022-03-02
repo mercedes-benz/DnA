@@ -34,10 +34,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories
-        (basePackages = "com.daimler.data.db.repo")
+@EnableJpaRepositories(basePackages = "com.daimler.data.db.repo")
 @EntityScan("com.daimler.data.db.entities")
 public class JpaConfig {
-
 
 }
