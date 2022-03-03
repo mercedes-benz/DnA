@@ -74,7 +74,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: postgres.app.username
-                  name: {{ .Values.global.db.app.db.secrets.name }}
+                  name: {{ .Values.global.i3-postgressql.app.db.secrets.name }}
 {{- else }}
               value: {{ .Values.global.bitnamipostgresql.global.postgresql.postgresqlUsername }}
 {{- end }}
@@ -83,7 +83,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: postgres.app.password
-                  name: {{ .Values.global.db.app.db.secrets.name }}
+                  name: {{ .Values.global.i3-postgressql.app.db.secrets.name }}
 {{- else }}
               value: {{ .Values.global.bitnamipostgresql.global.postgresql.postgresqlPassword }}
 {{- end }}
