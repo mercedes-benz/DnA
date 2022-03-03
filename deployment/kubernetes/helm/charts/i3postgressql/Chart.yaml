@@ -1,5 +1,5 @@
 apiVersion: v2
-name: i3-postgressql
+name: i3postgressql
 description: A Helm chart for Kubernetes
 
 # A chart can be either an 'application' or a 'library' chart.
