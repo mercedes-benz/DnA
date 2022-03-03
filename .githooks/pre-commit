@@ -3,7 +3,7 @@ LC_ALL=C
 
 localBranchName="$(git rev-parse --abbrev-ref HEAD)"
 
-validBranchRegex="^(dev|main|((feature|task|bugfix|hotfix|docs|improvement)\/[a-z0-9._-]+))$"
+validBranchRegex="^(dev|main|((feature|task|bugfix|hotfix|docs|improvement)\/[a-zA-Z0-9._-]+))$"
 
 msg="Your local branch name doesn't not adhere to our policy. Rename the your branch, starting with feature|task|bugfix|hotfix|docs|improvement followed by '/<<your_branch_name>>'. Eg: feature/myBranch"
 
