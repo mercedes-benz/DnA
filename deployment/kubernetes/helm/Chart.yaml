@@ -7,10 +7,10 @@ dependencies:
   version: 0.1.0
   condition: app.enabled
 
-- name: db
-  repository: file://charts/db
+- name: i3-postgressql
+  repository: file://charts/i3-postgressql
   version: 0.1.0
-  condition: global.db.enabled
+  condition: global.i3-postgressql.enabled
 
 - name: bitnamipostgresql
   repository: file://charts/bitnami-postgresql
