@@ -12,6 +12,6 @@
 
 ## Emeritus Maintainers
 
-| Maintainer | GitHub ID | Affiliation | Left |
-|------------|-----------|-------------|------|
-| Konstantinos Loizas | [konsloiz](https://github.com/konsloiz)   | Daimler TSS GmbH, [imprint](https://github.com/Daimler/daimler-foss/blob/master/LEGAL_IMPRINT.md) | 2022-02-28 |
+| Maintainer | GitHub ID | Affiliation | Joined | Left |
+|------------|-----------|-------------|------|------|
+| Konstantinos Loizas | [konsloiz](https://github.com/konsloiz)   | Daimler TSS GmbH, [imprint](https://github.com/Daimler/daimler-foss/blob/master/LEGAL_IMPRINT.md) | 2021-09-01 |2022-02-28 |
