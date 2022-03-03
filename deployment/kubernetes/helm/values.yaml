@@ -9,7 +9,7 @@ app:
   namespace: helm-test
   imagePullSecret: 
     name: harbor-pull-secret
-    key: "" 
+    key: "docker-config" 
   cert:
     certManager: acme
   replicaCount: 1
@@ -17,7 +17,7 @@ app:
     image: ""
   ingress:
     namespace: ingress
-    host: ""
+    host: "ingress-host"
     lbIP: ""
   app:
     backend:
@@ -119,8 +119,8 @@ app:
         rootToken: ""
 
 global:
-  #Suchart properties for db database
-  i3-postgressql:
+  #Suchart properties for i3postgressql database
+  i3postgressql:
     enabled: false
     namespace: dna
     app:
