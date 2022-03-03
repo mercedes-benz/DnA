@@ -120,7 +120,7 @@ app:
 
 global:
   #Suchart properties for i3postgressql database
-  i3postgressql:
+  i3postgresql:
     enabled: false
     namespace: dna
     app:
