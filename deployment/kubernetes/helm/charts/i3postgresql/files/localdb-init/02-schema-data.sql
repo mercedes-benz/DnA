@@ -3,6 +3,9 @@ COPY public.userrole_nsql (id, data) FROM stdin;
 3	{"name": "Admin"}
 \.
 
+insert into public.userrole_nsql(id,data)
+values('4','{"name": "ReportAdmin"}');
+\.
 --
 -- Data for Name: location_nsql; Type: TABLE DATA; Schema: public; Owner: admin
 --
@@ -362,3 +365,7 @@ COPY public.strategicrelevance_nsql (id, data) FROM stdin;
 INSERT INTO public.userinfo_nsql
 (id, "data", is_logged_in)
 VALUES('DEMOUSER', '{"email": "user@dna.com", "roles": [{"id": "3", "name": "Admin"}], "lastName": "User", "firstName": "DNA", "department": "Dummy Value", "mobileNumber": "", "favoriteUsecases": []}', 'Y');
+
+INSERT INTO public.datastrategydomain_nsql(id,data)
+VALUES('1','{"name": "DUMMY 1"}'),
+('2','{"name": "DUMMY 2"}');
