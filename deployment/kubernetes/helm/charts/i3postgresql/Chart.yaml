@@ -1,57 +1,6 @@
 apiVersion: v2
-name: helm
+name: i3postgresql
 description: A Helm chart for Kubernetes
-dependencies:
-- name: app
-  repository: file://charts/app
-  version: 0.1.0
-  condition: app.enabled
-
-- name: i3postgresql
-  repository: file://charts/i3postgresql
-  version: 0.1.0
-  condition: global.i3postgresql.enabled
-
-- name: bitnamipostgresql
-  repository: file://charts/bitnami-postgresql
-  version: 10.16.1
-  condition: global.bitnamipostgresql.enabled
-
-- name: clamav
-  repository: file://charts/clamav
-  version: 0.1.0
-  condition: clamav.enabled
-
-- name: naas
-  repository: file://charts/naas
-  version: 0.1.0
-  condition: naas.enabled
-
-- name: notebooks
-  repository: file://charts/notebooks
-  version: 0.1.0
-  condition: notebooks.enabled
-
-- name: dashboard
-  repository: file://charts/dashboard
-  version: 0.1.0
-  condition: dashboard.enabled
-
-- name: airflow
-  repository: file://charts/airflow
-  version: 0.1.0
-  condition: airflow.enabled
-
-- name: microgateway
-  repository: file://charts/microgateway
-  version: 4.2.1
-  condition: microgateway.enabled
-
-- name: vault
-  repository: file://charts/vault
-  version: 0.2.1
-  condition: vault.enabled
-
 
 # A chart can be either an 'application' or a 'library' chart.
 #

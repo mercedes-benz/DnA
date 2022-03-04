@@ -9,7 +9,7 @@ app:
   namespace: helm-test
   imagePullSecret: 
     name: harbor-pull-secret
-    key: "=" 
+    key: "docker-config" 
   cert:
     certManager: acme
   replicaCount: 1
@@ -17,7 +17,7 @@ app:
     image: ""
   ingress:
     namespace: ingress
-    host: ""
+    host: "ingress-host"
     lbIP: ""
   app:
     backend:
@@ -112,48 +112,51 @@ app:
       airflowserver: http://airflow.airflow.svc.cluster.local:8080
       naasserver: http://naas-backend-service.naas.svc.cluster.local:7272
       dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
-
-    db: 
-      replicaCount: 1
-      image: postgresql:10.3-2.1.0
-      pgssl: "NO"
-      dbname: db
-      secrets: 
-        name: postgres-secrets
-        backupUserName: ""
-        backupUserPassword: ""
-        dbAdminUserName: ""
-        dbAdminPassword: ""
-        patroniUserPassword: ""
-        appUserName: ""
-        appPassword: ""
-      airflowDB:
-        airflowUserName: ""
-        airflowdbName: ""
-        airflowdbPwd: ""
-      dashboardDB:
-        dashboardUserName: ""
-        dashboarddbName: ""
-        dashboarddbPwd: ""
       
     vault:
       secret:
         name: vault-secrets
         rootToken: ""
 
+global:
+  #Suchart properties for i3postgressql database
+  i3postgresql:
+    enabled: false
+    namespace: dna
+    app:
+      db:
+        replicaCount: 1
+        image: postgresql:10.3-2.1.0
+        pgssl: "NO"
+        dbname: db
+        secrets: 
+          name: postgres-secrets
+          backupUserName: ""
+          backupUserPassword: ""
+          dbAdminUserName: ""
+          dbAdminPassword: ""
+          patroniUserPassword: ""
+          appUserName: ""
+          appPassword: ""
+        airflowDB:
+          airflowUserName: ""
+          airflowdbName: ""
+          airflowdbPwd: ""
+        dashboardDB:
+          dashboardUserName: ""
+          dashboarddbName: ""
+          dashboarddbPwd: "" 
+
+  #Subchart properties for bitnami postgresql
   bitnamipostgresql:
     enabled: false
-
-#Subchart properties for bitnami postgresql
-bitnamipostgresql:
-  enabled: false
-  namespace: bitnami
-  global:
-    postgresql:
-      postgresqlDatabase: db
-      postgresqlUsername: admin
-      postgresqlPassword: admin
-      servicePort: 64000
+    namespace: bitnami
+    global:
+      postgresql:
+        postgresqlDatabase: db
+        postgresqlUsername: admin
+        postgresqlPassword: admin
+        servicePort: 64000
 
 #Subchart properties for clamav
 clamav:
