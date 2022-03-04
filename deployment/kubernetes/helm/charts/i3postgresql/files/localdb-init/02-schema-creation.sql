@@ -393,6 +393,8 @@ CREATE TABLE public.userinfo_nsql (
     token character varying
 );
 
+ALTER TABLE userinfo_nsql
+ADD COLUMN is_logged_in character varying;
 
 ALTER TABLE public.userinfo_nsql OWNER TO admin;
 
