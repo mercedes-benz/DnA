@@ -28,7 +28,7 @@ spec:
       serviceAccountName: {{ include "airflow-service-account.name" . }}
       initContainers:
       - name: "init"
-        image: {{ .Values.docker.image.name }}:{{ .Values.docker.image.tag }}
+        image: "{{ .Values.docker.image.name }}:{{ .Values.docker.image.tag }}"
         imagePullPolicy: Always
         volumeMounts:
         - name: airflow-configmap
