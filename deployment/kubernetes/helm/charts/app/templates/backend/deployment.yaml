@@ -70,22 +70,22 @@ spec:
             - name: OIDC_DISABLED
               value: {{ .Values.app.backend.config.oidcdisabled | quote }}
             - name: API_DB_USER
-{{- if not .Values.bitnamipostgresql.enabled }}
+{{- if not .Values.global.bitnamipostgresql.enabled }}
               valueFrom:
                 secretKeyRef:
                   key: postgres.app.username
-                  name: {{ .Values.app.db.secrets.name }}
+                  name: {{ .Values.global.i3postgresql.app.db.secrets.name }}
 {{- else }}
-              value: {{ .Values.bitnamipostgresql.global.postgresql.postgresqlUsername }}
+              value: {{ .Values.global.bitnamipostgresql.global.postgresql.postgresqlUsername }}
 {{- end }}
             - name: API_DB_PASS
-{{- if not .Values.bitnamipostgresql.enabled }}
+{{- if not .Values.global.bitnamipostgresql.enabled }}
               valueFrom:
                 secretKeyRef:
                   key: postgres.app.password
-                  name: {{ .Values.app.db.secrets.name }}
+                  name: {{ .Values.global.i3postgresql.app.db.secrets.name }}
 {{- else }}
-              value: {{ .Values.bitnamipostgresql.global.postgresql.postgresqlPassword }}
+              value: {{ .Values.global.bitnamipostgresql.global.postgresql.postgresqlPassword }}
 {{- end }}
             - name: S3_EP_URL
               value: {{ .Values.app.backend.config.s3epurl}}
