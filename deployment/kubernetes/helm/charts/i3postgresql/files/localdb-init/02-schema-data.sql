@@ -3,6 +3,9 @@ COPY public.userrole_nsql (id, data) FROM stdin;
 3	{"name": "Admin"}
 \.
 
+insert into public.userrole_nsql(id,data)
+values('4','{"name": "ReportAdmin"}');
+\.
 --
 -- Data for Name: location_nsql; Type: TABLE DATA; Schema: public; Owner: admin
 --
