@@ -1,0 +1,800 @@
+---
+
+- name: Update all packages
+  become: true
+  apt:
+    name: "*"
+    state: latest
+    update_cache: true
+  tags: [ training, prod, automation_node ]
+
+- name: Install dependencies
+  apt:
+    name: "{{item}}"
+    state: latest
+    update_cache: true
+  loop:
+    - acl
+    - python3-pip
+    # R dependencies
+    - default-jdk 
+    - libfontconfig1-dev 
+    - libv8-dev
+  tags: [ training, prod, automation_node]
+
+- name: Install Azure CLI
+  shell: "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+  args:
+    creates: "/usr/bin/az"
+  tags: [ training, prod, automation_node ]
+
+- name: Create DSS user
+  user:
+    name: "{{dss_system_user}}"
+    state: present
+  tags: [ training, prod, automation_node ]
+
+# https://doc.dataiku.com/dss/latest/installation/requirements.html#system
+- name: Increase system limits
+  become: true
+  pam_limits:
+    domain: "{{dss_system_user}}"
+    limit_item: "{{item}}"
+    limit_type: "-"
+    value: "65536"
+  loop:
+    - nofile
+    - nproc
+  tags: [ training, prod, automation_node ]
+
+- name: Create install directory
+  file:
+    path: "{{dss_install_directory}}"
+    state: directory
+    owner: "{{dss_system_user}}"
+    mode: "755"
+  tags: [ training, prod, automation_node ]
+
+- name: Create datasets directory
+  file:
+    path: "{{dss_datasets_directory}}"
+    state: directory
+    owner: "{{dss_system_user}}"
+    mode: "710"
+  tags: [ training, prod, automation_node]
+
+- name: Create folders directory
+  file:
+    path: "{{dss_folders_directory}}"
+    state: directory
+    owner: "{{dss_system_user}}"
+    mode: "710"
+  tags: [ training, prod, automation_node ]
+
+- name: Create data directory
+  file:
+    path: "{{dss_data_directory}}"
+    state: directory
+    owner: "{{dss_system_user}}"
+    mode: "700"
+  tags: [ training, prod, automation_node ]
+
+- name: Check if DSS archive already download
+  stat:
+    path: "{{dss_install_directory}}/{{dss_install_archive_name_with_extension}}"
+  register: dss_archive_stat_result
+  tags: [ training, prod, automation_node ]
+
+- name: Download DSS
+  become_user: "{{dss_system_user}}"
+  get_url:
+    url: "{{dss_download_url}}"
+    dest: "{{dss_install_directory}}"
+  when: not dss_archive_stat_result.stat.exists
+  tags: [ training, prod, automation_node ]
+
+- name: Unarchive DSS
+  become_user: "{{dss_system_user}}"
+  unarchive:
+    src: "{{dss_install_directory}}/{{dss_install_archive_name_with_extension}}"
+    dest: "{{dss_install_directory}}"
+    creates: "{{dss_home_directory}}"
+    remote_src: yes
+  tags: [ training, prod, automation_node ]
+
+- name: Copy install-deps.sh that includes proxy option
+  template:
+    src: install-deps.sh
+    dest: "{{dss_home_directory}}/scripts/install/install-deps.sh"
+    owner: "{{ dss_system_user }}"
+    mode: 0500
+    force: yes
+  tags: [ training, prod, automation_node ]
+
+- name: Install DSS dependencies
+  shell:
+    cmd: |
+      {{dss_home_directory}}/scripts/install/install-deps.sh -with-r -yes 2>&1 > /tmp/dss-install-deps.log
+      touch {{dss_home_directory}}/scripts/install/DEPS-INSTALLED-WITH-R
+    creates: "{{dss_home_directory}}/scripts/install/DEPS-INSTALLED-WITH-R"
+  tags: [ training, prod, automation_node ]
+
+- name: Copy license file
+  become_user: "{{dss_system_user}}"
+  copy:
+    src: "{{dss_license_file_path}}"
+    dest: "{{dss_install_directory}}/license.json"
+  tags: [ training, prod, automation_node ]
+
+- name: Run DSS installer
+  become_user: "{{dss_system_user}}"
+  command: "{{dss_home_directory}}/installer.sh -d {{dss_data_directory}} -p {{dss_port}} -P {{dss_python_version}} -l {{dss_install_directory}}/license.json"
+  args:
+    creates: "{{dss_data_directory}}/dss-version.json"
+  tags: [ training, prod ]
+
+- name: Run DSS automation node installer
+  become_user: "{{dss_system_user}}"
+  command: "{{dss_home_directory}}/installer.sh -t automation -d {{dss_data_directory}} -p {{dss_port}} -P {{dss_python_version}} -l {{dss_install_directory}}/license.json"
+  args:
+    creates: "{{dss_data_directory}}/dss-version.json"
+  tags: [ automation_node ]
+
+- name: Run R installer (it takes a while to compile dependencies)
+  become_user: "{{dss_system_user}}"
+  command: "{{dss_data_directory}}/bin/dssadmin install-R-integration"
+  tags: [ training, prod, automation_node]
+
+- name: Configure Java for R
+  command: "R CMD javareconf"
+  become: true
+  tags: [ training, prod, automation_node ]
+
+- name: Install shiny
+  command: "R --vanilla -e 'install.packages(\"shiny\", repos=\"http://cran.r-project.org\")' "
+  become: true
+  tags: [ training, prod, automation_node ]
+
+- name: Install shinydashboard
+  command: "R --vanilla -e 'install.packages(\"shinydashboard\", repos=\"http://cran.r-project.org\")' "
+  become: true
+  tags: [ training, prod, automation_node ]
+
+- name: Download shinydashboardPlus 0.6.0
+  become: true
+  get_url:
+    url: "https://cran.r-project.org/src/contrib/Archive/shinydashboardPlus/shinydashboardPlus_0.6.0.tar.gz"
+    dest: "{{dss_install_directory}}/shinydashboardPlus_0.6.0.tar.gz"
+  tags: [ training, prod ]
+
+- name: Install shinydashboardPlus 0.6.0
+  command: "R CMD INSTALL {{dss_install_directory}}/shinydashboardPlus_0.6.0.tar.gz"
+  become: true
+  tags: [ training, prod ]
+
+- name: Install User Isolation Framework
+  shell: "{{dss_data_directory}}/bin/dssadmin install-impersonation {{dss_system_user}}"
+  tags: [ prod, automation_node ]
+
+- name: Create config directory
+  file:
+    path: "{{dss_data_directory}}/config"
+    state: directory
+    owner: "{{dss_system_user}}"
+    mode: "700"
+  tags: [ training, prod, automation_node ]
+
+- name: Fetch installid from install.ini
+  shell: "awk -F \" = \" '/installid/ {print $2}' {{dss_data_directory}}/install.ini"
+  register: dss_install_ini
+  tags: [ prod, automation_node ]
+
+- name: Create group for User Isolation Framework
+  group:
+    name: "{{ dss_user_isolation_group }}"
+    state: present
+  tags: [ prod, automation_node ]
+
+- name: Add user isolation group to security config
+  lineinfile:
+    path: "/etc/dataiku-security/{{dss_install_ini.stdout}}/security-config.ini"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^allowed_user_groups =', line: "allowed_user_groups = {{ dss_user_isolation_group }}" }
+    - { regexp: '^additional_allowed_file_dirs =', line: "additional_allowed_file_dirs = {{ dss_folders_directory }};{{ dss_datasets_directory }}" }
+  tags: [ prod, automation_node ]
+
+- name: Install a script for creating technical users safely
+  template:
+    src: create_dataiku_technical_user.sh
+    dest: "{{ dss_create_technical_user_script_path }}"
+    owner: "{{ dss_system_user }}"
+    mode: 0500
+    force: yes
+  tags: [ prod, automation_node ]
+
+- name: Add technical user creation script to sudoers (empty last line is relevant)
+  template:
+    src: create_dataiku_technical_user_sudoers
+    dest: /etc/sudoers.d/create-dataiku-technical-user
+    mode: 0644
+    force: yes
+  tags: [ prod, automation_node ]
+
+- name: Set ACL on install directory for User Isolation Framework
+  acl:
+    path: "{{ dss_home_directory }}"
+    entity: "{{ dss_user_isolation_group }}"
+    etype: group
+    permissions: r-x
+    state: present
+    recursive: no
+  tags: [ prod, automation_node ]
+
+- name: Set ACL on data directory for User Isolation Framework
+  acl:
+    path: "/data/"
+    entity: "{{ dss_user_isolation_group }}"
+    etype: group
+    permissions: r-x
+    state: present
+    recursive: no
+  tags: [ prod, automation_node ]
+
+- name: Block critical paths from being accessible with User Isolation Framework
+  acl:
+    path: "{{ item }}"
+    entity: "{{ dss_user_isolation_group }}"
+    etype: group
+    permissions: --x
+    state: present
+    recursive: no
+  loop:
+    - "{{ dss_data_directory }}/config"
+    - "{{ dss_datasets_directory }}"
+    - "{{ dss_folders_directory }}"
+    - "/home/{{ vm_admin_user }}"
+    - "/etc/azure"
+  tags: [prod]
+
+- name: Set traversal access for dataiku data directory
+  acl:
+    path: "{{ dss_data_directory }}"
+    etype: other
+    permissions: --x
+    state: present
+    recursive: no
+  tags: [ prod, automation_node ]
+
+- name: Install boot service
+  become: true
+  command: "{{dss_home_directory}}/scripts/install/install-boot.sh {{dss_data_directory}} dataiku"
+  args:
+    creates: "/etc/init.d/dataiku"
+  tags: [ training, prod, automation_node]
+
+- name: Install pwgen
+  apt:
+    name: "pwgen"
+    state: latest
+    update_cache: true
+  tags: [ training, prod, automation_node ]
+
+- name: Generate keytool password
+  become_user: "{{dss_system_user}}"
+  shell: "pwgen -1 20 > .sso_keypair_password"
+  args:
+    chdir: "{{dss_data_directory}}/config/"
+    creates: "{{dss_data_directory}}/config/.sso_keypair_password"
+  tags: [ training, prod, automation_node ]
+
+- name: Register sso keypair password to variable
+  shell: "cat {{dss_data_directory}}/config/.sso_keypair_password"
+  register: sso_keypair_password
+  tags: [ training, prod, automation_node ]
+
+- name: Generate PKCS12 self-signed RSA key and certificate with the keytool java command
+  become_user: "{{dss_system_user}}"
+  command: "keytool -keystore sso.p12 -storetype pkcs12 -storepass {{sso_keypair_password.stdout}} -genkeypair -keyalg RSA -dname \"CN=DSS\" -validity 3650"
+  args:
+    chdir: "{{dss_data_directory}}/config/"
+    creates: "{{dss_data_directory}}/config/sso.p12"
+  tags: [ training, prod, automation_node ]
+
+- name: Install jq for json config files editing
+  apt:
+    name: "jq"
+    state: latest
+    update_cache: true
+  tags: [ training, prod, automation_node]
+
+- name: Fill ssoSettings for DSS
+  become_user: "{{dss_system_user}}"
+  shell: "jq '{{item.path}} = {{item.value}}' {{dss_data_directory}}/config/general-settings.json > {{dss_data_directory}}/config/general-settings.json.tmp && mv {{dss_data_directory}}/config/general-settings.json.tmp {{dss_data_directory}}/config/general-settings.json"
+  loop:
+    - path: ".ssoSettings.enabled"
+      value: "true"
+    - path: ".ssoSettings.protocol"
+      value: "\"SAML\""
+    - path: ".ssoSettings.remappingRules"
+      value: "[]"
+    # Using jq for that case fails, so this workaround sets placeholder variable first, that is then replaced with ansible replace
+    - path: ".ssoSettings.samlIDPMetadata"
+      value: "\"ANSIBLE_IDP_XML_PLACEHOLDER\""
+    - path: ".ssoSettings.samlLoginAttribute"
+      value: "\"name\""
+    - path: ".ssoSettings.spnegoMode"
+      value: "\"PREAUTH_KEYTAB\""
+    - path: ".ssoSettings.spnegoStripRealm"
+      value: "false"
+    - path: ".ssoSettings.samlSPParams.entityId"
+      value: "\"{{saml_entity_id}}\""
+    - path: ".ssoSettings.samlSPParams.acsURL"
+      value: "\"https://{{domain}}/dip/api/saml-callback\""
+    - path: ".ssoSettings.samlSPParams.signRequests"
+      value: "true"
+    - path: ".ssoSettings.samlSPParams.keystoreFile"
+      value: "\"{{dss_data_directory}}/config/sso.p12\""
+    - path: ".ssoSettings.samlSPParams.keystorePassword"
+      value: "\"{{sso_keypair_password.stdout}}\""
+    - path: ".security.hideVersionStringsWhenNotLogged"
+      value: "true"
+    - path: ".security.hideErrorStacks"
+      value: "true"
+  tags: [ training, prod, automation_node ]
+
+- name: Run workaround for IDP XML metadata
+  become_user: "{{dss_system_user}}"
+  replace:
+    path: "{{dss_data_directory}}/config/general-settings.json"
+    regexp: '(ANSIBLE_IDP_XML_PLACEHOLDER)'
+    replace: "{{saml_idp_metadata|xml_escape}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Encrypt Azure secret
+  become_user: "{{dss_system_user}}"
+  shell: "{{dss_data_directory}}/bin/dssadmin encrypt-password {{azure_app_secret}}"
+  register: sso_azure_secret
+  tags: [ training, prod, automation_node ]
+
+- name: Install dataiku-api-client for managing Dataiku from the code
+  pip:
+    name: dataiku-api-client
+    executable: pip3
+  tags: [ training, prod, automation_node ]
+
+- name: Prepare Azure Ad Sync Plugin Package
+  become: no
+  shell:
+    cmd: "rm -f azure-ad-sync.zip; zip -r azure-ad-sync.zip dss-plugin-azure-ad-sync/"
+    chdir: "{{playbook_dir}}/../../"
+  delegate_to: localhost
+  tags: [ training, prod, automation_node  ]
+
+- name: Upload Azure Ad Sync Plugin package
+  copy:
+    src: "{{playbook_dir}}/../../azure-ad-sync.zip"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Prepare Azure AD Project Plugin Package
+  become: no
+  shell:
+    cmd: "rm -f azure-ad-project.zip; zip -r azure-ad-project.zip dss-plugin-azure-ad-project/"
+    chdir: "{{playbook_dir}}/../../"
+  delegate_to: localhost
+  tags: [ prod, automation_node ]
+
+- name: Upload Azure AD Project Plugin package
+  copy:
+    src: "{{playbook_dir}}/../../azure-ad-project.zip"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ prod, automation_node ]
+
+- name: Prepare Setup Projects on Automation Node Plugin Package
+  become: no
+  shell:
+    cmd: "rm -f setup-projects-aut-node.zip; zip -r setup-projects-aut-node.zip dss-setup-projects-on-automation-node/"
+    chdir: "{{playbook_dir}}/../../"
+  delegate_to: localhost
+  tags: [ prod ]
+
+- name: Upload Setup Projects on Automation Node package
+  copy:
+    src: "{{playbook_dir}}/../../setup-projects-aut-node.zip"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ prod ]
+
+- name: Downloading Timeseries Forecast Plugin
+  become_user: "{{dss_system_user}}"
+  get_url:
+    url: "{{dss_timeseries_forecast_plugin_url}}"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Downloading Model Drift Plugin
+  become_user: "{{dss_system_user}}"
+  get_url:
+    url: "{{dss_model_drift_plugin_url}}"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Downloading Excel sheet importer
+  become_user: "{{dss_system_user}}"
+  get_url:
+    url: "{{dss_excel_sheet_importer_url}}"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Downloading Events aggregator plugin
+  become_user: "{{dss_system_user}}"
+  get_url:
+    url: "{{dss_events_aggregator_plugin_url}}"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Downloading Time series preparation plugin
+  become_user: "{{dss_system_user}}"
+  get_url:
+    url: "{{dss_timeseries_preparation_plugin_url}}"
+    dest: "{{dss_data_directory}}/plugins/"
+    owner: "{{dss_system_user}}"
+    group: "{{dss_system_user}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Start DSS
+  service:
+    name: "dataiku"
+    state: started
+    enabled: true
+  tags: [ training, prod, automation_node ]
+
+- name: Fetch Dataiku API Key
+  become_user: "{{dss_system_user}}"
+  shell: "{{dss_data_directory}}/bin/dsscli api-keys-list --output json | jq -r '.[0].key'"
+  register: dataiku_api_key
+  tags: [ training, prod, automation_node ]
+
+- name: Update default dataiku settings
+  dataiku_default_settings:
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    datasets_path: "{{dss_datasets_directory}}"
+    folders_path: "{{dss_folders_directory}}"
+  tags: [ prod, automation_node  ]
+
+- name: Install Azure AD Sync Plugin
+  dataiku_install_plugin:
+    name: "azure-ad-sync"
+    archive_path: "{{dss_data_directory}}/plugins/azure-ad-sync.zip"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+    settings:
+      - key: "presets"
+        value: "{{ lookup('template', 'ad_sync_config.json') }}"
+  tags: [ training, prod, automation_node ]
+
+- name: Install Azure AD Project Plugin
+  dataiku_install_plugin:
+    name: "azure-ad-project"
+    archive_path: "{{dss_data_directory}}/plugins/azure-ad-project.zip"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+    settings:
+      - key: "config"
+        value: "{{ lookup('template', 'ad_project_config.json') }}"
+  tags: [ prod, automation_node ]
+
+- name: Install Setup Projects On Automation Node plugin
+  dataiku_install_plugin:
+    name: "setup-projects-aut-node"
+    archive_path: "{{dss_data_directory}}/plugins/setup-projects-aut-node.zip"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+    settings:
+      - key: "config"
+        value: "{{ lookup('template', 'setup_projects_on_aut_node.json') }}"
+  tags: [ prod ]
+
+- name: Install Timeseries Forecast Plugin
+  dataiku_install_plugin:
+    name: "timeseries-forecast"
+    archive_path: "{{dss_data_directory}}/plugins/{{dss_timeseries_forecast_plugin_name}}"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+  tags: [ training, prod, automation_node ]
+
+- name: Install Model Drift Plugin
+  dataiku_install_plugin:
+    name: "model-drift"
+    archive_path: "{{dss_data_directory}}/plugins/{{dss_model_drift_plugin_name}}"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+  tags: [ training, prod, automation_node ]
+
+- name: Install Excel sheet importer
+  dataiku_install_plugin:
+    name: "excel-sheet-importer"
+    archive_path: "{{dss_data_directory}}/plugins/{{dss_excel_sheet_importer_plugin_name}}"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+  tags: [ training, prod, automation_node]
+
+- name: Install Events aggregator plugin
+  dataiku_install_plugin:
+    name: "events-aggregator"
+    archive_path: "{{dss_data_directory}}/plugins/{{dss_events_aggregator_plugin_name}}"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+  tags: [ training, prod, automation_node ]
+
+- name: Install Time series preparation plugin
+  dataiku_install_plugin:
+    name: "timeseries-preparation"
+    archive_path: "{{dss_data_directory}}/plugins/{{dss_timeseries_preparation_plugin_name}}"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    force_update: true
+  tags: [ training, prod, automation_node]
+
+- name: Create Admin Project for running macros
+  dataiku_create_project:
+    key: "ADMIN_MACROS"
+    name: "Admin Macros"
+    description: "Project for running admin macros"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+  tags: [ training, prod, automation_node ]
+
+- name: Initial Sync Users and Groups with Active Directory
+  dataiku_run_macro:
+    project_key: "ADMIN_MACROS"
+    as_user: "admin"
+    macro_id: "azure-ad-sync"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    params_json: "{{ lookup('template', 'ad_sync_macro_params.json') }}"
+  register: sync_output
+  tags: [ training, prod, automation_node ]
+
+- name: Set up regular scenario to sync Users and Groups with AD
+  dataiku_schedule_scenario:
+    project_key: "ADMIN_MACROS"
+    as_user: "admin"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    scenario_params_json: "{{ lookup('template', 'scenario_params.json') }}"
+  register: sync_output
+  tags: [ training, prod, automation_node ]
+
+- name: Set up scenario on automation node to create connections and technical users for specified project
+  dataiku_schedule_scenario:
+    project_key: "ADMIN_MACROS"
+    as_user: "admin"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    scenario_params_json: "{{ lookup('template', 'aut_node_scenario_params.json') }}"
+  register: sync_output
+  tags: [ automation_node ]
+
+- name: Install widgetsnbextension
+  become: true
+  shell:
+    cmd: |
+        JUPYTER_CONFIG_DIR={{dss_jupyter_config_dir}} JUPYTER_DATA_DIR={{dss_jupyter_data_dir}} PYTHONPATH="{{dss_install_directory}}/dku-jupyter/packages/" {{dss_data_directory}}/bin/python -m notebook.nbextensions install --py widgetsnbextension --user
+    creates: "{{dss_jupyter_data_dir}}/nbextensions/jupyter-js-widgets"
+  tags: [ training ]
+
+- name: Install jupyter_contrib_nbextensions via pip
+  become: true
+  shell:
+    cmd: |
+        JUPYTER_CONFIG_DIR={{dss_jupyter_config_dir}} JUPYTER_DATA_DIR={{dss_jupyter_data_dir}} PYTHONPATH="{{dss_install_directory}}/dku-jupyter/packages/" {{dss_data_directory}}/bin/pip install jupyter_contrib_nbextensions
+  tags: [ training ]
+
+- name: Install jupyter_contrib_nbextensions in Dataiku
+  become: true
+  shell:
+    cmd: |
+        JUPYTER_CONFIG_DIR={{dss_jupyter_config_dir}} JUPYTER_DATA_DIR={{dss_jupyter_data_dir}} PYTHONPATH="{{dss_install_directory}}/dku-jupyter/packages/" {{dss_data_directory}}/bin/python -m notebook.nbextensions install jupyter_contrib_nbextensions --user --py
+    creates: "{{dss_jupyter_data_dir}}/nbextensions/exercise2"
+  tags: [ training ]
+
+- name: Enable widgetsnbextension
+  become: true
+  shell:
+    cmd: |
+        JUPYTER_CONFIG_DIR={{dss_jupyter_config_dir}} JUPYTER_DATA_DIR={{dss_jupyter_data_dir}} PYTHONPATH="{{dss_install_directory}}/dku-jupyter/packages/" {{dss_data_directory}}/bin/python -m notebook.nbextensions enable --py widgetsnbextension
+  tags: [ training ]
+
+- name: Enable exercise2 extension
+  become: true
+  shell:
+    cmd: |
+        JUPYTER_CONFIG_DIR={{dss_jupyter_config_dir}} JUPYTER_DATA_DIR={{dss_jupyter_data_dir}} PYTHONPATH="{{dss_install_directory}}/dku-jupyter/packages/" {{dss_data_directory}}/bin/python -m notebook.nbextensions enable exercise2/main
+  tags: [ training ]
+
+- name: Setup dss maintenance job scenario
+  dataiku_schedule_scenario:
+    project_key: "ADMIN_MACROS"
+    as_user: "admin"
+    api_host: "http://localhost:{{dss_port}}"
+    api_key: "{{dataiku_api_key.stdout}}"
+    scenario_params_json: "{{ lookup('template', 'maintenance_jobs_scenario_params.json') }}"
+  register: sync_output
+  tags: [ training, prod, automation_node ]
+
+- name: Stop / Start Dataiku after installation to pull config changes properly
+  become: true
+  shell:
+    cmd: |
+      /etc/init.d/dataiku restart
+  tags: [ training, prod, automation_node ]
+
+- name: Add an Apt signing key for influxdb
+  apt_key:
+    url:  https://repos.influxdata.com/influxdb.key
+    state: present
+  tags: [ training, prod, automation_node ]
+
+- name: Add influxdb apt repository
+  apt_repository:
+    repo: deb https://repos.influxdata.com/ubuntu bionic stable
+    state: present
+    update_cache: yes
+  tags: [ training, prod, automation_node ]
+
+- name: Install telegraf
+  apt:
+    name: telegraf
+    update_cache: yes
+  tags: [ training, prod, automation_node ]
+
+- name: Register hostname variable
+  shell: "hostname"
+  register: dataiku_hostname
+  tags: [ training, prod, automation_node ]
+
+- name: Create systemd folder for telegraf
+  file:
+    path: /etc/systemd/system/telegraf.service.d
+    state: directory
+  tags: [ extollo ]
+
+- name: Give permission to read and execute dataiku log files to telegraf
+  file:
+    path: "{{ item }}"
+    mode: 0755
+  loop:
+    - "/data"
+    - "/data/dataiku"
+    - "/data/dataiku/run"
+    - "/data/dataiku/run/backend.log"
+  tags: [ training, prod, automation_node ]
+
+- name: Copy telegraf service configuration file
+  template:
+    src: telegraf_service.conf
+    dest: "/etc/systemd/system/telegraf.service.d/override.conf"
+    mode: 0644
+    force: yes
+  tags: [ extollo ]
+
+- name: Copy telegraf configuration file
+  template:
+    src: telegraf.conf
+    dest: "/etc/telegraf/telegraf.conf"
+    mode: 0644
+    force: yes
+  tags: [ training, prod, automation_node ]
+
+- name: Install Kubectl
+  shell: "curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\"; sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl"
+  args:
+    creates: "/usr/local/bin/kubectl"
+  tags: [ training, prod ]
+
+- name: Install aptitude using apt
+  apt:
+    name: aptitude
+    state: latest
+    update_cache: yes
+    force_apt_get: yes
+  tags: [ training, prod ]
+
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  tags: [ training, prod ]
+
+- name: Add Docker Repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+  tags: [ training, prod ]
+
+- name: Update apt and install docker-ce
+  apt:
+    update_cache: yes
+    name: docker-ce
+    state: latest
+  tags: [ training, prod ]
+
+- name: Install Docker Module for Python
+  pip:
+    name: docker
+  tags: [ training, prod ]
+
+- name: Add dataiku user to docker group
+  user:
+    name: "{{dss_system_user}}"
+    group: dataiku
+    groups: docker
+    append: yes
+    shell: /bin/bash
+  tags: [ training, prod ]
+
+# for 'docker login' purposes
+- name: Install pass package
+  apt:
+    update_cache: yes
+    name: pass
+    state: latest
+  tags: [ training, prod ]
+
+- name: Copy docker unit file
+  template:
+    src: docker.service
+    dest: "/lib/systemd/system/docker.service"
+    mode: 0644
+    force: yes
+  tags: [ training, prod ]
+
+- name: Force systemd to reread configs
+  systemd:
+    daemon_reload: yes
+  tags: [ training, prod, automation_node, extollo]
+
+- name: Restart telegraf service
+  systemd:
+    name: "telegraf"
+    state: restarted
+    enabled: true
+  tags: [ training, prod, automation_node, extollo]
+
+- name: Restart docker service
+  systemd:
+    name: "docker"
+    state: restarted
+    enabled: true
+  tags: [ training, prod]
+
+- name: Install additional python versions
+  apt:
+    name: "python3.7"
+    state: latest
+    update_cache: true
+  tags: [ training, prod, automation_node ]

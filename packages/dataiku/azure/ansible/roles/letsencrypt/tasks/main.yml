@@ -1,0 +1,63 @@
+---
+# when running for the first time,
+# run the script with lines 26-30 in dss-proxy.conf commented to first generate the certificate.
+# then uncomment the lines and run it again
+
+- name: Add Letsencrypt repository
+  apt_repository:
+    repo: ppa:certbot/certbot
+  tags: [letsencrypt]
+
+- name: Install Letsencrypt
+  apt:
+    name: [certbot, python3-certbot-nginx]
+    state: latest
+    update_cache: true
+  tags: [letsencrypt]
+
+- name: Add an Apt signing key for nginx
+  apt_key:
+    url:  https://nginx.org/keys/nginx_signing.key
+    state: present
+  tags: [nginx]
+
+- name: Add Nginx apt repository
+  apt_repository:
+    repo: deb https://nginx.org/packages/ubuntu/ bionic nginx
+    state: present
+    update_cache: yes
+  tags: [nginx]
+
+- name: Install Nginx
+  apt:
+    name: "nginx"
+    state: latest
+    update_cache: true
+  tags: [nginx]
+
+- name: Install Nginx sites-enabled configuration
+  template:
+    src: dss-proxy.conf
+    dest: /etc/nginx/sites-enabled/default
+    force: yes
+  tags: [nginx]
+
+- name: Install Nginx configuration
+  template:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    force: yes
+  tags: [nginx]
+
+- name: Start Nginx
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+  become: yes
+  tags: [nginx]
+
+- name: Obtain SSL Certificate
+  command: "certbot --nginx -d {{domain}} --non-interactive --agree-tos -m admin@{{domain}}"
+  tags: [letsencrypt]
+

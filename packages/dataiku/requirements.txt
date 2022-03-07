@@ -1,0 +1,4 @@
+pandas
+requests==2.22.0
+dataiku_api_client
+adal==1.2.7
