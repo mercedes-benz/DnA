@@ -77,6 +77,14 @@
             }
           }
         }
+
+        .KPILoader{
+          min-width: 305px;
+          display: flex;
+          justify-content: center;
+          margin-top: 20px;
+          margin-bottom: 7px;
+        }
       }
       .portGraphView {
         padding: 0;
@@ -160,6 +168,14 @@
             top: 50%;
             width: calc(100% - 48px);
             text-align: center;
+          }
+
+          .widgetLoader{
+            height: 90%;
+            min-height: 350px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
           }
         }
       }

@@ -6,8 +6,12 @@ import { getPath } from './../../router/RouterUtils';
 import Styles from './Header.scss';
 import { HeaderSearchBox } from './headerSearchBox/HeaderSearchBox';
 import { HeaderUserPanel } from './headerUserPanel/HeaderUserPanel';
+import { HeaderContactPanel } from './headerContactPanel/HeaderContactPanel';
 import { NotificationPanel } from './notificationpanel/NotificationPanel';
+import { NotificationApiClient } from '../../services/NotificationApiClient';
 import { Envs } from '../../globals/Envs';
+import { InfoModal } from '../../components/formElements/modal/infoModal/InfoModal';
+import AppContext from '../context/ApplicationContext';
 
 export interface IHeaderProps {
   user: IUserInfo;
@@ -20,7 +24,11 @@ export interface IHeaderProps {
 export interface IHeaderState {
   showNavigation: boolean;
   showUserPanel: boolean;
+  showContactPanel: boolean;
   notificationPanel: boolean;
+  notifications: any;
+  showInfoModal: boolean;
+  totalRecordCount: number;
 }
 
 export class Header extends React.Component<IHeaderProps, IHeaderState> {
@@ -31,11 +39,23 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     this.state = {
       showNavigation: false,
       showUserPanel: false,
+      showContactPanel: false,
       notificationPanel: false,
+      notifications: [],
+      showInfoModal: false,
+      totalRecordCount: 0
     };
   }
 
   public render() {
+    const contentForInfoModal = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
+    const {setMessage} = this.context;
+    
+    /******** Following line is using context API to check for change and then setting new value ********/
+    if(this.context.message === 'UPDATE_NOTIFICATIONS'){
+      setMessage('COMPLETE_UPDATE_NOTIFICATIONS');
+      this.fetchNotification();
+    }
     return (
       <header
         id="header"
@@ -60,19 +80,24 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         </div>
         <div className={Styles.appWrapper}>
           <HeaderSearchBox />
-          <div className={classNames(Styles.notificationPanel, 'hide')}>
-            <div onClick={this.toggleNotificationPanel}>
-              <div className={Styles.userIcon}>
-                <i className="icon mbc-icon notification" />
+          <div className={classNames(Styles.headerIcons,'app-info')}>
+            <div id='notificationPanel' className={classNames(Styles.userInfoPanel, Envs.ENABLE_NOTIFICATION ? '' : 'hide')}>
+              <div onClick={this.toggleNotificationPanel} className={classNames(Styles.avatar, 'userAvatar')}>
+                <div className={Styles.userIcon}>
+                  <i className={ classNames("icon mbc-icon notification", this.state.totalRecordCount > 0 ? Styles.notificationIcon : '')} />
+                </div>
+                <span className={classNames(Styles.status, this.state.totalRecordCount > 0 ? '' : 'hide')}>{this.state.totalRecordCount > 99 ? '99+' : this.state.totalRecordCount}</span>
               </div>
-              <span className={classNames(Styles.status, 'hide')} />
+              <div className={Styles.notificationPanel}>
+                <NotificationPanel
+                  show={this.state.notificationPanel}
+                  userId={this.props.user.id}
+                  notifications={this.state.notifications}
+                  onClose={this.closeNotificationPanel}
+                />
+              </div>
             </div>
-            <div className={Styles.notificationPanel}>
-              <NotificationPanel show={this.state.notificationPanel} onClose={this.closeNotificationPanel} />
-            </div>
-          </div>
-          <div className={classNames(Styles.appLogo, 'app-info')}>
-            <div className={Styles.userInfoPanel}>
+            <div id='userInfoPanel' className={Styles.userInfoPanel}>
               <div
                 className={classNames(Styles.avatar, 'userAvatar')}
                 title={this.props.user.firstName + ', ' + this.props.user.lastName}
@@ -85,24 +110,79 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
               </div>
               <HeaderUserPanel show={this.state.showUserPanel} onClose={this.closeUserPanel} user={this.props.user} />
             </div>
+            <div id='contactPanel' className={Styles.userInfoPanel}>
+              <div
+                className={classNames(Styles.avatar, 'userAvatar')}
+                title={"Help"}
+                onClick={this.toggleContactPanel}
+              >
+                <div className={Styles.userIcon}>
+                  <i className="icon mbc-icon help" />
+                </div>
+                <span className={classNames(Styles.status, 'hide')} />
+              </div>
+              <HeaderContactPanel
+                show={this.state.showContactPanel}
+                onClose={this.closeContactPanel}
+                user={this.props.user}
+                toggleContactPanelCallBack={this.toggleContactPanelCallBack}
+              />
+            </div>  
+          </div>
+          <div className={classNames(Styles.appLogo, 'app-info')}>
             {/* <h6 className="app-name">{getTranslatedLabel('HeaderName')}</h6> */}
             <h6 className="app-name">{Envs.DNA_APPNAME_HEADER}</h6>
             <img className="app-logo" src={Envs.DNA_APP_LOGO_URL} />
           </div>
         </div>
+        <InfoModal
+          title={'Contact Us'}
+          modalWidth={'35vw'}
+          show={this.state.showInfoModal}
+          content={contentForInfoModal}
+          onCancel={this.onInfoModalCancel}
+        />
       </header>
     );
+  }
+
+  public componentDidMount() {
+    history.listen((location, action) => {
+      // console.log(`The current URL is ${location.pathname}${location.search}${location.hash}`)
+      // console.log(`The last navigation action was ${action}`)
+    });
+    clearInterval(window.NOTIFICATION_POLL_ID);
+    window.NOTIFICATION_POLL_ID = setInterval(()=>{this.fetchNotification();},10000);
+    this.fetchNotification();
+  }
+
+  protected fetchNotification() {    
+    if(Envs.ENABLE_NOTIFICATION){
+      NotificationApiClient.getNotifications(this.props.user.id, 5, 0, 'unread').then((response: any) => {
+        this.setState({ notifications: response.records, totalRecordCount: response.totalRecordCount});
+      }).catch(()=>{
+        clearInterval(window.NOTIFICATION_POLL_ID);
+      });
+    }    
   }
 
   protected closeUserPanel = () => {
     this.setState({ showUserPanel: false });
   };
-
+  protected closeContactPanel = () => {
+    this.setState({ showContactPanel: false });
+  };
   protected toggleUserPanel = () => {
-    this.setState({ showUserPanel: !this.state.showUserPanel });
+    this.setState({ showUserPanel: !this.state.showUserPanel, notificationPanel: false });
+  };
+  protected toggleContactPanel = () => {
+    this.setState({ showContactPanel: !this.state.showContactPanel, notificationPanel: false });
+  };
+  protected toggleContactPanelCallBack = () => {
+    this.setState({ showInfoModal: !this.state.showInfoModal });
   };
   protected toggleNotificationPanel = () => {
-    // this.setState({ notificationPanel: !this.state.notificationPanel });
+    this.setState({ notificationPanel: !this.state.notificationPanel });
   };
   protected closeNotificationPanel = () => {
     this.setState({ notificationPanel: false });
@@ -118,4 +198,12 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
       history.go(0);
     }
   };
+
+  protected showInfoModal = () => {
+    this.setState({ showInfoModal: true });
+  };
+  protected onInfoModalCancel = () => {
+    this.setState({ showInfoModal: false });
+  };
 }
+Header.contextType = AppContext;

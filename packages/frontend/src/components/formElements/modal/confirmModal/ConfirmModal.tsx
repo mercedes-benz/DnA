@@ -29,7 +29,7 @@ export const ConfirmModal = (props: IConfirmModalProps) => (
         )}
       </header>
 
-      <div className={props.scrollableContent ? 'modal-content scrollable' : 'modal-content'}>{props.content}</div>
+      <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}>{props.content}</div>
       <footer className={props.showAcceptButton || props.showCancelButton ? '' : Styles.hide}>
         <div className="btn-set">
           <button

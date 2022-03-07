@@ -502,7 +502,7 @@ export interface IError {
 }
 
 export interface ICreateNewSolution {
-  businessGoal: string;
+  businessGoals: string[];
   businessNeed: string;
   createdDate?: string;
   dataSources?: IDataSource;
@@ -530,6 +530,164 @@ export interface ICreateNewSolution {
   dataCompliance?: IDataCompliance;
   logoDetails: ILogoDetails;
   attachments: IAttachment[];
+  dataStrategyDomain: string;
+  requestedFTECount: number;
+  skills: INeededRoleObject[];
+  existingSolution: boolean;
+}
+
+export interface INeededRoleObject {
+  fromDate: string;
+  neededSkill: string;
+  requestedFTECount: string;
+  toDate: string;
+}
+export interface IDescriptionRequest {
+  division: IDivisionAndSubDivision;
+  subdivision?: string;
+  department: string[];
+  productName?: string;
+  productDescription: string;
+  productPhase: IProductPhase[] | any;
+  status: IProductStatus[] | any;
+  agileReleaseTrains: IART[];
+  integratedPortal: IIntegratedPortal[];
+  designGuideImplemented: IDesignGuide[] | any;
+  frontendTechnologies: IFrontEndTech[];
+  tags: string[];
+}
+
+export interface ICustomers {
+  customerDetails: ICustomerDetails[];
+  processOwners: ITeams[];
+}
+
+export interface ICustomerDetails {
+  comment: string;
+  department: string;
+  hierarchy: string;
+  ressort: string;
+}
+export interface IKpis {
+  comment: string;
+  name: string;
+  reportingCause: string;
+  kpiLink: string;
+}
+
+export interface IDataAndFunctions {
+  dataWarehouseInUse: IDataWarehouseInUse[];
+  singleDataSources: ISingleDataSources[];
+}
+
+export interface IDataWarehouseInUse {
+  commonFunctions: string[];
+  connectionTypes: string[];
+  dataSources: string[];
+  dataWarehouse: string;
+  queries: string[];
+  specificFunctions: string[];
+}
+
+export interface ISingleDataSources {
+  connectionTypes: IConnectionType[];
+  dataSources: IDataSourceMaster[];
+  subsystems: ISubSystems[];
+}
+export interface IUserNewInfo {
+  company: string;
+  department: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  mobileNumber: string;
+  shortId: string;
+  teamMemberPosition: string;
+  userType: string;
+}
+
+export interface IMembers {
+  developers: ITeams[];
+  productOwners: ITeams[];
+  admin?: ITeams[];
+}
+export interface ICreateNewReport {
+  description: IDescriptionRequest;
+  customer: ICustomers;
+  kpis: IKpis[];
+  dataAndFunctions: IDataAndFunctions;
+  members: IMembers;
+  publish: boolean;
+  openSegments?: string[];
+  createdBy?: IUserInfo;
+  id?: string;
+  productName: string;
+}
+export interface IProductPhase {
+  id: string;
+  name: string;
+}
+export interface IProductStatus {
+  id: string;
+  name: string;
+}
+export interface IART {
+  id: string;
+  name: string;
+}
+export interface IIntegratedInPortal {
+  id: string;
+  name: string;
+}
+export interface IDesignGuide {
+  id: string;
+  name: string;
+}
+export interface IFrontEndTech {
+  id: string;
+  name: string;
+}
+
+export interface IHierarchies {
+  id: string;
+  name: string;
+}
+export interface IIntegratedPortal {
+  id: string;
+  name: string;
+}
+export interface IKpiNames {
+  id: string;
+  name: string;
+}
+
+export interface IReportingCauses {
+  id: string;
+  name: string;
+}
+export interface IRessort {
+  id: string;
+  name: string;
+}
+
+export interface IConnectionType {
+  id: string;
+  name: string;
+}
+
+export interface IDataWarehouse {
+  id: string;
+  dataWarehouse: string;
+  commonFunctions: string[];
+  specificFunctions: string[];
+  queries: string[];
+  dataSources: string[];
+  connectionTypes: string[];
+}
+
+export interface ISubSystems {
+  id: string;
+  name: string;
 }
 
 export interface IDataiku {
@@ -573,7 +731,6 @@ export interface IDataiku {
   versionTag?: any;
   customFields?: any;
 }
-
 export interface IDataikuCreation {
   versionNumber: number;
   lastModifiedBy: IDataikuModifiedBy;
@@ -604,9 +761,15 @@ export interface IDataikuCheckListItem {
 export interface ICreateNewSolutionRequest {
   data: ICreateNewSolution;
 }
-
+export interface ICreateNewReportRequest {
+  data: ICreateNewReport;
+}
 export interface ICreateNewSolutionResult {
   data?: ICreateNewSolution;
+  errors?: IError[];
+}
+export interface ICreateNewReportResult {
+  data?: ICreateNewReport;
   errors?: IError[];
 }
 export interface IGetMalwarescanSubscriList {
@@ -622,6 +785,7 @@ export interface IMonth {
   id: number;
   name: string;
 }
+
 export interface IAllSolutionsListItem {
   id?: string;
   productName: string;
@@ -639,10 +803,29 @@ export interface IAllSolutionsListItem {
   createdBy: IUserInfo;
 }
 
+export interface IAllReportsListItem extends ICreateNewReport {
+  logoDetails: ILogoDetails;
+  publish: boolean;
+  bookmarked: boolean;
+  createdBy: IUserInfo;
+}
+
+export interface IAllReportsResult {
+  records?: IAllReportsListItem[];
+  totalCount?: number;
+}
+
+export interface INeededRoleObject {
+  fromDate: string;
+  neededSkill: string;
+  requestedFTECount: string;
+  toDate: string;
+}
+
 export interface IAllSolutionsListItemCSV {
   id?: string;
   businessNeed: string;
-  businessGoal: string;
+  businessGoals: string[];
   relatedProducts: string[];
   createdDate?: string;
   dataSources?: IDataSource;
@@ -668,6 +851,25 @@ export interface IAllSolutionsListItemCSV {
   dataCompliance?: IDataCompliance;
   attachments: IAttachment[];
   bookmarked: boolean;
+  dataStrategyDomain: string;
+  requestedFTECount: number;
+  skills: INeededRoleObject[];
+  existingSolution: boolean;
+}
+
+export interface IAllReportsListItemCSV {
+  description: IDescriptionRequest;
+  customer: ICustomers;
+  kpis: IKpis[];
+  dataAndFunctions: IDataAndFunctions;
+  members: IMembers;
+  publish: boolean;
+  openSegments?: string[];
+  createdBy?: IUserInfo;
+  id?: string;
+  productName: string;
+  createdDate?: string;
+  lastModifiedDate?: string;
 }
 
 export interface IAllSolutionsResult {
@@ -677,6 +879,11 @@ export interface IAllSolutionsResult {
 
 export interface IAllSolutionsResultCSV {
   records?: IAllSolutionsListItemCSV[];
+  totalCount?: number;
+}
+
+export interface IAllReportsResultCSV {
+  records?: IAllReportsListItemCSV[];
   totalCount?: number;
 }
 
@@ -814,6 +1021,36 @@ export interface IUserPreference {
 export interface IUserPreferenceRequest {
   data: IUserPreference;
 }
+
+export interface IReportFilterParams {
+  agileReleaseTrains: string[];
+  division: string[];
+  subDivision: string[];
+  departments: string[];
+  productOwners: string[];
+  processOwners: string[];
+}
+
+export interface IReportFilterPreferences {
+  arts: IART[];
+  divisions: IDivision[];
+  subDivision: string[];
+  departments: IDepartment[];
+  productOwners: ITeams[];
+  processOwners: ITeams[];
+}
+
+export interface IReportUserPreference {
+  filterPreferences: IReportFilterPreferences;
+  id?: string;
+  userId: string;
+  widgetPreferences?: any[];
+}
+
+export interface IReportUserPreferenceRequest {
+  data: IReportUserPreference;
+}
+
 export interface IAnalytics {
   languages: ITag[];
   algorithms: ITag[];
@@ -963,6 +1200,7 @@ export interface ITagResult {
   id: string;
   name: string;
   category: IFitlerCategory;
+  datawareHouseItems?: IDatawarehouseInItem;
 }
 export interface IRelatedProduct {
   id: string;
@@ -1029,4 +1267,35 @@ export interface IModuleUsage {
   component: string;
   version: string;
   license: string;
+}
+
+export interface IKpiDetails {
+  name: string[];
+  reportingCase: string[];
+  comment: string;
+}
+
+export interface IReportListItems {
+  id: number;
+  name?: string;
+}
+export interface IAddNewCategoriesItem {
+  data: {
+    id?: number;
+    name: string;
+  };
+}
+export interface IDatawarehouseInItem {
+  id: string;
+  dataWarehouse: string;
+  commonFunctions: string[];
+  specificFunctions: string[];
+  queries: string[];
+  dataSources: string[];
+  connectionTypes: string[];
+}
+
+export interface IInfoItem {
+  title: string;
+  description: string;
 }
