@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
 import { IDataSource, IDataVolume, ITag } from '../../../../globals/types';
-import Tags from '../description/tags/Tags';
+import Tags from '../../../formElements/tags/Tags';
 import Styles from './DataSources.scss';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 const classNames = cn.bind(Styles);

@@ -144,22 +144,6 @@
         opacity: 1;
         overflow: visible;
       }
-
-      .panelContent {
-        padding: 10px 20px 20px 30px;
-        border-right: 1px solid #383f49;
-        height: 100%;
-        overflow-y: auto;
-
-        h4 {
-          font-size: var(--font-size-medium);
-          color: #c0c8d0;
-        }
-
-        > div:last-child {
-          margin-bottom: 180px;
-        }
-      }
     }
 
     .triggerWrapper {
@@ -182,17 +166,6 @@
 
         i {
           font-size: var(--font-size-icon-nav);
-        }
-        .filterStatus {
-          position: absolute;
-          border: 1px solid #000000;
-          width: 10px;
-          height: 10px;
-          background-color: #00adef;
-          border-radius: 50%;
-          display: block;
-          top: 11px;
-          right: 15px;
         }
       }
     }

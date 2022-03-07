@@ -598,6 +598,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                     <input
                       name="currentPhase"
                       type="radio"
+                      className="ff-only"
                       value={obj.id}
                       checked={isCurrentPhase}
                       onChange={this.onCurrentPhaseRadioChange}
@@ -746,6 +747,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                     <input
                       name="currentPhase"
                       type="radio"
+                      className="ff-only"
                       value={obj.id}
                       checked={isCurrentPhase}
                       onChange={this.onCurrentPhaseRadioChange}

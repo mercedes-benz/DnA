@@ -11,6 +11,7 @@ class EnvParser {
 declare global {
   interface Window {
     INJECTED_ENVIRONMENT?: any;
+    NOTIFICATION_POLL_ID?: any;
   }
 }
 
@@ -28,111 +29,76 @@ export const Envs = {
   OIDC_DISABLED:
     getInjectedEnv('OIDC_DISABLED') !== undefined
       ? getInjectedEnv('OIDC_DISABLED')
-      : EnvParser.parseBool(process.env.OIDC_DISABLED, false),
+      : EnvParser.parseBool(process.env.OIDC_DISABLED, true),
 
   API_BASEURL: getInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
   NODE_ENV: getInjectedEnv('NODE_ENV') || process.env.NODE_ENV,
-  CLIENT_IDS: getInjectedEnv('CLIENT_IDS') || process.env.CLIENT_IDS || '0oa2vd2h9wdMppJ0D5d7',
-  REDIRECT_URLS: getInjectedEnv('REDIRECT_URLS') || process.env.REDIRECT_URLS || 'http://localhost:9090/home',
-  OAUTH2_AUTH_URL:
-    getInjectedEnv('OAUTH2_AUTH_URL') ||
-    process.env.OAUTH2_AUTH_URL ||
-    'https://xxxxx',
-  OAUTH2_LOGOUT_URL:
-    getInjectedEnv('OAUTH2_LOGOUT_URL') ||
-    process.env.OAUTH2_LOGOUT_URL ||
-    'https://xxxxx',
-  OAUTH2_REVOKE_URL:
-    getInjectedEnv('OAUTH2_REVOKE_URL') ||
-    process.env.OAUTH2_REVOKE_URL ||
-    'https://xxxxx',
-  OAUTH2_TOKEN_URL:
-    getInjectedEnv('OAUTH2_TOKEN_URL') ||
-    process.env.OAUTH2_TOKEN_URL ||
-    'https://xxxxx',
+  CLIENT_IDS: getInjectedEnv('CLIENT_IDS') || process.env.CLIENT_IDS,
   OIDC_PROVIDER: getInjectedEnv('OIDC_PROVIDER') || process.env.OIDC_PROVIDER || 'INTERNAL',
-  JUPYTER_NOTEBOOK_URL:
-    getInjectedEnv('JUPYTER_NOTEBOOK_URL') ||
-    process.env.JUPYTER_NOTEBOOK_URL ||
-    'https://xxxxx',
+  REDIRECT_URLS: getInjectedEnv('REDIRECT_URLS') || process.env.REDIRECT_URLS,
+  OAUTH2_AUTH_URL: getInjectedEnv('OAUTH2_AUTH_URL') || process.env.OAUTH2_AUTH_URL,
+  OAUTH2_LOGOUT_URL: getInjectedEnv('OAUTH2_LOGOUT_URL') || process.env.OAUTH2_LOGOUT_URL,
+  OAUTH2_REVOKE_URL: getInjectedEnv('OAUTH2_REVOKE_URL') || process.env.OAUTH2_REVOKE_URL,
+  OAUTH2_TOKEN_URL: getInjectedEnv('OAUTH2_TOKEN_URL') || process.env.OAUTH2_TOKEN_URL,
+  DNA_COMPANY_NAME: getInjectedEnv('DNA_COMPANY_NAME') || process.env.DNA_COMPANY_NAME,
+  DNA_APPNAME_HEADER: getInjectedEnv('DNA_APPNAME_HEADER') || process.env.DNA_APPNAME_HEADER,
+  DNA_APPNAME_HOME: getInjectedEnv('DNA_APPNAME_HOME') || process.env.DNA_APPNAME_HOME,
+  DNA_CONTACTUS_HTML: getInjectedEnv('DNA_CONTACTUS_HTML') || process.env.DNA_CONTACTUS_HTML,
+  DNA_BRAND_LOGO_URL: getInjectedEnv('DNA_BRAND_LOGO_URL') || process.env.DNA_BRAND_LOGO_URL,
+  DNA_APP_LOGO_URL: getInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL,
+  ENABLE_INTERNAL_USER_INFO:
+    getInjectedEnv('ENABLE_INTERNAL_USER_INFO') !== undefined
+      ? getInjectedEnv('ENABLE_INTERNAL_USER_INFO')
+      : EnvParser.parseBool(process.env.ENABLE_INTERNAL_USER_INFO, false),
+  ENABLE_DATA_COMPLIANCE:
+    getInjectedEnv('ENABLE_DATA_COMPLIANCE') !== undefined
+      ? getInjectedEnv('ENABLE_DATA_COMPLIANCE')
+      : EnvParser.parseBool(process.env.ENABLE_DATA_COMPLIANCE, false),
+  ENABLE_REPORTS:
+    getInjectedEnv('ENABLE_REPORTS') !== undefined
+      ? getInjectedEnv('ENABLE_REPORTS')
+      : EnvParser.parseBool(process.env.ENABLE_REPORTS, false),
+  ENABLE_JUPYTER_WORKSPACE:
+    getInjectedEnv('ENABLE_JUPYTER_WORKSPACE') !== undefined
+      ? getInjectedEnv('ENABLE_JUPYTER_WORKSPACE')
+      : EnvParser.parseBool(process.env.ENABLE_JUPYTER_WORKSPACE, false),
+  JUPYTER_NOTEBOOK_URL: getInjectedEnv('JUPYTER_NOTEBOOK_URL') || process.env.JUPYTER_NOTEBOOK_URL,
   JUPYTER_NOTEBOOK_OIDC_POPUP_URL:
-    getInjectedEnv('JUPYTER_NOTEBOOK_OIDC_POPUP_URL') ||
-    process.env.JUPYTER_NOTEBOOK_OIDC_POPUP_URL ||
-    'https://xxxxx',
+    getInjectedEnv('JUPYTER_NOTEBOOK_OIDC_POPUP_URL') || process.env.JUPYTER_NOTEBOOK_OIDC_POPUP_URL,
   JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME:
     getInjectedEnv('JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME') ||
     parseInt(process.env.JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME || '5000', 10),
-  DATAIKU_LIVE_APP_URL:
-    getInjectedEnv('DATAIKU_LIVE_APP_URL') || process.env.DATAIKU_LIVE_APP_URL || 'https://xxxxx',
-  DATAIKU_TRAINING_APP_URL:
-    getInjectedEnv('DATAIKU_TRAINING_APP_URL') ||
-    process.env.DATAIKU_TRAINING_APP_URL ||
-    'https://xxxxx',
-  DNA_SWAGGER_UI_URL:
-    getInjectedEnv('DNA_SWAGGER_UI_URL') ||
-    process.env.DNA_SWAGGER_UI_URL ||
-    'https://xxxxx',
-  DATAIKU_FERRET_URL:
-    getInjectedEnv('DATAIKU_FERRET_URL') ||
-    process.env.DATAIKU_FERRET_URL ||
-    'https://xxxxx',
-  DNA_APPNAME_HEADER: getInjectedEnv('DNA_APPNAME_HEADER') || process.env.DNA_APPNAME_HEADER || 'DnA App',
-  DNA_APPNAME_HOME: getInjectedEnv('DNA_APPNAME_HOME') || process.env.DNA_APPNAME_HOME || 'Data and Analytics',
-  DNA_CONTACTUS_HTML:
-    getInjectedEnv('DNA_CONTACTUS_HTML') ||
-    process.env.DNA_CONTACTUS_HTML ||
-    `
-    <div>
-      <p>
-        There could be many places where you may need our help, and we are happy to support you. <br />
-        Please post your question(s) in our communication channels mentioned below.
-      </p>
-      <p>
-        Mattermost:&nbsp;
-        <a href="https://xxxxx" target="_blank" rel="noreferrer">
-          https://xxxxx
-        </a>
-      </p>
-      <p>
-        Email:&nbsp;<a href="mailto:xxxxx">xxxxx</a>
-      </p>
-    </div>
-  `,
-  DNA_BRAND_LOGO_URL:
-    getInjectedEnv('DNA_BRAND_LOGO_URL') || process.env.DNA_BRAND_LOGO_URL || '/images/branding/logo-brand.png',
-  DNA_APP_LOGO_URL:
-    getInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL || '/images/branding/logo-app.png',
-  ENABLEINTERNALUSERINFO:
-    getInjectedEnv('ENABLEINTERNALUSERINFO') !== undefined
-      ? getInjectedEnv('ENABLEINTERNALUSERINFO')
-      : EnvParser.parseBool(process.env.ENABLEINTERNALUSERINFO, false),
-  ENABLEDATACOMPLIANCE:
-    getInjectedEnv('ENABLEDATACOMPLIANCE') !== undefined
-      ? getInjectedEnv('ENABLEDATACOMPLIANCE')
-      : EnvParser.parseBool(process.env.ENABLEDATACOMPLIANCE, false),
-  ENABLEJUPYTERWORKSPACE:
-    getInjectedEnv('ENABLEJUPYTERWORKSPACE') !== undefined
-      ? getInjectedEnv('ENABLEJUPYTERWORKSPACE')
-      : EnvParser.parseBool(process.env.ENABLEJUPYTERWORKSPACE, false),
-  ENABLEDATAIKUWORKSPACE:
-    getInjectedEnv('ENABLEDATAIKUWORKSPACE') !== undefined
-      ? getInjectedEnv('ENABLEDATAIKUWORKSPACE')
-      : EnvParser.parseBool(process.env.ENABLEDATAIKUWORKSPACE, false),
-  ENABLEMALWARESERVICE:
-    getInjectedEnv('ENABLEMALWARESERVICE') !== undefined
-      ? getInjectedEnv('ENABLEMALWARESERVICE')
-      : EnvParser.parseBool(process.env.ENABLEMALWARESERVICE, false),
-  ENABLEPIPELINSERVICE:
-    getInjectedEnv('ENABLEPIPELINSERVICE') !== undefined
-      ? getInjectedEnv('ENABLEPIPELINSERVICE')
-      : EnvParser.parseBool(process.env.ENABLEPIPELINSERVICE, false),
-  ENABLEMALWARESCANONEAPI:
-    getInjectedEnv('ENABLEMALWARESCANONEAPI') !== undefined
-      ? getInjectedEnv('ENABLEMALWARESCANONEAPI')
-      : EnvParser.parseBool(process.env.ENABLEMALWARESCANONEAPI, false),
-  ENABLEMALWAREAPIINFO:
-    getInjectedEnv('ENABLEMALWAREAPIINFO') !== undefined
-      ? getInjectedEnv('ENABLEMALWAREAPIINFO')
-      : EnvParser.parseBool(process.env.ENABLEMALWAREAPIINFO, false),
-  DNA_COMPANYNAME: getInjectedEnv('DNA_COMPANYNAME') || process.env.DNA_COMPANYNAME || 'xxxxx',
+  ENABLE_DATAIKU_WORKSPACE:
+    getInjectedEnv('ENABLE_DATAIKU_WORKSPACE') !== undefined
+      ? getInjectedEnv('ENABLE_DATAIKU_WORKSPACE')
+      : EnvParser.parseBool(process.env.ENABLE_DATAIKU_WORKSPACE, false),
+  DATAIKU_LIVE_APP_URL: getInjectedEnv('DATAIKU_LIVE_APP_URL') || process.env.DATAIKU_LIVE_APP_URL,
+  DATAIKU_TRAINING_APP_URL: getInjectedEnv('DATAIKU_TRAINING_APP_URL') || process.env.DATAIKU_TRAINING_APP_URL,
+  DATAIKU_FERRET_URL: getInjectedEnv('DATAIKU_FERRET_URL') || process.env.DATAIKU_FERRET_URL,
+  ENABLE_MALWARE_SCAN_SERVICE:
+    getInjectedEnv('ENABLE_MALWARE_SCAN_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_MALWARE_SCAN_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_MALWARE_SCAN_SERVICE, false),
+  MALWARE_SCAN_SWAGGER_UI_URL: getInjectedEnv('MALWARE_SCAN_SWAGGER_UI_URL') || process.env.MALWARE_SCAN_SWAGGER_UI_URL,
+  ENABLE_DATA_PIPELINE_SERVICE:
+    getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_DATA_PIPELINE_SERVICE, false),
+  ENABLE_ML_PIPELINE_SERVICE:
+    getInjectedEnv('ENABLE_ML_PIPELINE_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_ML_PIPELINE_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_ML_PIPELINE_SERVICE, false),
+  ML_PIPELINE_URL: getInjectedEnv('ML_PIPELINE_URL') || process.env.ML_PIPELINE_URL,
+  ENABLE_MALWARE_SCAN_ONEAPI:
+    getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI') !== undefined
+      ? getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI')
+      : EnvParser.parseBool(process.env.ENABLE_MALWARE_SCAN_ONEAPI, false),
+  ENABLE_MALWARE_SCAN_ONEAPI_INFO:
+    getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI_INFO') !== undefined
+      ? getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI_INFO')
+      : EnvParser.parseBool(process.env.ENABLE_MALWARE_SCAN_ONEAPI_INFO, false),
+  ENABLE_NOTIFICATION:    
+      getInjectedEnv('ENABLE_NOTIFICATION') !== undefined
+        ? getInjectedEnv('ENABLE_NOTIFICATION')
+        : EnvParser.parseBool(process.env.ENABLE_NOTIFICATION, false),
 };
