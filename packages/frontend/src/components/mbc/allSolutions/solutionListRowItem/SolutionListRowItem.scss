@@ -59,8 +59,12 @@
 .solutionNameDivide {
   display: flex;
   flex-direction: column;
-  .gotoNotebook {
+  label {
     cursor: pointer;
+    i {
+      font-size: var(--font-size-icon-medium);
+      margin: 5px 0 2px;
+    }
   }
 }
 .solutionRow:hover {

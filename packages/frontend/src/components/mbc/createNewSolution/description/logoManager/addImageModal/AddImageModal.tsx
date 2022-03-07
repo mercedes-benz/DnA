@@ -62,7 +62,7 @@ const AddImageModal = (props: IAddImageModalProps) => {
         <IconImage className={Styles.titleIcon} />
         Preset Images
       </h4>
-      <div className={Styles.predefinedImageGridWrapper}>
+      <div className={classNames(Styles.predefinedImageGridWrapper, 'mbc-scroll')}>
         <div className={Styles.predefinedImageGrid}>
           {PredefinedSolutionLogoImagesInfo.images.map((item: any) => {
             const isSelectedItem = item.id === (selectedImageInfo ? selectedImageInfo.id : 'default');

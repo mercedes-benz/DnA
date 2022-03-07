@@ -22,6 +22,29 @@
     }
   }
 
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    margin: 40px;
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+    &.threeColumn {
+      > div {
+        width: calc(33% - 7px);
+      }
+    }
+  }
+
+  .rolesList{
+    padding-left: 40px;
+  }
+
   .rightPanel {
     display: flex;
     position: fixed;
