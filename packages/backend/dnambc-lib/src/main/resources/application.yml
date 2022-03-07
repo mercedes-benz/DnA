@@ -148,7 +148,7 @@ avscan:
   appid: ${AVSCAN_APP_ID:xxxxx}
   apiKey: ${AVSCAN_API_KEY:xxxxx} 
 
-swagger.headers.authorization.token: {SWAGGER_HEADER_AUTH:XXXXXX}
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers
 management.endpoint.loggers.enabled: true
 

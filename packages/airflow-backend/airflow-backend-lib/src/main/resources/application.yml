@@ -19,7 +19,7 @@ spring:
     password: ${API_DB_PASS:airflow_pass}
     driverClassName: org.postgresql.Driver
 
-swagger.headers.authorization.token: {SWAGGER_HEADER_AUTH:XXXXXX}
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
         
 server:
   port: 7171
