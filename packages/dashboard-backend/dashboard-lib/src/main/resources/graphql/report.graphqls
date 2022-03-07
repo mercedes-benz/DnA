@@ -1,0 +1,122 @@
+type Query {
+    reports(published: Boolean, productPhase: String, status: String,
+    searchTerm: String, tags: String, offset: Int, limit: Int, sortBy: String,
+    sortOrder: String, division: String, department: String, processOwner: String, productOwner: String, art: String): ReportCollection!
+    report(string: ID):ReportVO
+}
+
+scalar Date
+
+type ReportCollection{
+   totalCount: Int,
+   records: [ReportVO]
+}
+
+type ReportVO {
+	id: ID!,
+    productName: String,
+    createdDate: String,
+    lastModifiedDate: String,
+    closeDate: String,
+    createdBy:CreatedByVO,
+    publish: Boolean,
+    description: DescriptionVO,
+    customer: CustomerVO,
+    kpis: [KPIVO],
+    dataAndFunctions: DataAndFunctionVO,
+    members: MemberVO
+}
+
+type CreatedByVO{
+    id:String!,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String
+}
+
+type DescriptionVO{
+	productDescription: String,
+	productPhase: String,
+	status: String,
+	integratedPortal: [String],
+	frontendTechnologies: [String],
+	tags:[String],
+	agileReleaseTrains:[String],
+	designGuideImplemented: String,
+	division : DivisionVO,
+	department: String
+}
+
+type DivisionVO{
+    id: ID!,
+    name: String!
+    subdivision: SubdivisionVO,
+}
+type SubdivisionVO{
+    id: ID!,
+    name: String
+}
+
+type CustomerVO{
+	customerDetails: [CustomerDetailsVO],
+	processOwners: [TeamMemberVO]
+}
+
+type CustomerDetailsVO{
+	hierarchy: String,
+	ressort: String,
+	department: String,
+	comment: String
+}
+
+type KPIVO{
+	name: String,
+	reportingCause: String,
+	comment: String,
+	kpiLink: String
+}
+
+type DataAndFunctionVO{
+    dataWarehouseInUse: [DataWarehouseVO],
+    singleDataSources: [SingleDataSourceVO]
+}
+
+type DataWarehouseVO{
+	dataWarehouse: String,
+	commonFunctions: [String],
+	specificFunctions: [String],
+	queries: [String],
+	dataSources: [String],
+	connectionTypes: [String]
+}
+
+type SingleDataSourceVO{
+	dataSources: [String],
+	subsystems: [String],
+	connectionTypes: [String]
+}
+
+type MemberVO{
+	developers: [TeamMemberVO],
+	productOwners: [TeamMemberVO],
+    admin: [TeamMemberVO]
+}
+
+type TeamMemberVO{
+    shortId: String,
+    userType: UserTypeEnum,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String,
+    company: String,
+    teamMemberPosition: String
+}
+
+enum UserTypeEnum{
+    INTERNAL,
+    EXTERNAL
+}

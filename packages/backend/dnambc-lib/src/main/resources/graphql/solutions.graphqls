@@ -36,10 +36,10 @@ type SolutionVO {
     dataCompliance: SolutionDataComplianceVO,
     portfolio: SolutionPortfolioVO,
     openSegments:[String],
-    skills: [String],
+    skills: [SkillSummaryVO],
     dataStrategyDomain: String,
     existingSolution: Boolean,
-    requestedFTECount: Int    
+    requestedFTECount: Float    
 }
 
 type Query {
@@ -288,6 +288,12 @@ type TeamMemberVO{
 type SolutionCurrentPhase{
     id: ID!,
     name: String
+}
+type SkillSummaryVO{
+	neededSkill: String,
+	fromDate: String,
+	toDate: String,
+	requestedFTECount: Float
 }
 enum UserTypeEnum{
     INTERNAL,
