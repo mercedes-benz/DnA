@@ -1,0 +1,49 @@
+.summaryWrapper {
+  position: relative;
+  margin-bottom: 30px;
+  padding: 0px 184px 0px 184px;
+  .backButtonWapper {
+    /*padding-left: 114px;*/
+    margin-bottom: 15px;
+  }
+  .modalContentWrapper {
+    margin-top: -20px;
+    font-size: var(--font-size-sub-headline);
+    .modalTitle {
+      margin-top: 0px;
+      text-align: center;
+    }
+    .modalContent {
+      margin-top: 20px;
+      font-size: var(--font-size-medium);
+    }
+  }
+  .summeryBannerTitle {
+    min-width: 260px;
+    max-width: 390px;
+    margin: 19px 0 70px 0;
+    h2 {
+      font-size: var(--font-size-headline-big);
+      line-height: 33px;
+    }
+  }
+  .summaryContentWrapper {
+    position: relative;
+    padding-top: 130px;
+  }
+  .summaryBannerimg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+
+.pdfLink {
+  color: #d9dfe4;
+
+  &:hover {
+    color: #00adef;
+    text-decoration: none;
+  }
+}

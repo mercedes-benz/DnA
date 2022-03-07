@@ -152,13 +152,12 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
               </div>
             );
           })
-        : 'NA';
+        : 'N/A';
     const locations: string[] = [];
     description.location.forEach((l) => {
       locations.push(l.name);
     });
     const pdfFileName = description.productName.replace(/[/|\\:*?"<>]/g, '').replace(/ /g, '-');
-
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
@@ -213,16 +212,21 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
             <span className={Styles.description}>Solution Summary</span>
             <div className={Styles.firstPanel}>
               <div className={Styles.formWrapper}>
-                <div className={Styles.flexLayout}>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="productDescription">
                     <label className="input-label summary">Description</label>
                     <br />
-                    <div>{description.description}</div>
+                    <div className={Styles.solutionDescription}>{description.description}</div>
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Tags</label>
                     <br />
                     <div className={Styles.tagColumn}>{chips}</div>
+                  </div>
+                  <div id="isExistingSolution">
+                    <label className="input-label summary">Is Existing Solution?</label>
+                    <br />
+                    {description.isExistingSolution ? 'Yes' : 'No'}
                   </div>
                 </div>
                 <hr className="divider1" />
@@ -252,13 +256,42 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="relatedProducts">
                     <label className="input-label summary">Related Products</label>
                     <br />
-                    {description.relatedProducts ? description.relatedProducts.join(', ') : 'N/A'}
+                    {description.relatedProducts
+                      ? description.relatedProducts.length > 0
+                        ? description.relatedProducts.join(', ')
+                        : 'N/A'
+                      : 'N/A'}
                   </div>
                   <div id="businessGoal">
-                    <label className="input-label summary">Business Goal</label>
+                    <label className="input-label summary">Business Goals</label>
                     <br />
-                    {description.businessGoal ? description.businessGoal : 'N/A'}
+                    {description.businessGoal
+                      ? description.businessGoal.length > 0
+                        ? description.businessGoal.join(', ')
+                        : 'N/A'
+                      : 'N/A'}
                   </div>
+                </div>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                  {/* <div id="neededRoles">
+                    <label className="input-label summary">Needed Roles/Skills</label>
+                    <br />
+                    {description.neededRoles
+                      ? description.neededRoles.length > 0
+                        ? description.neededRoles.join(', ')
+                        : 'N/A'
+                      : 'N/A'}
+                  </div> */}
+                  <div id="dataStrategyDomain">
+                    <label className="input-label summary">Data Strategy Domain</label>
+                    <br />
+                    {description.dataStrategyDomain ? description.dataStrategyDomain : 'N/A'}
+                  </div>
+                  {/* <div id="numberOfRequestedFTE">
+                    <label className="input-label summary">Number of Requested FTE</label>
+                    <br />
+                    {description.requestedFTECount}
+                  </div> */}
                 </div>
                 <hr className="divider1" />
                 <div className={Styles.flexLayout}>

@@ -93,7 +93,7 @@ export class HeaderSearchBox extends React.Component<IHeaderSearchBoxProps, IHea
     const hideSuggestion = this.state.hideSuggestion;
 
     return (
-      <div className={Styles.searchPanel}>
+      <div id='searchPanel' className={Styles.searchPanel}>
         <input
           type="text"
           className={classNames(Styles.searchInputField, canShow ? '' : Styles.hide)}

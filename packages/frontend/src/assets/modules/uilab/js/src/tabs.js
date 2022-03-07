@@ -10,7 +10,7 @@ class Tabs {
     const tabs = document.querySelectorAll('.tabs');
 
     makeArray(tabs).forEach((tabsElem) => {
-      const tabItems = tabsElem.getElementsByClassName('tab');
+      const tabItems = tabsElem.querySelectorAll('.tab');
 
       const activeIndicator = document.createElement('SPAN');
       activeIndicator.setAttribute('class', 'active-indicator');
