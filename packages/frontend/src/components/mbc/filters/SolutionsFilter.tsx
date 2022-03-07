@@ -14,28 +14,29 @@ import {
   IFilterPreferences,
   IUserPreference,
   IDataVolume,
-} from '../../globals/types';
+} from '../../../globals/types';
 // @ts-ignore
-import Button from '../../assets/modules/uilab/js/src/button';
+import Button from '../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
-import Tooltip from '../../assets/modules/uilab/js/src/tooltip';
+import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 // @ts-ignore
-import Notification from '../../assets/modules/uilab/js/src/notification';
+import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
-import ProgressIndicator from '../../assets/modules/uilab/js/src/progress-indicator';
-import SelectBox from '../../components/formElements/SelectBox/SelectBox';
-import { ApiClient } from '../../services/ApiClient';
-import { SESSION_STORAGE_KEYS } from '../../globals/constants';
-import Tags from '../mbc/createNewSolution/description/tags/Tags';
-import { trackEvent } from '../../services/utils';
+import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
+import SelectBox from '../../formElements/SelectBox/SelectBox';
+import { ApiClient } from '../../../services/ApiClient';
+import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
+import Tags from '../../formElements/tags/Tags';
+import { trackEvent } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
 
-import Styles from './SolutionsFilter.scss';
+import Styles from './Filter.scss';
 const classNames = cn.bind(Styles);
 
 type SolutionsFilterType = {
   userId: string;
-  getSolutions: Function;
+  getSolutions?: Function;
+  getFilterQueryParams?: Function;
   getValuesFromFilter?: Function;
   solutionsDataLoaded: boolean;
   setSolutionsDataLoaded: Function;
@@ -54,6 +55,7 @@ type SolutionsFilterType = {
 const SolutionsFilter = ({
   userId,
   getSolutions,
+  getFilterQueryParams,
   getValuesFromFilter,
   solutionsDataLoaded,
   setSolutionsDataLoaded,
@@ -260,10 +262,14 @@ const SolutionsFilter = ({
               queryParams.tag = filterPreferences.tags.map((tag: ITag) => {
                 return tag.name;
               });
+              // populate subDivision dropdown values
+              ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
+                setSubDivisions(subDivisionsList);
+                SelectBox.defaultSetup();
+              });
               setFilterApplied(true);
             }
             userPreferenceDataId = userPreference.id;
-            setSubDivisions(savedSubDivisionsList);
           }
 
           setQueryParams(queryParams);
@@ -271,7 +277,7 @@ const SolutionsFilter = ({
           Button.defaultSetup();
           SelectBox.defaultSetup();
           Tooltip.defaultSetup();
-          getSolutions(queryParams);
+          getSolutionsByQueryParams(queryParams);
         })
         .catch((error: Error) => {
           showErrorNotification(error.message ? error.message : 'Some Error Occured');
@@ -356,7 +362,7 @@ const SolutionsFilter = ({
       setFilterApplied(true);
       queryParams[filterName] = values;
       setPortfolioFilterValuesInSession(queryParams);
-      getSolutions(queryParams);
+      getSolutionsByQueryParams(queryParams);
       if (filterName === 'division') SelectBox.defaultSetup();
       trackEvent(
         `${isAllSolutionsPage ? 'All Solutions' : 'Portfolio'}`,
@@ -554,6 +560,95 @@ const SolutionsFilter = ({
       });
   };
 
+  const getSolutionsByQueryParams = (filterQueryParams: IFilterParams) => {
+    const queryParams: IFilterParams = { ...filterQueryParams };
+    let locationIds = queryParams.location.join(',');
+    let phaseIds = queryParams.phase.join(',');
+    let divisionIds = queryParams.division.join(',');
+    let status = queryParams.status.join(',');
+    let useCaseType = queryParams.useCaseType.join(',');
+    const tags = queryParams.tag.join(',');
+
+    if (queryParams.division.length > 0) {
+      const distinctSelectedDivisions = queryParams.division;
+      const tempArr: any[] = [];
+      distinctSelectedDivisions.forEach((item) => {
+        const tempString = '{' + item + ',[]}';
+        tempArr.push(tempString);
+      });
+      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
+    }
+
+    if (queryParams.subDivision.length > 0) {
+      const distinctSelectedDivisions = queryParams.division;
+      const tempArr: any[] = [];
+      let hasEmpty = false; // To find none selected in sub division since its not mandatory
+      const emptySubDivId = 'EMPTY';
+      distinctSelectedDivisions.forEach((item) => {
+        const tempSubdiv = queryParams.subDivision.map((value) => {
+          const tempArray = value.split('-');
+          const subDivId = tempArray[0];
+          if (subDivId === emptySubDivId) {
+            hasEmpty = true;
+          }
+          if (item === tempArray[1]) {
+            return subDivId;
+          }
+        });
+
+        if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
+          tempSubdiv.unshift(emptySubDivId);
+        }
+
+        let tempString = '';
+
+        if (tempSubdiv.length === 0) {
+          tempString += '{' + item + ',[]}';
+        } else {
+          tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
+        }
+        tempArr.push(tempString);
+      });
+      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
+    }
+
+    if (queryParams.division.length === 0) {
+      divisionIds = '';
+      queryParams.division = [];
+      queryParams.subDivision = [];
+    }
+
+    if (queryParams.division.length === divisions.length && queryParams.subDivision.length === subDivisions.length) {
+      divisionIds = '';
+      queryParams.division = [];
+      queryParams.subDivision = [];
+    }
+
+    if (queryParams.location.length === locations.length) {
+      locationIds = '';
+      queryParams.location = [];
+    }
+
+    if (queryParams.phase.length === phases.length) {
+      phaseIds = '';
+      queryParams.phase = [];
+    }
+
+    if (queryParams.status.length === projectStatuses.length) {
+      status = '';
+      queryParams.status = [];
+    }
+
+    if (queryParams.useCaseType.length === projectTypes.length) {
+      useCaseType = '';
+      queryParams.useCaseType = [];
+    }
+
+    typeof getFilterQueryParams === 'function' && getFilterQueryParams(queryParams);
+
+    typeof getSolutions === 'function' && getSolutions(locationIds, phaseIds, divisionIds, status, useCaseType, tags);
+  };
+
   const resetDataFilters = () => {
     const newQueryParams = queryParams;
     newQueryParams.phase = phases.map((phase: IPhase) => {
@@ -600,7 +695,7 @@ const SolutionsFilter = ({
     setQueryParams(queryParams);
     setUserPreferenceDataId(null);
     SelectBox.defaultSetup(false);
-    getSolutions(queryParams);
+    getSolutionsByQueryParams(queryParams);
     setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES), 50);
     if (showMessage) {
       trackEvent(

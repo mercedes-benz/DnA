@@ -99,13 +99,16 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           description: '',
           tags: [],
           businessNeeds: '',
-          businessGoal: '',
+          businessGoal: [],
           attachments: [],
           businessGoalsList: [],
           logoDetails: null,
+          dataStrategyDomain: '',
+          requestedFTECount: 0,
+          isExistingSolution: false,
         },
         openSegments: [],
-        team: [],
+        team: { team: [] },
         currentPhase: null,
         milestones: { phases: [], rollouts: { details: [], description: '' } },
         analytics: { languages: [], algorithms: [], visualizations: [] },
@@ -175,6 +178,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         },
         publish: false,
         bookmarked: false,
+        neededRoles: [],
       },
       canShowDataSources: false,
       canShowDigitalValue: false,
@@ -342,7 +346,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         user={this.props.user}
                       />
                     )}
-                    {this.state.canShowTeams && <TeamSummary team={this.state.solution.team} />}
+                    {this.state.canShowTeams && (
+                      <TeamSummary team={this.state.solution.team} neededRoles={this.state.solution.neededRoles} />
+                    )}
 
                     {this.state.canShowMilestones && (
                       <MilestonesSummary milestones={this.state.solution.milestones} phases={this.state.phases} />
@@ -455,14 +461,19 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.location = res.locations;
             solution.description.status = res.projectStatus;
             solution.description.relatedProducts = res.relatedProducts;
-            solution.description.businessGoal = res.businessGoal;
+            solution.description.businessGoal = res.businessGoals;
             solution.description.tags = res.tags;
             solution.description.logoDetails = res.logoDetails;
             solution.description.attachments = res.attachments;
             solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
+            solution.description.dataStrategyDomain = res.dataStrategyDomain;
+            solution.description.isExistingSolution = res.existingSolution;
+            // solution.description.neededRoles = res.skills;
+            solution.description.requestedFTECount = res.requestedFTECount;
             solution.milestones = res.milestones;
             solution.currentPhase = res.currentPhase;
-            solution.team = res.team;
+            solution.team.team = res.team;
+            solution.neededRoles = res.skills;
             solution.dataSources = res.dataSources;
             solution.digitalValue = res.digitalValue;
             solution.datacompliance = res.dataCompliance;
@@ -496,7 +507,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         solution.sharing.result.name &&
                         solution.sharing.result.name !== 'Choose') ||
                       (solution.sharing.resultUrl && solution.sharing.resultUrl !== ''))),
-                canShowTeams: solution.team && solution.team.length > 0,
+                canShowTeams: solution.team && solution.team.team.length > 0,
                 canShowDigitalValue:
                   solution.digitalValue &&
                   (isAdmin !== undefined || userInfo.id === this.checkUserCanViewDigitalValue(userInfo))
@@ -562,8 +573,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
 
   protected checkUserCanEditSolution(userInfo: IUserInfo) {
     let userId = '';
-    if (this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
-      userId = this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+    if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
+      userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (this.state.solution.createdBy) {
       userId = this.state.solution.createdBy.id;
     } else {
@@ -580,13 +591,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           userId = this.state.solution.digitalValue.permissions.find(
             (teamMember) => teamMember.shortId === userInfo.id,
           ).shortId;
-        } else if (this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
-          userId = this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+        } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
+          userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
         } else if (this.state.solution.createdBy) {
           userId = this.state.solution.createdBy.id;
         }
-      } else if (this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
-        userId = this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+      } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
+        userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
       } else if (this.state.solution.createdBy) {
         userId = this.state.solution.createdBy.id;
       }
