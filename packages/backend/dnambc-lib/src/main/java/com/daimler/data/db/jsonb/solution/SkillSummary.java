@@ -28,6 +28,7 @@
 package com.daimler.data.db.jsonb.solution;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -44,6 +45,6 @@ public class SkillSummary implements Serializable {
 	private String neededSkill;
 	private Date fromDate;
 	private Date toDate;
-	private Integer requestedFTECount;
+	private BigDecimal requestedFTECount;
 
 }
