@@ -1,11 +1,11 @@
 {
   "name": "dna-web",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Web Frontend for DnA@MBC based on Digital Design System(UILab)",
   "license": "MIT",
   "author": {
-    "name": "Daimler AG",
-    "url": "http://www.daimler.com/"
+    "name": "Mercedes-Benz AG",
+    "url": "http://www.mercedes-benz.com/"
   },
   "contributors": [
     "Agnel Praveen <agnelpraveen@gmail.com>",
@@ -54,7 +54,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Daimler/DnA.git"
+    "url": "https://github.com/mercedes-benz/DnA.git"
   },
   "engines": {
     "node": ">=10.17.0",
@@ -119,7 +119,7 @@
     "eslint": "^7.28.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-react": "^7.24.0",
+    "eslint-plugin-react": "^7.29.2",
     "eslint-webpack-plugin": "^2.5.4",
     "expose-loader": "^3.0.0",
     "fast-text-encoding": "^1.0.0",

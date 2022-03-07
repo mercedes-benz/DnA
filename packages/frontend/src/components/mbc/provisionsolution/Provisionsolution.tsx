@@ -33,6 +33,7 @@ import {
   ILogoDetails,
   IMaturityLevel,
   IMilestonesList,
+  INeededRoleObject,
   IPhase,
   IPortfolio,
   IProjectStatus,
@@ -104,6 +105,7 @@ export interface IProvisionSolutionData {
   publish: boolean;
   createdBy?: IUserInfo;
   bookmarked?: boolean;
+  neededRoles?: INeededRoleObject[];
 }
 export interface IDescriptionRequest {
   productName: string;
@@ -118,8 +120,11 @@ export interface IDescriptionRequest {
   tags: string[];
   logoDetails: ILogoDetails;
   attachments: IAttachment[];
-  businessGoal: string;
+  businessGoal: string[];
   businessGoalsList: IBusinessGoal[];
+  dataStrategyDomain: string;
+  requestedFTECount: number;
+  isExistingSolution: boolean;
 }
 
 export default class Provisionsolution extends React.Component<IProvisionSolutionProps, IProvisionSolutionState> {
@@ -181,10 +186,13 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           description: '',
           tags: [],
           businessNeeds: '',
-          businessGoal: '',
+          businessGoal: [],
           logoDetails: null,
           attachments: [],
           businessGoalsList: [],
+          dataStrategyDomain: '',
+          requestedFTECount: 0,
+          isExistingSolution: false,
         },
         openSegments: [],
         team: [],
@@ -233,6 +241,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           platforms: [],
         },
         publish: false,
+        neededRoles: [],
       },
       // stateChanged: false,
       showAlertChangesModal: false,
@@ -480,7 +489,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         productName: solution.description.productName,
         reasonForHoldOrClose: solution.description.reasonForHoldOrClose,
         businessNeed: solution.description.businessNeeds,
-        businessGoal: solution.description.businessGoal,
+        businessGoals: solution.description.businessGoal,
         description: solution.description.description,
         division: solution.description.division,
         expectedBenefits: solution.description.expectedBenefits,
@@ -502,6 +511,10 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         publish: isPublished,
         analytics: solution.analytics,
         sharing: solution.sharing,
+        dataStrategyDomain: solution.description.dataStrategyDomain,
+        requestedFTECount: solution.description.requestedFTECount,
+        skills: solution.neededRoles,
+        existingSolution: solution.description.isExistingSolution,
       },
     };
     ProgressIndicator.show();

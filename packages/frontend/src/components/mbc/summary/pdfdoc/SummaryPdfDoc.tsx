@@ -49,6 +49,7 @@ import {
   ITeams,
   IValueFactor,
   IValueRampUp,
+  INeededRoleObject,
 } from '../../../../globals/types';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
 import { Envs } from '../../../../globals/Envs';
@@ -520,6 +521,17 @@ const pageNumberRender = (pageInfo: any) => {
   return `${pageInfo.pageNumber} - ${pageInfo.totalPages}`;
 };
 
+const neededRoles = (neededRoles: INeededRoleObject[]) => {
+  return neededRoles.map((neededRole: INeededRoleObject, index: number) => {
+    return (
+      <View key={index} style={styles.rampUpContainer}>
+        <Text>{neededRole.neededSkill}</Text>
+        <Text>{neededRole.requestedFTECount ? neededRole.requestedFTECount.toString().replace('.', ',') : 'N/A'}</Text>
+      </View>
+    );
+  });
+};
+
 export const SummaryPdfDoc = (props: any) => (
   <Document>
     <Page style={styles.page} wrap={true}>
@@ -556,7 +568,23 @@ export const SummaryPdfDoc = (props: any) => (
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Location</Text>
-            <Text>{props.solution.description.location.map((item: any) => item.name).join(', ')}</Text>
+            <Text>
+              {props.solution.description.location
+                ? props.solution.description.location.length > 0
+                  ? props.solution.description.location.map((item: any) => item.name).join(', ')
+                  : 'NA'
+                : 'NA'}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.flexLayout} wrap={false}>
+          <View style={[styles.flexCol2, styles.firstCol]}>
+            <Text style={styles.sectionTitle}>Data Strategy Domain</Text>
+            <Text>{props.solution.description.dataStrategyDomain}</Text>
+          </View>
+          <View style={[styles.flexCol2, styles.wideCol]}>
+            <Text style={styles.sectionTitle}>Is Existing Solution?</Text>
+            <Text>{props.solution.description.isExistingSolution ? 'Yes' : 'No'}</Text>
           </View>
         </View>
         <View style={styles.seperatorLine} />
@@ -570,9 +598,9 @@ export const SummaryPdfDoc = (props: any) => (
             )}
           </View>
           <View style={[styles.flexCol2]}>
-            <Text style={styles.sectionTitle}>Business Goal</Text>
+            <Text style={styles.sectionTitle}>Business Goals</Text>
             {props.solution.description.businessGoal ? (
-              <Text>{props.solution.description.businessGoal}</Text>
+              <Text>{props.solution.description.businessGoal.join(', ')}</Text>
             ) : (
               <Text>NA</Text>
             )}
@@ -632,7 +660,7 @@ export const SummaryPdfDoc = (props: any) => (
                 </View>
               </View>
               <View style={styles.flexCol4}>
-                <Text style={styles.sectionTitle}>Usage Of {Envs.DNA_COMPANYNAME} Platforms</Text>
+                <Text style={styles.sectionTitle}>Usage Of {Envs.DNA_COMPANY_NAME} Platforms</Text>
                 {props.solution.portfolio.usesExistingInternalPlatforms ? (
                   <Text style={{ paddingLeft: 13 }}>
                     <Image src={ImgTick} style={{ width: 15 }} />
@@ -651,7 +679,13 @@ export const SummaryPdfDoc = (props: any) => (
                         <View>
                           <Text style={[styles.sectionTitle, { marginBottom: 2 }]}>
                             {(props.dnaNotebookEnabled && props.noteBookInfo.name) ||
-                              (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.name)}
+                              (props.dnaDataIkuProjectEnabled && (
+                                <Link
+                                  src={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
+                                >
+                                  {props.dataIkuInfo.name}
+                                </Link>
+                              ))}
                           </Text>
                           <View>
                             <Text>
@@ -688,10 +722,27 @@ export const SummaryPdfDoc = (props: any) => (
         )}
         <View style={styles.seperatorLine} />
         {props.canShowTeams ? (
-          <View wrap={false}>
-            <Text style={[styles.subTitle, styles.setMarginTop]}>Team</Text>
-            <View style={styles.flexLayout}>{teamMembersList(props.solution.team)}</View>
-            <View style={styles.seperatorLine} />
+          <View>
+            <View wrap={false}>
+              <Text style={[styles.subTitle, styles.setMarginTop]}>Team</Text>
+              <View style={styles.flexLayout}>{teamMembersList(props.solution.team.team)}</View>
+              <View style={styles.seperatorLine} />
+            </View>
+            <View wrap={false}>
+              <Text style={[styles.subTitle, styles.setMarginTop]}>Needed Roles/Skills</Text>
+              <View style={styles.flexLayout}>
+                {props.solution.neededRoles ? (
+                  props.solution.neededRoles && props.solution.neededRoles.length ? (
+                    neededRoles(props.solution.neededRoles)
+                  ) : (
+                    <Text>NA</Text>
+                  )
+                ) : (
+                  <Text>NA</Text>
+                )}
+              </View>
+              <View style={{ marginTop: -20 }} />
+            </View>
           </View>
         ) : (
           <View />

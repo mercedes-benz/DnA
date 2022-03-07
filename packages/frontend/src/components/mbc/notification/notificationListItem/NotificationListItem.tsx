@@ -2,8 +2,8 @@ import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
-import { ISubsriptionAdminList } from '../../../../globals/types';
-// import { history } from '../../../../router/History';
+// import { ISubsriptionAdminList } from '../../../../globals/types';
+import { history } from '../../../../router/History';
 import Styles from '../Notifications.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -13,7 +13,7 @@ import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 const classNames = cn.bind(Styles);
 
 export interface INotificationDetailsProps {
-  item: ISubsriptionAdminList;
+  item: any;
   checkedAll?: boolean;
   checkAllWithException?: boolean;
   currentItemNotToBeDeleted?: boolean;
@@ -21,6 +21,7 @@ export interface INotificationDetailsProps {
   notificationIdsNotTobeDeleted?: any[];
   selectedNotifications?: any[];
   openDetails?: (notificationDetails: any) => void;
+  markNotificationAsRead?: (notificationIds: any[]) => void;
   selectNotification?: (selectedNotification: any) => void;
   deselectNotification?: (selectedNotification: any) => void;
   unCheckAll?: () => void;
@@ -30,7 +31,7 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
   Tooltip.defaultSetup();
   const item = props.item;
 
-  const [showCheckBox, setShowCheckBox] = useState<boolean>(false);
+  // const [showCheckBox, setShowCheckBox] = useState<boolean>(false);
   const [isChecked, setIsChecked] = useState<boolean>(false);
   const [isAvaialableInWithExceptionArray, setIsAvaialableInWithExceptionArray] = useState<boolean>(false);
 
@@ -53,9 +54,9 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
     event.nativeEvent.stopImmediatePropagation();
   };
 
-  const onRowClick = (event: React.FormEvent<HTMLSpanElement>) => {
-    props.openDetails({});
-  };
+  // const onRowClick = (event: React.FormEvent<HTMLSpanElement>) => {
+  //   props.openDetails(item);
+  // };
 
   const stopPropagation = (event: React.FormEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -63,16 +64,26 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
 
   const markAsRead = (event: React.FormEvent<HTMLElement>) => {
     event.stopPropagation();
+    props.markNotificationAsRead([item.id]);
+  };
+
+  const goToSummary = () => {
+    if(props.item.resourceId)
+      history.push('/summary/' + props.item.resourceId);
   };
 
   return (
     <React.Fragment>
+      {/* 
+      
+      *******************  Commented following code which needs to be discussed  *************************
+      
       <tr
-        className="data-row"
         key={item.id}
         onClick={onRowClick}
         onMouseEnter={() => setShowCheckBox(true)}
         onMouseLeave={() => setShowCheckBox(false)}
+        className={classNames('data-row', item.isRead === 'false' ? Styles.unreadMessage : '')}
       >
         <td>
           {showCheckBox ||
@@ -98,26 +109,73 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
                 />
               </span>
               <span className={classNames('label', Styles.checkboxItemLabel)} onClick={onRowClick}>
-                3 days left to provision your dummy solution{' '}
+                {item.message}{' '}
               </span>
             </label>
           ) : (
-            <p>3 days left to provision your dummy solution </p>
+            <p>{item.message} </p>
           )}
         </td>
         <td className={classNames(Styles.notificationCategory, showCheckBox ? Styles.showMarkAsRead : '')}>
-          <div className={Styles.elementToMove}>System Notification</div>
+          <div className={Styles.elementToMove}>{item.eventType}</div>
         </td>
         <td className={classNames(Styles.notificationDate, showCheckBox ? Styles.showMarkAsRead : '')}>
-          <div className={Styles.elementToMove}>20-9-2021 / 15:21</div>
-          {showCheckBox ? (
+          <div className={Styles.elementToMove}>{item.dateTime}</div>
+          {showCheckBox ? item.isRead === 'false' ? (
             <div className={Styles.markAsRead} onClick={(event: React.FormEvent<HTMLElement>) => markAsRead(event)}>
               <i className={'icon mbc-icon visibility-show'} />
               &nbsp; Mark as read
             </div>
           ) : (
             ''
-          )}
+          ) : ''}
+        </td>
+      </tr> */}
+      <tr
+        key={item.id}
+        className={classNames('data-row', item.isRead === 'false' ? Styles.unreadMessage : '')}
+      >
+        <td>
+          <label
+            className={classNames('checkbox', Styles.checkboxItem)}
+            onClick={(event: React.FormEvent<HTMLElement>) => stopPropagation(event)}
+          >
+            <span className="wrapper">
+              <input
+                type="checkbox"
+                className="ff-only"
+                id={'checkbox-' + item.id}
+                checked={
+                  props.checkedAll ||
+                  isChecked ||
+                  (isAvaialableInWithExceptionArray && !props.currentItemNotToBeDeleted)
+                }
+                onChange={(event: React.FormEvent<HTMLInputElement>) => {
+                  onChangeCheck(event);
+                }}
+              />
+            </span>
+            <span className={classNames('label', Styles.checkboxItemLabel, Styles.notificationMessage)} onClick={goToSummary}>
+              {item.message}{' '}
+            </span>
+          </label>
+        </td>
+        <td className={classNames(Styles.notificationCategory)}>
+          <div className={Styles.elementToMove}>{item.eventType}</div>
+        </td>
+        <td className={classNames(Styles.notificationDate)}>
+          <div className={Styles.elementToMove}>{item.dateTime}</div>          
+        </td>  
+        <td className={classNames(Styles.columnMarkAsRead)}>
+          {item.isRead === 'false' ? (
+            <div className={Styles.markAsRead} onClick={(event: React.FormEvent<HTMLElement>) => markAsRead(event)}>
+              <i tooltip-data='Mark as read' className={'icon mbc-icon visibility-show'} />
+              {/* &nbsp; Mark as read */}
+            </div>
+          ) : (
+            ''
+          )
+          }
         </td>
       </tr>
     </React.Fragment>

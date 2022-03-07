@@ -1,0 +1,163 @@
+.solCard {
+  background: #252a33;
+  width: calc(33% - 15px);
+  margin: 0 15px 15px 0;
+  min-width: 250px;
+  position: relative;
+  &:hover {
+    background: #30343a !important;
+  }
+  .solHead {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    height: 110px;
+    img {
+      min-width: 100%;
+      align-self: flex-start;
+    }
+    .solHeadInfo {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 15px 20px;
+      cursor: pointer;
+      &:before {
+        content: '';
+        height: 100%;
+        left: 0;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        background: linear-gradient(49deg, #214350, #31c5ff, #ffffff00);
+        background: -webkit-linear-gradient(90deg, #111111, #36b1e0);
+        background: -o-linear-gradient(90deg, #111111, #36b1e0);
+        background: -ms-linear-gradient(90deg, #111111, #36b1e0);
+      }
+      .solTitle {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        position: relative;
+        word-break: break-word;
+        padding-right: 10px;
+        padding-bottom:5px;
+      }
+    }
+
+    &:hover .solTitle {
+      color: #00adef;
+    }
+  }
+  .solbodysection {
+    padding: 15px 20px 20px 20px;
+  }
+  .subsolHead {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    align-items: center;
+    .active {
+      color: #00adef;
+    }
+    .closed {
+      color: #e84d47;
+    }
+  }
+  .draftIndicator {
+    padding: 2px 8px;
+    border: 1px solid #697582;
+    color: #697582;
+    font-size: var(--font-size-icon-small);
+    letter-spacing: 1px;
+    border-radius: 2px;
+    margin-left: 15px;
+  }
+  .solStatus {
+    font-size: var(--font-size-default);
+    color: #00adef;
+  }
+  .solRegin {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 12px;
+    align-items: normal;
+    min-height: 40px;
+    span {
+      vertical-align: top;
+      font-size: var(--font-size-smallest);
+      color: #99a5b3;
+      padding: 0 15px 0 0;
+      font-family: 'Roboto-Medium';
+
+      &:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-right: 0;
+      }
+    }
+  }
+  .solInfo {
+    font-size: var(--font-size-default);
+    color: #c0c8d0;
+    line-height: 18px;
+    min-height: 90px;
+    word-break: break-word;
+  }
+  .solLink {
+    position: relative;
+    display: flex;
+    align-items: center;
+    .solBm {
+      position: absolute;
+      right: 0;
+      i {
+        color: #807d7d;
+      }
+    }
+    .gotoNotebook {
+      cursor: pointer;;
+    }
+    label {
+      margin: 0 25px 0 0;
+      padding: 0;
+      font-size: var(--font-size-default);
+      color: #807d7d;
+      img {
+        width: 24px;
+      }
+    }
+  }
+}
+
+.contextMenu {
+  &.locations {
+    display: inline-block;
+    .contextMenuTrigger {
+      margin-right: 0;
+      margin-left: 8px;
+    }
+  }
+
+  &.open .contextMenuTrigger {
+    z-index: 10;
+    position: relative;
+  }
+
+  .contextMenuTrigger {
+    padding: 12px 10px;
+    cursor: pointer;
+    margin-right: -14px;
+    &:hover {
+      color: #00adef;
+    }
+  }
+}

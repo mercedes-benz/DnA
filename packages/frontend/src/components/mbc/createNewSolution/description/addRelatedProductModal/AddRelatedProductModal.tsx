@@ -7,12 +7,13 @@ import { IRelatedProduct } from '../../../../../globals/types';
 // @ts-ignore
 import InputFieldsUtils from '../../../../formElements/InputFields/InputFieldsUtils';
 import { Modal } from '../../../../formElements/modal/Modal';
-import Tags from '../tags/Tags';
+import Tags from '../../../../formElements/tags/Tags';
 import Styles from './AddRelatedProductModal.scss';
 const classNames = cn.bind(Styles);
 
 export interface IAddRelatedProductModalProps {
   modalTitleText?: string;
+  fieldTitleText?: string;
   max: number;
   chips: string[];
   showAddRelatedProductModal: boolean;
@@ -74,7 +75,7 @@ export default class AddRelatedProductModal extends React.Component<
           <div>
             <div className={classNames(Styles.relatedProductModalParentdiv, Styles.searchWrapper)}>
               <Tags
-                title={'Related Products'}
+                title={this.props.fieldTitleText ? this.props.fieldTitleText : 'Related Products'}
                 max={100}
                 chips={this.state.chips}
                 setTags={this.setTags}

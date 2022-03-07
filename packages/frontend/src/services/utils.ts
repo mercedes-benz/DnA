@@ -76,7 +76,7 @@ export const DataFormater = (value: number) => {
 };
 
 export const attachEllipsis = (value: string, length: number) => {
-  return value.length >= length ? value.substring(0, length) + '...' : value;
+  return value?.length >= length ? value.substring(0, length) + '...' : value;
 };
 
 export const trackPageView = (url: string, title: string, userId: string) => {

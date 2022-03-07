@@ -1,14 +1,17 @@
 import cn from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { withRouter } from "react-router-dom";
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
+import { IUserInfo } from '../../../globals/types';
 import Styles from './Notifications.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 
 const classNames = cn.bind(Styles);
 
-import { ApiClient } from '../../../services/ApiClient';
+// import { ApiClient } from '../../../services/ApiClient';
+import { NotificationApiClient } from '../../../services/NotificationApiClient';
 import { history } from '../../../router/History';
 
 // @ts-ignore
@@ -19,8 +22,15 @@ import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
 import { getQueryParameterByName } from '../../../services/Query';
 import NotificationListItem from './notificationListItem/NotificationListItem';
 import { IconGear } from '../../icons/IconGear';
+// import { INotificationDetails } from '../../../globals/types';
+import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import AppContext from '../../context/ApplicationContext';
 
-const Notifications = () => {
+export interface INotificationProps {
+  user: IUserInfo;
+}  
+
+const Notifications = (props: any) => {
   Tooltip.defaultSetup();
   const [notificationsList, setNotificationsList] = useState([]);
 
@@ -35,12 +45,18 @@ const Notifications = () => {
   const [checkAll, setCheckAll] = useState(false);
   const [checkAllWithException, setCheckAllWithException] = useState(false);
   const [selectedNotifications, setSelectedNotifications] = useState([]);
-  const [notificationRead, setNotificationRead] = useState(false);
+  // const [notificationRead, setNotificationRead] = useState(false);
   const [notificationIdsNotTobeDeleted, setNotificationIdsNotTobeDeleted] = useState([]);
   const [checkedAllCount, setCheckedAllCount] = useState(0);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [canShowSearch] = useState(true);
+  // const [searchTerm, setSearchTerm] = useState('');
+  // const [canShowSearch] = useState(true);
+
+  const [notificationDetails, setNotificationDetails] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const {setMessage} = useContext(AppContext);
+
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -54,35 +70,41 @@ const Notifications = () => {
   useEffect(() => {
     getNotifications();
     SelectBox.defaultSetup();
-  }, [currentPageOffset, maxItemsPerPage]);
+  }, [
+    currentPageOffset, 
+    maxItemsPerPage
+  ]);
 
   const getNotifications = () => {
     ProgressIndicator.show();
-    ApiClient.getSolutionsByGraphQL(
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      maxItemsPerPage,
-      currentPageOffset,
-      'productName',
-      'asc',
-    )
-      .then((response) => {
-        const res = response.data.solutions;
-        const totalNumberOfPagesInner = Math.ceil(res.totalCount / maxItemsPerPage);
-        setNotificationsList(res.records);
-        setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
-        setTotalNumberOfPages(totalNumberOfPagesInner);
-        ProgressIndicator.hide();
-        history.replace({
-          search: `?page=${currentPageNumber}`,
-        });
-      })
-      .catch((err) => err);
+    NotificationApiClient.getNotifications(props.user.id, maxItemsPerPage, currentPageOffset).then((response) => {
+      const totalNumberOfPagesInner = Math.ceil(response.totalRecordCount / maxItemsPerPage);
+      setNotificationsList(response.records);
+      setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
+      setTotalNumberOfPages(totalNumberOfPagesInner);
+      ProgressIndicator.hide();
+      history.replace({
+        search: `?page=${currentPageNumber}`,
+      });
+    }).catch((error)=>{
+      showErrorNotification('Something went wrong!');
+    });
+    // ApiClient.getNotifications(maxItemsPerPage, currentPageOffset, 'description', 'asc')
+    //   .then((response) => {
+    //     const res = response.data.solutions;
+    //     const totalNumberOfPagesInner = Math.ceil(res.totalCount / maxItemsPerPage);
+    //     setNotificationsList(res.records);
+    //     setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
+    //     setTotalNumberOfPages(totalNumberOfPagesInner);
+    //     ProgressIndicator.hide();
+    //     history.replace({
+    //       search: `?page=${currentPageNumber}`,
+    //     });
+    //   })
+    //   .catch((err) => {
+    //     err;
+    //     ProgressIndicator.hide();
+    //   });
   };
 
   const onPaginationPreviousClick = () => {
@@ -106,14 +128,33 @@ const Notifications = () => {
     setMaxItemsPerPage(pageNum);
   };
 
-  const onTypeChange = () => {};
+  // const onTypeChange = () => {};
 
   const toggleDrawer = () => {
     setHideDrawer(!hideDrawer);
   };
 
+  const markNotificationAsRead = (notificationIds: any) => {
+    ProgressIndicator.show();
+     NotificationApiClient.markAsReadNotifications(notificationIds, props.user.id)
+      .then((response) => {
+        setMessage('UPDATE_NOTIFICATIONS'); 
+        showNotification('Notification marked as viewed successfully.');
+        getNotifications();
+      })
+      .catch((err) => {
+        console.log('Something went wrong');
+        showErrorNotification('Something went wrong');
+      });
+    // toggleDrawer();
+  };
+
   const openDetails = (notificationDetails: any) => {
-    setHideDrawer(false);
+    setNotificationDetails(JSON.stringify(notificationDetails));
+    /**********************  Following one line will be uncommented if drawer is needed ******************/
+    // setHideDrawer(false);
+
+
     // toggleDrawer();
   };
 
@@ -144,32 +185,69 @@ const Notifications = () => {
   };
 
   const removeSelected = () => {
-    console.log(selectedNotifications, '===========================');
+    ProgressIndicator.show();
+    NotificationApiClient.deleteNotifications(selectedNotifications, props.user.id)
+      .then((response) => {
+        setMessage('UPDATE_NOTIFICATIONS');
+        setSelectedNotifications([]);
+        setCheckAll(false);
+        getNotifications();
+        showNotification('Notification(s) deleted successfully.');
+      })
+      .catch((err) => {
+        console.log('Something went wrong');
+        showErrorNotification('Something went wrong');
+      });
   };
 
-  const markAsRead = () => {
-    setNotificationRead(false);
-    console.log('============= Mark Read ==============');
-  };
+  // const markAsRead = () => {
+  //   setNotificationRead(false);
+  //   console.log('============= Mark Read ==============');
+  // };
 
-  const markAsUnread = () => {
-    setNotificationRead(true);
-    console.log('============= Mark Unread ==============');
-  };
+  // const markAsUnread = () => {
+  //   setNotificationRead(true);
+  //   console.log('============= Mark Unread ==============');
+  // };
 
   const unCheckAll = () => {
     setCheckedAllCount(0);
     setCheckAll(false);
   };
 
-  const onSearchIconButtonClick = () => {
-    console.log('Clicked Search ++++++++++++++++++');
-  };
+  // const onSearchIconButtonClick = () => {
+  //   console.log('Clicked Search ++++++++++++++++++');
+  // };
 
-  const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
-    setSearchTerm(event.currentTarget.value);
-    console.log('Change in search box $$$$$$$$$$$$');
-  };
+  // const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
+  //   setSearchTerm(event.currentTarget.value);
+  //   console.log('Change in search box $$$$$$$$$$$$');
+  // };
+
+  const showErrorNotification = (message: string) => {
+    // ProgressIndicator.hide();
+    Notification.show(message, 'alert');
+  }
+
+  const showNotification = (message: string) => {
+    // ProgressIndicator.hide();
+    Notification.show(message);
+  }
+
+  const onInfoModalCancel = () => {
+    setShowDeleteModal(false);
+  }
+
+  const onAccept = () => {
+    onInfoModalCancel();
+    removeSelected(); 
+  }
+
+  const openDeleteModal = () => {
+    setShowDeleteModal(true);    
+  }
+
+  
 
   return (
     <React.Fragment>
@@ -186,26 +264,23 @@ const Notifications = () => {
                 id="notificationTypeContainer"
                 className={classNames('input-field-group', Styles.notificationTypeSelect)}
               >
-                <div id="notificationType" className="custom-select">
+                {/* <div id="notificationType" className="custom-select">
                   <select id="notificationTypeSelect" value={0} onChange={onTypeChange}>
                     <option id="notificationCategories1" key={0} value={0}>
                       Show all
                     </option>
-                    <option id="notificationCategories2" key={1} value={1}>
-                      System Notification
-                    </option>
-                    {/* {notificationCategories.map((obj) => (
+                    {notificationCategories.map((obj) => (
                       <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                         {obj.name}
                       </option>
-                    ))} */}
+                    ))}
                   </select>
-                </div>
+                </div> */}
               </div>
             </div>
             <div>
               <div className={Styles.searchPanel}>
-                <input
+                {/* <input
                   type="text"
                   className={classNames(Styles.searchInputField, canShowSearch ? '' : Styles.hide)}
                   ref={(searchInputLocal) => {
@@ -218,14 +293,14 @@ const Notifications = () => {
                 />
                 <button onClick={onSearchIconButtonClick}>
                   <i className={classNames('icon mbc-icon search', canShowSearch ? Styles.active : '')} />
-                </button>
+                </button> */}
               </div>
             </div>
             <div>
               <IconGear></IconGear>
             </div>
             <div>
-              <div className={Styles.removeBlock} onClick={removeSelected}>
+              <div className={Styles.removeBlock} onClick={openDeleteModal}>
                 {checkAll || selectedNotifications.length > 0 ? (
                   <React.Fragment>
                     <i className={classNames('icon delete')} />
@@ -245,8 +320,11 @@ const Notifications = () => {
           <div className={Styles.notificationListWrapper}>
             <div className={Styles.listContent}>
               {notificationsList == null ? (
-                <div className={Styles.notificationListEmpty}>Notifications not available</div>
+                <div className={Styles.notificationListEmpty}>Notifications are not available</div>
               ) : (
+                notificationsList.length == 0 ? (
+                  <div className={Styles.notificationListEmpty}>Notifications are not available</div>
+                ) : (
                 <React.Fragment>
                   <div className={Styles.notificationList}>
                     <table className={'ul-table'}>
@@ -258,6 +336,7 @@ const Notifications = () => {
                                 <span className="wrapper">
                                   <input
                                     type="checkbox"
+                                    className="ff-only"
                                     checked={checkAll}
                                     onChange={(event: React.FormEvent<HTMLInputElement>) => onChangeSelectAll(event)}
                                   />
@@ -269,16 +348,17 @@ const Notifications = () => {
                           </th>
                           <th>
                             <label className="sortable-column-header desc">
-                              <i className="icon sort" />
-                              Category
+                              {/* <i className="icon sort" /> */}
+                              Event
                             </label>
                           </th>
                           <th>
                             <label className="sortable-column-header desc">
-                              <i className="icon sort" />
+                              {/* <i className="icon sort" /> */}
                               Date / Time
                             </label>
                           </th>
+                          <th>{' '}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -288,6 +368,7 @@ const Notifications = () => {
                               item={item}
                               key={item.id}
                               openDetails={openDetails}
+                              markNotificationAsRead={markNotificationAsRead}
                               checkedAll={checkAll}
                               checkAllWithException={checkAllWithException}
                               selectedNotifications={selectedNotifications}
@@ -304,7 +385,7 @@ const Notifications = () => {
                     </table>
                   </div>
                 </React.Fragment>
-              )}
+              ))}
             </div>
           </div>
 
@@ -316,10 +397,10 @@ const Notifications = () => {
               <div className={Styles.contentHeader}>
                 <span className={Styles.detailsNotificationType}>
                   <i className="icon mbc-icon notification" />
-                  System Notification
+                  {notificationDetails ? JSON.parse(notificationDetails).eventType : ''}
                 </span>
 
-                {notificationRead ? (
+                {/* {notificationRead ? (
                   <span className={Styles.detailsMarkAsRead} onClick={() => markAsRead()}>
                     <i className={'icon mbc-icon visibility-show'} />
                     &nbsp; Mark as read
@@ -329,17 +410,14 @@ const Notifications = () => {
                     <i className={'icon mbc-icon visibility-hide'} />
                     &nbsp; Mark as unread
                   </span>
-                )}
+                )} */}
               </div>
               <div className={Styles.notificationTitle}>
-                <p>3 days left to provision your dummy solution</p>
+                <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
               </div>
               <div className={Styles.notificationContent}>
-                <p>Hey John Doe,</p>
-                <p>
-                  you have 3 days left to provision your dummy solution Solution Title and integrate it fully into the
-                  DnA-App. Lorem Ipsum dolor sit amet selling point 01, selling point 02, selling point 03.
-                </p>
+                {/* <p>Hey John Doe,</p> */}
+                <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
               </div>
               {/* <div className={Styles.btnConatiner}>
                 <button className="btn btn-primary" type="button">
@@ -362,8 +440,29 @@ const Notifications = () => {
           ''
         )}
       </div>
+      <ConfirmModal
+          title={''}
+          showAcceptButton={true}
+          showCancelButton={true}
+          acceptButtonTitle={'Confirm'}
+          cancelButtonTitle={'Cancel'}
+          show={showDeleteModal}
+          removalConfirmation={true}
+          content={
+            <div style={{ margin: '35px 0', textAlign: 'center' }}>
+              {/* <div>Delete Notification(s)</div> */}
+              <div className={classNames(Styles.removeConfirmationContent)}>
+                Are you sure to delete selected notification(s)?
+              </div>
+            </div>
+          }
+          onCancel={onInfoModalCancel}
+          onAccept={onAccept}
+        />
     </React.Fragment>
   );
 };
+Notifications.contextType = AppContext;
+export default withRouter(Notifications);
+delete Notifications.contextType;
 
-export default Notifications;
