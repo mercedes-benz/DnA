@@ -1,0 +1,121 @@
+{
+    "meta" : {
+        "label": "AAD Authentication",
+        "description": "Basic methods for id to AAD",
+        "icon": "icon-puzzle-piece"
+    },
+    "defaultDefinableInline": true,
+    "defaultDefinableAtProjectLevel": true,
+    "pluginParams": [
+    ],
+    "params": [
+        {
+            "name": "group_prefix",
+            "label": "Group Prefix",
+            "type": "STRING",
+            "description": "Group names in AD should start with this prefix to grant permissions for this Dataiku instance",
+            "mandatory": false
+        },
+        {
+            "name": "licence_group_prefix",
+            "label": "Licence Group Prefix",
+            "type": "STRING",
+            "description": "For managing user profile configuration",
+            "mandatory": false
+        },
+        {
+            "name": "graph_tenant_id",
+            "label": "Tenant ID",
+            "type": "STRING",
+            "description": "Usually your company name",
+            "mandatory": false,
+            "visibilityCondition" : "!model.flag_user_credentials"
+        },
+        {
+            "name": "graph_app_id",
+            "label": "Application ID",
+            "type": "STRING",
+            "description": "Azure ID of the application which is allowed to read AAD",
+            "mandatory": false,
+            "visibilityCondition" : "!model.flag_user_credentials"
+        },
+        {
+            "name": "auth_method",
+            "type": "SELECT",
+            "label": "Authentication method",
+            "selectChoices": [
+                               { "value": "auth_app_token", "label": "Application Token"},
+                               { "value": "auth_app_cert", "label": "Application Certificate"},
+                               { "value": "auth_user_pwd", "label": "User password"}
+                             ],
+            "defaultValue": "auth_app_token"
+        },
+        {
+            "name": "flag_user_credentials",
+            "label": "Use user credentials",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "description": "When checked, credentials will be fetched from the user's secrets",
+            "mandatory": false,
+            "visibilityCondition" : false
+        },
+        {
+            "name": "graph_app_secret",
+            "label": "App secret",
+            "type": "PASSWORD",
+            "description": "Application secret",
+            "mandatory": false,
+            "visibilityCondition" : "!model.flag_user_credentials && model.auth_method == 'auth_app_token'"
+        },
+        {
+            "name": "graph_app_cert",
+            "label": "App certificate",
+            "type": "PASSWORD",
+            "description": "Application certificate",
+            "mandatory": false,
+            "visibilityCondition" : "!model.flag_user_credentials && model.auth_method == 'auth_app_cert'"
+        },
+        {
+            "name": "graph_app_cert_thumb",
+            "label": "App certificate thumbprint",
+            "type": "PASSWORD",
+            "description": "Certificate thumbprint",
+            "mandatory": false,
+            "visibilityCondition" : "!model.flag_user_credentials && model.auth_method == 'auth_app_cert'"
+        },
+        {
+            "name": "graph_user",
+            "label": "User principal",
+            "type": "STRING",
+            "description": "Usually, the user's email",
+            "mandatory": false,
+            "visibilityCondition" : "!model.flag_user_credentials && model.auth_method == 'auth_user_pwd'"
+        },
+        {
+            "name": "graph_user_pwd",
+            "label": "User password",
+            "type": "PASSWORD",
+            "description": "",
+            "mandatory": false,
+            "visibilityCondition" : "!model.flag_user_credentials && model.auth_method == 'auth_user_pwd'"
+        },
+        {
+            "name": "is_training_env",
+            "label": "Adjust logic for training env",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "description": "When checked, the logic for training environment is applied",
+            "mandatory": false,
+            "visibilityCondition" : false
+        },
+        {
+            "name": "del_user_and_training_projects",
+            "label": "Delete old users and their training projects",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "description": "When checked the users that should no longer have access to dataiku are deleted together with their projects",
+            "mandatory": false,
+            "visibilityCondition" : "model.is_training_env"
+        }
+    ]
+}
