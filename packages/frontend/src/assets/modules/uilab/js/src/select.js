@@ -15,9 +15,9 @@ class Select {
     let b;
     let c;
     /* Look for any elements with the class 'custom-select': */
-    const x = document.getElementsByClassName('custom-select');
+    const x = document.querySelectorAll('.custom-select');
     for (i = 0; i < x.length; i++) {
-      selElmnt = x[i].getElementsByTagName('select')[0];
+      selElmnt = x[i].querySelectorAll('select')[0];
       /* For each element, create a new DIV that will act as the selected item: */
       a = document.createElement('DIV');
       const labelWrapper = document.createElement('SPAN');
@@ -38,7 +38,7 @@ class Select {
       } else {
         a.setAttribute('class', 'select-selected');
         b.setAttribute('class', 'select-items select-hide');
-        labelWrapper.innerHTML = selElmnt.options[selElmnt.selectedIndex].innerHTML;
+        labelWrapper.innerHTML = selElmnt.options[selElmnt.selectedIndex]?.innerHTML;
       }
 
       a.appendChild(labelWrapper);
@@ -100,13 +100,13 @@ class Select {
             let y;
             let i;
             let k;
-            const s = this.parentNode.parentNode.getElementsByTagName('select')[0];
+            const s = this.parentNode.parentNode.querySelectorAll('select')[0];
             const h = this.parentNode.previousSibling.childNodes[0];
             for (i = 0; i < s.length; i++) {
               if (s.options[i].innerHTML === this.innerHTML) {
                 s.selectedIndex = i;
                 h.innerHTML = this.innerHTML;
-                y = this.parentNode.getElementsByClassName('same-as-selected');
+                y = this.parentNode.querySelectorAll('.same-as-selected');
                 for (k = 0; k < y.length; k++) {
                   y[k].removeAttribute('class');
                 }
@@ -183,8 +183,8 @@ class Select {
     except the current select box: */
       let i;
       const arrNo = [];
-      const x = document.getElementsByClassName('select-items');
-      const y = document.getElementsByClassName('select-selected');
+      const x = document.querySelectorAll('.select-items');
+      const y = document.querySelectorAll('.select-selected');
       for (i = 0; i < y.length; i++) {
         const el = y[i];
         if (elmnt === el) {

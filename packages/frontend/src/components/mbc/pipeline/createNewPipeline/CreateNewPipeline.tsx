@@ -702,7 +702,7 @@ const CreateNewPipeline = () => {
                         >
                           <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
                             <span className="animation-wrapper"></span>
-                            <input type="checkbox" id={index + '1'} />
+                            <input type="checkbox" className="ff-only" id={index + '1'} />
                             <label
                               className={'expansion-panel-label' + ' ' + Styles.dagContentCaption}
                               htmlFor={index + '1'}
@@ -809,7 +809,7 @@ const CreateNewPipeline = () => {
                                                     >
                                                       <label className={'checkbox ' + Styles.checkBoxDisable}>
                                                         <span className="wrapper">
-                                                          <input type="checkbox" value="can_dag_read" checked={true} />
+                                                          <input type="checkbox" className="ff-only" value="can_dag_read" checked={true} />
                                                         </span>
                                                         <span className="label">Read</span>
                                                       </label>
@@ -824,6 +824,7 @@ const CreateNewPipeline = () => {
                                                         <span className="wrapper">
                                                           <input
                                                             type="checkbox"
+                                                            className="ff-only"
                                                             value="can_dag_edit"
                                                             checked={
                                                               item.permissions !== null

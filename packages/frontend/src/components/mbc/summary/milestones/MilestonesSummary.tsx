@@ -262,6 +262,11 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
                         <span className={Styles.line} />
                         <span className={classNames(Styles.dot, Styles.right)} />
                       </div>
+                      {milestone.description && (
+                        <div className={Styles.comment}>
+                          <p>{milestone.description}</p>
+                        </div>
+                      )}
                     </div>
                   );
                 }

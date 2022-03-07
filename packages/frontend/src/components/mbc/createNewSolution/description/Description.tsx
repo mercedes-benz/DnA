@@ -14,6 +14,7 @@ import {
   IBusinessGoal,
   IDivision,
   IDivisionAndSubDivision,
+  IInfoItem,
   ILocation,
   ILogoDetails,
   IProjectStatus,
@@ -24,7 +25,11 @@ import {
 import AddRelatedProductModal from './addRelatedProductModal/AddRelatedProductModal';
 import Styles from './Description.scss';
 import LogoManager from './logoManager/LogoManager';
-import Tags from './tags/Tags';
+import Tags from '../../../formElements/tags/Tags';
+import { InfoModal } from '../../../formElements/modal/infoModal/InfoModal';
+import { Envs } from '../../../../globals/Envs';
+import { DataStrategyDomainInfoList, ExistingSolutionInfoList } from '../../../../globals/constants';
+import { InfoList } from '../../../formElements/modal/infoModal/InfoList';
 
 const classNames = cn.bind(Styles);
 
@@ -62,10 +67,10 @@ export interface IDescriptionState {
   relatedProductValue: string[];
   locationError: string;
   statusValue: IProjectStatus;
-  businessGoalVal: string;
-  businessGoal: string;
-  statusError: string;
+  businessGoalVal: string[];
+  businessGoal: string[];
   businessGoalValError: string;
+  statusError: string;
   relatedProductsError: string;
   tags: string[];
   description: string;
@@ -81,17 +86,29 @@ export interface IDescriptionState {
   attachments: IAttachment[];
   relatedProductObj: IRelatedProduct[];
   showAddRelatedProductModal: boolean;
+  showAddNeededRoleModal: boolean;
   onAddRelatedProductModalCancel: boolean;
   chips: string[];
   newRelatedProducts: IRelatedProduct[];
+  dataStrategyDomainMaster: IBusinessGoal[];
+  dataStrategyDomain: string;
+  dataStrategyDomainVal: string;
+  dataStrategyDomainValError: string;
+  neededRoleMaster: IRelatedProduct[];
+  neededRoleObj: IRelatedProduct[];
+  newBusinessGoalMaster: IRelatedProduct[];
+  numberOfRequestedFTE: number;
+  isExistingSolution: boolean;
+  showDataStrategyDomainsInfo: boolean;
+  showExistingSolutionInfo: boolean;
 }
 
 export interface IDescriptionRequest {
+  businessGoal: string[];
   productName: string;
   location: ILocation[];
   division: IDivisionAndSubDivision;
   relatedProducts: string[];
-  businessGoal: string;
   reasonForHoldOrClose: string;
   status: IProjectStatus;
   expectedBenefits: string;
@@ -101,6 +118,9 @@ export interface IDescriptionRequest {
   logoDetails?: ILogoDetails;
   attachments: IAttachment[];
   businessGoalsList: IBusinessGoal[];
+  dataStrategyDomain: string;
+  requestedFTECount: number;
+  isExistingSolution: boolean;
 }
 
 export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
@@ -124,6 +144,9 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       businessGoalsList: props.description.businessGoalsList,
       relatedProducts: props.relatedProductsMaster,
       relatedProductValue: props.description.relatedProducts,
+      dataStrategyDomain: props.description.dataStrategyDomain,
+      numberOfRequestedFTE: props.description.requestedFTECount,
+      isExistingSolution: props.description.isExistingSolution,
     };
   }
 
@@ -143,13 +166,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       // subDivisionValue: null,
       locationValue: [],
       relatedProductValue: [],
-      businessGoal: '',
+      businessGoalVal: [],
+      businessGoal: [],
+      businessGoalValError: null,
       locationError: null,
       statusValue: null,
       statusError: null,
-      businessGoalValError: null,
       relatedProductsError: null,
-      businessGoalVal: '',
       tags: [],
       description: null,
       onHoldError: null,
@@ -163,9 +186,21 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       attachments: [],
       relatedProductObj: [],
       showAddRelatedProductModal: false,
+      showAddNeededRoleModal: false,
       onAddRelatedProductModalCancel: false,
       chips: [],
       newRelatedProducts: [],
+      dataStrategyDomain: '',
+      dataStrategyDomainVal: '',
+      dataStrategyDomainValError: null,
+      neededRoleObj: [],
+      neededRoleMaster: [],
+      newBusinessGoalMaster: [],
+      numberOfRequestedFTE: 0,
+      isExistingSolution: false,
+      showDataStrategyDomainsInfo: false,
+      showExistingSolutionInfo: false,
+      dataStrategyDomainMaster: [],
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -300,9 +335,18 @@ export default class Description extends React.Component<IDescriptionProps, IDes
         selectedValues.push(option.label);
       });
     }
-    const description = this.props.description;
-    description.relatedProducts = selectedValues;
+    // const description = this.props.description;
+    // description.relatedProducts = selectedValues;
     this.setState({ relatedProductValue: selectedValues });
+  };
+  public onNeededRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues: string[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        selectedValues.push(option.label);
+      });
+    }
   };
   public onRelatedProductChangeUpdate = (data: string[]) => {
     const newRelatedProducts: IRelatedProduct[] = data
@@ -355,12 +399,26 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     description.status = status;
     this.setState({ statusValue: status });
   };
-  public onBusinessGoalChange = (e: React.FormEvent<HTMLSelectElement>) => {
+  public onDataStrategyDomainChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    let businessGoal = '';
+    let dataStrategyDomain = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        businessGoal = option.label;
+        dataStrategyDomain = option.label;
+      });
+    }
+    const description = this.props.description;
+    description.dataStrategyDomain = dataStrategyDomain;
+    this.setState({ dataStrategyDomain });
+    this.setState({ dataStrategyDomainVal: dataStrategyDomain });
+  };
+
+  public onBusinessGoalChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const businessGoal: any = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        businessGoal.push(option.label);
       });
     }
     const description = this.props.description;
@@ -369,18 +427,37 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({ businessGoalVal: businessGoal });
   };
 
+  public onFTEChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const numberOfRequestedFTE = e.currentTarget.value !== null ? parseInt(e.currentTarget.value) : 0;
+    const description = this.props.description;
+    description.requestedFTECount = numberOfRequestedFTE;
+    this.setState({
+      numberOfRequestedFTE,
+    });
+  };
+
+  public onIsExistingSolutionChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const isExistingSolution = e.currentTarget.value === 'true' ? true : false;
+    const description = this.props.description;
+    description.isExistingSolution = isExistingSolution;
+    this.setState({
+      isExistingSolution,
+    });
+  };
+
   public render() {
     const productNameError = this.state.productNameError || '';
     const locationError = this.state.locationError || '';
     const divisionError = this.state.divisionError || '';
     // const subDivisionError = this.state.subDivisionError || '';
     const statusError = this.state.statusError || '';
-    const businessGoalValError = this.state.businessGoalValError || '';
+    // const dataStrategyDomainValError = this.state.dataStrategyDomainValError || '';
     // const relatedProductsError = this.state.relatedProductsError || '';
     const descriptionError = this.state.descriptionError || '';
     const onHoldError = this.state.onHoldError || '';
     const businessNeedsError = this.state.businessNeedsError || '';
     const expectedBenefitsError = this.state.expectedBenefitsError || '';
+    const businessGoalValError = this.state.businessGoalValError || '';
 
     const requiredError = '*Missing entry';
 
@@ -393,7 +470,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           return relatedProduct;
         })
       : [];
-    const busineesGoalValues = this.state.businessGoal;
+    const dataStrategyDomainValue = this.state.dataStrategyDomain;
+    const businessGoalValue = this.state.businessGoal;
 
     const relatedProdcutList: IRelatedProduct[] = this.props.relatedProductsMaster;
 
@@ -402,11 +480,25 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       scrollableContent.scrollTop = 0;
     }
 
+    // const contentForDataStrategyDomainsInfoModal = DataStrategyDomainInfoList.map((info: any, index: number) => {
+    //   return <React.Fragment key={index}>
+    //     <label>{info.domain}:</label>
+    //     <p>{info.description}</p>
+    //   </React.Fragment>;
+    // });
+
+    const contentForDataStrategyDomainsInfoModal = <InfoList list={DataStrategyDomainInfoList as IInfoItem[]} />;
+
+    const contentForExistingSolutionInfoModal = <InfoList list={ExistingSolutionInfoList as IInfoItem[]} />;
+
+    // Used Data Compliance variable to hide specific to company
+    const enableDataStatergyInfo = Envs.ENABLE_DATA_COMPLIANCE;
+
     return (
       <React.Fragment>
         <div className={classNames(this.props.isProvision && Styles.provisionStyles)}>
           <div className={classNames(Styles.wrapper)}>
-            <div className={classNames(Styles.firstPanel, 'decriptionSection')}>
+            <div className={classNames(Styles.firstPanel, 'decriptionSection', 'mbc-scroll')}>
               {this.props.isProvision ? '' : <h3>Please give a detailed solution description</h3>}
               <div className={classNames(Styles.formWrapper)}>
                 <div className={classNames(Styles.flexLayout)}>
@@ -472,86 +564,80 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         </div>
                       </div>
                     </div>
-                    {this.props.isProvision ? (
-                      ''
-                    ) : (
-                      <div id="relatedProductWrapper">
-                        <div
-                          id="relatedProductContainer"
-                          className={classNames('input-field-group')}
-                          // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
-                        >
-                          <label id="relatedProductLable" className="input-label" htmlFor="relatedProductSelect">
-                            Related Product
-                          </label>
-                          <div id="relatedProduct" className="custom-select">
-                            <select
-                              id="relatedProductSelect"
-                              multiple={true}
-                              required={false}
-                              // required-error={requiredError}
-                              onChange={this.onRelatedProductChange}
-                              value={relatedProductValues}
-                            >
-                              {relatedProdcutList.map((obj) => (
-                                <option id={obj.name} key={obj.name} value={obj.name}>
-                                  {obj.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          {/* <span className={classNames('error-message', relatedProductsError.length ? '' : 'hide')}>
-                        {relatedProductsError}
-                        </span>
-                            */}
-                          <div>
-                            <button
-                              className={classNames(Styles.relatedPrdEdit)}
-                              onClick={this.showAddRelatedProductModalView}
-                            >
-                              <i className="icon mbc-icon plus" />
-                              &nbsp;
-                              <span>Add new related products</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {this.props.isProvision && (
-                      <div>
-                        <div
-                          id="businessGoalContainer"
-                          className={classNames('input-field-group', businessGoalValError.length ? 'error' : '')}
-                        >
-                          <label id="businessGoalLable" className="input-label" htmlFor="businessGoalSelect">
-                            Business Goal<sup>*</sup>
-                          </label>
-                          <div id="businessGoal" className=" custom-select">
-                            <select
-                              id="businessGoalSelect"
-                              required={true}
-                              required-error={requiredError}
-                              onChange={this.onBusinessGoalChange}
-                              value={busineesGoalValues}
-                            >
-                              <option id="defaultBusineesGoal" value={0}>
-                                Choose
+
+                    <div>
+                      <div
+                        id="businessGoalContainer"
+                        className={classNames('input-field-group', businessGoalValError.length ? 'error' : '')}
+                      >
+                        <label id="businessGoalLabel" className="input-label" htmlFor="businessGoalSelect">
+                          Business Goals<sup>*</sup>
+                        </label>
+                        <div id="businessGoal" className=" custom-select">
+                          <select
+                            id="businessGoalSelect"
+                            multiple={true}
+                            required={true}
+                            required-error={requiredError}
+                            onChange={this.onBusinessGoalChange}
+                            value={businessGoalValue}
+                          >
+                            {/* <option id="defaultBusinessGoal" value={0}>
+                              Choose
+                            </option> */}
+                            {this.state.newBusinessGoalMaster.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                {obj.name}
                               </option>
-                              {this.props.businessGoalsList.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                  {obj.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <span className={classNames('error-message', businessGoalValError.length ? '' : 'hide')}>
-                            {businessGoalValError}
-                          </span>
+                            ))}
+                          </select>
                         </div>
+                        <span className={classNames('error-message', businessGoalValError.length ? '' : 'hide')}>
+                          {businessGoalValError}
+                        </span>
                       </div>
-                    )}
+                    </div>
                   </div>
                   <div>
+                    <div
+                      className={classNames(
+                        Styles.existingSolution,
+                        'input-field-group include-error',
+                        productNameError.length ? 'error' : '',
+                      )}
+                    >
+                      <label id="newSolutionLabel" htmlFor="newSolutionInput" className="input-label">
+                        Is Existing Solution? &nbsp;
+                        <i className="icon mbc-icon info" onClick={this.showExistingSolutionInfoModal} />
+                      </label>
+                      <div>
+                        <label className="radio">
+                          <span className="wrapper">
+                            <input
+                              type="radio"
+                              name="isNewSolution"
+                              onChange={this.onIsExistingSolutionChange}
+                              value="true"
+                              checked={this.state.isExistingSolution == true}
+                            />
+                          </span>
+                          <span className="label">Yes</span>
+                        </label>
+                        <label className="radio">
+                          <span className="wrapper">
+                            <input
+                              type="radio"
+                              name="isNewSolution"
+                              onChange={this.onIsExistingSolutionChange}
+                              value="false"
+                              checked={this.state.isExistingSolution == false}
+                            />
+                          </span>
+                          <span className="label">No</span>
+                        </label>
+                      </div>
+                    </div>
+
                     <div className={Styles.flexLayout}>
                       <div>
                         <div
@@ -647,42 +733,99 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                             {statusError}
                           </span>
                         </div>
-                        {!this.props.isProvision && (
-                          <div>
-                            <div
-                              id="businessGoalContainer"
-                              className={classNames('input-field-group', businessGoalValError.length ? 'error' : '')}
-                            >
-                              <label id="businessGoalLable" className="input-label" htmlFor="businessGoalSelect">
-                                Business Goal<sup>*</sup>
-                              </label>
-                              <div id="businessGoal" className=" custom-select">
-                                <select
-                                  id="businessGoalSelect"
-                                  required={true}
-                                  required-error={requiredError}
-                                  onChange={this.onBusinessGoalChange}
-                                  value={busineesGoalValues}
-                                >
-                                  <option id="defaultBusineesGoal" value={0}>
-                                    Choose
-                                  </option>
-                                  {this.props.businessGoalsList.map((obj) => (
-                                    <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                      {obj.name}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <span className={classNames('error-message', businessGoalValError.length ? '' : 'hide')}>
-                                {businessGoalValError}
-                              </span>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
+                </div>
+                <div>
+                  {this.props.isProvision ? (
+                    ''
+                  ) : (
+                    <div className={Styles.flexLayout}>
+                      <div id="relatedProductWrapper">
+                        <div
+                          id="relatedProductContainer"
+                          className={classNames('input-field-group')}
+                          // className={classNames('input-field-group', relatedProductsError.length ? 'error' : '')}
+                        >
+                          <label id="relatedProductLable" className="input-label" htmlFor="relatedProductSelect">
+                            Related Products
+                          </label>
+                          <div id="relatedProduct" className="custom-select">
+                            <select
+                              id="relatedProductSelect"
+                              multiple={true}
+                              required={false}
+                              // required-error={requiredError}
+                              onChange={this.onRelatedProductChange}
+                              value={relatedProductValues}
+                            >
+                              {relatedProdcutList.map((obj) => (
+                                <option id={obj.name} key={obj.name} value={obj.name}>
+                                  {obj.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {/* <span className={classNames('error-message', relatedProductsError.length ? '' : 'hide')}>
+                        {relatedProductsError}
+                        </span>
+                            */}
+                          <div>
+                            <button
+                              className={classNames(Styles.relatedPrdEdit)}
+                              onClick={this.showAddRelatedProductModalView}
+                            >
+                              <i className="icon mbc-icon plus" />
+                              &nbsp;
+                              <span>Add new related products</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        id="dataStrategyDomainContainer"
+                        // className={classNames('input-field-group', dataStrategyDomainValError.length ? 'error' : '')}
+                        className={classNames('input-field-group')}
+                      >
+                        <label
+                          id="dataStrategyDomainLable"
+                          className={classNames('input-label', Styles.dataStrategyLabel)}
+                          htmlFor="dataStrategyDomainSelect"
+                        >
+                          Data Strategy Domains{' '}
+                          {enableDataStatergyInfo && (
+                            <React.Fragment>
+                              (Only for MS)&nbsp;
+                              <i className="icon mbc-icon info" onClick={this.showDataStrategyDomainsInfoModal} />
+                            </React.Fragment>
+                          )}
+                        </label>
+                        <div id="dataStrategyDomain" className=" custom-select">
+                          <select
+                            id="dataStrategyDomainSelect"
+                            // required={true}
+                            // required-error={requiredError}
+                            onChange={this.onDataStrategyDomainChange}
+                            value={dataStrategyDomainValue}
+                          >
+                            <option id="defaultBusineesGoal" value={0}>
+                              Choose
+                            </option>
+                            {this.state.dataStrategyDomainMaster.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                {obj.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        {/* <span className={classNames('error-message', dataStrategyDomainValError.length ? '' : 'hide')}>
+                          {dataStrategyDomainValError}
+                        </span> */}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className={this.state.statusValue.id === '0' || this.state.statusValue.id === '1' ? 'hide' : ''}>
@@ -825,6 +968,25 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                 chips={this.state.chips}
                 onRelatedProductChangeUpdate={this.onRelatedProductChangeUpdate}
               />
+
+              {this.state.showDataStrategyDomainsInfo && (
+                <InfoModal
+                  title={'Data Strategy Domains Information'}
+                  modalWidth={'35vw'}
+                  show={this.state.showDataStrategyDomainsInfo}
+                  content={contentForDataStrategyDomainsInfoModal}
+                  onCancel={this.onDataStrategyDomainsInfoModalCancel}
+                />
+              )}
+              {this.state.showExistingSolutionInfo && (
+                <InfoModal
+                  title={'Is Existing Solution?'}
+                  modalWidth={'35vw'}
+                  show={this.state.showExistingSolutionInfo}
+                  content={contentForExistingSolutionInfoModal}
+                  onCancel={this.onExistingSolutionInfoModalCancel}
+                />
+              )}
             </>
           ) : (
             ''
@@ -840,6 +1002,24 @@ export default class Description extends React.Component<IDescriptionProps, IDes
         </div>
       </React.Fragment>
     );
+  }
+
+  public componentDidMount() {
+    ApiClient.getDescriptionLovData().then((response) => {
+      if (response) {
+        this.setState({
+          newBusinessGoalMaster: response[0].data,
+          dataStrategyDomainMaster: response[1].data, // It is a Business Strategy Domain List
+        });
+      }
+    });
+    ApiClient.getSkills().then((response) => {
+      if (response) {
+        this.setState({
+          neededRoleMaster: response,
+        });
+      }
+    });
   }
 
   protected modifyLogoDetails = (logoDetails: ILogoDetails) => {
@@ -902,10 +1082,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ statusError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.businessGoal || this.state.businessGoalVal === 'Choose') {
+    if (!this.state.businessGoal || !this.state.businessGoal) {
       this.setState({ businessGoalValError: errorMissingEntry });
       formValid = false;
     }
+
     /*if (!this.state.relatedProductValue || this.state.relatedProductValue.length === 0) {
       this.setState({ relatedProductsError: errorMissingEntry });
       formValid = false;
@@ -944,7 +1125,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   };
 
   protected clear = () => {
-    const selectElemets = document.getElementsByClassName('select-selected');
+    const selectElemets = document.querySelectorAll('.select-selected');
     // tslint:disable-next-line: prefer-for-of
     for (let i = 0; i < selectElemets.length; i++) {
       selectElemets[i].remove();
@@ -966,5 +1147,21 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({ showAddRelatedProductModal: false }, () => {
       // this.resetTeamsState();
     });
+  };
+
+  protected showDataStrategyDomainsInfoModal = () => {
+    this.setState({ showDataStrategyDomainsInfo: true });
+  };
+
+  protected onDataStrategyDomainsInfoModalCancel = () => {
+    this.setState({ showDataStrategyDomainsInfo: false });
+  };
+
+  protected showExistingSolutionInfoModal = () => {
+    this.setState({ showExistingSolutionInfo: true });
+  };
+
+  protected onExistingSolutionInfoModalCancel = () => {
+    this.setState({ showExistingSolutionInfo: false });
   };
 }

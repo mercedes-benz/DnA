@@ -16,7 +16,7 @@ class SelectBox {
       );
 
       Array.from(fixingElements).forEach((fixingElement: HTMLInputElement) => {
-        fixingElement.style.marginLeft = '0';
+        fixingElement.className = 'ff-only';
       });
     }
 
@@ -146,15 +146,24 @@ class SelectBox {
   }
 
   public static refresh(): void {
-    const selectElements: HTMLCollectionOf<Element> = document.getElementsByClassName('select-selected');
-    Array.from(selectElements).forEach((element) => {
+    
+    const selectElements: NodeListOf<Element> = document.querySelectorAll('.select-selected');
+    let elementIndex = 0;
+    while (elementIndex < selectElements.length) {
+      const element = selectElements[elementIndex];
+      element.nextSibling && element.nextSibling.remove();
       element.remove();
-    });
+      elementIndex++;
+    }
+    // const selectElements: HTMLCollectionOf<Element> = document.getElementsByClassName('select-selected');
+    // Array.from(selectElements).forEach((element) => {
+    //   element.remove();
+    // });
 
-    const selectItemElements: HTMLCollectionOf<Element> = document.getElementsByClassName('select-items');
-    Array.from(selectItemElements).forEach((element) => {
-      element.remove();
-    });
+    // const selectItemElements: HTMLCollectionOf<Element> = document.getElementsByClassName('select-items');
+    // Array.from(selectItemElements).forEach((element) => {
+    //   element.remove();
+    // });
   }
 
   protected static dispatchReactOnChangeEvent(selectElement: HTMLSelectElement) {

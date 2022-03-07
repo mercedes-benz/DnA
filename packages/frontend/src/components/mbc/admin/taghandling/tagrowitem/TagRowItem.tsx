@@ -25,7 +25,7 @@ export class TagRowItem extends React.Component<ITagRowItemProps, any> {
         <tr id={tagItem.id + ''} key={tagItem.id} className="data-row">
           <td className="wrap-text">{tagItem.name}</td>
           <td className="wrap-text">{tagItem.category.name}</td>
-          <td className={'wrap-text ' + classNames(Styles.productSummaryLink)} onClick={this.onTagDelete}>
+          <td className={'wrap-text ' + classNames(Styles.actionLinksTD)} onClick={this.onTagDelete}>
             Delete
           </td>
         </tr>
