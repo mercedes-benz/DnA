@@ -516,7 +516,7 @@ export default class AddOrEditFactorModal extends React.Component<
             <hr />
 
             <div>
-              <div className={Styles.costList}>{this.props.factorId === 'Cost' ? costsList : valuesList}</div>
+              <div className={classNames(Styles.costList, 'mbc-scroll')}>{this.props.factorId === 'Cost' ? costsList : valuesList}</div>
 
               <div>
                 <div className={classNames(Styles.addButtonWrapper)}>

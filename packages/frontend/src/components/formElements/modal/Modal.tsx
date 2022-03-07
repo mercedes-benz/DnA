@@ -15,6 +15,7 @@ export interface IModalProps {
   onAccept?: () => void;
   onCancel?: () => void;
   modalWidth?: string;
+  modalStyle?: React.CSSProperties;
 }
 
 export const Modal = (props: IModalProps) => {
@@ -36,7 +37,7 @@ export const Modal = (props: IModalProps) => {
 
   return (
     <div className={props.show ? 'mbc-modal-wrapper' : Styles.hide}>
-      <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '' }}>
+      <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
         <header>
           <h4>
             {props.titleIconImage ? props.titleIconImage : null}
@@ -46,7 +47,7 @@ export const Modal = (props: IModalProps) => {
             <i className="icon mbc-icon close thin" />
           </button>
         </header>
-        <div className={props.scrollableContent ? 'modal-content scrollable' : 'modal-content'}> {props.content}</div>
+        <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}> {props.content}</div>
         <footer
           className={
             props.showAcceptButton || props.showCancelButton

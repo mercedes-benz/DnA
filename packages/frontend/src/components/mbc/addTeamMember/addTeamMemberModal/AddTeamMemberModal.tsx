@@ -1,16 +1,16 @@
 import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
-import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progress-indicator';
-import { TeamMemberType } from '../../../../../globals/Enums';
-import { ITeams } from '../../../../../globals/types';
-import { ApiClient } from '../../../../../services/ApiClient';
+import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+import { TeamMemberType } from '../../../../globals/Enums';
+import { ITeams } from '../../../../globals/types';
+import { ApiClient } from '../../../../services/ApiClient';
 // @ts-ignore
-import InputFieldsUtils from '../../../../formElements/InputFields/InputFieldsUtils';
-import { Modal } from '../../../../formElements/modal/Modal';
+import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
+import { Modal } from '../../../formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
-import { Envs } from '../../../../../globals/Envs';
-import * as Validation from '../../../../../utils/Validation';
+import { Envs } from '../../../../globals/Envs';
+import * as Validation from '../../../../utils/Validation';
 
 const classNames = cn.bind(Styles);
 
@@ -22,6 +22,7 @@ export interface IAddTeamMemberModalProps {
   showOnlyInteral?: boolean;
   onAddTeamMemberModalCancel: () => void;
   onUpdateTeamMemberList: (teamMemberObj: ITeams) => void;
+  validateMemebersList?: (teamMemberObj: ITeams) => boolean;
 }
 
 export interface IAddTeamMemberModalState {
@@ -128,7 +129,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
     } = this.state;
 
     const addTeamMemberModalContent: React.ReactNode = (
-      <div id="teamsModalDiv" className={classNames(Styles.firstPanel, Styles.addTeamMemberModal)}>
+      <div id="teamsModalDiv" className={classNames(Styles.firstPanel, Styles.addTeamMemberModal, 'mbc-scroll')}>
         <div className={Styles.formWrapper}>
           {this.props.showOnlyInteral ? (
             ''
@@ -142,6 +143,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                   <span className="wrapper">
                     <input
                       type="radio"
+                      className="ff-only"
                       value="Internal"
                       name="belonging"
                       onChange={this.onBelongingChange}
@@ -149,12 +151,13 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                       disabled={this.props.editMode}
                     />
                   </span>
-                  <span className="label">Internal (Daimler Login)</span>
+                  <span className="label">Internal ({Envs.DNA_COMPANY_NAME} Login)</span>
                 </label>
                 <label className={classNames('radio', this.props.editMode ? 'disabled' : '')}>
                   <span className="wrapper">
                     <input
                       type="radio"
+                      className="ff-only"
                       value="External"
                       name="belonging"
                       onChange={this.onBelongingChange}
@@ -232,6 +235,11 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
               <span className={classNames('error-message', this.state.showNotFoundError ? '' : 'hide')}>
                 User details not found. Please provide valid User-ID.
               </span>
+              {typeof this.props.validateMemebersList === 'function' &&
+              this.props.validateMemebersList(this.state.teamMemberObj) &&
+              !this.props.editMode ? (
+                <span className={classNames('error-message')}>User already added.</span>
+              ) : null}
             </div>
             <div className={classNames(Styles.flexLayout, Styles.actionWrapper, teamMemberObj.shortId ? '' : 'hide')}>
               <div className={classNames(Styles.userInfoWrapper)}>
@@ -540,7 +548,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         showCancelButton={false}
         buttonAlignment="right"
         show={this.props.showAddTeamMemberModal}
-        content={Envs.ENABLEINTERNALUSERINFO ? addTeamMemberModalContent : addTeamMemberModalContentForFoss}
+        content={Envs.ENABLE_INTERNAL_USER_INFO ? addTeamMemberModalContent : addTeamMemberModalContentForFoss}
         onCancel={this.onModalCancel}
       />
     );
@@ -633,13 +641,23 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       });
   };
 
-  protected textInputOnChange = (e: React.FormEvent<HTMLInputElement>) => {
+  protected textInputOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name: string = e.currentTarget.name;
     const value: string = e.currentTarget.value;
-    this.setState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    this.setState(
+      (prevState) => ({
+        ...prevState,
+        [name]: value,
+      }),
+      () => {
+        this.formFieldsErrorValidation(name);
+        if (name === 'email') {
+          this.validateEmailID(e);
+        } else {
+          name === 'shortID' && e.target.type === 'email' && this.validateEmailID(e);
+        }
+      },
+    );
   };
 
   protected addTeamMember = () => {
@@ -735,6 +753,11 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       formValid = false;
     }
 
+    if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
+      const isDuplicate = this.props.validateMemebersList(this.state.teamMemberObj);
+      formValid = !isDuplicate;
+    }
+
     return formValid;
   };
 
@@ -757,7 +780,6 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
   protected validateInternalTeamMemberFormForFoss = () => {
     let formValid = true;
-    const errorMissingEntry = '*Missing entry';
     if (Envs.OIDC_PROVIDER === 'INTERNAL') {
       if (
         this.state.teamPosition === '' ||
@@ -781,55 +803,9 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         formValid = false;
       }
 
-      if (this.state.teamPosition === '' || this.state.teamPosition === null) {
-        this.setState({ teamPositionError: errorMissingEntry });
-      } else {
-        this.setState({ teamPositionError: '' });
-      }
-
-      if (this.state.shortID === '' || this.state.shortID === null) {
-        this.setState({ shortIDError: errorMissingEntry });
-      } else {
-        this.setState({ shortIDError: '' });
-      }
-
-      if (this.state.company === '' || this.state.company === null) {
-        this.setState({ companyError: errorMissingEntry });
-      } else {
-        this.setState({ companyError: '' });
-      }
-
-      if (this.state.department === '' || this.state.department === null) {
-        this.setState({ departmentError: errorMissingEntry });
-      } else {
-        this.setState({ departmentError: '' });
-      }
-
-      if (this.state.firstName === '' || this.state.firstName === null) {
-        this.setState({ firstNameError: errorMissingEntry });
-      } else {
-        this.setState({ firstNameError: '' });
-      }
-
-      if (this.state.lastName === '' || this.state.lastName === null) {
-        this.setState({ lastNameError: errorMissingEntry });
-      } else {
-        this.setState({ lastNameError: '' });
-      }
-
-      if (this.state.email === '' || this.state.email === null) {
-        this.setState({ emailError: errorMissingEntry });
-      } else {
-        if (this.state.isEmailValid) {
-          this.setState({ emailError: '' });
-        }
-      }
-
-      if (this.state.mobileNumber === '' || this.state.mobileNumber === null) {
-        this.setState({ mobileNumberError: errorMissingEntry });
-      } else {
-        this.setState({ mobileNumberError: '' });
-      }
+      ['shortID', 'email', 'firstName', 'lastName', 'company', 'department', 'teamPosition', 'mobileNumber'].map(
+        (field) => this.formFieldsErrorValidation(field),
+      );
     } else {
       if (
         this.state.teamPosition === '' ||
@@ -851,62 +827,110 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         formValid = false;
       }
 
-      if (this.state.teamPosition === '' || this.state.teamPosition === null) {
-        this.setState({ teamPositionError: errorMissingEntry });
-      } else {
-        this.setState({ teamPositionError: '' });
-      }
-
-      if (this.state.company === '' || this.state.company === null) {
-        this.setState({ companyError: errorMissingEntry });
-      } else {
-        this.setState({ companyError: '' });
-      }
-
-      if (this.state.department === '' || this.state.department === null) {
-        this.setState({ departmentError: errorMissingEntry });
-      } else {
-        this.setState({ departmentError: '' });
-      }
-
-      if (this.state.firstName === '' || this.state.firstName === null) {
-        this.setState({ firstNameError: errorMissingEntry });
-      } else {
-        this.setState({ firstNameError: '' });
-      }
-
-      if (this.state.lastName === '' || this.state.lastName === null) {
-        this.setState({ lastNameError: errorMissingEntry });
-      } else {
-        this.setState({ lastNameError: '' });
-      }
-
-      if (this.state.shortID === '' || this.state.shortID === null) {
-        this.setState({ shortIDError: errorMissingEntry });
-      } else {
-        if (this.state.isEmailValid) {
-          this.setState({ shortIDError: '' });
-        }
-      }
-
-      if (this.state.mobileNumber === '' || this.state.mobileNumber === null) {
-        this.setState({ mobileNumberError: errorMissingEntry });
-      } else {
-        this.setState({ mobileNumberError: '' });
-      }
+      ['shortID', 'teamPosition', 'company', 'department', 'firstName', 'lastName', 'mobileNumber'].map((field) =>
+        this.formFieldsErrorValidation(field),
+      );
     }
     return formValid;
+  };
+
+  protected formFieldsErrorValidation = (name: string) => {
+    const errorMissingEntry = '*Missing entry';
+    switch (name) {
+      case 'shortID':
+        {
+          if (this.state.shortID === '' || this.state.shortID === null) {
+            this.setState({ shortIDError: errorMissingEntry });
+          } else {
+            if (Envs.OIDC_PROVIDER === 'INTERNAL') {
+              this.setState({ shortIDError: '' });
+            } else {
+              this.state.isEmailValid && this.setState({ shortIDError: '' });
+            }
+          }
+        }
+        break;
+      case 'email':
+        {
+          if (this.state.email === '' || this.state.email === null) {
+            this.setState({ emailError: errorMissingEntry });
+          } else {
+            if (this.state.isEmailValid) {
+              this.setState({ emailError: '' });
+            }
+          }
+        }
+        break;
+      case 'firstName':
+        {
+          if (this.state.firstName === '' || this.state.firstName === null) {
+            this.setState({ firstNameError: errorMissingEntry });
+          } else {
+            this.setState({ firstNameError: '' });
+          }
+        }
+        break;
+      case 'lastName':
+        {
+          if (this.state.lastName === '' || this.state.lastName === null) {
+            this.setState({ lastNameError: errorMissingEntry });
+          } else {
+            this.setState({ lastNameError: '' });
+          }
+        }
+        break;
+      case 'company':
+        {
+          if (this.state.company === '' || this.state.company === null) {
+            this.setState({ companyError: errorMissingEntry });
+          } else {
+            this.setState({ companyError: '' });
+          }
+        }
+        break;
+      case 'department':
+        {
+          if (this.state.department === '' || this.state.department === null) {
+            this.setState({ departmentError: errorMissingEntry });
+          } else {
+            this.setState({ departmentError: '' });
+          }
+        }
+        break;
+      case 'teamPosition':
+        {
+          if (this.state.teamPosition === '' || this.state.teamPosition === null) {
+            this.setState({ teamPositionError: errorMissingEntry });
+          } else {
+            this.setState({ teamPositionError: '' });
+          }
+        }
+        break;
+      case 'mobileNumber':
+        {
+          if (this.state.mobileNumber === '' || this.state.mobileNumber === null) {
+            this.setState({ mobileNumberError: errorMissingEntry });
+          } else {
+            this.setState({ mobileNumberError: '' });
+          }
+        }
+        break;
+      default:
+        null;
+    }
   };
 
   protected validateMobile(el: React.FormEvent<HTMLInputElement>) {
     const numberVal = el.currentTarget.value;
     if (Validation.validateMobileNumber(numberVal)) {
-      this.setState({ mobileNumber: numberVal });
+      this.setState({ mobileNumber: numberVal }, () => {
+        this.formFieldsErrorValidation('mobileNumber');
+      });
     }
   }
 
-  protected validateEmailID(el: React.FormEvent<HTMLInputElement>) {
-    const emailVal = el.currentTarget.value;
+  protected validateEmailID(el: React.ChangeEvent<HTMLInputElement>) {
+    const emailVal = el.target.value;
     if (Envs.OIDC_PROVIDER === 'INTERNAL') {
       if (!Validation.validateEmail(emailVal)) {
         this.setState({ emailError: 'Invalid Email', isEmailValid: false });

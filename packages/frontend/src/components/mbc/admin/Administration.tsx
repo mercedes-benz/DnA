@@ -47,7 +47,7 @@ export default class Administration extends React.Component<{ user: IUserInfo },
                       Tag Handling
                     </a>
                   </li>
-                  {Envs.ENABLEMALWARESERVICE ? (
+                  {Envs.ENABLE_MALWARE_SCAN_SERVICE ? (
                     <li className={Styles.tab + ' tab'}>
                       <a href="#tab-content-6" id="malwarescanapikeys">
                         Malware Scan API Keys
@@ -86,7 +86,7 @@ export default class Administration extends React.Component<{ user: IUserInfo },
               <div id="tab-content-2" className={'tab-content ' + Styles.contentTab}>
                 <TagHandling />
               </div>
-              {Envs.ENABLEMALWARESERVICE ? (
+              {Envs.ENABLE_MALWARE_SCAN_SERVICE ? (
                 <div id="tab-content-6" className={'tab-content ' + Styles.contentTab}>
                   <MalwareScanapikeys />
                 </div>

@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { IRole, IUserInfo } from '../../../globals/types';
 import Styles from './Home.scss';
-import { InfoModal } from '../../../components/formElements/modal/infoModal/InfoModal';
 import { USER_ROLE } from '../../../globals/constants';
 import { Envs } from '../../../globals/Envs';
 
@@ -23,8 +22,6 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
   }
 
   public render() {
-    const contentForInfoModal = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
-
     return (
       <div>
         <div className={Styles.landingPage}>
@@ -36,7 +33,7 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                 <button className={'btn btn-tertiary ' + Styles.btnPrimary}>Open Portfolio</button>
               </Link>
             </div>
-            <div className={Styles.bannerQuickLinks}>
+            <div className={`${Styles.bannerQuickLinks} ${!Envs.ENABLE_REPORTS ? Styles.noReportsSection : ''}`}>
               <div className={Styles.quicklinkCard}>
                 <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardOne}>
                   <h6>Solutions</h6>
@@ -52,6 +49,13 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                       </Link>
                     </li>
                     <li>
+                      <Link to="createnewsolution">
+                        <span>
+                          Create new Solution <i className="icon mbc-icon arrow small right" />
+                        </span>
+                      </Link>
+                    </li>
+                    <li>
                       {this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined ? (
                         <Link to="Administration">
                           <span>
@@ -60,16 +64,46 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                         </Link>
                       ) : null}
                     </li>
-                    <li>
-                      <Link to="createnewsolution">
-                        <span>
-                          Create new Solution <i className="icon mbc-icon arrow small right" />
-                        </span>
-                      </Link>
-                    </li>
                   </ul>
                 </div>
               </div>
+              {Envs.ENABLE_REPORTS && (
+                <div className={Styles.quicklinkCard}>
+                  <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardThree}>
+                    <h6>Reports</h6>
+                    <p>Quick access to any report running on any system</p>
+                  </div>
+                  <div className={Styles.quicklinkCardNav}>
+                    <ul className={Styles.qcardThreeul}>
+                      <li>
+                        <Link to="allreports">
+                          <span>
+                            All Reports <i className="icon mbc-icon arrow small right " />
+                          </span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="createnewreport">
+                          <span>
+                            Create Reports <i className="icon mbc-icon arrow small right" />
+                          </span>
+                        </Link>
+                      </li>
+                      {this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined ||
+                      this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN) !== undefined ? (
+                        <li>
+                          <Link to="reportadmin">
+                            <span>
+                              Administration
+                              <i className="icon mbc-icon arrow small right" />
+                            </span>
+                          </Link>
+                        </li>
+                      ) : null}
+                    </ul>
+                  </div>
+                </div>
+              )}
               <div className={Styles.quicklinkCard}>
                 <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardTwo}>
                   <h6>Workspaces &amp; Services</h6>
@@ -100,63 +134,10 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                   </ul>
                 </div>
               </div>
-              <div className={Styles.quicklinkCard + ' ' + Styles.BgTrans}>
-                <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardThree}>
-                  <h6>Help Center</h6>
-                  <p>We are here to help</p>
-                </div>
-                <div className={Styles.quicklinkCardNav}>
-                  <ul className={Styles.qcardThreeul}>
-                    <li onClick={this.showInfoModal}>
-                      <Link to="#">
-                        <span>
-                          Contact Us <i className="icon mbc-icon arrow small right " />
-                        </span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="license">
-                        <span>
-                          License <i className="icon mbc-icon arrow small right" />
-                        </span>
-                      </Link>
-                    </li>
-                    {/* <li className={Styles.isDisable}>
-                      <Link to="#">
-                        <span>
-                          Community <i className="icon mbc-icon arrow small right" />
-                        </span>
-                      </Link>
-                    </li>
-                    <li className={Styles.isDisable}>
-                      <Link to="#">
-                        <span>
-                          FAQ <i className="icon mbc-icon arrow small right" />
-                        </span>
-                      </Link>
-                    </li> */}
-                  </ul>
-                </div>
-              </div>
             </div>
           </div>
         </div>
-        <InfoModal
-          title={'Contact Us'}
-          modalWidth={'35vw'}
-          show={this.state.showInfoModal}
-          content={contentForInfoModal}
-          onCancel={this.onInfoModalCancel}
-        />
       </div>
     );
   }
-
-  protected showInfoModal = () => {
-    this.setState({ showInfoModal: true });
-  };
-
-  protected onInfoModalCancel = () => {
-    this.setState({ showInfoModal: false });
-  };
 }

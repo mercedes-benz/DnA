@@ -95,6 +95,12 @@ const base = {
               sourceMap: devMode,
             },
           },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: devMode,
+            },
+          },
         ],
         include: path.resolve(__dirname, path.join('..', '..', 'src')),
       },

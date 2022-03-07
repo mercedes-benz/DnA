@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { ITag } from '../../../../../globals/types';
+import { ITag } from '../../../globals/types';
 import Styles from './Tags.scss';
 
 const classNames = cn.bind(Styles);
@@ -58,7 +58,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     this.setChips(this.props.chips);
   }
   public render() {
-    const chips = this.state.chips.map((chip: any, index: any) => {
+    const chips = this.state.chips?.map((chip: any, index: any) => {
       const canDelete = !this.props.fixedChips?.includes(chip);
       return (
         <div className="chips" key={index}>
@@ -72,7 +72,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       );
     });
 
-    const suggestions = this.state.filteredTags.map((filteredTag, index) => {
+    const suggestions = this.state.filteredTags?.map((filteredTag, index) => {
       let className = classNames(Styles.suggestion);
       if (index === this.state.activeSuggestionIndex) {
         className += ' ' + classNames(Styles.active);
@@ -85,6 +85,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     });
 
     const missingEntryMessage = '*Missing entry';
+    const isMaxReached = this.props.max === this.state.chips.length;
 
     return (
       <div
@@ -110,16 +111,17 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             className={classNames(Styles.tagInputField)}
             type="text"
             id="tag"
-            placeholder="Type Here"
+            placeholder={!isMaxReached ? 'Type here' : ''}
             onKeyDown={this.onKeyDown}
             onChange={this.onTextInputChange}
             autoComplete="off"
             value={this.state.userInput}
             onFocus={this.onTagFieldFocus}
             onBlur={this.onTagFieldBlur}
+            readOnly={isMaxReached}
           />
         </div>
-        {suggestions.length ? (
+        {suggestions?.length ? (
           suggestions
         ) : (
           <span className={classNames('error-message', this.props.showMissingEntryError ? '' : 'hide')}>
@@ -134,7 +136,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     this.setState({ isFocused: true });
   };
 
-  protected onTagFieldBlur = () => {
+  protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const target = event.target as HTMLInputElement;
+    if(target.value) {
+      this.updateChips(target.value);
+    }
     this.setState({ isFocused: false });
   };
 
@@ -154,8 +160,8 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const userInput = target.value;
     const tags = this.props.tags;
     if (userInput) {
-      let filteredTags = tags.filter((tag) => tag.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1);
-      if (filteredTags.length === 0 && tags.length) {
+      let filteredTags = tags?.filter((tag) => tag.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1);
+      if (filteredTags?.length === 0 && tags?.length) {
         filteredTags = [{ id: '0', name: 'No suggestions available' }];
       }
       this.setState({
@@ -175,13 +181,13 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const target = event.target as HTMLElement;
     const children = target.children;
 
-    if (children.length) {
+    if (children?.length) {
       // @ts-ignore
       children[children.length - 1].focus();
     }
   };
   protected setChips = (chips: string[]) => {
-    if (chips && chips.length) {
+    if (chips && chips?.length) {
       this.setState({ chips });
     }
   };
@@ -199,7 +205,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     } else if (keyPressed === this.state.KEY.backspace) {
       const chips = this.state.chips;
 
-      if (!target.value && chips.length) {
+      if (!target.value && chips?.length) {
         this.deleteChip(chips[chips.length - 1]);
       }
     } else if (keyPressed === this.state.KEY.upArrow) {
@@ -217,7 +223,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     } else if (keyPressed === this.state.KEY.downArrow) {
       const activeSuggestion = this.state.activeSuggestionIndex + 1;
       const filteredTags = this.state.filteredTags;
-      if (this.state.activeSuggestionIndex === filteredTags.length) {
+      if (this.state.activeSuggestionIndex === filteredTags?.length) {
         return;
       }
       const userInput = filteredTags[activeSuggestion] ? filteredTags[activeSuggestion].name : this.state.userInput;
@@ -226,7 +232,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
   };
 
   protected updateChips = (value: string) => {
-    if (!this.props.max || this.state.chips.length < this.props.max) {
+    if (!this.props.max || this.state.chips?.length < this.props.max) {
       // const value = this.state.userInput;
 
       if (!value) {

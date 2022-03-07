@@ -123,16 +123,17 @@
         color: #807d7d;
       }
     }
-    .gotoNotebook {
-      cursor: pointer;;
-    }
     label {
-      margin: 0 25px 0 0;
+      &.goToLink {
+        cursor: pointer;
+        &:hover {
+          color: #00adef;
+        }
+      }
       padding: 0;
-      font-size: var(--font-size-default);
       color: #807d7d;
-      img {
-        width: 24px;
+      i {
+        font-size: var(--font-size-icon-medium);
       }
     }
   }

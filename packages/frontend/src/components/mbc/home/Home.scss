@@ -49,6 +49,12 @@
   justify-content: space-between;
   padding: 0 50px;
   margin-bottom: 40px;
+  &.noReportsSection {
+    justify-content: initial;
+    .quicklinkCard {
+      max-width: 33%;
+    }
+  }
 }
 .bannerDesc {
   padding: 105px 120px 35px 120px;
@@ -115,7 +121,7 @@
   }
 }
 .qcardThree:before {
-  border-bottom: 1.5px solid #c5c5c5;
+  /* border-bottom: 1.5px solid #c5c5c5; */
   bottom: 0;
   content: '';
   height: 5px;
@@ -166,10 +172,7 @@
   background-image: url('../../../assets/images/quick-links-bg.png');
 }
 .qcardThree {
-  background-image: transparent;
-  &:after {
-    content: none !important;
-  }
+  background-image: url('../../../assets/images/reports-bg.png');
 }
 
 .quicklinkCardNav ul {

@@ -2,7 +2,7 @@ import cn from 'classnames';
 import * as React from 'react';
 import { ComputeFixedTag, ProvisionSource } from '../../../../globals/Enums';
 import { IDataiku, INotebookInfo, IPortfolio, ITag, IUserInfo } from '../../../../globals/types';
-import Tags from '../description/tags/Tags';
+import Tags from '../../../formElements/tags/Tags';
 import DataikuInfo, { IDataikuInfoRef } from './dataikuInfo/DataikuInfo';
 import NotebookInfo, { INotebookInfoRef } from './notebookInfo/NotebookInfo';
 import Styles from './Platform.scss';
@@ -72,7 +72,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
       usesExistingInternalPlatforms && !dnaNotebookId && !dnaDataikuProjectId && dnaComputeMode === 'others';
 
     let rightSectionContent = usesExistingInternalPlatforms ? (
-      <p>Using other {Envs.DNA_COMPANYNAME} platforms in the solution for computing.</p>
+      <p>Using other {Envs.DNA_COMPANY_NAME} platforms in the solution for computing.</p>
     ) : solutionOnCloud ? (
       <p>Using cloud solutions for compute.</p>
     ) : (
@@ -118,7 +118,12 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                   <div>
                     <label className="checkbox">
                       <span className="wrapper">
-                        <input type="checkbox" checked={solutionOnCloud} onChange={this.onChangeOfSolutionOnCloud} />
+                        <input
+                          type="checkbox"
+                          className="ff-only"
+                          checked={solutionOnCloud}
+                          onChange={this.onChangeOfSolutionOnCloud}
+                        />
                       </span>
                       <span className="label">Compute using solution on cloud </span>
                     </label>
@@ -128,12 +133,15 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                       <span className="wrapper">
                         <input
                           type="checkbox"
+                          className="ff-only"
                           checked={usesExistingInternalPlatforms}
                           onChange={this.onChangeOfusesExistingInternalPlatforms}
                           disabled={disableExistingPlatformCheck}
                         />
                       </span>
-                      <span className="label">Usage of existing {Envs.DNA_COMPANYNAME}/Business Unit IT-Platforms</span>
+                      <span className="label">
+                        Usage of existing {Envs.DNA_COMPANY_NAME}/Business Unit IT-Platforms
+                      </span>
                     </label>
                   </div>
                   <div
@@ -146,12 +154,13 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                         Please remove link of notebook or dataiku project to enable editing.
                       </p>
                     )}
-                    {Envs.ENABLEJUPYTERWORKSPACE ? (
+                    {Envs.ENABLE_JUPYTER_WORKSPACE ? (
                       <div>
                         <label className="radio">
                           <span className="wrapper">
                             <input
                               type="radio"
+                              className="ff-only"
                               name="compute"
                               value={ProvisionSource.NOTEBOOK}
                               checked={dnaComputeMode === ProvisionSource.NOTEBOOK}
@@ -166,12 +175,13 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                       ''
                     )}
 
-                    {Envs.ENABLEDATAIKUWORKSPACE ? (
+                    {Envs.ENABLE_DATAIKU_WORKSPACE ? (
                       <div>
                         <label className="radio">
                           <span className="wrapper">
                             <input
                               type="radio"
+                              className="ff-only"
                               name="compute"
                               value={ProvisionSource.DATAIKU}
                               checked={dnaComputeMode === ProvisionSource.DATAIKU}
@@ -191,6 +201,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                         <span className="wrapper">
                           <input
                             type="radio"
+                            className="ff-only"
                             name="compute"
                             value="others"
                             checked={selectOtherPlatform}
