@@ -86,6 +86,10 @@
   }
 }
 
+.checklistWrapper{
+  overflow-y: auto;
+}
+
 .checkWithCircle {
   content: "\e949";
   font-family: "dna-icons";

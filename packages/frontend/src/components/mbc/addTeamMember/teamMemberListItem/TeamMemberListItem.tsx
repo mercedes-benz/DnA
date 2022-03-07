@@ -1,12 +1,12 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../../globals/constants';
-import { TeamMemberType } from '../../../../../globals/Enums';
-import { ITeams } from '../../../../../globals/types';
-import { IconAvatar } from '../../../../icons/IconAvatar';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
+import { TeamMemberType } from '../../../../globals/Enums';
+import { ITeams } from '../../../../globals/types';
+import { IconAvatar } from '../../../icons/IconAvatar';
 // import { Modal } from '../../../formElements/modal/Modal';
 import Styles from './TeamMemberListItem.scss';
-import { Envs } from '../../../../../globals/Envs';
+import { Envs } from '../../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -94,23 +94,23 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
 
     return (
       <React.Fragment>
-        {teamMember.userType === TeamMemberType.INTERNAL ? (
+        {teamMember?.userType === TeamMemberType.INTERNAL ? (
           <div className={Styles.memberListWrapper}>
             <div className={Styles.avatar}>
               <IconAvatar className={Styles.avatarIcon} />
             </div>
             <div className={Styles.details}>
-              <h6>{teamMember.teamMemberPosition}</h6>
+              <h6>{teamMember?.teamMemberPosition}</h6>
               <div className={Styles.memberDetails}>
                 <div>
-                  {teamMember.firstName} {teamMember.lastName} <br />
-                  {teamMember.department}
+                  {teamMember?.firstName} {teamMember?.lastName} <br />
+                  {teamMember?.department}
                 </div>
                 <div>
                   <a href={`mailto:${teamMember.email}`}>{teamMember.email}</a>
                 </div>
                 <div>{teamMember.mobileNumber}</div>
-                {Envs.ENABLEINTERNALUSERINFO ? (
+                {Envs.ENABLE_INTERNAL_USER_INFO ? (
                   <div>
                     <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>Teams Profile</a>
                   </div>
@@ -149,10 +149,10 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
             </div>
             <div className={Styles.details}>
               <h6>
-                {teamMember.teamMemberPosition} ({teamMember.userType})
+                {teamMember?.teamMemberPosition} ({teamMember?.userType})
               </h6>
               <div className={Styles.memberDetails}>
-                <div>{teamMember.company}</div>
+                <div>{teamMember?.company}</div>
                 <div>{''}</div>
                 <div>{''}</div>
                 {/* <div>

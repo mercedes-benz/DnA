@@ -25,7 +25,7 @@ export const getDataForCSV = (
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
     { label: 'RelatedProducts', key: 'relatedProducts' },
-    { label: 'BusinessGoal', key: 'businessGoal' },
+    { label: 'BusinessGoals', key: 'businessGoal' },
     { label: 'Status', key: 'status' },
     { label: 'ReasonForHoldOrClose', key: 'reasonForHoldOrClose' },
     { label: 'AttachedFiles', key: 'attachedFiles' },
@@ -33,11 +33,14 @@ export const getDataForCSV = (
     { label: 'Location', key: 'location' },
     { label: 'Expected Benefits', key: 'expectedBenefits' },
     { label: 'Business Need', key: 'businessNeed' },
+    { label: 'Is Existing Solution?', key: 'isExistingSolution' },
+    { label: 'Needed Roles/Skills(with FTE count)', key: 'neededRoles' },
+    { label: 'Data Strategy Domain', key: 'dataStrategyDomain' },
     { label: 'Team', key: 'team' },
     { label: 'DataSources', key: 'dataSources' },
     { label: 'TotalDataVolume', key: 'totalDataVolume' },
     { label: 'SolutionOnCloud ', key: 'solutionOnCloud' },
-    { label: 'UsageOf' + Envs.DNA_COMPANYNAME, key: 'usageOfInternal' },
+    { label: 'UsageOf' + Envs.DNA_COMPANY_NAME, key: 'usageOfInternal' },
     { label: 'Platform', key: 'platform' },
     { label: 'Languages', key: 'languages' },
     { label: 'ModelsAlgorithms', key: 'modelsAlgorithms' },
@@ -78,7 +81,7 @@ export const getDataForCSV = (
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
     { label: 'RelatedProducts', key: 'relatedProducts' },
-    { label: 'BusinessGoal', key: 'businessGoal' },
+    { label: 'BusinessGoals', key: 'businessGoal' },
     { label: 'Status', key: 'status' },
     { label: 'ReasonForHoldOrClose', key: 'reasonForHoldOrClose' },
     { label: 'AttachedFiles', key: 'attachedFiles' },
@@ -86,11 +89,14 @@ export const getDataForCSV = (
     { label: 'Location', key: 'location' },
     { label: 'Expected Benefits', key: 'expectedBenefits' },
     { label: 'Business Need', key: 'businessNeed' },
+    { label: 'Is Existing Solution?', key: 'isExistingSolution' },
+    { label: 'Needed Roles/Skills(with FTE count)', key: 'neededRoles' },
+    { label: 'Data Strategy Domain', key: 'dataStrategyDomain' },
     { label: 'Team', key: 'team' },
     { label: 'DataSources', key: 'dataSources' },
     { label: 'TotalDataVolume', key: 'totalDataVolume' },
     { label: 'SolutionOnCloud ', key: 'solutionOnCloud' },
-    { label: 'UsageOf' + Envs.DNA_COMPANYNAME, key: 'usageOfInternal' },
+    { label: 'UsageOf' + Envs.DNA_COMPANY_NAME, key: 'usageOfInternal' },
     { label: 'Platform', key: 'platform' },
     { label: 'Languages', key: 'languages' },
     { label: 'ModelsAlgorithms', key: 'modelsAlgorithms' },
@@ -136,11 +142,6 @@ export const getDataForCSV = (
   if (queryParams.subDivision.length > 0) {
     const distinctSelectedDivisions = queryParams.division;
     const tempArr: any[] = [];
-    // let subDivisionCount = 0;
-    if (enablePortfolioSolutionsView) {
-      // subDivisionCount = parseInt(JSON.parse(JSON.stringify(sessionStorage.getItem('subDivisionCount'))), 10);
-      sessionStorage.removeItem('subDivisionCount');
-    }
     distinctSelectedDivisions.forEach((item) => {
       const tempSubdiv = queryParams.subDivision.map((value) => {
         const tempArray = value.split('-');
@@ -206,10 +207,12 @@ export const getDataForCSV = (
     searchKey,
   ).then((resCSV) => {
     if (resCSV) {
-      const solutionsCSV = resCSV.data.solutions as IAllSolutionsResultCSV;
+      const solutionsCSV = resCSV.data
+        ? (resCSV.data.solutions as IAllSolutionsResultCSV)
+        : { records: [], totalCount: 0 };
       if (solutionsCSV.records) {
         solutionsCSV.records.forEach((solution) => {
-          if (Envs.ENABLEDATACOMPLIANCE) {
+          if (Envs.ENABLE_DATA_COMPLIANCE) {
             solutionsCSVData.push({
               name: solution.productName ? sanitize(solution.productName) : 'NA',
               phase: solution.currentPhase.name ? solution.currentPhase.name : 'NA',
@@ -221,7 +224,10 @@ export const getDataForCSV = (
                 solution.relatedProducts && solution.relatedProducts.length > 0
                   ? sanitize(solution.relatedProducts.join(', '))
                   : 'NA',
-              businessGoal: solution.businessGoal ? sanitize(solution.businessGoal) : 'NA',
+              businessGoal:
+                solution.businessGoals && solution.businessGoals.length > 0
+                  ? sanitize(solution.businessGoals.join(', '))
+                  : 'NA',
               status: solution.projectStatus.name ? solution.projectStatus.name : 'NA',
               attachedFiles:
                 solution.attachments && solution.attachments.length > 0
@@ -234,6 +240,18 @@ export const getDataForCSV = (
                   : 'NA',
               expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
               businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
+              isExistingSolution: solution.existingSolution ? 'Yes' : 'No',
+              neededRoles:
+                solution.skills && solution.skills.length > 0
+                  ? solution.skills
+                      .map((item) =>
+                        item.neededSkill + '(' + item.requestedFTECount
+                          ? item.requestedFTECount.toString().replace('.', ',')
+                          : 'N/A' + ')',
+                      )
+                      .join(', ')
+                  : 'NA',
+              dataStrategyDomain: solution.dataStrategyDomain ? sanitize(solution.dataStrategyDomain) : 'NA',
               team:
                 solution.team && solution.team.length > 0
                   ? solution.team.map((member) => member.shortId).join(', ')
@@ -402,7 +420,10 @@ export const getDataForCSV = (
                 solution.relatedProducts && solution.relatedProducts.length > 0
                   ? sanitize(solution.relatedProducts.join(', '))
                   : 'NA',
-              businessGoal: solution.businessGoal ? sanitize(solution.businessGoal) : 'NA',
+              businessGoal:
+                solution.businessGoals && solution.businessGoals.length > 0
+                  ? sanitize(solution.businessGoals.join(', '))
+                  : 'NA',
               status: solution.projectStatus.name ? solution.projectStatus.name : 'NA',
               attachedFiles:
                 solution.attachments && solution.attachments.length > 0
@@ -415,6 +436,18 @@ export const getDataForCSV = (
                   : 'NA',
               expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
               businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
+              isExistingSolution: solution.existingSolution ? 'Yes' : 'No',
+              neededRoles:
+                solution.skills && solution.skills.length > 0
+                  ? solution.skills
+                      .map((item) =>
+                        item.neededSkill + '(' + item.requestedFTECount
+                          ? item.requestedFTECount.toString().replace('.', ',')
+                          : 'N/A' + ')',
+                      )
+                      .join(', ')
+                  : 'NA',
+              dataStrategyDomain: solution.dataStrategyDomain ? sanitize(solution.dataStrategyDomain) : 'NA',
               team:
                 solution.team && solution.team.length > 0
                   ? solution.team.map((member) => member.shortId).join(', ')
@@ -538,7 +571,7 @@ export const getDataForCSV = (
           }
         });
       }
-      onDataSuccess(solutionsCSVData, Envs.ENABLEDATACOMPLIANCE ? csvHeaders : csvHeadersForFoss);
+      onDataSuccess(solutionsCSVData, Envs.ENABLE_DATA_COMPLIANCE ? csvHeaders : csvHeadersForFoss);
     }
   });
 };

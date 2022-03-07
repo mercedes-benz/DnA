@@ -11,6 +11,7 @@ export interface ISvgIconProps {
   id?: string;
   viewbox?: string;
   size?: string;
+  children?: any;
 }
 
 /**
