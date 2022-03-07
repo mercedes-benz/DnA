@@ -1,0 +1,54 @@
+{
+  "name": "run_ad_project",
+  "versionTag": {
+      "lastModifiedBy": {
+          "login": "admin"
+      },
+      "lastModifiedOn": 1613126869102,
+      "versionNumber": 1
+  },
+  "tags": [],
+  "triggers": [
+  ],
+  "delayedTriggersBehavior": {
+      "delayWhileRunning": true,
+      "squashDelayedTriggers": true,
+      "suppressTriggersWhileRunning": true
+  },
+  "automationLocal": false,
+  "params": {
+      "steps": [
+          {
+              "name": "Step #2",
+              "runConditionStatuses": [
+                  "SUCCESS",
+                  "WARNING"
+              ],
+              "runConditionType": "RUN_IF_STATUS_MATCH",
+              "maxRetriesOnFail": 0,
+              "resetScenarioStatus": false,
+              "runConditionExpression": "",
+              "params": {
+                  "adminConfig": {},
+                  "config": {
+                      "projectName": "trigger.params."
+                      },
+                  "proceedOnFailure": false,
+                  "runnableType": "pyrunnable_azure-ad-project_graph-macro"
+              },
+              "delayBetweenRetries": 10,
+              "type": "runnable",
+              "id": "runmacro_pyrunnable_azure-ad-project_graph-macro"
+          }
+      ]
+  },
+  "reporters": [],
+  "active": true,
+  "checklists": {
+      "checklists": []
+  },
+  "customFields": {},
+  "type": "step_based",
+  "id": "run_ad_project",
+  "projectKey": "ADMIN_MACROS"
+}

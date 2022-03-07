@@ -1,0 +1,2 @@
+# Do not remove the last empty line, it would break sudoers config
+{{dss_system_user}} ALL=(ALL:ALL) NOPASSWD:{{ dss_install_directory }}/create_dataiku_technical_user.sh

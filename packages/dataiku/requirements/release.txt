@@ -1,0 +1,10 @@
+# Add here all dependencies required for releasing a library.
+
+# docs
+sphinx
+sphinx-automodapi
+nbsphinx
+sphinx-rtd-theme
+recommonmark
+m2r2
+pytest

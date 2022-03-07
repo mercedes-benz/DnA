@@ -1,0 +1,5 @@
+# Add here all dependencies required for developing a library except ones from "main.txt".
+
+# linters
+flake8>=3.7.9
+pytest
