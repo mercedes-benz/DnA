@@ -27,6 +27,7 @@
 
 package com.daimler.data.db.jsonb.solution;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -104,6 +105,6 @@ public class Solution {
 	private List<SkillSummary> skills;
 	private String dataStrategyDomain;
 	private boolean existingSolution;
-	private Integer requestedFTECount;
+	private BigDecimal requestedFTECount;
 	
 }
