@@ -1,0 +1,17 @@
+{
+  "ADMINISTRATOR": {
+    "admin": true
+  },
+  "POWER_USER": {
+    "admin": false,
+    "mayCreateProjects": true,
+    "mayCreateProjectsFromMacros": true,
+    "mayCreateProjectsFromTemplates": true,
+    "mayCreateProjectsFromDataikuApps": true,
+    "mayWriteUnsafeCode": true,
+    "mayCreateAuthenticatedConnections": true,
+    "mayCreateCodeEnvs": true,
+    "mayDevelopPlugins": true,
+    "mayEditLibFolders": true
+  }
+}

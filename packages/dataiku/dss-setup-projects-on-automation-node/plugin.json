@@ -1,0 +1,49 @@
+{
+    "id": "setup-projects-aut-node",
+
+    "version": "0.0.1",
+
+    "meta": {
+        "label": "Setup projects on automation node",
+        "description": "Trigger scenario on automation node to prepare connections and technical users before deploying a project bundle",
+        "author": "jan.migon@unit8.co",
+        "icon": "icon-building",
+        "tags": ["automation node"],
+        "url": "",
+
+        "licenseInfo": "Apache Software License"
+    },
+    "params": [
+        {
+            "name": "dssApiKey",
+            "label": "Dataiku admin api key",
+            "type": "STRING",
+            "description": "Api key for plugin usage",
+            "visibilityCondition": false
+        },
+        {
+            "name": "dssHost",
+            "label": "Dataiku host",
+            "type": "STRING",
+            "description": "Dataiku host url",
+            "visibilityCondition": false
+        },
+        {
+            "name": "group_prefix",
+            "label": "Group Prefix",
+            "type": "STRING",
+            "description": "Group names in AD should start with this prefix to grant permissions for this Dataiku instance",
+            "mandatory": true,
+            "visibilityCondition": false
+        },
+        {
+            "name": "aut_node_ssl_chain",
+            "label": "Path to automation node SSL certificates chain",
+            "type": "STRING",
+            "description": "Requests need to verify the self signed certificate using this ssl chain",
+            "mandatory": true,
+            "visibilityCondition": false
+        }
+
+    ]
+}

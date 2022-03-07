@@ -1,0 +1,49 @@
+{
+    "meta": {
+        "label": "Synchronize Azure AD users with DSS",
+        "description": "Manage DSS users based on membership of AAD groups",
+        "icon": "icon-windows"
+    },
+    "impersonate": false,
+    "requiresGlobalAdmin": true,
+
+    "params": [
+        {
+            "name": "sep0",
+            "label": "General settings",
+            "type": "SEPARATOR",
+            "mandatory": false
+        },
+        {
+            "name": "flag_simulate",
+            "label": "Simulate",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "description": "Do not execute, only log which actions would be taken",
+            "mandatory": false
+        },
+        {
+            "name": "sep2",
+            "label": "Authentication details",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "azure_ad_connection",
+            "label": "Azure Active Directory connection",
+            "type": "PRESET",
+            "parameterSetId": "identification"
+        }
+    ],
+
+    "permissions": ["ADMIN"],
+
+    "resultType": "RESULT_TABLE",
+
+    "resultLabel": "Macro result: ",
+
+    "extension": "txt",
+
+    "mimeType": "text/plain",
+
+    "macroRoles": []
+}
