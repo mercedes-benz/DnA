@@ -1,0 +1,1875 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : Lov.yaml
+#  **
+#  ** Module     : core
+#  ** 
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "Lov Maintenance Service for Reports"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "lov"
+   description: "This service is used to maintain lov used in reports service."
+
+schemes:
+- "https"
+
+paths:
+
+# path to create, update and fetch all valid product phase
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../productphases
+
+ /productphases:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all product phase."
+   description:  "Get all product phases. This endpoints will be used to get all valid available product phases."
+   operationId: "getAllProductPhaseLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new product phase."
+   description: "Add a new non existing product phase."
+   operationId: "createProductPhaseLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new product phase." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the product phase identified by given ID."
+    description:  "Update the product phase identified by given ID"
+    operationId: "updateProductPhaseLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating product phase." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing product phase
+#
+#  supported http method DELETE
+#
+# path example ../productphases/xxx
+
+ /productphases/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the product phase identified by given ID."
+    description:  "Delete the product phase identified by given ID"
+    operationId: "deleteProductPhaseLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the product phase"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error" 
+             
+
+# path to create, update and fetch all valid integrated portal
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../integratedportals
+
+ /integratedportals:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all integrated portal."
+   description:  "Get all integrated portal. This endpoints will be used to get all valid available integrated portal."
+   operationId: "getAllIntegratedPortalLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new integrated portal."
+   description: "Add a new non existing integrated portal."
+   operationId: "createIntegratedPortalLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new integrated portal." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the integrated portal identified by given ID."
+    description:  "Update the integrated portal identified by given ID"
+    operationId: "updateIntegratedPortalLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating integrated portal." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing integrated portal
+#
+#  supported http method DELETE
+#
+# path example ../integratedportals/xxx
+
+ /integratedportals/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the integrated portal identified by given ID."
+    description:  "Delete the integrated portal identified by given ID"
+    operationId: "deleteIntegratedPortal"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the integrated portal"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"      
+     
+
+# path to create, update and fetch all valid frontend technology
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../frontendtechnologies
+
+ /frontendtechnologies:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all frontend technology."
+   description:  "Get all frontend technology. This endpoints will be used to get all valid available frontend technology."
+   operationId: "getAllFrontendTechnologyLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"  
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new frontend technology."
+   description: "Add a new non existing frontend technology."
+   operationId: "createFrontendTechnologyLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new frontend technology." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the frontend technology identified by given ID."
+    description:  "Update the frontend technology identified by given ID"
+    operationId: "updateFrontendTechnologyLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating frontend technology." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing frontend technology
+#
+#  supported http method DELETE
+#
+# path example ../frontendtechnologies/xxx
+
+ /frontendtechnologies/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the frontend technology identified by given ID."
+    description:  "Delete the frontend technology identified by given ID"
+    operationId: "deleteFrontendTechnologyLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the frontend technology"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"       
+     
+
+# path to create, update and fetch all valid status
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../statuses
+
+ /statuses:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all status."
+   description:  "Get all status. This endpoints will be used to get all valid available status."
+   operationId: "getAllStatusLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error" 
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new status."
+   description: "Add a new non existing status."
+   operationId: "createStatusLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new status." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the status identified by given ID."
+    description:  "Update the status identified by given ID"
+    operationId: "updateStatusLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating status." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing status
+#
+#  supported http method DELETE
+#
+# path example ../statuses/xxx
+
+ /statuses/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the status identified by given ID."
+    description:  "Delete the status identified by given ID"
+    operationId: "deleteStatusLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the status"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"            
+
+# path to create, update and fetch all valid hierarchy
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../hierarchies
+
+ /hierarchies:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all hierarchies."
+   description:  "Get all hierarchies. This endpoints will be used to Get all valid available hierarchies."
+   operationId: "getAllHierarchyLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new hierarchy."
+   description: "Add a new non existing hierarchy."
+   operationId: "createHierarchyLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new hierarchy." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the hierarchy identified by given ID."
+    description:  "Update the hierarchy identified by given ID"
+    operationId: "updateHierarchyLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating hierarchy." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing hierarchy
+#
+#  supported http method DELETE
+#
+# path example ../hierarchies/xxx
+
+ /hierarchies/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the hierarchy identified by given ID."
+    description:  "Delete the hierarchy identified by given ID"
+    operationId: "deleteHierarchyLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the hierarchy"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"      
+
+# path to create, update and fetch all valid ressort
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../ressort
+
+ /ressort:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all ressort."
+   description:  "Get all ressort. This endpoints will be used to Get all valid available ressort."
+   operationId: "getAllRessortLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new ressort."
+   description: "Add a new non existing ressort."
+   operationId: "createRessortLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new ressort." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the ressort identified by given ID."
+    description:  "Update the ressort identified by given ID"
+    operationId: "updateRessortLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating ressort." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing ressort
+#
+#  supported http method DELETE
+#
+# path example ../ressort/xxx
+
+ /ressort/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the ressort identified by given ID."
+    description:  "Delete the ressort identified by given ID"
+    operationId: "deleteRessortLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the ressort"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"      
+
+# path to create, update and fetch all valid customer department
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../customer/departments
+
+ /customer/departments:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all customer department."
+   description:  "Get all customer department. This endpoints will be used to get all valid available customer department."
+   operationId: "getAllCustomerDepartmentLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new customer department."
+   description: "Add a new non existing customer department."
+   operationId: "createCustomerDepartmentLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new customer department." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the customer department identified by given ID."
+    description:  "Update the customer department identified by given ID"
+    operationId: "updateCustomerDepartmentLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating customer department." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing customer department
+#
+#  supported http method DELETE
+#
+# path example ../customer/departments/xxx
+
+ /customer/departments/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the customer department identified by given ID."
+    description:  "Delete the customer department identified by given ID"
+    operationId: "deleteCustomerDepartmentLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the customer department"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"          
+
+# path to create, update and fetch all valid kpi name
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../kpinames
+
+ /kpinames:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all kpi name."
+   description:  "Get all kpi name. This endpoints will be used to Get all valid available kpi name."
+   operationId: "getAllKpiNameLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"  
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new kpi name."
+   description: "Add a new non existing kpi name."
+   operationId: "createKpiNameLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new kpi name." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the kpi name identified by given ID."
+    description:  "Update the kpi name identified by given ID"
+    operationId: "updateKpiNameLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating kpi name." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing kpi name
+#
+#  supported http method DELETE
+#
+# path example ../kpinames/xxx
+
+ /kpinames/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the kpi name identified by given ID."
+    description:  "Delete the kpi name identified by given ID"
+    operationId: "deleteKpiNameLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the kpi name"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+
+# path to create, update and fetch all valid reporting cause
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../reportingcauses
+
+ /reportingcauses:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all reporting cause."
+   description:  "Get all reporting cause. This endpoints will be used to Get all valid available reporting cause."
+   operationId: "getAllReportingCauseLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error" 
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new reporting cause."
+   description: "Add a new non existing reporting cause."
+   operationId: "createReportingCauseLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new reporting cause." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the reporting cause identified by given ID."
+    description:  "Update the reporting cause identified by given ID"
+    operationId: "updateReportingCauseLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating reporting cause." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing reporting cause
+#
+#  supported http method DELETE
+#
+# path example ../reportingcauses/xxx
+
+ /reportingcauses/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the reporting cause identified by given ID."
+    description:  "Delete the reporting cause identified by given ID"
+    operationId: "deleteReportingCauseLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the reporting cause"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"  
+
+# path to create, update and fetch all valid data source
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../datasources
+
+ /datasources:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all data source."
+   description:  "Get all data source. This endpoints will be used to Get all valid available data source."
+   operationId: "getAllDataSourceLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error" 
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new data source."
+   description: "Add a new non existing data source."
+   operationId: "createDataSourceLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new data source." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the data source identified by given ID."
+    description:  "Update the data source identified by given ID"
+    operationId: "updateDataSourceLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating data source." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing data source
+#
+#  supported http method DELETE
+#
+# path example ../datasources/xxx
+
+ /datasources/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the data source identified by given ID."
+    description:  "Delete the data source identified by given ID"
+    operationId: "deleteDataSourceLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the data source"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+
+# path to create, update and fetch all valid design guide
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../designguides
+
+ /designguides:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all design guide."
+   description:  "Get all design guide. This endpoints will be used to Get all valid available design guide."
+   operationId: "getAllDesignGuideLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error" 
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new design guide."
+   description: "Add a new non existing design guide."
+   operationId: "createDesignGuideLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new design guide." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the design guide identified by given ID."
+    description:  "Update the design guide identified by given ID"
+    operationId: "updateDesignGuideLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating design guide." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing design guide
+#
+#  supported http method DELETE
+#
+# path example ../designguides/xxx
+
+ /designguides/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the design guide identified by given ID."
+    description:  "Delete the design guide identified by given ID"
+    operationId: "deleteDesignGuideLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the design guide"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+
+# path to create, update and fetch all valid agile release train
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../agilereleasetrains
+
+ /agilereleasetrains:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all agile release train."
+   description:  "Get all agile release train. This endpoints will be used to get all valid available agile release train."
+   operationId: "getAllAgileReleaseTrainLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error" 
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new agile release train."
+   description: "Add a new non existing agile release train."
+   operationId: "createAgileReleaseTrainLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new agile release train." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the agile release train identified by given ID."
+    description:  "Update the agile release train identified by given ID"
+    operationId: "updateAgileReleaseTrainLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating agile release train." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing agile release train
+#
+#  supported http method DELETE
+#
+# path example ../agilereleasetrains/xxx
+
+ /agilereleasetrains/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the agile release train identified by given ID."
+    description:  "Delete the agile release train identified by given ID"
+    operationId: "deleteAgileReleaseTrainLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the agile release train"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+      
+# path to create, update and fetch all valid subsystem
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../subsystems
+
+ /subsystems:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all subsystem."
+   description:  "Get all subsystem. This endpoints will be used to get all valid available subsystem."
+   operationId: "getAllSubsystemLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error" 
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new subsystem."
+   description: "Add a new non existing subsystem."
+   operationId: "createSubsystemLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new subsystem." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the subsystem identified by given ID."
+    description:  "Update the subsystem identified by given ID"
+    operationId: "updateSubsystemLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating subsystem." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing subsystem
+#
+#  supported http method DELETE
+#
+# path example ../subsystems/xxx
+
+ /subsystems/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the subsystem identified by given ID."
+    description:  "Delete the subsystem identified by given ID"
+    operationId: "deleteSubsystemLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the subsystem"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+       
+# path to create, update and fetch all valid connection type
+#
+#  supported http methods GET, POST, PUT
+#
+# path example ../connectiontypes
+
+ /connectiontypes:
+  get:
+   tags:
+    - "lov"
+   summary: "Get all connection type."
+   description:  "Get all connection type. This endpoints will be used to get all valid available connection type."
+   operationId: "getAllConnectionTypeLov"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/LovVOCollection"
+    204:
+      description: "No content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error" 
+  post:
+   tags:
+    - "lov"
+   summary: "Add a new connection type."
+   description: "Add a new non existing connection type."
+   operationId: "createConnectionTypeLov"
+   parameters:
+    - name: "lovRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for creating a new connection type." 
+      required: true
+      schema:
+       $ref: "#/definitions/LovRequestVO"
+   responses:
+    201: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/LovResponseVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+  put:
+    tags:
+    - "lov"
+    summary: "Update the connection type identified by given ID."
+    description:  "Update the connection type identified by given ID"
+    operationId: "updateConnectionTypeLov"
+    parameters:
+      - name: "lovUpdateRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating connection type." 
+        required: true
+        schema:
+         $ref: "#/definitions/LovUpdateRequestVO"        
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/LovResponseVO"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"         
+     
+# path to delete existing connection type
+#
+#  supported http method DELETE
+#
+# path example ../connectiontypes/xxx
+
+ /connectiontypes/{id}:
+  delete:
+    tags:
+    - "lov"
+    summary: "Delete the connection type identified by given ID."
+    description:  "Delete the connection type identified by given ID"
+    operationId: "deleteConnectionTypeLov"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the connection type"
+        required: true
+        type: integer
+        format: int64
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"                                                                     
+
+definitions:
+ LovVO:
+  type: object
+  properties: 
+    id:
+     type: integer
+     format: int64
+     description: "ID of lov field"
+     minLength: 1
+    name:
+     type: string
+     description: "Name of the lov field"
+     minLength: 1    
+  required:
+     - name
+     - id
+        
+ LovResponseVO:
+   type: object
+   properties:
+     data:
+       $ref: "#/definitions/LovVO"
+     errors:
+       type: array
+       items:
+         $ref: "#/definitions/MessageDescription"     
+     
+ LovVOCollection: 
+  description: "Collection of lov values."
+  type: object
+  properties:
+   data:
+    type: array
+    items: 
+     $ref: "#/definitions/LovVO"
+
+ LovNameVO:
+  type: object
+  properties: 
+    name:
+     type: string
+     description: "Name of the lov"
+     minLength: 1
+  required:
+     - name
+
+ LovRequestVO:
+  type: object
+  properties:
+    data:
+      $ref: "#/definitions/LovNameVO"
+      
+ LovUpdateRequestVO:
+  type: object
+  properties:
+    data:
+      $ref: "#/definitions/LovVO"
+      
