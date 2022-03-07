@@ -13,6 +13,7 @@ export const AppContext = React.createContext({
 
 export interface ILayoutProps {
   user: IUserInfo;
+  children?: any;
 }
 
 export interface ILayoutState {

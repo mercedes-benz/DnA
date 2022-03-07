@@ -105,11 +105,12 @@ export interface ICreateNewSolutionState {
 
 export interface ICreateNewSolutionProps {
   user: IUserInfo;
+  location?: any;
 }
 
 export interface ICreateNewSolutionData {
   description: IDescriptionRequest;
-  team?: ITeams[];
+  team?: ITeamRequest;
   currentPhase?: IPhase;
   milestones?: IMilestonesList;
   dataSources: IDataSource;
@@ -122,6 +123,18 @@ export interface ICreateNewSolutionData {
   publish: boolean;
   createdBy?: IUserInfo;
   bookmarked?: boolean;
+  neededRoles: INeededRoleObject[];
+}
+
+export interface ITeamRequest {
+  team?: ITeams[];
+}
+
+export interface INeededRoleObject {
+  fromDate: string;
+  neededSkill: string;
+  requestedFTECount: string;
+  toDate: string;
 }
 export interface IDescriptionRequest {
   productName: string;
@@ -136,8 +149,11 @@ export interface IDescriptionRequest {
   tags: string[];
   logoDetails: ILogoDetails;
   attachments: IAttachment[];
-  businessGoal: string;
+  businessGoal: string[];
   businessGoalsList: IBusinessGoal[];
+  dataStrategyDomain: string;
+  requestedFTECount: number;
+  isExistingSolution: boolean;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {
@@ -213,13 +229,16 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           description: '',
           tags: [],
           businessNeeds: '',
-          businessGoal: '',
+          businessGoal: [],
           logoDetails: null,
           attachments: [],
           businessGoalsList: [],
+          dataStrategyDomain: '',
+          requestedFTECount: 0,
+          isExistingSolution: false,
         },
         openSegments: [],
-        team: [],
+        team: { team: [] },
         currentPhase: null,
         milestones: { phases: [], rollouts: { details: [], description: '' } },
         analytics: { languages: [], algorithms: [], visualizations: [] },
@@ -265,6 +284,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           dnaSubscriptionAppId: null,
         },
         publish: false,
+        neededRoles: [],
       },
       // stateChanged: false,
       currentState: null,
@@ -388,7 +408,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               const solution = this.state.solution;
               solution.description.productName = res.productName;
               solution.description.businessNeeds = res.businessNeed;
-              solution.description.businessGoal = res.businessGoal;
+              solution.description.businessGoal = res.businessGoals;
               solution.description.description = res.description;
               solution.description.division = res.division;
               solution.description.expectedBenefits = res.expectedBenefits;
@@ -399,10 +419,15 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.logoDetails = res.logoDetails;
               solution.description.attachments = res.attachments;
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
+              solution.description.dataStrategyDomain = res.dataStrategyDomain;
+              solution.description.isExistingSolution = res.existingSolution;
+              // solution.description.neededRoles = res.skills;
+              solution.description.requestedFTECount = res.requestedFTECount;
               solution.milestones = res.milestones;
               // this.milestoneComponent.current.updateComponentValues(res.milestones);
               solution.currentPhase = res.currentPhase;
-              solution.team = res.team;
+              solution.team.team = res.team;
+              solution.neededRoles = res.skills;
               solution.dataSources = res.dataSources;
               // solution.digitalValue = this.translateToMillions(res.digitalValue);
               // this.digitalValueComponent.current.updateComponentValues(this.translateToMillions(res.digitalValue));
@@ -496,7 +521,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     }
                   >
                     <a href="#tab-content-3" id="teams" onClick={this.setCurrentTab}>
-                      Team
+                      Members
                     </a>
                   </li>
                   <li
@@ -541,7 +566,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                       Sharing
                     </a>
                   </li>
-                  {Envs.ENABLEDATACOMPLIANCE ? (
+                  {Envs.ENABLE_DATA_COMPLIANCE ? (
                     <li
                       className={
                         this.state.tabClassNames.has('DataCompliance')
@@ -605,6 +630,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                 {currentTab === 'teams' && (
                   <Teams
                     team={this.state.solution.team}
+                    neededRoles={this.state.solution.neededRoles}
                     modifyTeam={this.modifySolutionTeam}
                     onSaveDraft={this.onSaveDraft}
                   />
@@ -659,7 +685,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   />
                 )}
               </div>
-              {Envs.ENABLEDATACOMPLIANCE ? (
+              {Envs.ENABLE_DATA_COMPLIANCE ? (
                 <div id="tab-content-8" className="tab-content">
                   {currentTab === 'datacompliance' && (
                     <DataCompliance
@@ -861,7 +887,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected saveSharing = () => {
     this.state.solution.openSegments.push('Sharing');
     this.setState({ publishFlag: false });
-    const nextTab = Envs.ENABLEDATACOMPLIANCE ? 'datacompliance' : 'digitalvalue';
+    const nextTab = Envs.ENABLE_DATA_COMPLIANCE ? 'datacompliance' : 'digitalvalue';
     this.callApiToSave(this.state.solution.publish, nextTab);
   };
   protected saveDataCompliance = () => {
@@ -890,7 +916,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         productName: solution.description.productName,
         reasonForHoldOrClose: solution.description.reasonForHoldOrClose,
         businessNeed: solution.description.businessNeeds,
-        businessGoal: solution.description.businessGoal,
+        businessGoals: solution.description.businessGoal,
         description: solution.description.description,
         division: solution.description.division,
         expectedBenefits: solution.description.expectedBenefits,
@@ -901,7 +927,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         tags: solution.description.tags,
         logoDetails: solution.description.logoDetails,
         attachments: solution.description.attachments,
-        team: solution.team,
+        team: solution.team.team,
         currentPhase: solution.currentPhase,
         milestones: solution.milestones,
         dataSources: solution.dataSources,
@@ -912,6 +938,10 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         publish: isPublished,
         analytics: solution.analytics,
         sharing: solution.sharing,
+        dataStrategyDomain: solution.description.dataStrategyDomain,
+        requestedFTECount: solution.description.requestedFTECount,
+        skills: solution.neededRoles,
+        existingSolution: solution.description.isExistingSolution,
       },
     };
     ProgressIndicator.show();
@@ -996,9 +1026,10 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     });
   };
 
-  protected modifySolutionTeam = (team: ITeams[]) => {
+  protected modifySolutionTeam = (team: ITeamRequest, neededRoles: INeededRoleObject[]) => {
     const currentSolutionObject = this.state.solution;
     currentSolutionObject.team = team;
+    currentSolutionObject.neededRoles = neededRoles;
     this.setState({
       solution: currentSolutionObject,
     });

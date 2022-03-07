@@ -1,0 +1,25 @@
+.actionCol {
+  width: 226px;
+  display: flex;
+  justify-content: flex-end;
+  float: right;
+  padding-right: 33px;
+  div {
+    margin-left: 20px;
+  }
+}
+.actionLinksTD {
+  color: #00adef !important;
+  cursor: pointer;
+}
+
+tr  {
+  td {
+    padding-top: 25px!important;
+    padding-bottom: 25px!important;
+    font-size: 13px !important;
+  }
+}
+tr td:last-child {
+  text-align: right !important;
+}

@@ -196,41 +196,43 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
 
     const changeLog = (
       <table className="ul-table solutions">
-        <tr className="header-row">
-          <th colSpan={8}>
-            <span className="hidden">`</span>
-          </th>
-        </tr>
-        {this.state.changeLogs
-          ? this.state.changeLogs.map((data: IChangeLogData, index: number) => {
-              return (
-                <tr key={index} className="data-row">
-                  <td className="wrap-text">
-                    {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)}
-                  </td>
-                  <td className="wrap-text">
-                    {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td className="wrap-text">{data.changeDescription}</td>
-                </tr>
-              );
-            })
-          : ''}
+        <tbody>
+          <tr className="header-row">
+            <th colSpan={8}>
+              <span className="hidden">`</span>
+            </th>
+          </tr>
+          {this.state.changeLogs
+            ? this.state.changeLogs.map((data: IChangeLogData, index: number) => {
+                return (
+                  <tr key={index} className="data-row">
+                    <td className="wrap-text">
+                      {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)}
+                    </td>
+                    <td className="wrap-text">
+                      {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td className="wrap-text">{data.changeDescription}</td>
+                  </tr>
+                );
+              })
+            : ''}
+        </tbody>
       </table>
     );
     return (

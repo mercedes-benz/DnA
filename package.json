@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "dna-mbc",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "main": "index.js",
   "workspaces": [
     "packages/*"
@@ -13,7 +13,7 @@
     "yarn": "^1.22.10"
   },
   "scripts": {
-    "start:web+backend": "concurrently \"yarn start:backend\" \"yarn start:airflow_backend\" \"yarn start:web\"",
+    "start:web+backend": "concurrently \"yarn start:backend\" \"yarn start:airflow_backend\" \"yarn start:dashboard_backend\" \"yarn start:web\" ",
 	  "start:airflow_backend": "cd packages/airflow-backend && ./gradlew bootRun",
     "start:web": "cd packages/frontend && yarn start",
     "start:legacy": "cd packages/frontend && yarn start:legacy",
@@ -23,8 +23,10 @@
     "build:web": "cd packages/frontend && yarn build:multi",
     "test": "jest",
     "prepare": "husky install",
-    "lint": "cd packages/frontend && eslint src/**/*.{ts,tsx} --ignore-pattern \"/**/*.{d.ts,js}\"",
-    "lint:fix": "yarn run lint --fix --max-warnings=0"
+    "lint": "cd packages/frontend && eslint src/**/*.{ts,tsx} --ignore-pattern \"/**/*.{d.ts,js}\" --ignore-pattern \"./deployment/dockerfiles/kubeflow/*\"",
+    "lint:fix": "yarn run lint --fix --max-warnings=0",
+    "start:dashboard_backend": "cd packages/dashboard-backend && ./gradlew bootRun",
+    "pre-commit": "lint-staged"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -37,11 +39,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Daimler/DnA.git"
+    "url": "https://github.com/mercedes-benz/DnA.git"
   },
   "author": {
-    "name": "Daimler AG",
-    "url": "http://www.daimler.com/"
+    "name": "Mercedes-Benz AG",
+    "url": "http://www.mercedes-benz.com/"
   },
   "contributors": [
     "Agnel Praveen <agnelpraveen@gmail.com>",

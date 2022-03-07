@@ -7,6 +7,7 @@ import { getTranslatedLabel } from '../../globals/i18n/TranslationsProvider';
 import { USER_ROLE } from './../../globals/constants';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './MainNavigation.scss';
+import { Envs } from './../../globals/Envs';
 
 export interface IMainNavigationProps {
   showExpandEffect: boolean;
@@ -84,6 +85,25 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
   }
 
   public render() {
+    const reportNav = {
+      id: 3,
+      title: 'Reports',
+      icon: 'reports',
+      subNavItems: [
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 1,
+          route: `/createnewreport`,
+          title: 'CreateNewReport',
+        },
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 2,
+          route: `/allreports`,
+          title: 'AllReports',
+        },
+      ],
+    };
     const navItems = [
       {
         allowedRoles: UserAndAdminRole,
@@ -119,7 +139,7 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
         ],
       },
       {
-        id: 3,
+        id: 4,
         title: 'MyWorkspace',
         icon: 'workspace',
         subNavItems: [
@@ -138,6 +158,10 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
         ],
       },
     ];
+
+    if (Envs.ENABLE_REPORTS) {
+      navItems.splice(3, 0, reportNav);
+    }
 
     return (
       <nav

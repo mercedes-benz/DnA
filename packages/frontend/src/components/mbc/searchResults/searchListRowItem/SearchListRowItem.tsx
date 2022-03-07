@@ -105,7 +105,7 @@ export default class SearchListRowItem extends React.Component<ISearchListRowIte
                       this.state.showLocationsContextMenu ? '' : 'hide',
                     )}
                   >
-                    <ul className="contextList">
+                    <ul className="contextList mbc-scroll sub">
                       <li className="contextListItem">
                         <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
                       </li>

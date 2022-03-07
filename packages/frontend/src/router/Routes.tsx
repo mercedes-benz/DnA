@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Route, Router, Switch } from 'react-router-dom';
+import { Envs } from '../globals/Envs';
 import Progress from '../components/progress/Progress';
 import { ProtectedRoute } from './../decorators/ProtectedRoute';
 import { USER_ROLE } from './../globals/constants';
@@ -7,7 +8,6 @@ import { history } from './History';
 import { NotFoundPage } from './NotFoundPage';
 import { SessionExpired } from './SessionExpired';
 import { UnAuthorised } from './UnAuthorised';
-import { getTranslatedLabel } from '../globals/i18n/TranslationsProvider';
 
 const Administration = React.lazy(() => import('../components/mbc/admin/Administration'));
 const AuthRedirector = React.lazy(() => import('./AuthRedirector'));
@@ -21,15 +21,21 @@ const Portfolio = React.lazy(() => import('../components/mbc/Portfolio'));
 const SearchResults = React.lazy(() => import('../components/mbc/searchResults/SearchResults'));
 const Summary = React.lazy(() => import('../components/mbc/summary/Summary'));
 const MalwareScanService = React.lazy(() => import('../components/mbc/malwareScanService/MalwareScanService'));
-// const Notifications = React.lazy(() => import('../components/mbc/notification/Notifications'));
+const Notifications = React.lazy(() => import('../components/mbc/notification/Notifications'));
 const Pipeline = React.lazy(() => import('../components/mbc/pipeline/Pipeline'));
 const Workspaces = React.lazy(() => import('../components/mbc/workspaces/Workspaces'));
 const Services = React.lazy(() => import('../components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('../components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('../components/mbc/pipeline/editCode/EditCode'));
 const Comingsoon = React.lazy(() => import('../components/mbc/comingsoon/Comingsoon'));
-const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN];
+const AllReports = React.lazy(() => import('../components/mbc/allReports/AllReports'));
+const CreateNewReport = React.lazy(() => import('../components/mbc/createNewReport/CreateNewReport'));
+const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
+const ReportAdmin = React.lazy(() => import('../components/mbc/reportAdmin/ReportAdministration'));
+
+const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 const AdminRole = [USER_ROLE.ADMIN];
+const ReportAdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 
 const publicRoutes = [
   {
@@ -87,6 +93,13 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
+    component: ReportSummary,
+    exact: false,
+    path: '/reportsummary/:id',
+    title: 'Report Summary',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
     component: MalwareScanService,
     exact: false,
     path: '/malwarescanservice',
@@ -105,6 +118,13 @@ const protectedRoutes = [
     exact: false,
     path: '/editSolution/:id?/:editable?',
     title: 'Edit Solution',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CreateNewReport,
+    exact: false,
+    path: '/editreport/:id?/:editable?',
+    title: 'Edit Report',
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -147,6 +167,13 @@ const protectedRoutes = [
     exact: false,
     path: '/administration',
     title: 'Administration',
+  },
+  {
+    allowedRoles: ReportAdminRole,
+    component: ReportAdmin,
+    exact: false,
+    path: '/reportadmin',
+    title: 'AdminReport',
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -204,23 +231,34 @@ const protectedRoutes = [
     path: '/comingsoon',
     title: 'Coming soon',
   },
-  /******************************************************************
-   * Following commented code will be uncomment after this PI release
-   ******************************************************************/
-  // {
-  //   allowedRoles: UserAndAdminRole,
-  //   component: Notifications,
-  //   exact: false,
-  //   path: '/notifications',
-  //   title: 'Notifications',
-  // },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CreateNewReport,
+    exact: false,
+    path: '/createnewreport',
+    title: 'CreateNewReport',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: AllReports,
+    exact: false,
+    path: '/allreports',
+    title: 'All Reports',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: Notifications,
+    exact: false,
+    path: '/notifications',
+    title: 'Notifications',
+  },
 ];
 
 export const routes = [...publicRoutes, ...protectedRoutes];
 
 export class Routes extends React.Component<{}, {}> {
   public render() {
-    const appName = getTranslatedLabel('HeaderName');
+    const appName = Envs.DNA_APPNAME_HEADER;
     document.title = appName;
     return (
       <React.Suspense fallback={<Progress show={true} />}>
