@@ -79,11 +79,16 @@ jwt:
     key: ${JWT_SECRET_KEY:XXXXX}
 
 #NAAS Authentication ends
+management.endpoints.web.exposure.include: loggers
+management.endpoint.loggers.enabled: true
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:xxxx}
+
 
 logging:
   service:
     environment: ${LOGGING_ENVIRONMENT:DEV}
-    path: ${LOGGING_PATH:/logs}
+    path: ${LOGGING_PATH:/var/log}
   level:
     com:
       daimler:
