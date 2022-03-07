@@ -458,8 +458,8 @@ definitions:
         description: "If solution already rolled out"  
         type: boolean
       requestedFTECount:
-        description: "Number of full time employee requested"
-        type: integer
+        description: "Total Number of FTE requested for the needed Roles/Skills."
+        type: number
         minimum: 0    
     required:
       - productName
@@ -1199,6 +1199,6 @@ definitions:
         format: date
         description: "End date for needed skills." 
       requestedFTECount:
-        type: integer
-        minimum: 0         
+        type: number
+        minimum: 0
         description: "Number of FTE requested for the needed Role/Skill."     
