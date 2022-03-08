@@ -88,7 +88,7 @@ export const SingleDataSourceList = ({
                   >
                     <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
                       <span className="animation-wrapper"></span>
-                      <input type="checkbox" id={index + '2'} />
+                      <input type="checkbox" id={index + '2'} defaultChecked={index === 0} />
                       <label
                         className={Styles.expansionLabel + ' expansion-panel-label ' + Styles.dataSourceCaption}
                         htmlFor={index + '2'}
