@@ -274,7 +274,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                           >
                             <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
                               <span className="animation-wrapper"></span>
-                              <input type="checkbox" id={index + '1'} />
+                              <input type="checkbox" id={index + '1'} defaultChecked={index === 0} />
                               <label
                                 className={Styles.expansionLabel + ' expansion-panel-label '}
                                 htmlFor={index + '1'}
