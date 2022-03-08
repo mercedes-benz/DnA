@@ -105,6 +105,7 @@ export interface ICreateNewSolutionState {
 
 export interface ICreateNewSolutionProps {
   user: IUserInfo;
+  location?: any;
 }
 
 export interface ICreateNewSolutionData {
