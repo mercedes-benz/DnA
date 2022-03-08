@@ -267,7 +267,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                   >
                     <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
                       <span className="animation-wrapper"></span>
-                      <input type="checkbox" className="ff-only" id={index + '1'} />
+                      <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                       <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                         <div className={Styles.dagTile}>
                           <div className={Styles.dagTitleCol}>{item.projectId}</div>
