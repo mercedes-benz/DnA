@@ -105,7 +105,6 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           logoDetails: null,
           dataStrategyDomain: '',
           requestedFTECount: 0,
-          isExistingSolution: false,
           additionalResource: ''
         },
         openSegments: [],
@@ -468,8 +467,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.attachments = res.attachments;
             solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
             solution.description.dataStrategyDomain = res.dataStrategyDomain;
-            solution.description.isExistingSolution = res.existingSolution;
-            // solution.description.neededRoles = res.skills;
+            solution.description.additionalResource = res.additionalResource;
             solution.description.requestedFTECount = res.requestedFTECount;
             solution.milestones = res.milestones;
             solution.currentPhase = res.currentPhase;

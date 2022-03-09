@@ -33,7 +33,7 @@ export const getDataForCSV = (
     { label: 'Location', key: 'location' },
     { label: 'Expected Benefits', key: 'expectedBenefits' },
     { label: 'Business Need', key: 'businessNeed' },
-    { label: 'Is Existing Solution?', key: 'isExistingSolution' },
+    { label: 'Register support of additional resources', key: 'additionalResource' },
     { label: 'Needed Roles/Skills(with FTE count)', key: 'neededRoles' },
     { label: 'Data Strategy Domain', key: 'dataStrategyDomain' },
     { label: 'Team', key: 'team' },
@@ -89,7 +89,7 @@ export const getDataForCSV = (
     { label: 'Location', key: 'location' },
     { label: 'Expected Benefits', key: 'expectedBenefits' },
     { label: 'Business Need', key: 'businessNeed' },
-    { label: 'Is Existing Solution?', key: 'isExistingSolution' },
+    { label: 'Register support of additional resources', key: 'additionalResource' },
     { label: 'Needed Roles/Skills(with FTE count)', key: 'neededRoles' },
     { label: 'Data Strategy Domain', key: 'dataStrategyDomain' },
     { label: 'Team', key: 'team' },
@@ -240,7 +240,7 @@ export const getDataForCSV = (
                   : 'NA',
               expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
               businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
-              isExistingSolution: solution.existingSolution ? 'Yes' : 'No',
+              additionalResource: solution.additionalResource ? solution.additionalResource : 'NA',
               neededRoles:
                 solution.skills && solution.skills.length > 0
                   ? solution.skills
@@ -436,7 +436,7 @@ export const getDataForCSV = (
                   : 'NA',
               expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
               businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
-              isExistingSolution: solution.existingSolution ? 'Yes' : 'No',
+              additionalResource: solution.additionalResource ? solution.additionalResource : 'NA',
               neededRoles:
                 solution.skills && solution.skills.length > 0
                   ? solution.skills
