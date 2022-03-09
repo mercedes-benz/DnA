@@ -153,7 +153,6 @@ export interface IDescriptionRequest {
   businessGoalsList: IBusinessGoal[];
   dataStrategyDomain: string;
   requestedFTECount: number;
-  isExistingSolution: boolean;
   additionalResource: string;
 }
 
@@ -236,7 +235,6 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           businessGoalsList: [],
           dataStrategyDomain: '',
           requestedFTECount: 0,
-          isExistingSolution: false,
           additionalResource: ''
         },
         openSegments: [],
@@ -422,7 +420,6 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.attachments = res.attachments;
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
               solution.description.dataStrategyDomain = res.dataStrategyDomain;
-              solution.description.isExistingSolution = res.existingSolution;
               solution.description.additionalResource = res.additionalResource;
               // solution.description.neededRoles = res.skills;
               solution.description.requestedFTECount = res.requestedFTECount;
@@ -944,7 +941,6 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         dataStrategyDomain: solution.description.dataStrategyDomain,
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
-        existingSolution: solution.description.isExistingSolution,
         additionalResource: solution.description.additionalResource,
       },
     };
