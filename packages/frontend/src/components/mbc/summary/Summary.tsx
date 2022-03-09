@@ -106,6 +106,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           dataStrategyDomain: '',
           requestedFTECount: 0,
           isExistingSolution: false,
+          additionalResource: ''
         },
         openSegments: [],
         team: { team: [] },

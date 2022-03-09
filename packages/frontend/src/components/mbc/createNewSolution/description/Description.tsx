@@ -101,6 +101,8 @@ export interface IDescriptionState {
   isExistingSolution: boolean;
   showDataStrategyDomainsInfo: boolean;
   showExistingSolutionInfo: boolean;
+  additionalResourcesMasterList: IRelatedProduct[];
+  additionalResource: string;
 }
 
 export interface IDescriptionRequest {
@@ -121,6 +123,7 @@ export interface IDescriptionRequest {
   dataStrategyDomain: string;
   requestedFTECount: number;
   isExistingSolution: boolean;
+  additionalResource: string;
 }
 
 export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
@@ -147,6 +150,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       dataStrategyDomain: props.description.dataStrategyDomain,
       numberOfRequestedFTE: props.description.requestedFTECount,
       isExistingSolution: props.description.isExistingSolution,
+      additionalResource: props.description.additionalResource
     };
   }
 
@@ -201,6 +205,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       showDataStrategyDomainsInfo: false,
       showExistingSolutionInfo: false,
       dataStrategyDomainMaster: [],
+      additionalResourcesMasterList: [],
+      additionalResource: null
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -262,6 +268,20 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({
       businessNeeds,
     });
+  };
+
+  public onExistingSolutionChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    let existingSolution = '';
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        // existingSolution.id = option.value;
+        existingSolution = option.label;
+      });
+    }
+    const description = this.props.description;
+    description.additionalResource = existingSolution;
+    this.setState({ additionalResource: existingSolution });
   };
 
   public onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -607,10 +627,10 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       )}
                     >
                       <label id="newSolutionLabel" htmlFor="newSolutionInput" className="input-label">
-                        Is Existing Solution? &nbsp;
-                        <i className="icon mbc-icon info" onClick={this.showExistingSolutionInfoModal} />
+                        Register support of additional resources (if required please detail your need via Members tab)
+                        {/* <i className="icon mbc-icon info" onClick={this.showExistingSolutionInfoModal} /> */}
                       </label>
-                      <div>
+                      {/* <div>
                         <label className="radio">
                           <span className="wrapper">
                             <input
@@ -635,7 +655,26 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           </span>
                           <span className="label">No</span>
                         </label>
-                      </div>
+                      </div> */}
+
+                      <div id="existingSolution" className="custom-select">
+                            <select
+                              id="isNewSolution"
+                              onChange={this.onExistingSolutionChange}
+                              // required={true}
+                              // required-error={requiredError}
+                              value={this.state.additionalResource ? this.state.additionalResource : 'NO'}
+                            >
+                              <option id="exisitngDefault" value={0}>
+                                Choose
+                              </option>
+                              {this.state.additionalResourcesMasterList.map((obj) => (
+                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                  {obj.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                     </div>
 
                     <div className={Styles.flexLayout}>
