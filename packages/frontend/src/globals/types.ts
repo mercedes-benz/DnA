@@ -534,6 +534,7 @@ export interface ICreateNewSolution {
   requestedFTECount: number;
   skills: INeededRoleObject[];
   existingSolution: boolean;
+  additionalResource: string;
 }
 
 export interface INeededRoleObject {

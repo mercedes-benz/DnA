@@ -154,6 +154,7 @@ export interface IDescriptionRequest {
   dataStrategyDomain: string;
   requestedFTECount: number;
   isExistingSolution: boolean;
+  additionalResource: string;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {
@@ -236,6 +237,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           dataStrategyDomain: '',
           requestedFTECount: 0,
           isExistingSolution: false,
+          additionalResource: ''
         },
         openSegments: [],
         team: { team: [] },
@@ -421,6 +423,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
               solution.description.dataStrategyDomain = res.dataStrategyDomain;
               solution.description.isExistingSolution = res.existingSolution;
+              solution.description.additionalResource = res.additionalResource;
               // solution.description.neededRoles = res.skills;
               solution.description.requestedFTECount = res.requestedFTECount;
               solution.milestones = res.milestones;
@@ -942,6 +945,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
         existingSolution: solution.description.isExistingSolution,
+        additionalResource: solution.description.additionalResource,
       },
     };
     ProgressIndicator.show();
