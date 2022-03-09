@@ -38,12 +38,13 @@ import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
+import com.daimler.data.db.entities.lov.AdditionalResourceNsql;
 import com.daimler.data.db.entities.lov.BenefitRelevanceNsql;
 import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
+import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 import com.daimler.data.db.entities.lov.MaturityLevelNsql;
 import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
-import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 
 @Repository
 public class LovRepositoryImpl implements LovRepository {
@@ -143,6 +144,16 @@ public class LovRepositoryImpl implements LovRepository {
 		Root<DataStrategyDomainNsql> root = cq.from(DataStrategyDomainNsql.class);
 		CriteriaQuery<DataStrategyDomainNsql> getAll = cq.select(root);
 		TypedQuery<DataStrategyDomainNsql> getAllQuery = em.createQuery(getAll);
+		return getAllQuery.getResultList();
+	}
+
+	@Override
+	public List<AdditionalResourceNsql> getAllAdditionalResource() {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<AdditionalResourceNsql> cq = cb.createQuery(AdditionalResourceNsql.class);
+		Root<AdditionalResourceNsql> root = cq.from(AdditionalResourceNsql.class);
+		CriteriaQuery<AdditionalResourceNsql> getAll = cq.select(root);
+		TypedQuery<AdditionalResourceNsql> getAllQuery = em.createQuery(getAll);
 		return getAllQuery.getResultList();
 	}
 

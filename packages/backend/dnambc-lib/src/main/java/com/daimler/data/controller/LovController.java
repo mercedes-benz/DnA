@@ -39,6 +39,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.lov.LovApi;
+import com.daimler.data.dto.lov.AdditionalResourceVO;
+import com.daimler.data.dto.lov.AdditionalResourceVOCollection;
 import com.daimler.data.dto.lov.BenefitRelevanceVO;
 import com.daimler.data.dto.lov.BenefitRelevanceVOCollection;
 import com.daimler.data.dto.lov.BusinessGoalVO;
@@ -266,6 +268,30 @@ public class LovController implements LovApi {
 			return new ResponseEntity<>(strategyDomainVOCollection, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(strategyDomainVOCollection, HttpStatus.NO_CONTENT);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get all lov values for Register support of additional resources.", nickname = "getAllAdditionalResources", notes = "Get all Register support of additional resources. This endpoints will be used to Get all valid available Register support of additional resources.", response = AdditionalResourceVOCollection.class, tags = {
+			"lov", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = AdditionalResourceVOCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/additionalresources", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<AdditionalResourceVOCollection> getAllAdditionalResources() {
+		final List<AdditionalResourceVO> additionalResources = lovService.getAllAdditionalResource();
+		AdditionalResourceVOCollection additionalResourceCollection = new AdditionalResourceVOCollection();
+		if (!ObjectUtils.isEmpty(additionalResources)) {
+			additionalResourceCollection.setData(additionalResources);
+			return new ResponseEntity<>(additionalResourceCollection, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>(additionalResourceCollection, HttpStatus.NO_CONTENT);
 		}
 	}
 

@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.assembler.LovAssembler;
 import com.daimler.data.assembler.SolutionAssembler;
+import com.daimler.data.db.entities.lov.AdditionalResourceNsql;
 import com.daimler.data.db.entities.lov.BenefitRelevanceNsql;
 import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
@@ -44,6 +45,7 @@ import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
 import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 import com.daimler.data.db.repo.lov.LovRepository;
 import com.daimler.data.db.repo.solution.SolutionRepository;
+import com.daimler.data.dto.lov.AdditionalResourceVO;
 import com.daimler.data.dto.lov.BenefitRelevanceVO;
 import com.daimler.data.dto.lov.BusinessGoalVO;
 import com.daimler.data.dto.lov.CategoryVO;
@@ -149,6 +151,12 @@ public class BaseLovService implements LovService {
 	public List<DataStrategyDomainVO> getAllStrategyDomain() {
 		List<DataStrategyDomainNsql> strategyDomains = lovRepository.getAllStrategyDomain();
 		return lovAssembler.toStrategyDomainVOList(strategyDomains);
+	}
+
+	@Override
+	public List<AdditionalResourceVO> getAllAdditionalResource() {
+		List<AdditionalResourceNsql> additionalResources = lovRepository.getAllAdditionalResource();
+		return lovAssembler.toAdditionalResourceVOList(additionalResources);
 	}
 
 }
