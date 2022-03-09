@@ -224,9 +224,9 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     <div className={Styles.tagColumn}>{chips}</div>
                   </div>
                   <div id="isExistingSolution">
-                    <label className="input-label summary">Is Existing Solution?</label>
+                    <label className="input-label summary">Register support of additional resources</label>
                     <br />
-                    {description.isExistingSolution ? 'Yes' : 'No'}
+                    {description.additionalResource ? description.additionalResource : 'N/A'}
                   </div>
                 </div>
                 <hr className="divider1" />
