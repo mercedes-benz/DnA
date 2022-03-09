@@ -583,8 +583,8 @@ export const SummaryPdfDoc = (props: any) => (
             <Text>{props.solution.description.dataStrategyDomain}</Text>
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
-            <Text style={styles.sectionTitle}>Is Existing Solution?</Text>
-            <Text>{props.solution.description.isExistingSolution ? 'Yes' : 'No'}</Text>
+            <Text style={styles.sectionTitle}>Register support of additional resources</Text>
+            <Text>{props.solution.description.additionalResource ? props.solution.description.additionalResource : 'N/A'}</Text>
           </View>
         </View>
         <View style={styles.seperatorLine} />
