@@ -454,9 +454,9 @@ definitions:
       dataStrategyDomain:      
         description: "Solution Data strategy domain"  
         type: string
-      existingSolution: 
-        description: "If solution already rolled out"  
-        type: boolean
+      additionalResource: 
+        description: "Register support of additional resources"  
+        type: string
       requestedFTECount:
         description: "Total Number of FTE requested for the needed Roles/Skills."
         type: number
