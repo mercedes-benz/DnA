@@ -1,6 +1,11 @@
 spring:
   application:
     name: dna-airflow-backend
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}    
   jpa:
     database: POSTGRESQL
     properties:
