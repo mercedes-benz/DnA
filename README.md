@@ -24,26 +24,13 @@ The idea of the DnA Platform originated from the common challenge every big comp
 | [Malware Scan As A Service Feature](./docs/DnAMalwareScanAsAService.md)  |  Feature that provides a simple REST API to check all kinds of attachments for malicious code, abstracting the [ClamAV](https://github.com/Cisco-Talos/clamav) scanner usage and making it ready for web world.  | February 2022   | 
 |  [Data Pipeline Feature](./docs/DnADataPipeline.md)  | This feature integrates [Apache Airflow](https://github.com/apache/airflow) as major component in DnA Platform, enabling processing and transforming of data  | February 2022  | 
 |  [Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md)  | Feature based on [JupyterHub](https://github.com/jupyterhub/jupyterhub) enables users to start working on their models without any additional software installation.   | February 2022   |  
-| [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | Is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).  | February 2022  |  
+| [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | Is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).  | February 2022  |
+| [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the  [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | March 2022 | 
 
 
  
 
 ## Upcoming Features
-
-We are currently implementing a crucial MLOPs feature that will simplify the life of data scientists - creating model training pipelines with a click of the button. The overall DnA MLOPs Architecutre can be found [here](https://github.com/Daimler/DnA/blob/master/docs/DnAMLOPsArchitecture.md). This feature is based on the Jupyter Notebook extension [Kale](https://github.com/kubeflow-kale/kale) which, automatically generates, uploads, and runs  [Kubeflow Pipelines](https://github.com/kubeflow/pipelines) for your project. As a result, this will reduce the technical dept between data scientists and software engineers, eliminate their interdependencies, and enhance the user experience in a simple, transparent, compliant to data privacy regulations, and free of cost way.
-
-In addition, we are working on creating a Helm chart for the simplified installation of the entire DnA platform features.
-
-Those features will be available in February 2022,  together with the possibility to manually enable or disable each of those features via configuration parameters at the time of installation.
-
-Next, the Dashboard transparency feature is considered crucial for every organization. It provides transparency on dashboards and reports planned, built, or already in use. This analysis enables strategic steering of what organizations should develop in the future.
-
-This feature will be available in March 2022.
-
-Once you develop and train your ML model, you often need to make it available for production usage - in a scalable and secure way. We plan to enable model serving in the form of a REST API and in a configuration-free way. Soon, we are thinking of integrating [Seldon Core](https://github.com/SeldonIO/seldon-core) or [Kserve](https://github.com/kserve/kserve) as the main building blocks for this feature. If you have some ideas or hints on this topic please let us know [here](https://github.com/Daimler/DnA/issues).
-
-ETA for this feature is the second half of Q1 2022.
 
 As Data Pipelines, Jupyter notebook, Kubeflow Pipelines, and other features require some kind of managed persistence layer, we are considering the integration of  [MinIO](https://github.com/minio/minio) as an S3 storage model along with the addition of [DeltaLake](https://github.com/delta-io/delta) to enable native Spark processing and ACID compliance.
 
