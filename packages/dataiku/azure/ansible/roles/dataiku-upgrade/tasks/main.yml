@@ -43,11 +43,11 @@
   tags: [ dss-upgrade-production, dss-upgrade-training]
 
 - name: Backup Dataiku Directory
-  shell: tar --use-compress-program="pigz -k" -cf {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])}}.tar.gz {{dss_data_directory}}
+  shell: tar --use-compress-program="pigz -k --fast" -cf {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz {{dss_data_directory}}
   tags: [ dss-upgrade-production, dss-upgrade-training]
 
 - name: Upload backup file into Azure Storage container
-  shell: "az storage blob upload -c {{azure_storage_container}} -f {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])}}.tar.gz -n dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])}}.tar.gz --connection-string '{{azure_storage_conn_string}}'"
+  shell: "az storage blob upload -c {{azure_storage_container}} -f {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz -n dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz --connection-string '{{azure_storage_conn_string}}'"
   tags: [dss-upgrade-production, dss-upgrade-training]
 
 #Upgrading Dataiku 
@@ -110,6 +110,6 @@
 #Cleanup
 - name: Remove backup file from local storage
   file:
-    path: "{{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0])}}.tar.gz"
+    path: "{{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz"
     state: absent
   tags: [dss-upgrade-production, dss-upgrade-training]
