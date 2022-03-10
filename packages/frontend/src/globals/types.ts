@@ -533,7 +533,7 @@ export interface ICreateNewSolution {
   dataStrategyDomain: string;
   requestedFTECount: number;
   skills: INeededRoleObject[];
-  existingSolution: boolean;
+  additionalResource: string;
 }
 
 export interface INeededRoleObject {
@@ -855,6 +855,7 @@ export interface IAllSolutionsListItemCSV {
   requestedFTECount: number;
   skills: INeededRoleObject[];
   existingSolution: boolean;
+  additionalResource: string;
 }
 
 export interface IAllReportsListItemCSV {

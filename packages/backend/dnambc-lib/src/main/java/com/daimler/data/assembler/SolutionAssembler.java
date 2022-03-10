@@ -398,9 +398,10 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 						if (null != changeLogs.getModifiedBy()) {
 							TeamMemberVO teamMemberVO = new TeamMemberVO();
 							BeanUtils.copyProperties(changeLogs.getModifiedBy(), teamMemberVO);
-							if (!StringUtils.isEmpty(changeLogs.getModifiedBy().getUserType()))
+							if (StringUtils.hasText(changeLogs.getModifiedBy().getUserType())) {
 								teamMemberVO
 										.setUserType(UserTypeEnum.valueOf(changeLogs.getModifiedBy().getUserType()));
+							}
 							changeLogVO.setModifiedBy(teamMemberVO);
 						}
 						changeLogVOList.add(changeLogVO);
@@ -1074,9 +1075,6 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				solution.setPlatforms(platforms);
 			}
 			
-			// Setting if existing solution
-			solution.setExistingSolution(vo.isExistingSolution() != null ? vo.isExistingSolution() : false);
-			
 			//Setting SkillSummary
 			if(!ObjectUtils.isEmpty(vo.getSkills())) {
 				List<SkillSummary> skills = vo.getSkills().stream().map(n -> toSkillSummary(n))
@@ -1601,16 +1599,16 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 								: keySet[i]));
 			}
 
-			if (!StringUtils.isEmpty(at) && index != i) {
+			if (StringUtils.hasText(at) && index != i) {
 				// changeDescription.append(at);
 				changeDescription.append(" " + String.valueOf(indexValue));
 				at = null;
 			}
 
 		}
-		if (StringUtils.isEmpty(fromValue)) {
+		if (!StringUtils.hasText(fromValue)) {
 			changeDescription.append(" as `" + toValue + "` added ");
-		} else if (StringUtils.isEmpty(toValue)) {
+		} else if (!StringUtils.hasText(toValue)) {
 			changeDescription.append(" as `" + fromValue + "` removed ");
 		} else {
 			changeDescription.append(" changed from `" + fromValue + "` to `" + toValue + "`");

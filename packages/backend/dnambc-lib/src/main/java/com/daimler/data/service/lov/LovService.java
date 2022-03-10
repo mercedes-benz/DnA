@@ -29,6 +29,7 @@ package com.daimler.data.service.lov;
 
 import java.util.List;
 
+import com.daimler.data.dto.lov.AdditionalResourceVO;
 import com.daimler.data.dto.lov.BenefitRelevanceVO;
 import com.daimler.data.dto.lov.BusinessGoalVO;
 import com.daimler.data.dto.lov.CategoryVO;
@@ -79,4 +80,11 @@ public interface LovService {
 	 * @return strategyDomains {List<DataStrategyDomainVO>}
 	 */
 	List<DataStrategyDomainVO> getAllStrategyDomain();
+	
+	/**
+	 * To fetch all AdditionalResources
+	 * 
+	 * @return additionalResources {List<AdditionalResourceVO>}
+	 */
+	List<AdditionalResourceVO> getAllAdditionalResource();
 }
