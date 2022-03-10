@@ -104,7 +104,7 @@ public class Solution {
 	
 	private List<SkillSummary> skills;
 	private String dataStrategyDomain;
-	private boolean existingSolution;
+	private String additionalResource;
 	private BigDecimal requestedFTECount;
 	
 }

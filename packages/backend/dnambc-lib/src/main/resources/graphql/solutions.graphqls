@@ -38,7 +38,7 @@ type SolutionVO {
     openSegments:[String],
     skills: [SkillSummaryVO],
     dataStrategyDomain: String,
-    existingSolution: Boolean,
+    additionalResource: String,
     requestedFTECount: Float    
 }
 

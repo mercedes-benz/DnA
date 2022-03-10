@@ -124,7 +124,7 @@ export interface IDescriptionRequest {
   businessGoalsList: IBusinessGoal[];
   dataStrategyDomain: string;
   requestedFTECount: number;
-  isExistingSolution: boolean;
+  additionalResource: string;
 }
 
 export default class Provisionsolution extends React.Component<IProvisionSolutionProps, IProvisionSolutionState> {
@@ -192,7 +192,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           businessGoalsList: [],
           dataStrategyDomain: '',
           requestedFTECount: 0,
-          isExistingSolution: false,
+          additionalResource: ''
         },
         openSegments: [],
         team: [],
@@ -514,7 +514,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         dataStrategyDomain: solution.description.dataStrategyDomain,
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
-        existingSolution: solution.description.isExistingSolution,
+        additionalResource: solution.description.additionalResource,
       },
     };
     ProgressIndicator.show();
