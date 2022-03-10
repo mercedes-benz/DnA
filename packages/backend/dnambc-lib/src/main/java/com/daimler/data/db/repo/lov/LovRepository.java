@@ -29,12 +29,13 @@ package com.daimler.data.db.repo.lov;
 
 import java.util.List;
 
+import com.daimler.data.db.entities.lov.AdditionalResourceNsql;
 import com.daimler.data.db.entities.lov.BenefitRelevanceNsql;
 import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
+import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 import com.daimler.data.db.entities.lov.MaturityLevelNsql;
 import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
-import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 
 public interface LovRepository  {
 	
@@ -79,4 +80,11 @@ public interface LovRepository  {
 	 * @return strategyDomains
 	 */
 	List<DataStrategyDomainNsql> getAllStrategyDomain();
+	
+	/**
+	 * To fetch all Additional Resources
+	 * 
+	 * @return additionalResources {List<DataStrategyDomainNsql>}
+	 */
+	List<AdditionalResourceNsql> getAllAdditionalResource();
 }
