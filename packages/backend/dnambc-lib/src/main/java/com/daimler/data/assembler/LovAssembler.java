@@ -32,13 +32,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
+import com.daimler.data.db.entities.lov.AdditionalResourceNsql;
 import com.daimler.data.db.entities.lov.BenefitRelevanceNsql;
 import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
 import com.daimler.data.db.entities.lov.MaturityLevelNsql;
 import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
 import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
+import com.daimler.data.dto.lov.AdditionalResourceVO;
 import com.daimler.data.dto.lov.BenefitRelevanceVO;
 import com.daimler.data.dto.lov.BusinessGoalVO;
 import com.daimler.data.dto.lov.CategoryVO;
@@ -216,5 +219,39 @@ public class LovAssembler {
 				dataStrategyDomainVO.setName(entity.getData().getName());
 		}
 		return dataStrategyDomainVO;
+	}
+	
+	/**
+	 * To convert AdditionalResourceNsql to AdditionalResourceVO
+	 * 
+	 * @param entityList {List<AdditionalResourceNsql>}
+	 * @return additionalResourcesVO {List<AdditionalResourceVO>}
+	 */
+	public List<AdditionalResourceVO> toAdditionalResourceVOList(List<AdditionalResourceNsql> entityList) {
+		List<AdditionalResourceVO> additionalResourcesVO = null;
+		if (!ObjectUtils.isEmpty(entityList)) {
+			additionalResourcesVO = entityList.stream().map(n -> toAdditionalResourceVO(n))
+					.collect(Collectors.toList());
+		}
+
+		return additionalResourcesVO;
+	}
+
+	/**
+	 * To convert AdditionalResourceNsql to AdditionalResourceVO
+	 * 
+	 * @param entity {AdditionalResourceNsql}
+	 * @return additionalResourceVO {AdditionalResourceVO}
+	 */
+	public AdditionalResourceVO toAdditionalResourceVO(AdditionalResourceNsql entity) {
+		AdditionalResourceVO additionalResourceVO = null;
+		if (Objects.nonNull(entity)) {
+			additionalResourceVO = new AdditionalResourceVO();
+			additionalResourceVO.setId(entity.getId());
+			if (entity.getData() != null) {
+				additionalResourceVO.setName(entity.getData().getName());
+			}
+		}
+		return additionalResourceVO;
 	}
 }

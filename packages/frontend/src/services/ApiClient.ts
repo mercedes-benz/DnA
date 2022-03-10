@@ -284,7 +284,11 @@ export class ApiClient {
   }
 
   public static getDescriptionLovData(): Promise<any[]> {
-    return Promise.all([this.get(`lov/businessgoals`), this.get('lov/strategydomains')]);
+    return Promise.all([
+      this.get(`lov/businessgoals`), 
+      this.get('lov/strategydomains'),
+      this.get('lov/additionalresources')
+    ]);
   }
 
   public static getSkills(): Promise<any[]> {
@@ -782,7 +786,7 @@ export class ApiClient {
         description,
         businessNeed,
         businessGoals,
-        existingSolution,
+        additionalResource,
         dataStrategyDomain,
         relatedProducts,
         attachments {
