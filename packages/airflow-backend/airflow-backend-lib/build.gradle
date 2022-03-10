@@ -108,7 +108,7 @@ dependencies {
     implementation 'io.swagger:swagger-annotations:1.6.2'
     swaggerCodegen 'io.swagger:swagger-codegen-cli:2.4.10'
 
-
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
     
     implementation('org.springframework.boot:spring-boot-starter-web')
 	implementation('org.apache.tomcat.embed:tomcat-embed-jasper:10.0.5')
