@@ -1080,7 +1080,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ statusError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.businessGoal || !this.state.businessGoal) {
+    if (!this.state.businessGoal || this.state.businessGoal.length  === 0) {
       this.setState({ businessGoalValError: errorMissingEntry });
       formValid = false;
     }
