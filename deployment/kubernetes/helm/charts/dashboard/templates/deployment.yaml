@@ -32,6 +32,11 @@ spec:
                 secretKeyRef:
                   key: postgres.app.password
                   name: {{ .Values.secret.name }}
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                 key: jwt.secret.key
+                 name: {{ .Values.secret.name }} 
             - name: DNA_URI
               value: {{ .Values.appUrl }}
             - name: DNA_AUTH_ENABLE
