@@ -21,6 +21,7 @@ app:
       naas_centraldelte_topic: dnaCentralDeleteTopic
       loggingPath: /tmp/naas/log
       loggingEnvironment: dev
+      jwtKey: ""
 
   db: 
     secrets: 
