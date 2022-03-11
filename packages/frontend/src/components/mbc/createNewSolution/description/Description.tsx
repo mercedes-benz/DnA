@@ -609,13 +609,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     <div
                       className={classNames(
                         Styles.existingSolution,
-                        'input-field-group include-error',
-                        productNameError.length ? 'error' : '',
+                        'input-field-group include-error'
                       )}
                     >
                       <label id="newSolutionLabel" htmlFor="newSolutionInput" className="input-label">
-                        Register support of additional resources (if required please detail your need via Members tab)
-                        {/* <i className="icon mbc-icon info" onClick={this.showExistingSolutionInfoModal} /> */}
+                        Register support of additional resources &nbsp;
+                        <i className="icon mbc-icon info" onClick={this.showExistingSolutionInfoModal} />
                       </label>    
                       <div id="existingSolution" className="custom-select">
                         <select
@@ -977,7 +976,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               )}
               {this.state.showExistingSolutionInfo && (
                 <InfoModal
-                  title={'Is Existing Solution?'}
+                  title={'Register support of additional resources'}
                   modalWidth={'35vw'}
                   show={this.state.showExistingSolutionInfo}
                   content={contentForExistingSolutionInfoModal}
@@ -1080,7 +1079,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ statusError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.businessGoal || this.state.businessGoal.length  === 0) {
+    if (!this.state.businessGoal || this.state.businessGoal.length == 0) {
       this.setState({ businessGoalValError: errorMissingEntry });
       formValid = false;
     }
