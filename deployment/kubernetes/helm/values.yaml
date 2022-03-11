@@ -219,6 +219,7 @@ naas:
         naas_centraldelte_topic: CentralDeleteTopic
         loggingPath: /tmp/naas/log
         loggingEnvironment: dev
+        jwtKey: ""
     db: 
       secrets: 
         name: postgres-secrets
