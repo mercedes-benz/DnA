@@ -139,7 +139,7 @@ spec:
                   key: dataiku.prod.apikey
                   name: {{ .Values.app.backend.secrets.name }}
             - name: DATAIKU_PROD_ADMIN_GROUP
-              value: az_096_ART-ENAB-DSS--DEV--ADMINISTRATOR      
+              value: {{ .Values.app.backend.config.dataikuProdAdminGroup }}
             - name: DATAIKU_TRAINING_URI
               value: {{ .Values.app.backend.config.dataikutraininguri }}
             - name: DATAIKU_TRAINING_API_KEY
@@ -148,7 +148,7 @@ spec:
                   key: dataiku.training.apikey
                   name: {{ .Values.app.backend.secrets.name }}
             - name: DATAIKU_TRAINING_ADMIN_GROUP
-              value: az_096_ART-ENAB-DSS--TRAINING--ADMINISTRATOR
+              value: {{ .Values.app.backend.config.dataikuTrainingAdminGroup }}
             - name: AVSCAN_URI
               value: {{ .Values.app.backend.config.avscanuri }}
             - name: AVSCAN_APP_ID
@@ -166,6 +166,14 @@ spec:
                 secretKeyRef:
                   key: avscan.apikey
                   name: {{ .Values.app.backend.secrets.name }}
+            - name: FLYWAY_ENABLED
+              value: {{ .Values.app.backend.config.flywayBaseline }}
+            - name: FLYWAY_BASELINE_ON_MIGRATE
+              value: {{ .Values.app.backend.config.flywayBaselineOnMigrate }}
+            - name: FLYWAY_BASELINEVERSION
+              value: {{ .Values.app.backend.config.flywayBaselineVersion }}
+            - name: FLYWAY_SCHEMA    
+              value: {{ .Values.app.backend.config.flywaySchema }}
             - name: JWT_TOKEN_EXPIRY_TIME_IN_MIN
               value: "90"             
           image: {{ .Values.app.backend.image }}
