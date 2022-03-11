@@ -57,13 +57,19 @@ app:
         vaulthost: vault.vault.svc.cluster.local
         vaultport: 8200
         dataikuproduri: ""
+        dataikuProdAdminGroup: ""
         dataikutraininguri: ""
         avscanappid: ""
         naasbroker: broker01.kafka.svc.cluster.local:8001
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
+        dataikuTrainingAdminGroup: ""
         avscanuri: ""
+        flywayBaseline: "true"
+        flywayBaselineOnMigrate: "true"
+        flywayBaselineVersion: "0"
+        flywaySchema: "public"
 
     frontend:
       replicaCount: 1
@@ -82,6 +88,7 @@ app:
         oauth2logouturl: ""
         oauth2introspectionurl: ""
         oauth2userinfourl: ""
+        frontendClientid: ""
         redirecturls: ""
         dnaswaggeruiurl: ""
         dataikuferreturl: ""
@@ -212,6 +219,7 @@ naas:
         naas_centraldelte_topic: CentralDeleteTopic
         loggingPath: /tmp/naas/log
         loggingEnvironment: dev
+        jwtKey: ""
     db: 
       secrets: 
         name: postgres-secrets
@@ -302,8 +310,15 @@ dashboard:
     name: dashboard-secrets
     appUserName: ""
     appPassword: ""
+    jwtKey: ""
   appUrl: http://dna-backend-service.dna.svc.cluster.local:80
   enableAuth: true
+  loggingPath: ""
+  loggingEnvironment: ""
+  flywayBaseline: "true"
+  flywayBaselineOnMigrate: "true"
+  flywayBaselineVersion: "0"
+  flywaySchema: "public"
   imagePullSecret: 
     name: harbor-pull-secret
   cert:
@@ -347,6 +362,10 @@ airflow:
     gitUrl: ""
     loggingPath: /tmp/airflow/log
     loggingEnvironment: dev
+    flywayBaseline: "true"
+    flywayBaselineOnMigrate: "true"
+    flywayBaselineVersion: "0"
+    flywaySchema: "public"
   
   pullSecretData: 
   secret:
