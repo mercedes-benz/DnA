@@ -78,7 +78,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         className += ' ' + classNames(Styles.active);
       }
       return (
-        <div id={filteredTag.id} key={filteredTag.id} onClick={this.onSuggestionClick} className={className}>
+        <div id={filteredTag.id} key={filteredTag.id} onMouseDown={this.onSuggestionMouseDown} className={className}>
           {filteredTag.name}
         </div>
       );
@@ -144,7 +144,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     this.setState({ isFocused: false });
   };
 
-  protected onSuggestionClick = (event: React.MouseEvent) => {
+  protected onSuggestionMouseDown = (event: React.MouseEvent) => {
     const target = event.currentTarget as HTMLElement;
     const userInput = target.innerText;
     if (target.id && target.id !== '0') {
