@@ -94,7 +94,15 @@ spec:
             - name: LOGGING_PATH
               value: {{ .Values.backend.loggingPath | quote }}
             - name: LOGGING_ENVIRONMENT
-              value: {{ .Values.backend.loggingEnvironment | quote }}          
+              value: {{ .Values.backend.loggingEnvironment | quote }} 
+            - name: FLYWAY_ENABLED
+              value: {{ .Values.backend.flywayBaseline }}
+            - name: FLYWAY_BASELINE_ON_MIGRATE
+              value: {{ .Values.backend.flywayBaselineOnMigrate }}
+            - name: FLYWAY_BASELINEVERSION
+              value: {{ .Values.backend.flywayBaselineVersion }}
+            - name: FLYWAY_SCHEMA    
+              value: {{ .Values.backend.flywaySchema }}
           ports:
             - containerPort: {{ .Values.backend.containerPort }}
               name: api-http
