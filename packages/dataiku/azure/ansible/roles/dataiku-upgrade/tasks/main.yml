@@ -85,9 +85,9 @@
 - name: Run DSS upgrade
   become_user: "{{dss_system_user}}"
   shell: yes Y | {{dss_home_directory}}/installer.sh -d {{dss_data_directory}} -u
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-production, dss-upgrade-training ]
 
-- name: Run DSS upgrade
+- name: Run DSS upgrade automation
   become_user: "{{dss_system_user}}"
   shell: yes Y | {{dss_home_directory}}/installer.sh -d {{dss_data_directory}} -t automation -u
   tags: [dss-upgrade-automation ]
