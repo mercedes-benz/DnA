@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kfserving-controller-manager
+  namespace: kfserving-system
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsUser: 65534
+      containers:
+      # Change the value of image field below to your controller image URL
+      - image: kfserving/kfserving-controller:v0.6.1
+        name: manager
