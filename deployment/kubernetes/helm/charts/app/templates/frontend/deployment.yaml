@@ -47,7 +47,7 @@ spec:
           - name: PROJECTSMO_FRONTEND_OAUTH2_USERINFO_URL
             value: {{ .Values.app.frontend.config.oauth2userinfourl }}
           - name: PROJECTSMO_FRONTEND_CLIENT_IDS
-            value: ***REMOVED***
+            value: {{ .Values.app.frontend.config.frontendClientid }}
           - name: PROJECTSMO_FRONTEND_REDIRECT_URLS
             value: {{ .Values.app.frontend.config.redirecturls }}
           - name: PROJECTSMO_JUPYTER_NOTEBOOK_URL
