@@ -42,9 +42,9 @@ spec:
             - name: DNA_AUTH_ENABLE
               value: {{ .Values.enableAuth | quote}}
             - name: LOGGING_PATH
-			        value: {{ .Values.loggingPath | quote }}
-			      - name: LOGGING_ENVIRONMENT
-			        value: {{ .Values.loggingEnvironment | quote }}
+	      value: {{ .Values.loggingPath | quote }}
+	    - name: LOGGING_ENVIRONMENT
+	      value: {{ .Values.loggingEnvironment | quote }}
             - name: FLYWAY_ENABLED
               value: {{ .Values.flywayBaseline }}
             - name: FLYWAY_BASELINE_ON_MIGRATE
