@@ -10,6 +10,7 @@ secret:
   name: dashboard-secrets
   appUserName: ""
   appPassword: ""
+  jwtKey: ""
 appUrl: http://dna-backend-service.dna.svc.cluster.local:80
 enableAuth: true
 loggingPath: ""
