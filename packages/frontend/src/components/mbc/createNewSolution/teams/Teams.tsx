@@ -102,7 +102,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
       showAddNeededRoleModal: false,
       relatedProductObj: [],
       chips: [],
-      roleCountFieldList: [],
+      roleCountFieldList: this.props.neededRoles,
       showDeleteModal: false,
       roleToDelete: {
         fromDate: '',
@@ -573,7 +573,10 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
 
       const result = [...onlyInA, ...onlyInB];
       roleCountFieldList.push(...result);
-      this.setState({ roleCountFieldList, neededRoleValue: selectedValues });
+      this.setState({ roleCountFieldList, neededRoleValue: selectedValues },()=>{
+        const tempTeamsObj = {team: this.state.teamMembers}
+        this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
+      });
     } else {
       /************** Setting default value when loads while edit ***************/
       this.setState(
@@ -583,6 +586,9 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
         },
         () => {
           InputFields.defaultSetup();
+          const tempTeamsObj = {team: this.state.teamMembers}
+          if(tempRoleCountFieldList.length > 0)
+          this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
         },
       );
     }
@@ -603,7 +609,10 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
         }
         return item;
       });
-      this.setState({ roleCountFieldList });
+      this.setState({ roleCountFieldList },()=>{
+        const tempTeamsObj = {team: this.state.teamMembers}
+        this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
+      });
     }
   }
 
