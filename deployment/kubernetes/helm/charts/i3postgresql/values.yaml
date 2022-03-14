@@ -3,28 +3,26 @@
 # Declare variables to be passed into your templates.
 
 namespace: dna
-global:
-  i3postgresql:
-    app:
-      db: 
-        replicaCount: 1
-        image: postgresql:10.3-2.1.0
-        pgssl: "NO"
-        dbname: db
-        secrets: 
-          name: postgres-secrets
-          backupUserName: ""
-          backupUserPassword: ""
-          dbAdminUserName: ""
-          dbAdminPassword: ""
-          patroniUserPassword: ""
-          appUserName: "subchart"
-          appPassword: ""
-        airflowDB:
-          airflowUserName: ""
-          airflowdbName: ""
-          airflowdbPwd: ""
-        dashboardDB:
-          dashboardUserName: "subchart"
-          dashboarddbName: ""
-          dashboarddbPwd: ""
+app:
+  db: 
+    replicaCount: 1
+    image: postgresql:10.3-2.1.0
+    pgssl: "NO"
+    dbname: db
+    secrets: 
+      name: postgres-secrets
+      backupUserName: ""
+      backupUserPassword: ""
+      dbAdminUserName: ""
+      dbAdminPassword: ""
+      patroniUserPassword: ""
+      appUserName: "subchart"
+      appPassword: ""
+    airflowDB:
+      airflowUserName: ""
+      airflowdbName: ""
+      airflowdbPwd: ""
+    dashboardDB:
+      dashboardUserName: "subchart"
+      dashboarddbName: ""
+      dashboarddbPwd: ""
