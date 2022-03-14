@@ -74,17 +74,7 @@ export const PredefinedSolutionLogoImagesInfo = {
   ],
 };
 
-export const ExistingSolutionInfoList = [
-  {
-    title: 'Yes',
-    description: 'if required please detail your need via Members tab.',
-  },
-  {
-    title: 'No',
-    description:
-      '',
-  },
-];
+export const AdditionalResourceTooltipContent = 'if required please detail your need via Members tab.';
 
 export const DataStrategyDomainInfoList = [
   {
