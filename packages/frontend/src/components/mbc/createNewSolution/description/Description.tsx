@@ -28,8 +28,10 @@ import LogoManager from './logoManager/LogoManager';
 import Tags from '../../../formElements/tags/Tags';
 import { InfoModal } from '../../../formElements/modal/infoModal/InfoModal';
 import { Envs } from '../../../../globals/Envs';
-import { DataStrategyDomainInfoList, ExistingSolutionInfoList } from '../../../../globals/constants';
+import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent } from '../../../../globals/constants';
 import { InfoList } from '../../../formElements/modal/infoModal/InfoList';
+// @ts-ignore
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 
 const classNames = cn.bind(Styles);
 
@@ -496,8 +498,6 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
     const contentForDataStrategyDomainsInfoModal = <InfoList list={DataStrategyDomainInfoList as IInfoItem[]} />;
 
-    const contentForExistingSolutionInfoModal = <InfoList list={ExistingSolutionInfoList as IInfoItem[]} />;
-
     // Used Data Compliance variable to hide specific to company
     const enableDataStatergyInfo = Envs.ENABLE_DATA_COMPLIANCE;
 
@@ -614,7 +614,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     >
                       <label id="newSolutionLabel" htmlFor="newSolutionInput" className="input-label">
                         Register support of additional resources &nbsp;
-                        <i className="icon mbc-icon info" onClick={this.showExistingSolutionInfoModal} />
+                        <i className="icon mbc-icon info"
+                        tooltip-data={AdditionalResourceTooltipContent} />
                       </label>    
                       <div id="existingSolution" className="custom-select">
                         <select
@@ -974,15 +975,6 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                   onCancel={this.onDataStrategyDomainsInfoModalCancel}
                 />
               )}
-              {this.state.showExistingSolutionInfo && (
-                <InfoModal
-                  title={'Register support of additional resources'}
-                  modalWidth={'35vw'}
-                  show={this.state.showExistingSolutionInfo}
-                  content={contentForExistingSolutionInfoModal}
-                  onCancel={this.onExistingSolutionInfoModalCancel}
-                />
-              )}
             </>
           ) : (
             ''
@@ -1001,6 +993,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   }
 
   public componentDidMount() {
+    Tooltip.defaultSetup();
     ApiClient.getDescriptionLovData().then((response) => {
       if (response) {
         this.setState({
@@ -1154,11 +1147,4 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({ showDataStrategyDomainsInfo: false });
   };
 
-  protected showExistingSolutionInfoModal = () => {
-    this.setState({ showExistingSolutionInfo: true });
-  };
-
-  protected onExistingSolutionInfoModalCancel = () => {
-    this.setState({ showExistingSolutionInfo: false });
-  };
 }
