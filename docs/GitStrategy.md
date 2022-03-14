@@ -4,14 +4,16 @@
 
 ### Checkout a new branch from a  `dev `for your contribution
 
-* Contributors are requested to checkout a new branch from the `dev` and start contributing. Let's call it the new branch called `feature/imageUpload`.
-* Post-completion of work on the  `feature/imageUpload` branch. Create **Pull Request** for the `dev `branch from `the feature/imageUpload` branch.
-* Our technical team will review the PR and merge it to `dev`. Post-completion of PR, `feature/imageUpload` branch will be deleted.
-* Once your changes are on the `dev` branch. Our team will run different levels of the test to make sure quality, security, and compliance.
-* Once all test is passed, our team will create a new release **PR** to the  `main` branch from `dev`.
+* Contributors are requested to checkout a new branch from the `dev` and start contributing. Based on the type of work the contributor would like to do(patch/feature etc.), we expect the contributor to create a branch using the naming convention mentioned in the below table..
+* Upon the completion of the feature/patch, please create **Pull Request** to the `dev `branch from your `feature/patch` branch.
+* Our technical team would review the PR and merge it to `dev` branch.
+* Once the changes are on the `dev` branch, we will run different test to ensure quality, regression, security, and compliance of this new code.
+* Iranckf all tests pass, we will merge to the `main` branch by reaise a new release **PR** from the `dev` branch.
 
   ![](images/gitStrategy.png)
-* Note: All new branch checkout from `dev `not from `main` branch, except `hotfix `branch. Please follow the brach naming convention.
+* Note: All new branches should checkout from `dev` branch, except for any patches. 
+
+* We expect users to please follow the below branch naming conventions for any new branches they create. **Else such branches would be deleted without further intimation**.
 
 ### Branch naming convention
 
