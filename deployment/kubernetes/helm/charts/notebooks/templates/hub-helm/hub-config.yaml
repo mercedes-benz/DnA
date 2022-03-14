@@ -43,7 +43,7 @@ data:
     # }
     c.JupyterHub.tornado_settings = {
         'headers': {
-            'Content-Security-Policy': "frame-ancestors 'self' {{ .Values.app.ConfigMapName.securitycontext }}",
+            'Content-Security-Policy': "frame-ancestors 'self' {{ .Values.app.hubConfig.securitycontext }}",
         }
     }
 
@@ -168,10 +168,10 @@ data:
     #     c.KubeSpawner.image = image
 
     #c.KubeSpawner.image = "jupyter/pyspark-notebook:latest"
-    c.KubeSpawner.image = {{ .Values.app.ConfigMapName.KubeSpawnerimage | quote }}
+    c.KubeSpawner.image = {{ .Values.app.hubConfig.KubeSpawnerimage | quote }}
     c.KubeSpawner.image_pull_policy = "Always"
 
-    c.KubeSpawner.service_account = {{ .Values.app.ConfigMapName.serviceAccount | quote }}
+    c.KubeSpawner.service_account = {{ .Values.app.hubConfig.serviceAccount | quote }}
 
     # if get_config('singleuser.imagePullSecret.enabled'):
     #     c.KubeSpawner.image_pull_secrets = 'singleuser-image-credentials'
@@ -279,8 +279,8 @@ data:
     c.KubeSpawner.storage_capacity = '200Mi'
 
     #set True if you want to enable user namespace
-    c.KubeSpawner.enable_user_namespaces = {{ .Values.app.ConfigMapName.enableUserNS }}
-    c.KubeSpawner.user_namespace_template = "{{ .Values.app.ConfigMapName.userNameSpaceTemplate }}-{username}"
+    c.KubeSpawner.enable_user_namespaces = {{ .Values.app.hubConfig.enableUserNS }}
+    c.KubeSpawner.user_namespace_template = "{{ .Values.app.hubConfig.userNameSpaceTemplate }}-{username}"
 
     #  Open bug https://github.com/jupyterhub/kubespawner/issues/493 not launching lab.
     #  this argument may not have any effect, manually ask users to use /lab instead of /tree
@@ -418,17 +418,17 @@ data:
 
     c.Application.log_level = 'ERROR'
 
-    c.JupyterHub.authenticator_class = {{ .Values.app.ConfigMapName.OAuthauthenticator }}
-    c.GenericOAuthenticator.client_id = {{ .Values.app.ConfigMapName.OAuthclientid | squote }}
-    c.GenericOAuthenticator.client_secret = {{ .Values.app.ConfigMapName.OAuthclientsecret | squote }}
-    c.GenericOAuthenticator.oauth_callback_url = {{ .Values.app.ConfigMapName.OAuthcallback | quote }}
-    c.GenericOAuthenticator.authorize_url = {{ .Values.app.ConfigMapName.OAuthauthorizeurl | squote }}
-    c.GenericOAuthenticator.token_url = {{ .Values.app.ConfigMapName.OAuthtokenurl | squote }}
-    c.GenericOAuthenticator.userdata_url = {{ .Values.app.ConfigMapName.OAuthuserdataurl | squote }}
+    c.JupyterHub.authenticator_class = {{ .Values.app.hubConfig.oauthAuthenticator }}
+    c.GenericOAuthenticator.client_id = {{ .Values.app.hubConfig.oauthClientId | squote }}
+    c.GenericOAuthenticator.client_secret = {{ .Values.app.hubConfig.oauthClientSecret | squote }}
+    c.GenericOAuthenticator.oauth_callback_url = {{ .Values.app.hubConfig.oauthCallback | quote }}
+    c.GenericOAuthenticator.authorize_url = {{ .Values.app.hubConfig.oauthAuthorizeUrl | squote }}
+    c.GenericOAuthenticator.token_url = {{ .Values.app.hubConfig.oauthTokenUrl | squote }}
+    c.GenericOAuthenticator.userdata_url = {{ .Values.app.hubConfig.oauthUserDataUrl | squote }}
     #c.GenericOAuthenticator.userdata_params = {'state': 'state'}
     # the next can be a callable as well, e.g.: lambda t: t.get('complex').get('structure').get('username')
-    c.GenericOAuthenticator.username_key = {{ .Values.app.ConfigMapName.OAuthusrkey | squote }}
-    c.GenericOAuthenticator.login_service = {{ .Values.app.ConfigMapName.OAuthloginsvc | squote }}
+    c.GenericOAuthenticator.username_key = {{ .Values.app.hubConfig.oauthUsrKey | squote }}
+    c.GenericOAuthenticator.login_service = {{ .Values.app.hubConfig.oauthLoginSvc | squote }}
     c.GenericOAuthenticator.scope = ['openid', 'email']
 
     # if auth_type == 'google':
@@ -665,5 +665,5 @@ data:
   
 kind: ConfigMap
 metadata:
-  name: {{ .Values.app.ConfigMapName.name }}
+  name: {{ .Values.app.hubConfig.name }}
   namespace: {{ .Values.namespace }}
