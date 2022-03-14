@@ -10,12 +10,12 @@ dependencies:
 - name: i3postgresql
   repository: file://charts/i3postgresql
   version: 0.1.0
-  condition: global.i3postgresql.enabled
+  condition: i3postgresql.enabled
 
 - name: bitnamipostgresql
   repository: file://charts/bitnami-postgresql
   version: 10.16.1
-  condition: global.bitnamipostgresql.enabled
+  condition: bitnamipostgresql.enabled
 
 - name: clamav
   repository: file://charts/clamav
