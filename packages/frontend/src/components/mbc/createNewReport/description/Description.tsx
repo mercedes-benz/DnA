@@ -150,7 +150,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     // this.props.onStateChange();
     if (selectedOptions.length) {
       division.id = selectedOptions[0].value;
-      division.name = selectedOptions[0].textContent;
+      division.name = selectedOptions[0].label;
       if (division.id !== '0' && division.id !== this.state.divisionValue.id) {
         ProgressIndicator.show();
 
@@ -173,7 +173,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     // this.props.onStateChange();
     if (selectedOptions.length) {
       subDivision.id = selectedOptions[0].value;
-      subDivision.name = selectedOptions[0].textContent;
+      subDivision.name = selectedOptions[0].label;
     }
     const description = this.props.description;
     description.division.subdivision = subDivision;
@@ -188,7 +188,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       Array.from(selectedOptions).forEach((option) => {
         const productPhase: IProductPhase = { id: null, name: null };
         productPhase.id = option.value;
-        productPhase.name = option.textContent;
+        productPhase.name = option.label;
         selectedValues.push(productPhase);
       });
     }
@@ -204,7 +204,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       Array.from(selectedOptions).forEach((option) => {
         const art: IART = { id: null, name: null };
         art.id = option.value;
-        art.name = option.textContent;
+        art.name = option.label;
         selectedValues.push(art);
       });
     }
@@ -220,7 +220,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       Array.from(selectedOptions).forEach((option) => {
         const integratedPortal: IIntegratedPortal = { id: null, name: null };
         integratedPortal.id = option.value;
-        integratedPortal.name = option.textContent;
+        integratedPortal.name = option.label;
         selectedValues.push(integratedPortal);
       });
     }
@@ -236,7 +236,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       Array.from(selectedOptions).forEach((option) => {
         const status: IProductStatus = { id: null, name: null };
         status.id = option.value;
-        status.name = option.textContent;
+        status.name = option.label;
         selectedValues.push(status);
       });
     }
@@ -251,7 +251,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       Array.from(selectedOptions).forEach((option) => {
         const designGuide: IDesignGuide = { id: null, name: null };
         designGuide.id = option.value;
-        designGuide.name = option.textContent;
+        designGuide.name = option.label;
         selectedValues.push(designGuide);
       });
     }
@@ -267,7 +267,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       Array.from(selectedOptions).forEach((option) => {
         const frontEndTech: IFrontEndTech = { id: null, name: null };
         frontEndTech.id = option.value;
-        frontEndTech.name = option.textContent;
+        frontEndTech.name = option.label;
         selectedValues.push(frontEndTech);
       });
     }
