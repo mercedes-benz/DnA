@@ -550,10 +550,10 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         if (this.state.dataSource === 'singledatasource') {
           const dataWarehouse: any = { id: null, name: null };
           dataWarehouse.id = option.value;
-          dataWarehouse.name = option.textContent;
+          dataWarehouse.name = option.label;
           selectedValues.push(dataWarehouse);
         } else {
-          selectedValues.push(option.textContent);
+          selectedValues.push(option.label);
         }
       });
     }
