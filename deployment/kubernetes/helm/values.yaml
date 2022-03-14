@@ -3,7 +3,6 @@
 # Declare variables to be passed into your templates.
 
 appName: dna
-
 app:
   enabled: true
   namespace: helm-test
@@ -25,16 +24,18 @@ app:
       image: backend:latest
       secrets: 
         name: app-secrets
-        notebooksecrettoken: ""
-        oidcclientid: ""
-        oidcclientsecret: ""
-        drdcertpassword: ""
-        jwtsecretkey: ""
-        s3accesskey: ""
-        s3secretkey: ""
-        dataikuprodapikey: ""
-        dataikutrainingapikey: ""
-        avscanapikey: ""
+        notebookSecretToken: ""
+        oidcClientID: ""
+        oidcClientSecret: ""
+        drdCertPassword: ""
+        jwtSecretKey: ""
+        s3AccessKey: ""
+        s3SecretKey: ""
+        dataikuProdApiKey: ""
+        dataikuTrainingApiKey: ""
+        avscanApiKey: ""
+        appDBUserName: db
+        appDBPassword: admin
       config:
         enableItsmm: false
         enableJupyterNotebook: false
@@ -43,29 +44,29 @@ app:
         enableInternalUser: false
         redirectUrl: ""
         dbUri: jdbc:postgresql://postgresql:64000/db
-        oidcuserinfourl: ""
-        oidctokenintrospectionurl: ""
-        oidcprovider: INTERNAL
-        oidctokenrevocationurl: ""
-        internaluserrequesturl: ""
-        internalcertfile: ""
-        oidcdisabled: true
-        s3bucketname: ""
-        s3epurl: ""
-        corosoriginurl: ""
-        jupyternotebookurl: ""
-        vaulthost: vault.vault.svc.cluster.local
-        vaultport: 8200
-        dataikuproduri: ""
+        oidcUserInfoUrl: ""
+        oidcTokenIntrospectionUrl: ""
+        oidcProvider: INTERNAL
+        oidcTokenRevocationUrl: ""
+        internalUserRequestUrl: ""
+        internalCertFile: ""
+        oidcDisabled: true
+        s3BucketName: ""
+        s3Url: ""
+        corosOriginUrl: ""
+        jupyterNotebookUrl: ""
+        vaultHost: vault.vault.svc.cluster.local
+        vaultPort: 8200
+        dataikuProdUri: ""
         dataikuProdAdminGroup: ""
         dataikutraininguri: ""
-        avscanappid: ""
-        naasbroker: broker01.kafka.svc.cluster.local:8001
+        avscanAppId: ""
+        naasBroker: broker01.kafka.svc.cluster.local:8001
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
         dataikuTrainingAdminGroup: ""
-        avscanuri: ""
+        avscanUri: ""
         flywayBaseline: "true"
         flywayBaselineOnMigrate: "true"
         flywayBaselineVersion: "0"
@@ -75,49 +76,49 @@ app:
       replicaCount: 1
       image: dna-frontend
       config: 
-        oidcdisabled: true
-        oidcprovider: INTERNAL
-        apibaseurl: api
-        jupyternotebookurl: ""
-        jupyternotebookoidcpopupurl: ""
-        dataikuliveappurl: ""
-        dataikutrainingappurl: ""
-        oauth2tokenurl: ""
-        oauth2authurl: ""
-        oauth2revokeurl: ""
-        oauth2logouturl: ""
-        oauth2introspectionurl: ""
-        oauth2userinfourl: ""
+        oidcDisabled: true
+        oidcProvider: INTERNAL
+        apiBaseUrl: api
+        jupyterNotebookUrl: ""
+        jupyterNotebookOidcPopUpUrl: ""
+        dataikuLiveAppUrl: ""
+        dataikuTrainingAppUrl: ""
+        oauth2TokenUrl: ""
+        oauth2AuthUrl: ""
+        oauth2RevokeUrl: ""
+        oauth2LogoutUrl: ""
+        oauth2IntrospectionUrl: ""
+        oauth2UserInfoUrl: ""
         frontendClientid: ""
-        redirecturls: ""
-        dnaswaggeruiurl: ""
-        dataikuferreturl: ""
-        mlpipelineurl: ""
-        dnaappnameheader: ""
-        dnaappnamehome: ""
-        dnacontactushtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
-        dnabrandlogourl: /images/branding/logo-brand.png
-        dnaapplogourl: /images/branding/logo-app.png
-        enableinternaluserinfo: true
-        enabledatacompliance: true
-        enabledreports: false
-        enablejupyterworkspace: false
-        enabledataikuworkspace: false
-        enablemalwareservice: false
-        enabledatapipelinservice: false
-        enablepipelinservice: false
-        enabledmlpipelineservice: false
-        enablemalwareapiinfo: false
-        enablenotification: false
-        dnacompanyname: XYZ
+        redirectUrls: ""
+        swaggerUiUrl: ""
+        dataikuFerretUrl: ""
+        mlPipelineUrl: ""
+        appNameHeader: ""
+        appNameHome: ""
+        contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
+        brandLogoUrl: /images/branding/logo-brand.png
+        appLogoUrl: /images/branding/logo-app.png
+        enableInternalUserInfo: true
+        enableDataCompliance: true
+        enabledReports: false
+        enableJupyterWorkspace: false
+        enableDataikuWorkspace: false
+        enableMalwareService: false
+        enableDataPipelineService: false
+        enablePipelineService: false
+        enabledMlPipelineService: false
+        enableMalwareApiInfo: false
+        enableNotification: false
+        companyName: XYZ
         
-    ngnixconf:
-      jupyserver: http://proxy-public:8000
-      grafanaserver: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
-      avscanserver: http://clamav-rest-service.clamav.svc.cluster.local:8181
-      avscanmgwserver: http://microgateway.clamav.svc.cluster.local:80
-      airflowserver: http://airflow.airflow.svc.cluster.local:8080
-      naasserver: http://naas-backend-service.naas.svc.cluster.local:7272
+    ngnix:
+      jupyServer: http://proxy-public:8000
+      grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
+      avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
+      avscanMgwServer: http://microgateway.clamav.svc.cluster.local:80
+      airflowServer: http://airflow.airflow.svc.cluster.local:8080
+      naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
       dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
       
     vault:
@@ -125,45 +126,44 @@ app:
         name: vault-secrets
         rootToken: ""
 
-global:
-  #Suchart properties for i3postgressql database
-  i3postgresql:
-    enabled: false
-    namespace: dna
-    app:
-      db:
-        replicaCount: 1
-        image: postgresql:10.3-2.1.0
-        pgssl: "NO"
-        dbname: db
-        secrets: 
-          name: postgres-secrets
-          backupUserName: ""
-          backupUserPassword: ""
-          dbAdminUserName: ""
-          dbAdminPassword: ""
-          patroniUserPassword: ""
-          appUserName: ""
-          appPassword: ""
-        airflowDB:
-          airflowUserName: ""
-          airflowdbName: ""
-          airflowdbPwd: ""
-        dashboardDB:
-          dashboardUserName: ""
-          dashboarddbName: ""
-          dashboarddbPwd: "" 
+#Suchart properties for i3postgressql database
+i3postgresql:
+  enabled: false
+  namespace: dna
+  app:
+    db:
+      replicaCount: 1
+      image: postgresql:10.3-2.1.0
+      pgssl: "NO"
+      dbname: db
+      secrets: 
+        name: postgres-secrets
+        backupUserName: ""
+        backupUserPassword: ""
+        dbAdminUserName: ""
+        dbAdminPassword: ""
+        patroniUserPassword: ""
+        appUserName: ""
+        appPassword: ""
+      airflowDB:
+        airflowUserName: ""
+        airflowdbName: ""
+        airflowdbPwd: ""
+      dashboardDB:
+        dashboardUserName: ""
+        dashboarddbName: ""
+        dashboarddbPwd: "" 
 
-  #Subchart properties for bitnami postgresql
-  bitnamipostgresql:
-    enabled: false
-    namespace: bitnami
-    global:
-      postgresql:
-        postgresqlDatabase: db
-        postgresqlUsername: admin
-        postgresqlPassword: admin
-        servicePort: 64000
+#Subchart properties for bitnami postgresql
+bitnamipostgresql:
+  enabled: false
+  namespace: bitnami
+  global:
+    postgresql:
+      postgresqlDatabase: db
+      postgresqlUsername: admin
+      postgresqlPassword: admin
+      servicePort: 64000
 
 #Subchart properties for clamav
 clamav:
@@ -175,7 +175,7 @@ clamav:
       image: malwarescan-backend:latest
       secrets:
         name: oneapi-secrets
-        onapibasicauthtoken: ""
+        onapiBasicAuthToken: ""
       config: 
         auth_api_host: http://dna-backend-service.dna.svc.cluster.local:80/api/subscription/validate
         loggingPath: /tmp/clamav/log
@@ -230,7 +230,6 @@ naas:
         patroniUserPassword: ""
         appUserName: ""
         appPassword: ""
-
     resources:
       requests:
         memory: "512Mi"
@@ -267,20 +266,20 @@ notebooks:
       tensorflow: pyspark-notebook:1.0-tensorflow
       chronos: pyspark-notebook:1.0-chronos    
     
-    ConfigMapName:
+    hubConfig:
       name: hub-config
       KubeSpawnerimage: pyspark-notebook:1.0-default
       securitycontext: ""
       serviceAccount: "hub"
-      OAuthauthenticator: GenericOAuthenticator
-      OAuthclientid: ""
-      OAuthclientsecret: ""
-      OAuthcallback: ""
-      OAuthauthorizeurl: ""
-      OAuthtokenurl: ""
-      OAuthuserdataurl: ""
-      OAuthusrkey: sub
-      OAuthloginsvc: OIDC
+      oauthAuthenticator: GenericOAuthenticator
+      oauthClientId: ""
+      oauthClientSecret: ""
+      oauthCallback: ""
+      oauthAuthorizeUrl: ""
+      oauthTokenUrl: ""
+      oauthUserDataUrl: ""
+      oauthUsrKey: sub
+      oauthLoginSvc: OIDC
       prespawn_hook: ""
       enableUserNS: "False"
       userNameSpaceTemplate: kubeflow
@@ -313,8 +312,8 @@ dashboard:
     jwtKey: ""
   appUrl: http://dna-backend-service.dna.svc.cluster.local:80
   enableAuth: true
-  loggingPath: ""
-  loggingEnvironment: ""
+  loggingPath: /tmp/dashboard/log
+  loggingEnvironment: dev
   flywayBaseline: "true"
   flywayBaselineOnMigrate: "true"
   flywayBaselineVersion: "0"
@@ -349,7 +348,7 @@ airflow:
       dbUsername: ""
       gitToken: ""
       jwtKey: ""
-      oidcClientId: ""
+      oidcClientID: ""
       oidcClientSecret: ""
     host: ""
     crossOriginUrl: ""
@@ -365,8 +364,7 @@ airflow:
     flywayBaseline: "true"
     flywayBaselineOnMigrate: "true"
     flywayBaselineVersion: "0"
-    flywaySchema: "public"
-  
+    flywaySchema: "public"  
   pullSecretData: 
   secret:
     gitUserName: ""
