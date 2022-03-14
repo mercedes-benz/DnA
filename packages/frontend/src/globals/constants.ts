@@ -74,17 +74,7 @@ export const PredefinedSolutionLogoImagesInfo = {
   ],
 };
 
-export const ExistingSolutionInfoList = [
-  {
-    title: 'Yes',
-    description: 'Existing Solution (e.g. already implemented, scaled, rolled out, established).',
-  },
-  {
-    title: 'No',
-    description:
-      'New Solution (to be implemented, implementation possible through additional resources e.g Data Workers).',
-  },
-];
+export const AdditionalResourceTooltipContent = 'if required please detail your need via Members tab.';
 
 export const DataStrategyDomainInfoList = [
   {
