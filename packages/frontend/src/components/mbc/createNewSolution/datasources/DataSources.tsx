@@ -141,7 +141,7 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
         dataVolume.id = option.value;
-        dataVolume.name = option.textContent;
+        dataVolume.name = option.label;
       });
     }
     this.setState({ dataVolumeValue: dataVolume.id ? dataVolume : {} });

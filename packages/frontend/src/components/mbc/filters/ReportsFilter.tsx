@@ -280,7 +280,7 @@ const ReportsFilter = ({
       Array.from(selectedOptions).forEach((option) => {
         const art: IART = { id: '0', name: null };
         art.id = option.value;
-        art.name = option.textContent;
+        art.name = option.label;
 
         selectedValues.push(art);
         ids.push(option.value);
@@ -299,7 +299,7 @@ const ReportsFilter = ({
       Array.from(selectedOptions).forEach((option) => {
         const division: IDivision = { id: '0', name: null };
         division.id = option.value;
-        division.name = option.textContent;
+        division.name = option.label;
         selectedValues.push(division);
         ids.push(option.value);
       });
@@ -316,7 +316,7 @@ const ReportsFilter = ({
       Array.from(selectedOptions).forEach((option) => {
         const subdivision: ISubDivisionSolution = { id: '0', name: null, division: null };
         subdivision.id = option.value;
-        subdivision.name = option.textContent;
+        subdivision.name = option.label;
         subdivision.division = option.value.split('-')[1];
         selectedValues.push(subdivision);
         ids.push(option.value);
@@ -334,7 +334,7 @@ const ReportsFilter = ({
       Array.from(selectedOptions).forEach((option) => {
         const department: IDepartment = { id: '0', name: null };
         department.id = option.value;
-        department.name = option.textContent;
+        department.name = option.label;
 
         selectedValues.push(department);
         ids.push(option.value);
@@ -353,7 +353,7 @@ const ReportsFilter = ({
       Array.from(selectedOptions).forEach((option) => {
         const productOwner: IMember = { id: '0', name: null };
         productOwner.id = option.value;
-        productOwner.name = option.textContent;
+        productOwner.name = option.label;
         selectedValues.push(productOwner);
         ids.push(option.value);
       });
@@ -372,7 +372,7 @@ const ReportsFilter = ({
       Array.from(selectedOptions).forEach((option) => {
         const processOwner: IMember = { id: '0', name: null };
         processOwner.id = option.value;
-        processOwner.name = option.textContent;
+        processOwner.name = option.label;
         selectedValues.push(processOwner);
         ids.push(option.value);
       });
