@@ -96,13 +96,13 @@ spec:
             - name: LOGGING_ENVIRONMENT
               value: {{ .Values.backend.loggingEnvironment | quote }} 
             - name: FLYWAY_ENABLED
-              value: {{ .Values.backend.flywayBaseline }}
+              value: {{ .Values.backend.flywayBaseline | quote }}
             - name: FLYWAY_BASELINE_ON_MIGRATE
-              value: {{ .Values.backend.flywayBaselineOnMigrate }}
+              value: {{ .Values.backend.flywayBaselineOnMigrate | quote }}
             - name: FLYWAY_BASELINEVERSION
-              value: {{ .Values.backend.flywayBaselineVersion }}
-            - name: FLYWAY_SCHEMA    
-              value: {{ .Values.backend.flywaySchema }}
+              value: {{ .Values.backend.flywayBaselineVersion | quote }}
+            - name: FLYWAY_SCHEMA
+              value: {{ .Values.backend.flywaySchema | quote }}
           ports:
             - containerPort: {{ .Values.backend.containerPort }}
               name: api-http
