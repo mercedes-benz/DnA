@@ -353,8 +353,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
         selectedValues.push(option.label);
       });
     }
-    // const description = this.props.description;
-    // description.relatedProducts = selectedValues;
+    const description = this.props.description;
+    description.relatedProducts = selectedValues;
     this.setState({ relatedProductValue: selectedValues });
   };
   public onNeededRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
