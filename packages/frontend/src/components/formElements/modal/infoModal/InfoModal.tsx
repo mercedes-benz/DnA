@@ -7,6 +7,7 @@ const classNames = cn.bind(Styles);
 
 export interface IInfoModalProps {
   title: string;
+  hiddenTitle?: boolean;
   modalWidth?: string;
   content: string | React.ReactNode;
   show: boolean;
@@ -30,6 +31,7 @@ export const InfoModal = (props: IInfoModalProps) => {
   return (
     <Modal
       title={props.title}
+      hiddenTitle={props.hiddenTitle}      
       modalWidth={props.modalWidth}
       showAcceptButton={false}
       showCancelButton={false}

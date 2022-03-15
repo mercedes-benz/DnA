@@ -64,6 +64,21 @@ export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-pref
 export const ATTACH_FILES_TO_ACCEPT =
   '.doc,.docx,.odt,.pptx,.rtf,.pdf,.bmp,.gif,.png,.jpg,.jpeg,.csv,.xsl,.xlsx,.ppt,.txt,.zip';
 
+export const OPEN_SOURCE_TOOLS = [
+  {
+    name: 'Jupyter Notebook',
+    version: '2.3.2',
+  },
+  {
+    name: 'Airflow',
+    version: '1.10.15',
+  },
+  {
+    name: 'Kubeflow',
+    version: '1.4.0',
+  },
+];
+
 export const PredefinedSolutionLogoImagesInfo = {
   folder: 'images/solutionLogoImages', // Path inside frontend/public folder
   images: [
