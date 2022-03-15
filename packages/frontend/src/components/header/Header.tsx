@@ -6,7 +6,7 @@ import { getPath } from './../../router/RouterUtils';
 import Styles from './Header.scss';
 import { HeaderSearchBox } from './headerSearchBox/HeaderSearchBox';
 import { HeaderUserPanel } from './headerUserPanel/HeaderUserPanel';
-import { HeaderContactPanel } from './headerContactPanel/HeaderContactPanel';
+import HeaderContactPanel from './headerContactPanel/HeaderContactPanel';
 import { NotificationPanel } from './notificationpanel/NotificationPanel';
 import { NotificationApiClient } from '../../services/NotificationApiClient';
 import { Envs } from '../../globals/Envs';
@@ -50,6 +50,8 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   public render() {
     const contentForInfoModal = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
     const {setMessage} = this.context;
+    const MemoizedHeaderContactPanel = React.memo(HeaderContactPanel);
+
     
     /******** Following line is using context API to check for change and then setting new value ********/
     if(this.context.message === 'UPDATE_NOTIFICATIONS'){
@@ -116,15 +118,14 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
                 title={"Help"}
                 onClick={this.toggleContactPanel}
               >
-                <div className={Styles.userIcon}>
+                <div className={classNames(Styles.userIcon, 'help')}>
                   <i className="icon mbc-icon help" />
                 </div>
                 <span className={classNames(Styles.status, 'hide')} />
               </div>
-              <HeaderContactPanel
+              <MemoizedHeaderContactPanel
                 show={this.state.showContactPanel}
                 onClose={this.closeContactPanel}
-                user={this.props.user}
                 toggleContactPanelCallBack={this.toggleContactPanelCallBack}
               />
             </div>  

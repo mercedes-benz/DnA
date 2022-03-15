@@ -134,7 +134,6 @@ export class HeaderUserPanel extends React.Component<IHeaderUserPanelProps, IHea
       target.className.indexOf('iconContainer') === -1 &&
       this.domContainer.contains(target) === false
     ) {
-      event.stopPropagation();
       this.props.onClose();
     }
   };
