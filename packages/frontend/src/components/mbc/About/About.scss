@@ -1,0 +1,17 @@
+.content {
+  text-align: center;
+  h4 {
+    margin: 20px 0;
+  }
+  p {
+    margin-bottom: 40px;
+    font-size: var(--font-size-small);
+  }
+  ul {
+    li {
+      display: inline-block!important;
+      border-bottom: none!important;
+      margin: 0 20px;
+    }
+  }
+}
