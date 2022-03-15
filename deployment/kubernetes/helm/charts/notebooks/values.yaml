@@ -21,24 +21,23 @@ app:
     tensorflow: ""
     chronos: ""
 
-
   proxy:
     image: ""
 
-  ConfigMapName:
+  hubConfig:
     name: hub-config
     KubeSpawnerimage: ""
     serviceAccount: hub 
     securitycontext: ""
-    OAuthauthenticator: ""
-    OAuthclientid: ""
-    OAuthclientsecret: ""
-    OAuthcallback: ""
-    OAuthauthorizeurl: ""
-    OAuthtokenurl: ""
-    OAuthuserdataurl: ""
-    OAuthusrkey: ""
-    OAuthloginsvc: ""
+    oauthAuthenticator: ""
+    oauthClientId: ""
+    oauthClientSecret: ""
+    oauthCallback: ""
+    oauthAuthorizeUrl: ""
+    oauthTokenUrl: ""
+    oauthUserDataUrl: ""
+    oauthUsrKey: ""
+    oauthLoginSvc: ""
     prespawn_hook: ""
     enableUserNS: "False"
     userNameSpaceTemplate: kubeflow
@@ -57,5 +56,3 @@ Storage:
 resources:
   cpu: 1
   memory: 4G
-  
-

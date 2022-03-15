@@ -14,7 +14,7 @@ backend:
     dbUsername: ""
     gitToken: ""
     jwtKey: ""
-    oidcClientId: ""
+    oidcClientID: ""
     oidcClientSecret: ""
   containerPort: 7171
   host: ""
@@ -188,8 +188,3 @@ Storage:
   storageClass: cinder-retain
   accessModes: ReadWriteOnce
   size: 5Gi
-
-
-
-
-
