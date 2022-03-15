@@ -1,5 +1,6 @@
 import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
+import { Envs } from '../../../globals/Envs';
 import { InfoModal } from '../../../components/formElements/modal/infoModal/InfoModal';
 import About from '../../../components/mbc/About/About';
 // import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
@@ -11,12 +12,13 @@ const classNames = cn.bind(Styles);
 export interface IHeaderContactPanelProps {
   show?: boolean;
   onClose?: () => void;
-  toggleContactPanelCallBack: () => void;
 }
 
 let isTouch = false;
 
 const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
+  const contactModalContent = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
+  const [showContactModal, setShowContactModal] = useState<boolean>(false);
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
 
   useEffect(() => {
@@ -39,10 +41,6 @@ const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
     document.removeEventListener('click', handleUserPanelOutside, true);
   }
 
-  const navigateToMyContactUs = () => {
-    props.toggleContactPanelCallBack();
-  };
-
   const handleUserPanelOutside = (event: MouseEvent | TouchEvent) => {
     const helpMenuWrapper = document?.querySelector('#helpMenuContentWrapper');
 
@@ -61,11 +59,10 @@ const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
   };
 
   return (
-    <React.Fragment>
     <div id="helpMenuContentWrapper" className={classNames(props.show ? Styles.userContexMenu : 'hide')}>
       <div className={Styles.upArrow} />
       <ul className={classNames(Styles.innerContainer)}>
-        <li onClick={navigateToMyContactUs}>
+        <li onClick={() => setShowContactModal(true)}>
           {/* {getTranslatedLabel('Contact Us')} */}
           Contact Us
         </li>
@@ -78,19 +75,19 @@ const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
           Licences
         </li>
       </ul>
+      <InfoModal
+        title={showContactModal ? 'Contact Us': 'About'}
+        hiddenTitle={showAboutModal}
+        modalWidth={'35vw'}
+        show={showAboutModal || showContactModal}
+        content={showContactModal? contactModalContent : <About />}
+        onCancel={() => {
+          setShowContactModal(false);
+          setShowAboutModal(false);
+          props.onClose();
+        }}
+      />
     </div>
-    <InfoModal
-      title={'About'}
-      hiddenTitle={true}
-      modalWidth={'35vw'}
-      show={showAboutModal}
-      content={<About />}
-      onCancel={() => {
-        setShowAboutModal(false);
-        props.onClose();
-      }}
-    />
-  </React.Fragment>
   );
 };
 
