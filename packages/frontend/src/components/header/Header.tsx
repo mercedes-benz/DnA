@@ -10,7 +10,6 @@ import HeaderContactPanel from './headerContactPanel/HeaderContactPanel';
 import { NotificationPanel } from './notificationpanel/NotificationPanel';
 import { NotificationApiClient } from '../../services/NotificationApiClient';
 import { Envs } from '../../globals/Envs';
-import { InfoModal } from '../../components/formElements/modal/infoModal/InfoModal';
 import AppContext from '../context/ApplicationContext';
 
 export interface IHeaderProps {
@@ -48,7 +47,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   }
 
   public render() {
-    const contentForInfoModal = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
     const {setMessage} = this.context;
     const MemoizedHeaderContactPanel = React.memo(HeaderContactPanel);
 
@@ -116,7 +114,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
               <div
                 className={classNames(Styles.avatar, 'userAvatar')}
                 title={"Help"}
-                onClick={this.toggleContactPanel}
+                onClick={this.toggleHelpPanel}
               >
                 <div className={classNames(Styles.userIcon, 'help')}>
                   <i className="icon mbc-icon help" />
@@ -126,7 +124,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
               <MemoizedHeaderContactPanel
                 show={this.state.showContactPanel}
                 onClose={this.closeContactPanel}
-                toggleContactPanelCallBack={this.toggleContactPanelCallBack}
               />
             </div>  
           </div>
@@ -136,13 +133,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
             <img className="app-logo" src={Envs.DNA_APP_LOGO_URL} />
           </div>
         </div>
-        <InfoModal
-          title={'Contact Us'}
-          modalWidth={'35vw'}
-          show={this.state.showInfoModal}
-          content={contentForInfoModal}
-          onCancel={this.onInfoModalCancel}
-        />
       </header>
     );
   }
@@ -170,25 +160,27 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   protected closeUserPanel = () => {
     this.setState({ showUserPanel: false });
   };
+
   protected closeContactPanel = () => {
     this.setState({ showContactPanel: false });
   };
+
   protected toggleUserPanel = () => {
     this.setState({ showUserPanel: !this.state.showUserPanel, notificationPanel: false });
   };
-  protected toggleContactPanel = () => {
-    this.setState({ showContactPanel: !this.state.showContactPanel, notificationPanel: false });
-  };
-  protected toggleContactPanelCallBack = () => {
-    this.setState({ showInfoModal: !this.state.showInfoModal });
-  };
+
   protected toggleNotificationPanel = () => {
     this.setState({ notificationPanel: !this.state.notificationPanel });
   };
+
   protected closeNotificationPanel = () => {
     this.setState({ notificationPanel: false });
   };
 
+  protected toggleHelpPanel = () => {
+    this.setState({ showContactPanel: !this.state.showContactPanel, notificationPanel: false });
+  };
+  
   protected toggleNavigation = () => {
     this.setState({ showNavigation: !this.state.showNavigation });
   };
@@ -198,13 +190,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     if (getPath().includes('/portfolio')) {
       history.go(0);
     }
-  };
-
-  protected showInfoModal = () => {
-    this.setState({ showInfoModal: true });
-  };
-  protected onInfoModalCancel = () => {
-    this.setState({ showInfoModal: false });
   };
 }
 Header.contextType = AppContext;
