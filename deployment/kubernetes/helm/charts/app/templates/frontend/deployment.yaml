@@ -8,7 +8,7 @@ metadata:
     zone: web
     
 spec:
-  replicas: {{ .Values.app.frontend.replicaCount }}
+  replicas: {{ .Values.app.appFrontend.replicaCount }}
   selector:
     matchLabels:
       app: {{ .Values.appName }}frontend
@@ -25,80 +25,80 @@ spec:
           - name: PROJECTSMO_BACKEND_PORT
             value: "80"
           - name: PROJECTSMO_FRONTEND_OIDC_DISABLED
-            value: {{ .Values.app.frontend.config.oidcDisabled | quote }}
+            value: {{ .Values.app.appFrontend.config.oidcDisabled | quote }}
           - name: OIDC_DISABLED
-            value: {{ .Values.app.frontend.config.oidcDisabled | quote }}
+            value: {{ .Values.app.appFrontend.config.oidcDisabled | quote }}
           - name: OIDC_PROVIDER
-            value: {{ .Values.app.frontend.config.oidcProvider | squote }}
+            value: {{ .Values.app.appFrontend.config.oidcProvider | squote }}
           - name: PROJECTSMO_DEPLOY_VERSION
             value: "0.91"
           - name: PROJECTSMO_FRONTEND_API_BASEURL
-            value: {{ .Values.app.frontend.config.apiBaseUrl }}
+            value: {{ .Values.app.appFrontend.config.apiBaseUrl }}
           - name: PROJECTSMO_FRONTEND_OAUTH2_TOKEN_URL
-            value: {{ .Values.app.frontend.config.oauth2TokenUrl }}
+            value: {{ .Values.app.appFrontend.config.oauth2TokenUrl }}
           - name: PROJECTSMO_FRONTEND_OAUTH2_AUTH_URL
-            value: {{ .Values.app.frontend.config.oauth2AuthUrl }}
+            value: {{ .Values.app.appFrontend.config.oauth2AuthUrl }}
           - name: PROJECTSMO_FRONTEND_OAUTH2_REVOKE_URL
-            value: {{ .Values.app.frontend.config.oauth2RevokeUrl }}
+            value: {{ .Values.app.appFrontend.config.oauth2RevokeUrl }}
           - name: PROJECTSMO_FRONTEND_OAUTH2_LOGOUT_URL
-            value: {{ .Values.app.frontend.config.oauth2LogoutUrl }}
+            value: {{ .Values.app.appFrontend.config.oauth2LogoutUrl }}
           - name: PROJECTSMO_FRONTEND_OAUTH2_INTROSPECTION_URL
-            value: {{ .Values.app.frontend.config.oauth2IntrospectionUrl }}
+            value: {{ .Values.app.appFrontend.config.oauth2IntrospectionUrl }}
           - name: PROJECTSMO_FRONTEND_OAUTH2_USERINFO_URL
-            value: {{ .Values.app.frontend.config.oauth2UserInfoUrl }}
+            value: {{ .Values.app.appFrontend.config.oauth2UserInfoUrl }}
           - name: PROJECTSMO_FRONTEND_CLIENT_IDS
-            value: {{ .Values.app.frontend.config.frontendClientid }}
+            value: {{ .Values.app.appFrontend.config.frontendClientid }}
           - name: PROJECTSMO_FRONTEND_REDIRECT_URLS
-            value: {{ .Values.app.frontend.config.redirectUrls }}
+            value: {{ .Values.app.appFrontend.config.redirectUrls }}
           - name: PROJECTSMO_JUPYTER_NOTEBOOK_URL
-            value: {{ .Values.app.frontend.config.jupyterNotebookUrl }}
+            value: {{ .Values.app.appFrontend.config.jupyterNotebookUrl }}
           - name: PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_URL
-            value: {{ .Values.app.frontend.config.jupyterNotebookOidcPopUpUrl | quote }}
+            value: {{ .Values.app.appFrontend.config.jupyterNotebookOidcPopUpUrl | quote }}
           - name: PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME
             value: "5000"
           - name: PROJECTSMO_DATAIKU_LIVE_APP_URL
-            value: {{ .Values.app.frontend.config.dataikuLiveAppUrl }}
+            value: {{ .Values.app.appFrontend.config.dataikuLiveAppUrl }}
           - name: PROJECTSMO_DATAIKU_TRAINING_APP_URL
-            value: {{ .Values.app.frontend.config.dataikuTrainingAppUrl }}
+            value: {{ .Values.app.appFrontend.config.dataikuTrainingAppUrl }}
           - name: PROJECTSMO_MALWARE_SCAN_SWAGGER_UI_URL
-            value: {{ .Values.app.frontend.config.swaggerUiUrl }}
+            value: {{ .Values.app.appFrontend.config.swaggerUiUrl }}
           - name: PROJECTSMO_DATAIKU_FERRET_URL
-            value: {{ .Values.app.frontend.config.dataikuFerretUrl }}
+            value: {{ .Values.app.appFrontend.config.dataikuFerretUrl }}
           - name: 'PROJECTSMO_DNA_APPNAME_HEADER'
-            value: {{ .Values.app.frontend.config.appNameHeader | squote }}
+            value: {{ .Values.app.appFrontend.config.appNameHeader | squote }}
           - name: 'PROJECTSMO_DNA_APPNAME_HOME'
-            value: {{ .Values.app.frontend.config.appNameHome | squote }}
+            value: {{ .Values.app.appFrontend.config.appNameHome | squote }}
           - name: 'PROJECTSMO_DNA_CONTACTUS_HTML'
-            value: {{ .Values.app.frontend.config.contactUsHtml | squote }}
+            value: {{ .Values.app.appFrontend.config.contactUsHtml | squote }}
           - name: 'PROJECTSMO_DNA_BRAND_LOGO_URL'
-            value: {{ .Values.app.frontend.config.brandLogoUrl | squote }}
+            value: {{ .Values.app.appFrontend.config.brandLogoUrl | squote }}
           - name: 'PROJECTSMO_DNA_APP_LOGO_URL'
-            value: {{ .Values.app.frontend.config.appLogoUrl | squote }} 
+            value: {{ .Values.app.appFrontend.config.appLogoUrl | squote }} 
           - name: 'PROJECTSMO_ENABLE_INTERNAL_USER_INFO'
-            value: {{ .Values.app.frontend.config.enableInternalUserInfo | squote }}  
+            value: {{ .Values.app.appFrontend.config.enableInternalUserInfo | squote }}  
           - name: 'PROJECTSMO_ENABLE_DATA_COMPLIANCE'
-            value: {{ .Values.app.frontend.config.enableDataCompliance | squote }}
+            value: {{ .Values.app.appFrontend.config.enableDataCompliance | squote }}
           - name: 'PROJECTSMO_ENABLE_REPORTS'
-            value: {{ .Values.app.frontend.config.enabledReports | squote }}   
+            value: {{ .Values.app.appFrontend.config.enabledReports | squote }}   
           - name: 'PROJECTSMO_ENABLE_JUPYTER_WORKSPACE'
-            value: {{ .Values.app.frontend.config.enableJupyterWorkspace | squote }} 
+            value: {{ .Values.app.appFrontend.config.enableJupyterWorkspace | squote }} 
           - name: 'PROJECTSMO_ENABLE_DATAIKU_WORKSPACE'
-            value: {{ .Values.app.frontend.config.enableDataikuWorkspace | squote }} 
+            value: {{ .Values.app.appFrontend.config.enableDataikuWorkspace | squote }} 
           - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE'
-            value: {{ .Values.app.frontend.config.enableMalwareService | squote }} 
+            value: {{ .Values.app.appFrontend.config.enableMalwareService | squote }} 
           - name: 'PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE'
-            value: {{ .Values.app.frontend.config.enableDataPipelineService | squote }} 
+            value: {{ .Values.app.appFrontend.config.enableDataPipelineService | squote }} 
           - name: 'PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE'
-            value: {{ .Values.app.frontend.config.enabledMlPipelineService | squote }}
+            value: {{ .Values.app.appFrontend.config.enabledMlPipelineService | squote }}
           - name: 'PROJECTSMO_ML_PIPELINE_URL'
-            value: {{ .Values.app.frontend.config.mlPipelineUrl | squote }}  
+            value: {{ .Values.app.appFrontend.config.mlPipelineUrl | squote }}  
           - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_ONEAPI_INFO'
-            value: {{ .Values.app.frontend.config.enableMalwareApiInfo | squote }}  
+            value: {{ .Values.app.appFrontend.config.enableMalwareApiInfo | squote }}  
           - name: 'PROJECTSMO_DNA_COMPANY_NAME' 
-            value: {{ .Values.app.frontend.config.companyName | squote }} 
+            value: {{ .Values.app.appFrontend.config.companyName | squote }} 
           - name: 'PROJECTSMO_ENABLE_NOTIFICATION'
-            value: {{ .Values.app.frontend.config.enableNotification | squote }}
-          image: {{ .Values.app.frontend.image }}
+            value: {{ .Values.app.appFrontend.config.enableNotification | squote }}
+          image: {{ .Values.app.appFrontend.image }}
           imagePullPolicy: Always
           name: frontend
           ports:
