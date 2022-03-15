@@ -39,6 +39,8 @@ RUN usermod -a -G sudo 1000
 
 COPY airflow-env-init.sh /tmp/airflow-env-init.sh
 
+RUN chmod 777 /tmp/airflow-env-init.sh
+
 RUN chmod -R 777 /usr/local/airflow
 
 COPY bootstrap.sh /bootstrap.sh
@@ -48,6 +50,7 @@ ENTRYPOINT ["/bootstrap.sh"]
 
 RUN pip install SQLAlchemy==1.3.23
 RUN pip install Flask-SQLAlchemy==2.4.4
+RUN pip install Jinja2==3.0.3
 
 # Use multistage build in order to unset proxy
 # FROM builder
