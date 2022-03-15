@@ -698,7 +698,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     ProgressIndicator.show();
     const isDescriptionDepartment = this.state.itemToAddCategories === 'Description - Departments';
     // re-ensure description sections Department value is in upper case while saving
-    const value = isDescriptionDepartment ? this.state.itemToAdd?.toUpperCase() : this.state.itemToAdd;
+    const value = isDescriptionDepartment ? this.state.itemToAdd?.toUpperCase()?.trim() : this.state.itemToAdd?.trim();
     const data = {
       data: {
         name: value,
@@ -736,7 +736,10 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
   public addDataWareHouseInUse = () => {
     ProgressIndicator.show();
     const data = {
-      data: this.state.datawareHouseItems,
+      data: {
+        ...this.state.datawareHouseItems,
+        dataWarehouse: this.state.datawareHouseItems.dataWarehouse?.trim(),
+      },
     };
     const requestBody = JSON.parse(JSON.stringify(data));
     return ReportsApiClient.addDataWareHouseInUse(requestBody)
@@ -771,17 +774,21 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     const data = {
       data: {
         id: itemToUpdate.id,
-        name: itemToUpdate.name,
+        name: itemToUpdate.name?.trim(),
       },
     };
     const requestBody = JSON.parse(JSON.stringify(data));
     return ReportsApiClient.updateCategoryItem(categoryType, requestBody)
       .then((res: any) => {
         this.setState(
-          {
+          (prevState) => ({
             addNewItem: false,
             updateConfirmModelOverlay: false,
-          },
+            tagToBeUpdatedLocal: {
+              ...prevState.tagToBeUpdatedLocal,
+              name: prevState.tagToBeUpdatedLocal.name?.trim(),
+            },
+          }),
           () => {
             this.getResults();
             this.showNotification('Item Updated Successfully!');
@@ -793,10 +800,12 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         this.setState(
           {
             updateConfirmModelOverlay: false,
+            addNewItem: false,
           },
           () => {
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
             ProgressIndicator.hide();
+            this.getResults();
           },
         );
       });
@@ -807,6 +816,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     const data = {
       data: {
         ...this.state.datawareHouseItems,
+        dataWarehouse: this.state.datawareHouseItems.dataWarehouse?.trim(),
       },
     };
     const requestBody = JSON.parse(JSON.stringify(data));
@@ -834,9 +844,11 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         this.setState(
           {
             results: [],
+            addNewItem: false,
           },
           () => {
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            this.getResults();
             ProgressIndicator.hide();
           },
         );
