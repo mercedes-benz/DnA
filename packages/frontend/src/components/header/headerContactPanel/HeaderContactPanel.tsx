@@ -1,8 +1,8 @@
 import cn from 'classnames';
-import * as React from 'react';
-import { USER_ROLE } from '../../../globals/constants';
+import React, { useEffect, useState } from 'react';
+import { InfoModal } from '../../../components/formElements/modal/infoModal/InfoModal';
+import About from '../../../components/mbc/About/About';
 // import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
-import { IRole, IUserInfo } from '../../../globals/types';
 import { history } from '../../../router/History';
 import Styles from './HeaderContactPanel.scss';
 
@@ -11,84 +11,87 @@ const classNames = cn.bind(Styles);
 export interface IHeaderContactPanelProps {
   show?: boolean;
   onClose?: () => void;
-  user: IUserInfo;
   toggleContactPanelCallBack: () => void;
 }
-export interface IHeaderContactPanelState {
-  isAdmin: boolean;
-}
 
-export class HeaderContactPanel extends React.Component<IHeaderContactPanelProps, IHeaderContactPanelState> {
-  protected isTouch = false;
-  protected domContainer: HTMLDivElement;
+let isTouch = false;
 
-  public constructor(props: IHeaderContactPanelProps, context?: any) {
-    super(props, context);
-    this.state = {
-      isAdmin: this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined,
-    };
-  }
+const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
+  const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
 
-  public componentWillMount() {
-    document.addEventListener('touchend', this.handleUserPanelOutside, true);
-    document.addEventListener('click', this.handleUserPanelOutside, true);
-  }
+  useEffect(() => {
+    eventClenUp();
 
-  public componentWillUnmount() {
-    document.removeEventListener('touchend', this.handleUserPanelOutside, true);
-    document.removeEventListener('click', this.handleUserPanelOutside, true);
-  }
-
-  public render() {
-    return (
-      <div className={classNames(this.props.show ? Styles.userContexMenu : 'hide')} ref={this.connectContainer}>
-        <div className={Styles.upArrow} />
-        <ul className={classNames(Styles.innerContainer)}>
-          <li onClick={this.navigateToMyContactUs}>
-            {/* {getTranslatedLabel('Contact Us')} */}
-            Contact Us
-          </li>
-          <li onClick={this.navigateToMyLicences}>
-            {/* {getTranslatedLabel('Licences')} */}
-            Licences
-          </li>
-        </ul>
-      </div>
-    );
-  }
-
-  protected navigateToMyContactUs = (event: React.MouseEvent<HTMLElement>) => {
-    this.props.toggleContactPanelCallBack();
-  };
-  protected navigateToMyLicences = (event: React.MouseEvent<HTMLElement>) => {
-    history.push(`/license`);
-    // this.props.onClose();
-  };
-  protected connectContainer = (element: HTMLDivElement) => {
-    this.domContainer = element;
-  };
-
-  protected handleUserPanelOutside = (event: MouseEvent | TouchEvent) => {
-    if (!this.props.show) {
-      return;
+    if(props.show) {
+      document.addEventListener('touchend', handleUserPanelOutside, true);
+      document.addEventListener('click', handleUserPanelOutside, true);
     }
+  }, [props.show]);
+
+  useEffect(() => {
+    return () => {
+      eventClenUp();
+    };
+  }, []);
+
+  const eventClenUp = () => {
+    document.removeEventListener('touchend', handleUserPanelOutside, true);
+    document.removeEventListener('click', handleUserPanelOutside, true);
+  }
+
+  const navigateToMyContactUs = () => {
+    props.toggleContactPanelCallBack();
+  };
+
+  const handleUserPanelOutside = (event: MouseEvent | TouchEvent) => {
+    const helpMenuWrapper = document?.querySelector('#helpMenuContentWrapper');
 
     if (event.type === 'touchend') {
-      this.isTouch = true;
+      isTouch = true;
     }
     // Click event has been simulated by touchscreen browser.
-    if (event.type === 'click' && this.isTouch === true) {
+    if (event.type === 'click' && isTouch === true) {
       return;
     }
     const target = event.target as Element;
-    if (
-      this.domContainer &&
-      target.className !== 'userAvatar' &&
-      target.className.indexOf('iconContainer') === -1 &&
-      this.domContainer.contains(target) === false
-    ) {
-      event.stopPropagation();
-      this.props.onClose();
+    if (!helpMenuWrapper?.contains(target) && !target.classList.contains('help')) {
+      eventClenUp();
+      props.onClose();
     }
   };
-}
+
+  return (
+    <React.Fragment>
+    <div id="helpMenuContentWrapper" className={classNames(props.show ? Styles.userContexMenu : 'hide')}>
+      <div className={Styles.upArrow} />
+      <ul className={classNames(Styles.innerContainer)}>
+        <li onClick={navigateToMyContactUs}>
+          {/* {getTranslatedLabel('Contact Us')} */}
+          Contact Us
+        </li>
+        <li onClick={() => setShowAboutModal(true)}>
+          {/* {getTranslatedLabel('Licences')} */}
+          About
+        </li>
+        <li onClick={() => { history.push('/license'); props.onClose(); }}>
+          {/* {getTranslatedLabel('Licences')} */}
+          Licences
+        </li>
+      </ul>
+    </div>
+    <InfoModal
+      title={'About'}
+      hiddenTitle={true}
+      modalWidth={'35vw'}
+      show={showAboutModal}
+      content={<About />}
+      onCancel={() => {
+        setShowAboutModal(false);
+        props.onClose();
+      }}
+    />
+  </React.Fragment>
+  );
+};
+
+export default HeaderContactPanel;
