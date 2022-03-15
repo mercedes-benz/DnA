@@ -50,19 +50,19 @@ data:
 
             set $backend "http://{{ .Release.Name }}-backend-service.{{ .Values.namespace }}.svc.cluster.local:80";
 
-            set $jupy_server {{ .Values.app.ngnix.jupyServer | quote }};
+            set $jupy_server {{ .Values.app.appFrontend.ngnix.jupyServer | quote }};
 
-            set $grafana_server {{ .Values.app.ngnix.grafanaServer | quote }};
+            set $grafana_server {{ .Values.app.appFrontend.ngnix.grafanaServer | quote }};
 
-            #set $avscan_server {{ .Values.app.ngnix.avscanServer | quote }};
+            #set $avscan_server {{ .Values.app.appFrontend.ngnix.avscanServer | quote }};
 
-            set $avscan_mgw_server {{ .Values.app.ngnix.avscanMgwServer | quote }};
+            set $avscan_mgw_server {{ .Values.app.appFrontend.ngnix.avscanMgwServer | quote }};
 
-            set $airflow_server {{ .Values.app.ngnix.airflowServer | quote }};
+            set $airflow_server {{ .Values.app.appFrontend.ngnix.airflowServer | quote }};
 
-            set $naas_server {{ .Values.app.ngnix.naasServer | quote }};
+            set $naas_server {{ .Values.app.appFrontend.ngnix.naasServer | quote }};
             
-            set $dashboard_server {{ .Values.app.ngnix.dashboard | quote }};
+            set $dashboard_server {{ .Values.app.appFrontend.ngnix.dashboard | quote }};
 
             root /usr/share/nginx/html;
             index index.htm index.html;
