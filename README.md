@@ -21,19 +21,19 @@ The idea of the DnA Platform originated from the common challenge every big comp
 |---|---|---|
 | [DnA Portal Feature](./docs/DnAPortal.md)    | Wrapper feature that packages all features into one streamlined user experience.  | Since 24.12.2021 (main and dev branch)  | 
 | [Solution Transparency feature](./docs/DnATransparency.md)    | Feature that enables you getting transparency on different initiatives around Data/ML/AI and collaboration between people working on similar activities.  | Since 24.12.2021 (main and dev branch) | 
-| [Reports Transparency feature](./docs/DnAReportsTransparency.md)    | Feature that enables you getting transparency on reports and dashboards available throughout the organization.  | Since 24.12.2021 (dev branch) | 
-| [Malware Scan As A Service Feature](./docs/DnAMalwareScanAsAService.md)  |  Feature that provides a simple REST API to check all kinds of attachments for malicious code, abstracting the [ClamAV](https://github.com/Cisco-Talos/clamav) scanner usage and making it ready for web world.  | February 2022 (main and dev branch) | 
+| [Reports Transparency feature](./docs/DnAReportsTransparency.md)    | Feature that enables you getting transparency on reports and dashboards available throughout the organization.  | Since 04.03.2022 (dev branch) | 
+| [Malware Scan As A Service Feature](./docs/DnAMalwareScanAsAService.md)  |  Feature that provides a simple REST API to check all kinds of attachments for malicious code, abstracting the [ClamAV](https://github.com/Cisco-Talos/clamav) scanner usage and making it ready for web world.  |Since 04.03.2022 (dev branch) | 
 |  [Data Pipeline Feature](./docs/DnADataPipeline.md)  | This feature integrates [Apache Airflow](https://github.com/apache/airflow) as major component in DnA Platform, enabling processing and transforming of data  | Since 04.03.2022 (dev branch) | 
 |  [Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md)  | Feature based on [JupyterHub](https://github.com/jupyterhub/jupyterhub) enables users to start working on their models without any additional software installation.   | Since 04.03.2022 (dev branch)  |  
 | [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | Is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).  | Since 04.03.2022 (dev branch) |
-| [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the  [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | Since04.03.2022 (dev branch) | 
+| [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the  [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | Since 04.03.2022 (dev branch) | 
 
 
  
 
 ## Upcoming Features
 
-As Data Pipelines, Jupyter notebook, Kubeflow Pipelines, and other features require some kind of managed persistence layer, we are considering the integration of  [MinIO](https://github.com/minio/minio) as an S3 storage model along with the addition of [DeltaLake](https://github.com/delta-io/delta) to enable native Spark processing and ACID compliance.
+As Data Pipelines, Jupyter notebook, Kubeflow Pipelines, and other features require some kind of managed persistence layer, we are working on the integration of  [MinIO](https://github.com/minio/minio) as an S3 storage model along with the addition of [DeltaLake](https://github.com/delta-io/delta) and [Trino](https://github.com/trinodb/trino) to enable easy access and ACID compliant persistance layer.
 
 The list of future ideas is big and it is constantly being adjusted, so please include yourself in the discussion! We are looking forward to different ideas!
 
