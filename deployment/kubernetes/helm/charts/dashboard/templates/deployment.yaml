@@ -42,17 +42,17 @@ spec:
             - name: DNA_AUTH_ENABLE
               value: {{ .Values.enableAuth | quote}}
             - name: LOGGING_PATH
-	      value: {{ .Values.loggingPath | quote }}
-	    - name: LOGGING_ENVIRONMENT
-	      value: {{ .Values.loggingEnvironment | quote }}
+              value: {{ .Values.loggingPath | quote }}
+            - name: LOGGING_ENVIRONMENT
+              value: {{ .Values.loggingEnvironment | quote }}
             - name: FLYWAY_ENABLED
-              value: {{ .Values.flywayBaseline }}
+              value: {{ .Values.flywayBaseline | quote }}
             - name: FLYWAY_BASELINE_ON_MIGRATE
-              value: {{ .Values.flywayBaselineOnMigrate }}
+              value: {{ .Values.flywayBaselineOnMigrate | quote }}
             - name: FLYWAY_BASELINEVERSION
-              value: {{ .Values.flywayBaselineVersion }}
-            - name: FLYWAY_SCHEMA    
-              value: {{ .Values.flywaySchema }}
+              value: {{ .Values.flywayBaselineVersion | quote }}
+            - name: FLYWAY_SCHEMA
+              value: {{ .Values.flywaySchema | quote }}
           ports:
             - containerPort: {{ .Values.containerPort }}
               name: api

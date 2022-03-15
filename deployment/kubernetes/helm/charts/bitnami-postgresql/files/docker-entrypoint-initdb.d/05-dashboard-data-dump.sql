@@ -1,3 +1,5 @@
+\c dashboard;
+
 INSERT INTO common_function_sql (id, name) VALUES
 (DEFAULT, 'CommonFunction 1'),
 (DEFAULT,'CommonFunction 2');

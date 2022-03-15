@@ -31,7 +31,7 @@ spec:
           volumeMounts:
             - mountPath: /srv/jupyterhub/jupyterhub_config.py
               subPath: jupyterhub_config.py
-              name: {{ .Values.app.ConfigMapName.name }}
+              name: {{ .Values.app.hubConfig.name }}
             #- mountPath: /etc/jupyterhub/config/
             #  name: config
             #- mountPath: /etc/jupyterhub/secret/
@@ -44,12 +44,12 @@ spec:
       securityContext:
         runAsUser: 1000
       volumes:
-        - name: {{ .Values.app.ConfigMapName.name }}
+        - name: {{ .Values.app.hubConfig.name }}
           configMap:
-            name: {{ .Values.app.ConfigMapName.name }}
+            name: {{ .Values.app.hubConfig.name }}
         #- name: config
         #  configMap:
-        #    name: {{ .Values.app.ConfigMapName.name }}
+        #    name: {{ .Values.app.hubConfig.name }}
         #- name: secret
         #  secret:
         #    secretName: hub-secret
