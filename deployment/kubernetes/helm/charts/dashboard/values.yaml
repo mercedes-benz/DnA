@@ -13,7 +13,7 @@ secret:
   jwtKey: ""
 appUrl: http://dna-backend-service.dna.svc.cluster.local:80
 enableAuth: true
-loggingPath: ""
+loggingPath: /tmp/dashboard/log
 loggingEnvironment: ""
 flywayBaseline: ""
 flywayBaselineOnMigrate: ""
