@@ -9,14 +9,14 @@ import Styles from './HeaderContactPanel.scss';
 
 const classNames = cn.bind(Styles);
 
-export interface IHeaderContactPanelProps {
+interface IHeaderContactPanelProps {
   show?: boolean;
   onClose?: () => void;
 }
 
 let isTouch = false;
 
-const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
+export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
   const contactModalContent = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
   const [showContactModal, setShowContactModal] = useState<boolean>(false);
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
@@ -90,5 +90,3 @@ const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
     </div>
   );
 };
-
-export default HeaderContactPanel;
