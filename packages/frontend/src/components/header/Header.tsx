@@ -5,7 +5,7 @@ import { history } from './../../router/History';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './Header.scss';
 import { HeaderSearchBox } from './headerSearchBox/HeaderSearchBox';
-import { HeaderUserPanel } from './headerUserPanel/HeaderUserPanel';
+import HeaderUserPanel from './headerUserPanel/HeaderUserPanel';
 import HeaderContactPanel from './headerContactPanel/HeaderContactPanel';
 import { NotificationPanel } from './notificationpanel/NotificationPanel';
 import { NotificationApiClient } from '../../services/NotificationApiClient';
@@ -48,6 +48,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
 
   public render() {
     const {setMessage} = this.context;
+    const MemoizedHeaderUserPanel = React.memo(HeaderUserPanel);
     const MemoizedHeaderContactPanel = React.memo(HeaderContactPanel);
 
     
@@ -103,12 +104,12 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
                 title={this.props.user.firstName + ', ' + this.props.user.lastName}
                 onClick={this.toggleUserPanel}
               >
-                <div className={Styles.userIcon}>
+                <div className={classNames(Styles.userIcon, 'profile')}>
                   <i className="icon mbc-icon profile" />
                 </div>
                 <span className={classNames(Styles.status, 'hide')} />
               </div>
-              <HeaderUserPanel show={this.state.showUserPanel} onClose={this.closeUserPanel} user={this.props.user} />
+              <MemoizedHeaderUserPanel show={this.state.showUserPanel} onClose={this.closeUserPanel} user={this.props.user} />
             </div>
             <div id='contactPanel' className={Styles.userInfoPanel}>
               <div
