@@ -6,5 +6,8 @@
   iframe {
     height: 100%;
     width: 100%;
+    &.fullscreen {
+      height: calc(100% - 60px);
+    }
   }
 }
