@@ -68,14 +68,29 @@ export const OPEN_SOURCE_TOOLS = [
   {
     name: 'Jupyter Notebook',
     version: '2.3.2',
+    github: 'https://github.com/jupyter/notebook',
+    license: {
+      name: '3-clause BSD License',
+      link: 'https://github.com/jupyter/notebook/blob/main/LICENSE',
+    },
   },
   {
-    name: 'Airflow',
+    name: 'Apache Airflow',
     version: '1.10.15',
+    github: 'https://github.com/apache/airflow',
+    license: {
+      name: 'Apache License 2.0',
+      link: 'https://github.com/apache/airflow/blob/main/LICENSE',
+    },
   },
   {
     name: 'Kubeflow',
     version: '1.4.0',
+    github: 'https://github.com/kubeflow/kubeflow',
+    license: {
+      name: 'Apache License 2.0',
+      link: 'https://github.com/kubeflow/kubeflow/blob/master/LICENSE',
+    },
   },
 ];
 
