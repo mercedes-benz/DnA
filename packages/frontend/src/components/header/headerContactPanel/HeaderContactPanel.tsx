@@ -25,8 +25,8 @@ const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
     eventClenUp();
 
     if(props.show) {
-      document.addEventListener('touchend', handleUserPanelOutside, true);
-      document.addEventListener('click', handleUserPanelOutside, true);
+      document.addEventListener('touchend', handleContactPanelOutside, true);
+      document.addEventListener('click', handleContactPanelOutside, true);
     }
   }, [props.show]);
 
@@ -37,11 +37,11 @@ const HeaderContactPanel = (props: IHeaderContactPanelProps) => {
   }, []);
 
   const eventClenUp = () => {
-    document.removeEventListener('touchend', handleUserPanelOutside, true);
-    document.removeEventListener('click', handleUserPanelOutside, true);
+    document.removeEventListener('touchend', handleContactPanelOutside, true);
+    document.removeEventListener('click', handleContactPanelOutside, true);
   }
 
-  const handleUserPanelOutside = (event: MouseEvent | TouchEvent) => {
+  const handleContactPanelOutside = (event: MouseEvent | TouchEvent) => {
     const helpMenuWrapper = document?.querySelector('#helpMenuContentWrapper');
 
     if (event.type === 'touchend') {
