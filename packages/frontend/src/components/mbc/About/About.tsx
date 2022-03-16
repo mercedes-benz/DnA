@@ -32,12 +32,21 @@ const About = () => {
             MIT
           </a>
         </p>
+        <label>--- Powered by ---</label>
         <ul className="list-item-group">
           {OPEN_SOURCE_TOOLS.map((item: any, index: number) => (
             <li className="list-item" key={index}>
               <div className="item-text-wrap">
                 <h6 className="item-text-title">{item.name}</h6>
                 <label className="item-text">Version - {item.version}</label>
+                <br />
+                <a href={item.github} target="_blank" rel="noreferrer">
+                  GitHub
+                </a>
+                &nbsp;|&nbsp;{' '}
+                <a href={item.license.link} target="_blank" rel="noreferrer">
+                  {item.license.name}
+                </a>
               </div>
             </li>
           ))}
