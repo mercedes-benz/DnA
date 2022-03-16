@@ -12,7 +12,7 @@ import { Envs } from '../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 
-export interface IHeaderUserPanelProps {
+interface IHeaderUserPanelProps {
   show?: boolean;
   onClose?: () => void;
   user: IUserInfo;
@@ -20,7 +20,7 @@ export interface IHeaderUserPanelProps {
 
 let isTouch = false;
 
-const HeaderUserPanel = (props: IHeaderUserPanelProps) => {
+export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   const isAdmin = props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined;
 
   useEffect(() => {
@@ -127,5 +127,3 @@ const HeaderUserPanel = (props: IHeaderUserPanelProps) => {
     </div>
   );
 };
-
-export default HeaderUserPanel;
