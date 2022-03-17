@@ -54,7 +54,7 @@ appFrontend:
     enableNotification: false
     companyName: XYZ
 
-  ngnix:
+  nginx:
     jupyServer: http://proxy-public:8000
     grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
     avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
@@ -62,3 +62,4 @@ appFrontend:
     airflowServer: http://airflow.airflow.svc.cluster.local:8080
     naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
     dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
+    trino: http://trino.trino.svc.cluster.local:8080
