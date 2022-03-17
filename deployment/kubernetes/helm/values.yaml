@@ -182,20 +182,31 @@ bitnamipostgresql:
 #Subchart properties for clamav
 clamav:
   enabled: false
+  appName: clamav
   namespace: clamav
   app:
     backend:
       name: clamav-rest
       image: malwarescan-backend:latest
+      replicaCount: 1
       secrets:
         name: oneapi-secrets
         onapiBasicAuthToken: ""
       config: 
+        clamav_backend_url: clamav-service
+        clamav_backend_port: 3310
+        max_file_size: 10MB
+        max_request_size: 11MB
+        api_request_limit: 20
+        with_in: 2
+        time_unit: seconds
         auth_api_host: http://dna-backend-service.dna.svc.cluster.local:80/api/subscription/validate
+        restricted_url_pattern: /avscan/api/v1/scan.*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
   image:
     repo: clamav:latest
+    replicaCount: 1
     pullPolicy: Always
   ingress:
     host: "" 
@@ -203,6 +214,12 @@ clamav:
     name: harbor-pull-secrets
   cert:
     certManager: acme
+
+  Storage:
+    storageClass: cinder
+    accessModes: ReadWriteOnce
+    size: 5G
+    
   resources:
     requests:
       memory: "512Mi"
@@ -210,14 +227,11 @@ clamav:
     limits:
       memory: "1000Mi"
       cpu: "500m"
-  Storage:
-    storageClass: cinder
-    accessModes: ReadWriteOnce
-    size: 5G
       
 #Subchart properties for naas
 naas:
   enabled: false
+  appName: naas
   namespace: naas
   app:
     backend:
@@ -227,7 +241,10 @@ naas:
       config:
         api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
         naas_broker: broker01.kafka.svc.cluster.local:8001
+        max_poll_records: 6000
         dna_uri: http://dna-backend-service.dna.svc.cluster.local:80
+        dna_auth_enable: true
+        poll_time: 5000
         naas_central_topic: CentralEventTopic
         naas_centralread_topic: CentralReadTopic
         naas_centraldelte_topic: CentralDeleteTopic
@@ -251,6 +268,9 @@ naas:
       limits:
         memory: "1000Mi"
         cpu: "500m"
+  
+  image:
+  pullPolicy: Always
       
   ingress:
     host: ""
@@ -272,13 +292,14 @@ notebooks:
       name: jupyterhub:1.0
       pullPolicy: Always
     
-    proxy:
-      image: configurable-http-proxy:latest
-      
     profileListImages:
       default: pyspark-notebook:1.0-default
       tensorflow: pyspark-notebook:1.0-tensorflow
       chronos: pyspark-notebook:1.0-chronos    
+
+    proxy:
+      image: configurable-http-proxy:latest
+      
     
     hubConfig:
       name: hub-config
@@ -318,6 +339,10 @@ dashboard:
   enabled: false
   namespace: dashboard
   image: dashboard-backend
+  imagePullSecret: 
+    name: harbor-pull-secrets
+  cert:
+    certManager: daimler-acme
   dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
   secret:
     name: dashboard-secrets
@@ -332,10 +357,7 @@ dashboard:
   flywayBaselineOnMigrate: "true"
   flywayBaselineVersion: "0"
   flywaySchema: "public"
-  imagePullSecret: 
-    name: harbor-pull-secrets
-  cert:
-    certManager: acme
+  containerPort: 7173
   host: ""
   resources:
     requests:
@@ -348,13 +370,15 @@ dashboard:
 #Subchart properties for airflow
 airflow:
   enabled: false
+  appName: airflow
   namespace: airflow
   imagePullSecret: 
     name: harbor-pull-secrets
   cert:
-    certManager: acme
+    certManager: ""
   backend:
-    image: airflow-backend:latest
+    image: ""
+    imagePullPolicy: Always
     dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
     secret:
       name: airflow-backend-secrets
@@ -364,54 +388,148 @@ airflow:
       jwtKey: ""
       oidcClientID: ""
       oidcClientSecret: ""
+    containerPort: 7171
     host: ""
     crossOriginUrl: ""
-    apiUrl: http://dna-backend-service.dna.svc.cluster.local:80
-    oidcInfoUrl: ""
-    oidcIntrospectionUrl: ""
-    oidcRevocationUrl: ""
+    apiUrl: ""
+    oidcInfoUrl: "" 
+    oidcIntrospectionUrl: "" 
+    oidcRevocationUrl: "" 
     oidcDisabled: false
-    gitBranch: master
-    gitUrl: ""
+    gitUrl: "" 
+    gitMountPath: /git/airflow-user-dags
+    gitBranch: ""
+    dag:
+      path: dags
+      ext: py
+      waitTime: 20
+      retry: 20
     loggingPath: /tmp/airflow/log
     loggingEnvironment: dev
-    flywayBaseline: "true"
-    flywayBaselineOnMigrate: "true"
-    flywayBaselineVersion: "0"
-    flywaySchema: "public"  
-  pullSecretData: 
+    flywayBaseline: ""
+    flywayBaselineOnMigrate: ""
+    flywayBaselineVersion: ""
+    flywaySchema: ""
+
+  pullSecretData: ""
   secret:
     gitUserName: ""
     gitPassword: ""
+    #gitSshKey: ""
     knownHosts: ""
     postgresql:
       sqlAlchemyConn: ""
     clientSecret: ""
 
   gitSync:
-    image: git-sync:3.3.0
+    image: ""
     repo: ""
+    dest: git-sync
     branch: master
-  
+    ssh: "false"
+    root: /git
+
+  # editor:
+  #   gitEnabled: True
+  #   gitCMD: /usr/bin/git
+  #   gitDefaultArgs: -c color.ui=true
+  #   gitIntRepo: False
+  #   lineLength: 88
+  #   stringNormalization: False
+    
   configuration:
+    loggingLevel: INFO
+    executor: KubernetesExecutor
+    parallelism: 32
+    pluginsFolder: /usr/local/airflow/plugins
+    loadExamples: False
+    scheduler:
+      dagDirListInterval: 5
+      childProcessLogDirectory: /usr/local/airflow/logs/scheduler
+      jobHeartbeatSec: 5
+      parsingProcesses: 2
+      schedulerHeartbeatSec: 5
+      minFileProcessInterval: 0
+      statsdOn: False
+      statsdHost: localhost
+      statsdPort: 8125
+      statsdPrefix: airflow
+      minFileParsingLoopTime: 1
+      printStatsInterval: 30
+      schedulerZombieTaskThreshold: 300
+      maxTisPerQuery: 0
+      authenticate: False
+      catchupByDefault: True
     webserver:
       baseUrl: ""
       path: /pipelines
+      rbac: True
+      host: 0.0.0.0
+      port: 8080
+      masterTimeout: 120
+      workerTimeout: 120
+      workerRefreshBatchSize: 1
+      workerRefreshInterval: 30
       secretKey: ""
-    
+      numberOfWorkers: 4
+      workerClass: sync
+      exposeConfig: True
+      dagDefaultView: graph
+      dagOrientation: LR
+      demoMode: False
+      logFetchTimeoutSec: 5
+      hidePausedDagsByDefault: False
+      pageSize: 100
     kubernetes:
-      gitSyncContainerRepository: git-sync
-  
+      workerContainerImagePullPolicy: Always
+      workerServiceAccountName: airflow
+      deleteWorkerPods: True
+      dagsInImage: False
+      gitSubpath: dags
+      inCluster: True
+      gitSyncContainerRepository: ""
+      gitSyncContainerTag: 3.3.0
+      gitSyncInitContainerName: git-sync-container
+      gitSyncRunAsUser: 1000
+      runAsUser: 1000
+      fsGroup: 65533
+    kubernetesLabels:
+      airflowWorker:
+
   docker:
     image:
-      name: airflow
-      tag: 1.10.15
+      name: ""
+      tag: ""
 
   service:
     port: 8080
 
   db:
     port: 64000
+
+  webserver:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 2000Mi
+      cpu: 1000m
+
+  scheduler:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 2000Mi
+      cpu: 1000m
+
+  gitContainer:
+    requests:
+      memory: 250Mi
+      cpu: 250m
+    limits:
+      memory: 1000Mi
+      cpu: 500m
 
   backendResources:
     requests:
@@ -430,17 +548,17 @@ airflow:
       accessMode: ReadWriteOnce
       storage:
         className: cinder-retain
-        size: 10Gi
-  
+        size: 50Gi
+
   oidc:
     logout:
-      uri: "" 
+      uri: ""
 
   Storage:
     storageClass: cinder-retain
     accessModes: ReadWriteOnce
     size: 5Gi
-
+  
 #Subchart properties for microgateway
 microgateway:
   enabled: false
@@ -448,21 +566,127 @@ microgateway:
   proxy: ""
   noProxy: ""
   apigee:
+    # environment variables 
+    debug: "*" # Enable DEBUG mode with "*"
     key: ""
     secret: ""
+    org: internal
+    env: development
+    # if introspection is required add the introspection credentials
+    #introspection_client_id: 
+    #introspection_client_secret: 
+    
+    # validate target https certificates (1=enabled; 0=disabled)
+    node_tls_reject_unauthorized: 1
+
+    certs:
+      # key and cert will be mount under /home/node/certs/[host].key|.cert
+      # - host: example.org
+      #  key: put base64 encoded key here
+      #  cert: put base64 encoded certificate here
     config:
+      # content of apigee config. Make sure that the whole content has the correct indent of two spaces!
+      # edge_config, analytics and oauth is already defined
+      edgemicro:
+      port: 8080
+      max_connections: 1000
+      max_connections_hard: 5000
+      max_times: 300
+      config_change_poll_interval: 86400
+      logging:
+        to_console: true
+        level: debug
+        stack_trace: false
+      plugins:
+        sequence:
+          - cors-oneapi
+          - spikearrest
+          #- introspection
+          # ApiKey Security needs 'oauth' plugin. Confusing. I know.
+          - oauth
+          #- quota
+          #- app-to-header
+          - backend-basicauth
+          #- backend-jwt
+      proxies:
+        # References an Apigee Proxy Configuration
+        ###################################
+        # !!! REPLACE WITH YOUR PROXY !!! #
+        ###################################
+        - edgemicro_malwarescanapi_v1
+      # In case a proxy is needed for accessing the API backend (target-server)
       proxy:
         url: ""
-        enabled: false    
+        enabled: false
+    headers:
+      x-forwarded-for: true
+      x-forwarded-host: true
+      x-request-id: true
+      x-response-time: true
+      via: true
+    backend-basicauth:
+      username: 'admin'
+      password: 'password123'
+    cors-oneapi:
+      cors-allow-credentials: true
+    backend-jwt:
+      header_attribute_name: x-claims
+      sign_secret: 'my-secret'
+      claims:
+        - iss
+        - sub
+        - client_id
+        - scope
+        - app_name
+        - custom_client_identification
+    spikearrest:
+      timeUnit: minute
+      allow: 6000
+      bufferSize: 600
+    # client certificate configuration
+    # targets:
+    #   - host: 'example.org'
+    #     ssl:
+    #       client:
+    #         key: /home/node/certs/example.org.key # Don't change this, will be set via certs.key
+    #         cert: /home/node/certs/example.org.crt # Don't change this, will be set via certs.cert
+    #         passphrase: 'optional'
+
   image:
     repository: edgemicro
     tag: latest
     pullPolicy: IfNotPresent
+  
+  nameOverride: ""
+  fullnameOverride: ""
+
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30005
+
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Optionaly an ingress route can be defined. Routing options are configured in here.
   ingress:
     enabled: true
     basePath: /malware-scan/api/v1
     # Define a list of hosts for the routing. If an empty list is provided routing will be enabled for all hostnames
     hosts: [""]
+    annotations: {}
+    #traefik.ingress.kubernetes.io/rewrite-target: /malware_scan_api
+    # Add custom labels to ingress route
+    labels: {}
 
 #Subchart properties for vault
 vault:
@@ -483,6 +707,133 @@ vault:
       repository: /docker.io_vault
       tag: 1.3.0
       pullPolicy: IfNotPresent
+    resources:
+    # resources:
+    #   requests:
+    #     memory: 256Mi
+    #     cpu: 250m
+    #   limits:
+    #     memory: 256Mi
+    #     cpu: 250m
+
+    # Ingress allows ingress services to be created to allow external access 
+    # from Kubernetes to access Vault pods.
+    ingress:
+      enabled: false
+      labels: { }
+      # traffic: external
+      annotations: { }
+        # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      hosts:
+        - host: chart-example.local
+          # As of now vault can only be servered on "/"
+          paths: [ / ]
+
+      tls: [ ]
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - chart-example.local
+
+
+    # authDelegator enables a cluster role binding to be attached to the service
+    # account.  This cluster role binding can be used to setup Kubernetes auth
+    # method.  https://www.vaultproject.io/docs/auth/kubernetes.html
+    authDelegator:
+      enabled: false
+
+    # extraContainers is a list of sidecar containers. Specified as a raw YAML string.
+    extraContainers: null
+
+
+    # Used to define custom readinessProbe settings
+    readinessProbe:
+      enabled: true
+      # If you need to use a http path instead of the default exec
+      # path: /v1/sys/health?standbyok
+    # Used to enable a livenessProbe for the pods
+    livenessProbe:
+      enabled: false
+      path: /v1/sys/health?standbyok
+
+    # extraEnvironmentVars is a list of extra enviroment variables to set with the stateful set. These could be
+    # used to include variables required for auto-unseal.
+    extraEnvironmentVars: { }
+      # GOOGLE_REGION: global
+      # GOOGLE_PROJECT: myproject
+    # GOOGLE_APPLICATION_CREDENTIALS: /vault/userconfig/myproject/myproject-creds.json
+
+    # extraSecretEnvironmentVars is a list of extra enviroment variables to set with the stateful set.
+    # These variables take value from existing Secret objects.
+    extraSecretEnvironmentVars: [ ]
+      # - envName: AWS_SECRET_ACCESS_KEY
+      #   secretName: vault
+    #   secretKey: AWS_SECRET_ACCESS_KEY
+
+    # extraVolumes is a list of extra volumes to mount. These will be exposed
+    # to Vault in the path `/vault/userconfig/<name>/`. The value below is
+    # an array of objects, examples are shown below.
+    extraVolumes: [ ]
+      # - type: secret (or "configMap")
+      #   name: my-secret
+    #   path: null # default is `/vault/userconfig`
+
+    # Affinity Settings
+    # Commenting out or setting as empty the affinity variable, will allow
+    # deployment to single node services such as Minikube
+    affinity: |
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: {{ template "vault.name" . }}
+                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                component: server
+            topologyKey: kubernetes.io/hostname
+
+    # Toleration Settings for server pods
+    # This should be a multi-line string matching the Toleration array
+    # in a PodSpec.
+    tolerations: { }
+
+    # nodeSelector labels for server pod assignment, formatted as a muli-line string.
+    # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+    # Example:
+    # nodeSelector: |
+    #   beta.kubernetes.io/arch: amd64
+    nodeSelector: { }
+
+    # Extra labels to attach to the server pods
+    # This should be a multi-line string mapping directly to the a map of
+    # the labels to apply to the server pods
+    extraLabels: { }
+
+    # Extra annotations to attach to the server pods
+    # This should be a multi-line string mapping directly to the a map of
+    # the annotations to apply to the server pods
+    annotations: { }
+
+    # Enables a headless service to be used by the Vault Statefulset
+    service:
+      enabled: true
+      # clusterIP controls whether a Cluster IP address is attached to the
+      # Vault service within Kubernetes.  By default the Vault service will
+      # be given a Cluster IP address, set to None to disable.  When disabled
+      # Kubernetes will create a "headless" service.  Headless services can be
+      # used to communicate with pods directly through DNS instead of a round robin
+      # load balancer.
+      # clusterIP: None
+
+      # Port on which Vault server is listening
+      port: 8200
+      # Target port to which the service should be mapped to
+      targetPort: 8200
+      # Extra annotations for the service definition
+      annotations: { }
+
+    # This configures the Vault Statefulset to create a PVC for data
+    # storage when using the file backend.
+    # See https://www.vaultproject.io/docs/configuration/storage/index.html to know more
     dataStorage:
       enabled: true
       # Size of the PVC created
@@ -507,6 +858,96 @@ vault:
       storageClass: cinder-retain
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
+    # Run Vault in "dev" mode. This requires no further setup, no state management,
+    # and no initialization. This is useful for experimenting with Vault without
+    # needing to unseal, store keys, et. al. All data is lost on restart - do not
+    # use dev mode for anything other than experimenting.
+    # See https://www.vaultproject.io/docs/concepts/dev-server.html to know more
+    dev:
+      enabled: false
+
+    # Run Vault in "standalone" mode. This is the default mode that will deploy if
+    # no arguments are given to helm. This requires a PVC for data storage to use
+    # the "file" backend.  This mode is not highly available and should not be scaled
+    # past a single replica.
+    standalone:
+      enabled: "-"
+
+      # config is a raw string of default configuration when using a Stateful
+      # deployment. Default is to use a PersistentVolumeClaim mounted at /vault/data
+      # and store data there. This is only used when using a Replica count of 1, and
+      # using a stateful set. This should be HCL.
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "file" {
+          path = "/vault/data"
+        }
+
+        # Example configuration for using auto-unseal, using Google Cloud KMS. The
+        # GKMS keys must already exist, and the cluster must have a service account
+        # that is authorized to access GCP KMS.
+        #seal "gcpckms" {
+        #   project     = "vault-helm-dev"
+        #   region      = "global"
+        #   key_ring    = "vault-helm-unseal-kr"
+        #   crypto_key  = "vault-helm-unseal-key"
+        #}
+
+    # Run Vault in "HA" mode. There are no storage requirements unless audit log
+    # persistence is required.  In HA mode Vault will configure itself to use Consul
+    # for its storage backend.  The default configuration provided will work the Consul
+    # Helm project by default.  It is possible to manually configure Vault to use a
+    # different HA backend.
+    ha:
+      enabled: false
+      replicas: 3
+
+      # config is a raw string of default configuration when using a Stateful
+      # deployment. Default is to use a Consul for its HA storage backend.
+      # This should be HCL.
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "consul" {
+          path = "vault"
+          address = "HOST_IP:8500"
+        }
+
+        # Example configuration for using auto-unseal, using Google Cloud KMS. The
+        # GKMS keys must already exist, and the cluster must have a service account
+        # that is authorized to access GCP KMS.
+        #seal "gcpckms" {
+        #   project     = "vault-helm-dev-246514"
+        #   region      = "global"
+        #   key_ring    = "vault-helm-unseal-kr"
+        #   crypto_key  = "vault-helm-unseal-key"
+        #}
+
+      # A disruption budget limits the number of pods of a replicated application
+      # that are down simultaneously from voluntary disruptions
+      disruptionBudget:
+        enabled: true
+
+        # maxUnavailable will default to (n/2)-1 where n is the number of
+        # replicas. If you'd like a custom value, you can specify an override here.
+        maxUnavailable: null
+
+    # Definition of the serviceAccount used to run Vault.
+    serviceAccount:
+      annotations: { }
+
+  # Vault UI
   ui:
   # True if you want to create a Service entry for the Vault UI.
   #
