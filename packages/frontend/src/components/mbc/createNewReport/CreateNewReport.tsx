@@ -13,7 +13,7 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 // @ts-ignore
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { ApiClient } from '../../../services/ApiClient';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import { trackEvent } from '../../../services/utils';
 
 // @ts-ignore

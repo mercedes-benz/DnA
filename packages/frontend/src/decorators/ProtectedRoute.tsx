@@ -10,6 +10,7 @@ import { Pkce } from '../../src/services/Pkce';
 import Progress from '../components/progress/Progress';
 import { trackPageView } from '../services/utils';
 import AppContext from '../components/context/ApplicationContext';
+import ErrorBoundary from '../utils/ErrorBoundary';
 
 interface IProtectedRouteProps extends RouteProps {
   component: React.LazyExoticComponent<{ user: IUserInfo } | any>;
@@ -35,8 +36,7 @@ const initialUserState: IUserInfo = {
 };
 
 export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProtectedRouteState> {
-
-  constructor(props:IProtectedRouteProps) {
+  constructor(props: IProtectedRouteProps) {
     super(props);
     this.setMessage = this.setMessage.bind(this);
   }
@@ -45,7 +45,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
     loading: true,
     user: initialUserState,
     redirectPath: '',
-    message: 'COMPLETE_UPDATE_NOTIFICATIONS'
+    message: 'COMPLETE_UPDATE_NOTIFICATIONS',
   };
 
   public componentDidMount() {
@@ -85,18 +85,18 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
       });
   }
 
-  public setMessage(msg:string){
-    this.setState({message: msg});
+  public setMessage(msg: string) {
+    this.setState({ message: msg });
   }
 
   /* tslint:disable:jsx-no-lambda */
   public render(): JSX.Element {
     const { component: Component, ...rest } = this.props;
     const roles = this.state.user.roles;
-    const {message} = this.state;
-    const {setMessage} = this;
+    const { message } = this.state;
+    const { setMessage } = this;
     return (
-      <AppContext.Provider value={{message, setMessage}}>
+      <AppContext.Provider value={{ message, setMessage }}>
         <Route
           {...rest}
           render={(props) =>
@@ -104,11 +104,11 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
               const userHasAccess = roles.find((userRole) => userRole.id === allowedRole);
               return userHasAccess;
             }) ? (
-              <>
-                <Layout user={this.state.user}>
+              <ErrorBoundary>
+                <Layout user={this.state.user} {...props}>
                   <Component {...props} user={this.state.user} />
                 </Layout>
-              </>
+              </ErrorBoundary>
             ) : this.state.loading ? (
               <Progress show={true} />
             ) : this.state.redirectPath !== '' ? (
@@ -123,7 +123,6 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
           }
         />
       </AppContext.Provider>
-      
     );
   }
 }
