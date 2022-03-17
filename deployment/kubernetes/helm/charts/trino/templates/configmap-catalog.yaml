@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.catalog" . }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: catalogs
+data:
+  tpch.properties: |
+    connector.name=tpch
+    tpch.splits-per-node=4
+  tpcds.properties: |
+    connector.name=tpcds
+    tpcds.splits-per-node=4
+{{- range $catalogName, $catalogProperties := .Values.additionalCatalogs }}
+  {{ $catalogName }}.properties: |
+    {{- $catalogProperties | nindent 4 }}
+{{- end }}
+
+
