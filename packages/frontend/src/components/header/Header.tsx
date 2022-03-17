@@ -5,12 +5,11 @@ import { history } from './../../router/History';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './Header.scss';
 import { HeaderSearchBox } from './headerSearchBox/HeaderSearchBox';
-import { HeaderUserPanel } from './headerUserPanel/HeaderUserPanel';
-import { HeaderContactPanel } from './headerContactPanel/HeaderContactPanel';
+import HeaderUserPanel from './headerUserPanel/HeaderUserPanel';
+import HeaderContactPanel from './headerContactPanel/HeaderContactPanel';
 import { NotificationPanel } from './notificationpanel/NotificationPanel';
 import { NotificationApiClient } from '../../services/NotificationApiClient';
 import { Envs } from '../../globals/Envs';
-import { InfoModal } from '../../components/formElements/modal/infoModal/InfoModal';
 import AppContext from '../context/ApplicationContext';
 
 export interface IHeaderProps {
@@ -48,7 +47,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   }
 
   public render() {
-    const contentForInfoModal = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
     const {setMessage} = this.context;
     
     /******** Following line is using context API to check for change and then setting new value ********/
@@ -103,7 +101,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
                 title={this.props.user.firstName + ', ' + this.props.user.lastName}
                 onClick={this.toggleUserPanel}
               >
-                <div className={Styles.userIcon}>
+                <div className={classNames(Styles.userIcon, 'profile')}>
                   <i className="icon mbc-icon profile" />
                 </div>
                 <span className={classNames(Styles.status, 'hide')} />
@@ -114,9 +112,9 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
               <div
                 className={classNames(Styles.avatar, 'userAvatar')}
                 title={"Help"}
-                onClick={this.toggleContactPanel}
+                onClick={this.toggleHelpPanel}
               >
-                <div className={Styles.userIcon}>
+                <div className={classNames(Styles.userIcon, 'help')}>
                   <i className="icon mbc-icon help" />
                 </div>
                 <span className={classNames(Styles.status, 'hide')} />
@@ -124,8 +122,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
               <HeaderContactPanel
                 show={this.state.showContactPanel}
                 onClose={this.closeContactPanel}
-                user={this.props.user}
-                toggleContactPanelCallBack={this.toggleContactPanelCallBack}
               />
             </div>  
           </div>
@@ -135,13 +131,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
             <img className="app-logo" src={Envs.DNA_APP_LOGO_URL} />
           </div>
         </div>
-        <InfoModal
-          title={'Contact Us'}
-          modalWidth={'35vw'}
-          show={this.state.showInfoModal}
-          content={contentForInfoModal}
-          onCancel={this.onInfoModalCancel}
-        />
       </header>
     );
   }
@@ -169,25 +158,27 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   protected closeUserPanel = () => {
     this.setState({ showUserPanel: false });
   };
+
   protected closeContactPanel = () => {
     this.setState({ showContactPanel: false });
   };
+
   protected toggleUserPanel = () => {
     this.setState({ showUserPanel: !this.state.showUserPanel, notificationPanel: false });
   };
-  protected toggleContactPanel = () => {
-    this.setState({ showContactPanel: !this.state.showContactPanel, notificationPanel: false });
-  };
-  protected toggleContactPanelCallBack = () => {
-    this.setState({ showInfoModal: !this.state.showInfoModal });
-  };
+
   protected toggleNotificationPanel = () => {
     this.setState({ notificationPanel: !this.state.notificationPanel });
   };
+
   protected closeNotificationPanel = () => {
     this.setState({ notificationPanel: false });
   };
 
+  protected toggleHelpPanel = () => {
+    this.setState({ showContactPanel: !this.state.showContactPanel, notificationPanel: false });
+  };
+  
   protected toggleNavigation = () => {
     this.setState({ showNavigation: !this.state.showNavigation });
   };
@@ -197,13 +188,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
     if (getPath().includes('/portfolio')) {
       history.go(0);
     }
-  };
-
-  protected showInfoModal = () => {
-    this.setState({ showInfoModal: true });
-  };
-  protected onInfoModalCancel = () => {
-    this.setState({ showInfoModal: false });
   };
 }
 Header.contextType = AppContext;

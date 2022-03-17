@@ -52,7 +52,11 @@ spec:
               value: {{ .Values.app.backend.config.loggingPath | quote }}
             - name: LOGGING_ENVIRONMENT
               value: {{ .Values.app.backend.config.loggingEnvironment | quote }}
-
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: jwt.secret.key
+                  name: {{ .Values.app.backend.secrets.name }}
           ports:
             - containerPort: 7272
               name: api

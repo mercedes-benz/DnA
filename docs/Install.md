@@ -99,6 +99,7 @@ To uninstall the helm app
 
 ```
 helm uninstall dna
+```
 
 
 DnA Platform can be configured quite a lot, have a look at possible config parameters:
