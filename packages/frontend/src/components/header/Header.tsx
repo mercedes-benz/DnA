@@ -48,9 +48,6 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
 
   public render() {
     const {setMessage} = this.context;
-    const MemoizedHeaderUserPanel = React.memo(HeaderUserPanel);
-    const MemoizedHeaderContactPanel = React.memo(HeaderContactPanel);
-
     
     /******** Following line is using context API to check for change and then setting new value ********/
     if(this.context.message === 'UPDATE_NOTIFICATIONS'){
@@ -109,7 +106,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
                 </div>
                 <span className={classNames(Styles.status, 'hide')} />
               </div>
-              <MemoizedHeaderUserPanel show={this.state.showUserPanel} onClose={this.closeUserPanel} user={this.props.user} />
+              <HeaderUserPanel show={this.state.showUserPanel} onClose={this.closeUserPanel} user={this.props.user} />
             </div>
             <div id='contactPanel' className={Styles.userInfoPanel}>
               <div
@@ -122,7 +119,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
                 </div>
                 <span className={classNames(Styles.status, 'hide')} />
               </div>
-              <MemoizedHeaderContactPanel
+              <HeaderContactPanel
                 show={this.state.showContactPanel}
                 onClose={this.closeContactPanel}
               />
