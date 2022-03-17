@@ -4,18 +4,18 @@ metadata:
   name: {{ .Release.Name }}-backend
   namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Values.appName }}backend
+    app: {{ .Release.Name }}backend
     zone: web
 spec:
   replicas: {{ .Values.app.backend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.appName }}backend
+      app: {{ .Release.Name }}backend
   template:
     metadata:
       labels:
         zone: web
-        app: {{ .Values.appName }}backend
+        app: {{ .Release.Name }}backend
     spec:
       containers:
         - env:
