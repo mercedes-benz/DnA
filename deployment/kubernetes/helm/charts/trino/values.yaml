@@ -104,3 +104,20 @@ serviceAccount:
   name: ""
   # Annotations to add to the service account
   annotations: {}
+
+authentication:
+  oidc:
+    enabled: false
+    https:
+      enabled: true
+      port: ""
+    issuer: ""
+    authUrl: ""
+    tokenUrl: ""
+    jwksUrl: ""
+    clientId: ""
+    clientSecret: ""
+    userInfoUrl: ""
+    scopes: "email"
+    claim: "sub"
+
