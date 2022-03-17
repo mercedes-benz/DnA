@@ -87,7 +87,9 @@ spec:
           - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE'
             value: {{ .Values.appFrontend.config.enableMalwareService | squote }} 
           - name: 'PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE'
-            value: {{ .Values.appFrontend.config.enableDataPipelineService | squote }} 
+            value: {{ .Values.appFrontend.config.enableDataPipelineService | squote }}
+          - name: 'PROJECTSMO_ENABLE_STORAGE_SERVICE'
+            value: {{ .Values.appFrontend.config.enableStorageService | squote }} 
           - name: 'PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE'
             value: {{ .Values.appFrontend.config.enabledMlPipelineService | squote }}
           - name: 'PROJECTSMO_ML_PIPELINE_URL'
