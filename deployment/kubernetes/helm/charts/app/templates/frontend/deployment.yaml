@@ -90,6 +90,8 @@ spec:
             value: {{ .Values.app.appFrontend.config.enableDataPipelineService | squote }} 
           - name: 'PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE'
             value: {{ .Values.app.appFrontend.config.enabledMlPipelineService | squote }}
+          - name: 'PROJECTSMO_ENABLE_STORAGE_SERVICE'
+            value: {{ .Values.app.appFrontend.config.enableStorageService | squote }}
           - name: 'PROJECTSMO_ML_PIPELINE_URL'
             value: {{ .Values.app.appFrontend.config.mlPipelineUrl | squote }}  
           - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_ONEAPI_INFO'

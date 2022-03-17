@@ -11,8 +11,8 @@ import {
   ISingleDataSources,
 } from '../../../../globals/types';
 import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
-import { Modal } from '../../../formElements/modal/Modal';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import Modal from '../../../formElements/modal/Modal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';

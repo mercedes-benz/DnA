@@ -6,7 +6,7 @@ import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progre
 const classNames = cn.bind(Styles);
 import ModuleUsageJsonList from './moduleUsage.json';
 
-import { Pagination } from '../../../pagination/Pagination';
+import Pagination from '../../../pagination/Pagination';
 import { IModuleUsage } from '../../../../../globals/types';
 import { SESSION_STORAGE_KEYS } from '../../../../../globals/constants';
 
