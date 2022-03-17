@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { Envs } from '../../../globals/Envs';
-import { InfoModal } from '../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
 import About from '../../../components/mbc/About/About';
 // import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
 import { history } from '../../../router/History';
@@ -24,7 +24,7 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
   useEffect(() => {
     eventClenUp();
 
-    if(props.show) {
+    if (props.show) {
       document.addEventListener('touchend', handleContactPanelOutside, true);
       document.addEventListener('click', handleContactPanelOutside, true);
     }
@@ -39,7 +39,7 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
   const eventClenUp = () => {
     document.removeEventListener('touchend', handleContactPanelOutside, true);
     document.removeEventListener('click', handleContactPanelOutside, true);
-  }
+  };
 
   const handleContactPanelOutside = (event: MouseEvent | TouchEvent) => {
     const helpMenuWrapper = document?.querySelector('#helpMenuContentWrapper');
@@ -70,17 +70,22 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
           {/* {getTranslatedLabel('Licences')} */}
           About
         </li>
-        <li onClick={() => { history.push('/license'); props.onClose(); }}>
+        <li
+          onClick={() => {
+            history.push('/license');
+            props.onClose();
+          }}
+        >
           {/* {getTranslatedLabel('Licences')} */}
           Licences
         </li>
       </ul>
       <InfoModal
-        title={showContactModal ? 'Contact Us': 'About'}
+        title={showContactModal ? 'Contact Us' : 'About'}
         hiddenTitle={showAboutModal}
         modalWidth={'35vw'}
         show={showAboutModal || showContactModal}
-        content={showContactModal? contactModalContent : <About />}
+        content={showContactModal ? contactModalContent : <About />}
         onCancel={() => {
           setShowContactModal(false);
           setShowAboutModal(false);
@@ -89,4 +94,4 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
       />
     </div>
   );
-};
+}
