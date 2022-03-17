@@ -1,8 +1,8 @@
 import cn from 'classnames';
 import * as React from 'react';
 import { DATA_COMPLIANCE_INFO_LINKS } from '../../../../globals/constants';
-import { ConfirmModal } from '../../../../components/formElements/modal/confirmModal/ConfirmModal';
-import { InfoModal } from '../../../../components/formElements/modal/infoModal/InfoModal';
+import ConfirmModal from '../../../../components/formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
 import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
 import { IAttachment, IDataCompliance, ILink, ITeams } from '../../../../globals/types';
 import AttachmentUploader from '../AttachmentUploader/AttachmentUploader';
@@ -168,11 +168,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <label>Step 1</label>
           <p>
             You start with the{' '}
-            <a
-              href={guidelinesLink}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={guidelinesLink} target="_blank" rel="noreferrer">
               Quick Check of the Initial Guidelines
             </a>{' '}
             to assess the legal criticality of your Use Case and to find out whether the application of the Expert
@@ -187,11 +183,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <label>Step 2</label>
           <p>
             If yes, you fill in the{' '}
-            <a
-              href={guidelinesLink}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={guidelinesLink} target="_blank" rel="noreferrer">
               Use Case Description
             </a>{' '}
             as part of the Expert Guidelines. From a comprehensive set of questions only those will be displayed in
@@ -203,11 +195,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <label>Step 3</label>
           <p>
             Your Use Case Description forms the basis for the{' '}
-            <a
-              href={guidelinesLink}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={guidelinesLink} target="_blank" rel="noreferrer">
               Use Case Evaluation
             </a>{' '}
             as part of the Expert Guidelines. DataQ will automatically display the relevant rules and measures to

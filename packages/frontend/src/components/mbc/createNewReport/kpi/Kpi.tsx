@@ -1,13 +1,13 @@
 import cn from 'classnames';
 import * as React from 'react';
 import Styles from './Kpi.scss';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import { IKpis, IKpiNames, IReportingCauses } from '../../../../globals/types';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
