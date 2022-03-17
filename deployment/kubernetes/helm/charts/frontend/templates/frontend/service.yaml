@@ -11,4 +11,4 @@ spec:
     protocol: TCP
     targetPort: 3000
   selector:
-    app: {{ .Values.appName }}frontend
+    app: {{ .Values.global.appName }}frontend
