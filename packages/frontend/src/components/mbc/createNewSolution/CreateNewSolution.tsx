@@ -17,7 +17,7 @@ import { USER_ROLE } from '../../../globals/constants';
 import { Envs } from '../../../globals/Envs';
 import { ApiClient } from '../../../services/ApiClient';
 // import { getQueryParameterByName } from '../../../services/Query';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 
 // @ts-ignore
 import * as _ from 'lodash';
