@@ -2,10 +2,15 @@ apiVersion: v2
 name: helm
 description: A Helm chart for Kubernetes
 dependencies:
-- name: app
-  repository: file://charts/app
+- name: frontend
+  repository: file://charts/frontend
   version: 0.1.0
-  condition: app.enabled
+  condition: frontend.enabled
+
+- name: backend
+  repository: file://charts/backend
+  version: 0.1.0
+  condition: backend.enabled
 
 - name: i3postgresql
   repository: file://charts/i3postgresql
