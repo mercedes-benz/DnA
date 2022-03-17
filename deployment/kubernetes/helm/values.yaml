@@ -219,7 +219,7 @@ clamav:
     storageClass: cinder
     accessModes: ReadWriteOnce
     size: 5G
-    
+
   resources:
     requests:
       memory: "512Mi"
@@ -342,7 +342,7 @@ dashboard:
   imagePullSecret: 
     name: harbor-pull-secrets
   cert:
-    certManager: daimler-acme
+    certManager: acme
   dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
   secret:
     name: dashboard-secrets
