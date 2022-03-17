@@ -15,7 +15,7 @@ import { Modal } from '../../formElements/modal/Modal';
 import NewSandbox from '../newSandbox/NewSandbox';
 import { Editdetails } from './editdetails/Editdetails';
 import Styles from './Notebook.scss';
-import { NotebookWorkspace } from './NotebookWorkspace';
+import NotebookWorkspace from './NotebookWorkspace';
 import Provisionsolution from '../provisionsolution/Provisionsolution';
 import FullScreenModeIcon from '../../icons/fullScreenMode/FullScreenModeIcon';
 
@@ -181,8 +181,9 @@ export default class Notebook extends React.Component<INotebookProps, INotebookS
                   ) : (
                     this.state.notebookStart && (
                       <NotebookWorkspace
-                        alternateNotebookisNeed={this.state.alternateNotebookisNeed}
-                        alternateNotebookUserName={this.props.user.id}
+                        enableFullScreenMode={this.state.fsNeed}
+                        isLabView={this.state.alternateNotebookisNeed}
+                        userName={this.props.user.id}
                       />
                     )
                   )}

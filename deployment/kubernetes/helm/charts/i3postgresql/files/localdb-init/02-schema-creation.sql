@@ -460,6 +460,13 @@ create table public.skill_nsql
 id TEXT primary key,
 data jsonb not null
 );
+
+create table if not exists additionalresources_nsql
+(
+id TEXT primary key,
+data jsonb not null
+);
+
 --
 -- DDL Script end
 --
