@@ -35,7 +35,7 @@ ingress:
   host: "" 
 
 imagePullSecret: 
-  name: harbor-pull-secret
+  name: harbor-pull-secrets
 cert:
   certManager: ""
 
