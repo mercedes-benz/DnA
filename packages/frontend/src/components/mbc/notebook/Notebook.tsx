@@ -11,7 +11,7 @@ import { IUserInfo, INotebookInfo, INotebookInfoData } from '../../../globals/ty
 import { history } from '../../../router/History';
 import { attachEllipsis, trackEvent } from '../../../services/utils';
 import { ApiClient } from '../../../services/ApiClient';
-import { Modal } from '../../formElements/modal/Modal';
+import Modal from '../../formElements/modal/Modal';
 import NewSandbox from '../newSandbox/NewSandbox';
 import { Editdetails } from './editdetails/Editdetails';
 import Styles from './Notebook.scss';

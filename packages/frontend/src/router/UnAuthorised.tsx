@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { getTranslatedLabel } from '../globals/i18n/TranslationsProvider';
 
-export const UnAuthorised = () => (
+const UnAuthorised = () => (
   <div className="container">
     <div className="mainContainer content full">
       <div className="message">
@@ -16,3 +16,5 @@ export const UnAuthorised = () => (
     </div>
   </div>
 );
+
+export default UnAuthorised;
