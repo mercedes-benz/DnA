@@ -10,4 +10,4 @@ spec:
       protocol: TCP
       targetPort: 7171
   selector:
-    app: {{ .Values.appName }}backend
+    app: {{ .Release.Name }}backend
