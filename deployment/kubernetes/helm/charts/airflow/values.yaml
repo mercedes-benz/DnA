@@ -39,8 +39,6 @@ backend:
   flywayBaselineVersion: ""
   flywaySchema: ""
 
-
-
 pullSecretData: 
 secret:
   gitUserName: ""
