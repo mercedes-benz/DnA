@@ -741,6 +741,10 @@ export class ApiClient {
     return this.delete(`widget-preference/${id}`);
   }
 
+  public static enableEmailNotificationsForSolutions(enableEmailNotificationsForSolutions: boolean, userId: string) {
+    return this.put(`notifications`, { enableEmailNotificationsForSolutions, userId });
+  }
+
   public static downloadAttachment(attachment: IAttachment): Promise<any> {
     const id = attachment.id + '~' + attachment.fileName;
     const jwt = this.readJwt();

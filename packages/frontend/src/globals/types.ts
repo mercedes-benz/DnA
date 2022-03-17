@@ -1013,11 +1013,31 @@ export interface IFilterPreferences {
   useCaseType?: string;
   tags: ITag[];
 }
+
+export interface INoticationModuleWrapper {
+  modules: INoticationModules;
+}
+
+
+export interface INoticationModules {  
+  solution: [IAppNoticationEnableDiable,IEmailNoticationEnableDiable],
+  notebook: [IAppNoticationEnableDiable,IEmailNoticationEnableDiable]
+}
+
+export interface IAppNoticationEnableDiable {
+  enableAppNotifications: boolean
+}
+
+export interface IEmailNoticationEnableDiable {
+  enableEmailNotifications: boolean
+}
+
 export interface IUserPreference {
   filterPreferences: IFilterPreferences;
   id?: string;
   userId: string;
   widgetPreferences?: any[];
+  notificationPreferences?: INoticationModuleWrapper;
 }
 export interface IUserPreferenceRequest {
   data: IUserPreference;
