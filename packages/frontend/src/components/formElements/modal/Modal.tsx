@@ -1,8 +1,10 @@
+import classNames from 'classnames';
 import * as React from 'react';
 import Styles from './Modal.scss';
 
 export interface IModalProps {
   title: string;
+  hiddenTitle?: boolean;
   titleIconImage?: React.ReactNode;
   content: string | React.ReactNode;
   show: boolean;
@@ -39,7 +41,7 @@ export const Modal = (props: IModalProps) => {
     <div className={props.show ? 'mbc-modal-wrapper' : Styles.hide}>
       <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
         <header>
-          <h4>
+          <h4 className={classNames(props.hiddenTitle ? 'hidden' : '')}>
             {props.titleIconImage ? props.titleIconImage : null}
             {props.title}
           </h4>

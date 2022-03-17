@@ -32,10 +32,27 @@ spec:
                 secretKeyRef:
                   key: postgres.app.password
                   name: {{ .Values.secret.name }}
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                 key: jwt.secret.key
+                 name: {{ .Values.secret.name }} 
             - name: DNA_URI
               value: {{ .Values.appUrl }}
             - name: DNA_AUTH_ENABLE
               value: {{ .Values.enableAuth | quote}}
+            - name: LOGGING_PATH
+              value: {{ .Values.loggingPath | quote }}
+            - name: LOGGING_ENVIRONMENT
+              value: {{ .Values.loggingEnvironment | quote }}
+            - name: FLYWAY_ENABLED
+              value: {{ .Values.flywayBaseline | quote }}
+            - name: FLYWAY_BASELINE_ON_MIGRATE
+              value: {{ .Values.flywayBaselineOnMigrate | quote }}
+            - name: FLYWAY_BASELINEVERSION
+              value: {{ .Values.flywayBaselineVersion | quote }}
+            - name: FLYWAY_SCHEMA
+              value: {{ .Values.flywaySchema | quote }}
           ports:
             - containerPort: {{ .Values.containerPort }}
               name: api

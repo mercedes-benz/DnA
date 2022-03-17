@@ -12,7 +12,7 @@ app:
     replicaCount: 1
     secrets:
       name: oneapi-secrets
-      onapibasicauthtoken: 
+      onapiBasicAuthToken: 
     config:
       clamav_backend_url: clamav-service
       clamav_backend_port: 3310
