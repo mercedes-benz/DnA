@@ -55,7 +55,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		implements ReportCustomRepository {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(ReportCustomRepositoryImpl.class);
-	private static String noBookMarkId = "NOBOOKMARK";
+	private static String REGEX = "[\\[+\\]+:{}^~?\\\\/()><=\"!]";
 
 	@Override
 	public List<ReportNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> statuses, String userId,
@@ -154,19 +154,15 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			List<String> searchTerms, List<String> tags, String division, List<String> department,
 			List<String> processOwner, List<String> productOwner, List<String> art) {
 
-		return getPublishedAndMemberPredicate(published, userId, isAdmin) + "\n"
+		return getPublishedAndAccessPredicate(published, userId, isAdmin) + "\n"
 				+ getProjectStatusesPredicateString(statuses) + "\n" + getSearchTermsPredicateString(searchTerms) + "\n"
 				+ getTagsPredicateString(tags) + "\n" + getDivisionsPredicateString(division) + "\n"
 				+ getDepartmentsPredicateString(department) + "\n" + getProcessOwnersPredicateString(processOwner)
 				+ "\n" + getProductOwnersPredicateString(productOwner) + "\n" + getArtsPredicateString(art);
 	}
 
-	/*
-	 * To Return predicate if user is either creator,productOwners or Admin of the
-	 * reports
-	 * 
-	 */
-	private String getPublishedAndMemberPredicate(Boolean published, String userId, Boolean isAdmin) {
+
+	private String getPublishedAndAccessPredicate(Boolean published, String userId, Boolean isAdmin) {
 		String allTrueCondition = " (jsonb_extract_path_text(data,'publish') in ('true')) ";
 		String allFalseCondition = " (jsonb_extract_path_text(data,'publish') in ('false')) ";
 		String hasAccessPredicate = null;
@@ -209,7 +205,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	private String getSearchTermsPredicateString(List<String> searchTerms) {
 		if (searchTerms != null && !searchTerms.isEmpty()) {
 			String delimiterSeparatedSearchTerms = searchTerms.stream()
-					.map(n -> n.replaceAll("\\+", "\\\\+").toLowerCase()).collect(Collectors.joining("%|%", "%", "%"));
+					.map(n -> n.replaceAll(REGEX, "\\\\$0").toLowerCase()).collect(Collectors.joining("%|%", "%", "%"));
 
 			delimiterSeparatedSearchTerms = "'" + delimiterSeparatedSearchTerms + "'";
 			return "  and (" + "lower(jsonb_extract_path_text(data,'productName')) similar to "
@@ -243,7 +239,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 
 	private String getTagsPredicateString(List<String> tags) {
 		if (tags != null && !tags.isEmpty()) {
-			String delimiterSeparatedTags = tags.stream().map(n -> n.replaceAll("\\+", "\\\\+").toLowerCase())
+			String delimiterSeparatedTags = tags.stream().map(n -> n.replaceAll(REGEX, "\\\\$0").toLowerCase())
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedTags = "'" + delimiterSeparatedTags + "'";
 			return "  and (lower(jsonb_extract_path_text(data,'description','tags')) similar to "
@@ -263,7 +259,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 
 	private String getArtsPredicateString(List<String> arts) {
 		if (arts != null && !arts.isEmpty()) {
-			String delimiterSeparatedArts = arts.stream().map(n -> n.replaceAll("\\+", "\\\\+").toLowerCase())
+			String delimiterSeparatedArts = arts.stream().map(n -> n.replaceAll(REGEX, "\\\\$0").toLowerCase())
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedArts = "'" + delimiterSeparatedArts + "'";
 			return "  and (lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) similar to "

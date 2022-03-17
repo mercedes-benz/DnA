@@ -14,7 +14,7 @@ backend:
     dbUsername: ""
     gitToken: ""
     jwtKey: ""
-    oidcClientId: ""
+    oidcClientID: ""
     oidcClientSecret: ""
   containerPort: 7171
   host: ""
@@ -34,6 +34,11 @@ backend:
     retry: 20
   loggingPath: /tmp/airflow/log
   loggingEnvironment: dev
+  flywayBaseline: ""
+  flywayBaselineOnMigrate: ""
+  flywayBaselineVersion: ""
+  flywaySchema: ""
+
 
 
 pullSecretData: 
@@ -183,8 +188,3 @@ Storage:
   storageClass: cinder-retain
   accessModes: ReadWriteOnce
   size: 5Gi
-
-
-
-
-
