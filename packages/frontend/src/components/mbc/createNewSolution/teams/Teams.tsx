@@ -11,8 +11,8 @@ import AddRelatedProductModal from '../description/addRelatedProductModal/AddRel
 import Styles from './Teams.scss';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
-import { InfoModal } from '../../../formElements/modal/infoModal/InfoModal';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import { InputFields } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import { InfoList } from '../../../formElements/modal/infoModal/InfoList';
 import { RolesInfoList } from '../../../../globals/constants';

@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import Styles from './Customer.scss';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
 import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, ICustomerDetails } from '../../../../globals/types';
@@ -10,7 +10,7 @@ import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMembe
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 
 export interface ICustomerProps {
   customer: ICustomers;
