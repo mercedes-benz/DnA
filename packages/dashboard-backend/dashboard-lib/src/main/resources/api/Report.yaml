@@ -405,6 +405,8 @@ definitions:
       - frontendTechnologies
       - division
       - department
+      - tags
+      - agileReleaseTrains
   
   CustomerVO:
     type: object
@@ -439,7 +441,8 @@ definitions:
     required:
       - hierarchy
       - ressort
-      - department   
+      - department
+      - comment  
       
   KPIVO:
     type: object
@@ -461,6 +464,7 @@ definitions:
     required:
       - name
       - reportingCause 
+      - comment
           
   DataWarehouseVO:
     type: object
@@ -488,6 +492,13 @@ definitions:
         type: array
         items:
           type: string
+    required:
+      - dataWarehouse
+      - commonFunctions
+      - specificFunctions
+      - queries
+      - dataSources
+      - connectionTypes  
           
   SingleDataSourceVO:
     type: object
@@ -507,6 +518,7 @@ definitions:
     required:
       - dataSources
       - connectionTypes
+      - subsystems
       
   DataAndFunctionVO:
     type: object
@@ -535,9 +547,7 @@ definitions:
       admin:
         type: array
         items:
-          $ref: "#/definitions/TeamMemberVO"    
-    required:
-      - productOwners
+          $ref: "#/definitions/TeamMemberVO"
                              
   TeamMemberVO:
     type: object
@@ -623,7 +633,8 @@ definitions:
               "Members"
             ]  
     required:
-      - productName                      
+      - productName
+      - publish                      
 
   ReportRequestVO:
     type: object
