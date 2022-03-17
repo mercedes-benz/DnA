@@ -2,16 +2,79 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-appName: dna
-app:
-  enabled: true
-  namespace: helm-test
+#Suchart properties for frontend
+frontend:
+  enabled: false
+  namespace: dna
   imagePullSecret: 
-    name: harbor-pull-secret
+    name: harbor-pull-secrets
     key: "docker-config" 
   cert:
     certManager: acme
-  replicaCount: 1
+  traefik:
+    image: ""
+  ingress:
+    namespace: ingress
+    host: "ingress-host"
+    lbIP: ""
+  appFrontend:
+    replicaCount: 1
+    image: dna-frontend
+    config: 
+      oidcDisabled: true
+      oidcProvider: INTERNAL
+      apiBaseUrl: api
+      jupyterNotebookUrl: ""
+      jupyterNotebookOidcPopUpUrl: ""
+      dataikuLiveAppUrl: ""
+      dataikuTrainingAppUrl: ""
+      oauth2TokenUrl: ""
+      oauth2AuthUrl: ""
+      oauth2RevokeUrl: ""
+      oauth2LogoutUrl: ""
+      oauth2IntrospectionUrl: ""
+      oauth2UserInfoUrl: ""
+      frontendClientid: ""
+      redirectUrls: ""
+      swaggerUiUrl: ""
+      dataikuFerretUrl: ""
+      mlPipelineUrl: ""
+      appNameHeader: ""
+      appNameHome: ""
+      contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
+      brandLogoUrl: /images/branding/logo-brand.png
+      appLogoUrl: /images/branding/logo-app.png
+      enableInternalUserInfo: true
+      enableDataCompliance: true
+      enabledReports: false
+      enableJupyterWorkspace: false
+      enableDataikuWorkspace: false
+      enableMalwareService: false
+      enableDataPipelineService: false
+      enablePipelineService: false
+      enabledMlPipelineService: false
+      enableMalwareApiInfo: false
+      enableNotification: false
+      companyName: XYZ
+
+    ngnix:
+      jupyServer: http://proxy-public:8000
+      grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
+      avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
+      avscanMgwServer: http://microgateway.clamav.svc.cluster.local:80
+      airflowServer: http://airflow.airflow.svc.cluster.local:8080
+      naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
+      dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
+
+#Suchart properties for backend
+backend:
+  enabled: false
+  namespace: dna
+  imagePullSecret: 
+    name: harbor-pull-secrets
+    key: "docker-config" 
+  cert:
+    certManager: acme
   traefik:
     image: ""
   ingress:
@@ -72,55 +135,6 @@ app:
         flywayBaselineVersion: "0"
         flywaySchema: "public"
 
-    appFrontend:
-      replicaCount: 1
-      image: dna-frontend
-      config: 
-        oidcDisabled: true
-        oidcProvider: INTERNAL
-        apiBaseUrl: api
-        jupyterNotebookUrl: ""
-        jupyterNotebookOidcPopUpUrl: ""
-        dataikuLiveAppUrl: ""
-        dataikuTrainingAppUrl: ""
-        oauth2TokenUrl: ""
-        oauth2AuthUrl: ""
-        oauth2RevokeUrl: ""
-        oauth2LogoutUrl: ""
-        oauth2IntrospectionUrl: ""
-        oauth2UserInfoUrl: ""
-        frontendClientid: ""
-        redirectUrls: ""
-        swaggerUiUrl: ""
-        dataikuFerretUrl: ""
-        mlPipelineUrl: ""
-        appNameHeader: ""
-        appNameHome: ""
-        contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
-        brandLogoUrl: /images/branding/logo-brand.png
-        appLogoUrl: /images/branding/logo-app.png
-        enableInternalUserInfo: true
-        enableDataCompliance: true
-        enabledReports: false
-        enableJupyterWorkspace: false
-        enableDataikuWorkspace: false
-        enableMalwareService: false
-        enableDataPipelineService: false
-        enablePipelineService: false
-        enabledMlPipelineService: false
-        enableMalwareApiInfo: false
-        enableNotification: false
-        companyName: XYZ
-
-      ngnix:
-        jupyServer: http://proxy-public:8000
-        grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
-        avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
-        avscanMgwServer: http://microgateway.clamav.svc.cluster.local:80
-        airflowServer: http://airflow.airflow.svc.cluster.local:8080
-        naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
-        dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
-      
     vault:
       secret:
         name: vault-secrets
@@ -186,7 +200,7 @@ clamav:
   ingress:
     host: "" 
   imagePullSecret: 
-    name: harbor-pull-secret
+    name: harbor-pull-secrets
   cert:
     certManager: acme
   resources:
@@ -241,7 +255,7 @@ naas:
   ingress:
     host: ""
   imagePullSecret: 
-   name: harbor-pull-secret
+   name: harbor-pull-secrets
   cert:
     certManager: acme
   
@@ -319,7 +333,7 @@ dashboard:
   flywayBaselineVersion: "0"
   flywaySchema: "public"
   imagePullSecret: 
-    name: harbor-pull-secret
+    name: harbor-pull-secrets
   cert:
     certManager: acme
   host: ""
@@ -336,7 +350,7 @@ airflow:
   enabled: false
   namespace: airflow
   imagePullSecret: 
-    name: harbor-pull-secret
+    name: harbor-pull-secrets
   cert:
     certManager: acme
   backend:
