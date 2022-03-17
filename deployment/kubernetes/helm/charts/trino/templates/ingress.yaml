@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Chart.Name }}-ingress
+  namespace: {{ .Values.namespace }}
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik
@@ -10,7 +11,7 @@ metadata:
     cert-manager.io/cluster-issuer: {{ .Values.cert.certManager }}
 spec:
   rules:
-    - host: {{ .Values.backend.host }}
+    - host: {{ .Values.server.host }}
       http:
         paths:
           - backend:

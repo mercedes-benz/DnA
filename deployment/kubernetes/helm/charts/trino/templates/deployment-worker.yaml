@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "trino.worker" . }}
+  namespace: {{ .Values.namespace }}
   labels:
     app: {{ template "trino.name" . }}
     chart: {{ template "trino.chart" . }}
