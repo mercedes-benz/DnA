@@ -126,11 +126,6 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                         </span>
                       </Link>
                     </li>
-                    <li>
-                      <Link to="services">
-                        <span>&nbsp;</span>
-                      </Link>
-                    </li>
                   </ul>
                 </div>
               </div>

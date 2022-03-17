@@ -14,7 +14,7 @@ import { IAllSolutionsListItem, IAllSolutionsResult, IUserInfo } from '../../../
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import { getQueryParameterByName } from '../../../services/Query';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 import SearchListRowItem from './searchListRowItem/SearchListRowItem';
 import Styles from './SearchResults.scss';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
