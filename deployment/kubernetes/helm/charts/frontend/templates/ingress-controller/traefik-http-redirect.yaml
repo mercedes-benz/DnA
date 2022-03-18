@@ -11,7 +11,7 @@ spec:
     #- match: PathPrefix(`/`)
       kind: Rule
       services:
-        - name: {{ .Release.Name }}-frontend-service
+        - name: {{ .Release.Name }}-service
           port: 80
       middlewares:
         - name: https-redirect
