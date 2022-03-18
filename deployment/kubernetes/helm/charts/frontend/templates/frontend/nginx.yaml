@@ -48,7 +48,7 @@ data:
 
             resolver kube-dns.kube-system.svc.cluster.local valid=10s;
 
-            set $backend "http://{{ .Release.Name }}-backend-service.{{ .Values.namespace }}.svc.cluster.local:80";
+            set $backend {{ .Values.appFrontend.ngnix.backend | quote }};
 
             set $jupy_server {{ .Values.appFrontend.ngnix.jupyServer | quote }};
 
