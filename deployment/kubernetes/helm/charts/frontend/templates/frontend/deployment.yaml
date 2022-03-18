@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-frontend
+  name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Release.Name }}frontend
+    app: {{ .Release.Name }}
     zone: web
     
 spec:
   replicas: {{ .Values.appFrontend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}frontend
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
         zone: web
-        app: {{ .Release.Name }}frontend
+        app: {{ .Release.Name }}
     spec:
       containers:
         - env:
