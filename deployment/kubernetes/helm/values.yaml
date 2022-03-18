@@ -51,6 +51,7 @@ frontend:
       enableDataikuWorkspace: false
       enableMalwareService: false
       enableDataPipelineService: false
+      enableStorageService: false
       enablePipelineService: false
       enabledMlPipelineService: false
       enableMalwareApiInfo: false
