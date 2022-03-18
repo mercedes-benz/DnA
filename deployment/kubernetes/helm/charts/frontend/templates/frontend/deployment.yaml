@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-frontend
+  name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Release.Name }}frontend
+    app: {{ .Release.Name }}
     zone: web
     
 spec:
   replicas: {{ .Values.appFrontend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}frontend
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
         zone: web
-        app: {{ .Release.Name }}frontend
+        app: {{ .Release.Name }}
     spec:
       containers:
         - env:
           - name: PROJECTSMO_BACKEND_HOST
-            value: {{ .Release.Name }}backend
+            value: {{ .Values.appFrontend.config.backendHost }}
           - name: PROJECTSMO_BACKEND_PORT
             value: "80"
           - name: PROJECTSMO_FRONTEND_OIDC_DISABLED
