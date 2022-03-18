@@ -5,7 +5,7 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
-import { Pagination } from '../../pagination/Pagination';
+import Pagination from '../../pagination/Pagination';
 import Styles from './TagHandling.scss';
 
 import { IFitlerCategory, ITagResult, IDatawarehouseInItem } from '../../../../globals/types';
@@ -14,8 +14,8 @@ import { ISortField } from '../../allSolutions/AllSolutions';
 import { TagRowItem } from './tagrowitem/TagRowItem';
 
 import { SESSION_STORAGE_KEYS } from '../../../../globals/constants';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
-import { InfoModal } from '../../../formElements/modal/infoModal/InfoModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
 import Tags from '../../../formElements/tags/Tags';
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
 

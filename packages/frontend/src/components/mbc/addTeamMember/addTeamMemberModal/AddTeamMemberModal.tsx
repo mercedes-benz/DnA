@@ -7,7 +7,7 @@ import { ITeams } from '../../../../globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 // @ts-ignore
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
-import { Modal } from '../../../formElements/modal/Modal';
+import  Modal from '../../../formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
 import { Envs } from '../../../../globals/Envs';
 import * as Validation from '../../../../utils/Validation';
