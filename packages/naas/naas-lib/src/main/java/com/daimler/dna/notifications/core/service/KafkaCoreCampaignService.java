@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -63,6 +64,9 @@ public class KafkaCoreCampaignService {
 	@Autowired
 	private CacheUtil cacheUtil;
 
+	@Value("${kafka.centralTopic.name}")
+	private String dnaCentralTopicName;
+	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
 	 * centralTopicListnerToPublishToUsers(GenericEventRecord message) {
@@ -101,7 +105,7 @@ public class KafkaCoreCampaignService {
 	}
 
 	public void publishMessageTocentralTopic(GenericEventRecord request) {
-		dynamicProducer.sendMessage("dnaCentralEventTopic ", request);
+		dynamicProducer.sendMessage(dnaCentralTopicName, request);
 	}
 
 	public List<String> getEventCategories(String userId) {
