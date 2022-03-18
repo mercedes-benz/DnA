@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Release.Name }}-frontend-ingress
+  name: {{ .Release.Name }}-ingress
   namespace: {{ .Values.namespace }}
   annotations:
     traefik.frontend.rule.type: PathPrefix
@@ -16,7 +16,7 @@ spec:
         paths:
           - backend:
               service:
-                name: {{ .Release.Name }}-frontend-service
+                name: {{ .Release.Name }}-service
                 port:
                   name: api-http
             path: /
