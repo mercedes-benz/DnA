@@ -23,7 +23,7 @@ export interface IMainNavigationState {
 
 const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN];
 
-export class MainNavigation extends React.Component<IMainNavigationProps, IMainNavigationState> {
+export default class MainNavigation extends React.Component<IMainNavigationProps, IMainNavigationState> {
   protected isTouch = false;
   protected mainNavContainer: HTMLDivElement;
 
@@ -227,7 +227,12 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
                 className={classNames('nav-item', { active: getPath().includes(navItem.route) })}
                 title={navItem.title}
               >
-                <Link className="nav-link" to={navItem.route}>
+                <Link
+                  className="nav-link"
+                  to={{
+                    pathname: navItem.route,
+                  }}
+                >
                   <i className={classNames('icon', 'mbc-icon', navItem.icon)} />
                   {getTranslatedLabel(navItem.title)}
                 </Link>

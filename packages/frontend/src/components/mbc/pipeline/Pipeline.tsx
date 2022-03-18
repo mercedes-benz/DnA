@@ -8,16 +8,16 @@ import Styles from './Pipeline.scss';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { Link } from 'react-router-dom';
 const classNames = cn.bind(Styles);
-import { Modal } from '../../formElements/modal/Modal';
+import Modal from '../../formElements/modal/Modal';
 import PipelineSubModel from './pipelineSubModel/PipelineSubModel';
 import PipelineSubList from './pipelineSubList/PipelineSubList';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import { PipelineApiClient } from '../../../services/PipelineApiClient';
-import { InfoModal } from '../../formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../formElements/modal/infoModal/InfoModal';
 
 const Pipeline = () => {
   const [subscribePopup, setSubscribePopup] = useState(false);

@@ -9,7 +9,7 @@ import { IRole, IUserInfo, IUserRequestVO } from '../../../../globals/types';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 
-import { Pagination } from '../../pagination/Pagination';
+import Pagination from '../../pagination/Pagination';
 import UserInfoRowItem from './userinforowitem/UserInfoRowItem';
 import Styles from './UserRoleManagement.scss';
 
@@ -18,7 +18,7 @@ import { ISortField } from '../../allSolutions/AllSolutions';
 
 import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
 import { SESSION_STORAGE_KEYS } from '../../../../globals/constants';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 // const classNames = cn.bind(Styles);
 
 export interface IUserRoleManagementState {
