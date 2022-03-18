@@ -15,7 +15,7 @@ export interface IPaginationState {
   selectedPageNumber: number;
 }
 
-export class Pagination extends React.PureComponent<IPaginationProps, IPaginationState> {
+export default class Pagination extends React.PureComponent<IPaginationProps, IPaginationState> {
   constructor(props: IPaginationProps) {
     super(props);
     this.state = {

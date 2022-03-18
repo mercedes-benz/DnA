@@ -1,0 +1,151 @@
+/* The container must be positioned relative: */
+
+.custom-select {
+  position: relative;
+  font-family: "Roboto-Regular";
+  font-size: 14px;
+  width: 220px;
+  height: 40px;
+  select {
+    display: none;
+    /*hide original SELECT element: */
+  }
+  &.disabled {
+    .select-selected {
+      border-color: #D9DFE4;
+    }
+    .label, .icon {
+      color: #99a5b3 !important;
+
+      &::before, &::after {
+        background: #C0C8D0 !important;
+      }
+    }
+    pointer-events: none;
+  }
+}
+
+.select-selected {
+  color: #00ADEF;//Used by ripple animation
+  transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+  position: relative;
+  border-radius: 1px;
+
+  .label {
+    color: #383F49;
+    display: flex;
+  }
+  .animation-wrapper {
+    position: absolute;
+    right: 3px;
+    top: 1px;
+    width: 36px;
+    height: 36px;
+    display: block;
+    border-radius: 50%; 
+  }
+  &.open {
+    border: 0px solid !important;
+    box-shadow: 0 2px 15px 3px rgba(0,0,0,0.08);
+    background: white;
+    color: #697582;//Used by ripple animation
+    transition: box-shadow 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+    padding-bottom: 9px;
+    .animation-wrapper {
+      top: 2px;
+    }
+  }
+  .icon {
+    position: absolute;
+    right: 8px;
+    top: 9px;
+    &::before, &::after {
+      background: #697582 !important;
+    }
+  }
+  .values {
+    position: absolute;
+    top: 0;
+    line-height: 38px;
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+    padding: 0 38px 0 40px;
+    color: #383F49;
+  }
+}
+
+/* Style the arrow inside the select element: */
+
+/* Point the arrow upwards when the select box is open (active): */
+
+/* style the items (options), including the selected item: */
+
+.select-selected {
+  padding: 8px 16px;
+  border: 1px #C0C8D0 solid;
+  cursor: pointer;
+}
+.select-items div {
+  position: relative;
+  padding: 8px 16px;
+  border-bottom: none;
+  border-top: none;
+  cursor: pointer;
+  color: #383F49;
+  &:before {
+    content: "";
+    background: #D9DFE4;
+    position: absolute;
+    top: -100px;
+    left: 106px;
+    height: 200px;
+    width: 1px;
+    transform: rotate(90deg);
+  }
+}
+
+/* Style items (options): */
+
+.select-items {
+  position: relative;
+  left: 0;
+  right: 0;
+  top:0;
+  z-index: 99;
+  background: white;
+  box-shadow: 0 15px 15px 3px rgba(0, 0, 0, 0.08);
+  opacity: 1;
+  height: auto;
+  transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+  border-radius: 1px;
+}
+
+.select-selected.multiple, .select-items.multiple > div {
+  padding: 0 16px 0 6px;
+  .checkbox {
+    display: flex;
+    .wrapper {
+      width: 39px;
+      height: 39px;
+    }
+    .label {
+      line-height: 39px;
+    }
+  }
+}
+
+/* Hide the items when the select box is closed: */
+
+.select-hide {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.same-as-selected, .select-items div:hover {
+  background-color: #f2f5f6;
+  transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+}
