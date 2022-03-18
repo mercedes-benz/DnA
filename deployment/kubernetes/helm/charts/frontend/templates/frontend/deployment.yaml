@@ -21,7 +21,7 @@ spec:
       containers:
         - env:
           - name: PROJECTSMO_BACKEND_HOST
-            value: {{ .Release.Name }}backend
+            value: {{ .Values.appFrontend.ngnix.backend }}
           - name: PROJECTSMO_BACKEND_PORT
             value: "80"
           - name: PROJECTSMO_FRONTEND_OIDC_DISABLED
