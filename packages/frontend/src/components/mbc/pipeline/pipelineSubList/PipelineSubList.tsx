@@ -10,7 +10,7 @@ import {
 } from '../../../../globals/types';
 import { history } from '../../../../router/History';
 import { PipelineApiClient } from '../../../../services/PipelineApiClient';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';

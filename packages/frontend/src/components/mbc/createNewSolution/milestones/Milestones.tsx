@@ -19,7 +19,7 @@ import {
   IRolloutDetail,
 } from '../../../../globals/types';
 // import { ApiClient } from '../../../../services/ApiClient';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import Styles from './Milestones.scss';
 const classNames = cn.bind(Styles);

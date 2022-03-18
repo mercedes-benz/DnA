@@ -33,13 +33,13 @@ import {
   ITeams,
 } from '../../../globals/types';
 import { history } from '../../../router/History';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 
 import Styles from './AllReports.scss';
 import ReportListRowItem from './reportListRowItem/ReportListRowItem';
 
 import { getQueryParameterByName } from '../../../services/Query';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import ReportCardItem from './reportCardItem/ReportCardItem';
 import { trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/ReportsCSV';

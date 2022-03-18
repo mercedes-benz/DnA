@@ -21,15 +21,15 @@ import {
 } from '../../../globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
-import { Modal } from '../../formElements/modal/Modal';
+import Modal from '../../formElements/modal/Modal';
 import Provisionsolution from '../provisionsolution/Provisionsolution';
 import Styles from './ListProjects.scss';
 import ProjectListRowItem from './projectListRowItem/ProjectListRowItem';
 import { getDateFromTimestamp, convertTextToLink } from '../../../services/utils';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 import { getDataForCSV } from '../../../services/DataikuCSV';
 import DataNotExist from '../../dataNotExist/DataNotExist';
-import { InfoModal } from '../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
 import { SUPPORT_EMAIL_ID } from '../../../globals/constants';
 
 const classNames = cn.bind(Styles);
