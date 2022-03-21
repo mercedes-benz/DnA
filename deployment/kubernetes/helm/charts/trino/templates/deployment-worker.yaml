@@ -25,11 +25,11 @@ spec:
         component: worker
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
-      { { - with .Values.securityContext } }
+      {{ - with .Values.securityContext }}
       securityContext:
-        runAsUser: { { .runAsUser } }
-        runAsGroup: { { .runAsGroup } }
-      { { - end } }
+        runAsUser: {{ .runAsUser }}
+        runAsGroup: {{ .runAsGroup }}
+      {{ - end }}
       volumes:
         - name: config-volume
           configMap:
