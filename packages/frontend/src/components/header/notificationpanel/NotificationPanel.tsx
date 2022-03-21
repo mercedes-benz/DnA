@@ -58,7 +58,7 @@ export class NotificationPanel extends React.Component<IHeaderNotificationPanelP
         className={classNames((this.props.show) ? Styles.NotificationPanelContentesection : 'hide')}
         ref={this.connectContainer}
       >
-        <div className={Styles.uparrow}> &nbsp; </div>
+        <div className={Styles.uparrow} />
         {notifications? notifications.length > 0 ? 
         (
           <div>
