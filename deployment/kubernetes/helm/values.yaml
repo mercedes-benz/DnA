@@ -203,7 +203,7 @@ clamav:
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
-        auth_api_host: http://dna-backend-service.dna.svc.cluster.local:80/api/subscription/validate
+        auth_api_host: http://dna-app-backend-service.dna.svc.cluster.local:80/api/subscription/validate
         restricted_url_pattern: /avscan/api/v1/scan.*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
@@ -240,12 +240,16 @@ naas:
     backend:
       image: naas-backend
       secrets:
-        name: postgres-secrets
+        name: naas-app-secrets
+        jwtKey: ""
+        db: 
+          appUserName: ""
+          appPassword: ""
       config:
         api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
         naas_broker: broker01.kafka.svc.cluster.local:8001
         max_poll_records: 6000
-        dna_uri: http://dna-backend-service.dna.svc.cluster.local:80
+        dna_uri: http://dna-app-backend-service.dna.svc.cluster.local:80
         dna_auth_enable: true
         poll_time: 5000
         naas_central_topic: CentralEventTopic
@@ -253,17 +257,6 @@ naas:
         naas_centraldelte_topic: CentralDeleteTopic
         loggingPath: /tmp/naas/log
         loggingEnvironment: dev
-        jwtKey: ""
-    db: 
-      secrets: 
-        name: postgres-secrets
-        backupUserName: ""
-        backupUserPassword: "" 
-        dbAdminUserName: ""
-        dbAdminPassword: ""
-        patroniUserPassword: ""
-        appUserName: ""
-        appPassword: ""
     resources:
       requests:
         memory: "512Mi"
@@ -352,7 +345,7 @@ dashboard:
     appUserName: ""
     appPassword: ""
     jwtKey: ""
-  appUrl: http://dna-backend-service.dna.svc.cluster.local:80
+  appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
   enableAuth: true
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
