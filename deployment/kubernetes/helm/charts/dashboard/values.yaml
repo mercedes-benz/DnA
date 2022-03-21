@@ -11,7 +11,7 @@ secret:
   appUserName: ""
   appPassword: ""
   jwtKey: ""
-appUrl: http://dna-backend-service.dna.svc.cluster.local:80
+appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
 enableAuth: true
 loggingPath: /tmp/dashboard/log
 loggingEnvironment: ""
