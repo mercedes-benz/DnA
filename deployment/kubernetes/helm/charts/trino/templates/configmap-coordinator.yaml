@@ -39,18 +39,34 @@ data:
 
   config.properties: |
     coordinator=true
-{{- if gt (int .Values.server.workers) 0 }}
+  {{- if gt (int .Values.server.workers) 0 }}
     node-scheduler.include-coordinator=false
-{{- else }}
+  {{- else }}
     node-scheduler.include-coordinator=true
-{{- end }}
+  {{- end }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
     memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
     discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
-
+  {{- if .Values.authentication.oidc.enabled -}}
+    http-server.authentication.type=oauth2
+    web-ui.authentication.type=oauth2
+    {{- if .Values.authentication.https.enabled -}}
+    http-server.https.enabled=true
+    http-server.https.port={{ .Values.authentication.oidc.https.port }}
+    {{- end }}
+    http-server.authentication.oauth2.issuer={{ .Values.authentication.oidc.issuer }}
+    http-server.authentication.oauth2.auth-url={{ .Values.authentication.oidc.authUrl }}
+    http-server.authentication.oauth2.token-url={{ .Values.authentication.oidc.tokenUrl }}
+    http-server.authentication.oauth2.jwks-url={{ .Values.authentication.oidc.jwksUrl }}
+    http-server.authentication.oauth2.client-id={{ .Values.authentication.oidc.clientId }}
+    http-server.authentication.oauth2.client-secret={{ .Values.authentication.oidc.clientSecret }}
+    http-server.authentication.oauth2.userinfo-url={{ .Values.authentication.oidc.userInfoUrl}}
+    http-server.authentication.oauth2.scopes={{ .Values.authentication.oidc.scopes }}
+    http-server.authentication.oauth2.principal-field={{ .Values.authentication.oidc.claim }}
+  {{- end }}
   {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
   {{- end }}
