@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,22 +53,23 @@ public class KafkaProducerService {
 	private KafkaDynamicProducerService dynamicProducer;
 
 	@Transactional
-	public void send(String eventType, String publishingUser, String message, Boolean mail_required,
-			List<String> subscribedUsers) {
-		GenericEventRecord record = this.defaultRecordBuilder(eventType, publishingUser, message, mail_required,
-				subscribedUsers);
+	public void send(String eventType, String resourceId,String messageDetails, String publishingUser, String message, 
+			Boolean mail_required, List<String> subscribedUsers, List<ChangeLogVO> changeLogs) {
+		GenericEventRecord record = this.defaultRecordBuilder(eventType, resourceId, messageDetails, publishingUser,
+				message, mail_required, subscribedUsers, changeLogs);
 		dynamicProducer.sendMessage(topicName, record);
 	}
 
-	private GenericEventRecord defaultRecordBuilder(String eventType, String publishingUser, String message,
-			Boolean mail_required, List<String> subscribedUsers) {
+	private GenericEventRecord defaultRecordBuilder(String eventType, String resourceId, String messageDetails,
+			String publishingUser, String message, Boolean mail_required, List<String> subscribedUsers, List<ChangeLogVO> changeLogs) {
 		GenericEventRecord eventRecord = new GenericEventRecord();
 		eventRecord.setUuid(UUID.randomUUID().toString());
 		eventRecord.setPublishingAppName("DNA");
 		eventRecord.setPublishingUser(publishingUser);
 		eventRecord.setEventType(eventType);
 		eventRecord.setMessage(message);
-		eventRecord.setMailRequired(false);
+		eventRecord.setResourceId(resourceId);
+		eventRecord.setMessageDetails(messageDetails);
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 		eventRecord.setTime(dateFormatter.format(new Date()));
 		eventRecord.setSubscribedUsers(subscribedUsers);
