@@ -105,6 +105,7 @@ const prodConfig = {
     splitChunks: {
       chunks: 'all',
     },
+    concatenateModules: true,
   },
   stats: process.env.verbose === 'true' ? 'normal' : 'errors-only',
 };
