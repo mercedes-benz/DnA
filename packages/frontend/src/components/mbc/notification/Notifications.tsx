@@ -86,6 +86,7 @@ const Notifications = (props: any) => {
       })
       .catch((error) => {
         showErrorNotification('Something went wrong!');
+        ProgressIndicator.hide();
       });
   };
 
@@ -324,10 +325,10 @@ const Notifications = (props: any) => {
                   ''
                 )}
               </div>
-              {/* <div className={Styles.settingsBlock}>
-                <i className={classNames('icon mbc-icon search')} />
+              <div className={Styles.settingsBlock} onClick={()=> {history.push('/usersettings/')}}>
+                {/* <i className={classNames('icon mbc-icon search')} /> */}
                 Settings
-              </div> */}
+              </div>
             </div>
           </div>
 
