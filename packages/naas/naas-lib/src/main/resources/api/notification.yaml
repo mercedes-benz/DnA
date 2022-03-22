@@ -249,6 +249,10 @@ definitions:
     messageDetails:
      type: string
      description: "Detailed descriptions of the notification"
+    changeLogs:
+     type: array
+     items:
+      $ref: "#/definitions/ChangeLogVO"
     message:
       type: string
       description: "notification message"
@@ -258,6 +262,7 @@ definitions:
     dateTime:
       type: string
       description: "time of when notification was published"
+    
          
  NotificationCollectionVO:
     description: "Collection of notification."
@@ -339,9 +344,9 @@ definitions:
           message:
             type: string
             description: "Event message"
-          mailRequired: 
-            type: boolean
-            description: "boolean whether mail is required as part of notification"
+#          mailRequired: 
+#            type: boolean
+#            description: "boolean whether mail is required as part of notification"
           subscribedUsers:
             type: array
             description: "list of subscribed users shortIds" 
@@ -351,7 +356,7 @@ definitions:
       - eventType
       - publishingUser
       - message
-      - mailRequired
+#      - mailRequired
       - subscribedUsers
       
  CreatedByVO:
