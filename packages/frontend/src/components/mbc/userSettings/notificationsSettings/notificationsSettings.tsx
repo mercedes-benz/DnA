@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
-// import { ApiClient } from '../../../../services/ApiClient';
+import { ApiClient } from '../../../../services/ApiClient';
 import { IUserInfo } from '../../../../globals/types';
-import { INoticationModuleWrapper } from '../../../../globals/types';
+import { INoticationModules } from '../../../../globals/types';
+// @ts-ignore
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
+// @ts-ignore
+import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import Styles from './notificationsSettings.scss';
 import cn from 'classnames';
 const classNames = cn.bind(Styles);
@@ -19,97 +23,75 @@ const NotificationsSettings = (props: INotificationSettings) => {
     const [enableSystemNotificationForNotebooks, setEnableSystemNotificationForNotebooks] = useState(true);
     const [enableEmailNotificationForNotebooks, setEnableEmailNotificationForNotebooks] = useState(false);
     
-    const [notificationPreferences, setNotificationPreferences] = useState<INoticationModuleWrapper>();
+    const [notificationPreferences, setNotificationPreferences] = useState<INoticationModules>();
     
     
 
     useEffect(() => {
-        setNotificationPreferences({
-            modules: {        
-                solution: [        
-                    {enableAppNotifications: true},        
-                    {enableEmailNotifications: false}        
-                ],        
-                notebook: [        
-                    {enableAppNotifications: true},        
-                    {enableEmailNotifications: false}        
-                ]        
-            }        
-        });
-        // ApiClient.getUserPreference(props?.user?.id)
-        // .then((res) => {
-        //   if (res.length) {
-        //     setNotificationPreferences(res[1])
-        //   }
-        // }) 
+        // setNotificationPreferences({
+        //     solutionNotificationPref:        
+        //         {enableAppNotifications: true, enableEmailNotifications: false},
+        //     notebookNotificationPref:       
+        //         {enableAppNotifications: true, enableEmailNotifications: false},          
+        // });
+        ProgressIndicator.show();
+        ApiClient.getNotificationPreferences(props?.user?.id)
+        .then((res) => {
+          if (res) {
+            setNotificationPreferences(res);
+          }
+            ProgressIndicator.hide();
+        }) 
     },[])
     useEffect(() => {    
-        if(notificationPreferences?.modules){
-            const solutionModules = notificationPreferences?.modules?.solution;
-            solutionModules.forEach(item => {
-                for( const k in item){ 
-                    if (k == 'enableAppNotifications') {                        
-                        setEnableSystemNotificationForSolutions(item[k])
-                    }
-                    if (k == 'enableEmailNotifications') {
-                        setEnableEmailNotificationForSolutions(item[k])
-                    }
-                }
-            });
-            const notebookModules = notificationPreferences?.modules?.notebook;
-            notebookModules.forEach(item => {
-                for( const k in item){ 
-                    if (k == 'enableAppNotifications') {                        
-                        setEnableSystemNotificationForNotebooks(item[k])
-                    }
-                    if (k == 'enableEmailNotifications') {
-                        setEnableEmailNotificationForNotebooks(item[k])
-                    }
-                }
-            })
+        if(notificationPreferences){
+            const solutionModules = notificationPreferences?.solutionNotificationPref;
+                          
+            setEnableSystemNotificationForSolutions(solutionModules['enableAppNotifications'])
+                    
+            setEnableEmailNotificationForSolutions(solutionModules['enableEmailNotifications'])
             
+            const notebookModules = notificationPreferences?.notebookNotificationPref;
+            
+            setEnableSystemNotificationForNotebooks(notebookModules['enableAppNotifications'])
+                    
+            setEnableEmailNotificationForNotebooks(notebookModules['enableEmailNotifications'])
+                    
         }     
     }, [notificationPreferences]);
 
 
     const onChangeEmailNotificationForSolution = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEnableEmailNotificationForSolutions(e.target.checked);
-        
-        const target = notificationPreferences?.modules?.solution;
-        target.forEach(item => {
-            for( const k in item){ 
-                if (k == 'enableEmailNotifications') {
-                    item[k] = e.target.checked;
-               }
-            }
-        })
-        
+        const target = notificationPreferences?.solutionNotificationPref;
+        target['enableEmailNotifications'] = e.target.checked;
         setNotificationPreferences(notificationPreferences);
-        callToUpdatePreference();
+        const messageForNotification = e.target.checked ? 'Enabled Email Notification Successfully' : 'Disabled Email Notification Successfully';
+        callToUpdatePreference(messageForNotification);
     }
 
     const onChangeEmailNotificationForNotebook = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEnableEmailNotificationForNotebooks(e.target.checked);
-        
-        const target = notificationPreferences?.modules?.notebook;
-        target.forEach(item => {
-            for( const k in item){ 
-                if (k == 'enableEmailNotifications') {
-                    item[k] = e.target.checked;
-               }
-            }
-        })
-        
+        const target = notificationPreferences?.notebookNotificationPref;
+        target['enableEmailNotifications'] = e.target.checked;
         setNotificationPreferences(notificationPreferences);
-        callToUpdatePreference();
+        const messageForNotification = e.target.checked ? 'Enabled Email Notification Successfully' : 'Disabled Email Notification Successfully';
+        callToUpdatePreference(messageForNotification);
     }
 
-    const callToUpdatePreference = () => {
-        // ApiClient.enableEmailNotificationsForSolutions(enableEmailNotificationForSolutions, props?.user?.id).then(
-        //     res => {
-
-        //     }
-        // )
+    const callToUpdatePreference = (message: string) => {
+        ProgressIndicator.show();
+        ApiClient.enableEmailNotifications(notificationPreferences, props?.user?.id).then(
+            res => {
+                Notification.show(message);
+                ProgressIndicator.hide();
+            }
+        ).catch(
+            err => {
+                Notification.show('Something went wrong', 'alert');
+                ProgressIndicator.hide();
+            }
+        )
     }
 
 
@@ -192,7 +174,6 @@ const NotificationsSettings = (props: INotificationSettings) => {
                                     className="ff-only"
                                     checked={enableEmailNotificationForNotebooks}
                                     onChange={onChangeEmailNotificationForNotebook}
-                                    disabled
                                     />
                                 </span>
                                 <span className="label">

@@ -1014,22 +1014,15 @@ export interface IFilterPreferences {
   tags: ITag[];
 }
 
-export interface INoticationModuleWrapper {
-  modules: INoticationModules;
-}
-
 
 export interface INoticationModules {  
-  solution: [IAppNoticationEnableDiable,IEmailNoticationEnableDiable],
-  notebook: [IAppNoticationEnableDiable,IEmailNoticationEnableDiable]
+  solutionNotificationPref: INoticationEnableDisable;
+  notebookNotificationPref: INoticationEnableDisable;
 }
 
-export interface IAppNoticationEnableDiable {
-  enableAppNotifications: boolean
-}
-
-export interface IEmailNoticationEnableDiable {
-  enableEmailNotifications: boolean
+export interface INoticationEnableDisable {
+  enableAppNotifications: boolean;
+  enableEmailNotifications: boolean;
 }
 
 export interface IUserPreference {
@@ -1037,7 +1030,7 @@ export interface IUserPreference {
   id?: string;
   userId: string;
   widgetPreferences?: any[];
-  notificationPreferences?: INoticationModuleWrapper;
+  notificationPreferences?: INoticationModules;
 }
 export interface IUserPreferenceRequest {
   data: IUserPreference;
