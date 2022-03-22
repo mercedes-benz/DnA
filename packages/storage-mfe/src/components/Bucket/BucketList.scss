@@ -1,45 +1,4 @@
 .bucketList {
-    table {
-        tr {
-            th {
-                &:first-child {
-                    min-width: 230px;
-                }
-                &:nth-child(2) {
-                    min-width: 206px;
-                }
-                &:last-child {
-                    text-align: right;
-                    padding-right: 38px;
-                }
-            }
-        }
-        tr {
-            td {
-                &:last-child {
-                    text-align: right;
-                    padding-right: 38px;
-                }
-            }
-        }
-        tr th i {
-            cursor: pointer;
-            font-size: var(--font-size-icon-highlight);
-        }
-        tbody tr td {
-            font-size: var(--font-size-default) !important;
-        }
-    }
-    tr {
-        td {
-            color: #acb8c4 !important;
-        }
-        i {
-            &:hover {
-                color: #fff;
-            }
-        }
-    }
     button {
         i {
             font-size: var(--font-size-icon);
@@ -51,21 +10,7 @@
 }
 
 .bucketGrp {
-    .bucketGrpTitle {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-    }
     .bucketGrpList {
-        .bucketGrpListEmpty {
-            width: 100%;
-            height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #697582;
-            margin-top: 10px;
-        }
         .bucketGrpListItem {
             display: flex;
             flex-direction: column;
@@ -123,12 +68,6 @@
             .bucketGrpListItemPanel {
                 width: 100%;
                 border-bottom: 0;
-                .bucketGrpListItemexpansionPanel {
-                    border-top: 0px solid #697582;
-                }
-                .bucketContentCaption {
-                    padding: 14px 0px 13px 0;
-                }
                 .bucketTile {
                     display: flex;
                     align-items: center;
@@ -175,51 +114,56 @@
                         }
                     }
                 }
-                .bucketTileContentCollabarationPanel {
-                    padding-right: 0;
-                    .bucketCollTile {
-                        width: 100%;
-                        justify-content: space-between !important;
-                        height: 10px;
-                        margin-top: 20px;
-                        .actionBtn {
-                            padding: 0;
-                            margin: 0 10px;
-                            font-size: var(--font-size-smallest);
+                .bucketColContent {
+                    .projectList {
+                        padding: 5px 30px;
+                        border: 1px solid #383f49;
+                        margin: 8px 24px 15px 15px;
+                        background-color: #2d333b;
+                        .bucketTileCaption {
+                            border-bottom: 1px solid #383f49;
+                            padding: 9px 0;
+                            margin-bottom: 3px;
                         }
-                        h6 {
-                            font-size: var(--font-size-smallest);
-                            font-weight: initial;
-                            margin: 0;
-                        }
-                        .actionBtnGrp {
-                            button {
-                                &:hover {
-                                    background-color: transparent;
-                                    color: #00adef;
-                                }
+                        .noPermission {
+                            color: #e84d47;
+                            padding: 7px 0;
+                            display: flex;
+                            align-items: center;
+                            .noPermissionInfo {
+                                color: #99a5b3;
+                                font-size: var(--font-size-smallest);
+                                margin-top: -5px;
+                                cursor: default;
+                                margin-left: 2px;
                             }
                         }
                     }
-                }
-                .bucketColContent {
-                    .actionBtnGrp {
-                        display: flex;
-                        justify-content: flex-end;
-                    }
-                    button {
-                        background-color: transparent;
-                        font-size: 12px;
-                        outline: 0;
-                        border: 0;
-                        float: right;
-                        padding: 0;
-                        color: #99a5b3;
-                        margin-right: 20px;
-                        &:hover {
-                            color: #00adef;
-                            span {
-                                text-decoration: underline;
+                    .projectListAction {
+                        .actionBtnGrp {
+                            margin-right: 27px;
+                            margin-top: -12px;
+                            button {
+                                background-color: transparent;
+                                font-size: 12px;
+                                outline: 0;
+                                border: 0;
+                                float: right;
+                                padding: 0;
+                                color: #99a5b3;
+                                margin-right: 20px;
+                                font-size: 12px;
+                                &:hover {
+                                    background-color: transparent;
+                                    color: #fff;
+                                    span {
+                                        text-decoration: underline;
+                                        color: #00adef;
+                                    }
+                                    i {
+                                        color: #00adef;
+                                    }
+                                }
                             }
                         }
                     }
@@ -232,6 +176,33 @@
         }
     }
 }
+
+.actionBtnGrp {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    button {
+        background-color: transparent;
+        border: 0;
+        font-size: var(--font-size-smallest);
+        padding: 0;
+        color: #acb8c4;
+        margin: 0;
+        &:hover {
+            background-color: transparent;
+            color: #fff;
+            i {
+                color: #00adef;
+            }
+        }
+        &:hover {
+            span {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
 .expansionLabel {
     .bucketTile {
         .bucketTitleCol {
@@ -244,4 +215,7 @@
             }
         }
     }
+}
+.noCollaborators {
+    font-size: var(--font-size-smallest);
 }

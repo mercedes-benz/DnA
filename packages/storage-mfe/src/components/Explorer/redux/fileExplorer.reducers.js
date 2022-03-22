@@ -311,6 +311,20 @@ export const fileExplorerReducer = (state = fileExplorerInitialState, action) =>
           fileMap: action.payload,
         },
       });
+    case 'UPDATE_ROOT_NAME':
+      return {
+        ...state,
+        files: {
+          ...state.files,
+          fileMap: {
+            ...state.files.fileMap,
+            [action.payload.rootId]: {
+              ...state.files.fileMap[action.payload.rootId],
+              name: action.payload.name,
+            },
+          },
+        },
+      };
     default:
       return state;
   }
