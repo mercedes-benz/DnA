@@ -73,6 +73,7 @@ public class KafkaProducerService {
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 		eventRecord.setTime(dateFormatter.format(new Date()));
 		eventRecord.setSubscribedUsers(subscribedUsers);
+		eventRecord.setChangeLogs(changeLogs);
 		log.debug("New event record created with detail eventtype : {} " + "publishingUser: {} and subscribers: {}",
 				eventType, publishingUser, subscribedUsers);
 		return eventRecord;
