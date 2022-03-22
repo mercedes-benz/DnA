@@ -122,4 +122,18 @@ authentication:
     claim: "sub"
 
 hivemetastore:
-  enabled: false
+  image: ""
+  requests:
+    memory: "8G"
+    cpu: 2
+  minio:
+    host: ""
+    accessKey: ""
+    secretkey: ""
+    warehouseBucketName: ""
+  postgres:
+    host: ""
+    db: ""
+    user: ""
+    password: ""
+
