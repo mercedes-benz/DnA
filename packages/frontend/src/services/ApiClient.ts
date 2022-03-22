@@ -746,8 +746,8 @@ export class ApiClient {
     return this.get(`notification-preferences?userId=${userId}`);
   }
 
-  public static enableEmailNotifications(notificationPreferences: INoticationModules, userId: string) {
-    return this.post(`notification-preferences`, { data: notificationPreferences, userId });
+  public static enableEmailNotifications(notificationPreferences: INoticationModules) {
+    return this.post(`notification-preferences`, { data: notificationPreferences });
   }
 
   public static downloadAttachment(attachment: IAttachment): Promise<any> {
