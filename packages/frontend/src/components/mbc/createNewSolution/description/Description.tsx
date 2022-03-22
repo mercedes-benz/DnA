@@ -26,7 +26,7 @@ import AddRelatedProductModal from './addRelatedProductModal/AddRelatedProductMo
 import Styles from './Description.scss';
 import LogoManager from './logoManager/LogoManager';
 import Tags from '../../../formElements/tags/Tags';
-import { InfoModal } from '../../../formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
 import { Envs } from '../../../../globals/Envs';
 import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent } from '../../../../globals/constants';
 import { InfoList } from '../../../formElements/modal/infoModal/InfoList';

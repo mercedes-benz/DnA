@@ -30,7 +30,7 @@ export interface IHeaderState {
   totalRecordCount: number;
 }
 
-export class Header extends React.Component<IHeaderProps, IHeaderState> {
+export default class Header extends React.Component<IHeaderProps, IHeaderState> {
   protected showPanel: () => {};
 
   public constructor(props: IHeaderProps, context?: any) {
@@ -42,15 +42,15 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
       notificationPanel: false,
       notifications: [],
       showInfoModal: false,
-      totalRecordCount: 0
+      totalRecordCount: 0,
     };
   }
 
   public render() {
-    const {setMessage} = this.context;
-    
+    const { setMessage } = this.context;
+
     /******** Following line is using context API to check for change and then setting new value ********/
-    if(this.context.message === 'UPDATE_NOTIFICATIONS'){
+    if (this.context.message === 'UPDATE_NOTIFICATIONS') {
       setMessage('COMPLETE_UPDATE_NOTIFICATIONS');
       this.fetchNotification();
     }
@@ -78,13 +78,23 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
         </div>
         <div className={Styles.appWrapper}>
           <HeaderSearchBox />
-          <div className={classNames(Styles.headerIcons,'app-info')}>
-            <div id='notificationPanel' className={classNames(Styles.userInfoPanel, Envs.ENABLE_NOTIFICATION ? '' : 'hide')}>
+          <div className={classNames(Styles.headerIcons, 'app-info')}>
+            <div
+              id="notificationPanel"
+              className={classNames(Styles.userInfoPanel, Envs.ENABLE_NOTIFICATION ? '' : 'hide')}
+            >
               <div onClick={this.toggleNotificationPanel} className={classNames(Styles.avatar, 'userAvatar')}>
                 <div className={Styles.userIcon}>
-                  <i className={ classNames("icon mbc-icon notification", this.state.totalRecordCount > 0 ? Styles.notificationIcon : '')} />
+                  <i
+                    className={classNames(
+                      'icon mbc-icon notification',
+                      this.state.totalRecordCount > 0 ? Styles.notificationIcon : '',
+                    )}
+                  />
                 </div>
-                <span className={classNames(Styles.status, this.state.totalRecordCount > 0 ? '' : 'hide')}>{this.state.totalRecordCount > 99 ? '99+' : this.state.totalRecordCount}</span>
+                <span className={classNames(Styles.status, this.state.totalRecordCount > 0 ? '' : 'hide')}>
+                  {this.state.totalRecordCount > 99 ? '99+' : this.state.totalRecordCount}
+                </span>
               </div>
               <div className={Styles.notificationPanel}>
                 <NotificationPanel
@@ -95,7 +105,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
                 />
               </div>
             </div>
-            <div id='userInfoPanel' className={Styles.userInfoPanel}>
+            <div id="userInfoPanel" className={Styles.userInfoPanel}>
               <div
                 className={classNames(Styles.avatar, 'userAvatar')}
                 title={this.props.user.firstName + ', ' + this.props.user.lastName}
@@ -108,22 +118,15 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
               </div>
               <HeaderUserPanel show={this.state.showUserPanel} onClose={this.closeUserPanel} user={this.props.user} />
             </div>
-            <div id='contactPanel' className={Styles.userInfoPanel}>
-              <div
-                className={classNames(Styles.avatar, 'userAvatar')}
-                title={"Help"}
-                onClick={this.toggleHelpPanel}
-              >
+            <div id="contactPanel" className={Styles.userInfoPanel}>
+              <div className={classNames(Styles.avatar, 'userAvatar')} title={'Help'} onClick={this.toggleHelpPanel}>
                 <div className={classNames(Styles.userIcon, 'help')}>
                   <i className="icon mbc-icon help" />
                 </div>
                 <span className={classNames(Styles.status, 'hide')} />
               </div>
-              <HeaderContactPanel
-                show={this.state.showContactPanel}
-                onClose={this.closeContactPanel}
-              />
-            </div>  
+              <HeaderContactPanel show={this.state.showContactPanel} onClose={this.closeContactPanel} />
+            </div>
           </div>
           <div className={classNames(Styles.appLogo, 'app-info')}>
             {/* <h6 className="app-name">{getTranslatedLabel('HeaderName')}</h6> */}
@@ -141,18 +144,22 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
       // console.log(`The last navigation action was ${action}`)
     });
     clearInterval(window.NOTIFICATION_POLL_ID);
-    window.NOTIFICATION_POLL_ID = setInterval(()=>{this.fetchNotification();},10000);
+    window.NOTIFICATION_POLL_ID = setInterval(() => {
+      this.fetchNotification();
+    }, 10000);
     this.fetchNotification();
   }
 
-  protected fetchNotification() {    
-    if(Envs.ENABLE_NOTIFICATION){
-      NotificationApiClient.getNotifications('SACSHAR', 5, 0, 'unread').then((response: any) => {
-        this.setState({ notifications: response.records, totalRecordCount: response.totalRecordCount});
-      }).catch(()=>{
-        clearInterval(window.NOTIFICATION_POLL_ID);
-      });
-    }    
+  protected fetchNotification() {
+    if (Envs.ENABLE_NOTIFICATION) {
+      NotificationApiClient.getNotifications(this.props.user.id, 5, 0, 'unread')
+        .then((response: any) => {
+          this.setState({ notifications: response.records, totalRecordCount: response.totalRecordCount });
+        })
+        .catch(() => {
+          clearInterval(window.NOTIFICATION_POLL_ID);
+        });
+    }
   }
 
   protected closeUserPanel = () => {
@@ -178,7 +185,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
   protected toggleHelpPanel = () => {
     this.setState({ showContactPanel: !this.state.showContactPanel, notificationPanel: false });
   };
-  
+
   protected toggleNavigation = () => {
     this.setState({ showNavigation: !this.state.showNavigation });
   };

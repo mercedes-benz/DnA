@@ -7,7 +7,7 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { InfoModal } from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
 import { ApiClient } from '../../../../services/ApiClient';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import DigitalValuePopupContent from './DigitalValuePopupContent';

@@ -84,6 +84,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_DATA_PIPELINE_SERVICE, false),
+  ENABLE_STORAGE_SERVICE:
+    getInjectedEnv('ENABLE_STORAGE_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_STORAGE_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_STORAGE_SERVICE, false),
   ENABLE_ML_PIPELINE_SERVICE:
     getInjectedEnv('ENABLE_ML_PIPELINE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_ML_PIPELINE_SERVICE')
@@ -97,8 +101,8 @@ export const Envs = {
     getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI_INFO') !== undefined
       ? getInjectedEnv('ENABLE_MALWARE_SCAN_ONEAPI_INFO')
       : EnvParser.parseBool(process.env.ENABLE_MALWARE_SCAN_ONEAPI_INFO, false),
-  ENABLE_NOTIFICATION:    
-      getInjectedEnv('ENABLE_NOTIFICATION') !== undefined
-        ? getInjectedEnv('ENABLE_NOTIFICATION')
-        : EnvParser.parseBool(process.env.ENABLE_NOTIFICATION, false),
+  ENABLE_NOTIFICATION:
+    getInjectedEnv('ENABLE_NOTIFICATION') !== undefined
+      ? getInjectedEnv('ENABLE_NOTIFICATION')
+      : EnvParser.parseBool(process.env.ENABLE_NOTIFICATION, false),
 };
