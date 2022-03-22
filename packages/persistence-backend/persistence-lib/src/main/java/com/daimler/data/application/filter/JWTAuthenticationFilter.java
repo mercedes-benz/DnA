@@ -78,7 +78,7 @@ public class JWTAuthenticationFilter implements Filter {
 		injectSpringDependecies(servletRequest);
 		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
 		String requestUri = httpRequest.getRequestURI();
-		log.debug("Intercepting Request to validate JWT:" + requestUri);
+		log.debug("Intercepting Request to validate JWT:{}", requestUri);
 		String jwt = httpRequest.getHeader("Authorization");
 		if (!StringUtils.hasText(jwt)) {
 			log.error("Request UnAuthorized,No JWT available");
@@ -86,7 +86,7 @@ public class JWTAuthenticationFilter implements Filter {
 			return;
 		} else {
 			Claims claims = JWTGenerator.decodeJWT(jwt);
-			log.trace("Claims:" + claims.toString());
+			log.debug("Claims:{}", claims.toString());
 			String userId = (String) claims.get("id");
 			if (claims == null) {
 				log.error("Invalid  JWT!");
