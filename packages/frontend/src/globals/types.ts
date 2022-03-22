@@ -1018,6 +1018,7 @@ export interface IFilterPreferences {
 export interface INoticationModules {  
   solutionNotificationPref: INoticationEnableDisable;
   notebookNotificationPref: INoticationEnableDisable;
+  userId: string;
 }
 
 export interface INoticationEnableDisable {
