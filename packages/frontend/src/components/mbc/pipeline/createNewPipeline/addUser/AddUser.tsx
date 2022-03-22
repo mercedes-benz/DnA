@@ -120,6 +120,7 @@ export default class AddUser extends React.Component<IAddUserProps, IAddUserStat
           showNotFoundError: false,
         });
         this.props.getCollabarators(teamMemberObj, this.props.dagId);
+        this.setState({ userIdInternal: '' });
         ProgressIndicator.hide();
       })
       .catch(() => {
