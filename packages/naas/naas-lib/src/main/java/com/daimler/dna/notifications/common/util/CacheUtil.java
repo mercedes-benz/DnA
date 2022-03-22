@@ -176,6 +176,7 @@ public class CacheUtil {
 			markedMessage.setResourceId(vo.getResourceId());
 			markedMessage.setMessageDetails(vo.getMessageDetails());
 			markedMessage.setEventType(vo.getEventType());
+			markedMessage.setChangeLogs(vo.getChangeLogs());
 			markedMessage.setTime(vo.getDateTime());
 			markedMessage.setPublishingUser(cacheName);
 			markedMessage.setPublishingAppName("DNA");
