@@ -1,5 +1,3 @@
-import { history } from '../../store/storeRoot';
-
 const setBucketList = (data) => {
   return async (dispatch) => {
     dispatch({
@@ -11,13 +9,24 @@ const setBucketList = (data) => {
         type: 'BUCKET_DATA',
         payload: data,
       });
-      history.push('/');
+      setTimeout(() => {
+        dispatch({
+          type: 'BUCKET_LOADING',
+          payload: false,
+        });
+        dispatch({
+          type: 'SUBMISSION_MODAL',
+          payload: {
+            bucketId: data.id,
+            modal: true,
+          },
+        });
+      }, 1000);
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',
         payload: error?.response?.data?.message,
       });
-    } finally {
       dispatch({
         type: 'BUCKET_LOADING',
         payload: false,

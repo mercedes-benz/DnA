@@ -28,14 +28,14 @@ const FileExplorer = () => {
   const files = useSelector((state) => state.fileExplorer.files);
   const { fileName } = useParams();
 
-  const [currentFolderId, setCurrentFolderId] = useState(files.rootFolderId);
+  const [currentFolderId, setCurrentFolderId] = useState(files?.rootFolderId);
   const [newFolderName, setNewFolderName] = useState('');
   const [folderName, setFolderName] = useState('');
   const [show, setShow] = useState(false);
 
   const useFolderChain = (fileMap, currentFolderId) => {
     return useMemo(() => {
-      const currentFolder = fileMap[currentFolderId];
+      const currentFolder = fileMap?.[currentFolderId];
 
       const folderChain = [currentFolder];
 
@@ -53,7 +53,7 @@ const FileExplorer = () => {
       return folderChain;
     }, [currentFolderId, fileMap]);
   };
-  const folderChain = useFolderChain(files.fileMap, currentFolderId);
+  const folderChain = useFolderChain(files?.fileMap, currentFolderId);
 
   const currentFolderIdRef = useRef(currentFolderId);
   useEffect(() => {
@@ -65,6 +65,16 @@ const FileExplorer = () => {
       createFolder(newFolderName);
     }
   }, [newFolderName]);
+
+  useEffect(() => {
+    dispatch({
+      type: 'UPDATE_ROOT_NAME',
+      payload: {
+        rootId: files.rootFolderId,
+        name: fileName,
+      },
+    });
+  }, []);
 
   const createFolder = useCallback((newFolderName) => {
     const newFileMap = { ...files.fileMap };
@@ -200,7 +210,7 @@ const FileExplorer = () => {
     <div className="formGroup">
       <div className={'inputGrp input-field-group'}>
         <label className={'inputLabel input-label'}>New Folder Name</label>
-        <label className={'inputLabel input-label folderPath'}>{`${files.fileMap[currentFolderId]?.name} /`}</label>
+        <label className={'inputLabel input-label folderPath'}>{`${files?.fileMap?.[currentFolderId]?.name} /`}</label>
         <input
           type="text"
           className="input-field"
@@ -226,7 +236,7 @@ const FileExplorer = () => {
         </div>
         <div className={'content'}>
           <FullFileBrowser
-            files={files.fileMap[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
+            files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
             fileActions={myFileActions}
             onFileAction={handleAction}
             folderChain={folderChain}
