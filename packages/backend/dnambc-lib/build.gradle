@@ -372,6 +372,23 @@ swaggerSources {
         }
     }
     
+   userNotificationPreference {
+        def userNotificationPreferenceYaml = "${rootDir}/dnambc-lib/src/main/resources/api/UserNotificationPreference.yaml"
+        def userNotificationPreferenceJson = "${rootDir}/dnambc-lib/src/main/resources/api/UserNotificationPreference.json"
+        inputFile = file(userNotificationPreferenceYaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(userNotificationPreferenceJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
+    
    logoDetails {
         def logoYaml = "${rootDir}/dnambc-lib/src/main/resources/api/Logo.yaml"
         def logoJson = "${rootDir}/dnambc-lib/src/main/resources/api/Logo.json"
@@ -571,6 +588,8 @@ compileJava {
     source "${swaggerSources.widget.code.outputDir}/src/main/java"
     dependsOn swaggerSources.userWidgetPreference.code
     source "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.userNotificationPreference.code
+    source "${swaggerSources.userNotificationPreference.code.outputDir}/src/main/java"
     dependsOn swaggerSources.attachment.code
     source "${swaggerSources.attachment.code.outputDir}/src/main/java"
     dependsOn swaggerSources.relatedProduct.code
@@ -618,6 +637,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.solution.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.widget.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.userNotificationPreference.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.attachment.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.relatedProduct.code.outputDir}/src/main/java"}
         java { srcDirs += "${swaggerSources.lov.code.outputDir}/src/main/java"}
