@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import React, { useEffect, useState, useContext } from 'react';
-import { withRouter } from "react-router-dom";
+import { withRouter } from 'react-router-dom';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { IChangeLogData, IUserInfo } from '../../../globals/types';
@@ -16,19 +16,19 @@ import { history } from '../../../router/History';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 import SelectBox from '../../formElements/SelectBox/SelectBox';
 import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
 import { getQueryParameterByName } from '../../../services/Query';
 import NotificationListItem from './notificationListItem/NotificationListItem';
 import { IconGear } from '../../icons/IconGear';
 // import { INotificationDetails } from '../../../globals/types';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import AppContext from '../../context/ApplicationContext';
 
 export interface INotificationProps {
   user: IUserInfo;
-}  
+}
 
 const Notifications = (props: any) => {
   Tooltip.defaultSetup();
@@ -55,8 +55,7 @@ const Notifications = (props: any) => {
   const [notificationDetails, setNotificationDetails] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const {setMessage} = useContext(AppContext);
-
+  const { setMessage } = useContext(AppContext);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -70,25 +69,24 @@ const Notifications = (props: any) => {
   useEffect(() => {
     getNotifications();
     SelectBox.defaultSetup();
-  }, [
-    currentPageOffset, 
-    maxItemsPerPage
-  ]);
+  }, [currentPageOffset, maxItemsPerPage]);
 
   const getNotifications = () => {
     ProgressIndicator.show();
-    NotificationApiClient.getNotifications('SACSHAR', maxItemsPerPage, currentPageOffset).then((response) => {
-      const totalNumberOfPagesInner = Math.ceil(response.totalRecordCount / maxItemsPerPage);
-      setNotificationsList(response.records);
-      setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
-      setTotalNumberOfPages(totalNumberOfPagesInner);
-      ProgressIndicator.hide();
-      history.replace({
-        search: `?page=${currentPageNumber}`,
+    NotificationApiClient.getNotifications(props.user.id, maxItemsPerPage, currentPageOffset)
+      .then((response) => {
+        const totalNumberOfPagesInner = Math.ceil(response.totalRecordCount / maxItemsPerPage);
+        setNotificationsList(response.records);
+        setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
+        setTotalNumberOfPages(totalNumberOfPagesInner);
+        ProgressIndicator.hide();
+        history.replace({
+          search: `?page=${currentPageNumber}`,
+        });
+      })
+      .catch((error) => {
+        showErrorNotification('Something went wrong!');
       });
-    }).catch((error)=>{
-      ProgressIndicator.hide();
-    });
   };
 
   const onPaginationPreviousClick = () => {
@@ -140,7 +138,6 @@ const Notifications = (props: any) => {
     /**********************  Following one line will be uncommented if drawer is needed ******************/
     setHideDrawer(false);
     markNotificationAsRead([notificationDetails.id], false)
-
 
     // toggleDrawer();
   };
@@ -214,21 +211,21 @@ const Notifications = (props: any) => {
   const showErrorNotification = (message: string) => {
     // ProgressIndicator.hide();
     Notification.show(message, 'alert');
-  }
+  };
 
   const showNotification = (message: string) => {
     // ProgressIndicator.hide();
     Notification.show(message);
-  }
+  };
 
   const onInfoModalCancel = () => {
     setShowDeleteModal(false);
-  }
+  };
 
   const onAccept = () => {
     onInfoModalCancel();
-    removeSelected(); 
-  }
+    removeSelected();
+  };
 
   const openDeleteModal = () => {
     setShowDeleteModal(true);    
@@ -338,10 +335,9 @@ const Notifications = (props: any) => {
             <div className={Styles.listContent}>
               {notificationsList == null ? (
                 <div className={Styles.notificationListEmpty}>Notifications are not available</div>
+              ) : notificationsList.length == 0 ? (
+                <div className={Styles.notificationListEmpty}>Notifications are not available</div>
               ) : (
-                notificationsList.length == 0 ? (
-                  <div className={Styles.notificationListEmpty}>Notifications are not available</div>
-                ) : (
                 <React.Fragment>
                   <div className={Styles.notificationList}>
                     <table className={'ul-table'}>
@@ -375,7 +371,7 @@ const Notifications = (props: any) => {
                               Date / Time
                             </label>
                           </th>
-                          <th>{' '}</th>
+                          <th> </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -402,7 +398,7 @@ const Notifications = (props: any) => {
                     </table>
                   </div>
                 </React.Fragment>
-              ))}
+              )}
             </div>
 
             <div className={classNames(Styles.slider, hideDrawer ? Styles.close : '')}>
@@ -475,28 +471,27 @@ const Notifications = (props: any) => {
         )}
       </div>
       <ConfirmModal
-          title={''}
-          showAcceptButton={true}
-          showCancelButton={true}
-          acceptButtonTitle={'Confirm'}
-          cancelButtonTitle={'Cancel'}
-          show={showDeleteModal}
-          removalConfirmation={true}
-          content={
-            <div style={{ margin: '35px 0', textAlign: 'center' }}>
-              {/* <div>Delete Notification(s)</div> */}
-              <div className={classNames(Styles.removeConfirmationContent)}>
-                Are you sure to delete selected notification(s)?
-              </div>
+        title={''}
+        showAcceptButton={true}
+        showCancelButton={true}
+        acceptButtonTitle={'Confirm'}
+        cancelButtonTitle={'Cancel'}
+        show={showDeleteModal}
+        removalConfirmation={true}
+        content={
+          <div style={{ margin: '35px 0', textAlign: 'center' }}>
+            {/* <div>Delete Notification(s)</div> */}
+            <div className={classNames(Styles.removeConfirmationContent)}>
+              Are you sure to delete selected notification(s)?
             </div>
-          }
-          onCancel={onInfoModalCancel}
-          onAccept={onAccept}
-        />
+          </div>
+        }
+        onCancel={onInfoModalCancel}
+        onAccept={onAccept}
+      />
     </React.Fragment>
   );
 };
 Notifications.contextType = AppContext;
 export default withRouter(Notifications);
 delete Notifications.contextType;
-

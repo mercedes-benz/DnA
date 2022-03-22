@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Pkce } from '../../services/Pkce';
 import { ApiClient } from '../../services/ApiClient';
-import { ConfirmModal } from '../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../formElements/modal/confirmModal/ConfirmModal';
 let sessionTimeout: any;
 const SessionAlert = () => {
   const [modalOpen, setModalOpen] = useState(false);
