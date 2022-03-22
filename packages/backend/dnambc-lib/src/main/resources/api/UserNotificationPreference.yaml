@@ -108,6 +108,12 @@ paths:
    summary: "Get user notification preferences."
    description:  "Get user notification preferences"
    operationId: "getUserNotificationPreferences"
+   parameters:
+        - name: userId
+          in: query
+          description: shortId of the user
+          required: true
+          type: string  
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -130,19 +136,22 @@ definitions:
  UserNotificationPrefVO:
   type: object
   properties: 
+    id:
+     type: string
+     description: "ID of notification"
     userId:
      type: string
      description: "short Identifier of user"
     solutionNotificationPref:
-      $ref: "#/definitions/NotificationPreference"
+      $ref: "#/definitions/NotificationPreferenceVO"
     notebookNotificationPref:
-      $ref: "#/definitions/NotificationPreference"
+      $ref: "#/definitions/NotificationPreferenceVO"
   required:
      - userId
      - solutionNotificationPref
      - notebookNotificationPref
      
- NotificationPreference:
+ NotificationPreferenceVO:
   type: object
   properties:
     enableAppNotifications:
@@ -158,6 +167,8 @@ definitions:
     data:
       description: "Request data containing user notification preferences to be saved"
       $ref: "#/definitions/UserNotificationPrefVO"
+  required:
+    - data
       
  BindingResult:
   type: object
