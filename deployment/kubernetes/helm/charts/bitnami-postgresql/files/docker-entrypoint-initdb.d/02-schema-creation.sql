@@ -395,7 +395,7 @@ CREATE TABLE public.userinfo_nsql (
     token character varying
 );
 
-ALTER TABLE userinfo_nsql
+ALTER TABLE public.userinfo_nsql
 ADD COLUMN is_logged_in character varying;
 
 ALTER TABLE public.userinfo_nsql OWNER TO admin;
@@ -463,7 +463,7 @@ id TEXT primary key,
 data jsonb not null
 );
 
-create table if not exists additionalresources_nsql
+create table if not exists public.additionalresources_nsql
 (
 id TEXT primary key,
 data jsonb not null

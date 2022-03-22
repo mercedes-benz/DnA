@@ -373,7 +373,7 @@ INSERT INTO public.datastrategydomain_nsql(id,data)
 VALUES('1','{"name": "DUMMY 1"}'),
 ('2','{"name": "DUMMY 2"}');
 
-INSERT INTO additionalresources_nsql(id,data)
+INSERT INTO public.additionalresources_nsql(id,data)
 VALUES('1','{"name": "Yes (For implementing a new solution)"}'),
 ('2','{"name": "Yes (for an existing solution)"}'),
 ('3','{"name": "No"}');
