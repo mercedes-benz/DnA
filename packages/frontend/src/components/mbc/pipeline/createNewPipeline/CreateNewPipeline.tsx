@@ -12,8 +12,8 @@ import {
 import Styles from './CreateNewPipeline.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { Modal } from '../../../formElements/modal/Modal';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import Modal from '../../../formElements/modal/Modal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import { getParams } from '../../../../router/RouterUtils';
 import AddUser from './addUser/AddUser';
 const classNames = cn.bind(Styles);
