@@ -358,7 +358,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		}
 
 		UserVO userVO = new UserVO();
-		userVO.setAssesskey(userId);
+		userVO.setAccesskey(userId);
 		userVO.setSecretKey(userSecretKey);
 		minioResponse.setUser(userVO);
 		return minioResponse;
@@ -382,7 +382,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				addUserVault(userId, userSecretKey);
 				
 				UserVO userVO = new UserVO();
-				userVO.setAssesskey(userId);
+				userVO.setAccesskey(userId);
 				userVO.setSecretKey(userSecretKey);
 				minioResponse.setUser(userVO);
 				minioResponse.setStatus(ConstantsUtility.SUCCESS);
@@ -414,6 +414,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		return isUserExist;
 	}
 
+	/*
+	 * To create bucket policy(default policy name will be bucketName_policyType for eg: abc_read,abc_write)
+	 * 
+	 */
 	private void CreateBucketPolicy(String bucketName, String policyName, String policyType)
 			throws NoSuchAlgorithmException, InvalidKeyException, IOException {
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
@@ -422,11 +426,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		minioAdminClient.addCannedPolicy(policyName, getPolicy(bucketName, policyType));
 	}
 
-	/**
-	 * Return vault Path where value will be written
+	/*
+	 * Return vault Path where value will be written.
 	 * 
-	 * @param appId
-	 * @return
 	 */
 	private String vaultPathUtility(String userId) {
 		LOGGER.debug("Processing vaultPathUtility");

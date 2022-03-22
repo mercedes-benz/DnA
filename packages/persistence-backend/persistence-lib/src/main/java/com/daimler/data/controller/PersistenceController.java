@@ -87,7 +87,6 @@ public class PersistenceController implements PersistenceApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<BucketResponseWrapperVO> createBucket(
 			@ApiParam(value = "Request Body that contains data to create a new bucket", required = true) @Valid @RequestBody BucketRequestVO bucketRequestVO) {
-		LOGGER.trace("Processing createBucket.");
 		return persistenceService.createBucket(bucketRequestVO.getData());
 	}
 
