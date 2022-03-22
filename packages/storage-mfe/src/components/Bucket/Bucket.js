@@ -5,19 +5,15 @@ import { useSelector } from 'react-redux';
 import { BucketList } from './BucketList';
 import Styles from './Buckets.scss';
 
-import UiLab from '../../../../common/modules/uilab/js/src/index';
+import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
+import ExpansionPanel from '../../../../common/modules/uilab/js/src/expansion-panel';
 
 // import from DNA Container
 const Modal = React.lazy(() => import('dna-container/Modal'));
-const InfoModal = React.lazy(() => import('dna-container/InfoModal'));
 const Pagination = React.lazy(() => import('dna-container/Pagination'));
-
-const { Tooltip, ExpansionPanel } = UiLab;
 
 const AllBuckets = () => {
   const bucketList = useSelector((state) => state.bucket.bucketList);
-
-  const [info, setInfo] = useState(false);
 
   const [modal, setModal] = useState(false);
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -56,23 +52,6 @@ const AllBuckets = () => {
     Tooltip.defaultSetup();
   }, []);
 
-  const openInfo = () => {
-    setInfo(true);
-  };
-  const onInfoModalCancel = () => {
-    setInfo(false);
-  };
-
-  const contentForInfo = (
-    <div className={classNames(Styles.infoPopup)}>
-      <div>
-        A pipeline project represents a single data flow or multiple data flows and each can be mapped to a specific
-        Airflow DAG. This project can later be provisioned as a solution in the DnA portal to enable organisation wide
-        transparency
-      </div>
-    </div>
-  );
-
   return (
     <>
       <div className={classNames(Styles.mainPanel)}>
@@ -82,10 +61,10 @@ const AllBuckets = () => {
           </div>
         </div>
         <div className={classNames(Styles.content)}>
-          <div className={classNames(Styles.NoSubscription)}>
-            <div className={classNames(Styles.addNewSubscrHeader)}>
+          <div>
+            <div className={classNames(Styles.listHeader)}>
               <React.Fragment>
-                <div className={classNames(Styles.appHeaderDetails)}>
+                <div className={classNames(Styles.listHeaderContent)}>
                   {bucketList.length ? (
                     <React.Fragment>
                       <Link to="createBucket">
@@ -94,16 +73,12 @@ const AllBuckets = () => {
                           <span>Create New Bucket</span>
                         </button>
                       </Link>
-                      <i className={Styles.iconsmd + ' icon mbc-icon info'} onClick={openInfo} tooltip-data="Info" />
                     </React.Fragment>
                   ) : null}
                 </div>
               </React.Fragment>
             </div>
-            {!bucketList?.length ? (
-              <i className={Styles.iconsmd + ' icon mbc-icon info'} onClick={openInfo} tooltip-data="Info" />
-            ) : null}
-            <div className={Styles.subsriContent}>
+            <div className={Styles.listContent}>
               {bucketList?.length === 0 ? (
                 <>
                   <div className={Styles.subscriptionListEmpty}>
@@ -143,15 +118,6 @@ const AllBuckets = () => {
           showCancelButton={false}
           modalWidth={'60%'}
           onCancel={() => setModal(false)}
-        />
-      )}
-      {info && (
-        <InfoModal
-          title={'About Bucket'}
-          modalWidth={'35vw'}
-          show={info}
-          content={contentForInfo}
-          onCancel={onInfoModalCancel}
         />
       )}
     </>
