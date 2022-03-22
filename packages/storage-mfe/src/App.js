@@ -4,7 +4,7 @@ import { store } from './store/configureStore';
 import { history } from './store/storeRoot';
 import server from './server/api';
 
-import ContainerComponents from './components/ContainerComponent';
+import Routes from './components/Routes';
 
 function App({ user, ...rest }) {
   useEffect(() => {
@@ -28,7 +28,7 @@ function App({ user, ...rest }) {
 
   return (
     <Provider store={store}>
-      <ContainerComponents user={user} />
+      <Routes user={user} />
     </Provider>
   );
 }
