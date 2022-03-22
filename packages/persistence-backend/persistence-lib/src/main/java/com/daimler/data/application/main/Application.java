@@ -46,7 +46,7 @@ public class Application extends SpringBootServletInitializer implements WebAppl
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 
 	public static void main(String[] args) {
-		LOG.info("Starting up the demo {} application");
+		LOG.info("Starting up the dna persistence application");
 		SpringApplication.run(Application.class, args);
 	}
 
