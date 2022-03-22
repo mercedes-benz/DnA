@@ -3,6 +3,11 @@ kind: Job
 metadata:
   name: hive-initschema
   namespace: trino
+  labels:
+    app: { { template "trino.name" . } }
+    chart: { { template "trino.chart" . } }
+    release: { { .Release.Name } }
+    heritage: { { .Release.Service } }
 spec:
   template:
     spec:
