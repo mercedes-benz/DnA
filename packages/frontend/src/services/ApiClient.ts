@@ -34,6 +34,7 @@ import {
   INotebookInfo,
   ISubsription,
   ISubsriptionExpiryObjectData,
+  INoticationModules,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 
@@ -741,8 +742,12 @@ export class ApiClient {
     return this.delete(`widget-preference/${id}`);
   }
 
-  public static enableEmailNotificationsForSolutions(enableEmailNotificationsForSolutions: boolean, userId: string) {
-    return this.put(`notifications`, { enableEmailNotificationsForSolutions, userId });
+  public static getNotificationPreferences(userId: string) {
+    return this.get(`notification-preferences?userId=${userId}`);
+  }
+
+  public static enableEmailNotifications(notificationPreferences: INoticationModules, userId: string) {
+    return this.post(`notification-preferences`, { data: notificationPreferences, userId });
   }
 
   public static downloadAttachment(attachment: IAttachment): Promise<any> {
