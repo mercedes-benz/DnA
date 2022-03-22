@@ -28,12 +28,6 @@ const NotificationsSettings = (props: INotificationSettings) => {
     
 
     useEffect(() => {
-        // setNotificationPreferences({
-        //     solutionNotificationPref:        
-        //         {enableAppNotifications: true, enableEmailNotifications: false},
-        //     notebookNotificationPref:       
-        //         {enableAppNotifications: true, enableEmailNotifications: false},          
-        // });
         ProgressIndicator.show();
         ApiClient.getNotificationPreferences(props?.user?.id)
         .then((res) => {
@@ -45,17 +39,13 @@ const NotificationsSettings = (props: INotificationSettings) => {
     },[])
     useEffect(() => {    
         if(notificationPreferences){
-            const solutionModules = notificationPreferences?.solutionNotificationPref;
-                          
-            setEnableSystemNotificationForSolutions(solutionModules['enableAppNotifications'])
-                    
-            setEnableEmailNotificationForSolutions(solutionModules['enableEmailNotifications'])
+            const solutionModules = notificationPreferences?.solutionNotificationPref;                          
+            setEnableSystemNotificationForSolutions(solutionModules['enableAppNotifications']);                    
+            setEnableEmailNotificationForSolutions(solutionModules['enableEmailNotifications']);
             
-            const notebookModules = notificationPreferences?.notebookNotificationPref;
-            
-            setEnableSystemNotificationForNotebooks(notebookModules['enableAppNotifications'])
-                    
-            setEnableEmailNotificationForNotebooks(notebookModules['enableEmailNotifications'])
+            const notebookModules = notificationPreferences?.notebookNotificationPref;            
+            setEnableSystemNotificationForNotebooks(notebookModules['enableAppNotifications']);                    
+            setEnableEmailNotificationForNotebooks(notebookModules['enableEmailNotifications']);
                     
         }     
     }, [notificationPreferences]);
@@ -81,7 +71,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
 
     const callToUpdatePreference = (message: string) => {
         ProgressIndicator.show();
-        ApiClient.enableEmailNotifications(notificationPreferences, props?.user?.id).then(
+        ApiClient.enableEmailNotifications(notificationPreferences).then(
             res => {
                 Notification.show(message);
                 ProgressIndicator.hide();
