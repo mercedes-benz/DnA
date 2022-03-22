@@ -103,7 +103,10 @@ public class UserNotificationPreferenceController implements NotificationPrefere
     public ResponseEntity<UserNotificationPrefVO> saveUserNotificationPreferences(@ApiParam(value = "Request Body that contains data required for saving user notification preference" ,required=true )  @Valid @RequestBody UserNotificationPrefRequestVO userNotificationPrefRequestVO){
 		UserNotificationPrefVO preferencesRequestVO = userNotificationPrefRequestVO.getData();
 		UserNotificationPrefVO responseVO = new UserNotificationPrefVO();
+		UserNotificationPrefVO existingPreferencesVO = userNotificationPrefService.getByUniqueliteral("userId", preferencesRequestVO.getUserId());
 		try {
+			if(existingPreferencesVO!=null && existingPreferencesVO.getId()!=null)
+				preferencesRequestVO.setId(existingPreferencesVO.getId());
 			responseVO = userNotificationPrefService.create(preferencesRequestVO);
 			log.debug("Saved user notification preferences successfully.");
 			return new ResponseEntity<>(responseVO, HttpStatus.OK);
