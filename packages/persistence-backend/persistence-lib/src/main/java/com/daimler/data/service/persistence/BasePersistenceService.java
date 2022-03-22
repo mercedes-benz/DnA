@@ -83,9 +83,11 @@ public class BasePersistenceService implements PersistenceService {
 		HttpStatus httpStatus;
 		List<UserVO> bucketAccessinfo = new ArrayList<UserVO>();
 		String currentUser = userStore.getUserInfo().getId();
+		LOGGER.debug("Make bucket:{} request for user:{}",bucketVo.getBucketName(),currentUser);
 		MinioGenericResponse createBucketResponse = dnaMinioClient.createBucket(bucketVo.getBucketName());
 		if (createBucketResponse != null && createBucketResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-			// Onboarding current user
+			LOGGER.info("Success from make minio bucket");
+			LOGGER.debug("Onboarding current user");
 			MinioGenericResponse onboardOwnerResponse = dnaMinioClient.onboardUserMinio(currentUser,
 					createBucketResponse.getPolicies());
 			if (onboardOwnerResponse != null && onboardOwnerResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
@@ -93,7 +95,7 @@ public class BasePersistenceService implements PersistenceService {
 				bucketAccessinfo.add(onboardOwnerResponse.getUser());
 			}
 
-			// Onboard collaborators
+			LOGGER.debug("Onboarding collaborators");
 			if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
 				for (UserVO userVO : bucketVo.getCollaborators()) {
 					if (!ObjectUtils.isEmpty(userVO.getPermissions())) {
@@ -113,7 +115,8 @@ public class BasePersistenceService implements PersistenceService {
 			responseVO.setBucketAccessinfo(bucketAccessinfo);
 			httpStatus = HttpStatus.OK;
 		} else {
-			httpStatus = HttpStatus.BAD_REQUEST;
+			LOGGER.info("Failure from make bucket minio client");
+			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 			// MessageDescription messageDescription = new MessageDescription();
 			// messageDescription.setMessage(createBucketResponse.getError());
 			List<MessageDescription> messages = new ArrayList<>();
@@ -133,8 +136,10 @@ public class BasePersistenceService implements PersistenceService {
 		GetBucketResponseWrapperVO bucketResponseWrapperVO = new GetBucketResponseWrapperVO();
 		List<MinioBucketResponse> minioBucketsResponse;
 		MinioBucketResponse minioBucketResponse;
+		LOGGER.debug("list buckets for user:{}", currentUser);
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+			LOGGER.info("Success from list buckets minio client");
 			httpStatus = HttpStatus.OK;
 			minioBucketsResponse = new ArrayList<MinioBucketResponse>();
 			for (Bucket bucket : minioResponse.getBuckets()) {
@@ -147,6 +152,7 @@ public class BasePersistenceService implements PersistenceService {
 
 			bucketResponseWrapperVO.setData(minioBucketsResponse);
 		} else {
+			LOGGER.info("Failure from list buckets minio client");
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 			bucketResponseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
@@ -162,16 +168,21 @@ public class BasePersistenceService implements PersistenceService {
 		HttpStatus httpStatus;
 		BucketObjectCollection bucketObjectCollection = new BucketObjectCollection();
 
+		LOGGER.debug("list bucket objects through minio client");
 		MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjects(currentUser, bucketName, prefix);
 		if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+			LOGGER.info("Success from list objects minio client");
 			bucketObjectCollection.setData(minioObjectResponse.getObjects());
 			if (ObjectUtils.isEmpty(minioObjectResponse.getObjects())) {
+				LOGGER.info("NO object available in bucket:{}",bucketName);
 				httpStatus = HttpStatus.NO_CONTENT;
 			} else {
+				LOGGER.info("Objects available in bucket:{}",bucketName);
 				httpStatus = HttpStatus.OK;
 			}
 
 		} else {
+			LOGGER.info("Failure from list objects minio client");
 			bucketObjectCollection
 					.setErrors(Arrays.asList(new MessageDescription(minioObjectResponse.getError().getErrorMsg())));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -184,26 +195,35 @@ public class BasePersistenceService implements PersistenceService {
 	public ResponseEntity<ByteArrayResource> getObjectContent(String bucketName, String prefix) {
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
+		
+		/* work in progress*/
 		// ObjectMetadataWrapperVO objectMetadataWrapperVO = new
 		// ObjectMetadataWrapperVO();
 
+		LOGGER.debug("fetch object/file content through minio client");
 		MinioGenericResponse minioResponse = dnaMinioClient.getObjectContents(currentUser, bucketName, prefix);
 
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			if (Objects.nonNull(minioResponse.getObjectMetadata().getObjectContent())) {
+				LOGGER.info("Success from get object minio client");
 				ByteArrayResource resource = minioResponse.getObjectMetadata().getObjectContent();
 				return ResponseEntity.ok().contentLength(resource.contentLength()).contentType(contentType(prefix))
 						.header("Content-disposition", "attachment; filename=\"" + fileName(prefix) + "\"")
 						.body(resource);
 
+				/* work in progress*/
 				// objectMetadataWrapperVO.setData(minioResponse.getData());
 				// httpStatus = HttpStatus.OK;
 			} else {
+				LOGGER.info("No content available.");
 				httpStatus = HttpStatus.NO_CONTENT;
 			}
 
 		} else {
+			LOGGER.info("Failure from get object minio client");
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+			
+			/* work in progress*/
 			// objectMetadataWrapperVO.setErrors(Arrays.asList(new
 			// MessageDescription(minioResponse.getMessage())));
 		}
@@ -211,12 +231,20 @@ public class BasePersistenceService implements PersistenceService {
 		return new ResponseEntity<>(null, httpStatus);
 	}
 
+	/*
+	 * fetching filename from given prefix
+	 * 
+	 */
 	private String fileName(String prefix) {
 		String[] arr = prefix.split("/");
 		String fileName = arr[arr.length - 1];
 		return fileName;
 	}
 
+	/*
+	 * Setting media type with file extension
+	 * 
+	 */
 	private MediaType contentType(String fileName) {
 		String[] arr = fileName.split("\\.");
 		String type = arr[arr.length - 1];
@@ -239,10 +267,14 @@ public class BasePersistenceService implements PersistenceService {
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
 		BucketResponseWrapperVO bucketResponseWrapperVO = new BucketResponseWrapperVO();
+		
+		LOGGER.debug("upload object/file through minio client");
 		MinioGenericResponse minioResponse = dnaMinioClient.objectUpload(currentUser, uploadfile, bucketName, prefix);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+			LOGGER.info("Success from put object minio client");
 			httpStatus = HttpStatus.OK;
 		} else {
+			LOGGER.info("Failure from put object minio client");
 			bucketResponseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -255,11 +287,15 @@ public class BasePersistenceService implements PersistenceService {
 	public ResponseEntity<UserRefreshWrapperVO> userRefresh(String userId) {
 		HttpStatus httpStatus;
 		UserRefreshWrapperVO userRefreshWrapperVO = new UserRefreshWrapperVO();
+		
+		LOGGER.debug("Refresh user through minio client");
 		MinioGenericResponse minioResponse = dnaMinioClient.userRefresh(userId.toUpperCase());
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+			LOGGER.info("Success from refresh minio client");
 			httpStatus = HttpStatus.OK;
 			userRefreshWrapperVO.setData(minioResponse.getUser());
 		} else {
+			LOGGER.info("Failure from refresh minio client");
 			userRefreshWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
