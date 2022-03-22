@@ -29,6 +29,7 @@ package com.daimler.data.service.usernotificationpref;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.assembler.UserNotificationPrefAssembler;
 import com.daimler.data.db.entities.UserNotificationPrefNsql;
@@ -64,6 +65,7 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	}
 
 	@Override
+	@Transactional
 	public UserNotificationPrefVO getByUniqueliteral(String uniqueLiteral, String value) {
 		UserNotificationPrefVO preferencesVO = super.getByUniqueliteral(uniqueLiteral, value);
 		if("userId".equalsIgnoreCase(uniqueLiteral)) {
