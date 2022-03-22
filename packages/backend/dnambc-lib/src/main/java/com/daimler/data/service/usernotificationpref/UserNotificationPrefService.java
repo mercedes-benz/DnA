@@ -28,10 +28,9 @@
 package com.daimler.data.service.usernotificationpref;
 
 import com.daimler.data.db.entities.UserNotificationPrefNsql;
+import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface UserNotificationPrefService 
-//extends CommonService<UserNotificationPrefVO, UserNotificationPrefNsql, String> {
-{
+public interface UserNotificationPrefService extends CommonService<UserNotificationPrefVO, UserNotificationPrefNsql, String> {
 
 }
