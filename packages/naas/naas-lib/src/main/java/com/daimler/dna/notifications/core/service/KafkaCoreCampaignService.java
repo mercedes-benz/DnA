@@ -89,6 +89,7 @@ public class KafkaCoreCampaignService {
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
 					vo.setEventType(message.getEventType());
+					vo.setChangeLogs(message.getChangeLogs());
 					vo.setId(message.getUuid());
 					vo.setResourceId(message.getResourceId());
 					vo.setMessageDetails(message.getMessageDetails());
@@ -146,6 +147,7 @@ public class KafkaCoreCampaignService {
 					if (!deletedIds.contains(record.getUuid())) {
 						NotificationVO vo = new NotificationVO();
 						vo.setDateTime(record.getTime());
+						vo.setChangeLogs(record.getChangeLogs());
 						vo.setEventType(record.getEventType());
 						vo.setId(record.getUuid());
 						vo.setIsRead("true");
@@ -164,6 +166,7 @@ public class KafkaCoreCampaignService {
 							NotificationVO vo = new NotificationVO();
 							vo.setDateTime(record.getTime());
 							vo.setEventType(record.getEventType());
+							vo.setChangeLogs(record.getChangeLogs());
 							vo.setId(record.getUuid());
 							vo.setIsRead("false");
 							vo.setMessage(record.getMessage());
@@ -178,6 +181,7 @@ public class KafkaCoreCampaignService {
 							NotificationVO vo = new NotificationVO();
 							vo.setDateTime(record.getTime());
 							vo.setEventType(record.getEventType());
+							vo.setChangeLogs(record.getChangeLogs());
 							vo.setId(record.getUuid());
 							vo.setIsRead("false");
 							vo.setMessage(record.getMessage());
@@ -189,6 +193,7 @@ public class KafkaCoreCampaignService {
 							NotificationVO vo = new NotificationVO();
 							vo.setDateTime(record.getTime());
 							vo.setEventType(record.getEventType());
+							vo.setChangeLogs(record.getChangeLogs());
 							vo.setId(record.getUuid());
 							vo.setIsRead("true");
 							vo.setMessage(record.getMessage());
