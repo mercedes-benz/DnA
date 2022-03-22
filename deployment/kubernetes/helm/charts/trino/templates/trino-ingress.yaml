@@ -19,5 +19,9 @@ spec:
                 name: {{ template "trino.fullname" . }}
                 port:
                   name: http
-            path: /trino
+            path: /
             pathType: Prefix
+  tls:
+    - hosts:
+      - {{ .Values.server.host }}
+      secretName: trino-tls-secret
