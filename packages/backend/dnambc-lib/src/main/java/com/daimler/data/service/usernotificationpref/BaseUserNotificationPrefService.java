@@ -30,28 +30,70 @@ package com.daimler.data.service.usernotificationpref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.daimler.data.assembler.UserNotificationPrefAssembler;
+import com.daimler.data.db.entities.UserNotificationPrefNsql;
 import com.daimler.data.db.repo.usernotificationpref.UserNotificationPrefCustomRepository;
 import com.daimler.data.db.repo.usernotificationpref.UserNotificationPrefRepository;
+import com.daimler.data.dto.usernotificationpref.NotificationPreferenceVO;
+import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
+import com.daimler.data.service.common.BaseCommonService;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class BaseUserNotificationPrefService 
-//extends BaseCommonService<UserNotificationPrefVO, UserNotificationPrefNsql, String>
-//		implements UserNotificationPrefService {
-{
+public class BaseUserNotificationPrefService extends BaseCommonService<UserNotificationPrefVO, UserNotificationPrefNsql, String>
+		implements UserNotificationPrefService {
+	
 	@Autowired
 	private UserNotificationPrefCustomRepository customRepo;
 	@Autowired
 	private UserNotificationPrefRepository jpaRepo;
-//	@Autowired
-//	private UserNotificationPrefAssembler algoAssembler;
+	@Autowired
+	private UserNotificationPrefAssembler userNotificationPrefAssembler;
 
 	public BaseUserNotificationPrefService() {
 		super();
 	}
-	
+
+	@Override
+	public UserNotificationPrefVO getById(String id) {
+		UserNotificationPrefVO preferenceVO = super.getById(id);
+		
+		return super.getById(id);
+	}
+
+	@Override
+	public UserNotificationPrefVO getByUniqueliteral(String uniqueLiteral, String value) {
+		UserNotificationPrefVO preferencesVO = super.getByUniqueliteral(uniqueLiteral, value);
+		if("userId".equalsIgnoreCase(uniqueLiteral)) {
+			log.debug("Searching user preferences based on user shortId {} ", value);
+			if(preferencesVO!=null && preferencesVO.getId()!=null && value.equalsIgnoreCase(preferencesVO.getUserId())) {
+				log.debug("Returning successfully after finding user preferences for user shortId {}  ", value);
+				return preferencesVO;
+			}else {
+				log.debug("Couldnt find user preferences for user {} , sending default preference", value);
+				preferencesVO = new UserNotificationPrefVO();
+				preferencesVO.setUserId(value);
+				NotificationPreferenceVO notebookNotificationPref = new NotificationPreferenceVO();
+				notebookNotificationPref.setEnableAppNotifications(true);
+				notebookNotificationPref.setEnableEmailNotifications(false);
+				preferencesVO.setNotebookNotificationPref(notebookNotificationPref);
+				NotificationPreferenceVO solutionNotificationPref = new NotificationPreferenceVO();
+				solutionNotificationPref.setEnableAppNotifications(true);
+				solutionNotificationPref.setEnableEmailNotifications(false);
+				preferencesVO.setSolutionNotificationPref(solutionNotificationPref);
+				try {
+					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
+					log.info("Notification preferences created for user {} ", value);
+					return savedPreferencesVO;
+				}catch(Exception e) {
+					log.error("Error creating notification preferences for user {} . Exception is {} ", value,e.getMessage());
+				}
+			}
+		}
+		return preferencesVO;
+	}
 	
 	
 	
