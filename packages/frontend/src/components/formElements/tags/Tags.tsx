@@ -138,7 +138,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
-    if(target.value) {
+    if (target.value) {
       this.updateChips(target.value);
     }
     this.setState({ isFocused: false });

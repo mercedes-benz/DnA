@@ -305,7 +305,7 @@ public class NotificationsController implements NotificationsApi {
 					"Failed to publish message due to internal error.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
-			LOG.error(exceptionMsg.getMessage());
+			LOG.error("Failed to publish message with exception {} ", e.getMessage());
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

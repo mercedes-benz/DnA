@@ -8,7 +8,7 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import { USER_ROLE } from '../../../globals/constants';
 import {
   ICreateNewReportResult,

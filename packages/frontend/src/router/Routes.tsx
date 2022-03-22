@@ -5,9 +5,9 @@ import Progress from '../components/progress/Progress';
 import { ProtectedRoute } from './../decorators/ProtectedRoute';
 import { USER_ROLE } from './../globals/constants';
 import { history } from './History';
-import { NotFoundPage } from './NotFoundPage';
+import NotFoundPage from './NotFoundPage';
 import { SessionExpired } from './SessionExpired';
-import { UnAuthorised } from './UnAuthorised';
+import UnAuthorised from './UnAuthorised';
 
 const Administration = React.lazy(() => import('../components/mbc/admin/Administration'));
 const AuthRedirector = React.lazy(() => import('./AuthRedirector'));
@@ -33,6 +33,9 @@ const CreateNewReport = React.lazy(() => import('../components/mbc/createNewRepo
 const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
 const ReportAdmin = React.lazy(() => import('../components/mbc/reportAdmin/ReportAdministration'));
 const UserSettings = React.lazy(() => import('../components/mbc/userSettings/userSettings'));
+
+// Micro Front End Component
+const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 
 const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 const AdminRole = [USER_ROLE.ADMIN];
@@ -259,6 +262,13 @@ const protectedRoutes = [
     exact: false,
     path: '/usersettings',
     title: 'User Settings',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: StorageComponent,
+    exact: false,
+    path: '/storage',
+    title: 'Storage Micro Frontend',
   },
 ];
 

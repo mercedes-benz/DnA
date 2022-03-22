@@ -31,13 +31,13 @@ import {
 } from '../../../globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 
 import Styles from './AllSolutions.scss';
 import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 
 import { getQueryParameterByName } from '../../../services/Query';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
 import { trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
