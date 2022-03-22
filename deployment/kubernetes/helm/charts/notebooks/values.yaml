@@ -5,7 +5,7 @@
 appName: notebooks
 namespace: notebooks
 #imagePullSecret: 
-#  name: harbor-pull-secret
+#  name: harbor-pull-secrets
 app:
   jupyter:
     config:

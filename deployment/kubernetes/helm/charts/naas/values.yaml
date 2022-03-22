@@ -8,12 +8,16 @@ app:
     replicaCount: 1
     image: ""
     secrets:
-      name: postgres-secrets
+      name: naas-app-secrets
+      jwtKey: ""
+      db: 
+        appUserName: ""
+        appPassword: ""
     config:
       api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
       naas_broker: ""
       max_poll_records: 6000
-      dna_uri: http://dna-backend-service.dna.svc.cluster.local:80
+      dna_uri: http://dna-app-backend-service.dna.svc.cluster.local:80
       dna_auth_enable: true
       poll_time: 5000
       naas_central_topic: dnaCentralEventTopic
@@ -21,19 +25,6 @@ app:
       naas_centraldelte_topic: dnaCentralDeleteTopic
       loggingPath: /tmp/naas/log
       loggingEnvironment: dev
-      jwtKey: ""
-
-  db: 
-    secrets: 
-      name: postgres-secrets
-      backupUserName: ""
-      backupUserPassword: "" 
-      dbAdminUserName: ""
-      dbAdminPassword: ""
-      patroniUserPassword: ""
-      appUserName: ""
-      appPassword: ""
-
   resources:
     requests:
       memory: "512Mi"
@@ -49,6 +40,6 @@ ingress:
   host: ""
 
 imagePullSecret: 
-  name: harbor-pull-secret
+  name: harbor-pull-secrets
 cert:
   certManager: ""
