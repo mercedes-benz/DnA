@@ -15,7 +15,7 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 	public UserNotificationPrefVO toVo(UserNotificationPrefNsql entity) {
 		UserNotificationPrefVO vo = new UserNotificationPrefVO();
 		if(entity != null) {
-			vo.setUserId(entity.getId());
+			vo.setId(entity.getId());
 			UserNotificationPreference data = entity.getData();
 			if(data!=null) {
 				NotificationPreference notebookNotificationPrefJson = data.getNotebookNotificationPref();
