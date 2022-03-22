@@ -39,7 +39,8 @@
   },
   "scripts": {
     "start": "env-cmd -f .env webpack serve",
-    "build": "env-cmd -f .env webpack --config webpack.prod.config.js"
+    "build": "env-cmd -f .env webpack --config webpack.prod.config.js",
+    "build:docker": "env-cmd -f .docker.env webpack --config webpack.prod.config.js"
   },
   "eslintConfig": {
     "env": {
