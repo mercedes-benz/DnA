@@ -147,7 +147,7 @@ export class Header extends React.Component<IHeaderProps, IHeaderState> {
 
   protected fetchNotification() {    
     if(Envs.ENABLE_NOTIFICATION){
-      NotificationApiClient.getNotifications(this.props.user.id, 5, 0, 'unread').then((response: any) => {
+      NotificationApiClient.getNotifications('SACSHAR', 5, 0, 'unread').then((response: any) => {
         this.setState({ notifications: response.records, totalRecordCount: response.totalRecordCount});
       }).catch(()=>{
         clearInterval(window.NOTIFICATION_POLL_ID);
