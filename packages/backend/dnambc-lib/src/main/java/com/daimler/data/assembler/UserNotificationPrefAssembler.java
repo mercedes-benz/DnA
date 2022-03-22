@@ -62,10 +62,9 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 	private NotificationPreference toNotificationPrefJson(NotificationPreferenceVO notificationPrefVO){
 		
 		NotificationPreference notificationPrefJson = new NotificationPreference();
-		NotificationPreferenceVO  vo = new NotificationPreferenceVO();
-		if(vo!=null) {
-			notificationPrefJson.setEnableAppNotifications(vo.isEnableAppNotifications());
-			notificationPrefJson.setEnableEmailNotifications(vo.isEnableEmailNotifications());
+		if(notificationPrefVO!=null) {
+			notificationPrefJson.setEnableAppNotifications(notificationPrefVO.isEnableAppNotifications());
+			notificationPrefJson.setEnableEmailNotifications(notificationPrefVO.isEnableEmailNotifications());
 		}
 		return notificationPrefJson;
 	}
