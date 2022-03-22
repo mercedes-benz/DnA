@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: dna-persistence-service
+    
+#  servlet:
+#    multipart:
+#      max-file-size: ${MAX_FILE_SIZE:10MB}
+#      max-request-size: ${MAX_REQUEST_SIZE:11MB}
+    
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: ${VAULT_SCHEME:http}
+      authentication: ${VAULT_AUTHENTICATION:TOKEN}
+      token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
+      mountpath: ${VAULT_MOUNTPATH:XXXXXX}
+      vaultpath: ${VAULT_PATH:XXXXXX}
+      kv:
+       enabled: true  
+      
+dna:
+  uri: ${DNA_URI:XXXXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}        
+      
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:XXXXXX}  
+server:
+  port: 7175
+  servlet:
+    context-path: /persistence
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  accessKey: ${MINIO_ADMIN_ACCESS_KEY:XXXXXX} 
+  secretKey: ${MINIO_ADMIN_SECRET_KEY:XXXXXX}
+  version: ${MINIO_PLOICY_VERSION:XXXXXX}
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers
+management.endpoint.loggers.enabled: true
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+    org.springframework.boot.autoconfigure.logging: INFO
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO

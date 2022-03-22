@@ -1,0 +1,595 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : Persistence.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  RAHUL
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core persistence Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "persistence"
+   description: "This service is used to maintain dna persistence."
+
+schemes:
+- "https"
+
+paths:
+ /buckets:
+  post:
+   tags:
+    - "persistence"
+   summary: "Create new Bucket"
+   description: "New Bucket will be created with this api"
+   operationId: "createBucket"
+   parameters:
+    - name: "bucketRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data to create a new bucket" 
+      required: true
+      schema:
+       $ref: "#/definitions/BucketRequestVO"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+  get:
+   tags:
+    - "persistence"
+   summary: "get Buckets"
+   description: "Get bucket with this api"
+   operationId: "getAllBuckets"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/GetBucketResponseWrapperVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GetBucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"     
+
+ /buckets/{bucketName}/upload:
+  post:
+   tags:
+    - "persistence"
+   summary: "Upload object to Bucket"
+   description: "File will be uploaded to Bucket with this api"
+   operationId: "objectUpload"
+   consumes:
+         - multipart/form-data
+   parameters:
+    - in: formData
+      name: file
+      type: file
+      description: The file to upload.
+      required: true 
+    - name: bucketName
+      in: path
+      description: "Bucket name where file to be uploaded." 
+      required: true
+      type: string
+    - name: prefix
+      in: query
+      description: "Bucket path where file to be uploaded." 
+      required: true
+      type: string   
+#    - name: "fileDetails" 
+#      in: "body" 
+#      description: "Request Body that contains details about collaborator,bucket and path where file to be uploaded" 
+#      required: true
+#      schema:
+#       $ref: "#/definitions/FileUploadRequestVO"
+      
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+# To get objects associated with Bucket name
+ /buckets/{bucketName}/objects:
+   get:
+    tags:
+     - "persistence"
+    summary: "Get Objects associated with Bucket name."
+    description:  "Get Objects for a given Bucket."
+    operationId: "getBucketObjects"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name for which object to be fetch." 
+       required: true
+       type: string
+     - name: prefix
+       in: query
+       description: "Path for which object need to be fetch." 
+       required: false
+       type: string   
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/BucketObjectCollection"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"
+      
+# To get metadata of an object
+ /buckets/{bucketName}/objects/metadata:
+   get:
+    tags:
+     - "persistence"
+    summary: "Get Objects associated with Bucket name."
+    description:  "Get Objects for a given Bucket."
+    operationId: "getObjectContent"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name for which object to be fetch." 
+       required: true
+       type: string
+     - name: prefix
+       in: query
+       description: "Object path for which metadata need to be fetch." 
+       required: true
+       type: string   
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       #$ref: "#/definitions/ObjectMetadataWrapperVO"
+       $ref: "#/definitions/ByteArrayResource"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"      
+      
+# To refresh user
+ /buckets/{userId}/refresh:
+   get:
+    tags:
+     - "persistence"
+    summary: "Refresh user access."
+    description:  "Refresh user credential."
+    operationId: "userRefresh"
+    parameters:
+     - name: userId
+       in: path
+       description: "UserId for which credentials to be refreshed." 
+       required: true
+       type: string
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/UserRefreshWrapperVO"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"            
+      
+     
+definitions:
+
+ #File Upload Request VO
+# FileUploadRequestVO:
+#   type: object
+#   description: "File upload request model definition"
+#   properties:
+#     data:
+#       $ref: "#/definitions/FileUploadVo"
+#
+# FileUploadVo:
+#  type: object
+#  properties: 
+#    filePath: 
+#     description: "Folder structure to be created"
+#     type: string
+#    fileContent:
+#     type: 
+     
+ ObjectMetadataWrapperVO:
+  type: object
+  description: "Object metadata wrapper."
+  properties:
+    data:
+#     type: array
+#     items:
+        $ref: "#/definitions/ObjectMetadataVO"
+    warnings:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"
+    errors:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"   
+     
+ ObjectMetadataVO:
+  type: object
+  description: "Object metadata."
+  properties:
+    objectName:
+     type: string
+     description: "Object name."
+    objectContent:
+     description: "Object content."
+     $ref: "#/definitions/ByteArrayResource"
+     
+     
+ BucketObjectCollection:
+  type: object
+  description: "Collection of objects inside a bucket."
+  properties:
+    data:
+     type: array
+     items:
+       $ref: "#/definitions/BucketObjectVO"
+    warnings:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"
+    errors:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"   
+ 
+ BucketObjectVO:
+  type: object
+  description: "object list"
+  properties: 
+    etag:
+     description: "etag."
+     type: string
+    objectName:
+     description: "etag."
+     type: string
+    lastModified:
+     description: "lastModified."
+     type: string
+    owner:
+     description: "owner."
+     type: string
+    size:
+     description: "size."
+     type: integer
+     format: int64    
+    storageClass:
+     description: "storageClass."
+     type: string 
+    isLatest:
+     description: "isLatest."
+     type: boolean 
+    versionId:
+     description: "versionId."
+     type: string 
+    isDir:
+     description: "isDir."
+     type: boolean
+    userMetadata:
+     description: "isDir."
+     type: boolean     
+     
+     
+     
+#    directory:
+#     description: "Is a Directory."
+#     type: boolean
+#    lastModified: 
+#     description: "last modified date."
+#     type: string
+#    name: 
+#     description: "Name of object."
+#     type: string
+#    size:     
+#     description: "size of object."
+#     type: number
+     
+     
+# PersistenceVO:
+#  type: object
+#  properties: 
+#    permission: 
+#     description: "permission about the persistence"
+#     type: string
+#    
+#
+# PersistenceCollection:
+#  type: object
+#  description: "Checklist"
+#  properties:
+#   #totalCount:
+#   #  type: integer
+#   #  description: "Total Record Count"
+#    records:
+#     type: array
+#     items:
+#       $ref: "#/definitions/PersistenceVO"
+ 
+ BucketVo:
+    type: object
+    properties:
+      bucketContent:
+        type: string
+        description: "Defines the Bucket content."
+      bucketName:
+        type: string
+        description: "Defines the Bucket name."
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/UserVO"
+    required:
+      - bucketContent
+      - bucketName
+ 
+#Project Request VO
+ BucketRequestVO:
+   type: object
+   description: "Bucket create request model definition"
+   properties:
+     data:
+       $ref: "#/definitions/BucketVo"
+ 
+ BucketResponseWrapperVO:
+   type: object
+   properties:
+      status:
+        type: string
+        description: Overrall status
+      data:
+        $ref: "#/definitions/BucketVo"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      bucketAccessinfo:     
+        type: array
+        items:
+          $ref: "#/definitions/UserVO"
+      bucketPolicies:
+        type: array
+        items:
+         type: string     
+         
+ GetBucketResponseWrapperVO:
+   type: object
+   properties:
+      status:
+        type: string
+        description: Overrall status      
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/MinioBucketResponse"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
+         
+ MinioBucketResponse:
+   type: object
+   properties:
+      bucketName:
+        type: string
+        description: Bucket Name
+      creationDate:
+        type: string
+        description: Creation date of bucket         
+         
+ UserVO:
+    type: object
+    properties:
+      accesskey:
+        type: string
+        description: User name of the user
+      secretKey:
+        type: string
+        description: Secret Key of the user  
+      permissions:
+        type: array
+        items:
+           type: string 
+ 
+ UserRefreshWrapperVO:
+   type: object
+   properties:
+      status:
+        type: string
+        description: Overrall status      
+      data:
+        $ref: "#/definitions/UserVO"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+ 
+ FileDetailsVO:
+    type: object
+    properties:
+      fileName:
+        type: string
+        description: Defines the File Name
+      uploadPath:
+        type: string
+        description: Defines the file upload path
+      bucketName:
+        type: string
+        description: Bucket name where file to be uploaded
+      users:
+        type: array
+        items:
+          $ref: "#/definitions/UserVO"
+ 
+ FileUploadRequestVO:
+   type: object
+   description: "Bucket create request model definition"
+   properties:
+     data:
+       $ref: "#/definitions/FileDetailsVO" 
+ 
+ BindingResult:
+  type: object
+  
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"
+ 
+ CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user" 
+ 
