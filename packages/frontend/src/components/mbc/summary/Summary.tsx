@@ -242,6 +242,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
         solution={this.state.solution}
+        lastModifiedDate={this.state.solution.lastModifiedDate}
+        createdDate={this.state.solution.createdDate}
         canShowTeams={this.state.canShowTeams}
         canShowPlatform={this.state.canShowPlatform}
         canShowMilestones={this.state.canShowMilestones}

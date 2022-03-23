@@ -53,6 +53,7 @@ import {
 } from '../../../../globals/types';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
 import { Envs } from '../../../../globals/Envs';
+import { getDateTimeFromTimestamp } from '../../../../services/utils';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -585,6 +586,16 @@ export const SummaryPdfDoc = (props: any) => (
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Register support of additional resources</Text>
             <Text>{props.solution.description.additionalResource ? props.solution.description.additionalResource : 'N/A'}</Text>
+          </View>
+        </View>
+        <View style={styles.flexLayout} wrap={false}>
+          <View style={[styles.flexCol2, styles.firstCol]}>
+            <Text style={styles.sectionTitle}>Created On</Text>
+            <Text>{props.createdDate ? getDateTimeFromTimestamp(props.createdDate) : 'N/A'}</Text>
+          </View>
+          <View style={[styles.flexCol2, styles.wideCol]}>
+            <Text style={styles.sectionTitle}>Last Modified On</Text>
+            <Text>{props.lastModifiedDate ? getDateTimeFromTimestamp(props.lastModifiedDate) : 'N/A'}</Text>
           </View>
         </View>
         <View style={styles.seperatorLine} />
