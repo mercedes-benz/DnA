@@ -65,6 +65,7 @@ const prodConfig = {
         './Progress': './src/components/progress/Progress.tsx',
         './InfoModal': './src/components/formElements/modal/infoModal/InfoModal.tsx',
         './Modal': './src/components/formElements/modal/Modal.tsx',
+        './ConfirmModal': './src/components/formElements/modal/confirmModal/ConfirmModal.tsx',
         './Pagination': './src/components/mbc/pagination/Pagination.tsx',
         './Header': './src/components/header/Header.tsx',
         './MainNavigation': './src/components/mainNavigation/MainNavigation.tsx',
