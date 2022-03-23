@@ -8,6 +8,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { history } from '../../../../router/History';
 import { IDescriptionRequest } from '../../createNewSolution/description/Description';
 import AttachmentsListItem from '../datacompliance/attachments/AttachmentsListItems';
+import { getDateTimeFromTimestamp } from '../../../../services/utils';
 import Styles from './DescriptionSummary.scss';
 
 const classNames = cn.bind(Styles);
@@ -17,6 +18,8 @@ export interface IDescriptionSummaryProps {
   description: IDescriptionRequest;
   canEdit: boolean;
   bookmarked: boolean;
+  createdDate?: string;
+  lastModifiedDate?: string;
   onEdit: (solutionId: string) => void;
   onDelete: (solutionId: string) => void;
   updateBookmark: (solutionId: string, isRemove: boolean) => void;
@@ -287,11 +290,16 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     <br />
                     {description.dataStrategyDomain ? description.dataStrategyDomain : 'N/A'}
                   </div>
-                  {/* <div id="numberOfRequestedFTE">
-                    <label className="input-label summary">Number of Requested FTE</label>
+                  <div id="createdAt">
+                    <label className="input-label summary">Created On</label>
                     <br />
-                    {description.requestedFTECount}
-                  </div> */}
+                    {this.props.createdDate ? getDateTimeFromTimestamp(this.props.createdDate) : 'N/A'}
+                  </div>
+                  <div id="lastModifiedAt">
+                    <label className="input-label summary">Last Modified On</label>
+                    <br />
+                    {this.props.lastModifiedDate ? getDateTimeFromTimestamp(this.props.lastModifiedDate) : 'N/A'}
+                  </div>
                 </div>
                 <hr className="divider1" />
                 <div className={Styles.flexLayout}>
