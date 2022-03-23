@@ -25,7 +25,7 @@ data:
     </property>
     <property>
             <name>javax.jdo.option.ConnectionURL</name>
-            <value>jdbc:postgresql://{{ .Values.hivemetastore.postgres.host }}:5432/{{ .Values.hivemetastore.postgres.db }}</value>
+            <value>jdbc:postgresql://{{ .Values.hivemetastore.postgres.host }}/{{ .Values.hivemetastore.postgres.db }}</value>
     </property>
     <property>
             <name>javax.jdo.option.ConnectionUserName</name>
@@ -53,7 +53,7 @@ data:
     </property>
     <property>
             <name>fs.s3a.endpoint</name>
-            <value>http://{ .Values.hivemetastore.minio.host }}</value>
+            <value>http://{{ .Values.hivemetastore.minio.host }}</value>
     </property>
     <property>
             <name>fs.s3a.path.style.access</name>
