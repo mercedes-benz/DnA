@@ -4,10 +4,10 @@ metadata:
   name: {{ .Chart.Name }}-ingress
   namespace: {{ .Values.namespace }}
   labels:
-    app: { { template "trino.name" . } }
-    chart: { { template "trino.chart" . } }
-    release: { { .Release.Name } }
-    heritage: { { .Release.Service } }
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
   annotations:
     traefik.frontend.rule.type: PathPrefix
     kubernetes.io/ingress.class: traefik
