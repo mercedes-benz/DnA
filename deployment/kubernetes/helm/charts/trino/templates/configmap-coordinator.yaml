@@ -55,7 +55,6 @@ data:
     http-server.authentication.type=oauth2
     web-ui.authentication.type=oauth2
     http-server.process-forwarded=true
-    http-server.https.port={{ .Values.authentication.oidc.https.port }}
 
     http-server.authentication.oauth2.issuer={{ .Values.authentication.oidc.issuer }}
     http-server.authentication.oauth2.auth-url={{ .Values.authentication.oidc.authUrl }}
