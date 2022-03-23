@@ -53,7 +53,7 @@ data:
   {{- if .Values.authentication.oidc.enabled -}}
     http-server.authentication.type=oauth2
     web-ui.authentication.type=oauth2
-    {{- if .Values.authentication.https.enabled -}}
+    {{- if .Values.authentication.oidc.https.enabled -}}
     http-server.https.enabled=true
     http-server.https.port={{ .Values.authentication.oidc.https.port }}
     {{- end }}
@@ -63,7 +63,7 @@ data:
     http-server.authentication.oauth2.jwks-url={{ .Values.authentication.oidc.jwksUrl }}
     http-server.authentication.oauth2.client-id={{ .Values.authentication.oidc.clientId }}
     http-server.authentication.oauth2.client-secret={{ .Values.authentication.oidc.clientSecret }}
-    http-server.authentication.oauth2.userinfo-url={{ .Values.authentication.oidc.userInfoUrl}}
+    http-server.authentication.oauth2.userinfo-url={{ .Values.authentication.oidc.userInfoUrl }}
     http-server.authentication.oauth2.scopes={{ .Values.authentication.oidc.scopes }}
     http-server.authentication.oauth2.principal-field={{ .Values.authentication.oidc.claim }}
   {{- end }}
