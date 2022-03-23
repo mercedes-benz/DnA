@@ -956,7 +956,7 @@ vault:
     externalPort: 8200
 
 #subchart  value for  storageMfe
-storageMfe:
+storagemfe:
   enabled: true
   namespace: storage-service
   conf:
