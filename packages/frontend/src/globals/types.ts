@@ -1013,11 +1013,25 @@ export interface IFilterPreferences {
   useCaseType?: string;
   tags: ITag[];
 }
+
+
+export interface INoticationModules {  
+  solutionNotificationPref: INoticationEnableDisable;
+  notebookNotificationPref: INoticationEnableDisable;
+  userId: string;
+}
+
+export interface INoticationEnableDisable {
+  enableAppNotifications: boolean;
+  enableEmailNotifications: boolean;
+}
+
 export interface IUserPreference {
   filterPreferences: IFilterPreferences;
   id?: string;
   userId: string;
   widgetPreferences?: any[];
+  notificationPreferences?: INoticationModules;
 }
 export interface IUserPreferenceRequest {
   data: IUserPreference;
