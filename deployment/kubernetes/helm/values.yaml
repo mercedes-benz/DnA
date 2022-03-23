@@ -52,6 +52,7 @@ frontend:
       enableMalwareService: false
       enableDataPipelineService: false
       enableStorageService: false
+      storageMFEAppURL: http://localhost:8083
       enablePipelineService: false
       enabledMlPipelineService: false
       enableMalwareApiInfo: false
