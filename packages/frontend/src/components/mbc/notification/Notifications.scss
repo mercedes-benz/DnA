@@ -273,6 +273,11 @@ i {
   width: 90%;
 }
 
+.notificationMessage{
+  display: flex;
+  align-items: center;
+}
+
 
 .removeBlock{
   /*margin-top: 10px;*/ 
@@ -305,7 +310,7 @@ i {
 
 .slider {
   position: fixed;
-  width: calc(100% - 298px);
+  text-align: left;
   height: 45%;
   bottom: 0;
   overflow: hidden; 
@@ -346,11 +351,9 @@ i {
       color: #dee3e8;
     }
     .notificationContent{
-      p{
-        &:nth-child(2){
-          max-width: 610px;
-        }
-      }
+      height: 220px;
+      overflow: auto;
+      
     }
   }
   .panelBorder{
@@ -405,7 +408,14 @@ i {
 
 .notificationMessage{
   &:hover{
+    cursor: pointer;   
+  }
+}
+
+.goToSolution{
+  float: right;  
+  &:hover{
     cursor: pointer;    
-    color: #00adef;    
+    color: #00adef!important;  
   }
 }

@@ -282,6 +282,7 @@ public class NotificationsController implements NotificationsApi {
 					GenericEventRecord record = new GenericEventRecord();
 					record.setEventType(data.getEventType());
 					record.setMailRequired(false);
+					record.setChangeLogs(null);
 					record.setMessage(data.getMessage());
 					record.setPublishingAppName(data.getPublishingUser());
 					record.setPublishingUser(data.getPublishingUser());

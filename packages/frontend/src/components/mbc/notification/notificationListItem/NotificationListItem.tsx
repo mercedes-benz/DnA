@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // import { ISubsriptionAdminList } from '../../../../globals/types';
-import { history } from '../../../../router/History';
+// import { history } from '../../../../router/History';
 import Styles from '../Notifications.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -54,9 +54,9 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
     event.nativeEvent.stopImmediatePropagation();
   };
 
-  // const onRowClick = (event: React.FormEvent<HTMLSpanElement>) => {
-  //   props.openDetails(item);
-  // };
+  const onRowClick = (event: React.FormEvent<HTMLSpanElement>) => {
+    props.openDetails(item);
+  };
 
   const stopPropagation = (event: React.FormEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -67,10 +67,10 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
     props.markNotificationAsRead([item.id]);
   };
 
-  const goToSummary = () => {
-    if(props.item.resourceId)
-      history.push('/summary/' + props.item.resourceId);
-  };
+  // const goToSummary = () => {
+  //   if(props.item.resourceId)
+  //     history.push('/summary/' + props.item.resourceId);
+  // };
 
   return (
     <React.Fragment>
@@ -133,32 +133,36 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
       </tr> */}
       <tr
         key={item.id}
+        onClick={onRowClick}
         className={classNames('data-row', item.isRead === 'false' ? Styles.unreadMessage : '')}
       >
         <td>
-          <label
-            className={classNames('checkbox', Styles.checkboxItem)}
-            onClick={(event: React.FormEvent<HTMLElement>) => stopPropagation(event)}
-          >
-            <span className="wrapper">
-              <input
-                type="checkbox"
-                className="ff-only"
-                id={'checkbox-' + item.id}
-                checked={
-                  props.checkedAll ||
-                  isChecked ||
-                  (isAvaialableInWithExceptionArray && !props.currentItemNotToBeDeleted)
-                }
-                onChange={(event: React.FormEvent<HTMLInputElement>) => {
-                  onChangeCheck(event);
-                }}
-              />
-            </span>
-            <span className={classNames('label', Styles.checkboxItemLabel, Styles.notificationMessage)} onClick={goToSummary}>
-              {item.message}{' '}
-            </span>
-          </label>
+          <div className={Styles.notificationMessage}>
+            <label
+              className={classNames('checkbox', Styles.checkboxItem)}
+              onClick={(event: React.FormEvent<HTMLElement>) => stopPropagation(event)}
+            >
+              <span className="wrapper">
+                <input
+                  type="checkbox"
+                  className="ff-only"
+                  id={'checkbox-' + item.id}
+                  checked={
+                    props.checkedAll ||
+                    isChecked ||
+                    (isAvaialableInWithExceptionArray && !props.currentItemNotToBeDeleted)
+                  }
+                  onChange={(event: React.FormEvent<HTMLInputElement>) => {
+                    onChangeCheck(event);
+                  }}
+                />
+              </span>
+              {' '}
+            </label>
+            <p className={classNames('label', Styles.checkboxItemLabel, Styles.notificationMessage)}>
+                {item.message}{' '}
+            </p>
+          </div>
         </td>
         <td className={classNames(Styles.notificationCategory)}>
           <div className={Styles.elementToMove}>{item.eventType}</div>
