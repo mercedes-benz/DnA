@@ -119,7 +119,7 @@ const Notifications = (props: any) => {
 
   const markNotificationAsRead = (notificationIds: any, showMessage = true) => {
     ProgressIndicator.show();
-     NotificationApiClient.markAsReadNotifications(notificationIds, 'SACSHAR')
+     NotificationApiClient.markAsReadNotifications(notificationIds, props.user.id)
       .then((response) => {
         setMessage('UPDATE_NOTIFICATIONS');        
         getNotifications();
