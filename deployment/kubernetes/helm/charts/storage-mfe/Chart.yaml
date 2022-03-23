@@ -1,5 +1,5 @@
 apiVersion: v2
-name: storageMfe
+name: storagemfe
 description: Storage Micro Frontend service deployment 
 
 # A chart can be either an 'application' or a 'library' chart.
