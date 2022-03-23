@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.slf4j.Logger;
@@ -45,6 +46,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.vault.authentication.TokenAuthentication;
 import org.springframework.vault.client.VaultEndpoint;
 import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend;
@@ -323,12 +326,23 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		try {
 			MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 			LOGGER.debug("Validating user:{} in minio", userId);
-			boolean isUserExist = validateUserInMinio(userId);
-			if (isUserExist) {
+			String commaSeparatedPolicies ="";
+			if(!ObjectUtils.isEmpty(policies)) {
+				commaSeparatedPolicies = policies.stream()
+						.collect(Collectors.joining(","));
+			}
+			
+			LOGGER.debug("List all minio users.");
+			Map<String, UserInfo> users = minioAdminClient.listUsers();
+			if (users.containsKey(userId)) {
 				LOGGER.info("User: {} already exists", userId);
-				for (String policy : policies) {
-					minioAdminClient.setPolicy(userId, false, policy);
+				UserInfo userInfo = users.get(userId);
+				if(StringUtils.hasText(userInfo.policyName())) {
+					 commaSeparatedPolicies = StringUtils.hasText(commaSeparatedPolicies)?  commaSeparatedPolicies+","+userInfo.policyName():
+						 commaSeparatedPolicies+userInfo.policyName();
 				}
+				minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
+				minioResponse.setStatus(ConstantsUtility.SUCCESS);
 			} else {
 
 				LOGGER.debug("Creating SecretKey for user: {}", userId);
@@ -336,13 +350,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// List<String> memberOf = new ArrayList<String>();
 
 				LOGGER.info("Onboarding user: to minio", userId);
-				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, null, null);
+				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
 
 				// setting policy to user
-				for (String policy : policies) {
-					LOGGER.debug("Setting Policy: {} to user: {}", policy, userId);
-					minioAdminClient.setPolicy(userId, false, policy);
-				}
+				LOGGER.debug("Setting policy for user:{}",userId);
+				minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
+				
 				LOGGER.info("Adding user: {} credentials to vault");
 				addUserVault(userId, userSecretKey);
 
@@ -375,8 +388,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			if(users.containsKey(userId)) {
 				UserInfo userInfo = users.get(userId);
 				String userSecretKey = UUID.randomUUID().toString();
-				LOGGER.info("Adding user to minio");
-				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, userInfo.policyName(), userInfo.memberOf());
+				
+				LOGGER.info("Adding user to minio:{}",userId);
+				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, "kurahu-bucket-1-All", userInfo.memberOf());
+				//minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
 				
 				LOGGER.info("Adding user to vault:{}",userId);
 				addUserVault(userId, userSecretKey);
@@ -403,16 +418,16 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	}
 	
 	
-	private boolean validateUserInMinio(String userId)
-			throws NoSuchAlgorithmException, IOException, InvalidCipherTextException, InvalidKeyException {
-		boolean isUserExist = false;
-		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
-		Map<String, UserInfo> users = minioAdminClient.listUsers();
-		if (users.containsKey(userId)) {
-			isUserExist = true;
-		}
-		return isUserExist;
-	}
+//	private boolean validateUserInMinio(String userId)
+//			throws NoSuchAlgorithmException, IOException, InvalidCipherTextException, InvalidKeyException {
+//		boolean isUserExist = false;
+//		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
+//		Map<String, UserInfo> users = minioAdminClient.listUsers();
+//		if (users.containsKey(userId)) {
+//			isUserExist = true;
+//		}
+//		return isUserExist;
+//	}
 
 	/*
 	 * To create bucket policy(default policy name will be bucketName_policyType for eg: abc_read,abc_write)
