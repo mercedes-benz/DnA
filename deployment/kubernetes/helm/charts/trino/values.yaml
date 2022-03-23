@@ -129,7 +129,7 @@ hivemetastore:
   minio:
     host: ""
     accessKey: ""
-    secretkey: ""
+    secretKey: ""
     warehouseBucketName: ""
   postgres:
     host: ""
