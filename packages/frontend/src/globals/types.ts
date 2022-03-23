@@ -511,7 +511,7 @@ export interface ICreateNewSolution {
   division: IDivisionAndSubDivision;
   expectedBenefits: string;
   id?: string;
-  lastmodifiedDate?: string;
+  lastModifiedDate?: string;
   locations?: ILocation[];
   currentPhase?: IPhase;
   relatedProducts: string[];

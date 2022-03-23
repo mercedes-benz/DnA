@@ -119,7 +119,7 @@ const Notifications = (props: any) => {
 
   const markNotificationAsRead = (notificationIds: any, showMessage = true) => {
     ProgressIndicator.show();
-     NotificationApiClient.markAsReadNotifications(notificationIds, 'SACSHAR')
+     NotificationApiClient.markAsReadNotifications(notificationIds, props.user.id)
       .then((response) => {
         setMessage('UPDATE_NOTIFICATIONS');        
         getNotifications();
@@ -128,8 +128,8 @@ const Notifications = (props: any) => {
         }
       })
       .catch((err) => {
-        console.log('Something went wrong');
         showErrorNotification('Something went wrong');
+        ProgressIndicator.hide();
       });
     // toggleDrawer();
   };
@@ -433,15 +433,18 @@ const Notifications = (props: any) => {
                 </div> */}
                 <div className={Styles.notificationContent}>
                   {/* <p>Hey John Doe,</p> */}
-                  <ul>
-                  {notificationDetails
-                        ? JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {
-                            return (
-                              <li key={index}>{data.changeDescription}, {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
-                            )}
-                            )
-                  : ''}
-                  </ul>
+                  
+                  {notificationDetails?
+                    JSON.parse(notificationDetails)?.changeLogs?
+                    <ul>
+                      {JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {
+                        return (
+                          <li key={index}>{data.changeDescription}, {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
+                        )}
+                      )}
+                    </ul>  
+                  : <div className={Styles.noChangeLogs}>Change logs are not avaialble!</div> : <div className={Styles.noChangeLogs}>Change logs are not avaialble!</div>}
+                  
                   
 
 
