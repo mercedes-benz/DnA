@@ -250,7 +250,6 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		if (isUpdate) {
 			eventType = "Solution_update";
 			changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
-			System.out.println(changeLogs);
 		}
 		else
 			eventType = "Solution_create";
@@ -672,19 +671,22 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			if ("Solution_delete".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Deleted";
 				message = "Solution " + solutionName + " is delete by user " + userId;
+				LOGGER.info("Publishing message on solution delete for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_update".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Updated";
 				message = "Solution " + solutionName + " is updated by user " + userId;
+				LOGGER.info("Publishing message on solution update for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_create".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Created";
 				message = "Added as team member to Solution " + solutionName + " by user " + userId;
+				LOGGER.info("Publishing message on solution create for solution {} by userId {}", solutionName, userId);
 			}
 			if (eventType != null && eventType != "")
 					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,changeLogs);
 		} catch (Exception e) {
-			LOGGER.trace("Failed while publishing notebookevent msg {} ", e.getMessage());
+			LOGGER.trace("Failed while publishing solution event msg {} ", e.getMessage());
 		}
 	}
 
