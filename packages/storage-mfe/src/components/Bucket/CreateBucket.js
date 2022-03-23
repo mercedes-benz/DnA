@@ -97,6 +97,8 @@ const CreateBucket = () => {
       const data = {
         id: bucketItem.id,
         name: bucketName,
+        createdOn: '2022-03-01',
+        modifiedOn: '2022-03-23',
         permission: permissions,
         collaborators: bucketCollaborators,
         tab: {
