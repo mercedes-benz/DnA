@@ -59,6 +59,7 @@ import com.daimler.data.service.language.LanguageService;
 import com.daimler.data.service.notebook.NotebookService;
 import com.daimler.data.service.platform.PlatformService;
 import com.daimler.data.service.tag.TagService;
+import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.visualization.VisualizationService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.relatedproduct.RelatedProductService;
@@ -98,6 +99,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 	@Autowired
 	private KafkaProducerService kafkaProducer;
+	
+	@Autowired
+	private UserInfoService userInfoService;
 
 	@Autowired
 	private TagService tagService;
@@ -171,10 +175,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		boolean isUpdate = vo != null && vo.getId() != null ? true : false;
 		boolean noteBookAttachedAlready = false;
 		String notebookEvent = "provisioned";
+		SolutionVO prevVo = new SolutionVO();
 		if (isUpdate) {
 			String prevNotebookId = "";
 			String currNotebookId = "";
-			SolutionVO prevVo = this.getById(vo.getId());
+			prevVo = this.getById(vo.getId());
 			if (prevVo != null && prevVo.getPortfolio() != null && prevVo.getPortfolio().getDnaNotebookId() != null)
 				prevNotebookId = prevVo.getPortfolio().getDnaNotebookId();
 			if (vo != null && vo.getPortfolio() != null && vo.getPortfolio().getDnaNotebookId() != null)
@@ -240,14 +245,19 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		String eventType = "";
 		String solutionName = responseSolutionVO.getProductName();
 		String solutionId = responseSolutionVO.getId();
-		if (isUpdate)
+		List<ChangeLogVO> changeLogs = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		if (isUpdate) {
 			eventType = "Solution_update";
+			changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
+			System.out.println(changeLogs);
+		}
 		else
 			eventType = "Solution_create";
 
 		List<String> teamMembers = responseSolutionVO.getTeam().stream().map(n -> n.getShortId())
 				.collect(Collectors.toList());
-		this.publishEventMessages(eventType, solutionId, solutionName, teamMembers);
+		this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers);
 		return responseSolutionVO;
 	}
 
@@ -638,13 +648,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			String solutionId = solutionVO.getId();
 			List<String> teamMembers = solutionVO.getTeam().stream().map(n -> n.getShortId())
 					.collect(Collectors.toList());
-			this.publishEventMessages(eventType, solutionId, solutionName, teamMembers);
+			this.publishEventMessages(eventType, solutionId, null, solutionName, teamMembers);
 		}
 
 		return super.deleteById(id);
 	}
 
-	private void publishEventMessages(String eventType, String solutionId, String solutionName,
+	private void publishEventMessages(String eventType, String solutionId, List<ChangeLogVO> changeLogs, String solutionName,
 			List<String> subscribedUsers) {
 		try {
 			String message = "";
@@ -672,7 +682,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				message = "Added as team member to Solution " + solutionName + " by user " + userId;
 			}
 			if (eventType != null && eventType != "")
-				kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers);
+					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,changeLogs);
 		} catch (Exception e) {
 			LOGGER.trace("Failed while publishing notebookevent msg {} ", e.getMessage());
 		}

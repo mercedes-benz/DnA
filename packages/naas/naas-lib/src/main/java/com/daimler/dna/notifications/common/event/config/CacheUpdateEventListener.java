@@ -147,6 +147,7 @@ public class CacheUpdateEventListener {
 								vo.setId(record.value().getUuid());
 								vo.setIsRead("false");
 								vo.setMessage(record.value().getMessage());
+								vo.setChangeLogs(record.value().getChangeLogs());
 								cacheUtil.addEntry(user, vo);
 							}
 						}
@@ -164,6 +165,7 @@ public class CacheUpdateEventListener {
 						vo.setMessageDetails(record.value().getMessageDetails());
 						vo.setIsRead("true");
 						vo.setMessage(record.value().getMessage());
+						vo.setChangeLogs(record.value().getChangeLogs());
 						cacheUtil.addEntry(user, vo);
 					} else if (record.value() != null && !readTopic && deleteTopic) {
 
