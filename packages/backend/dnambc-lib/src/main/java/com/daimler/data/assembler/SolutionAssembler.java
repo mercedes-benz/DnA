@@ -1439,6 +1439,25 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	 */
 	public SolutionDigitalValueVO digitalValueCompare(SolutionDigitalValueVO request, SolutionDigitalValueVO existing,
 			CreatedByVO currentUser) {
+		List<ChangeLogVO> changeLogsVO = this.jsonObjectCompare(request, existing, currentUser);
+		if (null != existing.getChangeLogs()) {
+			changeLogsVO.addAll(existing.getChangeLogs());
+		}
+		request.setChangeLogs(changeLogsVO);
+
+		return request;
+	}
+	
+	/**
+	 * Simple GSON based json objects compare and difference provider
+	 * 
+	 * @param request
+	 * @param existing
+	 * @param currentUser
+	 * @return
+	 */
+	public List<ChangeLogVO> jsonObjectCompare(Object request, Object existing,
+			CreatedByVO currentUser) {
 		Gson gson = new Gson();
 		Type type = new TypeToken<Map<String, Object>>() {
 		}.getType();
@@ -1512,13 +1531,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 			}
 		}
-
-		if (null != existing.getChangeLogs()) {
-			changeLogsVO.addAll(existing.getChangeLogs());
-		}
-		request.setChangeLogs(changeLogsVO);
-
-		return request;
+		return changeLogsVO;
 	}
 
 	/**
