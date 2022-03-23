@@ -268,7 +268,7 @@ const protectedRoutes = [
     component: StorageComponent,
     exact: false,
     path: '/storage',
-    title: 'Storage Micro Frontend',
+    title: 'Storage',
   },
 ];
 
