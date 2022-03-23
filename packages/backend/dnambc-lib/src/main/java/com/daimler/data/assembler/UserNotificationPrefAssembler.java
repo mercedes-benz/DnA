@@ -22,7 +22,7 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO notebookNotificationPrefVO = this.toNotificationPrefVO(notebookNotificationPrefJson);
 				vo.setNotebookNotificationPref(notebookNotificationPrefVO);
 				
-				NotificationPreference solutionNotificationPrefJson = data.getNotebookNotificationPref();
+				NotificationPreference solutionNotificationPrefJson = data.getSolutionNotificationPref();
 				NotificationPreferenceVO solutionNotificationPrefVO = this.toNotificationPrefVO(solutionNotificationPrefJson);
 				vo.setSolutionNotificationPref(solutionNotificationPrefVO);
 				
