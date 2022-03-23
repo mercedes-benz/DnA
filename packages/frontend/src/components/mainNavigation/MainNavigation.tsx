@@ -84,6 +84,16 @@ export default class MainNavigation extends React.Component<IMainNavigationProps
     }
   }
 
+  public componentDidUpdate(
+    prevProps: Readonly<IMainNavigationProps>,
+    prevState: Readonly<IMainNavigationState>,
+    snapshot?: any,
+  ): void {
+    // set height of the active side nav item
+    const activeNavItem = document?.querySelectorAll('.nav-item.has-sub-nav.active.opened')?.[0];
+    this.props.isMaximized && activeNavItem?.setAttribute('style', 'height: 134px !important');
+  }
+
   public render() {
     const reportNav = {
       id: 3,
@@ -211,7 +221,9 @@ export default class MainNavigation extends React.Component<IMainNavigationProps
                     return (
                       <li
                         key={`${index}${subIndex}`}
-                        className={classNames('nav-item', { active: getPath().includes(subNavItem.route) })}
+                        className={classNames('nav-item sub-nav-item', {
+                          active: getPath().includes(subNavItem.route),
+                        })}
                       >
                         <Link className="nav-link" to={subNavItem.route}>
                           {getTranslatedLabel(subNavItem.title)}
