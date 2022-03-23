@@ -50,13 +50,13 @@ data:
     memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
     discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
-  {{- if .Values.authentication.oidc.enabled -}}
+
+  {{- if .Values.authentication.oidc.enabled }}
     http-server.authentication.type=oauth2
     web-ui.authentication.type=oauth2
-    {{- if .Values.authentication.oidc.https.enabled -}}
-    http-server.https.enabled=true
+    http-server.process-forwarded=true
     http-server.https.port={{ .Values.authentication.oidc.https.port }}
-    {{- end }}
+
     http-server.authentication.oauth2.issuer={{ .Values.authentication.oidc.issuer }}
     http-server.authentication.oauth2.auth-url={{ .Values.authentication.oidc.authUrl }}
     http-server.authentication.oauth2.token-url={{ .Values.authentication.oidc.tokenUrl }}
