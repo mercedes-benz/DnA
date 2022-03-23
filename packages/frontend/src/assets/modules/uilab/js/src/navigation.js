@@ -48,8 +48,12 @@ class Navigation {
         if (subNavItem.classList.contains('opened')) {
           subNavItem.style.height = null;
         } else {
-          subNavItem.style.height =
-            subNavItem.querySelectorAll('.nav-link').length * (subNavItem.clientHeight + 2) - 1 + 'px';
+          subNavItem.setAttribute(
+            'style',
+            `height:${
+              subNavItem.querySelectorAll('.nav-link').length * (subNavItem.clientHeight + 2) - 1 + 'px !important'
+            }`,
+          );
         }
 
         subNavItem.classList.toggle('opened');
