@@ -35,7 +35,6 @@ const CreateBucket = () => {
   }, [isLoading]);
 
   const onSubmissionModalCancel = () => {
-    console.log(history);
     history.replace('/');
     dispatch({
       type: 'SUBMISSION_MODAL',
