@@ -102,7 +102,7 @@ public class BasePersistenceService implements PersistenceService {
 						List<String> policies = userVO.getPermissions().stream()
 								.map(n -> bucketVo.getBucketName() + "_" + n.toUpperCase())
 								.collect(Collectors.toList());
-						MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(currentUser,
+						MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userVO.getAccesskey(),
 								policies);
 						if (onboardUserResponse != null && onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 							onboardUserResponse.getUser().setPermissions(userVO.getPermissions());
