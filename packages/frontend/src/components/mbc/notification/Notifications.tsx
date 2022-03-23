@@ -3,7 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { withRouter } from 'react-router-dom';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
-import { IUserInfo } from '../../../globals/types';
+import { IChangeLogData, IUserInfo } from '../../../globals/types';
 import Styles from './Notifications.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
@@ -86,23 +86,8 @@ const Notifications = (props: any) => {
       })
       .catch((error) => {
         showErrorNotification('Something went wrong!');
+        ProgressIndicator.hide();
       });
-    // ApiClient.getNotifications(maxItemsPerPage, currentPageOffset, 'description', 'asc')
-    //   .then((response) => {
-    //     const res = response.data.solutions;
-    //     const totalNumberOfPagesInner = Math.ceil(res.totalCount / maxItemsPerPage);
-    //     setNotificationsList(res.records);
-    //     setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
-    //     setTotalNumberOfPages(totalNumberOfPagesInner);
-    //     ProgressIndicator.hide();
-    //     history.replace({
-    //       search: `?page=${currentPageNumber}`,
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     err;
-    //     ProgressIndicator.hide();
-    //   });
   };
 
   const onPaginationPreviousClick = () => {
@@ -132,13 +117,15 @@ const Notifications = (props: any) => {
     setHideDrawer(!hideDrawer);
   };
 
-  const markNotificationAsRead = (notificationIds: any) => {
+  const markNotificationAsRead = (notificationIds: any, showMessage = true) => {
     ProgressIndicator.show();
-    NotificationApiClient.markAsReadNotifications(notificationIds, props.user.id)
+     NotificationApiClient.markAsReadNotifications(notificationIds, 'SACSHAR')
       .then((response) => {
-        setMessage('UPDATE_NOTIFICATIONS');
-        showNotification('Notification marked as viewed successfully.');
+        setMessage('UPDATE_NOTIFICATIONS');        
         getNotifications();
+        if(showMessage){
+          showNotification('Notification marked as viewed successfully.');
+        }
       })
       .catch((err) => {
         console.log('Something went wrong');
@@ -150,7 +137,8 @@ const Notifications = (props: any) => {
   const openDetails = (notificationDetails: any) => {
     setNotificationDetails(JSON.stringify(notificationDetails));
     /**********************  Following one line will be uncommented if drawer is needed ******************/
-    // setHideDrawer(false);
+    setHideDrawer(false);
+    markNotificationAsRead([notificationDetails.id], false)
 
     // toggleDrawer();
   };
@@ -241,8 +229,40 @@ const Notifications = (props: any) => {
   };
 
   const openDeleteModal = () => {
-    setShowDeleteModal(true);
+    setShowDeleteModal(true);    
+  }
+
+
+  const getParsedDate = (strDate: any) => {
+    const date = new Date(strDate);
+    let dd: any = date.getDate();
+    let mm: any = date.getMonth() + 1; // January is 0!
+
+    const yyyy = date.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    return (dd + '.' + mm + '.' + yyyy).toString();
   };
+
+  const getParsedTime = (strDate: any) => {
+    const date = new Date(strDate);
+    let hh: any = date.getHours();
+    let mm: any = date.getMinutes(); // January is 0!
+
+    if (hh < 10) {
+      hh = '0' + hh;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    return (hh + ':' + mm).toString();
+  };
+
+  
 
   return (
     <React.Fragment>
@@ -305,10 +325,10 @@ const Notifications = (props: any) => {
                   ''
                 )}
               </div>
-              {/* <div className={Styles.settingsBlock}>
-                <i className={classNames('icon mbc-icon search')} />
+              <div className={Styles.settingsBlock} onClick={()=> {history.push('/usersettings/')}}>
+                {/* <i className={classNames('icon mbc-icon search')} /> */}
                 Settings
-              </div> */}
+              </div>
             </div>
           </div>
 
@@ -381,45 +401,62 @@ const Notifications = (props: any) => {
                 </React.Fragment>
               )}
             </div>
+
+            <div className={classNames(Styles.slider, hideDrawer ? Styles.close : '')}>
+              <div className={Styles.panelBorder} onClick={toggleDrawer}>
+                <div></div>
+              </div>
+              <div className={Styles.contentWrapper}>
+                <div className={Styles.contentHeader}>
+                  <span className={Styles.detailsNotificationType}>
+                    <i className="icon mbc-icon notification" />
+                    {notificationDetails ? JSON.parse(notificationDetails).eventType : ''}
+                  </span>
+                  {notificationDetails ? JSON.parse(notificationDetails).eventType === 'Solution Updated' ? 
+                    <a className={Styles.goToSolution} onClick={()=>{history.push('/summary/' + JSON.parse(notificationDetails).resourceId)}}>Go To Solution</a> 
+                    : '' : ''}
+
+                  {/* {notificationRead ? (
+                    <span className={Styles.detailsMarkAsRead} onClick={() => markAsRead()}>
+                      <i className={'icon mbc-icon visibility-show'} />
+                      &nbsp; Mark as read
+                    </span>
+                  ) : (
+                    <span className={Styles.detailsMarkAsRead} onClick={() => markAsUnread()}>
+                      <i className={'icon mbc-icon visibility-hide'} /> 
+                      &nbsp; Mark as unread
+                    </span>
+                  )} */}
+                </div>
+                {/* <div className={Styles.notificationTitle}>
+                  <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
+                </div> */}
+                <div className={Styles.notificationContent}>
+                  {/* <p>Hey John Doe,</p> */}
+                  <ul>
+                  {notificationDetails
+                        ? JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {
+                            return (
+                              <li key={index}>{data.changeDescription}, {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
+                            )}
+                            )
+                  : ''}
+                  </ul>
+                  
+
+
+                </div>
+                {/* <div className={Styles.btnConatiner}>
+                  <button className="btn btn-primary" type="button">
+                    Go to provision
+                  </button>
+                </div> */}
+              </div>
+            </div>
+
           </div>
 
-          <div className={classNames(Styles.slider, hideDrawer ? Styles.close : '')}>
-            <div className={Styles.panelBorder} onClick={toggleDrawer}>
-              <div></div>
-            </div>
-            <div className={Styles.contentWrapper}>
-              <div className={Styles.contentHeader}>
-                <span className={Styles.detailsNotificationType}>
-                  <i className="icon mbc-icon notification" />
-                  {notificationDetails ? JSON.parse(notificationDetails).eventType : ''}
-                </span>
-
-                {/* {notificationRead ? (
-                  <span className={Styles.detailsMarkAsRead} onClick={() => markAsRead()}>
-                    <i className={'icon mbc-icon visibility-show'} />
-                    &nbsp; Mark as read
-                  </span>
-                ) : (
-                  <span className={Styles.detailsMarkAsRead} onClick={() => markAsUnread()}>
-                    <i className={'icon mbc-icon visibility-hide'} />
-                    &nbsp; Mark as unread
-                  </span>
-                )} */}
-              </div>
-              <div className={Styles.notificationTitle}>
-                <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
-              </div>
-              <div className={Styles.notificationContent}>
-                {/* <p>Hey John Doe,</p> */}
-                <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
-              </div>
-              {/* <div className={Styles.btnConatiner}>
-                <button className="btn btn-primary" type="button">
-                  Go to provision
-                </button>
-              </div> */}
-            </div>
-          </div>
+          
         </div>
         {notificationsList.length ? (
           <Pagination
