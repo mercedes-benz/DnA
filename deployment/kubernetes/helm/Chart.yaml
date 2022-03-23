@@ -57,6 +57,10 @@ dependencies:
   version: 0.2.1
   condition: vault.enabled
 
+- name: storageMfe
+  repository: file://charts/storage-mfe
+  version: 0.1.0
+  condition: storageMfe.enabled
 
 # A chart can be either an 'application' or a 'library' chart.
 #
