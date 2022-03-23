@@ -1,0 +1,37 @@
+.mainPanel {
+    padding: 72px 185px 30px 114px;
+    display: flex;
+
+    .wrapper {
+        width: 100%;
+        .caption {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            .allSolExport {
+                display: flex;
+                align-items: center;
+                position: relative;                
+            }
+            span {
+                cursor: pointer;
+            }
+        }
+        
+        h3 {
+            margin: 0;
+            color: #dee3e8;
+            font-size: var(--font-size-section-headline);
+            padding: 0;
+        }        
+        
+    }
+} 
+
+.tabContent{
+    background-color: #252a33!important;
+    min-height: 400px;
+    margin-top: 40px!important;
+}
