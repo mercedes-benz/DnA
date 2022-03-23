@@ -27,7 +27,7 @@ data:
     hive.s3.aws-secret-key={{ .Values.hivemetastore.minio.secretKey }}
     hive.s3.ssl.enabled=false
     hive.s3.max-connections=100
-    hive.parquet.use-column-names=false
+    hive.parquet.use-column-names=true
 
 {{- range $catalogName, $catalogProperties := .Values.additionalCatalogs }}
   {{ $catalogName }}.properties: |
