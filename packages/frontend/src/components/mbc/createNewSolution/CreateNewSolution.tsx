@@ -124,6 +124,8 @@ export interface ICreateNewSolutionData {
   createdBy?: IUserInfo;
   bookmarked?: boolean;
   neededRoles: INeededRoleObject[];
+  createdDate: string;
+  lastModifiedDate: string;
 }
 
 export interface ITeamRequest {
@@ -285,6 +287,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         },
         publish: false,
         neededRoles: [],
+        createdDate: '',
+        lastModifiedDate: ''
       },
       // stateChanged: false,
       currentState: null,
