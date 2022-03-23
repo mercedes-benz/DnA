@@ -89,7 +89,9 @@ spec:
           - name: 'PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE'
             value: {{ .Values.appFrontend.config.enableDataPipelineService | squote }}
           - name: 'PROJECTSMO_ENABLE_STORAGE_SERVICE'
-            value: {{ .Values.appFrontend.config.enableStorageService | squote }} 
+            value: {{ .Values.appFrontend.config.enableStorageService | squote }}
+          - name: 'PROJECTSMO_STORAGE_MFE_APP_URL'
+            value: {{ .Values.appFrontend.config.storageMFEAppURL | squote }}  
           - name: 'PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE'
             value: {{ .Values.appFrontend.config.enabledMlPipelineService | squote }}
           - name: 'PROJECTSMO_ML_PIPELINE_URL'
