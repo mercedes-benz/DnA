@@ -108,8 +108,6 @@ serviceAccount:
 authentication:
   oidc:
     enabled: false
-    https:
-      port: ""
     issuer: ""
     authUrl: ""
     tokenUrl: ""
