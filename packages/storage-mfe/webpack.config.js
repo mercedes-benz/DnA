@@ -72,10 +72,7 @@ module.exports = {
             },
           },
         ],
-        include: [
-          path.resolve(__dirname, path.join('..', 'common', 'globals')),
-          path.resolve(__dirname, path.join('.', 'src')),
-        ],
+        include: [path.resolve(__dirname, path.join('.', 'src'))],
       },
       {
         test: /\.(css|scss)$/,
@@ -87,10 +84,7 @@ module.exports = {
             loader: 'css-loader',
           },
         ],
-        exclude: [
-          path.resolve(__dirname, path.join('..', 'common', 'globals')),
-          path.resolve(__dirname, path.join('.', 'src')),
-        ],
+        exclude: [path.resolve(__dirname, path.join('.', 'src'))],
       },
     ],
   },
