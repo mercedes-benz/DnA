@@ -174,7 +174,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 			 * subscribedUsers.remove(userId); }
 			 */
 			if (sendNotificationForNotebookLink || sendNotificationForNotebookUnLink)
-				kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers);
+					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,null);
 		} catch (Exception e) {
 			LOGGER.error("Failed while publishing notebookevent of eventType {} solutionId {} with exceptionmsg {} ",
 					eventType, solutionId, e.getMessage());

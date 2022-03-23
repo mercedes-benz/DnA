@@ -32,6 +32,7 @@ const AllReports = React.lazy(() => import('../components/mbc/allReports/AllRepo
 const CreateNewReport = React.lazy(() => import('../components/mbc/createNewReport/CreateNewReport'));
 const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
 const ReportAdmin = React.lazy(() => import('../components/mbc/reportAdmin/ReportAdministration'));
+const UserSettings = React.lazy(() => import('../components/mbc/userSettings/userSettings'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -254,6 +255,13 @@ const protectedRoutes = [
     exact: false,
     path: '/notifications',
     title: 'Notifications',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: UserSettings,
+    exact: false,
+    path: '/usersettings',
+    title: 'User Settings',
   },
   {
     allowedRoles: UserAndAdminRole,
