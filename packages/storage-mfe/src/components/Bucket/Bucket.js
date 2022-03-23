@@ -5,8 +5,8 @@ import { useSelector } from 'react-redux';
 import { BucketList } from './BucketList';
 import Styles from './Buckets.scss';
 
-import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
-import ExpansionPanel from '../../../../common/modules/uilab/js/src/expansion-panel';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 
 // import from DNA Container
 const Modal = React.lazy(() => import('dna-container/Modal'));

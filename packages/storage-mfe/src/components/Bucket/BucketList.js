@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Styles from './BucketList.scss';
 import classNames from 'classnames';
 import { history } from '../../store/storeRoot';
-import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
