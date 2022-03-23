@@ -49,6 +49,6 @@ spec:
               subPath: nginx.conf
           env:
           - name: PROJECTSMO_CONTAINER_APP_URL
-            value: {{ .Values.containerAppUrl }}
+            value: {{ .Values.conf.containerAppUrl }}
           - name: PROJECTSMO_FRONTEND_API_BASEURL
-            value: {{ .Values.apiBaseUrl }}          
+            value: {{ .Values.conf.apiBaseUrl }}          
