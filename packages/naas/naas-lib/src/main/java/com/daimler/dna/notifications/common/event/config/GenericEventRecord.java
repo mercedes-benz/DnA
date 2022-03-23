@@ -49,7 +49,7 @@ public class GenericEventRecord implements Serializable {
 //	private java.lang.Boolean mail_required;
 //	private java.lang.CharSequence message;
 //	private java.lang.CharSequence time;
-//	private Boolean mailRequired;
+	private Boolean mailRequired;
 	
 	private String uuid;
 	private String resourceId;
