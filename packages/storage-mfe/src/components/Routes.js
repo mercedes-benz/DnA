@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { ConnectedRouter } from 'connected-react-router';
 import { useDispatch } from 'react-redux';
@@ -6,9 +6,9 @@ import { useDispatch } from 'react-redux';
 import { getUserInfo } from '../appRedux/app.actions';
 
 // import component from container app
-const Progress = lazy(() => import('dna-container/Progress'));
-const NotFoundPage = lazy(() => import('dna-container/NotFound'));
-const UnAuthorised = lazy(() => import('dna-container/UnAuthorised'));
+const Progress = React.lazy(() => import('dna-container/Progress'));
+const NotFoundPage = React.lazy(() => import('dna-container/NotFound'));
+const UnAuthorised = React.lazy(() => import('dna-container/UnAuthorised'));
 
 import AllBuckets from './Bucket/Bucket';
 import CreateBucket from './Bucket/CreateBucket';
