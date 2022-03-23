@@ -8,7 +8,7 @@ import AddUser from 'dna-container/AddUser';
 import { useParams } from 'react-router-dom';
 import { history } from '../../store/storeRoot';
 import { ConnectionModal } from './ConnectionModal';
-import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 const InfoModal = React.lazy(() => import('dna-container/InfoModal'));
 

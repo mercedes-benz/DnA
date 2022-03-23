@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import Tabs from '../../../../common/modules/uilab/js/src/tabs';
+import Tabs from '../../common/modules/uilab/js/src/tabs';
 import Styles from './ConnectionModal.scss';
 
 const copyToClipboard = (id) => {
