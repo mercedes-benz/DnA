@@ -12,6 +12,7 @@ echo "DNS Resolver set to: $PROJECTSMO_DNS_RESOLVER_ADDRESS"
 echo "Changing to directory and setting environment variables"
 cd /usr/share/nginx/html
 env > env.txt
+# Replace envs in compiled frontend app
 export JS_FILE=$(find . -name '*.js')
 export JS_MAP_FILE=$(find . -name '*.js.map')
 env > env_new.txt
