@@ -179,6 +179,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         publish: false,
         bookmarked: false,
         neededRoles: [],
+        createdDate: '',
+        lastModifiedDate: ''
       },
       canShowDataSources: false,
       canShowDigitalValue: false,
@@ -329,6 +331,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       canEdit={isAdmin !== undefined || userInfo.id === this.checkUserCanEditSolution(userInfo)}
                       solutionId={this.state.response.data ? this.state.response.data.id : ''}
                       bookmarked={this.state.solution.bookmarked}
+                      lastModifiedDate={this.state.solution.lastModifiedDate}
+                      createdDate={this.state.solution.createdDate}
                       onEdit={this.onEditSolution}
                       onDelete={this.onDeleteSolution}
                       updateBookmark={this.updateBookmark}
@@ -483,6 +487,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.openSegments = res.openSegments;
             solution.publish = res.publish;
             solution.createdBy = res.createdBy;
+            solution.createdDate = res.createdDate;
+            solution.lastModifiedDate = res.lastModifiedDate;
             this.setState(
               {
                 response,
