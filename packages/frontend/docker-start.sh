@@ -12,16 +12,16 @@ echo "DNS Resolver set to: $PROJECTSMO_DNS_RESOLVER_ADDRESS"
 echo "Changing to directory and setting environment variables"
 cd /usr/share/nginx/html
 env > env.txt
-# Replace envs in compiled frontend app
-export APP_FILE=$(find . -name *app_legacy.*.js)
-export LEGACY_APP_FILE=$(find . -name *legacy.*.js)
+export JS_FILE=$(find . -name '*.js')
+export JS_MAP_FILE=$(find . -name '*.js.map')
 env > env_new.txt
 
 # echo "Processing app.js ($APP_FILE). Execute ENV replacement ..."
-cp $APP_FILE app.bak
-cp $LEGACY_APP_FILE legacy.bak
-perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{([^}]+)\}//eg' -i $APP_FILE
-echo "Processing legacy.js ($LEGACY_APP_FILE). Execute ENV replacement ..."
-perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{([^}]+)\}//eg' -i $LEGACY_APP_FILE
+# cp $APP_FILE app.bak
+# cp $LEGACY_APP_FILE legacy.bak
+echo "Processing ($JS_FILE). Execute ENV replacement ..."
+perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{([^}]+)\}//eg' -i $JS_FILE
+echo "Processing ($JS_MAP_FILE). Execute ENV replacement ..."
+perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{([^}]+)\}//eg' -i $JS_MAP_FILE
 echo "Starting NGINX"
 nginx -c /etc/nginx/nginx.conf -g 'daemon off;'

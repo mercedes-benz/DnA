@@ -31,6 +31,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
+import com.daimler.data.dto.solution.ChangeLogVO;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -47,7 +49,8 @@ public class GenericEventRecord implements Serializable {
 //	private java.lang.Boolean mail_required;
 //	private java.lang.CharSequence message;
 //	private java.lang.CharSequence time;
-
+	private Boolean mailRequired;
+	
 	private String uuid;
 	private String resourceId;
 	private String publishingAppName;
@@ -55,8 +58,8 @@ public class GenericEventRecord implements Serializable {
 	private String publishingUser;
 	private String message;
 	private String messageDetails;
-	private Boolean mailRequired;
 	private String time;
 	private List<String> subscribedUsers;
+	private List<ChangeLogVO> changeLogs;
 
 }
