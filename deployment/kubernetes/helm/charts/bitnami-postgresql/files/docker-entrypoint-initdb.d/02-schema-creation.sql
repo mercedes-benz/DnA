@@ -469,6 +469,12 @@ id TEXT primary key,
 data jsonb not null
 );
 
+create table  if not exists public.usernotificationpref_nsql 
+( 
+id text primary key , 
+data jsonb not null
+);
+
 --
 -- DDL Script end
 --
