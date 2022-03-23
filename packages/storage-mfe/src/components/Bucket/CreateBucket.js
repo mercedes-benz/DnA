@@ -10,7 +10,7 @@ import { history } from '../../store/storeRoot';
 import { ConnectionModal } from './ConnectionModal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
-const InfoModal = React.lazy(() => import('dna-container/InfoModal'));
+import InfoModal from 'dna-container/InfoModal';
 
 const CreateBucket = () => {
   const { id } = useParams();
@@ -35,7 +35,8 @@ const CreateBucket = () => {
   }, [isLoading]);
 
   const onSubmissionModalCancel = () => {
-    history.push('/');
+    console.log(history);
+    history.replace('/');
     dispatch({
       type: 'SUBMISSION_MODAL',
       payload: {
