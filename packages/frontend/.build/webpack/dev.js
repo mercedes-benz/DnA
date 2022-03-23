@@ -8,7 +8,8 @@ const base = require('./base'),
 ESLintPlugin = require('eslint-webpack-plugin');
 
 const { ModuleFederationPlugin } = webpack.container;
-const MFE_URL = process.env.STORAGE_MFE_APP_URL ? process.env.STORAGE_MFE_APP_URL : 'http://localhost:8083';
+const MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083';
+
 
 const devConfig = {
   mode: 'development',
