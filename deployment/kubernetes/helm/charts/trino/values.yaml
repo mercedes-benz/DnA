@@ -109,7 +109,6 @@ authentication:
   oidc:
     enabled: false
     https:
-      enabled: true
       port: ""
     issuer: ""
     authUrl: ""
