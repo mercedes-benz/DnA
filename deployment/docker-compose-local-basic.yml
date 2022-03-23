@@ -18,6 +18,7 @@ services:
       - PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE=false
       - PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE=false
       - PROJECTSMO_ENABLE_STORAGE_SERVICE=false
+      - PROJECTSMO_STORAGE_MFE_APP_URL=http://localhost:8083
       - PROJECTSMO_DNA_COMPANY_NAME=Company_Name
       - PROJECTSMO_DEPLOY_VERSION=0.91
       - PROJECTSMO_DNA_APPNAME_HEADER=DnA App
@@ -61,7 +62,7 @@ services:
       - "POSTGRES_DB=db"
     # Init db on startup
     volumes:
-      - ./kubernetes/helm/charts/app/files/localdb-init/schema-creation.sql:/docker-entrypoint-initdb.d/01-schema-init.sql
-      - ./kubernetes/helm/charts/app/files/localdb-init/schema-data.sql:/docker-entrypoint-initdb.d/02-data-init.sql
+      - ./kubernetes/helm/charts/app/files/localdb-init/schema-creation.sql:/docker-entrypoint-initdb.d/02-schema-creation.sql
+      - ./kubernetes/helm/charts/app/files/localdb-init/schema-data.sql:/docker-entrypoint-initdb.d/02-schema-data.sql
     ports:
       - "5432:5432"

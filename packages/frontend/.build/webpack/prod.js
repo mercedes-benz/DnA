@@ -11,7 +11,7 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
 const { ModuleFederationPlugin } = webpack.container;
-const MFE_URL = process.env.STORAGE_MFE_APP_URL ? process.env.STORAGE_MFE_APP_URL : 'http://localhost:8083';
+const MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083';
 
 const prodConfig = {
   name: 'ProdConfig',
