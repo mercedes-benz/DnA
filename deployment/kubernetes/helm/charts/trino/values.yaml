@@ -134,3 +134,9 @@ hivemetastore:
     user: ""
     password: ""
 
+immuta:
+  enabled: false
+  name: "immuta"
+  endpoint: ""
+  apiKey: ""
+  listenerName: "immuta-event-listener"
