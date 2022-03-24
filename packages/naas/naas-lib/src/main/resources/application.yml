@@ -3,8 +3,8 @@ spring:
     name: notification-service
   
   mail:
-    host: XXXX
-    port: XXXX
+    host: ${DNA_MAIL_SERVER_HOST:XXXX}
+    port: ${DNA_MAIL_SERVER_PORT:XXXX}
 #    host: smtp.gmail.com
 #    port: 587
 #    username: XXXXX@gmail.com
