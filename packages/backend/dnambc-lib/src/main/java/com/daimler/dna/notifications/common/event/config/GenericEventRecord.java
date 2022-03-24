@@ -33,6 +33,7 @@ public class GenericEventRecord implements Serializable {
 	private String messageDetails;
 	private String time;
 	private List<String> subscribedUsers;
+	private List<String> subscribedUsersEmail;
 	private List<ChangeLogVO> changeLogs;
 
 }
