@@ -31,7 +31,6 @@ const Comingsoon = React.lazy(() => import('../components/mbc/comingsoon/Comings
 const AllReports = React.lazy(() => import('../components/mbc/allReports/AllReports'));
 const CreateNewReport = React.lazy(() => import('../components/mbc/createNewReport/CreateNewReport'));
 const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
-const ReportAdmin = React.lazy(() => import('../components/mbc/reportAdmin/ReportAdministration'));
 const UserSettings = React.lazy(() => import('../components/mbc/userSettings/userSettings'));
 
 // Micro Front End Component
@@ -39,7 +38,6 @@ const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 
 const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 const AdminRole = [USER_ROLE.ADMIN];
-const ReportAdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 
 const publicRoutes = [
   {
@@ -171,13 +169,6 @@ const protectedRoutes = [
     exact: false,
     path: '/administration',
     title: 'Administration',
-  },
-  {
-    allowedRoles: ReportAdminRole,
-    component: ReportAdmin,
-    exact: false,
-    path: '/reportadmin',
-    title: 'AdminReport',
   },
   {
     allowedRoles: UserAndAdminRole,
