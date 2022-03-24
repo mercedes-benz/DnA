@@ -157,10 +157,8 @@ i {
   font-size: var(--font-size-default) !important;
   &:hover 
   {
-    cursor: pointer;
-    i {
-      color: #00adef;
-    }
+    cursor: pointer;    
+    color: #00adef;    
   }
 }
 
