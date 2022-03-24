@@ -46,6 +46,7 @@ import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionAnalyticsVO;
 import com.daimler.data.dto.solution.SolutionPortfolioVO;
 import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.solution.TeamMemberVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.dto.visualization.VisualizationVO;
 import com.daimler.data.dto.relatedProduct.RelatedProductVO;
@@ -254,9 +255,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		else
 			eventType = "Solution_create";
 
-		List<String> teamMembers = responseSolutionVO.getTeam().stream().map(n -> n.getShortId())
-				.collect(Collectors.toList());
-		this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers);
+		List<String> teamMembers = new ArrayList<>();
+		List<String> teamMembersEmails = new ArrayList<>();
+		for(TeamMemberVO user : responseSolutionVO.getTeam()) {
+			teamMembers.add(user.getShortId());
+			teamMembersEmails.add(user.getEmail());
+		}
+		this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers,teamMembersEmails);
 		return responseSolutionVO;
 	}
 
@@ -645,16 +650,20 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			String eventType = "Solution_delete";
 			String solutionName = solutionVO.getProductName();
 			String solutionId = solutionVO.getId();
-			List<String> teamMembers = solutionVO.getTeam().stream().map(n -> n.getShortId())
-					.collect(Collectors.toList());
-			this.publishEventMessages(eventType, solutionId, null, solutionName, teamMembers);
+			List<String> teamMembers = new ArrayList<>();
+			List<String> teamMembersEmails = new ArrayList<>();
+			for(TeamMemberVO user : solutionVO.getTeam()) {
+				teamMembers.add(user.getShortId());
+				teamMembersEmails.add(user.getEmail());
+			}
+			this.publishEventMessages(eventType, solutionId, null, solutionName, teamMembers,teamMembersEmails);
 		}
 
 		return super.deleteById(id);
 	}
 
 	private void publishEventMessages(String eventType, String solutionId, List<ChangeLogVO> changeLogs, String solutionName,
-			List<String> subscribedUsers) {
+			List<String> subscribedUsers, List<String> subscribedUsersEmail) {
 		try {
 			String message = "";
 			Boolean mailRequired = true;
@@ -683,8 +692,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				message = "Added as team member to Solution " + solutionName + " by user " + userId;
 				LOGGER.info("Publishing message on solution create for solution {} by userId {}", solutionName, userId);
 			}
-			if (eventType != null && eventType != "")
-					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,changeLogs);
+			if (eventType != null && eventType != "") {
+					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,changeLogs);
+			}
 		} catch (Exception e) {
 			LOGGER.trace("Failed while publishing solution event msg {} ", e.getMessage());
 		}
