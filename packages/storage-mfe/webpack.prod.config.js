@@ -25,6 +25,7 @@ module.exports = {
     filename: `${packageName}_${version}_[name].[fullhash].js`,
     chunkFilename: `${packageName}_${version}_[name].[fullhash].bundle.js`,
     clean: true,
+    publicPath: 'auto',
   },
   devtool: 'source-map',
   module: {
