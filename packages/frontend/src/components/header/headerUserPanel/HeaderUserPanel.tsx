@@ -21,7 +21,9 @@ interface IHeaderUserPanelProps {
 let isTouch = false;
 
 export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
-  const isAdmin = props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined;
+  const enableAdmin =
+    props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined ||
+    props.user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN) !== undefined;
 
   useEffect(() => {
     eventClenUp();
@@ -124,7 +126,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
         </li>
         <li onClick={navigateToMySolutions}>{getTranslatedLabel('MySolutions')}</li>
         <li onClick={navigateToMyBookmarks}>{getTranslatedLabel('MyBookmarks')}</li>
-        {isAdmin && (
+        {enableAdmin && (
           <li onClick={navigateToAdministration}>{getTranslatedLabel('Administration')}</li>
         )}
         <li onClick={navigateToSettings}>{getTranslatedLabel('Settings')}</li>
