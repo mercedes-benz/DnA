@@ -40,6 +40,15 @@ spec:
               value: {{ .Values.app.backend.config.dna_uri }}
             - name: DNA_AUTH_ENABLE
               value: {{ .Values.app.backend.config.dna_auth_enable | quote }}
+            - name: DNA_MAIL_SERVER_HOST
+              value: {{ .Values.app.backend.config.mailServerHost | quote }}
+            - name: DNA_MAIL_SERVER_PORT
+              value: {{ .Values.app.backend.config.mailServerPort | quote }}
+            - name: DNA_AUTH_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: auth.api.token
+                  name: {{ .Values.app.backend.secrets.name }}
             - name: POLL_TIME
               value: {{ .Values.app.backend.config.poll_time | quote }}
             - name: NAAS_CENTRAL_TOPIC
