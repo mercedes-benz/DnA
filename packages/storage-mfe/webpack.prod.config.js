@@ -186,6 +186,8 @@ module.exports = {
       }),
       new optimizeCSSAssetsPlugin({}),
     ],
-    splitChunks: false,
+    splitChunks: {
+      chunks: 'async',
+    },
   },
 };
