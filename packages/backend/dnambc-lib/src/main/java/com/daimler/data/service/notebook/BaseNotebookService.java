@@ -154,6 +154,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		String message = "";
 		Boolean mailRequired = true;
 		List<String> subscribedUsers = new ArrayList<>();
+		List<String> subscribedUsersEmail = new ArrayList<>();
 		String notebookName = notebook != null ? notebook.getName() : "";
 		if ("provisioned".equalsIgnoreCase(updateType) && sendNotificationForNotebookLink) {
 			eventType = "Notebook Provisioned";
@@ -165,7 +166,9 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		}
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "dna_system";
+		String emailId = currentUser != null ? currentUser.getEmail() : "";
 		subscribedUsers.add(userId);
+		subscribedUsersEmail.add(emailId);
 		try {
 			/*
 			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
@@ -174,7 +177,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 			 * subscribedUsers.remove(userId); }
 			 */
 			if (sendNotificationForNotebookLink || sendNotificationForNotebookUnLink)
-					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,null);
+					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,null);
 		} catch (Exception e) {
 			LOGGER.error("Failed while publishing notebookevent of eventType {} solutionId {} with exceptionmsg {} ",
 					eventType, solutionId, e.getMessage());
