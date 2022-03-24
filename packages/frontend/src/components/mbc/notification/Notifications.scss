@@ -155,6 +155,11 @@ i {
 
 .checkboxItemLabel{
   font-size: var(--font-size-default) !important;
+  &:hover 
+  {
+    cursor: pointer;    
+    color: #00adef;    
+  }
 }
 
 .unreadMessage{
