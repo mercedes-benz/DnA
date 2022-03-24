@@ -10,6 +10,7 @@ app:
     secrets:
       name: naas-app-secrets
       jwtKey: ""
+      authApiToken: ""
       db: 
         appUserName: ""
         appPassword: ""
@@ -19,6 +20,8 @@ app:
       max_poll_records: 6000
       dna_uri: http://dna-app-backend-service.dna.svc.cluster.local:80
       dna_auth_enable: true
+      mailServerHost: ""
+      mailServerPort: ""
       poll_time: 5000
       naas_central_topic: dnaCentralEventTopic
       naas_centralread_topic: dnaCentralReadTopic
