@@ -29,7 +29,7 @@ package com.mbc.dna.notifications.mailer;
 
 public interface JMailer {
 
-	void sendSimpleMail(String to, String subject, String msgTxt);
+	void sendSimpleMail(String eventId, String to, String subject, String msgTxt);
 
 	void sendMailWithAttachments(String to, String subject, String msgTxt, String attachmentsPath);
 
