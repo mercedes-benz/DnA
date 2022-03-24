@@ -23,8 +23,8 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 	@Value("${dna.user.notificationPreferences.get.api}")
 	private String notificationPreferencesApiUri;
 	
-	@Value("${dna.token}")
-	private String authToken;
+	//@Value("${dna.token}")
+	//private String authToken;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -37,7 +37,7 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", authToken);
+			//headers.set("Authorization", authToken);
 			
 			String getUserNotificationPrefUri = dnaBaseUri + notificationPreferencesApiUri + "?userId=" + userId;
 			HttpEntity entity = new HttpEntity<>(headers);
