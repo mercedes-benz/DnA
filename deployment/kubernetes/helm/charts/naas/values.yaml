@@ -10,7 +10,6 @@ app:
     secrets:
       name: naas-app-secrets
       jwtKey: ""
-      authApiToken: ""
       db: 
         appUserName: ""
         appPassword: ""
