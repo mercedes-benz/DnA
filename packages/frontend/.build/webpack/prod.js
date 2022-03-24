@@ -104,6 +104,9 @@ const prodConfig = {
       }),
       new optimizeCSSAssetsPlugin({}),
     ],
+    splitChunks: {
+      chunks: 'async',
+    },
     concatenateModules: true,
   },
   stats: process.env.verbose === 'true' ? 'normal' : 'errors-only',
