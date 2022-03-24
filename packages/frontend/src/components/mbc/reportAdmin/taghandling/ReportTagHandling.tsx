@@ -4,9 +4,9 @@ import * as React from 'react';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
+import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import Pagination from '../../pagination/Pagination';
-import Styles from './TagHandling.scss';
+import Styles from './ReportTagHandling.scss';
 
 import { IFitlerCategory, ITagResult, IDatawarehouseInItem } from '../../../../globals/types';
 import { ReportsApiClient } from '../../../../services/ReportsApiClient';
@@ -82,7 +82,7 @@ export interface ITagHandlingState {
   updateConfirmModelOverlay: boolean;
 }
 
-export class TagHandling extends React.Component<any, ITagHandlingState> {
+export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
   constructor(props: any) {
     super(props);
     this.state = {
@@ -1394,6 +1394,40 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                     <span>Add New Item</span>
                   </button>
                 </div>
+              </div>
+            </div>
+            <div className={Styles.exportLinkWrapper}>
+              <div>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    ProgressIndicator.show();
+                    ReportsApiClient.exportJSON()
+                      .then((res) => {
+                        if (res.data?.reports?.records?.length) {
+                          const url = window.URL.createObjectURL(new Blob([JSON.stringify(res.data?.reports.records)]));
+                          const d = new Date();
+                          const date = `${d.getMonth() + 1}_${d.getDate()}_${d.getFullYear()}`;
+                          const time = `${d.getHours()}_${d.getMinutes()}_${d.getSeconds()}`;
+                          const link = document.createElement('a');
+                          link.download = `Report-Data-Dump-[${date}-${time}].json`;
+                          link.href = url;
+                          link.click();
+                        } else {
+                          Notification.show('No records to export.', 'alert');
+                        }
+                        ProgressIndicator.hide();
+                      })
+                      .catch((e) => {
+                        ProgressIndicator.hide();
+                        Notification.show('Error downloading attachment. Please try again later.', 'alert');
+                      });
+                  }}
+                >
+                  <i className="icon download" />
+                  Export Report Data as JSON
+                </a>
               </div>
             </div>
           </div>
