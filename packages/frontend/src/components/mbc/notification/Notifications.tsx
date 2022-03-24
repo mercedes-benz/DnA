@@ -131,16 +131,14 @@ const Notifications = (props: any) => {
         showErrorNotification('Something went wrong');
         ProgressIndicator.hide();
       });
-    // toggleDrawer();
   };
 
   const openDetails = (notificationDetails: any) => {
     setNotificationDetails(JSON.stringify(notificationDetails));
-    /**********************  Following one line will be uncommented if drawer is needed ******************/
-    setHideDrawer(false);
-    markNotificationAsRead([notificationDetails.id], false)
+    /**********************  Following lines will be uncommented if drawer is needed ******************/
+    // setHideDrawer(false);
+    // markNotificationAsRead([notificationDetails.id], false)
 
-    // toggleDrawer();
   };
 
   const selectNotification = (notificationId: any) => {
@@ -325,10 +323,10 @@ const Notifications = (props: any) => {
                   ''
                 )}
               </div>
-              <div className={Styles.settingsBlock} onClick={()=> {history.push('/usersettings/')}}>
+              {/* <div className={Styles.settingsBlock} onClick={()=> {history.push('/usersettings/')}}> */}
                 {/* <i className={classNames('icon mbc-icon search')} /> */}
-                Settings
-              </div>
+                {/* Settings
+              </div> */}
             </div>
           </div>
 
