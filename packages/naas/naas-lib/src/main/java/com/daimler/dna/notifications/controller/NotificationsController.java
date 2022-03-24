@@ -81,65 +81,6 @@ public class NotificationsController implements NotificationsApi {
 
 	@Autowired
 	private NotificationsService notificationService;
-//	
-//	@Override
-//	@ApiOperation(value = "Get all notifications with filters.", nickname = "getAll", notes = "Get all notifications based on filter values", response = NotificationCollectionVO.class, tags={ "notifications", })
-//    @ApiResponses(value = { 
-//        @ApiResponse(code = 201, message = "Returns message of succes or failure", response = NotificationCollectionVO.class),
-//        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-//        @ApiResponse(code = 400, message = "Bad request."),
-//        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-//        @ApiResponse(code = 403, message = "Request is not authorized."),
-//        @ApiResponse(code = 405, message = "Method not allowed"),
-//        @ApiResponse(code = 500, message = "Internal error") })
-//    @RequestMapping(value = "/notifications",
-//        produces = { "application/json" }, 
-//        consumes = { "application/json" },
-//        method = RequestMethod.GET)
-//    public ResponseEntity<NotificationCollectionVO> getAll(@ApiParam(value = "Read or Unread filter", allowableValues = "read, unread") @Valid @RequestParam(value = "type", required = false) String type,@ApiParam(value = "searchTerm to filter notifications. Example \"Solution abc\" or \"Notebook provisioning\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,@ApiParam(value = "page number from which listing of notifications should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of notifications. Example 10") @Valid @RequestParam(value = "limit", required = false) Integer limit){
-//
-//		return null;
-//	}
-//
-//	
-////	@Override
-////	public ResponseEntity<EventCategoriesCollectionVO> getCategories() {
-////		// TODO Auto-generated method stub
-////		return null;
-////	}
-//
-//	@Override
-//	public ResponseEntity<GenericMessage> markAsDelete(String id) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	@ApiOperation(value = "marks the notification identified by given ID as read.", nickname = "markAsRead", notes = "marks the notification identified by given ID as read", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class, tags={ "notifications", })
-//    @ApiResponses(value = { 
-//        @ApiResponse(code = 200, message = "Marked as read.", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class),
-//        @ApiResponse(code = 400, message = "Bad request"),
-//        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-//        @ApiResponse(code = 403, message = "Request is not authorized."),
-//        @ApiResponse(code = 404, message = "Invalid id, record not found."),
-//        @ApiResponse(code = 500, message = "Internal error") })
-//    @RequestMapping(value = "/notifications/{id}",
-//        produces = { "application/json" }, 
-//        consumes = { "application/json" },
-//        method = RequestMethod.PUT)
-//    public ResponseEntity<com.daimler.dna.notifications.controller.exceptions.GenericMessage> markAsRead(@ApiParam(value = "Id of the notification",required=true) @PathVariable("id") String id) {
-//
-//		try {
-//			notificationService.markMessageAsRead(id, id);
-//		} catch (Exception e) {
-//            MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
-//            GenericMessage errorMessage = new GenericMessage();
-//            errorMessage.addErrors(exceptionMsg);
-//            LOG.error(exceptionMsg.getMessage());
-//            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//	}
-//
 
 	@ApiOperation(value = "Get all notifications with filters.", nickname = "getAll", notes = "Get all notifications based on filter values", response = NotificationCollectionVO.class, tags = {
 			"notifications", })

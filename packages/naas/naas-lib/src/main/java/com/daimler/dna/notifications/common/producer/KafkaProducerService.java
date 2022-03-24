@@ -54,14 +54,14 @@ public class KafkaProducerService {
 
 	@Transactional
 	public void send(String eventType, String resourceId,String messageDetails, String publishingUser, String message, 
-			Boolean mail_required, List<String> subscribedUsers, List<ChangeLogVO> changeLogs) {
+			Boolean mail_required, List<String> subscribedUsers, List<String> subscribedUsersEmail, List<ChangeLogVO> changeLogs) {
 		GenericEventRecord record = this.defaultRecordBuilder(eventType, resourceId, messageDetails, publishingUser,
-				message, mail_required, subscribedUsers, changeLogs);
+				message, mail_required, subscribedUsers, subscribedUsersEmail, changeLogs);
 		dynamicProducer.sendMessage(topicName, record);
 	}
 
 	private GenericEventRecord defaultRecordBuilder(String eventType, String resourceId, String messageDetails,
-			String publishingUser, String message, Boolean mail_required, List<String> subscribedUsers, List<ChangeLogVO> changeLogs) {
+			String publishingUser, String message, Boolean mail_required, List<String> subscribedUsers, List<String> subscribedUsersEmail, List<ChangeLogVO> changeLogs) {
 		GenericEventRecord eventRecord = new GenericEventRecord();
 		eventRecord.setUuid(UUID.randomUUID().toString());
 		eventRecord.setPublishingAppName("DNA");
@@ -73,6 +73,7 @@ public class KafkaProducerService {
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 		eventRecord.setTime(dateFormatter.format(new Date()));
 		eventRecord.setSubscribedUsers(subscribedUsers);
+		eventRecord.setSubscribedUsersEmail(subscribedUsersEmail);
 		eventRecord.setChangeLogs(changeLogs);
 		log.debug("New event record created with detail eventtype : {} " + "publishingUser: {} and subscribers: {}",
 				eventType, publishingUser, subscribedUsers);
