@@ -44,11 +44,14 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
 import com.daimler.dna.notifications.common.consumer.KafkaDynamicConsumerService;
+import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
 import com.daimler.dna.notifications.common.producer.KafkaDynamicProducerService;
 import com.daimler.dna.notifications.common.util.CacheUtil;
 import com.daimler.dna.notifications.dto.NotificationVO;
+import com.mbc.dna.notifications.mailer.JMailer;
 
 @Service
 public class KafkaCoreCampaignService {
@@ -63,9 +66,17 @@ public class KafkaCoreCampaignService {
 
 	@Autowired
 	private CacheUtil cacheUtil;
+	
+	@Autowired
+	private DnaNotificationPreferenceClient userNotificationPreferencesClient;
+	
+	@Autowired
+	private JMailer mailer;
 
 	@Value("${kafka.centralTopic.name}")
 	private String dnaCentralTopicName;
+	
+	
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -77,14 +88,26 @@ public class KafkaCoreCampaignService {
 
 	@KafkaListener(topics = "dnaCentralEventTopic")
 	public void centralTopicListnerToPublishToUsers(GenericEventRecord message) {
-		LOGGER.info("Received Message in group foo: " + message);
 		if (message != null) {
 			List<String> users = message.getSubscribedUsers();
+			List<String> usersEmails = message.getSubscribedUsersEmail();
+			int userListPivot = 0;
 			for (String user : users) {
 				if (StringUtils.hasText(user) && user != "null") {
 					if (cacheUtil.getCache(user) == null) {
 						LOGGER.info("Creating cache for user " + user);
 						cacheUtil.createCache(user);
+					}
+					UserNotificationPrefVO preferenceVO = userNotificationPreferencesClient.getUserNotificationPreferences(user);
+					boolean appNotificationPreferenceFlag = true;
+					boolean emailNotificationPreferenceFlag = false;
+					if(message.getEventType().contains("Solution")) {
+						appNotificationPreferenceFlag = preferenceVO.getSolutionNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getSolutionNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains("Notebook")) {
+						appNotificationPreferenceFlag = preferenceVO.getNotebookNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getNotebookNotificationPref().isEnableEmailNotifications();
 					}
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
@@ -95,11 +118,31 @@ public class KafkaCoreCampaignService {
 					vo.setMessageDetails(message.getMessageDetails());
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
-					cacheUtil.addEntry(user, vo);
-					LOGGER.debug("New message with details- user {}, eventType {}, uuid {} added to topic", user,
-							message.getEventType(), message.getUuid());
+					if(appNotificationPreferenceFlag) {
+						cacheUtil.addEntry(user, vo);
+						LOGGER.info("New message with details- user {}, eventType {}, uuid {} added to user notifications", user,
+								message.getEventType(), message.getUuid());
+					}else {
+						LOGGER.info("Skipped message as per user preference, Details: user {}, eventType {}, uuid {} ", user,
+								message.getEventType(), message.getUuid());
+					}
+					if(emailNotificationPreferenceFlag) {
+						String userEmail = usersEmails.get(userListPivot);
+						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
+							String emailSubject = message.getEventType()+" Email Notification";
+							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , message.getMessage());
+							LOGGER.info("Sent email as per user preference, Details: user {}, eventType {}, uuid {}", user,
+									message.getEventType(), message.getUuid());
+						}else {
+							LOGGER.info("Skipped sending email even after user preference is enabled. Cause is email id not found for the user. Details: user {}, eventType {}, uuid {}", user,
+									message.getEventType(), message.getUuid());
+						}
+					}else {
+						LOGGER.info("Skipped email as per user preference, Details: user {}, eventType {}, uuid {}", user,
+								message.getEventType(), message.getUuid());
+					}
 				}
-
+				userListPivot++;
 				// dynamicProducer.sendMessage(user, message);
 			}
 		}
