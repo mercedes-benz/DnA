@@ -293,12 +293,12 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="createdAt">
                     <label className="input-label summary">Created On</label>
                     <br />
-                    {this.props.createdDate ? getDateTimeFromTimestamp(this.props.createdDate) : 'N/A'}
+                    {this.props.createdDate ? getDateTimeFromTimestamp(this.props.createdDate) : '-'}
                   </div>
                   <div id="lastModifiedAt">
                     <label className="input-label summary">Last Modified On</label>
                     <br />
-                    {this.props.lastModifiedDate ? getDateTimeFromTimestamp(this.props.lastModifiedDate) : 'N/A'}
+                    {this.props.lastModifiedDate ? getDateTimeFromTimestamp(this.props.lastModifiedDate) : '-'}
                   </div>
                 </div>
                 <hr className="divider1" />
