@@ -9,8 +9,8 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 
 // import from DNA Container
-const Modal = React.lazy(() => import('dna-container/Modal'));
-const Pagination = React.lazy(() => import('dna-container/Pagination'));
+import Modal from 'dna-container/Modal';
+import Pagination from 'dna-container/Pagination';
 
 const AllBuckets = () => {
   const bucketList = useSelector((state) => state.bucket.bucketList);
