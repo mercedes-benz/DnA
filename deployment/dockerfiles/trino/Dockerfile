@@ -2,7 +2,7 @@
 from trinodb/trino:372
 
 ARG IMMUTA_PLUGIN_PATH
-COPY --chown=trino:trino IMMUTA_PLUGIN_PATH /usr/lib/trino/plugin/immuta
+COPY --chown=trino:trino $IMMUTA_PLUGIN_PATH /usr/lib/trino/plugin/immuta
 
 
 
