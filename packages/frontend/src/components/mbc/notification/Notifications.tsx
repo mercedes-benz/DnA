@@ -135,6 +135,12 @@ const Notifications = (props: any) => {
 
   const openDetails = (notificationDetails: any) => {
     setNotificationDetails(JSON.stringify(notificationDetails));
+
+    /**********************  Delete following block after production ******************/
+    if(notificationDetails.eventType == 'Solution Updated'){
+      history.push('/summary/' + notificationDetails.resourceId)
+    }
+    
     /**********************  Following lines will be uncommented if drawer is needed ******************/
     // setHideDrawer(false);
     // markNotificationAsRead([notificationDetails.id], false)
