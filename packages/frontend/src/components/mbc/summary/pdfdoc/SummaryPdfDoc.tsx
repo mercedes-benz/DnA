@@ -591,11 +591,11 @@ export const SummaryPdfDoc = (props: any) => (
         <View style={styles.flexLayout} wrap={false}>
           <View style={[styles.flexCol2, styles.firstCol]}>
             <Text style={styles.sectionTitle}>Created On</Text>
-            <Text>{props.createdDate ? getDateTimeFromTimestamp(props.createdDate) : 'N/A'}</Text>
+            <Text>{props.createdDate ? getDateTimeFromTimestamp(props.createdDate) : '-'}</Text>
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Last Modified On</Text>
-            <Text>{props.lastModifiedDate ? getDateTimeFromTimestamp(props.lastModifiedDate) : 'N/A'}</Text>
+            <Text>{props.lastModifiedDate ? getDateTimeFromTimestamp(props.lastModifiedDate) : '-'}</Text>
           </View>
         </View>
         <View style={styles.seperatorLine} />
