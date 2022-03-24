@@ -83,4 +83,12 @@ data:
     {{ $configValue }}
   {{- end }}
 
+  {{- if .Values.immuta.enabled }}
+  event-listener.properties: |
+    event-listener.name={{ .Values.immuta.listenerName }}
+    immuta.endpoint={{ .Values.immuta.endpoint }}
+    immuta.apikey={{ .Values.immuta.apiKey }}
+    immuta.catalogs=immuta
+  {{- end }}
+
 ---

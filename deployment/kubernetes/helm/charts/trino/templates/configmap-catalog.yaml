@@ -28,6 +28,12 @@ data:
     hive.s3.ssl.enabled=false
     hive.s3.max-connections=100
     hive.parquet.use-column-names=true
+  {{- if .Values.immuta.enabled }}
+  immuta.properties: |
+    connector.name={{ .Values.immuta.name }}
+    immuta.endpoint={{ .Values.immuta.endpoint }}
+    immuta.apikey={{ .Values.immuta.apiKey }}
+  {{- end }}
 
 {{- range $catalogName, $catalogProperties := .Values.additionalCatalogs }}
   {{ $catalogName }}.properties: |
