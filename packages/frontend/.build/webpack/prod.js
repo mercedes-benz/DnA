@@ -72,7 +72,7 @@ const prodConfig = {
         './Footer': './src/components/mbc/footer/Footer.tsx',
         './NotFound': './src/router/NotFoundPage.tsx',
         './UnAuthorised': './src/router/UnAuthorised.tsx',
-        './AddUser': './src/components/mbc/pipeline/createNewPipeline/addUser/AddUser.tsx',
+        './AddUser': './src/components/mbc/addUser/AddUser.tsx',
       },
       remotes: {
         'storage-mfe': `storage_mfe@${MFE_URL}/remoteEntry.js`,
