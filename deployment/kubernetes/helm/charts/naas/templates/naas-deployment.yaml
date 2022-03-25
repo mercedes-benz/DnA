@@ -44,6 +44,8 @@ spec:
               value: {{ .Values.app.backend.config.mailServerHost | quote }}
             - name: DNA_MAIL_SERVER_PORT
               value: {{ .Values.app.backend.config.mailServerPort | quote }}
+            - name: DNA_NOTIFICATION_SENDER_EMAIL
+              value: {{ .Values.app.backend.config.notificationSenderEmail | quote }}
             - name: POLL_TIME
               value: {{ .Values.app.backend.config.poll_time | quote }}
             - name: NAAS_CENTRAL_TOPIC
