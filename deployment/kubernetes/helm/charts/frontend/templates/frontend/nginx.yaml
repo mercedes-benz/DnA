@@ -73,7 +73,7 @@ data:
               add_header Cache-Control "no-store, no-cache, must-revalidate";
               ssi on;
             }
-           location ~ .*remoteEntry.js$ {
+           location ~ .remoteEntry.js$ {
               expires -1;
               add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
             }
