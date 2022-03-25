@@ -29,7 +29,7 @@
       "https": false,
       "publicPath": "/"
     },
-    "publicPath": ""
+    "publicPath": "auto"
   },
   "scripts": {
     "test": "jest",

@@ -105,7 +105,7 @@ const prodConfig = {
       new optimizeCSSAssetsPlugin({}),
     ],
     splitChunks: {
-      chunks: 'all',
+      chunks: 'async',
     },
     concatenateModules: true,
   },
