@@ -255,6 +255,7 @@ naas:
         dna_auth_enable: true
         mailServerHost: ""
         mailServerPort: ""
+        notificationSenderEmail: ""
         poll_time: 5000
         naas_central_topic: CentralEventTopic
         naas_centralread_topic: CentralReadTopic
