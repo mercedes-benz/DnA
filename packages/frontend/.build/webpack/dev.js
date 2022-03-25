@@ -10,7 +10,6 @@ ESLintPlugin = require('eslint-webpack-plugin');
 const { ModuleFederationPlugin } = webpack.container;
 const MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083';
 
-
 const devConfig = {
   mode: 'development',
   devtool: 'inline-source-map',
@@ -63,7 +62,7 @@ const devConfig = {
         './Footer': './src/components/mbc/footer/Footer.tsx',
         './NotFound': './src/router/NotFoundPage.tsx',
         './UnAuthorised': './src/router/UnAuthorised.tsx',
-        './AddUser': './src/components/mbc/pipeline/createNewPipeline/addUser/AddUser.tsx',
+        './AddUser': './src/components/mbc/addUser/AddUser.tsx',
       },
       remotes: {
         // object key is used to import
