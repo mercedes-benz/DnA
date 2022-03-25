@@ -36,7 +36,8 @@ class AzureClient:
     }
     # remapping due to license profiles names changes and the groups on azure AD already present
     PROFILES_REMAPPING = {
-        "DATA-ANALYST": "DATA-SCIENTIST"
+        "DATA-ANALYST": "DESIGNER",
+        "DATA-SCIENTIST": "DESIGNER"
     }
 
     INSTANCE_GROUP_MATRIX = ()
