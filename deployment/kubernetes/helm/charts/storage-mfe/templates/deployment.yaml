@@ -47,8 +47,7 @@ spec:
             - name: {{ include "storage-mfe.fullname" . }}
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
+          {{- with .Values.envs }}
           env:
-          - name: PROJECTSMO_CONTAINER_APP_URL
-            value: {{ .Values.conf.containerAppUrl }}
-          - name: PROJECTSMO_FRONTEND_API_BASEURL
-            value: {{ .Values.conf.apiBaseUrl }}          
+          {{- toYaml . | nindent 12 }}
+          {{- end }}      

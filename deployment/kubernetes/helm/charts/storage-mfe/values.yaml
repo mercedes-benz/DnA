@@ -2,10 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 namespace: storage
+envs:
+  - name: PROJECTSMO_CONTAINER_APP_URL
+    value: ""
+  - name: PROJECTSMO_FRONTEND_API_BASEURL
+    value: ""  
 conf:
   storageBackendUrl: ""
-  containerAppUrl: ""
-  apiBaseUrl: ""
 replicaCount: 1
 
 image:
