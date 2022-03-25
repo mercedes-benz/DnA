@@ -1,13 +1,13 @@
 import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
-import Button from '../../../../../assets/modules/uilab/js/src/button';
+import Button from '../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
-import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progress-indicator';
+import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { IUserDetails } from '../../../globals/types';
 import { ApiClient } from '../../../services/ApiClient';
 // @ts-ignore
-import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
+import InputFieldsUtils from '../../formElements/InputFields/InputFieldsUtils';
 import Styles from './AddUser.scss';
 
 const classNames = cn.bind(Styles);
