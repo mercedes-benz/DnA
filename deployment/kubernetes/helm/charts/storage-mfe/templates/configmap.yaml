@@ -59,7 +59,11 @@ data:
               add_header Cache-Control "no-store, no-cache, must-revalidate";
               ssi on;
             }
-                        location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|eot|woff)$ {
+            location ~ .remoteEntry.js$ {
+              expires -1;
+              add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            }
+           location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|eot|woff)$ {
               expires 1M;
               access_log "/opt/bitnami/nginx/logs/static.log";
               add_header Cache-Control "public";
