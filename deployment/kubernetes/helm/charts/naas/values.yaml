@@ -21,6 +21,7 @@ app:
       dna_auth_enable: true
       mailServerHost: ""
       mailServerPort: ""
+      notificationSenderEmail: ""
       poll_time: 5000
       naas_central_topic: dnaCentralEventTopic
       naas_centralread_topic: dnaCentralReadTopic
