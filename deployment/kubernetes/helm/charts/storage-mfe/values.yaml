@@ -2,10 +2,14 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 namespace: storage
+envs:
+#Add new env as array value with name/value field. Keep one tab indentation.
+  - name: PROJECTSMO_CONTAINER_APP_URL
+    value: ""
+  - name: PROJECTSMO_FRONTEND_API_BASEURL
+    value: ""  
 conf:
   storageBackendUrl: ""
-  containerAppUrl: ""
-  apiBaseUrl: ""
 replicaCount: 1
 
 image:
