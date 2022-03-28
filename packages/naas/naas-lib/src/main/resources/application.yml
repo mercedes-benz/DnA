@@ -87,6 +87,7 @@ jwt:
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
 management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:xxxx}
 
