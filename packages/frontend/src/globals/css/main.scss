@@ -746,6 +746,10 @@
 
   /* Table */
   .ul-table, .expanstion-table {
+    tr th label {
+      color: #99a5b3;
+      margin: 0;
+    }
     .sortable-column-header {
       color: #99a5b3;
       font-size: var(--font-size-smallest);
