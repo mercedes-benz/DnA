@@ -44,8 +44,8 @@ repositories {
 group 'com.daimler.mbc.dna'
 version = releaseVersion
 
-sourceCompatibility = 1.14
-targetCompatibility = 1.14
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 //__________________________________________________________//
@@ -131,9 +131,9 @@ dependencies {
 
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
-    implementation 'org.projectlombok:lombok:1.18.10'
+    implementation 'org.projectlombok:lombok:1.18.22'
     implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
-    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
 	
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
