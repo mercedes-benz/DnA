@@ -301,7 +301,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
                         Role
                       </label>
                     </th>
-                    <th className="actionColumn">&nbsp;</th>
+                    <th className="actionColumn"><label>Action</label></th>
                   </tr>
                 </thead>
                 <tbody>{userData}</tbody>
