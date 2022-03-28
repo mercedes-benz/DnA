@@ -45,8 +45,8 @@ repositories {
 group 'com.daimler.dna.dashboard'
 version = releaseVersion
 
-sourceCompatibility = 1.14
-targetCompatibility = 1.14
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 //__________________________________________________________//
