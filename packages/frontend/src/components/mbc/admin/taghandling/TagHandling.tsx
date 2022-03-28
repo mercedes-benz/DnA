@@ -435,7 +435,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                       </label>
                     </th>
 
-                    <th className="actionColumn">&nbsp;</th>
+                    <th className="actionColumn"><label>Action</label></th>
                   </tr>
                 </thead>
                 <tbody>{resultData}</tbody>
