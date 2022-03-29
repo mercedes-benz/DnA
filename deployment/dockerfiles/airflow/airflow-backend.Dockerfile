@@ -1,4 +1,4 @@
-FROM openjdk:14-jdk-alpine
+FROM openjdk:17-jdk-alpine
 RUN apk add git
 RUN addgroup -S 1000 && adduser -S 1000 -G 1000
 #RUN mkdir -m 777 /git
