@@ -27,23 +27,37 @@
 
 package com.daimler.data.service.division;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DivisionAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DivisionNsql;
 import com.daimler.data.db.repo.division.DivisionCustomRepository;
 import com.daimler.data.db.repo.division.DivisionRepository;
+import com.daimler.data.dto.divisions.DivisionRequestVO;
+import com.daimler.data.dto.divisions.DivisionResponseVO;
 import com.daimler.data.dto.divisions.DivisionVO;
 import com.daimler.data.dto.divisions.SubdivisionVO;
+import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.solution.SolutionService;
+import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.util.ConstantsUtility;
 
 @Service
@@ -59,19 +73,18 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 	@Autowired
 	private DivisionAssembler assembler;
 
+	@Autowired
+	private SolutionService solutionService;
+
+	@Autowired
+	private UserStore userStore;
+
+	@Autowired
+	private UserInfoService userInfoService;
+
 	public BaseDivisionService() {
 		super();
 	}
-
-//    @Autowired
-//    public BaseDivisionService(DivisionCustomRepository customRepo
-//            , DivisionRepository jpaRepo
-//            , DivisionAssembler assembler) {
-//        super(customRepo, jpaRepo, assembler);
-//        this.customRepo = customRepo;
-//        this.jpaRepo = jpaRepo;
-//        this.assembler = assembler;
-//    }
 
 	@Override
 	public List<SubdivisionVO> getSubDivisionsById(String id) {
@@ -96,6 +109,86 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 			divisionsVO.get(0).getSubdivisions().add(0, emptySubDivisionVO);
 		}
 		return divisionsVO;
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<DivisionResponseVO> createDivision(DivisionRequestVO divisionRequestVO) {
+		DivisionVO vo = divisionRequestVO.getData();
+		DivisionResponseVO responseVO = new DivisionResponseVO();
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userInfoService.isAdmin(userId)) {
+				DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
+				if (existingDivisionVO != null && existingDivisionVO.getName() != null) {
+					LOGGER.debug("Division {} already exists", vo.getName());
+					responseVO.setData(existingDivisionVO);
+					return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
+				}
+				vo.setId(null);
+				DivisionVO divisionVO = super.create(vo);
+				if (divisionVO != null && divisionVO.getId() != null) {
+					LOGGER.info("New division {} created successfully", vo.getName());
+					responseVO.setData(divisionVO);
+					return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
+				} else {
+					LOGGER.error("Failed to create new division {} with unknown exception", vo.getName());
+					return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			} else {
+				LOGGER.debug("Division cannot be created. User {} not authorized", userId);
+				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage("Not authorized to create division. User does not have admin privileges.");
+				notAuthorizedMsgs.add(notAuthorizedMsg);
+				responseVO.setErrors(notAuthorizedMsgs);
+				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to create new division {} with exception {} ", vo.getName(), e.getLocalizedMessage());
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<GenericMessage> deleteDivision(String id) {
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (!userInfoService.isAdmin(userId)) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage("Not authorized to delete division. User does not have admin privileges.");
+				LOGGER.debug("Division with id {} cannot be deleted. User {} not authorized", id, userId);
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(notAuthorizedMsg);
+				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+			}
+			DivisionNsql divisionEntity = jpaRepo.getOne(id);
+			String divName = divisionEntity.getData().getName();
+			LOGGER.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to division {}",
+					id);
+			solutionService.deleteTagForEachSolution(divName, null, SolutionService.TAG_CATEGORY.DIVISION);
+			deleteById(id);
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			LOGGER.info("Division {} deleted successfully", id);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			LOGGER.error(e.getLocalizedMessage());
+			MessageDescription invalidMsg = new MessageDescription("No division with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			LOGGER.error("No division {} found, unable to delete", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			LOGGER.error("Failed while delete division {} with exception {}", id, e.getMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 }

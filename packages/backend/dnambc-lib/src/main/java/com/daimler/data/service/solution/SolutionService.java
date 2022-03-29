@@ -39,7 +39,7 @@ import java.util.Map;
 public interface SolutionService extends CommonService<SolutionVO, SolutionNsql, String> {
 
 	enum TAG_CATEGORY {
-		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL;
+		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL, DIVISION;
 	}
 
 	List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
