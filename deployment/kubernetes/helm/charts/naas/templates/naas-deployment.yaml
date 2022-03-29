@@ -74,6 +74,23 @@ spec:
             limits:
               memory: {{ .Values.app.resources.limits.memory }}
               cpu: {{ .Values.app.resources.limits.cpu }}
+          livenessProbe:
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /naas/actuator/health/liveness
+              port: api
+              
+          readinessProbe:
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /naas/actuator/health/readiness
+              port: api
           # volumeMounts:
           #   - mountPath: /var/lib/clamav
           #     name: avdata
