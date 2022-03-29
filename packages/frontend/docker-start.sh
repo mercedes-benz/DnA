@@ -19,9 +19,19 @@ env > env_new.txt
 # echo "Processing app.js ($APP_FILE). Execute ENV replacement ..."
 # cp $APP_FILE app.bak
 # cp $LEGACY_APP_FILE legacy.bak
-echo "Processing ($JS_FILE). Execute ENV replacement ..."
-perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{([^}]+)\}//eg' -i $JS_FILE
-echo "Processing ($JS_MAP_FILE). Execute ENV replacement ..."
-perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{([^}]+)\}//eg' -i $JS_MAP_FILE
+if [ "$JS_FILE" != "" ]
+then
+    echo "Processing .js files $JS_FILE. Execute ENV replacement ..."
+    perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{PROJECTSMO_([^}])+\}//eg' -i $JS_FILE
+else
+    echo "No .js files found $JS_FILE"
+fi
+if [ "$JS_MAP_FILE" != "" ]
+then
+    echo "Processing .js.map files $JS_MAP_FILE. Execute ENV replacement ..."
+    perl -p -e 's/\$\{([^}]+)\}/defined $ENV{$1} ? $ENV{$1} : $&/eg; s/\$\{PROJECTSMO_([^}])+\}//eg' -i $JS_MAP_FILE
+else
+    echo "No .js.map files found $JS_MAP_FILE"
+fi
 echo "Starting NGINX"
 nginx -c /etc/nginx/nginx.conf -g 'daemon off;'
