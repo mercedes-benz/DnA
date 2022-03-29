@@ -64,8 +64,8 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory }}
               cpu: {{ .Values.resources.limits.cpu }}
-                   livenessProbe:
-          initialDelaySeconds: 120
+          livenessProbe:
+            initialDelaySeconds: 120
             timeoutSeconds: 30
             periodSeconds: 30
             failureThreshold: 3
