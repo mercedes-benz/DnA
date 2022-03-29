@@ -84,7 +84,7 @@ spec:
               port: api
               
           readinessProbe:
-            initialDelaySeconds: 120
+            initialDelaySeconds: 180
             timeoutSeconds: 30
             periodSeconds: 30
             failureThreshold: 3
