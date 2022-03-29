@@ -68,7 +68,7 @@ import com.daimler.data.service.skill.SkillService;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,10 +270,10 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	public void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category) {
 
 		List<SolutionNsql> solutionNsqlList = null;
-		if (StringUtils.isEmpty(tagName) && !StringUtils.isEmpty(relatedProductName)) {
+		if (!StringUtils.hasText(tagName) && StringUtils.hasText(relatedProductName)) {
 			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
 					null, null, Arrays.asList(relatedProductName), 0, 999999999, null, null);
-		} else if (!StringUtils.isEmpty(tagName) && StringUtils.isEmpty(relatedProductName)) {
+		} else if (StringUtils.hasText(tagName) && !StringUtils.hasText(relatedProductName)) {
 			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
 					Arrays.asList(tagName), null, null, 0, 999999999, null, null);
 		} else {
@@ -382,6 +382,16 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						List<SkillSummary> skills = solutionNsql.getData().getSkills().stream()
 								.filter(x -> !x.getNeededSkill().equals(tagName)).collect(Collectors.toList());
 						solutionNsql.getData().setSkills(skills);
+						customRepo.update(solutionNsql);
+					}
+				} else if (category.equals(TAG_CATEGORY.DIVISION)) {
+					LOGGER.debug("Deleting Division:{} from solutions.", tagName);
+					SolutionDivision soldivision = solutionNsql.getData().getDivision();
+					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getName())
+							&& soldivision.getName().equals(tagName)) {
+						soldivision.setName(null);
+						soldivision.setId(null);
+						soldivision.setSubdivision(null);
 						customRepo.update(solutionNsql);
 					}
 				}
