@@ -27,16 +27,25 @@
 
 package com.daimler.data.service.division;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DivisionNsql;
+import com.daimler.data.dto.divisions.DivisionRequestVO;
+import com.daimler.data.dto.divisions.DivisionResponseVO;
 import com.daimler.data.dto.divisions.DivisionVO;
 import com.daimler.data.dto.divisions.SubdivisionVO;
 import com.daimler.data.service.common.CommonService;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
+
 public interface DivisionService extends CommonService<DivisionVO, DivisionNsql, String> {
 
 	List<SubdivisionVO> getSubDivisionsById(String idx);
 
 	List<DivisionVO> getDivisionsByIds(List<String> ids);
+
+	ResponseEntity<DivisionResponseVO> createDivision(DivisionRequestVO divisionRequestVO);
+
+	ResponseEntity<GenericMessage> deleteDivision(String id);
 }
