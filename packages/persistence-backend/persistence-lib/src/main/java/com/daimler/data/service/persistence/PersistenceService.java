@@ -31,11 +31,10 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectCollection;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketVo;
-import com.daimler.data.dto.persistence.GetBucketResponseWrapperVO;
 import com.daimler.data.dto.persistence.UserRefreshWrapperVO;
 
 public interface PersistenceService {
@@ -51,9 +50,9 @@ public interface PersistenceService {
 	/**
 	 * To list all the buckets for user
 	 * 
-	 * @return ResponseEntity<GetBucketResponseWrapperVO>
+	 * @return ResponseEntity<BucketCollectionVO>
 	 */
-	public ResponseEntity<GetBucketResponseWrapperVO> getAllBuckets();
+	public ResponseEntity<BucketCollectionVO> getAllBuckets();
 
 	/**
 	 * To list all the objects inside buckets

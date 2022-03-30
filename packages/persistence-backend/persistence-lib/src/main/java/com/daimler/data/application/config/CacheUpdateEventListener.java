@@ -25,22 +25,52 @@
  * LICENSE END 
  */
 
-package com.daimler.data.util;
+package com.daimler.data.application.config;
 
-public class ConstantsUtility {
+import java.util.Map;
 
-	public static final String SUCCESS = "SUCCESS";
-	public static final String FAILURE = "FAILURE";
-	
-	public static final String READWRITE = "RW";
-	public static final String READ = "READ";
-	public static final String DELETE = "DEL";
-	
-	//Variables To make minio policy
-	public static final String POLICY_LIST_BUCKET = "s3:ListBucket";
-	public static final String POLICY_PUT_OBJECT = "s3:PutObject";
-	public static final String POLICY_GET_OBJECT = "s3:GetObject";
-	public static final String POLICY_DELETE_OBJECT = "s3:DeleteObject";
-	public static final String POLICY_BUCKET_LOCATION = "s3:GetBucketLocation";
-	public static final String POLICY_RESOURCE = "arn:aws:s3:::";
+import javax.annotation.PostConstruct;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.daimler.data.minio.client.DnaMinioClient;
+import com.daimler.data.util.CacheUtil;
+
+import io.minio.admin.UserInfo;
+
+
+@Component
+public class CacheUpdateEventListener {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(CacheUpdateEventListener.class);
+
+	@Autowired
+	DnaMinioClient dnaMinioClient;
+
+	@Autowired
+	private CacheUtil cacheUtil;
+
+	@PostConstruct
+	public void init() {
+
+		LOGGER.info("started updating cache from Minio");
+		populateDataOnCache();
+		LOGGER.info("Successfully updated data on cache from Minio");
+	}
+
+	private void populateDataOnCache() {
+		String cacheName = "minioUsersCache";
+		
+		LOGGER.info("Creating cache for Minio users.");
+		cacheUtil.createCache(cacheName);
+		
+		LOGGER.info("listing Users from minio.");
+		Map<String, UserInfo> users = dnaMinioClient.listUsers();
+		//Adding data to cache
+		cacheUtil.updateCache(cacheName, users);
+		
+	}
 }
