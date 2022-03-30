@@ -101,6 +101,10 @@ public class UserStore {
 		public void setFamily_name(String family_name) {
 			this.lastName = this.family_name = family_name;
 		}
+		
+		public boolean hasAdminAccess() {
+			return this.getUserRole().stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+		}
 
 	}
 
