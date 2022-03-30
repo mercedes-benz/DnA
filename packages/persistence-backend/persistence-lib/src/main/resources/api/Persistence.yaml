@@ -195,7 +195,7 @@ paths:
      200:
       description: "Returns message of succes or failure"
       schema:
-       $ref: "#/definitions/BucketObjectCollection"
+       $ref: "#/definitions/BucketObjectResponseWrapperVO"
      204:
       description: "Fetch complete, no content found."
      400:
@@ -328,14 +328,13 @@ definitions:
      $ref: "#/definitions/ByteArrayResource"
      
      
- BucketObjectCollection:
+ BucketObjectResponseWrapperVO:
   type: object
   description: "Collection of objects inside a bucket."
   properties:
     data:
-     type: array
-     items:
-       $ref: "#/definitions/BucketObjectVO"
+      description: "Bucket's object response."
+      $ref: "#/definitions/BucketObjectResponseVO"
     warnings:
       type: array
       items:
@@ -344,6 +343,19 @@ definitions:
       type: array
       items:
         $ref: "#/definitions/MessageDescription"   
+ 
+ BucketObjectResponseVO:
+  type: object
+  description: "object list"
+  properties: 
+    bucketObjects:
+     description: "List of objects."
+     type: array
+     items:
+       $ref: "#/definitions/BucketObjectVO"
+    bucketPermission:
+     description: "Permission for the bucket."
+     $ref: "#/definitions/PermissionVO"   
  
  BucketObjectVO:
   type: object
