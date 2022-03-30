@@ -32,7 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.dto.persistence.BucketCollectionVO;
-import com.daimler.data.dto.persistence.BucketObjectCollection;
+import com.daimler.data.dto.persistence.BucketObjectResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketVo;
 import com.daimler.data.dto.persistence.UserRefreshWrapperVO;
@@ -59,9 +59,9 @@ public interface PersistenceService {
 	 * 
 	 * @param bucketName
 	 * @param prefix
-	 * @return ResponseEntity<BucketObjectCollection>
+	 * @return ResponseEntity<BucketObjectResponseWrapperVO>
 	 */
-	public ResponseEntity<BucketObjectCollection> getBucketObjects(String bucketName, String prefix);
+	public ResponseEntity<BucketObjectResponseWrapperVO> getBucketObjects(String bucketName, String prefix);
 
 	/**
 	 * To get object contents for given path
