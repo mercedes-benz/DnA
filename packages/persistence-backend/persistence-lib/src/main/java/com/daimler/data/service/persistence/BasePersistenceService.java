@@ -48,7 +48,8 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.persistence.BucketCollectionVO;
-import com.daimler.data.dto.persistence.BucketObjectCollection;
+import com.daimler.data.dto.persistence.BucketObjectResponseVO;
+import com.daimler.data.dto.persistence.BucketObjectResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketResponseVO;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketVo;
@@ -222,17 +223,24 @@ public class BasePersistenceService implements PersistenceService {
 	}
 
 	@Override
-	public ResponseEntity<BucketObjectCollection> getBucketObjects(String bucketName, String prefix) {
+	public ResponseEntity<BucketObjectResponseWrapperVO> getBucketObjects(String bucketName, String prefix) {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
-		BucketObjectCollection bucketObjectCollection = new BucketObjectCollection();
+		BucketObjectResponseWrapperVO objectResponseWrapperVO = new BucketObjectResponseWrapperVO();
 
 		LOGGER.debug("list bucket objects through minio client");
 		MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjects(currentUser, bucketName, prefix);
 		if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list objects minio client");
-			bucketObjectCollection.setData(minioObjectResponse.getObjects());
+			BucketObjectResponseVO bucketObjectResponseVO = new BucketObjectResponseVO();
+			//setting Bucket's object response from minio
+			bucketObjectResponseVO.setBucketObjects(minioObjectResponse.getObjects());
+			
+			LOGGER.info("Fetching bucket:{} permission for user:{}",bucketName,currentUser);
+			bucketObjectResponseVO.setBucketPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
+			
+			objectResponseWrapperVO.setData(bucketObjectResponseVO);
 			if (ObjectUtils.isEmpty(minioObjectResponse.getObjects())) {
 				LOGGER.info("NO object available in bucket:{}",bucketName);
 				httpStatus = HttpStatus.NO_CONTENT;
@@ -243,12 +251,12 @@ public class BasePersistenceService implements PersistenceService {
 
 		} else {
 			LOGGER.info("Failure from list objects minio client");
-			bucketObjectCollection
+			objectResponseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription(minioObjectResponse.getError().getErrorMsg())));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 
-		return new ResponseEntity<>(bucketObjectCollection, httpStatus);
+		return new ResponseEntity<>(objectResponseWrapperVO, httpStatus);
 	}
 
 	@Override
