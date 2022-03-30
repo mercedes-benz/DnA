@@ -51,6 +51,23 @@ spec:
             - containerPort: 8181
               name: api
               protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /avscan/actuator/health/liveness
+              port: api
+              
+          readinessProbe:
+            initialDelaySeconds: 180
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /avscan/actuator/health/readiness
+              port: api
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory | quote }}

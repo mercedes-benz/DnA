@@ -117,6 +117,23 @@ spec:
           volumeMounts:
             - mountPath: /git
               name: dag-repo
+          livenessProbe:
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /airflow/actuator/health/liveness
+              port: api-http
+              
+          readinessProbe:
+            initialDelaySeconds: 180
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /airflow/actuator/health/readiness
+              port: api-http
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
