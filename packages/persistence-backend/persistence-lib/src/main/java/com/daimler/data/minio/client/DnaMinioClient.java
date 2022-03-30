@@ -28,10 +28,15 @@
 package com.daimler.data.minio.client;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.persistence.PermissionVO;
+import com.daimler.data.dto.persistence.UserVO;
+
+import io.minio.admin.UserInfo;
 
 public interface DnaMinioClient {
 
@@ -98,4 +103,38 @@ public interface DnaMinioClient {
 	 * @return MinioGenericResponse
 	 */
 	public MinioGenericResponse userRefresh(String userId);
+
+	/**
+	 * To check if bucket exists.
+	 * 
+	 * @param bucketName
+	 * @return isBucketExists{Boolean}
+	 */
+	public Boolean isBucketExists(String bucketName);
+	
+	/**
+	 * To fetch list of collaborators
+	 * 
+	 * @param bucketName
+	 * @param currentUser
+	 * @return users{List<UserVO>}
+	 */
+	public List<UserVO> getBucketCollaborators(String bucketName, String currentUser);
+
+	/**
+	 * To list all users available in Minio
+	 * 
+	 * @return userInfo{Map<String, UserInfo>}
+	 */
+	public Map<String, UserInfo> listUsers();
+	
+	/**
+	 * To get permission of bucket for current user
+	 * 
+	 * @param bucketName
+	 * @param currentUser
+	 * @return permission{PermissionVO}
+	 */
+	public PermissionVO getBucketPermission(String bucketName, String currentUser);
+	
 }
