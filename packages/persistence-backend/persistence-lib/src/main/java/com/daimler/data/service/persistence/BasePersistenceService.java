@@ -31,9 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
-import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,16 +41,18 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectCollection;
+import com.daimler.data.dto.persistence.BucketResponseVO;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketVo;
-import com.daimler.data.dto.persistence.GetBucketResponseWrapperVO;
-import com.daimler.data.dto.persistence.MinioBucketResponse;
+import com.daimler.data.dto.persistence.PermissionVO;
 import com.daimler.data.dto.persistence.UserRefreshWrapperVO;
 import com.daimler.data.dto.persistence.UserVO;
 import com.daimler.data.minio.client.DnaMinioClient;
@@ -82,88 +81,149 @@ public class BasePersistenceService implements PersistenceService {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
 		List<UserVO> bucketAccessinfo = new ArrayList<UserVO>();
-		String currentUser = userStore.getUserInfo().getId();
-		LOGGER.debug("Make bucket:{} request for user:{}",bucketVo.getBucketName(),currentUser);
-		MinioGenericResponse createBucketResponse = dnaMinioClient.createBucket(bucketVo.getBucketName());
-		if (createBucketResponse != null && createBucketResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-			LOGGER.info("Success from make minio bucket");
-			LOGGER.debug("Onboarding current user");
-			MinioGenericResponse onboardOwnerResponse = dnaMinioClient.onboardUserMinio(currentUser,
-					createBucketResponse.getPolicies());
-			if (onboardOwnerResponse != null && onboardOwnerResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-				onboardOwnerResponse.getUser().setPermissions(Arrays.asList("READ", "WRITE"));
-				bucketAccessinfo.add(onboardOwnerResponse.getUser());
-			}
 
-			LOGGER.debug("Onboarding collaborators");
-			if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
-				for (UserVO userVO : bucketVo.getCollaborators()) {
-					if (!ObjectUtils.isEmpty(userVO.getPermissions())) {
-						List<String> policies = userVO.getPermissions().stream()
-								.map(n -> bucketVo.getBucketName() + "_" + n.toUpperCase())
-								.collect(Collectors.toList());
-						MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userVO.getAccesskey(),
-								policies);
-						if (onboardUserResponse != null && onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-							onboardUserResponse.getUser().setPermissions(userVO.getPermissions());
-							bucketAccessinfo.add(onboardUserResponse.getUser());
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+		PermissionVO permissionVO = null;
+
+		LOGGER.debug("Validate Bucket before create.");
+		List<MessageDescription> validateMsg = validateCreateBucket(bucketVo);
+		if (!ObjectUtils.isEmpty(validateMsg)) {
+			responseVO.setStatus(ConstantsUtility.FAILURE);
+			responseVO.setErrors(validateMsg);
+			httpStatus = HttpStatus.BAD_REQUEST;
+		} else {
+			LOGGER.debug("Make bucket:{} request for user:{}", bucketVo.getBucketName(), currentUser);
+			MinioGenericResponse createBucketResponse = dnaMinioClient.createBucket(bucketVo.getBucketName());
+			if (createBucketResponse != null && createBucketResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+				LOGGER.info("Success from make minio bucket");
+				responseVO.setStatus(ConstantsUtility.SUCCESS);
+				LOGGER.info("Onboarding current user:{}", currentUser);
+				MinioGenericResponse onboardOwnerResponse = dnaMinioClient.onboardUserMinio(currentUser,
+						createBucketResponse.getPolicies());
+				if (onboardOwnerResponse != null && onboardOwnerResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+					LOGGER.info("Onboard bucket owner:{} successfull.", currentUser);
+					// Setting R/W access for owner
+					permissionVO = new PermissionVO();
+					permissionVO.setRead(true);
+					permissionVO.setWrite(true);
+					onboardOwnerResponse.getUser().setPermission(permissionVO);
+					bucketAccessinfo.add(onboardOwnerResponse.getUser());
+
+					LOGGER.info("Onboarding collaborators");
+					if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
+						for (UserVO userVO : bucketVo.getCollaborators()) {
+							if (Objects.nonNull(userVO.getPermission())) {
+								List<String> policies = new ArrayList<String>();
+								if (userVO.getPermission().isRead() != null && userVO.getPermission().isRead()) {
+									policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READ);
+								}
+								if (userVO.getPermission().isWrite() && userVO.getPermission().isWrite()) {
+									policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READWRITE);
+								}
+
+								LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
+								MinioGenericResponse onboardUserResponse = dnaMinioClient
+										.onboardUserMinio(userVO.getAccesskey(), policies);
+								if (onboardUserResponse != null
+										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+									LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());
+									onboardUserResponse.getUser().setPermission(userVO.getPermission());
+									bucketAccessinfo.add(onboardUserResponse.getUser());
+								} else {
+									LOGGER.info("Collaborator:{} onboarding failed", userVO.getAccesskey());
+								}
+							} else {
+								LOGGER.info("Collaborator:{} onboarding not possible since permission is not given.",
+										userVO.getAccesskey());
+							}
 						}
 					}
-				}
-			}
 
-			responseVO.setBucketAccessinfo(bucketAccessinfo);
-			httpStatus = HttpStatus.OK;
-		} else {
-			LOGGER.info("Failure from make bucket minio client");
-			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-			// MessageDescription messageDescription = new MessageDescription();
-			// messageDescription.setMessage(createBucketResponse.getError());
-			List<MessageDescription> messages = new ArrayList<>();
-			messages.add(new MessageDescription(createBucketResponse.getError().getErrorMsg()));
-			responseVO.setErrors(messages);
+				} else {
+					LOGGER.info("Failure from onboard bucket owner.");
+				}
+
+				responseVO.setBucketAccessinfo(bucketAccessinfo);
+				responseVO.setStatus(createBucketResponse.getStatus());
+				httpStatus = HttpStatus.OK;
+			} else {
+				LOGGER.info("Failure from make bucket minio client");
+				responseVO.setStatus(ConstantsUtility.FAILURE);
+				httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+				List<MessageDescription> messages = new ArrayList<>();
+				messages.add(new MessageDescription(createBucketResponse.getError().getErrorMsg()));
+				responseVO.setErrors(messages);
+			}
 		}
+
 		responseVO.setData(bucketVo);
-		responseVO.setStatus(createBucketResponse.getStatus());
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
 
+	/*
+	 * To validate create bucket.
+	 * 
+	 */
+	private List<MessageDescription> validateCreateBucket(BucketVo bucketVo) {
+		List<MessageDescription> messages = new ArrayList<MessageDescription>();
+		MessageDescription message = null;
+		LOGGER.debug("Check if bucket already exists.");
+		Boolean isBucketExists = dnaMinioClient.isBucketExists(bucketVo.getBucketName());
+		if (isBucketExists == null) {
+			message = new MessageDescription();
+			message.setMessage("Error occurred while validating bucket: " + bucketVo.getBucketName());
+			messages.add(message);
+		} else if (isBucketExists) {
+			LOGGER.info("Bucket already exists: {}", bucketVo.getBucketName());
+			message = new MessageDescription();
+			message.setMessage("Bucket already exists: " + bucketVo.getBucketName());
+			messages.add(message);
+		} else {
+			LOGGER.info("Bucket not exists proceed to make new bucket.");
+		}
+
+		return messages;
+	}
+	
 	@Override
-	public ResponseEntity<GetBucketResponseWrapperVO> getAllBuckets() {
+	public ResponseEntity<BucketCollectionVO> getAllBuckets() {
+		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
 
-		GetBucketResponseWrapperVO bucketResponseWrapperVO = new GetBucketResponseWrapperVO();
-		List<MinioBucketResponse> minioBucketsResponse;
-		MinioBucketResponse minioBucketResponse;
+		BucketCollectionVO bucketCollectionVO = new BucketCollectionVO();
 		LOGGER.debug("list buckets for user:{}", currentUser);
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list buckets minio client");
 			httpStatus = HttpStatus.OK;
-			minioBucketsResponse = new ArrayList<MinioBucketResponse>();
+			List<BucketResponseVO> bucketsResponseVO = new ArrayList<BucketResponseVO>();
+			BucketResponseVO bucketResponseVO = null;
 			for (Bucket bucket : minioResponse.getBuckets()) {
-				minioBucketResponse = new MinioBucketResponse();
-				minioBucketResponse.setBucketName(bucket.name());
-				minioBucketResponse.setCreationDate(bucket.creationDate().toString());
+				bucketResponseVO = new BucketResponseVO();
+				bucketResponseVO.setBucketName(bucket.name());
+				bucketResponseVO.setCreationDate(bucket.creationDate().toString());
+				// Setting current user permission for bucket
+				bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
+				LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+				bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
 
-				minioBucketsResponse.add(minioBucketResponse);
+				bucketsResponseVO.add(bucketResponseVO);
 			}
 
-			bucketResponseWrapperVO.setData(minioBucketsResponse);
+			bucketCollectionVO.setData(bucketsResponseVO);
 		} else {
 			LOGGER.info("Failure from list buckets minio client");
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-			bucketResponseWrapperVO
-					.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
+			bucketCollectionVO.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
 		}
-
-		bucketResponseWrapperVO.setStatus(minioResponse.getStatus());
-		return new ResponseEntity<>(bucketResponseWrapperVO, httpStatus);
+		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
 
 	@Override
-	public ResponseEntity<BucketObjectCollection> getBucketObjects(String bucketName, @Valid String prefix) {
+	public ResponseEntity<BucketObjectCollection> getBucketObjects(String bucketName, String prefix) {
+		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
 		BucketObjectCollection bucketObjectCollection = new BucketObjectCollection();
@@ -263,18 +323,18 @@ public class BasePersistenceService implements PersistenceService {
 	@Override
 	public ResponseEntity<BucketResponseWrapperVO> objectUpload(MultipartFile uploadfile, String bucketName,
 			String prefix) {
-
+		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
 		BucketResponseWrapperVO bucketResponseWrapperVO = new BucketResponseWrapperVO();
 		
-		LOGGER.debug("upload object/file through minio client");
+		LOGGER.debug("upload object/file through minio client.");
 		MinioGenericResponse minioResponse = dnaMinioClient.objectUpload(currentUser, uploadfile, bucketName, prefix);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-			LOGGER.info("Success from put object minio client");
+			LOGGER.info("Success from put object minio client.");
 			httpStatus = HttpStatus.OK;
 		} else {
-			LOGGER.info("Failure from put object minio client");
+			LOGGER.info("Failure from put object minio client.");
 			bucketResponseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -287,20 +347,36 @@ public class BasePersistenceService implements PersistenceService {
 	public ResponseEntity<UserRefreshWrapperVO> userRefresh(String userId) {
 		HttpStatus httpStatus;
 		UserRefreshWrapperVO userRefreshWrapperVO = new UserRefreshWrapperVO();
-		
-		LOGGER.debug("Refresh user through minio client");
-		MinioGenericResponse minioResponse = dnaMinioClient.userRefresh(userId.toUpperCase());
-		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-			LOGGER.info("Success from refresh minio client");
-			httpStatus = HttpStatus.OK;
-			userRefreshWrapperVO.setData(minioResponse.getUser());
+
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+
+		// Setting current user as user Id if userId is null
+		userId = StringUtils.hasText(userId) ? userId : currentUser;
+
+		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
+			LOGGER.info("No permission to refresh user:{}, only owner or admin can refresh", userId);
+			userRefreshWrapperVO.setErrors(Arrays.asList(new MessageDescription(
+					"No permission to refresh user:" + userId + ", only owner or admin can refresh")));
+			httpStatus = HttpStatus.FORBIDDEN;
+			userRefreshWrapperVO.setStatus(ConstantsUtility.FAILURE);
 		} else {
-			LOGGER.info("Failure from refresh minio client");
-			userRefreshWrapperVO
-					.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
-			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+			LOGGER.debug("Refresh user through minio client.");
+			MinioGenericResponse minioResponse = dnaMinioClient.userRefresh(userId.toUpperCase());
+			if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+				LOGGER.info("Success from refresh minio client.");
+				httpStatus = HttpStatus.OK;
+				userRefreshWrapperVO.setData(minioResponse.getUser());
+			} else {
+				LOGGER.info("Failure from refresh minio client.");
+				userRefreshWrapperVO
+						.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
+				httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+			userRefreshWrapperVO.setStatus(minioResponse.getStatus());
 		}
-		userRefreshWrapperVO.setStatus(minioResponse.getStatus());
+
 		return new ResponseEntity<>(userRefreshWrapperVO, httpStatus);
 	}
 
