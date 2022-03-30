@@ -46,10 +46,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.api.persistence.PersistenceApi;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectCollection;
 import com.daimler.data.dto.persistence.BucketRequestVO;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
-import com.daimler.data.dto.persistence.GetBucketResponseWrapperVO;
 import com.daimler.data.dto.persistence.UserRefreshWrapperVO;
 import com.daimler.data.service.persistence.PersistenceService;
 
@@ -110,18 +110,18 @@ public class PersistenceController implements PersistenceApi {
 	}
 
 	@Override
-	@ApiOperation(value = "get Buckets", nickname = "getAllBuckets", notes = "Get bucket with this api", response = GetBucketResponseWrapperVO.class, tags = {
+	@ApiOperation(value = "get Buckets", nickname = "getAllBuckets", notes = "Get bucket with this api", response = BucketCollectionVO.class, tags = {
 			"persistence", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Returns message of succes or failure ", response = GetBucketResponseWrapperVO.class),
-			@ApiResponse(code = 400, message = "Bad Request", response = GetBucketResponseWrapperVO.class),
+			@ApiResponse(code = 200, message = "Returns message of succes or failure ", response = BucketCollectionVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = BucketCollectionVO.class),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/buckets", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<GetBucketResponseWrapperVO> getAllBuckets() {
+	public ResponseEntity<BucketCollectionVO> getAllBuckets() {
 		return persistenceService.getAllBuckets();
 	}
 
@@ -174,10 +174,10 @@ public class PersistenceController implements PersistenceApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/buckets/{userId}/refresh", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/buckets/user/refresh", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<UserRefreshWrapperVO> userRefresh(
-			@ApiParam(value = "UserId for which credentials to be refreshed.", required = true) @PathVariable("userId") String userId) {
+			@ApiParam(value = "UserId for which credentials to be refreshed.") @Valid @RequestParam(value = "userId", required = false) String userId) {
 		return persistenceService.userRefresh(userId);
 	}
 

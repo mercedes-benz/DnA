@@ -25,22 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.util;
+package com.daimler.data.dto;
 
-public class ConstantsUtility {
+import java.util.List;
 
-	public static final String SUCCESS = "SUCCESS";
-	public static final String FAILURE = "FAILURE";
-	
-	public static final String READWRITE = "RW";
-	public static final String READ = "READ";
-	public static final String DELETE = "DEL";
-	
-	//Variables To make minio policy
-	public static final String POLICY_LIST_BUCKET = "s3:ListBucket";
-	public static final String POLICY_PUT_OBJECT = "s3:PutObject";
-	public static final String POLICY_GET_OBJECT = "s3:GetObject";
-	public static final String POLICY_DELETE_OBJECT = "s3:DeleteObject";
-	public static final String POLICY_BUCKET_LOCATION = "s3:GetBucketLocation";
-	public static final String POLICY_RESOURCE = "arn:aws:s3:::";
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class PolicyDTO {
+
+	private String Version;
+	private List<PolicyStatementDTO> Statement;
+
 }

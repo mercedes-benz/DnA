@@ -27,20 +27,36 @@
 
 package com.daimler.data.util;
 
-public class ConstantsUtility {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-	public static final String SUCCESS = "SUCCESS";
-	public static final String FAILURE = "FAILURE";
+import com.daimler.data.dto.PolicyDTO;
+import com.daimler.data.dto.PolicyStatementDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+
+public class PolicyUtility {
+
+	//Minio Policy generator
+	public static String policyGenerator(String resource, String version, String action, String sid, String effect)
+			throws JsonProcessingException {
+		String policy = "";
+		List<PolicyStatementDTO> statements = new ArrayList<PolicyStatementDTO>();
+
+		PolicyStatementDTO statement = new PolicyStatementDTO();
+		statement.setAction(Arrays.asList(action.split("\\s*,\\s*")));
+		statement.setEffect(effect);
+		statement.setResource(Arrays.asList(resource.split("\\s*,\\s*")));
+		statement.setSid(sid);
+
+		statements.add(statement);
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+
+		policy = ow.writeValueAsString(new PolicyDTO(version, statements));
+
+		return policy;
+	}
 	
-	public static final String READWRITE = "RW";
-	public static final String READ = "READ";
-	public static final String DELETE = "DEL";
-	
-	//Variables To make minio policy
-	public static final String POLICY_LIST_BUCKET = "s3:ListBucket";
-	public static final String POLICY_PUT_OBJECT = "s3:PutObject";
-	public static final String POLICY_GET_OBJECT = "s3:GetObject";
-	public static final String POLICY_DELETE_OBJECT = "s3:DeleteObject";
-	public static final String POLICY_BUCKET_LOCATION = "s3:GetBucketLocation";
-	public static final String POLICY_RESOURCE = "arn:aws:s3:::";
 }
