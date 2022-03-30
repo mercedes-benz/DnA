@@ -10,6 +10,8 @@ spec:
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
