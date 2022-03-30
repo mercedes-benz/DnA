@@ -125,7 +125,7 @@ public class BasePersistenceService implements PersistenceService {
 
 								LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
 								MinioGenericResponse onboardUserResponse = dnaMinioClient
-										.onboardUserMinio(userVO.getAccesskey(), policies);
+										.onboardUserMinio(userVO.getAccesskey().toUpperCase(), policies);
 								if (onboardUserResponse != null
 										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 									LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());

@@ -157,7 +157,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			//Creating READ policy{eg: bucket1_READ} 
 			String policyName = bucketName + "_" + ConstantsUtility.READ;
 			//Setting action as view all bucket contents
-			action = "s3:ListBucket,s3:GetObject";
+			action = "s3:ListBucket,s3:GetObject,s3:GetBucketLocation";
 			CreateBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
 			policies.add(policyName);
 
@@ -165,7 +165,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			// Create READWRITE(RW):{read+write+delete} policy eg:bucket1_RW
 			policyName = bucketName + "_" + ConstantsUtility.READWRITE;
 			//Setting action as view, edit & delete all bucket contents
-			action = "s3:ListBucket,s3:GetObject,s3:PutObject,s3:DeleteObject";
+			//action = "s3:ListBucket,s3:GetObject,s3:PutObject,s3:DeleteObject";
+			action = "*";
 			CreateBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
 			policies.add(policyName);
 
@@ -350,7 +351,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				| XmlParserException | IOException e) {
 			LOGGER.error("DNA-MINIO-ERR-006::Error occured while listing bucket's object from minio: {}",
 					e.getMessage());
-			minioObjectResponse.setError(buildError(null, "Error occured while listing bucket's object from minio. "));
+			minioObjectResponse.setError(buildError(null, "Error occured while listing bucket's object from minio: "+e.getMessage()));
 			minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
 		}
 
