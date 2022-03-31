@@ -135,16 +135,10 @@ const Notifications = (props: any) => {
 
   const openDetails = (notificationDetails: any) => {
     setNotificationDetails(JSON.stringify(notificationDetails));
-
-    /**********************  Delete following block after production ******************/
-    if(notificationDetails.eventType == 'Solution Updated'){
-      history.push('/summary/' + notificationDetails.resourceId)
-    }
-    
-    /**********************  Following lines will be uncommented if drawer is needed ******************/
-    // setHideDrawer(false);
-    // markNotificationAsRead([notificationDetails.id], false)
-
+    setHideDrawer(false);
+    if(!notificationDetails.isRead || notificationDetails.isRead === 'false'){
+      markNotificationAsRead([notificationDetails.id], false);
+    }    
   };
 
   const selectNotification = (notificationId: any) => {
@@ -329,10 +323,10 @@ const Notifications = (props: any) => {
                   ''
                 )}
               </div>
-              {/* <div className={Styles.settingsBlock} onClick={()=> {history.push('/usersettings/')}}> */}
+              <div className={Styles.settingsBlock} onClick={()=> {history.push('/usersettings/')}}>
                 {/* <i className={classNames('icon mbc-icon search')} /> */}
-                {/* Settings
-              </div> */}
+                Settings
+              </div>
             </div>
           </div>
 
@@ -419,7 +413,7 @@ const Notifications = (props: any) => {
                   {notificationDetails ? JSON.parse(notificationDetails).eventType === 'Solution Updated' ? 
                     <a className={Styles.goToSolution} onClick={()=>{history.push('/summary/' + JSON.parse(notificationDetails).resourceId)}}>Go To Solution</a> 
                     : '' : ''}
-
+                  <i className={classNames("icon mbc-icon close thin", Styles.closeDrawer)} onClick={toggleDrawer}/>
                   {/* {notificationRead ? (
                     <span className={Styles.detailsMarkAsRead} onClick={() => markAsRead()}>
                       <i className={'icon mbc-icon visibility-show'} />
@@ -432,9 +426,9 @@ const Notifications = (props: any) => {
                     </span>
                   )} */}
                 </div>
-                {/* <div className={Styles.notificationTitle}>
+                <div className={Styles.notificationTitle}>
                   <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
-                </div> */}
+                </div>
                 <div className={Styles.notificationContent}>
                   {/* <p>Hey John Doe,</p> */}
                   
