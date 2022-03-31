@@ -173,7 +173,24 @@ spec:
           name: backend
           ports:
             - containerPort: 7171
-          resources: {}     
+          resources: {}
+          livenessProbe:
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/liveness
+              port: 7171
+              
+          readinessProbe:
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/readiness
+              port: 7171     
       securityContext:
         runAsUser: 1000
       imagePullSecrets:
