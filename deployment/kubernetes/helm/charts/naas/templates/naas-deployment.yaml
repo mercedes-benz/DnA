@@ -75,7 +75,7 @@ spec:
               memory: {{ .Values.app.resources.limits.memory }}
               cpu: {{ .Values.app.resources.limits.cpu }}
           livenessProbe:
-            initialDelaySeconds: 300
+            initialDelaySeconds: 180
             timeoutSeconds: 30
             periodSeconds: 30
             failureThreshold: 3
@@ -84,7 +84,7 @@ spec:
               port: api
               
           readinessProbe:
-            initialDelaySeconds: 360
+            initialDelaySeconds: 200
             timeoutSeconds: 30
             periodSeconds: 30
             failureThreshold: 3
