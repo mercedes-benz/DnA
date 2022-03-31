@@ -30,11 +30,13 @@ package com.daimler.data.service.persistence;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -45,6 +47,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.persistence.BucketCollectionVO;
@@ -57,8 +60,10 @@ import com.daimler.data.dto.persistence.PermissionVO;
 import com.daimler.data.dto.persistence.UserRefreshWrapperVO;
 import com.daimler.data.dto.persistence.UserVO;
 import com.daimler.data.minio.client.DnaMinioClient;
+import com.daimler.data.util.CacheUtil;
 import com.daimler.data.util.ConstantsUtility;
 
+import io.minio.admin.UserInfo;
 import io.minio.messages.Bucket;
 
 @Service
@@ -67,6 +72,12 @@ public class BasePersistenceService implements PersistenceService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BasePersistenceService.class);
 
+	@Value("${minio.endpoint}")
+	private String minioBaseUri;
+	
+	@Autowired
+	private CacheUtil cacheUtil;
+	
 	@Autowired
 	private UserStore userStore;
 
@@ -360,7 +371,7 @@ public class BasePersistenceService implements PersistenceService {
 		String currentUser = userStore.getUserInfo().getId();
 
 		// Setting current user as user Id if userId is null
-		userId = StringUtils.hasText(userId) ? userId : currentUser;
+		userId = StringUtils.hasText(userId) ? userId.toUpperCase() : currentUser;
 
 		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
 			LOGGER.info("No permission to refresh user:{}, only owner or admin can refresh", userId);
@@ -386,6 +397,83 @@ public class BasePersistenceService implements PersistenceService {
 		}
 
 		return new ResponseEntity<>(userRefreshWrapperVO, httpStatus);
+	}
+
+	@Override
+	public ResponseEntity<UserRefreshWrapperVO> getConnection(String bucketName, String userId, String prefix) {
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		UserRefreshWrapperVO userRefreshWrapperVO = new UserRefreshWrapperVO();
+		userRefreshWrapperVO.setStatus(ConstantsUtility.FAILURE);
+
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+
+		// Setting current user as user Id if userId is null
+		userId = StringUtils.hasText(userId) ? userId.toUpperCase() : currentUser;
+		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
+			LOGGER.info(
+					"No permission to get Connection details for user:{}, only owner or admin can get connection details.",
+					userId);
+			userRefreshWrapperVO
+					.setErrors(Arrays.asList(new MessageDescription("No permission to get Connection details for user:"
+							+ userId + ", only owner or admin can get connection details.")));
+			httpStatus = HttpStatus.FORBIDDEN;
+		} else if (!dnaMinioClient.validateUserInMinio(userId)) {
+			LOGGER.info("User:{} not present in Minio.", userId);
+			userRefreshWrapperVO
+					.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Minio.")));
+			httpStatus = HttpStatus.NO_CONTENT;
+		} else {
+			String secretKey = dnaMinioClient.validateUserInVault(userId);
+			if (StringUtils.hasText(secretKey)) {
+				UserVO userVO = new UserVO();
+				//setting credentials
+				userVO.setAccesskey(userId);
+				userVO.setSecretKey(secretKey);
+				//Setting permission
+				userVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, userId));
+				String uri = minioBaseUri+"/"+"buckets/"+bucketName;
+				userVO.setUri(uri);
+				
+				userRefreshWrapperVO.setData(userVO);
+				userRefreshWrapperVO.setStatus(ConstantsUtility.SUCCESS);
+				httpStatus = HttpStatus.OK;
+				
+
+			} else {
+				LOGGER.info("User:{} not present in Vault.", userId);
+				userRefreshWrapperVO
+						.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Vault.")));
+				httpStatus = HttpStatus.NO_CONTENT;
+			}
+		}
+
+		return new ResponseEntity<>(userRefreshWrapperVO, httpStatus);
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> cacheRefresh() {
+		GenericMessage genericMessage = new GenericMessage();
+		HttpStatus httpStatus;
+		LOGGER.debug("Fetching users from Minio.");
+		Map<String, UserInfo> users = dnaMinioClient.listUsers();
+		if (users.isEmpty()) {
+			genericMessage.setSuccess(ConstantsUtility.FAILURE);
+			genericMessage.setErrors(
+					Arrays.asList(new MessageDescription("Cache refresh failed as no data got from Minio.")));
+			httpStatus = HttpStatus.NOT_FOUND;
+		} else {
+			// updating minioUsersCache
+			LOGGER.debug("Removing all enteries from minioUsersCache.");
+			cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
+			LOGGER.debug("Updating minioUsersCache.");
+			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
+
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+			httpStatus = HttpStatus.OK;
+		}
+
+		return new ResponseEntity<>(genericMessage, httpStatus);
 	}
 
 }

@@ -137,4 +137,19 @@ public interface DnaMinioClient {
 	 */
 	public PermissionVO getBucketPermission(String bucketName, String currentUser);
 	
+	/**
+	 * To validate if user present in Minio
+	 * 
+	 * @param userId
+	 * @return isUserExist{Boolean}
+	 */
+	public Boolean validateUserInMinio(String userId);
+	
+	/**
+	 * To validate and get user secret key from vault
+	 * 
+	 * @param userId
+	 * @return userSecretKey{String}
+	 */
+	public String validateUserInVault(String userId);
 }

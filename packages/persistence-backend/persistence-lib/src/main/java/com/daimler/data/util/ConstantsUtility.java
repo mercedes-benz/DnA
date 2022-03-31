@@ -36,6 +36,9 @@ public class ConstantsUtility {
 	public static final String READ = "READ";
 	public static final String DELETE = "DEL";
 	
+	//Variables for cache
+	public static final String MINIO_USERS_CACHE = "minioUsersCache";
+	
 	//Variables To make minio policy
 	public static final String POLICY_LIST_BUCKET = "s3:ListBucket";
 	public static final String POLICY_PUT_OBJECT = "s3:PutObject";

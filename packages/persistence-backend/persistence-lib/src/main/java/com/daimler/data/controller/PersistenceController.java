@@ -46,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.api.persistence.PersistenceApi;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketRequestVO;
@@ -179,6 +180,44 @@ public class PersistenceController implements PersistenceApi {
 	public ResponseEntity<UserRefreshWrapperVO> userRefresh(
 			@ApiParam(value = "UserId for which credentials to be refreshed.") @Valid @RequestParam(value = "userId", required = false) String userId) {
 		return persistenceService.userRefresh(userId);
+	}
+
+	@Override
+	@ApiOperation(value = "Get connection details.", nickname = "getConnection", notes = "Get connection details of given path for user.", response = UserRefreshWrapperVO.class, tags = {
+			"persistence", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = UserRefreshWrapperVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/buckets/{bucketName}/connect", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<UserRefreshWrapperVO> getConnection(
+			@ApiParam(value = "Bucket name for which details to be fetch.", required = true) @PathVariable("bucketName") String bucketName,
+			@ApiParam(value = "UserId for which credentials to be fetched.") @Valid @RequestParam(value = "userId", required = false) String userId,
+			@ApiParam(value = "Bucket Path for which connection uri be fetch.") @Valid @RequestParam(value = "prefix", required = false) String prefix) {
+		return persistenceService.getConnection(bucketName, userId, prefix);
+	}
+
+	@Override
+    @ApiOperation(value = "Refresh cache.", nickname = "cacheRefresh", notes = "Refresh cache.", response = GenericMessage.class, tags={ "persistence", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of succes or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/buckets/cache/refresh",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<GenericMessage> cacheRefresh() {
+		return persistenceService.cacheRefresh();
 	}
 
 }

@@ -66,6 +66,11 @@ schemes:
 - "https"
 
 paths:
+  # path to create a new bucket and fetch all valid buckets for user
+  #
+  #  supprorted http methods GET, POST
+  #
+  # path example ../buckets
  /buckets:
   post:
    tags:
@@ -121,7 +126,12 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"     
-
+  
+  # path to upload objects to bucket
+  #
+  #  supprorted http methods POST
+  #
+  # path example ../buckets/{bucketName}/upload
  /buckets/{bucketName}/upload:
   post:
    tags:
@@ -172,7 +182,11 @@ paths:
     500:
      description: "Internal error"
 
-# To get objects associated with Bucket name
+  # path to get objects associated with Bucket name
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/{bucketName}/objects
  /buckets/{bucketName}/objects:
    get:
     tags:
@@ -209,7 +223,11 @@ paths:
      500:
       description: "Internal error"
       
-# To get metadata of an object
+  # path to get objects metadata
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/{bucketName}/objects/metadata
  /buckets/{bucketName}/objects/metadata:
    get:
     tags:
@@ -247,7 +265,11 @@ paths:
      500:
       description: "Internal error"      
       
-# To refresh user
+  # path to refresh user
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/user/refresh
  /buckets/user/refresh:
    get:
     tags:
@@ -277,8 +299,83 @@ paths:
      405:
       description: "Method not allowed"
      500:
-      description: "Internal error"            
+      description: "Internal error"           
       
+  # path to get connection details of bucket for user
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/connect
+ /buckets/{bucketName}/connect:
+   get:
+    tags:
+     - "persistence"
+    summary: "Get connection details."
+    description:  "Get connection details of given path for user."
+    operationId: "getConnection"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name for which details to be fetch." 
+       required: true
+       type: string
+     - name: userId
+       in: query
+       description: "UserId for which credentials to be fetched." 
+       required: false
+       type: string
+     - name: prefix
+       in: query
+       description: "Bucket Path for which connection uri be fetch." 
+       required: false
+       type: string  
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/UserRefreshWrapperVO"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"       
+      
+  # path to refresh Cache
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/cache/refresh
+ /buckets/cache/refresh:
+   get:
+    tags:
+     - "persistence"
+    summary: "Refresh cache."
+    description:  "Refresh cache."
+    operationId: "cacheRefresh"
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"       
      
 definitions:
 
@@ -392,42 +489,6 @@ definitions:
     userMetadata:
      description: "isDir."
      type: boolean     
-     
-     
-     
-#    directory:
-#     description: "Is a Directory."
-#     type: boolean
-#    lastModified: 
-#     description: "last modified date."
-#     type: string
-#    name: 
-#     description: "Name of object."
-#     type: string
-#    size:     
-#     description: "size of object."
-#     type: number
-     
-     
-# PersistenceVO:
-#  type: object
-#  properties: 
-#    permission: 
-#     description: "permission about the persistence"
-#     type: string
-#    
-#
-# PersistenceCollection:
-#  type: object
-#  description: "Checklist"
-#  properties:
-#   #totalCount:
-#   #  type: integer
-#   #  description: "Total Record Count"
-#    records:
-#     type: array
-#     items:
-#       $ref: "#/definitions/PersistenceVO"
  
  BucketVo:
     type: object
@@ -515,7 +576,10 @@ definitions:
         description: Access key of the user
       secretKey:
         type: string
-        description: Secret Key of the user  
+        description: Secret Key of the user
+      uri:
+        type: string
+        description: uri of the object    
       permission:
         $ref: "#/definitions/PermissionVO"
  
