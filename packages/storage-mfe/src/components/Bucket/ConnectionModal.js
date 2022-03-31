@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import classNames from 'classnames';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import Styles from './ConnectionModal.scss';
+import { omit } from 'lodash';
 
 const copyToClipboard = (id) => {
   const content = document.getElementById(id)?.innerText;
@@ -10,8 +13,12 @@ const copyToClipboard = (id) => {
 };
 
 export const ConnectionModal = () => {
-  const { bucketList, submission } = useSelector((state) => state.bucket);
-  const bucketInfo = bucketList.find((bucket) => bucket.id === submission?.bucketId);
+  const { connect } = useSelector((state) => state.connectionInfo);
+
+  const [bucketInfo, setBucketInfo] = useState({
+    bucketName: '',
+    accessInfo: [],
+  });
 
   const { pathname } = useLocation();
   const isCreatePage = pathname === '/createBucket';
@@ -27,23 +34,29 @@ export const ConnectionModal = () => {
       activeTabIndicator?.[0]?.remove();
     }
     const tabs = document.querySelectorAll('.tabs')?.[0]?.childNodes;
-    if (!submission.modal) {
+    if (!connect.modal) {
       tabs[0].classList?.add('active');
       tabs[1].classList?.remove('active');
     }
-  }, [submission.modal]);
+  }, [connect.modal]);
 
+  useEffect(() => {
+    setBucketInfo({
+      bucketName: connect?.bucketName,
+      accessInfo: omit(connect?.accessInfo, ['permission']),
+    });
+  }, [connect?.bucketName, connect?.accessInfo]);
   return (
     <div>
       <div className={Styles.accessDetails}>
         {isCreatePage ? (
           <>
-            <h5>Your Bucket {bucketInfo?.name} is provisioned successfully.</h5>
+            <h5>Your Bucket {bucketInfo?.bucketName} is provisioned successfully.</h5>
             <h6>Below are the access details</h6>
           </>
         ) : (
           <>
-            <h5>Access Details for Bucket - {bucketInfo?.name}</h5>
+            <h5>Access Details for Bucket - {bucketInfo?.bucketName}</h5>
           </>
         )}
         <table>
@@ -54,7 +67,7 @@ export const ConnectionModal = () => {
               </td>
               <td>:</td>
               <td id="accessKey" className={Styles.keys}>
-                kjaskaisajkkakak132
+                {bucketInfo?.accessInfo?.accesskey}
               </td>
               <td>
                 <span
@@ -74,7 +87,7 @@ export const ConnectionModal = () => {
               </td>
               <td>:</td>
               <td id="secretKey" className={Styles.keys}>
-                aasjhfafkasjf
+                {bucketInfo?.accessInfo?.secretKey}
               </td>
               <td>
                 <span
@@ -91,7 +104,7 @@ export const ConnectionModal = () => {
           </tbody>
         </table>
       </div>
-      <div className="tabs-panel">
+      <div className={'tabs-panel'}>
         <div className="tabs-wrapper">
           <nav>
             <ul className="tabs">
@@ -108,8 +121,8 @@ export const ConnectionModal = () => {
             </ul>
           </nav>
         </div>
-        <div className={'tabs-content-wrapper'}>
-          <div id="tab-content-1" className={'tab-content'}>
+        <div className={classNames('tabs-content-wrapper', Styles.tabsContentWrapper)}>
+          <div id="tab-content-1" className={classNames('tab-content', Styles.tabContentContainer)}>
             <span
               className="copy-icon"
               style={{
@@ -120,17 +133,9 @@ export const ConnectionModal = () => {
             >
               <i className="icon mbc-icon copy" />
             </span>
-            {' { '}
-            {Object.keys(bucketInfo?.tab || [])?.map((item, index) => {
-              return (
-                <pre key={index}>
-                  <span>{`${item}: ${bucketInfo.tab[item]}`}</span>
-                </pre>
-              );
-            })}
-            {' } '}
+            <pre>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</pre>
           </div>
-          <div id="tab-content-2" className={'tab-content'}>
+          <div id="tab-content-2" className={classNames('tab-content', Styles.tabContentContainer)}>
             <span
               className="copy-icon"
               style={{
@@ -141,15 +146,7 @@ export const ConnectionModal = () => {
             >
               <i className="icon mbc-icon copy" />
             </span>
-            {' { '}
-            {Object.keys(bucketInfo?.tab || [])?.map((item, index) => {
-              return (
-                <pre key={index}>
-                  <span>{`${item}: ${bucketInfo.tab[item]}`}</span>
-                </pre>
-              );
-            })}
-            {' } '}
+            <pre>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</pre>
           </div>
         </div>
       </div>
