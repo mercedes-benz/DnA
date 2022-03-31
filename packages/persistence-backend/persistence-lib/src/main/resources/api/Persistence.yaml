@@ -519,6 +519,8 @@ definitions:
         description: Overrall status
       data:
         $ref: "#/definitions/BucketVo"
+      bucketAccessinfo:     
+        $ref: "#/definitions/UserVO"        
       warnings:
         type: array
         items:
@@ -526,15 +528,7 @@ definitions:
       errors:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription"
-      bucketAccessinfo:     
-        type: array
-        items:
-          $ref: "#/definitions/UserVO"
-      bucketPolicies:
-        type: array
-        items:
-         type: string     
+          $ref: "#/definitions/MessageDescription"     
          
  BucketCollectionVO:
    type: object

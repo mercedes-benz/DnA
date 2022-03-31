@@ -371,16 +371,23 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			}
 
 			LOGGER.debug("List all minio users.");
-			Map<String, UserInfo> users = minioAdminClient.listUsers();
+			//Map<String, UserInfo> users = minioAdminClient.listUsers();
+			Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 			if (users.containsKey(userId)) {
 				LOGGER.info("User: {} already exists", userId);
 				UserInfo userInfo = users.get(userId);
+				//Validating user in Vault
+				LOGGER.debug("Validating user in Vault.");
+				userSecretKey = validateUserInVault(userId);
+				
 				if (StringUtils.hasText(userInfo.policyName())) {
 					commaSeparatedPolicies = StringUtils.hasText(commaSeparatedPolicies)
 							? commaSeparatedPolicies + "," + userInfo.policyName()
 							: commaSeparatedPolicies + userInfo.policyName();
 				}
 				minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
+				LOGGER.info("Success from Minio set policy");
+				
 				minioResponse.setStatus(ConstantsUtility.SUCCESS);
 				
 				//Update users list for minioUsersCache
