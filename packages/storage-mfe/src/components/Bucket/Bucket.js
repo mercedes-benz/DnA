@@ -1,25 +1,27 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { BucketList } from './BucketList';
 import Styles from './Buckets.scss';
-
-import Tooltip from '../../common/modules/uilab/js/src/tooltip';
-import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 
 // import from DNA Container
 import Modal from 'dna-container/Modal';
 import Pagination from 'dna-container/Pagination';
+import { bucketsApi } from '../../apis/buckets.api';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const AllBuckets = () => {
-  const bucketList = useSelector((state) => state.bucket.bucketList);
-
+  const dispatch = useDispatch();
+  const { isLoading, bucketList } = useSelector((state) => state.bucket);
+  const { isLoading: fileExplorerLoading } = useSelector((state) => state.fileExplorer);
+  const { isLoading: connectionLoading } = useSelector((state) => state.connectionInfo);
   const [modal, setModal] = useState(false);
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(
-    parseInt(sessionStorage.getItem('paginationMaxItemsPerPage'), 10) || 15,
+    parseInt(sessionStorage.getItem('paginationMaxItemsPerPage'), 10) || 2,
   );
   const [bucketProjectListResponse, setBucketListResponse] = useState([]);
 
@@ -27,7 +29,10 @@ const AllBuckets = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
     const modifiedData = bucketProjectListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    setBucketListResponse([...modifiedData]);
+    dispatch({
+      type: 'BUCKET_DATA',
+      payload: modifiedData,
+    });
     setCurrentPageNumber(currentPageNumberTemp);
   };
   const onPaginationNextClick = () => {
@@ -35,7 +40,10 @@ const AllBuckets = () => {
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
     currentPageNumberTemp = currentPageNumber + 1;
     const modifiedData = bucketProjectListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    setBucketListResponse([...modifiedData]);
+    dispatch({
+      type: 'BUCKET_DATA',
+      payload: modifiedData,
+    });
     setCurrentPageNumber(currentPageNumberTemp);
   };
   const onViewByPageNum = (pageNum) => {
@@ -44,13 +52,69 @@ const AllBuckets = () => {
     const totalNumberOfPages = Math.ceil(bucketProjectListResponse.length / pageNum);
     setTotalNumberOfPages(totalNumberOfPages);
     const modifiedData = bucketProjectListResponse.slice(0, pageNum);
-    setBucketListResponse([...modifiedData]);
+    dispatch({
+      type: 'BUCKET_DATA',
+      payload: modifiedData,
+    });
   };
 
   useEffect(() => {
-    ExpansionPanel.defaultSetup();
-    Tooltip.defaultSetup();
-  }, []);
+    if (isLoading) {
+      ProgressIndicator.show();
+    } else {
+      ProgressIndicator.hide();
+    }
+  }),
+    [isLoading];
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (fileExplorerLoading) {
+        ProgressIndicator.show();
+      } else {
+        ProgressIndicator.hide();
+      }
+    }
+  }),
+    [fileExplorerLoading];
+
+  useEffect(() => {
+    if (!isLoading && !fileExplorerLoading) {
+      if (connectionLoading) {
+        ProgressIndicator.show();
+      } else {
+        ProgressIndicator.hide();
+      }
+    }
+  }),
+    [connectionLoading];
+
+  useEffect(() => {
+    dispatch({
+      type: 'BUCKET_LOADING',
+      payload: true,
+    });
+    bucketsApi
+      .getAllBuckets()
+      .then((res) => {
+        setBucketListResponse(res?.data?.data);
+        const totalNumberOfPages = Math.ceil(res?.data?.data.length / maxItemsPerPage);
+        setTotalNumberOfPages(totalNumberOfPages);
+        const modifiedData = res?.data?.data.slice(0, maxItemsPerPage);
+        dispatch({
+          type: 'BUCKET_DATA',
+          payload: modifiedData,
+        });
+        dispatch({
+          type: 'BUCKET_LOADING',
+          payload: false,
+        });
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        Notification.show(e.response.data.message ? e.reponse.data.message : 'Some error occurred!', 'alert');
+      });
+  }, [dispatch, maxItemsPerPage]);
 
   return (
     <>

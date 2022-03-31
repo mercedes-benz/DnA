@@ -14,3 +14,28 @@
     float: left;
   }
 }
+
+.tabsContentWrapper {
+  margin-top: 0px !important;
+  pre {
+    margin-left: 15px;
+    margin-bottom: 0;
+  }
+  .tabContentContainer {
+    width: 575px;
+    border: 1px solid #383f49;
+    padding: 10px 0px;
+  }
+  .tabContent {
+    &::-webkit-scrollbar-thumb {
+      background: #00adef;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #293f55;
+    }
+    &::-webkit-scrollbar {
+      height: 5px;
+    }
+  }
+}

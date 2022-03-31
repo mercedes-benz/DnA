@@ -13,8 +13,10 @@ const UnAuthorised = React.lazy(() => import('dna-container/UnAuthorised'));
 import AllBuckets from './Bucket/Bucket';
 import CreateBucket from './Bucket/CreateBucket';
 import FileExplorer from './Explorer/FileExplorer';
-import { ProtectedRoute } from './ProtectedRoute';
+import { ProtectedRoute } from './StorageProtectedRoute';
 import { history } from '../store/storeRoot';
+import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
+import SessionExpired from './SessionExpired';
 
 const protectedRoutes = [
   {
@@ -44,10 +46,10 @@ const Routes = ({ user }) => {
 
   useEffect(() => {
     dispatch(getUserInfo(user));
-  }, []);
+  }, [dispatch, user]);
 
   return (
-    <Suspense fallback={user?.roles?.length ? <Progress show={true} /> : <div>Loading...</div>}>
+    <Suspense fallback={user?.roles?.length ? <Progress show={true} /> : <>Loading</>}>
       <ConnectedRouter history={history}>
         {process.env.NODE_ENV === 'development' && !user?.roles?.length ? (
           <Switch>
@@ -61,6 +63,13 @@ const Routes = ({ user }) => {
               />
             ))}
             <Route path="/unauthorized" component={UnAuthorised} />
+            <Route
+              path="/SessionExpired"
+              render={(props) => {
+                ProgressIndicator.hide();
+                return <SessionExpired {...props} />;
+              }}
+            />
             <Route component={NotFoundPage} />
           </Switch>
         ) : user?.roles?.length ? (
@@ -78,7 +87,13 @@ const Routes = ({ user }) => {
             <Route component={NotFoundPage} />
           </Switch>
         ) : (
-          <Route to="/unauthorized" component={UnAuthorised} />
+          <Route
+            to="/unauthorized"
+            render={(props) => {
+              ProgressIndicator.hide();
+              return <UnAuthorised {...props} />;
+            }}
+          />
         )}
       </ConnectedRouter>
     </Suspense>
