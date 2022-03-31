@@ -95,6 +95,8 @@ sourceSets {
 
 dependencies {
 
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
+
     implementation group: 'org.json', name: 'json', version: '20190722'
 
     implementation('ch.qos.logback:logback-classic:1.2.3')
@@ -118,9 +120,9 @@ dependencies {
 
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
-    implementation 'org.projectlombok:lombok:1.18.10'
+    implementation 'org.projectlombok:lombok:1.18.22'
     implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
-    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
 	
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
