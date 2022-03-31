@@ -299,11 +299,10 @@ i {
 }
 
 .settingsBlock{
-  margin-top: 10px;
   color: #c0c8d0;
-  display: inline-block;
-  width: 50%;
-  text-align: right;
+  position: absolute;
+  top: 27px;
+  right: 38px;
   &:hover{
     cursor: pointer;
     i {
@@ -352,11 +351,11 @@ i {
     }
     .notificationTitle{
       font-size: var(--font-size-sub-headline);
-      margin-bottom: 40px;
+      margin-bottom: 20px;
       color: #dee3e8;
     }
     .notificationContent{
-      height: 220px;
+      height: 200px;
       overflow: auto;
       
     }
@@ -428,4 +427,13 @@ i {
 .noChangeLogs{
   text-align: center;
   margin-top: 50px;
+}
+
+.closeDrawer{
+  position: absolute;
+  right: 5px;
+  top: 20px;
+  &:hover{
+    cursor: pointer; 
+  }  
 }
