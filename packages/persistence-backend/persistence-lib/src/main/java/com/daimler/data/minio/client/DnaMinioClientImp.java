@@ -414,10 +414,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				users.put(userId, userInfoTemp);
 			}
 			//updating minioUsersCache
-			LOGGER.debug("Removing all enteries from minioUsersCache.");
-			cacheUtil.removeAll("minioUsersCache");
-			LOGGER.debug("Updating minioUsersCache.");
-			cacheUtil.updateCache("minioUsersCache", users);
+			LOGGER.debug("Removing all enteries from {}.",ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
+			LOGGER.debug("Updating {}.",ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
 
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | InvalidCipherTextException e) {
 			LOGGER.error("DNA-MINIO-ERR-007::Error occured while onboarding user to minio: ", e.getMessage());
@@ -475,8 +475,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	@Override
 	public PermissionVO getBucketPermission(String bucketName, String currentUser){
 		PermissionVO permissionVO = null;
-		LOGGER.debug("Getting minio users from ehcache: minioUsersCache");
-		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers("minioUsersCache");
+		LOGGER.debug("Getting minio users from ehcache: {}",ConstantsUtility.MINIO_USERS_CACHE);
+		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		UserInfo userInfo = usersInfo.get(currentUser);
 		if(Objects.nonNull(userInfo)) {
 			//Setting permission for bucket
@@ -499,10 +499,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	public List<UserVO> getBucketCollaborators(String bucketName, String currentUser) {
 		List<UserVO> bucketCollaborators = null;
 		// Getting minio users from ehcache {minioUsersCache}
-		LOGGER.debug("Getting minio users from ehcache: minioUsersCache");
-		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers("minioUsersCache");
+		LOGGER.debug("Getting minio users from ehcache: {}",ConstantsUtility.MINIO_USERS_CACHE);
+		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		if (!usersInfo.isEmpty()) {
-			LOGGER.debug("Got user info from minioUsersCache.");
+			LOGGER.debug("Got user info from {}.",ConstantsUtility.MINIO_USERS_CACHE);
 			bucketCollaborators = new ArrayList<UserVO>();
 			// Iterating over usersInfo map to get collaborators
 			for (var entry : usersInfo.entrySet()) {
@@ -556,16 +556,17 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		return users;
 	}
 
-//	private boolean validateUserInMinio(String userId)
-//			throws NoSuchAlgorithmException, IOException, InvalidCipherTextException, InvalidKeyException {
-//		boolean isUserExist = false;
-//		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
-//		Map<String, UserInfo> users = minioAdminClient.listUsers();
-//		if (users.containsKey(userId)) {
-//			isUserExist = true;
-//		}
-//		return isUserExist;
-//	}
+	@Override
+	public Boolean validateUserInMinio(String userId) {
+		boolean isUserExist = false;
+		// Getting minio users from ehcache {minioUsersCache}
+		LOGGER.debug("Getting minio users from ehcache: {}",ConstantsUtility.MINIO_USERS_CACHE);
+		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		if (usersInfo.containsKey(userId)) {
+			isUserExist = true;
+		}
+		return isUserExist;
+	}
 
 
 	// To create bucket policy
@@ -615,13 +616,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		return userSecretKey;
 	}
 
-	/*
-	 * To check if user present in vault
-	 * 
-	 */
-	private String validateUserInVault(String userId) {
+	@Override
+	public String validateUserInVault(String userId) {
 		String userSecretKey = "";
 
+		LOGGER.info("Validating user:{} in Vault.",userId);
 		VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), new TokenAuthentication(vaultToken));
 		userSecretKey = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPathUtility(userId))
 				.getData().get(userId).toString();
