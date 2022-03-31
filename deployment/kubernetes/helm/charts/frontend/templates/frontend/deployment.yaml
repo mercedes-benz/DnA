@@ -112,6 +112,25 @@ spec:
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
           resources: {}
+          livenessProbe:
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "[ -f /opt/bitnami/nginx/tmp/nginx.pid]"
+                  
+          readinessProbe:
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+            periodSeconds: 60
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: 80
       securityContext:
         runAsUser: 1001
       imagePullSecrets:
