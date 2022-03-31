@@ -1461,7 +1461,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                       </label>
                     </th>
                     <th>
-                      <label className={'sortable-column-header'}>Action</label>
+                      <label>Action</label>
                     </th>
                   </tr>
                 </thead>

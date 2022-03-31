@@ -93,13 +93,30 @@ export class NotificationPanel extends React.Component<IHeaderNotificationPanelP
           </div>
         )
         :(
-        <div className={Styles.noData}>
-          There are no unread notifications
+        <div>
+          <div className={Styles.noData}>
+            There are no unread notifications
+          </div>
+          <div className={Styles.showAllNotificationLink}>
+            <span onClick={this.showMoreNotifications}>
+              {' '}
+              Show More <i className="icon mbc-icon arrow right small " />{' '}
+            </span>
+          </div>
         </div>
+        
         )
         :(
-        <div className={Styles.noData}>
-          There are no unread notifications
+        <div>
+          <div className={Styles.noData}>
+            There are no unread notifications
+          </div>
+          <div className={Styles.showAllNotificationLink}>
+            <span onClick={this.showMoreNotifications}>
+              {' '}
+              Show More <i className="icon mbc-icon arrow right small " />{' '}
+            </span>
+          </div>
         </div>
         )}
         
