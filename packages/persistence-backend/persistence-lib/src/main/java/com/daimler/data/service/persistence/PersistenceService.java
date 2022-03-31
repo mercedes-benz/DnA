@@ -31,6 +31,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
@@ -90,4 +91,21 @@ public interface PersistenceService {
 	 * @return ResponseEntity<UserRefreshWrapperVO>
 	 */
 	public ResponseEntity<UserRefreshWrapperVO> userRefresh(String userId);
+	
+	/**
+	 * To get connection details of given path for user
+	 * 
+	 * @param bucketName
+	 * @param userId
+	 * @param prefix
+	 * @return ResponseEntity<UserRefreshWrapperVO>
+	 */
+	public ResponseEntity<UserRefreshWrapperVO> getConnection(String bucketName, String userId, String prefix);
+
+	/**
+	 * To refresh ehcache
+	 * 
+	 * @return void
+	 */
+	public ResponseEntity<GenericMessage> cacheRefresh();
 }
