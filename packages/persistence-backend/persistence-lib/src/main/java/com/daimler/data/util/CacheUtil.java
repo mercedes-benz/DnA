@@ -29,8 +29,12 @@ package com.daimler.data.util;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.daimler.data.minio.client.DnaMinioClientImp;
 
 import io.minio.admin.UserInfo;
 import net.sf.ehcache.Cache;
@@ -46,6 +50,8 @@ import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 @Component
 public class CacheUtil {
 
+	private Logger LOGGER = LoggerFactory.getLogger(DnaMinioClientImp.class);
+	
 	@Autowired
 	private CacheManager cacheManager;
 
@@ -54,6 +60,7 @@ public class CacheUtil {
 		search.allowDynamicIndexing(true);
 		CacheConfiguration cacheConfiguration = new CacheConfiguration(cacheName, 2000);
 		cacheConfiguration.addSearchable(search);
+		LOGGER.info("Creating cache:{}",cacheName);
 		Ehcache minioUsersCache = new Cache(
 				cacheConfiguration.memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU).eternal(true));
 
@@ -61,7 +68,8 @@ public class CacheUtil {
 	}
 
 	public void updateCache(String cacheName, Map<String, UserInfo> users) {
-		this.getCache("minioUsersCache").put(new Element("users", users));
+		LOGGER.info("Updating cache:{}",cacheName);
+		this.getCache(cacheName).put(new Element("users", users));
 	}
 	
 	public Ehcache getCache(String cacheName) {
@@ -69,7 +77,8 @@ public class CacheUtil {
 	}
 
 	public void removeAll(String cacheName) {
-		this.getCache("minioUsersCache").removeAll();
+		LOGGER.info("Updating cache:{}",cacheName);
+		this.getCache(cacheName).removeAll();
 	}
 	
 	public Map<String, UserInfo> getMinioUsers(String cacheName) {
