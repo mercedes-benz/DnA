@@ -92,7 +92,6 @@ public class BasePersistenceService implements PersistenceService {
 	public ResponseEntity<BucketResponseWrapperVO> createBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
-		List<UserVO> bucketAccessinfo = new ArrayList<UserVO>();
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
@@ -119,18 +118,28 @@ public class BasePersistenceService implements PersistenceService {
 					permissionVO = new PermissionVO();
 					permissionVO.setRead(true);
 					permissionVO.setWrite(true);
-					onboardOwnerResponse.getUser().setPermission(permissionVO);
-					bucketAccessinfo.add(onboardOwnerResponse.getUser());
-
+					
+					UserVO ownerUserVO = onboardOwnerResponse.getUser();
+					//Setting permission
+					ownerUserVO.setPermission(permissionVO);
+					//Setting uri 
+					//TODO need to fetch from MinioClient
+					ownerUserVO.setUri(minioBaseUri+"/"+"buckets/"+bucketVo.getBucketName());
+					
+					//Setting bucket access info for owner
+					responseVO.setBucketAccessinfo(ownerUserVO);					
+					
 					LOGGER.info("Onboarding collaborators");
 					if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
 						for (UserVO userVO : bucketVo.getCollaborators()) {
 							if (Objects.nonNull(userVO.getPermission())) {
 								List<String> policies = new ArrayList<String>();
 								if (userVO.getPermission().isRead() != null && userVO.getPermission().isRead()) {
+									LOGGER.debug("Setting READ access.");
 									policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READ);
 								}
 								if (userVO.getPermission().isWrite() && userVO.getPermission().isWrite()) {
+									LOGGER.debug("Setting READ/WRITE access.");
 									policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READWRITE);
 								}
 
@@ -140,8 +149,6 @@ public class BasePersistenceService implements PersistenceService {
 								if (onboardUserResponse != null
 										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 									LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());
-									onboardUserResponse.getUser().setPermission(userVO.getPermission());
-									bucketAccessinfo.add(onboardUserResponse.getUser());
 								} else {
 									LOGGER.info("Collaborator:{} onboarding failed", userVO.getAccesskey());
 								}
@@ -156,7 +163,6 @@ public class BasePersistenceService implements PersistenceService {
 					LOGGER.info("Failure from onboard bucket owner.");
 				}
 
-				responseVO.setBucketAccessinfo(bucketAccessinfo);
 				responseVO.setStatus(createBucketResponse.getStatus());
 				httpStatus = HttpStatus.OK;
 			} else {
