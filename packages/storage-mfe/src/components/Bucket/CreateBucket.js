@@ -8,14 +8,15 @@ import AddUser from 'dna-container/AddUser';
 import { useParams } from 'react-router-dom';
 import { history } from '../../store/storeRoot';
 import { ConnectionModal } from './ConnectionModal';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 import InfoModal from 'dna-container/InfoModal';
+import { hideConnectionInfo } from './ConnectionInfo/redux/connection.actions';
 
 const CreateBucket = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { bucketList, isLoading, submission } = useSelector((state) => state.bucket);
+  const { bucketList } = useSelector((state) => state.bucket);
+  const { connect } = useSelector((state) => state.connectionInfo);
   const [bucketName, setBucketName] = useState('');
   const [bucketPermission, setBucketPermission] = useState({
     read: true,
@@ -24,25 +25,10 @@ const CreateBucket = () => {
 
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
-  const [bucketPermissionError, setBucketPermissionError] = useState('');
-
-  useEffect(() => {
-    if (isLoading) {
-      ProgressIndicator.show();
-    } else {
-      ProgressIndicator.hide();
-    }
-  }, [isLoading]);
 
   const onSubmissionModalCancel = () => {
     history.push('/');
-    dispatch({
-      type: 'SUBMISSION_MODAL',
-      payload: {
-        bucketId: '',
-        modal: false,
-      },
-    });
+    dispatch(hideConnectionInfo());
   };
 
   const storageBucketValidation = () => {
@@ -52,14 +38,6 @@ const CreateBucket = () => {
       setBucketNameError(errorMissingEntry);
       formValid = false;
     }
-
-    if (bucketPermission.read || bucketPermission.write) {
-      setBucketPermissionError('');
-    } else {
-      // setBucketPermissionError(errorMissingEntry);
-      // formValid = false;
-    }
-
     return formValid;
   };
 
@@ -71,17 +49,8 @@ const CreateBucket = () => {
       });
 
       const data = {
-        id: `${Math.floor(Math.random() * 100)}`,
-        name: bucketName,
-        createdOn: '2022-03-01',
-        modifiedOn: '2022-03-23',
-        permission: permissions,
+        bucketName: bucketName,
         collaborators: bucketCollaborators,
-        tab: {
-          key_access: 'AsdjfskjkKjksjdkjsd',
-          key_secret: 'AsdjfskjkKjksjdkjsd',
-          url: 'http://www.abc.com/sda/dasdas/dasd/asda//asdasd/asd/asdas/',
-        },
       };
       dispatch(bucketActions.setBucketList(data));
     }
@@ -118,34 +87,30 @@ const CreateBucket = () => {
 
   const getCollabarators = (collaborators) => {
     const collabarationData = {
-      firstName: collaborators.firstName,
-      lastName: collaborators.lastName,
-      email: collaborators.email,
-      username: collaborators.shortId,
-      permissions: ['can_coll_read', 'can_coll_write'],
+      accesskey: collaborators.shortId,
+      permission: { read: true, write: false },
     };
     bucketCollaborators.push(collabarationData);
     setBucketCollaborators([...bucketCollaborators]);
   };
 
-  const onCollaboratorPermission = (userName) => {
+  const onCollaboratorPermission = (e, userName) => {
     const bucketList = bucketCollaborators.find((item) => {
-      return item.username == userName;
+      return item.accesskey == userName;
     });
 
-    if (bucketList.permissions.includes('can_coll_write')) {
-      bucketList.permissions.splice(bucketList.permissions.indexOf('can_coll_write'), 1);
+    if (e.target.checked) {
+      bucketList.permission.write = true;
     } else {
-      bucketList.permissions.push('can_coll_write');
+      bucketList.permission.write = false;
     }
-
     setBucketCollaborators([...bucketCollaborators]);
   };
 
   const onCollabaratorDelete = (collId) => {
     return () => {
       const currentCollList = bucketCollaborators.filter((item) => {
-        return item.username !== collId;
+        return item.accesskey !== collId;
       });
       setBucketCollaborators(currentCollList);
     };
@@ -154,18 +119,12 @@ const CreateBucket = () => {
   useEffect(() => {
     // window.location.replace('#/unauthorised');
     if (id) {
-      const bucketInfo = bucketList?.find((item) => item.id === id);
-      setBucketName(bucketInfo?.name);
-      const permission = bucketInfo?.permission?.reduce((prev, curr) => {
-        return {
-          ...prev,
-          [curr]: true,
-        };
-      }, {});
-      setBucketPermission(permission);
+      const bucketInfo = bucketList?.find((item) => item.bucketName === id);
+      setBucketName(bucketInfo?.bucketName);
+      setBucketPermission(bucketInfo?.permission);
       setBucketCollaborators(bucketInfo?.collaborators);
     }
-  }, []);
+  }, [bucketList, id]);
 
   const handleCheckbox = (e) => {
     if (e.target.checked) {
@@ -209,10 +168,11 @@ const CreateBucket = () => {
                   placeholder="Type here"
                   autoComplete="off"
                   onChange={(e) => {
-                    setBucketName(e.target.value);
+                    setBucketName(e.target.value?.toLowerCase());
                     if (e.target.value) setBucketNameError('');
                   }}
-                  value={bucketName}
+                  defaultValue={bucketName}
+                  readOnly={id}
                 />
                 <div>
                   <span className={classNames('error-message', bucketNameError.length ? '' : 'hide')}>
@@ -222,9 +182,7 @@ const CreateBucket = () => {
               </div>
             </div>
             <br />
-            <div
-              className={classNames(Styles.inputGrp, ' input-field-group', bucketPermissionError.length ? 'error' : '')}
-            >
+            <div className={classNames(Styles.inputGrp, ' input-field-group')}>
               <label className={classNames(Styles.inputLabel, 'input-label')}>
                 Permission <sup>*</sup>
               </label>
@@ -235,7 +193,7 @@ const CreateBucket = () => {
                       name="read"
                       type="checkbox"
                       className="ff-only"
-                      checked={!!bucketPermission.read}
+                      checked={!!bucketPermission?.read}
                       onChange={handleCheckbox}
                     />
                   </span>
@@ -249,20 +207,14 @@ const CreateBucket = () => {
                       name="write"
                       type="checkbox"
                       className="ff-only"
-                      checked={!!bucketPermission.write}
+                      checked={!!bucketPermission?.write}
                       onChange={handleCheckbox}
                     />
                   </span>
                   <span className="label">Write</span>
                 </label>
               </div>
-              <div>
-                <span
-                  className={classNames('error-message', bucketPermissionError.length ? '' : 'hide', Styles.errorMsg)}
-                >
-                  {bucketPermissionError}
-                </span>
-              </div>
+              <div></div>
             </div>
             <div className={classNames('input-field-group include-error')}>
               <div className={Styles.bucketColContent}>
@@ -283,7 +235,7 @@ const CreateBucket = () => {
                           {bucketCollaborators?.map((item, collIndex) => {
                             return (
                               <div key={collIndex} className={Styles.collUserContentRow}>
-                                <div className={Styles.collUserTitleCol}>{item.username}</div>
+                                <div className={Styles.collUserTitleCol}>{item.accesskey}</div>
                                 <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                                 <div className={Styles.collUserTitleCol}>
                                   <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
@@ -292,9 +244,9 @@ const CreateBucket = () => {
                                         <input
                                           type="checkbox"
                                           className="ff-only"
-                                          value="can_coll_read"
+                                          value="read"
                                           checked={true}
-                                          onChange={() => onCollaboratorPermission(item.username, collIndex)}
+                                          readOnly
                                         />
                                       </span>
                                       <span className="label">Read</span>
@@ -307,13 +259,9 @@ const CreateBucket = () => {
                                         <input
                                           type="checkbox"
                                           className="ff-only"
-                                          value="can_coll_write"
-                                          checked={
-                                            item?.permissions !== null
-                                              ? item?.permissions.includes('can_coll_write')
-                                              : false
-                                          }
-                                          onChange={() => onCollaboratorPermission(item.username, collIndex)}
+                                          value="write"
+                                          checked={item?.permission !== null ? item?.permission?.write : false}
+                                          onChange={(e) => onCollaboratorPermission(e, item.accesskey)}
                                         />
                                       </span>
                                       <span className="label">Write</span>
@@ -321,10 +269,7 @@ const CreateBucket = () => {
                                   </div>
                                 </div>
                                 <div className={Styles.collUserTitleCol}>
-                                  <div
-                                    className={Styles.deleteEntry}
-                                    onClick={onCollabaratorDelete(item.username, collIndex)}
-                                  >
+                                  <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.accesskey)}>
                                     <i className="icon mbc-icon trash-outline" />
                                     Delete Entry
                                   </div>
@@ -351,13 +296,8 @@ const CreateBucket = () => {
           </div>
         </div>
       </div>
-      {submission?.modal && (
-        <InfoModal
-          title={''}
-          show={submission?.modal}
-          content={<ConnectionModal />}
-          onCancel={onSubmissionModalCancel}
-        />
+      {connect?.modal && (
+        <InfoModal title={''} show={connect?.modal} content={<ConnectionModal />} onCancel={onSubmissionModalCancel} />
       )}
     </>
   );

@@ -1,27 +1,35 @@
+import { bucketsApi } from '../../apis/buckets.api';
+
 const setBucketList = (data) => {
   return async (dispatch) => {
     dispatch({
       type: 'BUCKET_LOADING',
       payload: true,
     });
+    dispatch({
+      type: 'RESET_BUCKET',
+    });
     try {
+      const res = await bucketsApi.createBucket(data);
       dispatch({
-        type: 'BUCKET_DATA',
-        payload: data,
+        type: 'CREATE_BUCKET',
+        payload: {
+          data: res.data.data,
+          accessInfo: res.data.bucketAccessinfo,
+        },
       });
-      setTimeout(() => {
-        dispatch({
-          type: 'BUCKET_LOADING',
-          payload: false,
-        });
-        dispatch({
-          type: 'SUBMISSION_MODAL',
-          payload: {
-            bucketId: data.id,
-            modal: true,
-          },
-        });
-      }, 1000);
+      dispatch({
+        type: 'BUCKET_LOADING',
+        payload: false,
+      });
+      dispatch({
+        type: 'CONNECTION_INFO',
+        payload: {
+          bucketName: data.bucketName,
+          modal: true,
+          accessInfo: res.data.bucketAccessinfo,
+        },
+      });
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',
