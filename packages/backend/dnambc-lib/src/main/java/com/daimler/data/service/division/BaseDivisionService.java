@@ -68,6 +68,7 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 
 	@Autowired
 	private DivisionCustomRepository customRepo;
+
 	@Autowired
 	private DivisionRepository jpaRepo;
 	@Autowired
@@ -188,6 +189,82 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<DivisionResponseVO> updateDivision(DivisionRequestVO divisionRequestVO) {
+		DivisionResponseVO response = new DivisionResponseVO();
+		DivisionVO vo = divisionRequestVO.getData();
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userInfoService.isAdmin(userId)) {
+				String id = vo.getId();
+				DivisionVO existingVO = super.getById(id);
+				DivisionVO mergedDivisionVO = null;
+				if (existingVO != null && existingVO.getId() != null) {
+					String uniqueDivisionName = vo.getName();
+					DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
+					if (existingDivisionVO != null && existingDivisionVO.getName() != null
+							&& !existingDivisionVO.getId().equals(id)) {
+						response.setData(existingDivisionVO);
+						List<MessageDescription> messages = new ArrayList<>();
+						MessageDescription message = new MessageDescription();
+						message.setMessage("Division already exists.");
+						messages.add(message);
+						response.setErrors(messages);
+						LOGGER.debug("Division {} already exists, returning as CONFLICT", uniqueDivisionName);
+						return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+					}
+					solutionService.updateForEachSolution(existingVO.getName(), uniqueDivisionName,
+							SolutionService.TAG_CATEGORY.DIVISION, vo);
+					mergedDivisionVO = super.create(vo);
+					if (mergedDivisionVO != null && mergedDivisionVO.getId() != null) {
+						response.setData(mergedDivisionVO);
+						response.setErrors(null);
+						LOGGER.debug("Division with id {} updated successfully", id);
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					} else {
+						List<MessageDescription> messages = new ArrayList<>();
+						MessageDescription message = new MessageDescription();
+						message.setMessage("Failed to update due to internal error");
+						messages.add(message);
+						response.setData(vo);
+						response.setErrors(messages);
+						LOGGER.debug("Division with id {} cannot be edited. Failed with unknown internal error", id);
+						return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+
+				} else {
+					List<MessageDescription> notFoundmessages = new ArrayList<>();
+					MessageDescription notFoundmessage = new MessageDescription();
+					notFoundmessage.setMessage("No Division found for given id. Update cannot happen");
+					notFoundmessages.add(notFoundmessage);
+					response.setErrors(notFoundmessages);
+					LOGGER.debug("No Division found for given id {} , update cannot happen.", id);
+					return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+				}
+			} else {
+				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage("Not authorized to update division. Only user with admin role can update.");
+				notAuthorizedMsgs.add(notAuthorizedMsg);
+				response.setErrors(notAuthorizedMsgs);
+				LOGGER.debug("Division with id {} cannot be edited. User not authorized", vo.getId());
+				return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Division with id {} cannot be edited. Failed due to internal error {} ", vo.getId(),
+					e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to update due to internal error. " + e.getMessage());
+			messages.add(message);
+			response.setData(vo);
+			response.setErrors(messages);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
