@@ -108,4 +108,14 @@ public interface PersistenceService {
 	 * @return void
 	 */
 	public ResponseEntity<GenericMessage> cacheRefresh();
+	
+	/**
+	 * To delete bucket's object of given path.
+	 * 
+	 * @param bucketName
+	 * @param prefix
+	 * @return ResponseEntity<GenericMessage>
+	 */
+	public ResponseEntity<GenericMessage> deleteBucketObjects(String bucketName, String prefix);
+
 }

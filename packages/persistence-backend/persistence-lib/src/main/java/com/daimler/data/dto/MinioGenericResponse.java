@@ -29,6 +29,9 @@ package com.daimler.data.dto;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.persistence.BucketObjectVO;
 import com.daimler.data.dto.persistence.ObjectMetadataVO;
 import com.daimler.data.dto.persistence.UserVO;
@@ -43,8 +46,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MinioGenericResponse {
 
-	private String status;
-	private Error error;
+	private HttpStatus httpStatus;
+	private String status;	
+	private List<ErrorDTO> errors;
 	// private List<UserVO> users;
 	private List<String> policies;
 	private List<Bucket> buckets;

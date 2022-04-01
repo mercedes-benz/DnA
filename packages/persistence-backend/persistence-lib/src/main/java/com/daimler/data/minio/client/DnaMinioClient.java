@@ -149,7 +149,17 @@ public interface DnaMinioClient {
 	 * To validate and get user secret key from vault
 	 * 
 	 * @param userId
-	 * @return userSecretKey{String}
+	 * @return Returns userSecretKey
 	 */
 	public String validateUserInVault(String userId);
+	
+	/**
+	 * To remove object of bucket identified by path
+	 * 
+	 * @param userId
+	 * @param bucketName
+	 * @param prefix
+	 * @return Returns {@code MinioGenericResponse}
+	 */
+	public MinioGenericResponse removeObjects(String userId, String bucketName, String prefix);
 }
