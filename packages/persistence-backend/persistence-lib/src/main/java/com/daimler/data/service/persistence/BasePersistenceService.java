@@ -49,6 +49,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectResponseVO;
@@ -169,9 +170,7 @@ public class BasePersistenceService implements PersistenceService {
 				LOGGER.info("Failure from make bucket minio client");
 				responseVO.setStatus(ConstantsUtility.FAILURE);
 				httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-				List<MessageDescription> messages = new ArrayList<>();
-				messages.add(new MessageDescription(createBucketResponse.getError().getErrorMsg()));
-				responseVO.setErrors(messages);
+				responseVO.setErrors(getMessages(createBucketResponse.getErrors()));
 			}
 		}
 
@@ -234,7 +233,7 @@ public class BasePersistenceService implements PersistenceService {
 		} else {
 			LOGGER.info("Failure from list buckets minio client");
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-			bucketCollectionVO.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
+			bucketCollectionVO.setErrors(getMessages(minioResponse.getErrors()));
 		}
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
@@ -269,7 +268,7 @@ public class BasePersistenceService implements PersistenceService {
 		} else {
 			LOGGER.info("Failure from list objects minio client");
 			objectResponseWrapperVO
-					.setErrors(Arrays.asList(new MessageDescription(minioObjectResponse.getError().getErrorMsg())));
+					.setErrors(getMessages(minioObjectResponse.getErrors()));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 
@@ -361,7 +360,7 @@ public class BasePersistenceService implements PersistenceService {
 		} else {
 			LOGGER.info("Failure from put object minio client.");
 			bucketResponseWrapperVO
-					.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
+					.setErrors(getMessages(minioResponse.getErrors()));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 		bucketResponseWrapperVO.setStatus(minioResponse.getStatus());
@@ -396,7 +395,7 @@ public class BasePersistenceService implements PersistenceService {
 			} else {
 				LOGGER.info("Failure from refresh minio client.");
 				userRefreshWrapperVO
-						.setErrors(Arrays.asList(new MessageDescription(minioResponse.getError().getErrorMsg())));
+						.setErrors(getMessages(minioResponse.getErrors()));
 				httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 			}
 			userRefreshWrapperVO.setStatus(minioResponse.getStatus());
@@ -482,4 +481,42 @@ public class BasePersistenceService implements PersistenceService {
 		return new ResponseEntity<>(genericMessage, httpStatus);
 	}
 
+	@Override
+	public ResponseEntity<GenericMessage> deleteBucketObjects(String bucketName, String prefix) {
+		GenericMessage genericMessage = new GenericMessage();
+		HttpStatus httpStatus;
+		
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+		
+		MinioGenericResponse minioResponse = dnaMinioClient.removeObjects(currentUser, bucketName, prefix);
+		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+			LOGGER.info("Success from minio remove objects.");
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+			httpStatus = HttpStatus.OK;
+		} else {
+			LOGGER.info("Failure from minio remove objects.");
+			genericMessage.setSuccess(ConstantsUtility.FAILURE);
+			genericMessage
+					.setErrors(getMessages(minioResponse.getErrors()));
+			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+		return new ResponseEntity<>(genericMessage, httpStatus);
+	}
+
+	/*
+	 * To convert List<Error> errors to List<MessageDescription> 
+	 * 
+	 */
+	private List<MessageDescription> getMessages(List<ErrorDTO> errors){
+		List<MessageDescription> messages = null;
+		if(!ObjectUtils.isEmpty(errors)) {
+			messages = new ArrayList<MessageDescription>();
+			for(ErrorDTO error:errors) {
+				messages.add(new MessageDescription(error.getErrorMsg()));
+			}
+		}
+		return messages;
+	}
+	
 }

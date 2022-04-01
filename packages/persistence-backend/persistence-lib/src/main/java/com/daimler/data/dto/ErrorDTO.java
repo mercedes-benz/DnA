@@ -34,7 +34,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Error {
+public class ErrorDTO {
 
 	private String errorCode;
 	private String errorMsg;

@@ -33,7 +33,9 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -56,7 +58,7 @@ import org.springframework.vault.core.VaultTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.application.config.MinioConfig;
-import com.daimler.data.dto.Error;
+import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.persistence.BucketObjectVO;
 import com.daimler.data.dto.persistence.ObjectMetadataVO;
@@ -73,6 +75,7 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.ObjectWriteResponse;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
 import io.minio.admin.MinioAdminClient;
 import io.minio.admin.UserInfo;
@@ -85,6 +88,8 @@ import io.minio.errors.MinioException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import io.minio.messages.Bucket;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 
 @Component
@@ -184,7 +189,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				| MinioException e) {
 			LOGGER.error("DNA-MINIO-ERR-002::Error occurred while making new bucket: {}", e.getMessage());
 			minioResponse.setStatus(ConstantsUtility.FAILURE);
-			minioResponse.setError(buildError(null, "Error occurred while making new bucket: " + bucketName));
+			minioResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occurred while making new bucket: " + bucketName)));
 		}
 
 		return minioResponse;
@@ -203,10 +208,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.error("Error occurred while validating bucket:{}", e.getMessage());
 		}
 		return isBucketExists;
-	}
-
-	private Error buildError(String errorCode, String errorMsg) {
-		return new Error(errorCode, errorMsg);
 	}
 
 	@Override
@@ -234,7 +235,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IllegalArgumentException | IOException e) {
 			LOGGER.error("DNA-MINIO-ERR-003::Error occured while uploading object to minio: {}", e.getMessage());
-			minioResponse.setError(buildError(null, "Error occured while uploading object to minio "));
+			minioResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while uploading object to minio ")));
 			minioResponse.setStatus(ConstantsUtility.FAILURE);
 		}
 		return minioResponse;
@@ -262,7 +263,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IOException e) {
 			LOGGER.error("DNA-MINIO-ERR-004::Error occured while listing buckets of minio: {}", e.getMessage());
-			getBucketResponse.setError(buildError(null, "Error occured while listing buckets of minio. "));
+			getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing buckets of minio. ")));
 			getBucketResponse.setStatus(ConstantsUtility.FAILURE);
 
 		}
@@ -297,7 +298,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.error("DNA-MINIO-ERR-005::Error occured while fetching object content from minio: {}",
 					e.getMessage());
 			minioObjectContentResponse
-					.setError(buildError(null, "Error occured while fetching object content from minio. "));
+					.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while fetching object content from minio. ")));
 			minioObjectContentResponse.setStatus(ConstantsUtility.FAILURE);
 		}
 
@@ -351,7 +352,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				| XmlParserException | IOException e) {
 			LOGGER.error("DNA-MINIO-ERR-006::Error occured while listing bucket's object from minio: {}",
 					e.getMessage());
-			minioObjectResponse.setError(buildError(null, "Error occured while listing bucket's object from minio: "+e.getMessage()));
+			minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing bucket's object from minio: "+e.getMessage())));
 			minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
 		}
 
@@ -429,7 +430,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | InvalidCipherTextException e) {
 			LOGGER.error("DNA-MINIO-ERR-007::Error occured while onboarding user to minio: ", e.getMessage());
 			minioResponse.setStatus(ConstantsUtility.FAILURE);
-			minioResponse.setError(buildError(null, "Error occurred while onboarding user: " + userId));
+			minioResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occurred while onboarding user: " + userId)));
 		}
 
 		UserVO userVO = new UserVO();
@@ -473,7 +474,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | InvalidCipherTextException e) {
 			LOGGER.error("DNA-MINIO-ERR-008::Error occured while refreshing user to minio: ", e.getMessage());
 			minioResponse.setStatus(ConstantsUtility.FAILURE);
-			minioResponse.setError(buildError(null, "Error occured while refreshing user to minio: " + userId));
+			minioResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while refreshing user to minio: " + userId)));
 		}
 
 		return minioResponse;
@@ -633,6 +634,56 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				.getData().get(userId).toString();
 
 		return userSecretKey;
+	}
+
+	@Override
+	public MinioGenericResponse removeObjects(String userId, String bucketName, String prefix) {
+		MinioGenericResponse minioGenericResponse = new MinioGenericResponse();
+		try {
+			LOGGER.info("Fetching secrets from vault for user:{}", userId);
+			String userSecretKey = validateUserInVault(userId);
+			MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
+					.build();
+			LOGGER.debug("Setting object list to be deleted");
+			List<DeleteObject> objects = new LinkedList<>();
+			if (StringUtils.hasText(prefix)) {
+				String[] objectsPath = prefix.trim().split("\\s*,\\s*");
+				for (String objectPath : objectsPath) {
+					objects.add(new DeleteObject(objectPath));
+				}
+			}
+
+			LOGGER.info("Removing objects from Minio bucket:{}", bucketName);
+			Iterable<Result<DeleteError>> results = minioClient
+					.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
+
+			List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
+			for (Result<DeleteError> result : results) {
+				DeleteError deleteError = result.get();
+				ErrorDTO error = new ErrorDTO(null,"Error in deleting object " + deleteError.objectName() + "; " + deleteError.message());
+				errors.add(error);
+				LOGGER.info("Error in deleting object " + deleteError.objectName() + "; " + deleteError.message());
+			}
+			minioGenericResponse.setErrors(errors);
+
+			if (ObjectUtils.isEmpty(minioGenericResponse.getErrors())) {
+				LOGGER.info("Success from Remove objects from Minio bucket:{}", bucketName);
+				minioGenericResponse.setStatus(ConstantsUtility.SUCCESS);
+			} else {
+				LOGGER.info("Failure from Remove objects from Minio bucket:{}", bucketName);
+				minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+			}
+
+		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+				| IllegalArgumentException | IOException e) {
+			LOGGER.error("Error occured while removing object from Minio: ", e.getMessage());
+			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+			minioGenericResponse
+					.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while removing object from Minio: " + e.getMessage())));
+		}
+
+		return minioGenericResponse;
 	}
 
 }

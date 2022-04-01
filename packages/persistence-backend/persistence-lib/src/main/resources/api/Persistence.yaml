@@ -184,7 +184,7 @@ paths:
 
   # path to get objects associated with Bucket name
   #
-  #  supprorted http methods GET
+  #  supprorted http methods GET, DELETE 
   #
   # path example ../buckets/{bucketName}/objects
  /buckets/{bucketName}/objects:
@@ -222,6 +222,41 @@ paths:
       description: "Method not allowed"
      500:
       description: "Internal error"
+      
+   delete:
+    tags:
+     - "persistence"
+    summary: "Delete object of bucket."
+    description:  "Delete Object of bucket in given path."
+    operationId: "deleteBucketObjects"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name in which object to be deleted." 
+       required: true
+       type: string
+     - name: prefix
+       in: query
+       description: "Path of object which need to be deleted." 
+       required: true
+       type: string   
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"      
       
   # path to get objects metadata
   #
