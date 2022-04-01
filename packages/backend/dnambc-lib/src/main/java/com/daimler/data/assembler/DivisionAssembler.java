@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DivisionNsql;
 import com.daimler.data.db.jsonb.Division;
@@ -83,6 +84,10 @@ public class DivisionAssembler implements GenericAssembler<DivisionVO, DivisionN
 				division.setSubdivisions(uniqueSubDivision);
 			}
 			divisionNsql.setData(division);
+			if (StringUtils.hasText(vo.getId())) {
+				divisionNsql.setId(vo.getId());
+			}
+
 		}
 		return divisionNsql;
 	}
@@ -127,7 +132,11 @@ public class DivisionAssembler implements GenericAssembler<DivisionVO, DivisionN
 		SubDivision subdivision = null;
 		if (subdivisionVo != null) {
 			subdivision = new SubDivision();
-			subdivision.setId(UUID.randomUUID().toString());
+			if (StringUtils.hasText(subdivisionVo.getId())) {
+				subdivision.setId(subdivisionVo.getId());
+			} else {
+				subdivision.setId(UUID.randomUUID().toString());
+			}
 			subdivision.setName(subdivisionVo.getName().toUpperCase());
 		}
 		return subdivision;
