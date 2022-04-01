@@ -153,4 +153,21 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 		return divisionService.deleteDivision(id);
 	}
 
+	@Override
+	@ApiOperation(value = "Update the division identified by given ID.", nickname = "update", notes = "Update the division identified by given ID", response = DivisionResponseVO.class, tags = {
+			"divisions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully updated.", response = DivisionResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/divisions", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<DivisionResponseVO> update(
+			@ApiParam(value = "Request Body that contains data required for updating division.", required = true) @Valid @RequestBody DivisionRequestVO divisionRequestVO) {
+		return divisionService.updateDivision(divisionRequestVO);
+	}
+
 }
