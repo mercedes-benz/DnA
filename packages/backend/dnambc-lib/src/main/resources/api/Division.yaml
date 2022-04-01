@@ -65,7 +65,7 @@ schemes:
 
 paths:
 
-# Fetch all valid divisions or create new division
+# create, update and getAll division
 #
 # supported http methods GET, POST
 #
@@ -124,8 +124,6 @@ paths:
        $ref: "#/definitions/DivisionResponseVO"
     400:
      description: "Bad Request"
-     schema:
-       $ref: "#/definitions/GenericMessage"
     401:
      description: "Request does not have sufficient credentials."
     403:
@@ -134,6 +132,35 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"
+     
+  put:
+    tags:
+    - "divisions"
+    summary: "Update the division identified by given ID."
+    description:  "Update the division identified by given ID"
+    operationId: "update"
+    parameters:
+      - name: "divisionRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating division." 
+        required: true
+        schema:
+         $ref: "#/definitions/DivisionRequestVO"    
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/DivisionResponseVO"
+      400:
+       description: "Bad Request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"       
      
 # path to delete existing division
 #
