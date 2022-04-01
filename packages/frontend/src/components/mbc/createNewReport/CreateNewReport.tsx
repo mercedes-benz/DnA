@@ -15,6 +15,7 @@ import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { ApiClient } from '../../../services/ApiClient';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import { trackEvent } from '../../../services/utils';
+import { parseMessage } from '../../../utils/ParseMissingField';
 
 // @ts-ignore
 import * as _ from 'lodash';
@@ -739,11 +740,19 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             error.message,
           );
           if (fieldsMissing) {
+            const tempArr = error.message.split('data.');
+            tempArr.splice(0,1);
+            tempArr.forEach((element: string) => {
+              this.showErrorNotification(parseMessage(element));
+            });
+            
             this.setState({
               fieldsMissing,
             });
           }
-          this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          else {
+            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          }
         });
     } else {
       serializeReportRequestBody(requestBody);
