@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.ErrorDTO;
@@ -84,6 +85,9 @@ public class BasePersistenceService implements PersistenceService {
 
 	@Autowired
 	private DnaMinioClient dnaMinioClient;
+	
+	@Autowired
+	private VaultConfig vaultConfig;
 
 	public BasePersistenceService() {
 		super();
@@ -214,25 +218,26 @@ public class BasePersistenceService implements PersistenceService {
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list buckets minio client");
-			httpStatus = HttpStatus.OK;
+			httpStatus = minioResponse.getHttpStatus();
 			List<BucketResponseVO> bucketsResponseVO = new ArrayList<BucketResponseVO>();
 			BucketResponseVO bucketResponseVO = null;
-			for (Bucket bucket : minioResponse.getBuckets()) {
-				bucketResponseVO = new BucketResponseVO();
-				bucketResponseVO.setBucketName(bucket.name());
-				bucketResponseVO.setCreationDate(bucket.creationDate().toString());
-				// Setting current user permission for bucket
-				bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-				LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
-				bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
+			if(!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
+				for (Bucket bucket : minioResponse.getBuckets()) {
+					bucketResponseVO = new BucketResponseVO();
+					bucketResponseVO.setBucketName(bucket.name());
+					bucketResponseVO.setCreationDate(bucket.creationDate().toString());
+					// Setting current user permission for bucket
+					bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
+					LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+					bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
 
-				bucketsResponseVO.add(bucketResponseVO);
+					bucketsResponseVO.add(bucketResponseVO);
+				}
+				bucketCollectionVO.setData(bucketsResponseVO);
 			}
-
-			bucketCollectionVO.setData(bucketsResponseVO);
 		} else {
 			LOGGER.info("Failure from list buckets minio client");
-			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+			httpStatus = minioResponse.getHttpStatus();
 			bucketCollectionVO.setErrors(getMessages(minioResponse.getErrors()));
 		}
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
@@ -257,13 +262,7 @@ public class BasePersistenceService implements PersistenceService {
 			bucketObjectResponseVO.setBucketPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
 			
 			objectResponseWrapperVO.setData(bucketObjectResponseVO);
-			if (ObjectUtils.isEmpty(minioObjectResponse.getObjects())) {
-				LOGGER.info("NO object available in bucket:{}",bucketName);
-				httpStatus = HttpStatus.NO_CONTENT;
-			} else {
-				LOGGER.info("Objects available in bucket:{}",bucketName);
-				httpStatus = HttpStatus.OK;
-			}
+			httpStatus = minioObjectResponse.getHttpStatus();
 
 		} else {
 			LOGGER.info("Failure from list objects minio client");
@@ -429,7 +428,7 @@ public class BasePersistenceService implements PersistenceService {
 					.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Minio.")));
 			httpStatus = HttpStatus.NO_CONTENT;
 		} else {
-			String secretKey = dnaMinioClient.validateUserInVault(userId);
+			String secretKey = vaultConfig.validateUserInVault(userId);
 			if (StringUtils.hasText(secretKey)) {
 				UserVO userVO = new UserVO();
 				//setting credentials
@@ -504,6 +503,30 @@ public class BasePersistenceService implements PersistenceService {
 		return new ResponseEntity<>(genericMessage, httpStatus);
 	}
 
+	@Override
+	public ResponseEntity<GenericMessage> deleteBucket(String bucketName) {
+		GenericMessage genericMessage = new GenericMessage();
+		HttpStatus httpStatus;
+		
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+		
+		LOGGER.info("Removing bucket:{}",bucketName);
+		MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
+		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+			LOGGER.info("Success from minio remove bucket.");
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+			httpStatus = HttpStatus.OK;
+		} else {
+			LOGGER.info("Failure from minio remove bucket.");
+			genericMessage.setSuccess(ConstantsUtility.FAILURE);
+			genericMessage
+					.setErrors(getMessages(minioResponse.getErrors()));
+			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+		return new ResponseEntity<>(genericMessage, httpStatus);
+	}
+	
 	/*
 	 * To convert List<Error> errors to List<MessageDescription> 
 	 * 
@@ -518,5 +541,5 @@ public class BasePersistenceService implements PersistenceService {
 		}
 		return messages;
 	}
-	
+
 }
