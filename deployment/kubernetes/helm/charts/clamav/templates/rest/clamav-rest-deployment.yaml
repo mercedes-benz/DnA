@@ -52,23 +52,22 @@ spec:
               name: api
               protocol: TCP
           livenessProbe:
-            initialDelaySeconds: 120
+            initialDelaySeconds: 60
             timeoutSeconds: 30
-            periodSeconds: 30
+            periodSeconds: 10
             failureThreshold: 3
             httpGet:
               path: /avscan/actuator/health/liveness
               port: api
               
           readinessProbe:
-            initialDelaySeconds: 180
+            initialDelaySeconds: 30
             timeoutSeconds: 30
-            periodSeconds: 30
+            periodSeconds: 10
             failureThreshold: 3
             httpGet:
               path: /avscan/actuator/health/readiness
               port: api
-          resources:
             requests:
               memory: {{ .Values.resources.requests.memory | quote }}
               cpu: {{ .Values.resources.requests.cpu | quote }}
