@@ -26,6 +26,8 @@ spec:
             - containerPort: 3310
               name: api
               protocol: TCP
+
+   
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory | quote }}
