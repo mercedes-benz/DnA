@@ -673,7 +673,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     max={100}
                     chips={this.state.tags}
                     setTags={this.setTags}
-                    isMandatory={true}
+                    isMandatory={false}
                     showMissingEntryError={this.state.showTagsMissingError}
                     {...this.props}
                   />
@@ -748,10 +748,10 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ showTagsMissingError: true });
       formValid = false;
     }
-    if (!this.state.departmentTags?.length) {
-      this.setState({ showDepartmentMissingError: true });
-      formValid = false;
-    }
+    // if (!this.state.departmentTags?.length) {
+    //   this.setState({ showDepartmentMissingError: true });
+    //   formValid = false;
+    // }
     if (!this.state.artValue?.length) {
       this.setState({ artError: errorMissingEntry });
       formValid = false;
