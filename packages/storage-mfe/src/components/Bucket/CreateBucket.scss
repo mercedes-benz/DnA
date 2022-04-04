@@ -13,8 +13,24 @@
       .inputLabel {
         min-width: 100px;
         margin-right: 30px;
-        margin-top: auto;
         margin-bottom: auto;
+        margin-top: 15px;
+      }
+      .bucketNameField {
+        width: 300px;
+      }
+      .infoIcon {
+        font-size: var(--font-size-icon-medium);
+        margin-left: 5px;
+        margin-top: -9px;
+        i {
+          cursor: pointer;
+          color: #697582;
+    
+          &:hover {
+            color: #00adef;
+          }
+        }
       }
     }
   }
@@ -92,6 +108,7 @@
         }
         &::-webkit-scrollbar {
           width: 5px;
+          height: 5px;
         }
         .collUserContentRow {
           display: flex;

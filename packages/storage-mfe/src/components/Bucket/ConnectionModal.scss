@@ -8,6 +8,7 @@
   table {
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 15px;
   }
   .keys {
     padding: 5px;
@@ -17,12 +18,15 @@
 
 .tabsContentWrapper {
   margin-top: 0px !important;
-  pre {
-    margin-left: 15px;
-    margin-bottom: 0;
+  .preWrap {
+    margin-left: 15px !important;
+    margin-bottom: 0 !important;
+    white-space: pre;
+    color: #d9dfe4 !important;
+    font-family: monospace;
+    text-align: left;
   }
   .tabContentContainer {
-    width: 575px;
     border: 1px solid #383f49;
     padding: 10px 0px;
   }

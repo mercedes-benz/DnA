@@ -27,7 +27,8 @@ export const BucketList = ({ bucketList }) => {
 
   const deleteBucketContent = (
     <div>
-      <h3>Are you sure you want to delete {selectedItem.name} bucket </h3>
+      <h3>Are you sure you want to delete {selectedItem.bucketName} bucket? </h3>
+      <h5>A bucket can only be deleted if its empty.</h5>
     </div>
   );
 
@@ -223,7 +224,13 @@ export const BucketList = ({ bucketList }) => {
         onCancel={deleteBucketClose}
         onAccept={deleteBucketAccept}
       />
-      <InfoModal title={''} show={connect?.modal} content={<ConnectionModal />} onCancel={onSubmissionModalCancel} />
+      <InfoModal
+        modalCSS={Styles.header}
+        show={connect?.modal}
+        content={<ConnectionModal />}
+        hiddenTitle={true}
+        onCancel={onSubmissionModalCancel}
+      />
     </>
   );
 };
