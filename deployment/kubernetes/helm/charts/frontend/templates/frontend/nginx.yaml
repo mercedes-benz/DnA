@@ -41,7 +41,7 @@ data:
             ssl_protocols      TLSv1 TLSv1.1 TLSv1.2;
 
             include  "/opt/bitnami/nginx/conf/server_blocks/*.conf";
-            client_max_body_size 3G;
+            client_max_body_size 4G;
 
           server {
             listen  3000;
