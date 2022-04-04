@@ -56,7 +56,7 @@ RUN useradd clamav_user -G clamav -u 1000 -s /var/lib/clamav && \
 EXPOSE 3310
 
 COPY ./freshclam.conf /usr/local/etc/freshclam.conf
-COPY ./clamd.conf /usr/local/etc/clamd.conf
+COPY ./clamd.conf /etc/clamav/clamd.conf
 
 COPY ./bootstrap.sh /
 COPY ./check.sh /
