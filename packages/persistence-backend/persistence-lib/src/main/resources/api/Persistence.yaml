@@ -127,6 +127,42 @@ paths:
     500:
      description: "Internal error"     
   
+  # path to delete an empty bucket
+  #
+  #  supprorted http methods DELETE
+  #
+  # path example ../buckets/{bucketName}
+ /buckets/{bucketName}:
+  delete:
+    tags:
+     - "persistence"
+    summary: "Delete bucket."
+    description:  "Delete bucket identified by bucketName."
+    operationId: "deleteBucket"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name which need to be deleted." 
+       required: true
+       type: string
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"  
+  
   # path to upload objects to bucket
   #
   #  supprorted http methods POST

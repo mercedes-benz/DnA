@@ -118,4 +118,12 @@ public interface PersistenceService {
 	 */
 	public ResponseEntity<GenericMessage> deleteBucketObjects(String bucketName, String prefix);
 
+	/**
+	 * To delete an empty bucket
+	 * 
+	 * @param bucketName
+	 * @return ResponseEntity<GenericMessage>
+	 */
+	public ResponseEntity<GenericMessage> deleteBucket(String bucketName);
+	
 }
