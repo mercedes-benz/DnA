@@ -239,4 +239,22 @@ public class PersistenceController implements PersistenceApi {
 		return persistenceService.deleteBucketObjects(bucketName, prefix);
 	}
 
+	@Override
+	@ApiOperation(value = "Delete bucket.", nickname = "deleteBucket", notes = "Delete bucket identified by bucketName.", response = GenericMessage.class, tags = {
+			"persistence", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/buckets/{bucketName}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteBucket(
+			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName) {
+		return persistenceService.deleteBucket(bucketName);
+	}
+
 }
