@@ -9,19 +9,28 @@ import { useParams } from 'react-router-dom';
 import { history } from '../../store/storeRoot';
 import { ConnectionModal } from './ConnectionModal';
 
+import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
 import { hideConnectionInfo } from './ConnectionInfo/redux/connection.actions';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 const CreateBucket = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { bucketList } = useSelector((state) => state.bucket);
+  const { bucketList, isLoading } = useSelector((state) => state.bucket);
   const { connect } = useSelector((state) => state.connectionInfo);
   const [bucketName, setBucketName] = useState('');
   const [bucketPermission, setBucketPermission] = useState({
     read: true,
     write: true,
   });
+  const [showInfoModal, setInfoModal] = useState(false);
+
+  if (isLoading) {
+    ProgressIndicator.show();
+  } else {
+    ProgressIndicator.hide();
+  }
 
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
@@ -39,6 +48,26 @@ const CreateBucket = () => {
       formValid = false;
     }
     return formValid;
+  };
+
+  const handleNameChange = (value) => {
+    if (value.length < 3) {
+      setBucketNameError('Bucket name should be minimum 3 characters.');
+    } else if (!/(^[a-z\d.-]*$)/g.test(value)) {
+      setBucketNameError('Bucket names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).');
+    } else if (!/^[a-z\d]/g.test(value)) {
+      setBucketNameError('Bucket name must start with a lowercase letter or number.');
+    } else if (/-$/.test(value)) {
+      setBucketNameError('Bucket name must end with letter or a number.');
+    } else if (/\.$/.test(value)) {
+      setBucketNameError('Bucket name must end with letter or a number.');
+    } else if (/\.+\./.test(value)) {
+      setBucketNameError('Bucket name cant have consecutive dots.');
+    } else if (/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value)) {
+      setBucketNameError('Bucket name cant be an IP address.');
+    } else {
+      setBucketNameError('');
+    }
   };
 
   const onAddNewBucket = () => {
@@ -87,6 +116,8 @@ const CreateBucket = () => {
 
   const getCollabarators = (collaborators) => {
     const collabarationData = {
+      firstName: collaborators.firstName,
+      lastName: collaborators.lastName,
       accesskey: collaborators.shortId,
       permission: { read: true, write: false },
     };
@@ -140,6 +171,24 @@ const CreateBucket = () => {
     }
   };
 
+  const handleInfoModal = () => {
+    setInfoModal(true);
+  };
+
+  const InfoModalContent = (
+    <div>
+      <ul>
+        <li>Bucket names must be between 3 (min) and 63 (max) characters long.</li>
+        <li>Bucket names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).</li>
+        <li>Bucket names must begin and end with a letter or number.</li>
+        <li>Bucket names must not be formatted as an IP address (for example, ***REMOVED***).</li>
+        <li>
+          Bucket names must not start with the prefix <code style={{ background: '#99a5b3' }}>xn--</code>.
+        </li>
+      </ul>
+    </div>
+  );
+
   const bucketNameErrorField = bucketNameError || '';
 
   return (
@@ -161,24 +210,27 @@ const CreateBucket = () => {
               <div>
                 <input
                   type="text"
-                  className="input-field"
+                  className={classNames('input-field', Styles.bucketNameField)}
                   required={true}
                   id="bucketName"
-                  maxLength={64}
+                  maxLength={63}
                   placeholder="Type here"
                   autoComplete="off"
                   onChange={(e) => {
                     setBucketName(e.target.value?.toLowerCase());
-                    if (e.target.value) setBucketNameError('');
+                    handleNameChange(e.target.value);
                   }}
                   defaultValue={bucketName}
                   readOnly={id}
                 />
-                <div>
+                <div style={{ width: '300px' }}>
                   <span className={classNames('error-message', bucketNameError.length ? '' : 'hide')}>
                     {bucketNameError}
                   </span>
                 </div>
+              </div>
+              <div className={Styles.infoIcon}>
+                <i className="icon mbc-icon info" onClick={handleInfoModal} />
               </div>
             </div>
             <br />
@@ -297,7 +349,22 @@ const CreateBucket = () => {
         </div>
       </div>
       {connect?.modal && (
-        <InfoModal title={''} show={connect?.modal} content={<ConnectionModal />} onCancel={onSubmissionModalCancel} />
+        <InfoModal
+          show={connect?.modal}
+          hiddenTitle={true}
+          content={<ConnectionModal />}
+          onCancel={onSubmissionModalCancel}
+        />
+      )}
+      {showInfoModal && (
+        <Modal
+          show={showInfoModal}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          content={InfoModalContent}
+          onCancel={() => setInfoModal(false)}
+        />
       )}
     </>
   );

@@ -103,50 +103,50 @@ export const ConnectionModal = () => {
             </tr>
           </tbody>
         </table>
-      </div>
-      <div className={'tabs-panel'}>
-        <div className="tabs-wrapper">
-          <nav>
-            <ul className="tabs">
-              <li className={'tab active'}>
-                <a href="#tab-content-1" id="userRoles">
-                  <strong>How to Connect Jupiter NoteBook</strong>
-                </a>
-              </li>
-              <li className={'tab'}>
-                <a href="#tab-content-2" id="tagHandling">
-                  <strong>How to Connect Dataiku</strong>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-        <div className={classNames('tabs-content-wrapper', Styles.tabsContentWrapper)}>
-          <div id="tab-content-1" className={classNames('tab-content', Styles.tabContentContainer)}>
-            <span
-              className="copy-icon"
-              style={{
-                float: 'right',
-                cursor: 'pointer',
-              }}
-              onClick={() => copyToClipboard('tab-content-1')}
-            >
-              <i className="icon mbc-icon copy" />
-            </span>
-            <pre>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</pre>
+        <div className={'tabs-panel'}>
+          <div className="tabs-wrapper">
+            <nav>
+              <ul className="tabs">
+                <li className={'tab active'}>
+                  <a href="#tab-content-1" id="userRoles">
+                    <strong>How to Connect Jupiter NoteBook</strong>
+                  </a>
+                </li>
+                <li className={'tab'}>
+                  <a href="#tab-content-2" id="tagHandling">
+                    <strong>How to Connect Dataiku</strong>
+                  </a>
+                </li>
+              </ul>
+            </nav>
           </div>
-          <div id="tab-content-2" className={classNames('tab-content', Styles.tabContentContainer)}>
-            <span
-              className="copy-icon"
-              style={{
-                float: 'right',
-                cursor: 'pointer',
-              }}
-              onClick={() => copyToClipboard('tab-content-2')}
-            >
-              <i className="icon mbc-icon copy" />
-            </span>
-            <pre>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</pre>
+          <div className={classNames('tabs-content-wrapper', Styles.tabsContentWrapper)}>
+            <div id="tab-content-1" className={classNames('tab-content', Styles.tabContentContainer)}>
+              <span
+                className="copy-icon"
+                style={{
+                  float: 'right',
+                  cursor: 'pointer',
+                }}
+                onClick={() => copyToClipboard('tab-content-1')}
+              >
+                <i className="icon mbc-icon copy" />
+              </span>
+              <p className={Styles.preWrap}>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</p>
+            </div>
+            <div id="tab-content-2" className={classNames('tab-content', Styles.tabContentContainer)}>
+              <span
+                className="copy-icon"
+                style={{
+                  float: 'right',
+                  cursor: 'pointer',
+                }}
+                onClick={() => copyToClipboard('tab-content-2')}
+              >
+                <i className="icon mbc-icon copy" />
+              </span>
+              <p className={Styles.preWrap}>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</p>
+            </div>
           </div>
         </div>
       </div>
