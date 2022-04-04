@@ -112,18 +112,21 @@ services:
       # - S3_MIN_FILESIZE=1024
       # - S3_MAX_FILESIZE=5242880
       # - CORS_ORIGIN_URL=""
-      - VAULT_HOST=localhost
+      - VAULT_HOST=vault
       - VAULT_PORT=8200
       - VAULT_SCHEME=http
       - VAULT_AUTHENTICATION=TOKEN
-      - VAULT_TOKEN=***REMOVED***
-      - VAULT_MOUNTPATH=kv
+      - VAULT_TOKEN=myroot
+      - VAULT_MOUNTPATH=secret
+      - VAULT_PATH=dnambc/avscan
       - NAAS_BROKER=broker:29092
       - LOGGING_ENVIRONMENT=DEV
       - LOGGING_PATH=/tmp/app/logs/
       - JWT_TOKEN_EXPIRY_TIME_IN_MIN=90
     depends_on:
       - app-db
+      - vault
+      - broker
       - app-frontend
     ports:
       - "7171:7171"
@@ -188,6 +191,16 @@ services:
         max_attempts: 3
         window: 30s
 
+  vault:
+    image: vault
+    container_name: vault
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=myroot    
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - 8200:8200
+
   clamav:
     image: mkodockx/docker-clamav
     container_name: clamav
@@ -236,8 +249,6 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
     container_name: zookeeper
-    ports:
-      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
