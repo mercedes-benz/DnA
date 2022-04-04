@@ -14,8 +14,32 @@
     }
   }
 }
+
+.formGroup {
+  padding: 25px 0px;
+  .inputGrp {
+    display: inline-flex;
+    .inputLabel {
+      min-width: 100px;
+      margin-right: 30px;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+  }
+  .folderPath {
+    margin-right: 0 !important;
+    font-size: var(--font-size-default) !important;
+  }
+}
+
 :global {
-  .content {
+  #storagePreview {
+    margin-top: 20px;
+    .ace_cursor-layer  {
+      opacity: 0;
+    }
+  }
+  .explorer-content {
     .chonky-chonkyRoot {
       background-color: #252a33;
       min-width: 500px;
@@ -92,22 +116,6 @@
     &.chonky-activeButton {
       .chonky-icon {
         color: #00adef !important;
-      }
-    }
-  }
-  .formGroup {
-    padding: 25px 0px;
-    .inputGrp {
-      display: inline-flex;
-      .inputLabel {
-        min-width: 100px;
-        margin-right: 30px;
-        margin-top: auto;
-        margin-bottom: auto;
-        &.folderPath {
-          margin-right: 0;
-          font-size: var(--font-size-default);
-        }
       }
     }
   }

@@ -2,7 +2,7 @@ import server from '../../../server/api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import { history } from '../../../store/storeRoot';
 
-export const setFiles = (fileName, historyPush = true) => {
+export const setFiles = (bucketName, historyPush = true) => {
   return async (dispatch) => {
     dispatch({
       type: 'FILE_LOADING',
@@ -10,27 +10,27 @@ export const setFiles = (fileName, historyPush = true) => {
     });
 
     try {
-      const res = await server.get(`/buckets/${fileName}/objects`, { data: {} });
-      if (res?.data) {
+      const res = await server.get(`/buckets/${bucketName}/objects`, { data: {} });
+      if (res?.data?.data?.bucketObjects?.length) {
         let result = {};
         let childrenIds = [];
         let ids = [];
         res.data.data.bucketObjects.forEach((item) => {
           childrenIds.push({
-            parentId: fileName,
+            parentId: bucketName,
             name: item.objectName.replaceAll('/', ''),
             id: item.objectName.replaceAll(/(\.|\/)/g, '').replaceAll(' ', ''),
             ...item,
           });
           ids.push(item.objectName.replaceAll(/(\.|\/)/g, '').replaceAll(' ', ''));
 
-          result[fileName] = {
-            name: fileName,
-            id: fileName,
+          result[bucketName] = {
+            name: bucketName,
+            id: bucketName,
             isDir: true,
             childrenCount: res.data.data.bucketObjects.length,
             childrenIds: ids,
-            objectName: `${fileName}/`,
+            objectName: `${bucketName}/`,
           };
           return item;
         });
@@ -47,7 +47,7 @@ export const setFiles = (fileName, historyPush = true) => {
         });
         dispatch({
           type: 'UPDATE_ROOT_FOLDER',
-          payload: fileName,
+          payload: bucketName,
         });
         dispatch({
           type: 'SET_FILES',
@@ -64,14 +64,18 @@ export const setFiles = (fileName, historyPush = true) => {
       } else {
         dispatch({
           type: 'UPDATE_ROOT_FOLDER',
-          payload: fileName,
+          payload: bucketName,
+        });
+        dispatch({
+          type: 'SET_BUCKET_PERMISSION',
+          payload: res.data.data.bucketPermission,
         });
         dispatch({
           type: 'SET_FILES',
           payload: {
-            [fileName]: {
-              id: fileName,
-              name: fileName,
+            [bucketName]: {
+              id: bucketName,
+              name: bucketName,
               isDir: true,
               childrenIds: [],
             },
@@ -82,7 +86,7 @@ export const setFiles = (fileName, historyPush = true) => {
           payload: false,
         });
       }
-      historyPush && history.push(`explorer/${fileName}`);
+      historyPush && history.push(`explorer/${bucketName}`);
     } catch (e) {
       dispatch({
         type: 'FILE_LOADING',
@@ -94,16 +98,40 @@ export const setFiles = (fileName, historyPush = true) => {
   };
 };
 
-export const deleteFiles = (data) => {
-  return (dispatch) => {
+export const deleteFiles = (bucketName, filesName, files) => {
+  return async (dispatch) => {
     dispatch({
-      type: 'DELETE_FILES',
-      payload: data,
+      type: 'FILE_LOADING',
+      payload: true,
     });
+
+    try {
+      server
+        .delete(`/buckets/${bucketName}/objects`, {
+          params: {
+            prefix: `${filesName}`,
+          },
+          data: {},
+        })
+        .then(() => {
+          dispatch({
+            type: 'SET_FILES',
+            payload: files,
+          });
+          dispatch({
+            type: 'FILE_LOADING',
+            payload: false,
+          });
+        });
+    } catch (e) {
+      Notification.show(
+        e?.response?.data?.message ? e.response.data.message : 'Error while deleting. Please try again.',
+      );
+    }
   };
 };
 
-export const getFiles = (files, fileName, fileToOpen) => {
+export const getFiles = (files, bucketName, fileToOpen) => {
   return async (dispatch) => {
     const copyFiles = { ...files };
 
@@ -112,10 +140,10 @@ export const getFiles = (files, fileName, fileToOpen) => {
       payload: true,
     });
     try {
-      const res = await server.get(`/buckets/${fileName}/objects`, {
+      const res = await server.get(`/buckets/${bucketName}/objects`, {
         data: {},
         params: {
-          prefix: fileToOpen.objectName,
+          prefix: fileToOpen.name === bucketName ? '/' : fileToOpen.objectName,
         },
       });
 
@@ -177,14 +205,18 @@ export const getFiles = (files, fileName, fileToOpen) => {
         type: 'FILE_LOADING',
         payload: false,
       });
-      Notification.show(e?.response?.data?.message ? e.response.data.message : 'Something went wrong', 'alert');
+
+      Notification.show(
+        e?.response?.data?.message ? e.response.data.message : 'Error while fetching bucket objects',
+        'alert',
+      );
       history.push('/');
     }
   };
 };
 
 export const downloadFoldersOrFiles = (fileName, fileOrFolder) => {
-  return async () => {
+  return () => {
     server
       .get(`/buckets/${fileName}/objects/metadata`, {
         data: {},

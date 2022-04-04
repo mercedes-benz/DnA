@@ -1,5 +1,5 @@
 export const bucketInitialState = {
-  isLoading: true,
+  isLoading: false,
   bucketList: [],
   submission: {
     bucketId: '',
@@ -9,7 +9,12 @@ export const bucketInitialState = {
     data: {},
     accessInfo: [],
   },
-
+  pagination: {
+    bucketListResponse: [],
+    totalNumberOfPages: 1,
+    currentPageNumber: 1,
+    maxItemsPerPage: parseInt(sessionStorage.getItem('paginationMaxItemsPerPage'), 10) || 2,
+  },
   error: '',
 };
 
@@ -62,8 +67,17 @@ export const bucketReducer = (state = bucketInitialState, action) => {
       });
     case 'DELETE_BUCKET':
       return Object.assign({}, state, {
-        bucketList: state.bucketList.filter((item) => item.id !== action.payload.id),
+        bucketList: state.bucketList,
       });
+    case 'SET_PAGINATION':
+      return {
+        ...state,
+        pagination: {
+          ...state.pagination,
+          ...action.payload,
+        },
+      };
+
     default:
       return state;
   }

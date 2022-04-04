@@ -14,9 +14,24 @@ import { ChonkyIconFA } from 'chonky-icon-fontawesome';
 
 import FileUpload from './Upload';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import server from '../../server/api';
+import AceEditor from 'react-ace';
+import Notification from '../../common/modules/uilab/js/src/notification';
+import 'ace-builds/webpack-resolver';
+import classNames from 'classnames';
 
 // inform chonky on which iconComponent to use
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
+
+// const UploadFolder = defineFileAction({
+//   id: 'upload_folder',
+//   button: {
+//     name: 'Upload folder',
+//     toolbar: true,
+//     tooltip: 'Upload folder',
+//     icon: 'upload',
+//   },
+// });
 
 const FileExplorer = () => {
   const dispatch = useDispatch();
@@ -35,17 +50,31 @@ const FileExplorer = () => {
   const uploadRef = useRef(null);
   const inputRef = useRef(null);
 
+  const [showPreview, setPreview] = useState({
+    modal: false,
+    fileName: '',
+    isImage: false,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  if (loading) {
+    ProgressIndicator.show();
+  } else {
+    ProgressIndicator.hide();
+  }
+
   const myFileActions = [
     ...(bucketPermission.write ? [ChonkyActions.UploadFiles] : []),
+    // ...(bucketPermission.write ? [UploadFolder] : []),
+    ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
     ChonkyActions.DownloadFiles,
     ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
-    ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
   ];
 
   const useFolderChain = (fileMap, currentFolderId) => {
     return useMemo(() => {
       const currentFolder = fileMap?.[currentFolderId];
-
       const folderChain = [currentFolder];
 
       let parentId = currentFolder?.parentId;
@@ -96,33 +125,40 @@ const FileExplorer = () => {
   const createFolder = useCallback(
     (files, newFolderName) => {
       const newFileMap = { ...files.fileMap };
+      const doesFolderExists = Object.prototype.hasOwnProperty.call(newFileMap, newFolderName);
+      if (doesFolderExists) {
+        dispatch(getFiles(newFileMap, fileName, newFileMap[newFolderName]));
+        setCurrentFolderId(newFolderName);
+      } else {
+        // Create the new folder
+        newFileMap[newFolderName] = {
+          id: newFolderName,
+          name: newFolderName,
+          isDir: true,
+          parentId: currentFolderIdRef.current,
+          objectName: `${newFolderName}/`,
+        };
 
-      // Create the new folder
-      newFileMap[newFolderName] = {
-        id: newFolderName,
-        name: newFolderName,
-        isDir: true,
-        parentId: currentFolderIdRef.current,
-        objectName: `${newFolderName}/`,
-      };
+        // Update parent folder to reference the new folder.
+        const parent = newFileMap[currentFolderIdRef.current];
 
-      // Update parent folder to reference the new folder.
-      const parent = newFileMap[currentFolderIdRef.current];
+        newFileMap[currentFolderIdRef.current] = {
+          ...parent,
+          childrenIds: [...(parent.childrenIds ? [...parent.childrenIds] : []), newFolderName],
+        };
 
-      newFileMap[currentFolderIdRef.current] = {
-        ...parent,
-        childrenIds: [...(parent.childrenIds ? [...parent.childrenIds] : []), newFolderName],
-      };
+        dispatch({
+          type: 'CREATE_FOLDER',
+          payload: newFileMap,
+        });
 
-      dispatch({
-        type: 'CREATE_FOLDER',
-        payload: newFileMap,
-      });
+        setCurrentFolderId(newFolderName);
+      }
 
-      setCurrentFolderId(newFolderName);
+      setNewFolderName('');
       return newFileMap;
     },
-    [dispatch],
+    [dispatch, fileName],
   );
 
   const handleAction = (data) => {
@@ -132,7 +168,8 @@ const FileExplorer = () => {
       // Delete the files
       const newFileMap = { ...files.fileMap };
 
-      data.state.selectedFilesForAction.forEach((file) => {
+      const fileList = [];
+      data.state.selectedFiles.forEach((file) => {
         // Delete file from the file map.
         delete newFileMap[file.id];
 
@@ -146,9 +183,24 @@ const FileExplorer = () => {
             childrenIds: newChildrenIds,
             childrenCount: newChildrenIds.length,
           };
+
+          if (newFileMap[file.parentId].isDir && newFileMap[file.parentId].childrenCount === 0) {
+            setCurrentFolderId(newFileMap[file.parentId]?.parentId);
+            const parent = newFileMap[newFileMap[file.parentId]?.parentId];
+            const newChildrenIds = parent.childrenIds?.filter((id) => id !== file.parentId);
+
+            newFileMap[newFileMap[file.parentId]?.parentId] = {
+              ...parent,
+              childrenIds: newChildrenIds,
+              childrenCount: newChildrenIds.length,
+            };
+            delete newFileMap[file.parentId];
+          }
         }
+        fileList.push(file.objectName);
       });
-      dispatch(deleteFiles(newFileMap));
+
+      dispatch(deleteFiles(fileName, fileList.join(','), newFileMap, folderChain));
     } else if (data.id === ChonkyActions.DownloadFiles.id) {
       data.state.selectedFiles?.forEach((item) => {
         // if selected multiple items, download each file
@@ -159,6 +211,7 @@ const FileExplorer = () => {
       const fileToOpen = targetFile ?? sFiles[0];
       if (fileToOpen && FileHelper.isDirectory(fileToOpen)) {
         setCurrentFolderId(fileToOpen.id);
+
         const moveBackward = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenCount');
         // create nested folder upload file and move back
         const moveBackwardNestedFolder = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenIds');
@@ -200,6 +253,49 @@ const FileExplorer = () => {
         }
 
         return;
+      } else if (fileToOpen) {
+        if (data.state.selectedFiles.length === 1) {
+          const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
+          const isImage = ['png', 'jpg', 'jpeg', 'bmp', 'gif'].includes(extension);
+          const disallowedExtensions = ['doc', 'docx', 'xls', 'xlsx', 'pdf', 'zip', 'pptx', 'ppt'];
+          const allowedExt = !disallowedExtensions.includes(extension);
+
+          if (allowedExt) {
+            setLoading(true);
+            server
+              .get(`/buckets/${fileName}/objects/metadata`, {
+                data: {},
+                params: {
+                  prefix: fileToOpen.objectName,
+                },
+                ...(isImage && { responseType: 'blob' }),
+              })
+              .then((res) => {
+                if (isImage) {
+                  const url = window.URL.createObjectURL(
+                    new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }),
+                  );
+                  window.blobURL = url;
+                } else {
+                  window.blobURL = res.data;
+                }
+                setPreview({
+                  fileName: fileToOpen.name,
+                  isImage,
+                  modal: true,
+                });
+                setLoading(false);
+              })
+              .catch(() => {
+                setLoading(false);
+                Notification.show('Error while downloading. Please try again later.', 'alert');
+              });
+          } else {
+            Notification.show('Preview not supported', 'alert');
+          }
+        } else {
+          Notification.show('Open selection is for one file at a time.', 'alert');
+        }
       }
     } else if (data.id === ChonkyActions.CreateFolder.id) {
       setShow(true);
@@ -207,17 +303,18 @@ const FileExplorer = () => {
   };
 
   const addFolderContent = (
-    <div className="formGroup">
-      <div className={'inputGrp input-field-group'}>
-        <label className={'inputLabel input-label'}>New Folder Name</label>
-        <label className={'inputLabel input-label folderPath'}>{`${files?.fileMap?.[currentFolderId]?.name} /`}</label>
+    <div className={Styles.formGroup}>
+      <div className={classNames('input-field-group', Styles.inputGrp)}>
+        <label className={classNames('input-label', Styles.inputLabel)}>New Folder Name</label>
+        <label
+          className={classNames('input-label', Styles.inputLabel, Styles.folderPath)}
+        >{`${files?.fileMap?.[currentFolderId]?.name} /`}</label>
         <input
           type="text"
           className="input-field"
           required={true}
-          id="PrjName"
           maxLength={64}
-          placeholder="Type here"
+          placeholder="Enter new folder path"
           autoComplete="off"
           onChange={(e) => setFolderName(e.target.value)}
           value={folderName}
@@ -235,7 +332,7 @@ const FileExplorer = () => {
             <h3>{`Bucket - ${fileName}`}</h3>
           </div>
         </div>
-        <div className={'content'}>
+        <div className={'explorer-content'}>
           <FileUpload uploadRef={uploadRef} bucketName={fileName} currentFolderId={folderChain} />
           <FullFileBrowser
             files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
@@ -244,7 +341,48 @@ const FileExplorer = () => {
             folderChain={folderChain}
             darkMode={true}
             defaultFileViewActionId={ChonkyActions.EnableListView.id}
+            disableDragAndDrop={true}
           />
+          {showPreview.modal && (
+            <Modal
+              title={`Preview - ${showPreview.fileName}`}
+              onCancel={() => {
+                setPreview({
+                  ...showPreview,
+                  modal: false,
+                });
+              }}
+              showAcceptButton={false}
+              showCancelButton={false}
+              show={showPreview.modal}
+              content={
+                showPreview.isImage ? (
+                  <img width={'100%'} style={{ marginTop: 20, maxHeight: 425 }} src={window.blobURL} />
+                ) : (
+                  <AceEditor
+                    width="100%"
+                    name="storagePreview"
+                    fontSize={16}
+                    showPrintMargin={false}
+                    showGutter={false}
+                    highlightActiveLine={false}
+                    value={window.blobURL}
+                    readOnly={true}
+                    style={{
+                      height: '65vh',
+                    }}
+                    setOptions={{
+                      enableBasicAutocompletion: false,
+                      enableLiveAutocompletion: false,
+                      enableSnippets: false,
+                      showLineNumbers: false,
+                      tabSize: 2,
+                    }}
+                  />
+                )
+              }
+            />
+          )}
         </div>
       </div>
       <Modal

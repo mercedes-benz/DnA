@@ -1272,6 +1272,7 @@
   .mbc-scroll::-webkit-scrollbar {
     display: block;
     width: 5px;
+    height: 5px;
   }
   body::-ms-scrollbar-thumb,
   .mbc-scroll::-ms-scrollbar-thumb {
