@@ -64,6 +64,8 @@ const FileUpload = ({ uploadRef, bucketName, currentFolderId }) => {
       ProgressIndicator.show(Math.round(step.percent));
     },
     onError,
+    // directory: true,
+    // webkitdirectory: true,
   };
   return (
     <Upload {...uploaderProps}>
