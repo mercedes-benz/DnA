@@ -8,18 +8,14 @@ import Styles from './Buckets.scss';
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
 
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { bucketActions } from '../redux/bucket.actions';
 
 const AllBuckets = () => {
   const dispatch = useDispatch();
   const {
-    isLoading,
     bucketList,
     pagination: { bucketListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
   } = useSelector((state) => state.bucket);
-  const { isLoading: fileExplorerLoading } = useSelector((state) => state.fileExplorer);
-  const { isLoading: connectionLoading } = useSelector((state) => state.connectionInfo);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
@@ -70,37 +66,6 @@ const AllBuckets = () => {
   };
 
   useEffect(() => {
-    if (isLoading) {
-      ProgressIndicator.show();
-    } else {
-      ProgressIndicator.hide();
-    }
-  }),
-    [isLoading];
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (fileExplorerLoading) {
-        ProgressIndicator.show();
-      } else {
-        ProgressIndicator.hide();
-      }
-    }
-  }),
-    [fileExplorerLoading];
-
-  useEffect(() => {
-    if (!isLoading && !fileExplorerLoading) {
-      if (connectionLoading) {
-        ProgressIndicator.show();
-      } else {
-        ProgressIndicator.hide();
-      }
-    }
-  }),
-    [connectionLoading];
-
-  useEffect(() => {
     dispatch(bucketActions.getBucketList());
   }, [dispatch, maxItemsPerPage]);
 
@@ -109,7 +74,7 @@ const AllBuckets = () => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.caption)}>
-            <h3>{bucketList?.length ? 'List of Buckets' : 'Buckets'}</h3>
+            <h3>{'My Buckets'}</h3>
           </div>
         </div>
         <div className={classNames(Styles.content)}>
