@@ -1,6 +1,7 @@
 import server from '../../../server/api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import { history } from '../../../store/storeRoot';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 export const setFiles = (bucketName, historyPush = true) => {
   return async (dispatch) => {
@@ -8,6 +9,7 @@ export const setFiles = (bucketName, historyPush = true) => {
       type: 'FILE_LOADING',
       payload: true,
     });
+    ProgressIndicator.show();
 
     try {
       const res = await server.get(`/buckets/${bucketName}/objects`, { data: {} });
@@ -61,6 +63,7 @@ export const setFiles = (bucketName, historyPush = true) => {
           type: 'FILE_LOADING',
           payload: false,
         });
+        ProgressIndicator.hide();
       } else {
         dispatch({
           type: 'UPDATE_ROOT_FOLDER',
@@ -85,6 +88,7 @@ export const setFiles = (bucketName, historyPush = true) => {
           type: 'FILE_LOADING',
           payload: false,
         });
+        ProgressIndicator.hide();
       }
       historyPush && history.push(`explorer/${bucketName}`);
     } catch (e) {
@@ -92,6 +96,7 @@ export const setFiles = (bucketName, historyPush = true) => {
         type: 'FILE_LOADING',
         payload: false,
       });
+      ProgressIndicator.hide();
       Notification.show(e?.response?.data?.message ? e.response.data.message : 'Something went wrong', 'alert');
       history.push('/');
     }
@@ -104,7 +109,7 @@ export const deleteFiles = (bucketName, filesName, files) => {
       type: 'FILE_LOADING',
       payload: true,
     });
-
+    ProgressIndicator.show();
     try {
       server
         .delete(`/buckets/${bucketName}/objects`, {
@@ -122,8 +127,10 @@ export const deleteFiles = (bucketName, filesName, files) => {
             type: 'FILE_LOADING',
             payload: false,
           });
+          ProgressIndicator.hide();
         });
     } catch (e) {
+      ProgressIndicator.hide();
       Notification.show(
         e?.response?.data?.message ? e.response.data.message : 'Error while deleting. Please try again.',
       );
@@ -139,6 +146,7 @@ export const getFiles = (files, bucketName, fileToOpen) => {
       type: 'FILE_LOADING',
       payload: true,
     });
+    ProgressIndicator.show();
     try {
       const res = await server.get(`/buckets/${bucketName}/objects`, {
         data: {},
@@ -194,18 +202,20 @@ export const getFiles = (files, bucketName, fileToOpen) => {
           type: 'FILE_LOADING',
           payload: false,
         });
+        ProgressIndicator.hide();
       } else {
         dispatch({
           type: 'FILE_LOADING',
           payload: false,
         });
+        ProgressIndicator.hide();
       }
     } catch (e) {
       dispatch({
         type: 'FILE_LOADING',
         payload: false,
       });
-
+      ProgressIndicator.hide();
       Notification.show(
         e?.response?.data?.message ? e.response.data.message : 'Error while fetching bucket objects',
         'alert',

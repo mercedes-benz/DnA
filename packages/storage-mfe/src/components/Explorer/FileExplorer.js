@@ -35,7 +35,7 @@ setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
 const FileExplorer = () => {
   const dispatch = useDispatch();
-  const { bucketPermission, isLoading } = useSelector((state) => state.fileExplorer);
+  const { bucketPermission } = useSelector((state) => state.fileExplorer);
 
   const { fileName } = useParams();
 
@@ -55,14 +55,6 @@ const FileExplorer = () => {
     fileName: '',
     isImage: false,
   });
-
-  const [loading, setLoading] = useState(false);
-
-  if (loading) {
-    ProgressIndicator.show();
-  } else {
-    ProgressIndicator.hide();
-  }
 
   const myFileActions = [
     ...(bucketPermission.write ? [ChonkyActions.UploadFiles] : []),
@@ -113,14 +105,6 @@ const FileExplorer = () => {
   useEffect(() => {
     show && inputRef.current.focus();
   }, [show]);
-
-  useEffect(() => {
-    if (isLoading) {
-      ProgressIndicator.show();
-    } else {
-      ProgressIndicator.hide();
-    }
-  }, [isLoading]);
 
   const createFolder = useCallback(
     (files, newFolderName) => {
@@ -256,12 +240,12 @@ const FileExplorer = () => {
       } else if (fileToOpen) {
         if (data.state.selectedFiles.length === 1) {
           const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
-          const isImage = ['png', 'jpg', 'jpeg', 'bmp', 'gif'].includes(extension);
+          const isImage = ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp'].includes(extension);
           const disallowedExtensions = ['doc', 'docx', 'xls', 'xlsx', 'pdf', 'zip', 'pptx', 'ppt'];
           const allowedExt = !disallowedExtensions.includes(extension);
 
           if (allowedExt) {
-            setLoading(true);
+            ProgressIndicator.show();
             server
               .get(`/buckets/${fileName}/objects/metadata`, {
                 data: {},
@@ -284,10 +268,10 @@ const FileExplorer = () => {
                   isImage,
                   modal: true,
                 });
-                setLoading(false);
+                ProgressIndicator.hide();
               })
               .catch(() => {
-                setLoading(false);
+                ProgressIndicator.hide();
                 Notification.show('Error while downloading. Please try again later.', 'alert');
               });
           } else {

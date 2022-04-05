@@ -74,12 +74,6 @@ export const BucketList = ({ bucketList }) => {
                       Created On
                     </label>
                   </div>
-                  <div className={Styles.bucketTitleCol}>
-                    <label>
-                      <i className="icon sort" />
-                      Last Modified On
-                    </label>
-                  </div>
                   <div className={Styles.bucketTitleCol}>Action</div>
                 </div>
               </div>
@@ -115,8 +109,7 @@ export const BucketList = ({ bucketList }) => {
                               ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1))
                               ?.join(' / ')}
                           </div>
-                          <div className={Styles.bucketTitleCol}>{moment(item.creationDate).format('YYYY-MM-DD')}</div>
-                          <div className={Styles.bucketTitleCol}>{item.modifiedOn}</div>
+                          <div className={Styles.bucketTitleCol}>{moment(item.creationDate).format('DD.MM.YYYY')}</div>
                           <div className={Styles.bucketTitleCol}></div>
                         </div>
 
@@ -139,7 +132,6 @@ export const BucketList = ({ bucketList }) => {
                                     {/* <div
                                       className={Styles.bucketTitleCol}
                                     >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div> */}
-
                                     <div className={Styles.bucketTitleCol}>
                                       {Object.entries(bucketItem?.permission)
                                         .map(([k, v]) => {

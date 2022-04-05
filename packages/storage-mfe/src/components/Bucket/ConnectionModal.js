@@ -7,8 +7,8 @@ import Tabs from '../../common/modules/uilab/js/src/tabs';
 import Styles from './ConnectionModal.scss';
 import { omit } from 'lodash';
 
-const copyToClipboard = (id) => {
-  const content = document.getElementById(id)?.innerText;
+const copyToClipboard = (content) => {
+  navigator.clipboard.writeText('');
   navigator.clipboard.writeText(content).then(() => Notification.show('Copied to Clipboard'));
 };
 
@@ -19,6 +19,7 @@ export const ConnectionModal = () => {
     bucketName: '',
     accessInfo: [],
   });
+  const [showSecretKey, setShowSecretKey] = useState(false);
 
   const { pathname } = useLocation();
   const isCreatePage = pathname === '/createBucket';
@@ -46,6 +47,32 @@ export const ConnectionModal = () => {
       accessInfo: omit(connect?.accessInfo, ['permission']),
     });
   }, [connect?.bucketName, connect?.accessInfo]);
+
+  const connectToJupyter = (
+    <code>
+      {`from minio import Minio 
+      MINIO_BUCKET = "${bucketInfo.bucketName}"
+      minio_client = Minio('${bucketInfo.accessInfo.uri}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=False)
+      y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
+      y = pd.read_csv(y_file_obj)`}
+    </code>
+  );
+
+  const connectToDataiku = (
+    <code>
+      {`1. Go to Administration.
+        2. Select 'Connection' tab and click on '+ NEW CONNECTION'.
+        3. Select 'Amazon S3' connection.
+        4. Provide the below-required information:
+          - New connection name: <<Name of the connection>>
+          - Access Key: ${bucketInfo.accessInfo.accesskey}
+          - Secret Key: YOUR_BUCKET_SECRET_KEY
+          - Region / Endpoint: ${bucketInfo.accessInfo.uri}
+        5. Click on 'Create' and use the connection in project.
+        `}
+    </code>
+  );
+  console.log(showSecretKey);
   return (
     <div>
       <div className={Styles.accessDetails}>
@@ -75,7 +102,7 @@ export const ConnectionModal = () => {
                   style={{
                     cursor: 'pointer',
                   }}
-                  onClick={() => copyToClipboard('accessKey')}
+                  onClick={() => copyToClipboard(bucketInfo?.accessInfo?.accesskey)}
                 >
                   <i className="icon mbc-icon copy" />
                 </span>
@@ -87,7 +114,26 @@ export const ConnectionModal = () => {
               </td>
               <td>:</td>
               <td id="secretKey" className={Styles.keys}>
-                {bucketInfo?.accessInfo?.secretKey}
+                {showSecretKey
+                  ? bucketInfo?.accessInfo?.secretKey
+                  : Array.from({ length: 30 }, (_, i) => <React.Fragment key={i}>&bull;</React.Fragment>)}
+                {showSecretKey ? (
+                  <React.Fragment>
+                    <i
+                      className={' icon mbc-icon visibility-hide'}
+                      onClick={() => setShowSecretKey(false)}
+                      tooltip-data="Hide"
+                    />
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <i
+                      className={' icon mbc-icon visibility-show '}
+                      onClick={() => setShowSecretKey(true)}
+                      tooltip-data="Show"
+                    />
+                  </React.Fragment>
+                )}
               </td>
               <td>
                 <span
@@ -95,7 +141,7 @@ export const ConnectionModal = () => {
                   style={{
                     cursor: 'pointer',
                   }}
-                  onClick={() => copyToClipboard('secretKey')}
+                  onClick={() => copyToClipboard(bucketInfo?.accessInfo?.secretKey)}
                 >
                   <i className="icon mbc-icon copy" />
                 </span>
@@ -128,24 +174,17 @@ export const ConnectionModal = () => {
                   float: 'right',
                   cursor: 'pointer',
                 }}
-                onClick={() => copyToClipboard('tab-content-1')}
+                onClick={() => {
+                  const content = document.getElementById('tab-content-1')?.innerText;
+                  copyToClipboard(content);
+                }}
               >
                 <i className="icon mbc-icon copy" />
               </span>
-              <p className={Styles.preWrap}>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</p>
+              <div className={Styles.preLine}>{connectToJupyter}</div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content', Styles.tabContentContainer)}>
-              <span
-                className="copy-icon"
-                style={{
-                  float: 'right',
-                  cursor: 'pointer',
-                }}
-                onClick={() => copyToClipboard('tab-content-2')}
-              >
-                <i className="icon mbc-icon copy" />
-              </span>
-              <p className={Styles.preWrap}>{JSON.stringify(bucketInfo?.accessInfo, undefined, 2)}</p>
+              <div className={classNames(Styles.preLine)}>{connectToDataiku}</div>
             </div>
           </div>
         </div>

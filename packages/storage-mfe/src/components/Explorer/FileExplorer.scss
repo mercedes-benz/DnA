@@ -35,7 +35,7 @@
 :global {
   #storagePreview {
     margin-top: 20px;
-    .ace_cursor-layer  {
+    .ace_cursor-layer {
       opacity: 0;
     }
   }
@@ -71,15 +71,21 @@
     .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
       border-color: #697582;
     }
+    .chonky-gridContainer {
+      div[class*="selectionIndicator"] {
+        background: #00adef !important;
+      }
+    }
     div[class*="gridFileEntryPreview"] {
       font-size: var(--font-size-default) !important;
       div[class*="folderBackSideMid"],
       div[class*="folderBackSideTop"],
       div[class*="folderFrontSide"] {
         background-color: #697582;
+        box-shadow: #00adef !important;
       }
       &[class*="previewFile-d"] {
-        background-color: #c0c8d0;
+        background-color: #99a5b3;
       }
     }
     div[class*="gridFileEntryName"] {
@@ -101,6 +107,15 @@
     }
     div[class*="listContainer"] {
       color: #acb8c4 !important;
+      div[class*="selectionIndicator"] {
+        background: #00adef !important;
+      }
+    }
+    .MuiPaper-rounded {
+      border-radius: 0;
+      .MuiList-root.MuiMenu-list.chonky-contextMenuList {
+        background: #383f49;
+      }
     }
   }
   .MuiMenuItem-root.chonky-baseButton {
