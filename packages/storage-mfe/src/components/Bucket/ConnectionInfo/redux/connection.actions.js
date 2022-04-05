@@ -1,4 +1,5 @@
 import Notification from '../../../../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import server from '../../../../server/api';
 
 export const getConnectionInfo = (bucketName) => {
@@ -7,6 +8,7 @@ export const getConnectionInfo = (bucketName) => {
       type: 'CONNECTION_LOADING',
       payload: true,
     });
+    ProgressIndicator.show();
     try {
       const response = await server.get(`/buckets/${bucketName}/connect`, { data: {} });
       if (response?.data?.data) {
@@ -22,12 +24,14 @@ export const getConnectionInfo = (bucketName) => {
           type: 'CONNECTION_LOADING',
           payload: false,
         });
+        ProgressIndicator.hide();
       }
     } catch (error) {
       dispatch({
         type: 'CONNECTION_LOADING',
         payload: false,
       });
+      ProgressIndicator.hide();
       Notification.show(error.response.data.message ? error.response.data.message : 'Something went wrong.', 'alert');
     }
   };

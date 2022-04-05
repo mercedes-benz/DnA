@@ -1,4 +1,5 @@
 import { bucketsApi } from '../../apis/buckets.api';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 const getBucketList = () => {
   return async (dispatch, getStore) => {
@@ -9,6 +10,7 @@ const getBucketList = () => {
       type: 'BUCKET_LOADING',
       payload: true,
     });
+    ProgressIndicator.show();
     bucketsApi
       .getAllBuckets()
       .then((res) => {
@@ -30,12 +32,14 @@ const getBucketList = () => {
           type: 'BUCKET_LOADING',
           payload: false,
         });
+        ProgressIndicator.hide();
       })
       .catch((e) => {
         dispatch({
           type: 'BUCKET_LOADING',
           payload: false,
         });
+        ProgressIndicator.hide();
         Notification.show(
           e.response.data.message ? e.reponse.data.message : 'Fetching list of storage buckets failed!',
           'alert',
@@ -50,6 +54,7 @@ const setBucketList = (data) => {
       type: 'BUCKET_LOADING',
       payload: true,
     });
+    ProgressIndicator.show();
     dispatch({
       type: 'RESET_BUCKET',
     });
@@ -74,6 +79,7 @@ const setBucketList = (data) => {
           accessInfo: res.data.bucketAccessinfo,
         },
       });
+      ProgressIndicator.hide();
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',
@@ -83,6 +89,7 @@ const setBucketList = (data) => {
         type: 'BUCKET_LOADING',
         payload: false,
       });
+      ProgressIndicator.hide();
     }
   };
 };
