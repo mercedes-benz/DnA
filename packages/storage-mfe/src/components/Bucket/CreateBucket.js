@@ -12,12 +12,11 @@ import { ConnectionModal } from './ConnectionModal';
 import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
 import { hideConnectionInfo } from './ConnectionInfo/redux/connection.actions';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 const CreateBucket = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { bucketList, isLoading } = useSelector((state) => state.bucket);
+  const { bucketList } = useSelector((state) => state.bucket);
   const { connect } = useSelector((state) => state.connectionInfo);
   const [bucketName, setBucketName] = useState('');
   const [bucketPermission, setBucketPermission] = useState({
@@ -25,12 +24,6 @@ const CreateBucket = () => {
     write: true,
   });
   const [showInfoModal, setInfoModal] = useState(false);
-
-  if (isLoading) {
-    ProgressIndicator.show();
-  } else {
-    ProgressIndicator.hide();
-  }
 
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
@@ -182,9 +175,6 @@ const CreateBucket = () => {
         <li>Bucket names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).</li>
         <li>Bucket names must begin and end with a letter or number.</li>
         <li>Bucket names must not be formatted as an IP address (for example, 192.168.4.2).</li>
-        <li>
-          Bucket names must not start with the prefix <code style={{ background: '#99a5b3' }}>xn--</code>.
-        </li>
       </ul>
     </div>
   );
@@ -229,9 +219,11 @@ const CreateBucket = () => {
                   </span>
                 </div>
               </div>
-              <div className={Styles.infoIcon}>
-                <i className="icon mbc-icon info" onClick={handleInfoModal} />
-              </div>
+              {!id ? (
+                <div className={Styles.infoIcon}>
+                  <i className="icon mbc-icon info" onClick={handleInfoModal} />
+                </div>
+              ) : null}
             </div>
             <br />
             <div className={classNames(Styles.inputGrp, ' input-field-group')}>

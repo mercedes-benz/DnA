@@ -74,6 +74,7 @@
                     justify-content: space-between;
                     width: 100%;
                     color: #99a5b3;
+                    margin-bottom: 5px;
                     div {
                         &:last-child {
                             display: flex;
@@ -123,7 +124,6 @@
                         .bucketTileCaption {
                             border-bottom: 1px solid #383f49;
                             padding: 9px 0;
-                            margin-bottom: 3px;
                         }
                         .noPermission {
                             color: #e84d47;
@@ -207,11 +207,11 @@
     .bucketTile {
         .bucketTitleCol {
             &:nth-child(2) {
-                padding-left: 19px;
+                padding-left: 25px;
             }
             &:nth-child(3) {
                 min-width: 180px;
-                padding-left: 19px;
+                padding-left: 25px;
             }
         }
     }
