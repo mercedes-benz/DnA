@@ -6,41 +6,33 @@ import { baseURL } from '../../server/api';
 import { getFiles } from './redux/fileExplorer.actions';
 import { useDispatch, useSelector } from 'react-redux';
 import Notification from '../../common/modules/uilab/js/src/notification';
+import { serializeFolderChain } from '../Bucket/Utils';
+import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
 const ATTACH_FILES_TO_ACCEPT =
-  '.doc,.docx,.odt,.pptx,.rtf,.pdf,.bmp,.gif,.png,.jpg,.jpeg,.csv,.xsl,.xlsx,.ppt,.txt,.zip';
+  '.doc,.docx,.odt,.pptx,.rtf,.pdf,.bmp,.gif,.png,.jpg,.jpeg,.csv,.xsl,.xlsx,.ppt,.txt,.zip,.js,.py,.ts,.tsx,.jsx,.json,.scss,.css,.java,.yml,.yaml';
 
-const FileUpload = ({ uploadRef, bucketName, currentFolderId }) => {
+const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = false }) => {
   const dispatch = useDispatch();
   const { files } = useSelector((state) => state.fileExplorer);
 
-  const prefix = currentFolderId
-    ?.map((item, index) => {
-      if (index === 0) {
-        return '';
-      } else {
-        return item.objectName;
-      }
-    })
-    ?.filter((x) => !!x); //filter falsy value
+  const prefix = serializeFolderChain(folderChain);
+  const objectPath = [...new Set(prefix.join('').split('/'))].join('/');
 
   const onSuccess = () => {
+    const currentFolder = folderChain?.[folderChain?.length - 1];
     const folderId = {
-      objectName: [...new Set(prefix.join('').split('/'))].join('/'),
-      id: currentFolderId?.[currentFolderId.length - 1]?.id,
-      name: currentFolderId?.[currentFolderId.length - 1]?.name,
-      parentId: currentFolderId?.[currentFolderId.length - 1]?.parentId,
+      objectName: objectPath,
+      id: currentFolder?.id,
+      name: currentFolder?.name,
+      parentId: currentFolder?.parentId,
     };
 
     dispatch(getFiles(files.fileMap, bucketName, folderId));
-
-    ProgressIndicator.hide();
   };
   const onError = (err, errResponse) => {
-    if (errResponse.errors) {
-      if (errResponse.errors.length > 0) {
-        Notification.show(errResponse.error, 'alert');
-      }
+    if (errResponse.errors?.length) {
+      Notification.show(errResponse.errors[0].message, 'alert');
     }
     ProgressIndicator.hide();
   };
@@ -48,11 +40,11 @@ const FileUpload = ({ uploadRef, bucketName, currentFolderId }) => {
   const uploaderProps = {
     accept: ATTACH_FILES_TO_ACCEPT,
     headers: {
-      Authorization: sessionStorage.getItem('jwt'),
+      Authorization: sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT),
     },
     action: `${baseURL}/buckets/${bucketName}/upload`,
     data: {
-      prefix: currentFolderId.length === 1 ? '/' : [...new Set(prefix.join('').split('/'))].join('/'),
+      prefix: folderChain.length === 1 ? '/' : objectPath,
     },
     method: 'POST',
     onStart: () => {
@@ -64,8 +56,12 @@ const FileUpload = ({ uploadRef, bucketName, currentFolderId }) => {
       ProgressIndicator.show(Math.round(step.percent));
     },
     onError,
-    // directory: true,
-    // webkitdirectory: true,
+    ...(enableFolderUpload
+      ? {
+          directory: true,
+          webkitdirectory: true,
+        }
+      : {}),
   };
   return (
     <Upload {...uploaderProps}>

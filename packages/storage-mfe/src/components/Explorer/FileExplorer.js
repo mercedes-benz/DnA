@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import classNames from 'classnames';
 import Styles from './FileExplorer.scss';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,11 +15,24 @@ import { ChonkyIconFA } from 'chonky-icon-fontawesome';
 
 import FileUpload from './Upload';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import server from '../../server/api';
-import AceEditor from 'react-ace';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import 'ace-builds/webpack-resolver';
-import classNames from 'classnames';
+
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/mode-typescript';
+import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/mode-java';
+import 'ace-builds/src-noconflict/mode-python';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/mode-css';
+import 'ace-builds/src-noconflict/mode-scss';
+import 'ace-builds/src-noconflict/mode-text';
+import 'ace-builds/src-noconflict/mode-yaml';
+import 'ace-builds/src-noconflict/mode-plain_text';
+
+import { bucketsObjectApi } from '../../apis/fileExplorer.api';
+import { serializeFolderChain } from '../Bucket/Utils';
+import { IMAGE_EXTNS, PREVIEW_NOT_ALLOWED_EXTNS } from '../Utility/constants';
 
 // inform chonky on which iconComponent to use
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
@@ -37,11 +51,11 @@ const FileExplorer = () => {
   const dispatch = useDispatch();
   const { bucketPermission } = useSelector((state) => state.fileExplorer);
 
-  const { fileName } = useParams();
+  const { bucketName } = useParams();
 
   const { files } = useSelector((state) => state.fileExplorer);
 
-  const [currentFolderId, setCurrentFolderId] = useState(fileName);
+  const [currentFolderId, setCurrentFolderId] = useState(bucketName);
   const [newFolderName, setNewFolderName] = useState('');
   const [folderName, setFolderName] = useState('');
   const [show, setShow] = useState(false);
@@ -54,6 +68,7 @@ const FileExplorer = () => {
     modal: false,
     fileName: '',
     isImage: false,
+    blobURL: '',
   });
 
   const myFileActions = [
@@ -63,6 +78,27 @@ const FileExplorer = () => {
     ChonkyActions.DownloadFiles,
     ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
   ];
+
+  useEffect(() => {
+    currentFolderIdRef.current = currentFolderId;
+  }, [currentFolderId]);
+
+  useEffect(() => {
+    if (newFolderName) {
+      createFolder(files, newFolderName);
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newFolderName]);
+
+  useEffect(() => {
+    if (!files?.rootFolderId) {
+      dispatch(setFiles(bucketName, false));
+    }
+  }, [dispatch, bucketName, files]);
+
+  useEffect(() => {
+    show && inputRef.current.focus();
+  }, [show]);
 
   const useFolderChain = (fileMap, currentFolderId) => {
     return useMemo(() => {
@@ -85,33 +121,12 @@ const FileExplorer = () => {
   };
   const folderChain = useFolderChain(files?.fileMap, currentFolderId);
 
-  useEffect(() => {
-    currentFolderIdRef.current = currentFolderId;
-  }, [currentFolderId]);
-
-  useEffect(() => {
-    if (newFolderName) {
-      createFolder(files, newFolderName);
-    }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newFolderName]);
-
-  useEffect(() => {
-    if (!files?.rootFolderId) {
-      dispatch(setFiles(fileName, false));
-    }
-  }, [dispatch, fileName, files]);
-
-  useEffect(() => {
-    show && inputRef.current.focus();
-  }, [show]);
-
   const createFolder = useCallback(
     (files, newFolderName) => {
       const newFileMap = { ...files.fileMap };
       const doesFolderExists = Object.prototype.hasOwnProperty.call(newFileMap, newFolderName);
       if (doesFolderExists) {
-        dispatch(getFiles(newFileMap, fileName, newFileMap[newFolderName]));
+        dispatch(getFiles(newFileMap, bucketName, newFileMap[newFolderName]));
         setCurrentFolderId(newFolderName);
       } else {
         // Create the new folder
@@ -142,147 +157,151 @@ const FileExplorer = () => {
       setNewFolderName('');
       return newFileMap;
     },
-    [dispatch, fileName],
+    [dispatch, bucketName],
   );
 
-  const handleAction = (data) => {
-    if (data.id === ChonkyActions.UploadFiles.id) {
-      uploadRef.current.click();
-    } else if (data.id === ChonkyActions.DeleteFiles.id) {
-      // Delete the files
-      const newFileMap = { ...files.fileMap };
+  const onDelete = (data) => {
+    // Delete the files
+    const newFileMap = { ...files.fileMap };
 
-      const fileList = [];
-      data.state.selectedFiles.forEach((file) => {
-        // Delete file from the file map.
-        delete newFileMap[file.id];
+    const fileList = [];
+    data.state.selectedFiles?.forEach((file) => {
+      // Delete file from the file map.
+      delete newFileMap[file.id];
 
-        // Update the parent folder to make sure it doesn't try to load the
-        // file we just deleted.
-        if (file.parentId) {
-          const parent = newFileMap[file.parentId];
-          const newChildrenIds = parent.childrenIds.filter((id) => id !== file.id);
-          newFileMap[file.parentId] = {
-            ...parent,
-            childrenIds: newChildrenIds,
-            childrenCount: newChildrenIds.length,
-          };
+      // Update the parent folder to make sure it doesn't try to load the
+      // file we just deleted.
+      if (file.parentId) {
+        const parent = newFileMap[file.parentId];
+        const newChildrenIds = parent.childrenIds.filter((id) => id !== file.id);
+        newFileMap[file.parentId] = {
+          ...parent,
+          childrenIds: newChildrenIds,
+          childrenCount: newChildrenIds.length,
+        };
 
-          if (newFileMap[file.parentId].isDir && newFileMap[file.parentId].childrenCount === 0) {
+        // Update root folder childrens list
+        if (newFileMap[file.parentId].isDir && newFileMap[file.parentId].childrenCount === 0) {
+          if (newFileMap[file.parentId].parentId) {
             setCurrentFolderId(newFileMap[file.parentId]?.parentId);
             const parent = newFileMap[newFileMap[file.parentId]?.parentId];
-            const newChildrenIds = parent.childrenIds?.filter((id) => id !== file.parentId);
+            const newChildrenIds = parent?.childrenIds?.filter((id) => id !== file.parentId);
 
             newFileMap[newFileMap[file.parentId]?.parentId] = {
               ...parent,
               childrenIds: newChildrenIds,
-              childrenCount: newChildrenIds.length,
+              childrenCount: newChildrenIds?.length,
             };
             delete newFileMap[file.parentId];
           }
         }
-        fileList.push(file.objectName);
-      });
+      }
+      fileList.push(file.objectName);
+    });
 
-      dispatch(deleteFiles(fileName, fileList.join(','), newFileMap, folderChain));
+    dispatch(deleteFiles(bucketName, fileList.join(','), newFileMap));
+  };
+
+  const onOpenFolder = (fileToOpen) => {
+    setCurrentFolderId(fileToOpen.id);
+
+    const moveBackward = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenCount');
+    // create nested folder upload file and move back
+    const inDraftFolderMoveBackward = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenIds');
+
+    const serializeObjectName = (files) => {
+      const prefix = serializeFolderChain(folderChain);
+
+      files['objectName'] = prefix[prefix?.length - 1];
+      const objectNameArray = files.objectName?.split('/')?.filter((x) => !!x);
+      const currentFolderIndex = objectNameArray.indexOf(fileToOpen.name);
+      if (currentFolderIndex !== -1) {
+        const objectName = objectNameArray.slice(0, currentFolderIndex + 1).join('/');
+        files['objectName'] = `${objectName}/`;
+      }
+    };
+
+    if (fileToOpen.id === bucketName) {
+      dispatch(setFiles(bucketName, false));
+    } else if (fileToOpen?.objectName) {
+      const copyFilesToOpen = { ...fileToOpen };
+
+      if (moveBackward(copyFilesToOpen)) {
+        serializeObjectName(copyFilesToOpen);
+      } else if (inDraftFolderMoveBackward(copyFilesToOpen)) {
+        if (folderChain?.length > 2 && copyFilesToOpen.objectName?.split('/')?.filter((x) => !!x).length === 1) {
+          serializeObjectName(copyFilesToOpen);
+        }
+      }
+      dispatch(getFiles(files.fileMap, bucketName, copyFilesToOpen));
+    }
+
+    return;
+  };
+
+  // on opening selected file show preview based on the file extensions
+  const onOpenFile = (data, fileToOpen) => {
+    if (data.state.selectedFiles.length === 1) {
+      const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
+      const isImage = IMAGE_EXTNS.includes(extension);
+      const allowedExt = !PREVIEW_NOT_ALLOWED_EXTNS.includes(extension);
+
+      if (allowedExt) {
+        ProgressIndicator.show();
+        bucketsObjectApi
+          .previewFiles(bucketName, fileToOpen.objectName, isImage)
+          .then((res) => {
+            let blobURL;
+            if (isImage) {
+              const url = window.URL.createObjectURL(
+                new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }),
+              );
+              blobURL = url;
+            } else {
+              blobURL = res.data;
+            }
+            setPreview({
+              fileName: fileToOpen.name,
+              isImage,
+              modal: true,
+              blobURL,
+            });
+            ProgressIndicator.hide();
+          })
+          .catch(() => {
+            ProgressIndicator.hide();
+            Notification.show('Error while previewing file. Please try again later.', 'alert');
+          });
+      } else {
+        Notification.show('Preview not supported', 'alert');
+      }
+    } else {
+      Notification.show('Open selection is for one file at a time.', 'alert');
+    }
+  };
+
+  const handleAction = (data) => {
+    if (data.id === ChonkyActions.CreateFolder.id) {
+      setShow(true);
+    } else if (data.id === ChonkyActions.UploadFiles.id) {
+      uploadRef.current.click();
+    } else if (data.id === ChonkyActions.DeleteFiles.id) {
+      onDelete(data);
     } else if (data.id === ChonkyActions.DownloadFiles.id) {
       data.state.selectedFiles?.forEach((item) => {
         // if selected multiple items, download each file
-        dispatch(downloadFoldersOrFiles(fileName, item));
+        dispatch(downloadFoldersOrFiles(bucketName, item));
       });
     } else if (data.id === ChonkyActions.OpenFiles.id) {
       const { targetFile, files: sFiles } = data.payload;
       const fileToOpen = targetFile ?? sFiles[0];
       if (fileToOpen && FileHelper.isDirectory(fileToOpen)) {
-        setCurrentFolderId(fileToOpen.id);
-
-        const moveBackward = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenCount');
-        // create nested folder upload file and move back
-        const moveBackwardNestedFolder = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenIds');
-
-        const serializeObjectName = (files) => {
-          const prefix = folderChain
-            .map((item, index) => {
-              if (index === 0) {
-                return '';
-              } else {
-                return item.objectName;
-              }
-            })
-            .filter((x) => !!x); //filter falsy value
-
-          files['objectName'] = prefix[prefix.length - 1];
-          const objectNameArray = files.objectName.split('/').filter((x) => !!x);
-          const currentFolderIndex = objectNameArray.indexOf(fileToOpen.name);
-          if (currentFolderIndex !== -1) {
-            const objectName = objectNameArray.slice(0, currentFolderIndex + 1).join('/');
-            files['objectName'] = `${objectName}/`;
-          }
-        };
-
-        if (fileToOpen.id === fileName) {
-          dispatch(setFiles(fileName, false));
-        } else if (fileToOpen?.objectName) {
-          const copyFilesToOpen = { ...fileToOpen };
-
-          if (moveBackward(copyFilesToOpen)) {
-            serializeObjectName(copyFilesToOpen);
-          } else if (moveBackwardNestedFolder(copyFilesToOpen)) {
-            if (folderChain.length > 2 && copyFilesToOpen.objectName?.split('/')?.filter((x) => !!x).length === 1) {
-              serializeObjectName(copyFilesToOpen);
-            }
-          }
-
-          dispatch(getFiles(files.fileMap, fileName, copyFilesToOpen));
-        }
-
-        return;
+        // on opening directory
+        onOpenFolder(fileToOpen);
       } else if (fileToOpen) {
-        if (data.state.selectedFiles.length === 1) {
-          const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
-          const isImage = ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp'].includes(extension);
-          const disallowedExtensions = ['doc', 'docx', 'xls', 'xlsx', 'pdf', 'zip', 'pptx', 'ppt'];
-          const allowedExt = !disallowedExtensions.includes(extension);
-
-          if (allowedExt) {
-            ProgressIndicator.show();
-            server
-              .get(`/buckets/${fileName}/objects/metadata`, {
-                data: {},
-                params: {
-                  prefix: fileToOpen.objectName,
-                },
-                ...(isImage && { responseType: 'blob' }),
-              })
-              .then((res) => {
-                if (isImage) {
-                  const url = window.URL.createObjectURL(
-                    new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }),
-                  );
-                  window.blobURL = url;
-                } else {
-                  window.blobURL = res.data;
-                }
-                setPreview({
-                  fileName: fileToOpen.name,
-                  isImage,
-                  modal: true,
-                });
-                ProgressIndicator.hide();
-              })
-              .catch(() => {
-                ProgressIndicator.hide();
-                Notification.show('Error while downloading. Please try again later.', 'alert');
-              });
-          } else {
-            Notification.show('Preview not supported', 'alert');
-          }
-        } else {
-          Notification.show('Open selection is for one file at a time.', 'alert');
-        }
+        // on opening files
+        onOpenFile(data, fileToOpen);
       }
-    } else if (data.id === ChonkyActions.CreateFolder.id) {
-      setShow(true);
     }
   };
 
@@ -308,16 +327,34 @@ const FileExplorer = () => {
     </div>
   );
 
+  // set corresponding modes based on the file extensions
+  const aceEditorMode = {
+    java: 'java',
+    js: 'javascript',
+    jsx: 'javascript',
+    ts: 'typescript',
+    tsx: 'typescript',
+    py: 'python',
+    json: 'json',
+    css: 'css',
+    scss: 'scss',
+    txt: 'text',
+    yml: 'yaml',
+    yaml: 'yaml',
+  };
+  const serializedFileName = showPreview.fileName.split('.').filter((x) => !!x);
+  const fileExt = serializedFileName[serializedFileName.length - 1];
+
   return (
     <>
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
           <div className={Styles.caption}>
-            <h3>{`Bucket - ${fileName}`}</h3>
+            <h3>{`Bucket - ${bucketName}`}</h3>
           </div>
         </div>
         <div className={'explorer-content'}>
-          <FileUpload uploadRef={uploadRef} bucketName={fileName} currentFolderId={folderChain} />
+          <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
           <FullFileBrowser
             files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
             fileActions={myFileActions}
@@ -341,24 +378,23 @@ const FileExplorer = () => {
               show={showPreview.modal}
               content={
                 showPreview.isImage ? (
-                  <img width={'100%'} style={{ marginTop: 20, maxHeight: 425 }} src={window.blobURL} />
+                  <img width={'100%'} className={Styles.previewImg} src={showPreview.blobURL} />
                 ) : (
                   <AceEditor
                     width="100%"
                     name="storagePreview"
+                    mode={aceEditorMode[fileExt] || 'plain_text'}
+                    theme="github"
                     fontSize={16}
                     showPrintMargin={false}
                     showGutter={false}
                     highlightActiveLine={false}
-                    value={window.blobURL}
+                    value={showPreview.blobURL}
                     readOnly={true}
                     style={{
                       height: '65vh',
                     }}
                     setOptions={{
-                      enableBasicAutocompletion: false,
-                      enableLiveAutocompletion: false,
-                      enableSnippets: false,
                       showLineNumbers: false,
                       tabSize: 2,
                     }}

@@ -37,7 +37,7 @@ const protectedRoutes = [
   {
     component: FileExplorer,
     exact: false,
-    path: '/explorer/:fileName?',
+    path: '/explorer/:bucketName',
   },
 ];
 
@@ -53,7 +53,7 @@ const Routes = ({ user }) => {
       <ConnectedRouter history={history}>
         {process.env.NODE_ENV === 'development' && !user?.roles?.length ? (
           <Switch>
-            {protectedRoutes.map((route, index) => (
+            {protectedRoutes?.map((route, index) => (
               <ProtectedRoute
                 key={index}
                 path={route.path}
@@ -74,7 +74,7 @@ const Routes = ({ user }) => {
           </Switch>
         ) : user?.roles?.length ? (
           <Switch>
-            {protectedRoutes.map((route, index) => (
+            {protectedRoutes?.map((route, index) => (
               <ProtectedRoute
                 key={index}
                 path={route.path}

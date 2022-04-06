@@ -1,5 +1,7 @@
 import axios from 'axios';
-const jwt = sessionStorage.length ? sessionStorage.getItem('jwt') : null;
+import { SESSION_STORAGE_KEYS } from '../components/Utility/constants';
+
+const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
 export const baseURL = process.env.API_BASEURL
   ? `persistence/${process.env.API_BASEURL}`
