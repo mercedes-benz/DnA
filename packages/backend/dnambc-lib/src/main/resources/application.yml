@@ -141,7 +141,10 @@ dataiku:
   training:
     uri: ${DATAIKU_TRAINING_URI:xxxxx}
     apiKey: ${DATAIKU_TRAINING_API_KEY:xxxxx}
-    adminGroup: ${DATAIKU_TRAINING_ADMIN_GROUP:xxxxx}    
+    adminGroup: ${DATAIKU_TRAINING_ADMIN_GROUP:xxxxx} 
+    
+dashboard:
+  uri: ${DASHBOARD_URI:xxxxx}       
   
 avscan:
   uri: ${AVSCAN_URI:xxxxx}
