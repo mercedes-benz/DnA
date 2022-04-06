@@ -65,6 +65,7 @@ app:
       flywayBaselineOnMigrate: "true"
       flywayBaselineVersion: "0"
       flywaySchema: "public"
+      dashboardUri: http://dashboard-backend-service.dna.svc.cluster.local:80/dashboards
 
   vault:
     secret:
