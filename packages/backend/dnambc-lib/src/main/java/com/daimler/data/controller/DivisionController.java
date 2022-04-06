@@ -27,6 +27,7 @@
 
 package com.daimler.data.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -47,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.divisions.DivisionsApi;
 import com.daimler.data.api.divisions.SubdivisionsApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.divisions.DivisionCollection;
 import com.daimler.data.dto.divisions.DivisionRequestVO;
 import com.daimler.data.dto.divisions.DivisionResponseVO;
@@ -150,7 +152,16 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Id of the division", required = true) @PathVariable("id") String id) {
-		return divisionService.deleteDivision(id);
+		try {
+			return divisionService.deleteDivision(id);
+		} catch (Exception e) {
+			LOGGER.error("Failed while delete division {} with exception {}", id, e.getMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 	@Override
@@ -167,7 +178,20 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 			"application/json" }, method = RequestMethod.PUT)
 	public ResponseEntity<DivisionResponseVO> update(
 			@ApiParam(value = "Request Body that contains data required for updating division.", required = true) @Valid @RequestBody DivisionRequestVO divisionRequestVO) {
-		return divisionService.updateDivision(divisionRequestVO);
+		try {
+			return divisionService.updateDivision(divisionRequestVO);
+		} catch (Exception e) {
+			LOGGER.error("Division with id {} cannot be edited. Failed due to internal error {} ",
+					divisionRequestVO.getData().getId(), e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to update due to internal error. " + e.getMessage());
+			messages.add(message);
+			DivisionResponseVO response = new DivisionResponseVO();
+			response.setErrors(messages);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 }
