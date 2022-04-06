@@ -54,15 +54,15 @@ services:
     container_name: app-db
     restart: on-failure
     environment:
-      - "POSTGRES_USER=postgres"
-      - "POSTGRES_PASSWORD=postgres"
-      - "POSTGRES_DB=db"
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
     volumes:
       - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/01-update-script.sql:/docker-entrypoint-initdb.d/01-updatescript.sql
       - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/02-schema-creation.sql:/docker-entrypoint-initdb.d/02-schema-creation.sql
       - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/03-schema-data.sql:/docker-entrypoint-initdb.d/02-schema-data.sql
     ports:
-      - "5432:5432"
+      - 5432:5432
 
   app-backend:
     image: dna/app-backend
@@ -129,7 +129,7 @@ services:
       - broker
       - app-frontend
     ports:
-      - "7171:7171"
+      - 7171:7171
     deploy:
       restart_policy:
         condition: on-failure
@@ -154,7 +154,7 @@ services:
     depends_on:
       - app-db
     ports:
-      - "7173:7173"
+      - 7173:7173
     deploy:
       restart_policy:
         condition: on-failure
@@ -257,7 +257,7 @@ services:
     image: confluentinc/cp-kafka:7.0.1
     container_name: broker
     ports:
-      - "29092:29092"
+      - 29092:29092
     depends_on:
       - zookeeper
     environment:
