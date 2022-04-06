@@ -739,23 +739,28 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 			boolean hasPolicy = false;
 
-			// Iterating over policies
-			for (String policy : policies) {
-				// Checking whether user has policy
-				if (userPolicy.contains(policy)) {
-					hasPolicy = true;
+			// To check if user has any policy
+			if (StringUtils.hasText(userPolicy)) {
+				// Iterating over policies
+				for (String policy : policies) {
+					// Checking whether user has policy
+					if (userPolicy.contains(policy)) {
+						hasPolicy = true;
 
-					// Removing policy
-					userPolicy=userPolicy.replace(policy, "");
+						// Removing policy
+						userPolicy = userPolicy.replace(policy, "");
+					}
 				}
 			}
+
+			// To check if user has specified policy
 			if (hasPolicy) {
 				// user has policy
 				LOGGER.debug("Updating policy for user:{}", userId);
-				if(StringUtils.hasText(userPolicy)) {
+				if (StringUtils.hasText(userPolicy) && !userPolicy.chars().allMatch(c -> c == ',')) {
 					minioAdminClient.setPolicy(userId, false, userPolicy);
 				}
-	
+
 				// updating cache
 				UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
 						userInfo.memberOf());
