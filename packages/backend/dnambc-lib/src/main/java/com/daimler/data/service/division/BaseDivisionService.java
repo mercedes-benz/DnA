@@ -160,7 +160,7 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
-		if (userInfoService.isAdmin(userId)) {
+		if (!userInfoService.isAdmin(userId)) {
 			MessageDescription notAuthorizedMsg = new MessageDescription();
 			notAuthorizedMsg.setMessage("Not authorized to delete division. User does not have admin privileges.");
 			LOGGER.debug("Division with id {} cannot be deleted. User {} not authorized", id, userId);
@@ -187,7 +187,7 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 		DivisionVO vo = divisionRequestVO.getData();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
-		if (!userInfoService.isAdmin(userId)) {
+		if (userInfoService.isAdmin(userId)) {
 			String id = vo.getId();
 			DivisionVO existingVO = super.getById(id);
 			DivisionVO mergedDivisionVO = null;
