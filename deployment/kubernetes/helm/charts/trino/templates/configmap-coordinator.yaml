@@ -52,7 +52,7 @@ data:
     discovery.uri=http://localhost:{{ .Values.service.port }}
 
   {{- if .Values.authentication.oidc.enabled }}
-    http-server.authentication.type=oauth2
+    http-server.authentication.type=oauth2,PASSWORD
     web-ui.authentication.type=oauth2
     http-server.process-forwarded=true
 
@@ -65,7 +65,10 @@ data:
     http-server.authentication.oauth2.userinfo-url={{ .Values.authentication.oidc.userInfoUrl }}
     http-server.authentication.oauth2.scopes={{ .Values.authentication.oidc.scopes }}
     http-server.authentication.oauth2.principal-field={{ .Values.authentication.oidc.claim }}
+  {{- else }}
+    http-server.authentication.type=PASSWORD
   {{- end }}
+
   {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
   {{- end }}
@@ -90,5 +93,14 @@ data:
     immuta.apikey={{ .Values.immuta.apiKey }}
     immuta.catalogs=immuta
   {{- end }}
+
+  password-authenticator.properties: |
+    password-authenticator.name=file
+    file.password-file={{ .Values.server.config.path }}/password.db
+
+  password.db: |
+    {{ .Values.authentication.password.user }}:{{ .Values.authentication.password.bcryptPass }}
+
+
 
 ---
