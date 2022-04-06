@@ -402,8 +402,8 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				} else if (category.equals(TAG_CATEGORY.DIVISION)) {
 					LOGGER.debug("Deleting Division:{} from solutions.", tagName);
 					SolutionDivision soldivision = solutionNsql.getData().getDivision();
-					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getName())
-							&& soldivision.getName().equals(tagName)) {
+					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
+							&& soldivision.getId().equals(tagName)) {
 						soldivision.setName(null);
 						soldivision.setId(null);
 						soldivision.setSubdivision(null);
@@ -428,9 +428,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				if (category.equals(TAG_CATEGORY.DIVISION)) {
 					SolutionDivision soldivision = solutionNsql.getData().getDivision();
 					DivisionVO divisionVO = (DivisionVO) updateObject;
-					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getName())
-							&& soldivision.getName().equals(oldValue)) {
-						soldivision.setName(newValue.toUpperCase());
+					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
+							&& soldivision.getId().equals(divisionVO.getId())) {
+						soldivision.setName(divisionVO.getName().toUpperCase());
 						SubDivision subdivision = soldivision.getSubdivision();
 						List<SubdivisionVO> subdivisionlist = divisionVO.getSubdivisions();
 						if (Objects.nonNull(subdivision)) {
