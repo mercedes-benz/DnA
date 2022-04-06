@@ -52,6 +52,7 @@ public class MinioGenericResponse {
 	// private List<UserVO> users;
 	private List<String> policies;
 	private List<Bucket> buckets;
+	private Bucket bucket;
 	private ObjectMetadataVO objectMetadata;
 	private UserVO user;
 	private List<BucketObjectVO> objects;

@@ -69,7 +69,6 @@ import io.minio.admin.UserInfo;
 import io.minio.messages.Bucket;
 
 @Service
-@SuppressWarnings(value = "unused")
 public class BasePersistenceService implements PersistenceService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BasePersistenceService.class);
@@ -202,6 +201,31 @@ public class BasePersistenceService implements PersistenceService {
 			messages.add(message);
 		} else {
 			LOGGER.info("Bucket not exists proceed to make new bucket.");
+		}
+
+		return messages;
+	}
+	
+	/*
+	 * To validate update bucket.
+	 * 
+	 */
+	private List<MessageDescription> validateUpdateBucket(BucketVo bucketVo) {
+		List<MessageDescription> messages = new ArrayList<MessageDescription>();
+		MessageDescription message = null;
+		LOGGER.debug("Check if bucket already exists.");
+		Boolean isBucketExists = dnaMinioClient.isBucketExists(bucketVo.getBucketName());
+		if (isBucketExists == null) {
+			message = new MessageDescription();
+			message.setMessage("Error occurred while validating bucket: " + bucketVo.getBucketName());
+			messages.add(message);
+		} else if (!isBucketExists) {
+			LOGGER.info("Bucket:{} not found.", bucketVo.getBucketName());
+			message = new MessageDescription();
+			message.setMessage("Bucket:{} "+bucketVo.getBucketName()+ "not found");
+			messages.add(message);
+		} else {
+			LOGGER.info("Bucket:{} exists.",bucketVo.getBucketName());
 		}
 
 		return messages;
@@ -542,4 +566,89 @@ public class BasePersistenceService implements PersistenceService {
 		return messages;
 	}
 
+	@Override
+	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo) {
+		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+		LOGGER.debug("Validate Bucket before update.");
+		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
+		if (!ObjectUtils.isEmpty(errors)) {
+			responseVO.setStatus(ConstantsUtility.FAILURE);
+			responseVO.setErrors(errors);
+			httpStatus = HttpStatus.BAD_REQUEST;
+		} else {
+			LOGGER.info("Onboarding collaborators");
+			if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
+				for (UserVO userVO : bucketVo.getCollaborators()) {
+					if (Objects.nonNull(userVO.getPermission())) {
+						List<String> policies = new ArrayList<String>();
+						if (userVO.getPermission().isRead() != null && userVO.getPermission().isRead()) {
+							LOGGER.debug("Setting READ access.");
+							policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READ);
+						}
+						if (userVO.getPermission().isWrite() && userVO.getPermission().isWrite()) {
+							LOGGER.debug("Setting READ/WRITE access.");
+							policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READWRITE);
+						}
+
+						LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
+						MinioGenericResponse onboardUserResponse = dnaMinioClient
+								.onboardUserMinio(userVO.getAccesskey().toUpperCase(), policies);
+						if (onboardUserResponse != null
+								&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+							LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());
+							httpStatus = onboardUserResponse.getHttpStatus();
+						} else {
+							LOGGER.info("Collaborator:{} onboarding failed", userVO.getAccesskey());
+							responseVO.setErrors(getMessages(onboardUserResponse.getErrors()));
+							responseVO.setStatus(onboardUserResponse.getStatus());
+							httpStatus = onboardUserResponse.getHttpStatus();
+							break;
+						}
+					} else {
+						LOGGER.info("Collaborator:{} onboarding not possible since permission is not given.",
+								userVO.getAccesskey());
+					}
+				}
+
+			}
+
+		}
+
+		responseVO.setData(bucketVo);
+		return new ResponseEntity<>(responseVO, httpStatus);
+	}
+
+	@Override
+	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName) {
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		BucketResponseVO bucketResponseVO = new BucketResponseVO();
+
+		List<MessageDescription> errors = new ArrayList<MessageDescription>();
+		LOGGER.debug("Check if bucket exists.");
+		Boolean isBucketExists = dnaMinioClient.isBucketExists(bucketName);
+		if (!isBucketExists) {
+			httpStatus = HttpStatus.NOT_FOUND;
+			errors.add(new MessageDescription("Bucket not found."));
+			//bucketResponseVO.setStatus(ConstantsUtility.FAILURE);
+		} else {
+			LOGGER.debug("Fetching Current user.");
+			String currentUser = userStore.getUserInfo().getId();
+
+			// Setting bucket details
+			bucketResponseVO.setBucketName(bucketName);
+			bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucketName, currentUser));
+			bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
+			
+			httpStatus = HttpStatus.OK;
+			//responseWrapperVO.setStatus(ConstantsUtility.SUCCESS);
+			errors = null;
+		}
+
+		//responseWrapperVO.setErrors(errors);
+		return new ResponseEntity<>(bucketResponseVO, httpStatus);
+	}
+
+	
 }
