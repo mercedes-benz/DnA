@@ -50,7 +50,9 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketRequestVO;
+import com.daimler.data.dto.persistence.BucketResponseVO;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
+import com.daimler.data.dto.persistence.BucketVo;
 import com.daimler.data.dto.persistence.UserRefreshWrapperVO;
 import com.daimler.data.service.persistence.PersistenceService;
 
@@ -255,6 +257,41 @@ public class PersistenceController implements PersistenceApi {
 	public ResponseEntity<GenericMessage> deleteBucket(
 			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName) {
 		return persistenceService.deleteBucket(bucketName);
+	}
+
+	@Override
+	@ApiOperation(value = "Update existing Bucket", nickname = "updateBucket", notes = "Bucket will be updated with this api", response = BucketResponseWrapperVO.class, tags = {
+			"persistence", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of succes or failure ", response = BucketResponseWrapperVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = BucketResponseWrapperVO.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/buckets", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<BucketResponseWrapperVO> updateBucket(
+			@ApiParam(value = "Request Body that contains data to update an existing bucket", required = true) @Valid @RequestBody BucketRequestVO bucketRequestVO) {
+		return persistenceService.updateBucket(bucketRequestVO.getData());
+	}
+
+	@Override
+    @ApiOperation(value = "Get bucket by name.", nickname = "getByBucketName", notes = "Get bucket identified by bucketName.", response = BucketResponseVO.class, tags={ "persistence", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of succes or failure", response = BucketResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/buckets/{bucketName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<BucketResponseVO> getByBucketName(@ApiParam(value = "Bucket name which need to be fetched.",required=true) @PathVariable("bucketName") String bucketName) {
+		return persistenceService.getByBucketName(bucketName);
 	}
 
 }
