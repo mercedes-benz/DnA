@@ -167,7 +167,9 @@ spec:
             - name: FLYWAY_SCHEMA
               value: {{ .Values.app.backend.config.flywaySchema | quote }}
             - name: JWT_TOKEN_EXPIRY_TIME_IN_MIN
-              value: "90"             
+              value: "90"   
+            - name: DASHBOARD_URI
+              value: {{ .Values.app.backend.config.dashboardUri }}         
           image: {{ .Values.app.backend.image }}
           imagePullPolicy: Always
           name: backend
