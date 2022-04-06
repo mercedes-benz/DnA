@@ -72,7 +72,7 @@ export const ConnectionModal = () => {
         `}
     </code>
   );
-  console.log(showSecretKey);
+
   return (
     <div>
       <div className={Styles.accessDetails}>
@@ -97,13 +97,7 @@ export const ConnectionModal = () => {
                 {bucketInfo?.accessInfo?.accesskey}
               </td>
               <td>
-                <span
-                  className="copy-icon"
-                  style={{
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => copyToClipboard(bucketInfo?.accessInfo?.accesskey)}
-                >
+                <span className={Styles.copyIcon} onClick={() => copyToClipboard(bucketInfo?.accessInfo?.accesskey)}>
                   <i className="icon mbc-icon copy" />
                 </span>
               </td>
@@ -136,13 +130,7 @@ export const ConnectionModal = () => {
                 )}
               </td>
               <td>
-                <span
-                  className="copy-icon"
-                  style={{
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => copyToClipboard(bucketInfo?.accessInfo?.secretKey)}
-                >
+                <span className={Styles.copyIcon} onClick={() => copyToClipboard(bucketInfo?.accessInfo?.secretKey)}>
                   <i className="icon mbc-icon copy" />
                 </span>
               </td>
@@ -169,11 +157,7 @@ export const ConnectionModal = () => {
           <div className={classNames('tabs-content-wrapper', Styles.tabsContentWrapper)}>
             <div id="tab-content-1" className={classNames('tab-content', Styles.tabContentContainer)}>
               <span
-                className="copy-icon"
-                style={{
-                  float: 'right',
-                  cursor: 'pointer',
-                }}
+                className={Styles.copyIcon}
                 onClick={() => {
                   const content = document.getElementById('tab-content-1')?.innerText;
                   copyToClipboard(content);

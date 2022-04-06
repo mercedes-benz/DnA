@@ -1,7 +1,8 @@
-import server from '../../../server/api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import { history } from '../../../store/storeRoot';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import { bucketsObjectApi } from '../../../apis/fileExplorer.api';
+import { serializeAllObjects, serializeObjects } from '../../Bucket/Utils';
 
 export const setFiles = (bucketName, historyPush = true) => {
   return async (dispatch) => {
@@ -12,41 +13,10 @@ export const setFiles = (bucketName, historyPush = true) => {
     ProgressIndicator.show();
 
     try {
-      const res = await server.get(`/buckets/${bucketName}/objects`, { data: {} });
-      if (res?.data?.data?.bucketObjects?.length) {
-        let result = {};
-        let childrenIds = [];
-        let ids = [];
-        res.data.data.bucketObjects.forEach((item) => {
-          childrenIds.push({
-            parentId: bucketName,
-            name: item.objectName.replaceAll('/', ''),
-            id: item.objectName.replaceAll(/(\.|\/)/g, '').replaceAll(' ', ''),
-            ...item,
-          });
-          ids.push(item.objectName.replaceAll(/(\.|\/)/g, '').replaceAll(' ', ''));
-
-          result[bucketName] = {
-            name: bucketName,
-            id: bucketName,
-            isDir: true,
-            childrenCount: res.data.data.bucketObjects.length,
-            childrenIds: ids,
-            objectName: `${bucketName}/`,
-          };
-          return item;
-        });
-        childrenIds.forEach((child) => {
-          result[child.id] = {
-            id: child.id,
-            name: child.name,
-            parentId: child.parentId,
-            modDate: child.lastModified,
-            // childrenIds: [],
-            ...child,
-          };
-          return child;
-        });
+      const res = await bucketsObjectApi.getAllBucketObjects(bucketName);
+      const { data } = res.data;
+      if (data?.bucketObjects?.length) {
+        const result = serializeAllObjects(data, bucketName);
         dispatch({
           type: 'UPDATE_ROOT_FOLDER',
           payload: bucketName,
@@ -97,43 +67,11 @@ export const setFiles = (bucketName, historyPush = true) => {
         payload: false,
       });
       ProgressIndicator.hide();
-      Notification.show(e?.response?.data?.message ? e.response.data.message : 'Something went wrong', 'alert');
-      history.push('/');
-    }
-  };
-};
-
-export const deleteFiles = (bucketName, filesName, files) => {
-  return async (dispatch) => {
-    dispatch({
-      type: 'FILE_LOADING',
-      payload: true,
-    });
-    ProgressIndicator.show();
-    try {
-      server
-        .delete(`/buckets/${bucketName}/objects`, {
-          params: {
-            prefix: `${filesName}`,
-          },
-          data: {},
-        })
-        .then(() => {
-          dispatch({
-            type: 'SET_FILES',
-            payload: files,
-          });
-          dispatch({
-            type: 'FILE_LOADING',
-            payload: false,
-          });
-          ProgressIndicator.hide();
-        });
-    } catch (e) {
-      ProgressIndicator.hide();
       Notification.show(
-        e?.response?.data?.message ? e.response.data.message : 'Error while deleting. Please try again.',
+        e.response.data.errors?.length ? e.response.data.errors[0].message : 'Error fetching bucket list.',
+        'alert',
       );
+      history.push('/');
     }
   };
 };
@@ -148,52 +86,13 @@ export const getFiles = (files, bucketName, fileToOpen) => {
     });
     ProgressIndicator.show();
     try {
-      const res = await server.get(`/buckets/${bucketName}/objects`, {
-        data: {},
-        params: {
-          prefix: fileToOpen.name === bucketName ? '/' : fileToOpen.objectName,
-        },
-      });
+      const prefix = fileToOpen.name === bucketName ? '/' : fileToOpen.objectName;
+      const res = await bucketsObjectApi.getObjects(bucketName, prefix);
 
       if (res?.data) {
-        let result = {};
-        let childrenIds = [];
-        let ids = [];
-        res.data.data.bucketObjects.forEach((item) => {
-          const splitName = item?.objectName.split('/');
-          const name = item.isDir ? splitName[splitName?.length - 2] : splitName[splitName?.length - 1];
+        const { data } = res.data;
+        const result = serializeObjects(data, fileToOpen);
 
-          childrenIds.push({
-            parentId: fileToOpen.id,
-            name: name,
-            id: item.objectName.replaceAll(/(\.|\/)/g, '').replaceAll(' ', ''),
-            ...item,
-          });
-          ids.push(item.objectName.replaceAll(/(\.|\/)/g, '').replaceAll(' ', ''));
-
-          result[fileToOpen.id] = {
-            name: fileToOpen.name,
-            id: fileToOpen.id,
-            isDir: true,
-            childrenCount: res.data.data.bucketObjects.length,
-            childrenIds: ids,
-            parentId: fileToOpen?.parentId,
-            objectName: fileToOpen.objectName,
-          };
-          return item;
-        });
-
-        childrenIds.forEach((child) => {
-          result[child.id] = {
-            id: child.id,
-            name: child.name,
-            parentId: child.parentId,
-            modDate: child.lastModified,
-            isDir: child.isDir,
-            ...child,
-          };
-          return child;
-        });
         dispatch({
           type: 'SET_FILES',
           payload: { ...copyFiles, ...result },
@@ -217,7 +116,7 @@ export const getFiles = (files, bucketName, fileToOpen) => {
       });
       ProgressIndicator.hide();
       Notification.show(
-        e?.response?.data?.message ? e.response.data.message : 'Error while fetching bucket objects',
+        e.response.data.errors?.length ? e.response.data.errors[0].message : 'Error while fetching bucket objects',
         'alert',
       );
       history.push('/');
@@ -225,25 +124,50 @@ export const getFiles = (files, bucketName, fileToOpen) => {
   };
 };
 
-export const downloadFoldersOrFiles = (fileName, fileOrFolder) => {
+export const downloadFoldersOrFiles = (bucketName, fileOrFolder) => {
   return () => {
-    server
-      .get(`/buckets/${fileName}/objects/metadata`, {
-        data: {},
-        params: {
-          prefix: fileOrFolder.objectName,
-        },
-        responseType: 'blob',
-      })
+    ProgressIndicator.show();
+    bucketsObjectApi
+      .downloadObjects(bucketName, fileOrFolder.objectName)
       .then((res) => {
         const url = window.URL.createObjectURL(new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }));
         const link = document.createElement('a');
         link.download = fileOrFolder.name;
         link.href = url;
         link.click();
+        ProgressIndicator.hide();
       })
       .catch(() => {
+        ProgressIndicator.hide();
         Notification.show('Error while downloading. Please try again later.', 'alert');
       });
+  };
+};
+
+export const deleteFiles = (bucketName, filesPath, files) => {
+  return async (dispatch) => {
+    dispatch({
+      type: 'FILE_LOADING',
+      payload: true,
+    });
+    ProgressIndicator.show();
+    try {
+      bucketsObjectApi.deleteObjects(bucketName, filesPath).then(() => {
+        dispatch({
+          type: 'SET_FILES',
+          payload: files,
+        });
+        dispatch({
+          type: 'FILE_LOADING',
+          payload: false,
+        });
+        ProgressIndicator.hide();
+      });
+    } catch (e) {
+      ProgressIndicator.hide();
+      Notification.show(
+        e?.response?.data?.message ? e.response.data.message : 'Error while deleting an object. Please try again.',
+      );
+    }
   };
 };
