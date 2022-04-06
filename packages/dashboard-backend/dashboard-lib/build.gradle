@@ -132,6 +132,21 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+    
+    division {
+        def divisionyaml = "${rootDir}/dashboard-lib/src/main/resources/api/Division.yaml"
+        def divisionJson = "${rootDir}/dashboard-lib/src/main/resources/api/Division.json"
+        inputFile = file(divisionyaml)
+
+        def ignoreFile = "${rootDir}/dashboard-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(divisionJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }    
         
 }
 
@@ -149,7 +164,9 @@ compileJava {
     dependsOn swaggerSources.datawarehouse.code
     source "${swaggerSources.datawarehouse.code.outputDir}/src/main/java"
     dependsOn swaggerSources.userwidgetpreference.code
-    source "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java"         
+    source "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.division.code
+    source "${swaggerSources.division.code.outputDir}/src/main/java"            
 }
 
 sourceSets {
@@ -165,6 +182,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datawarehouse.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }
     }
 }
 

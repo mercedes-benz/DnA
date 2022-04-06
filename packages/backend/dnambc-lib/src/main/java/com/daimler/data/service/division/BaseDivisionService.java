@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityNotFoundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +43,7 @@ import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DivisionAssembler;
+import com.daimler.data.client.dashboard.DashboardClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DivisionNsql;
@@ -83,6 +82,9 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 	@Autowired
 	private UserInfoService userInfoService;
 
+	@Autowired
+	private DashboardClient dashboardClient;
+
 	public BaseDivisionService() {
 		super();
 	}
@@ -117,79 +119,61 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 	public ResponseEntity<DivisionResponseVO> createDivision(DivisionRequestVO divisionRequestVO) {
 		DivisionVO vo = divisionRequestVO.getData();
 		DivisionResponseVO responseVO = new DivisionResponseVO();
-		try {
-			CreatedByVO currentUser = this.userStore.getVO();
-			String userId = currentUser != null ? currentUser.getId() : "";
-			if (userInfoService.isAdmin(userId)) {
-				DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
-				if (existingDivisionVO != null && existingDivisionVO.getName() != null) {
-					LOGGER.debug("Division {} already exists", vo.getName());
-					responseVO.setData(existingDivisionVO);
-					return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
-				}
-				vo.setId(null);
-				DivisionVO divisionVO = super.create(vo);
-				if (divisionVO != null && divisionVO.getId() != null) {
-					LOGGER.info("New division {} created successfully", vo.getName());
-					responseVO.setData(divisionVO);
-					return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
-				} else {
-					LOGGER.error("Failed to create new division {} with unknown exception", vo.getName());
-					return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-				}
-			} else {
-				LOGGER.debug("Division cannot be created. User {} not authorized", userId);
-				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage("Not authorized to create division. User does not have admin privileges.");
-				notAuthorizedMsgs.add(notAuthorizedMsg);
-				responseVO.setErrors(notAuthorizedMsgs);
-				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (userInfoService.isAdmin(userId)) {
+			DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
+			if (existingDivisionVO != null && existingDivisionVO.getName() != null) {
+				LOGGER.debug("Division {} already exists", vo.getName());
+				responseVO.setData(existingDivisionVO);
+				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
-		} catch (Exception e) {
-			LOGGER.error("Failed to create new division {} with exception {} ", vo.getName(), e.getLocalizedMessage());
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			vo.setId(null);
+			DivisionVO divisionVO = super.create(vo);
+			if (divisionVO != null && divisionVO.getId() != null) {
+				LOGGER.info("New division {} created successfully", vo.getName());
+				responseVO.setData(divisionVO);
+				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
+			} else {
+				LOGGER.error("Failed to create new division {} with unknown exception", vo.getName());
+				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} else {
+			LOGGER.debug("Division cannot be created. User {} not authorized", userId);
+			List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage("Not authorized to create division. User does not have admin privileges.");
+			notAuthorizedMsgs.add(notAuthorizedMsg);
+			responseVO.setErrors(notAuthorizedMsgs);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}
 	}
 
 	@Override
 	@Transactional
 	public ResponseEntity<GenericMessage> deleteDivision(String id) {
-		try {
-			CreatedByVO currentUser = this.userStore.getVO();
-			String userId = currentUser != null ? currentUser.getId() : "";
-			if (!userInfoService.isAdmin(userId)) {
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage("Not authorized to delete division. User does not have admin privileges.");
-				LOGGER.debug("Division with id {} cannot be deleted. User {} not authorized", id, userId);
-				GenericMessage errorMessage = new GenericMessage();
-				errorMessage.addErrors(notAuthorizedMsg);
-				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-			}
-			DivisionNsql divisionEntity = jpaRepo.getOne(id);
-			String divName = divisionEntity.getData().getName();
-			LOGGER.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to division {}",
-					id);
-			solutionService.deleteTagForEachSolution(divName, null, SolutionService.TAG_CATEGORY.DIVISION);
-			deleteById(id);
-			GenericMessage successMsg = new GenericMessage();
-			successMsg.setSuccess("success");
-			LOGGER.info("Division {} deleted successfully", id);
-			return new ResponseEntity<>(successMsg, HttpStatus.OK);
-		} catch (EntityNotFoundException e) {
-			LOGGER.error(e.getLocalizedMessage());
-			MessageDescription invalidMsg = new MessageDescription("No division with the given id");
+
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (!userInfoService.isAdmin(userId)) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage("Not authorized to delete division. User does not have admin privileges.");
+			LOGGER.debug("Division with id {} cannot be deleted. User {} not authorized", id, userId);
 			GenericMessage errorMessage = new GenericMessage();
-			errorMessage.addErrors(invalidMsg);
-			LOGGER.error("No division {} found, unable to delete", id);
-			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-		} catch (Exception e) {
-			LOGGER.error("Failed while delete division {} with exception {}", id, e.getMessage());
-			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
-			GenericMessage errorMessage = new GenericMessage();
-			errorMessage.addErrors(exceptionMsg);
-			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+			errorMessage.addErrors(notAuthorizedMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 		}
+		LOGGER.debug("Calling solutionService to delete cascading refences to division {}", id);
+		solutionService.deleteTagForEachSolution(id, null, SolutionService.TAG_CATEGORY.DIVISION);
+		deleteById(id);
+		LOGGER.debug("Calling dashboardService to delete cascading refences to division {}", id);
+		dashboardClient.deleteDivisionFromEachReport(id);
+		GenericMessage successMsg = new GenericMessage();
+		successMsg.setSuccess("success");
+		LOGGER.info("Division {} deleted successfully", id);
+		return new ResponseEntity<>(successMsg, HttpStatus.OK);
+
 	}
 
 	@Override
@@ -197,75 +181,66 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 	public ResponseEntity<DivisionResponseVO> updateDivision(DivisionRequestVO divisionRequestVO) {
 		DivisionResponseVO response = new DivisionResponseVO();
 		DivisionVO vo = divisionRequestVO.getData();
-		try {
-			CreatedByVO currentUser = this.userStore.getVO();
-			String userId = currentUser != null ? currentUser.getId() : "";
-			if (userInfoService.isAdmin(userId)) {
-				String id = vo.getId();
-				DivisionVO existingVO = super.getById(id);
-				DivisionVO mergedDivisionVO = null;
-				if (existingVO != null && existingVO.getId() != null) {
-					String uniqueDivisionName = vo.getName();
-					DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
-					if (existingDivisionVO != null && existingDivisionVO.getName() != null
-							&& !existingDivisionVO.getId().equals(id)) {
-						response.setData(existingDivisionVO);
-						List<MessageDescription> messages = new ArrayList<>();
-						MessageDescription message = new MessageDescription();
-						message.setMessage("Division already exists.");
-						messages.add(message);
-						response.setErrors(messages);
-						LOGGER.debug("Division {} already exists, returning as CONFLICT", uniqueDivisionName);
-						return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-					}
-					solutionService.updateForEachSolution(existingVO.getName(), uniqueDivisionName,
-							SolutionService.TAG_CATEGORY.DIVISION, vo);
-					mergedDivisionVO = super.create(vo);
-					if (mergedDivisionVO != null && mergedDivisionVO.getId() != null) {
-						response.setData(mergedDivisionVO);
-						response.setErrors(null);
-						LOGGER.debug("Division with id {} updated successfully", id);
-						return new ResponseEntity<>(response, HttpStatus.OK);
-					} else {
-						List<MessageDescription> messages = new ArrayList<>();
-						MessageDescription message = new MessageDescription();
-						message.setMessage("Failed to update due to internal error");
-						messages.add(message);
-						response.setData(vo);
-						response.setErrors(messages);
-						LOGGER.debug("Division with id {} cannot be edited. Failed with unknown internal error", id);
-						return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-					}
-
-				} else {
-					List<MessageDescription> notFoundmessages = new ArrayList<>();
-					MessageDescription notFoundmessage = new MessageDescription();
-					notFoundmessage.setMessage("No Division found for given id. Update cannot happen");
-					notFoundmessages.add(notFoundmessage);
-					response.setErrors(notFoundmessages);
-					LOGGER.debug("No Division found for given id {} , update cannot happen.", id);
-					return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (userInfoService.isAdmin(userId)) {
+			String id = vo.getId();
+			DivisionVO existingVO = super.getById(id);
+			DivisionVO mergedDivisionVO = null;
+			if (existingVO != null && existingVO.getId() != null) {
+				String uniqueDivisionName = vo.getName();
+				DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
+				if (existingDivisionVO != null && existingDivisionVO.getName() != null
+						&& !existingDivisionVO.getId().equals(id)) {
+					response.setData(existingDivisionVO);
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Division already exists.");
+					messages.add(message);
+					response.setErrors(messages);
+					LOGGER.debug("Division {} already exists, returning as CONFLICT", uniqueDivisionName);
+					return new ResponseEntity<>(response, HttpStatus.CONFLICT);
 				}
+				LOGGER.debug("Calling solutionService to update cascading refences to division {}", id);
+				solutionService.updateForEachSolution(id, "", SolutionService.TAG_CATEGORY.DIVISION, vo);
+				mergedDivisionVO = super.create(vo);
+				if (mergedDivisionVO != null && mergedDivisionVO.getId() != null) {
+					LOGGER.debug("Calling dashboardService to update cascading refences to division {}", id);
+					dashboardClient.updateDivisionFromEachReport(vo);
+					response.setData(mergedDivisionVO);
+					response.setErrors(null);
+					LOGGER.debug("Division with id {} updated successfully", id);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				} else {
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Failed to update due to internal error");
+					messages.add(message);
+					response.setData(vo);
+					response.setErrors(messages);
+					LOGGER.debug("Division with id {} cannot be edited. Failed with unknown internal error", id);
+					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+
 			} else {
-				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage("Not authorized to update division. Only user with admin role can update.");
-				notAuthorizedMsgs.add(notAuthorizedMsg);
-				response.setErrors(notAuthorizedMsgs);
-				LOGGER.debug("Division with id {} cannot be edited. User not authorized", vo.getId());
-				return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+				List<MessageDescription> notFoundmessages = new ArrayList<>();
+				MessageDescription notFoundmessage = new MessageDescription();
+				notFoundmessage.setMessage("No Division found for given id. Update cannot happen");
+				notFoundmessages.add(notFoundmessage);
+				response.setErrors(notFoundmessages);
+				LOGGER.debug("No Division found for given id {} , update cannot happen.", id);
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
-		} catch (Exception e) {
-			LOGGER.error("Division with id {} cannot be edited. Failed due to internal error {} ", vo.getId(),
-					e.getMessage());
-			List<MessageDescription> messages = new ArrayList<>();
-			MessageDescription message = new MessageDescription();
-			message.setMessage("Failed to update due to internal error. " + e.getMessage());
-			messages.add(message);
-			response.setData(vo);
-			response.setErrors(messages);
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		} else {
+			List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage("Not authorized to update division. Only user with admin role can update.");
+			notAuthorizedMsgs.add(notAuthorizedMsg);
+			response.setErrors(notAuthorizedMsgs);
+			LOGGER.debug("Division with id {} cannot be edited. User not authorized", vo.getId());
+			return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
 		}
+
 	}
 
 }
