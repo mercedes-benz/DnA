@@ -138,7 +138,7 @@ backend:
         flywayBaselineOnMigrate: "true"
         flywayBaselineVersion: "0"
         flywaySchema: "public"
-        dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:80/dashboards
+        dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173/dashboards
 
     vault:
       secret:
