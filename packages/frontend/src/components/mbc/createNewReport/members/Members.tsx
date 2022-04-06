@@ -40,6 +40,7 @@ export interface IMembersState {
     productOwner: string;
     admin: string;
   };
+  hideTeamPosition: boolean;
 }
 
 export interface IAttachmentResponse {
@@ -87,6 +88,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         productOwner: '',
         admin: '',
       },
+      hideTeamPosition: true
     };
   }
 
@@ -243,6 +245,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
             editMode={this.state.editTeamMember}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
             teamMember={this.state.teamMemberObj}
+            hideTeamPosition={this.state.hideTeamPosition}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
             validateMemebersList={this.validateMembersList}
@@ -259,17 +262,17 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
     }
   };
   protected addDeveloperMember = () => {
-    this.setState({ addTeamMemberInController: false, addAdminInController: false }, () => {
+    this.setState({ addTeamMemberInController: false, addAdminInController: false, hideTeamPosition: false }, () => {
       this.showAddTeamMemberModalView();
     });
   };
   protected addProductOwnerMember = () => {
-    this.setState({ addTeamMemberInController: true }, () => {
+    this.setState({ addTeamMemberInController: true, hideTeamPosition: false }, () => {
       this.showAddTeamMemberModalView();
     });
   };
   protected addAdminMember = () => {
-    this.setState({ addAdminInController: true, addTeamMemberInController: false }, () => {
+    this.setState({ addAdminInController: true, addTeamMemberInController: false, hideTeamPosition: true }, () => {
       this.showAddTeamMemberModalView();
     });
   };
