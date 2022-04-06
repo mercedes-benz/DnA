@@ -1,5 +1,7 @@
-import { bucketsApi } from '../../apis/buckets.api';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { bucketsApi } from '../../../apis/buckets.api';
+import Notification from '../../../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import { history } from '../../../store/storeRoot';
 
 const getBucketList = () => {
   return async (dispatch, getStore) => {
@@ -14,7 +16,7 @@ const getBucketList = () => {
     bucketsApi
       .getAllBuckets()
       .then((res) => {
-        const totalNumberOfPages = Math.ceil(res?.data?.data.length / pagination.maxItemsPerPage);
+        const totalNumberOfPages = Math.ceil(res?.data?.data?.length / pagination.maxItemsPerPage);
         const modifiedData = res?.data?.data.slice(0, pagination.maxItemsPerPage);
         dispatch({
           type: 'SET_PAGINATION',
@@ -41,32 +43,24 @@ const getBucketList = () => {
         });
         ProgressIndicator.hide();
         Notification.show(
-          e.response.data.message ? e.reponse.data.message : 'Fetching list of storage buckets failed!',
+          e.response.data.errors?.length
+            ? e.response.data.errors[0].message
+            : 'Fetching list of storage buckets failed!',
           'alert',
         );
       });
   };
 };
 
-const setBucketList = (data) => {
+const createBucket = (data) => {
   return async (dispatch) => {
     dispatch({
       type: 'BUCKET_LOADING',
       payload: true,
     });
     ProgressIndicator.show();
-    dispatch({
-      type: 'RESET_BUCKET',
-    });
     try {
       const res = await bucketsApi.createBucket(data);
-      dispatch({
-        type: 'CREATE_BUCKET',
-        payload: {
-          data: res.data.data,
-          accessInfo: res.data.bucketAccessinfo,
-        },
-      });
       dispatch({
         type: 'BUCKET_LOADING',
         payload: false,
@@ -83,18 +77,61 @@ const setBucketList = (data) => {
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',
-        payload: error?.response?.data?.message,
+        payload: error.response.data.errors?.length
+          ? error.response.data.errors[0].message
+          : 'Error while creating a bucket',
       });
       dispatch({
         type: 'BUCKET_LOADING',
         payload: false,
       });
+      Notification.show(
+        error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error while creating a bucket',
+        'alert',
+      );
+      ProgressIndicator.hide();
+    }
+  };
+};
+
+const updateBucket = (data) => {
+  return async (dispatch) => {
+    dispatch({
+      type: 'BUCKET_LOADING',
+      payload: true,
+    });
+    ProgressIndicator.show();
+    try {
+      bucketsApi.updateBucket(data).then(() => {
+        dispatch({
+          type: 'BUCKET_LOADING',
+          payload: false,
+        });
+        ProgressIndicator.hide();
+        history.push('/');
+      });
+    } catch (error) {
+      dispatch({
+        type: 'BUCKET_ERROR',
+        payload: error.response.data.errors?.length
+          ? error.response.data.errors[0].message
+          : 'Error while updating a bucket.',
+      });
+      dispatch({
+        type: 'BUCKET_LOADING',
+        payload: false,
+      });
+      Notification.show(
+        error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error while updating a bucket.',
+        'alert',
+      );
       ProgressIndicator.hide();
     }
   };
 };
 
 export const bucketActions = {
-  setBucketList,
   getBucketList,
+  createBucket,
+  updateBucket,
 };
