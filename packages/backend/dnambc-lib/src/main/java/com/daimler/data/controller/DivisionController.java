@@ -135,7 +135,19 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<DivisionResponseVO> create(
 			@ApiParam(value = "Request body that contains data required for creating a new division", required = true) @Valid @RequestBody DivisionRequestVO divisionRequestVO) {
-		return divisionService.createDivision(divisionRequestVO);
+		try {
+			return divisionService.createDivision(divisionRequestVO);
+		} catch (Exception e) {
+			LOGGER.error("Failed to create new division with exception {} ", e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to create due to internal error. " + e.getMessage());
+			messages.add(message);
+			DivisionResponseVO response = new DivisionResponseVO();
+			response.setErrors(messages);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 	@Override
@@ -156,7 +168,8 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 			return divisionService.deleteDivision(id);
 		} catch (Exception e) {
 			LOGGER.error("Failed while delete division {} with exception {}", id, e.getMessage());
-			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			MessageDescription exceptionMsg = new MessageDescription(
+					"Failed to delete due to internal error. " + e.getMessage());
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);

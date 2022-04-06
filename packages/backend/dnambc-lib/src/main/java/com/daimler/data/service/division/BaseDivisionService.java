@@ -119,38 +119,34 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 	public ResponseEntity<DivisionResponseVO> createDivision(DivisionRequestVO divisionRequestVO) {
 		DivisionVO vo = divisionRequestVO.getData();
 		DivisionResponseVO responseVO = new DivisionResponseVO();
-		try {
-			CreatedByVO currentUser = this.userStore.getVO();
-			String userId = currentUser != null ? currentUser.getId() : "";
-			if (userInfoService.isAdmin(userId)) {
-				DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
-				if (existingDivisionVO != null && existingDivisionVO.getName() != null) {
-					LOGGER.debug("Division {} already exists", vo.getName());
-					responseVO.setData(existingDivisionVO);
-					return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
-				}
-				vo.setId(null);
-				DivisionVO divisionVO = super.create(vo);
-				if (divisionVO != null && divisionVO.getId() != null) {
-					LOGGER.info("New division {} created successfully", vo.getName());
-					responseVO.setData(divisionVO);
-					return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
-				} else {
-					LOGGER.error("Failed to create new division {} with unknown exception", vo.getName());
-					return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-				}
-			} else {
-				LOGGER.debug("Division cannot be created. User {} not authorized", userId);
-				List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage("Not authorized to create division. User does not have admin privileges.");
-				notAuthorizedMsgs.add(notAuthorizedMsg);
-				responseVO.setErrors(notAuthorizedMsgs);
-				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (userInfoService.isAdmin(userId)) {
+			DivisionVO existingDivisionVO = super.getByUniqueliteral("name", vo.getName());
+			if (existingDivisionVO != null && existingDivisionVO.getName() != null) {
+				LOGGER.debug("Division {} already exists", vo.getName());
+				responseVO.setData(existingDivisionVO);
+				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
-		} catch (Exception e) {
-			LOGGER.error("Failed to create new division {} with exception {} ", vo.getName(), e.getLocalizedMessage());
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			vo.setId(null);
+			DivisionVO divisionVO = super.create(vo);
+			if (divisionVO != null && divisionVO.getId() != null) {
+				LOGGER.info("New division {} created successfully", vo.getName());
+				responseVO.setData(divisionVO);
+				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
+			} else {
+				LOGGER.error("Failed to create new division {} with unknown exception", vo.getName());
+				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} else {
+			LOGGER.debug("Division cannot be created. User {} not authorized", userId);
+			List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage("Not authorized to create division. User does not have admin privileges.");
+			notAuthorizedMsgs.add(notAuthorizedMsg);
+			responseVO.setErrors(notAuthorizedMsgs);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}
 	}
 
