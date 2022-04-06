@@ -66,9 +66,9 @@ schemes:
 - "https"
 
 paths:
-  # path to create a new bucket and fetch all valid buckets for user
+  # path to create,update bucket and fetch all valid buckets for user
   #
-  #  supprorted http methods GET, POST
+  #  supprorted http methods GET, POST, PUT
   #
   # path example ../buckets
  /buckets:
@@ -126,13 +126,74 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"     
+
+  put:
+   tags:
+    - "persistence"
+   summary: "Update existing Bucket"
+   description: "Bucket will be updated with this api"
+   operationId: "updateBucket"
+   parameters:
+    - name: "bucketRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data to update an existing bucket" 
+      required: true
+      schema:
+       $ref: "#/definitions/BucketRequestVO"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"     
   
   # path to delete an empty bucket
   #
-  #  supprorted http methods DELETE
+  #  supprorted http methods GET, DELETE
   #
   # path example ../buckets/{bucketName}
  /buckets/{bucketName}:
+  get:
+    tags:
+     - "persistence"
+    summary: "Get bucket by name."
+    description:  "Get bucket identified by bucketName."
+    operationId: "getByBucketName"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name which need to be fetched." 
+       required: true
+       type: string
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/BucketResponseVO"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"    
+  
   delete:
     tags:
      - "persistence"

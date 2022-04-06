@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.persistence.BucketCollectionVO;
 import com.daimler.data.dto.persistence.BucketObjectResponseWrapperVO;
+import com.daimler.data.dto.persistence.BucketResponseVO;
 import com.daimler.data.dto.persistence.BucketResponseWrapperVO;
 import com.daimler.data.dto.persistence.BucketVo;
 import com.daimler.data.dto.persistence.UserRefreshWrapperVO;
@@ -125,5 +126,21 @@ public interface PersistenceService {
 	 * @return ResponseEntity<GenericMessage>
 	 */
 	public ResponseEntity<GenericMessage> deleteBucket(String bucketName);
+	
+	/**
+	 * To update bucket along with collaborator
+	 * 
+	 * @param bucketVo
+	 * @return ResponseEntity<BucketResponseWrapperVO>
+	 */
+	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo);
+	
+	/**
+	 * To get bucket details for given bucket name
+	 * 
+	 * @param bucketName
+	 * @return ResponseEntity<BucketResponseVO>
+	 */
+	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName);
 	
 }
