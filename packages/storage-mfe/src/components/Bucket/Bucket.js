@@ -8,7 +8,7 @@ import Styles from './Buckets.scss';
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
 
-import { bucketActions } from '../redux/bucket.actions';
+import { bucketActions } from './redux/bucket.actions';
 
 const AllBuckets = () => {
   const dispatch = useDispatch();
@@ -49,7 +49,7 @@ const AllBuckets = () => {
     });
   };
   const onViewByPageNum = (pageNum) => {
-    const totalNumberOfPages = Math.ceil(bucketListResponse.length / pageNum);
+    const totalNumberOfPages = Math.ceil(bucketListResponse?.length / pageNum);
     const modifiedData = bucketListResponse.slice(0, pageNum);
     dispatch({
       type: 'BUCKET_DATA',
@@ -82,7 +82,7 @@ const AllBuckets = () => {
             <div className={classNames(Styles.listHeader)}>
               <React.Fragment>
                 <div className={classNames(Styles.listHeaderContent)}>
-                  {bucketList.length ? (
+                  {bucketList?.length ? (
                     <React.Fragment>
                       <Link to="createBucket">
                         <button className={bucketList === null ? Styles.btnHide : 'btn btn-primary'} type="button">

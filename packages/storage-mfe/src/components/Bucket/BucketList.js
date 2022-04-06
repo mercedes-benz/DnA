@@ -9,10 +9,14 @@ import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
 
-import { ConnectionModal } from './ConnectionModal';
+import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
 import moment from 'moment';
 import { setFiles } from '../Explorer/redux/fileExplorer.actions';
-import { getConnectionInfo, hideConnectionInfo } from './ConnectionInfo/redux/connection.actions';
+import { getConnectionInfo, hideConnectionInfo } from '../ConnectionInfo/redux/connection.actions';
+import { bucketsApi } from '../../apis/buckets.api';
+import { bucketActions } from './redux/bucket.actions';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 export const BucketList = ({ bucketList }) => {
   const dispatch = useDispatch();
@@ -37,15 +41,38 @@ export const BucketList = ({ bucketList }) => {
   };
 
   const deleteBucketAccept = () => {
-    dispatch({
-      type: 'DELETE_BUCKET',
-      payload: selectedItem,
-    });
+    ProgressIndicator.show();
+    bucketsApi
+      .deleteBucket(selectedItem.bucketName)
+      .then(() => {
+        dispatch(bucketActions.getBucketList());
+      })
+      .catch((e) => {
+        Notification.show(
+          e.response.data.errors?.length
+            ? e.response.data.errors[0].message
+            : 'Error while deleting a bucket. Try again later!',
+          'alert',
+        );
+        ProgressIndicator.hide();
+      });
     setDeleteModal(false);
   };
 
-  const onSubmissionModalCancel = () => {
+  const onConnectionModalClose = () => {
     dispatch(hideConnectionInfo());
+  };
+
+  const displayPermission = (item) => {
+    return Object.entries(item)
+      ?.map(([key, value]) => {
+        if (value === true) {
+          return key;
+        }
+      })
+      ?.filter((x) => !!x) // remove falsy values
+      ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
+      ?.join(' / ');
   };
 
   return (
@@ -98,17 +125,7 @@ export const BucketList = ({ bucketList }) => {
                               {item.bucketName}
                             </a>
                           </div>
-                          <div className={Styles.bucketTitleCol}>
-                            {Object.entries(item?.permission)
-                              .map(([k, v]) => {
-                                if (v === true) {
-                                  return k;
-                                }
-                              })
-                              ?.filter((x) => !!x)
-                              ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1))
-                              ?.join(' / ')}
-                          </div>
+                          <div className={Styles.bucketTitleCol}>{displayPermission(item?.permission)}</div>
                           <div className={Styles.bucketTitleCol}>{moment(item.creationDate).format('DD.MM.YYYY')}</div>
                           <div className={Styles.bucketTitleCol}></div>
                         </div>
@@ -133,15 +150,7 @@ export const BucketList = ({ bucketList }) => {
                                       className={Styles.bucketTitleCol}
                                     >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div> */}
                                     <div className={Styles.bucketTitleCol}>
-                                      {Object.entries(bucketItem?.permission)
-                                        .map(([k, v]) => {
-                                          if (v === true) {
-                                            return k;
-                                          }
-                                        })
-                                        ?.filter((x) => !!x)
-                                        ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1))
-                                        ?.join(' / ')}
+                                      {displayPermission(bucketItem?.permission)}
                                     </div>
 
                                     <div className={Styles.bucketTitleCol}></div>
@@ -221,7 +230,7 @@ export const BucketList = ({ bucketList }) => {
         show={connect?.modal}
         content={<ConnectionModal />}
         hiddenTitle={true}
-        onCancel={onSubmissionModalCancel}
+        onCancel={onConnectionModalClose}
       />
     </>
   );

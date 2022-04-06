@@ -1,6 +1,6 @@
-import Notification from '../../../../common/modules/uilab/js/src/notification';
-import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
-import server from '../../../../server/api';
+import { bucketsApi } from '../../../apis/buckets.api';
+import Notification from '../../../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 export const getConnectionInfo = (bucketName) => {
   return async (dispatch) => {
@@ -10,7 +10,7 @@ export const getConnectionInfo = (bucketName) => {
     });
     ProgressIndicator.show();
     try {
-      const response = await server.get(`/buckets/${bucketName}/connect`, { data: {} });
+      const response = await bucketsApi.getConnectionInfo(bucketName);
       if (response?.data?.data) {
         dispatch({
           type: 'CONNECTION_INFO',
@@ -32,7 +32,10 @@ export const getConnectionInfo = (bucketName) => {
         payload: false,
       });
       ProgressIndicator.hide();
-      Notification.show(error.response.data.message ? error.response.data.message : 'Something went wrong.', 'alert');
+      Notification.show(
+        error.response.data.errors?.length ? error.response.data.errors[0].message : 'Error fetching connection info.',
+        'alert',
+      );
     }
   };
 };
