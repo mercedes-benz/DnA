@@ -411,7 +411,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Setting new policy set to user
 				minioAdminClient.setPolicy(userId, false, existingPolicy);
 				LOGGER.info("Success from Minio set policy");
-				
+
 				// Update users list for minioUsersCache
 				// updating policy
 				UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), existingPolicy,
@@ -444,15 +444,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
 				users.put(userId, userInfoTemp);
 			}
-			//Building User Onboard response
+			// Building User Onboard response
 			minioResponse.setStatus(ConstantsUtility.SUCCESS);
 			minioResponse.setHttpStatus(HttpStatus.OK);
 			UserVO userVO = new UserVO();
 			userVO.setAccesskey(userId);
 			userVO.setSecretKey(userSecretKey);
 			minioResponse.setUser(userVO);
-			
-			
+
 			// updating minioUsersCache
 			LOGGER.debug("Removing all enteries from {}.", ConstantsUtility.MINIO_USERS_CACHE);
 			cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
@@ -461,12 +460,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | InvalidCipherTextException e) {
 			LOGGER.error("DNA-MINIO-ERR-007::Error occured while onboarding user to minio: ", e.getMessage());
-			//Building response for user onboard failure
+			// Building response for user onboard failure
 			minioResponse.setStatus(ConstantsUtility.FAILURE);
 			minioResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 			minioResponse
 					.setErrors(Arrays.asList(new ErrorDTO(null, "Error occurred while onboarding user: " + userId)));
-			
+
 		}
 		return minioResponse;
 	}
@@ -724,6 +723,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	 * To remove policies. 
 	 */
 	private void deletePolicy(List<String> policies) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+		//Getting MinioAdminClient from config
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 
 		LOGGER.debug("Fetching users from cache.");
@@ -736,7 +736,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			UserInfo userInfo = entry.getValue();
 			// To fetch user policy
 			String userPolicy = userInfo.policyName();
-
 			boolean hasPolicy = false;
 
 			// To check if user has any policy
@@ -752,7 +751,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					}
 				}
 			}
-
 			// To check if user has specified policy
 			if (hasPolicy) {
 				// user has policy
@@ -760,23 +758,48 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				if (StringUtils.hasText(userPolicy) && !userPolicy.chars().allMatch(c -> c == ',')) {
 					minioAdminClient.setPolicy(userId, false, userPolicy);
 				}
-
 				// updating cache
 				UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
 						userInfo.memberOf());
 				users.put(userId, userInfoTemp);
 			}
 		}
-
-		// Removing policies
+		// Removing policies in Minio
 		for (String policy : policies) {
 			minioAdminClient.removeCannedPolicy(policy);
 		}
-
 		// updating minioUsersCache
 		LOGGER.debug("Removing all enteries from {}.", ConstantsUtility.MINIO_USERS_CACHE);
 		cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
 		LOGGER.debug("Updating {}.", ConstantsUtility.MINIO_USERS_CACHE);
 		cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
+	}
+
+	@Override
+	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName) {
+		// Getting MinioAdminClient from config
+		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
+		LOGGER.debug("Fetching users from cache.");
+		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		try {
+			LOGGER.info("Updating policy for user:{}", userOrGroupName);
+			minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
+			LOGGER.info("Success from minio set policy");
+
+			// updating cache
+			UserInfo userInfo = users.get(userOrGroupName);
+			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), policyName,
+					userInfo.memberOf());
+			users.put(userOrGroupName, userInfoTemp);
+
+			// updating minioUsersCache
+			LOGGER.debug("Removing all enteries from {}.", ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.removeAll(ConstantsUtility.MINIO_USERS_CACHE);
+			LOGGER.debug("Updating {}.", ConstantsUtility.MINIO_USERS_CACHE);
+			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
+
+		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+			LOGGER.error("Error occured while updating policy for user:{}", userOrGroupName);
+		}
 	}
 }
