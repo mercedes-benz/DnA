@@ -364,6 +364,7 @@ const CreateBucket = () => {
       </div>
       {connect?.modal && (
         <InfoModal
+          title="Connect"
           show={connect?.modal}
           hiddenTitle={true}
           content={<ConnectionModal />}
@@ -372,6 +373,7 @@ const CreateBucket = () => {
       )}
       {showInfoModal && (
         <Modal
+          title="Bucket Name Rules"
           show={showInfoModal}
           hiddenTitle={true}
           showAcceptButton={false}
