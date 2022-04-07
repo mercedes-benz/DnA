@@ -29,7 +29,7 @@ jwt:
 server:
   port: 7175
   servlet:
-    context-path: /storage.dna
+    context-path: /storage
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
