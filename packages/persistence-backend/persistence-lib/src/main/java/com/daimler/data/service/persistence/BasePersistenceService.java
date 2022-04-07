@@ -29,9 +29,15 @@ package com.daimler.data.service.persistence;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -571,6 +577,9 @@ public class BasePersistenceService implements PersistenceService {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 
+		LOGGER.debug("Fetching Current user.");
+		String currentUser = userStore.getUserInfo().getId();
+
 		LOGGER.debug("Validate Bucket before update.");
 		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
 		if (!ObjectUtils.isEmpty(errors)) {
@@ -578,40 +587,20 @@ public class BasePersistenceService implements PersistenceService {
 			responseVO.setErrors(errors);
 			httpStatus = HttpStatus.BAD_REQUEST;
 		} else {
-			LOGGER.info("Onboarding collaborators");
-			if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
-				for (UserVO userVO : bucketVo.getCollaborators()) {
-					if (Objects.nonNull(userVO.getPermission())) {
-						List<String> policies = new ArrayList<String>();
-						if (userVO.getPermission().isRead() != null && userVO.getPermission().isRead()) {
-							LOGGER.debug("Setting READ access.");
-							policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READ);
-						}
-						if (userVO.getPermission().isWrite() && userVO.getPermission().isWrite()) {
-							LOGGER.debug("Setting READ/WRITE access.");
-							policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READWRITE);
-						}
+			LOGGER.info("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
+			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
+					currentUser);
 
-						LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
-						MinioGenericResponse onboardUserResponse = dnaMinioClient
-								.onboardUserMinio(userVO.getAccesskey().toUpperCase(), policies);
-						if (onboardUserResponse != null
-								&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-							LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());
-							httpStatus = onboardUserResponse.getHttpStatus();
-						} else {
-							LOGGER.info("Collaborator:{} onboarding failed", userVO.getAccesskey());
-							responseVO.setErrors(getMessages(onboardUserResponse.getErrors()));
-							responseVO.setStatus(onboardUserResponse.getStatus());
-							httpStatus = onboardUserResponse.getHttpStatus();
-							break;
-						}
-					} else {
-						LOGGER.info("Collaborator:{} onboarding not possible since permission is not given.",
-								userVO.getAccesskey());
-					}
-				}
-
+			// To update collaborators list
+			errors = updateBucketCollaborator(bucketVo.getBucketName(), existingCollaborators,
+					bucketVo.getCollaborators());
+			if (ObjectUtils.isEmpty(errors)) {
+				responseVO.setStatus(ConstantsUtility.SUCCESS);
+				httpStatus = HttpStatus.OK;
+			} else {
+				responseVO.setStatus(ConstantsUtility.FAILURE);
+				responseVO.setErrors(errors);
+				httpStatus = HttpStatus.BAD_REQUEST;
 			}
 
 		}
@@ -620,6 +609,129 @@ public class BasePersistenceService implements PersistenceService {
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
 
+	/*
+	 * To get Union of list return list of user by making unison of 2 userVO list
+	 */
+	private List<String> getUsersUnion(List<UserVO> list1, List<UserVO> list2) {
+		// Set<UserVO> set = new HashSet<UserVO>();
+
+		Set<UserVO> set = new TreeSet<>(new Comparator<UserVO>() {
+			@Override
+			public int compare(UserVO u1, UserVO u2) {
+				return u1.getAccesskey().compareTo(u2.getAccesskey());
+			}
+		});
+		// Adding list one to set
+		set.addAll(list1);
+		// Adding list two to set
+		set.addAll(list2);
+
+		// fetching users
+		List<String> usersId = set.stream().map(t -> t.getAccesskey()).collect(Collectors.toList());
+		return usersId;
+	}
+	
+	/*
+	 * update collaborator for bucket by comparing existing and new collaborator
+	 * list
+	 */
+	private List<MessageDescription> updateBucketCollaborator(String bucketName, List<UserVO> existingCollaborators,
+			List<UserVO> newCollaborators) {
+		List<MessageDescription> errors = new ArrayList<MessageDescription>();
+		LOGGER.info("Fetching users from Minio user cache.");
+		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		String readPolicy = bucketName + "_" + ConstantsUtility.READ;
+		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;
+
+		// To get all users list
+		List<String> usersId = getUsersUnion(existingCollaborators, newCollaborators);
+		for (String userId : usersId) {
+			// To get User details from newCollaborators
+			Optional<UserVO> newCollaborator = newCollaborators.stream()
+					.filter(userVO -> userVO.getAccesskey().equals(userId)).findAny();
+
+			// To get User details from existingCollaborators
+			Optional<UserVO> existingCollaborator = existingCollaborators.stream()
+					.filter(userVO -> userVO.getAccesskey().equals(userId)).findAny();
+
+			// To get user info from Minio
+			UserInfo userInfo = usersInfo.get(userId);
+			String policy = "";
+
+			// if user presents in new and existing
+			if (newCollaborator.isPresent() && existingCollaborator.isPresent()) {
+				PermissionVO permissionVO = newCollaborator.get().getPermission();
+
+				// Getting policy from user
+				policy = userInfo.policyName();
+
+				// Checking for read permission
+				// if read permission available adding it
+				// if read permission not available removing it
+				if (permissionVO.isRead()) {
+					policy = !policy.contains(readPolicy) ? policy.concat("," + readPolicy) : policy;
+				} else {
+					policy = policy.contains(readPolicy) ? policy.replace(readPolicy, "") : policy;
+				}
+
+				// Checking for read/write permission
+				// if read/write permission available adding it
+				// if read/write permission not available removing it
+				if (permissionVO.isWrite()) {
+					policy = !policy.contains(readWritePolicy) ? policy.concat("," + readWritePolicy) : policy;
+				} else {
+					policy = policy.contains(readWritePolicy) ? policy.replace(readWritePolicy, "") : policy;
+				}
+				// Setting permission in Minio
+				dnaMinioClient.setPolicy(userId, false, policy);
+
+			}
+			// If user presents only in new
+			else if (newCollaborator.isPresent() && !existingCollaborator.isPresent()) {
+				PermissionVO permissionVO = newCollaborator.get().getPermission();
+				List<String> policies = new ArrayList<String>();
+				// for read permission
+				if (permissionVO.isRead()) {
+					LOGGER.debug("Setting READ access.");
+					policies.add(readPolicy);
+				}
+				// for write permission
+				if (permissionVO.isWrite()) {
+					LOGGER.debug("Setting READ/WRITE access.");
+					policies.add(readWritePolicy);
+				}
+
+				LOGGER.info("Onboarding collaborator:{}", userId);
+				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId.toUpperCase(),
+						policies);
+				if (onboardUserResponse != null && onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+					LOGGER.info("Collaborator:{} onboarding successfull", userId);
+
+				} else {
+					LOGGER.info("Collaborator:{} onboarding failed", userId);
+					errors = getMessages(onboardUserResponse.getErrors());
+					break;
+				}
+			}
+			// If user presents only in existing
+			else if (!newCollaborator.isPresent() && existingCollaborator.isPresent()) {
+				// Getting policy from user
+				policy = userInfo.policyName();
+
+				// Removing read permission
+				policy = policy.contains(readPolicy) ? policy.replace(readPolicy, "") : policy;
+				// Removing read/write permission
+				policy = policy.contains(readWritePolicy) ? policy.replace(readWritePolicy, "") : policy;
+
+				// Setting permission in Minio
+				dnaMinioClient.setPolicy(userId, false, policy);
+
+			}
+		}
+		return errors;
+	}
+	
+	
 	@Override
 	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName) {
 		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;

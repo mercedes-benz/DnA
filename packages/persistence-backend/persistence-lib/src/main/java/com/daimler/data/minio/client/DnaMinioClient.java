@@ -30,6 +30,8 @@ package com.daimler.data.minio.client;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.dto.MinioGenericResponse;
@@ -144,15 +146,7 @@ public interface DnaMinioClient {
 	 * @return isUserExist{Boolean}
 	 */
 	public Boolean validateUserInMinio(String userId);
-	
-//	/**
-//	 * To validate and get user secret key from vault
-//	 * 
-//	 * @param userId
-//	 * @return Returns userSecretKey
-//	 */
-//	public String validateUserInVault(String userId);
-	
+		
 	/**
 	 * To remove object of bucket identified by path
 	 * 
@@ -171,5 +165,14 @@ public interface DnaMinioClient {
 	 * @return Returns {@code MinioGenericResponse}
 	 */
 	public MinioGenericResponse removeBucket(String currentUser, String bucketName);
+	
+	/**
+	 * To set policy to user or group
+	 * 
+	 * @param userOrGroupName
+	 * @param isGroup
+	 * @param policyName{comma separated <eg:policy1,policy2>}
+	 */
+	public void setPolicy(@Nonnull String userOrGroupName, boolean isGroup, @Nonnull String policyName);
 	
 }
