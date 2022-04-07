@@ -22,7 +22,6 @@
     "env-cmd": "^10.1.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
-    "moment": "^2.29.1",
     "popper.js": "^1.16.1",
     "postcss-loader": "^6.2.1",
     "rc-upload": "^4.3.3",
