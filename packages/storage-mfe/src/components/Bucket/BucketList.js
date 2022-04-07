@@ -10,13 +10,13 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
 
 import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
-import moment from 'moment';
 import { setFiles } from '../Explorer/redux/fileExplorer.actions';
 import { getConnectionInfo, hideConnectionInfo } from '../ConnectionInfo/redux/connection.actions';
 import { bucketsApi } from '../../apis/buckets.api';
 import { bucketActions } from './redux/bucket.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
+import { getDateTimeFromTimestamp } from '../Utility/utils';
 
 export const BucketList = ({ bucketList }) => {
   const dispatch = useDispatch();
@@ -126,7 +126,9 @@ export const BucketList = ({ bucketList }) => {
                             </a>
                           </div>
                           <div className={Styles.bucketTitleCol}>{displayPermission(item?.permission)}</div>
-                          <div className={Styles.bucketTitleCol}>{moment(item.creationDate).format('DD.MM.YYYY')}</div>
+                          <div className={Styles.bucketTitleCol}>
+                            {getDateTimeFromTimestamp(item.creationDate, '.')}
+                          </div>
                           <div className={Styles.bucketTitleCol}></div>
                         </div>
 
@@ -226,6 +228,7 @@ export const BucketList = ({ bucketList }) => {
         onAccept={deleteBucketAccept}
       />
       <InfoModal
+        title="Connect"
         modalCSS={Styles.header}
         show={connect?.modal}
         content={<ConnectionModal />}
