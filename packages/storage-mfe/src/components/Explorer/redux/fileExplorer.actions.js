@@ -2,7 +2,7 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import { history } from '../../../store/storeRoot';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { bucketsObjectApi } from '../../../apis/fileExplorer.api';
-import { serializeAllObjects, serializeObjects } from '../../Bucket/Utils';
+import { serializeAllObjects, serializeObjects } from '../Utils';
 
 export const setFiles = (bucketName, historyPush = true) => {
   return async (dispatch) => {
