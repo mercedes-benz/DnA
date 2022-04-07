@@ -6,7 +6,7 @@ import { baseURL } from '../../server/api';
 import { getFiles } from './redux/fileExplorer.actions';
 import { useDispatch, useSelector } from 'react-redux';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import { serializeFolderChain } from '../Bucket/Utils';
+import { serializeFolderChain } from './Utils';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
 const ATTACH_FILES_TO_ACCEPT =
