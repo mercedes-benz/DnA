@@ -2,47 +2,65 @@ import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 import Styles from './CreateBucket.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { bucketActions } from '../redux/bucket.actions';
+import { bucketActions } from './redux/bucket.actions';
 import AddUser from 'dna-container/AddUser';
 
 import { useParams } from 'react-router-dom';
 import { history } from '../../store/storeRoot';
-import { ConnectionModal } from './ConnectionModal';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
 
+import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
+import { hideConnectionInfo } from '../ConnectionInfo/redux/connection.actions';
+import { bucketsApi } from '../../apis/buckets.api';
+import Notification from '../../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 const CreateBucket = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { bucketList, isLoading, submission } = useSelector((state) => state.bucket);
+  const { connect } = useSelector((state) => state.connectionInfo);
   const [bucketName, setBucketName] = useState('');
   const [bucketPermission, setBucketPermission] = useState({
     read: true,
     write: true,
   });
+  const [showInfoModal, setInfoModal] = useState(false);
 
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
-  const [bucketPermissionError, setBucketPermissionError] = useState('');
 
   useEffect(() => {
-    if (isLoading) {
+    if (id) {
       ProgressIndicator.show();
-    } else {
-      ProgressIndicator.hide();
+      bucketsApi
+        .getBucketByName(id)
+        .then((res) => {
+          if (res?.data?.permission.write) {
+            setBucketName(res?.data?.bucketName);
+            setBucketPermission(res?.data?.permission);
+            setBucketCollaborators(res?.data?.collaborators);
+          } else {
+            // reset history to base page before accessing container app's public routes;
+            history.replace('/');
+            window.location.replace('#/unauthorised');
+          }
+          ProgressIndicator.hide();
+        })
+        .catch((e) => {
+          Notification.show(
+            e.response.data.errors?.length ? e.response.data.errors[0].message : 'Something went wrong!',
+            'alert',
+          );
+          ProgressIndicator.hide();
+          history.push('/');
+        });
     }
-  }, [isLoading]);
+  }, [id]);
 
-  const onSubmissionModalCancel = () => {
+  const onConnectionModalCancel = () => {
     history.push('/');
-    dispatch({
-      type: 'SUBMISSION_MODAL',
-      payload: {
-        bucketId: '',
-        modal: false,
-      },
-    });
+    dispatch(hideConnectionInfo());
   };
 
   const storageBucketValidation = () => {
@@ -52,15 +70,41 @@ const CreateBucket = () => {
       setBucketNameError(errorMissingEntry);
       formValid = false;
     }
-
-    if (bucketPermission.read || bucketPermission.write) {
-      setBucketPermissionError('');
-    } else {
-      // setBucketPermissionError(errorMissingEntry);
-      // formValid = false;
+    if (bucketNameError) {
+      formValid = false;
     }
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
 
     return formValid;
+  };
+
+  const handleBucketNameValidation = (value) => {
+    if (value) {
+      if (value?.length < 3) {
+        setBucketNameError('Bucket name should be minimum 3 characters.');
+      } else if (!/(^[a-z\d.-]*$)/g.test(value)) {
+        setBucketNameError(
+          'Bucket names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).',
+        );
+      } else if (!/^[a-z\d]/g.test(value)) {
+        setBucketNameError('Bucket name must start with a lowercase letter or number.');
+      } else if (/-$/.test(value)) {
+        setBucketNameError('Bucket name must end with letter or a number.');
+      } else if (/\.$/.test(value)) {
+        setBucketNameError('Bucket name must end with letter or a number.');
+      } else if (/\.+\./.test(value)) {
+        setBucketNameError('Bucket name cant have consecutive dots.');
+      } else if (/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value)) {
+        setBucketNameError('Bucket name cant be an IP address.');
+      } else {
+        setBucketNameError('');
+      }
+    } else {
+      setBucketNameError('');
+    }
   };
 
   const onAddNewBucket = () => {
@@ -71,48 +115,25 @@ const CreateBucket = () => {
       });
 
       const data = {
-        id: `${Math.floor(Math.random() * 100)}`,
-        name: bucketName,
-        createdOn: '2022-03-01',
-        modifiedOn: '2022-03-23',
-        permission: permissions,
+        bucketName: bucketName,
         collaborators: bucketCollaborators,
-        tab: {
-          key_access: 'AsdjfskjkKjksjdkjsd',
-          key_secret: 'AsdjfskjkKjksjdkjsd',
-          url: 'http://www.abc.com/sda/dasdas/dasd/asda//asdasd/asd/asdas/',
-        },
       };
-      dispatch(bucketActions.setBucketList(data));
+      dispatch(bucketActions.createBucket(data));
     }
   };
+
   const onUpdateBucket = () => {
     if (storageBucketValidation()) {
       const permissions = [];
       Object.entries(bucketPermission)?.forEach(([k, v]) => {
         if (v === true) permissions.push(k);
       });
-      const bucketItem = bucketList?.find((item) => item.id === id);
 
       const data = {
-        id: bucketItem.id,
-        name: bucketName,
-        createdOn: '2022-03-01',
-        modifiedOn: '2022-03-23',
-        permission: permissions,
+        bucketName: bucketName,
         collaborators: bucketCollaborators,
-        tab: {
-          key_access: 'kKjksjdkjsd',
-          key_secret: 'Asdjfskjd',
-          url: 'http://www.abc.com/sda/dasdas',
-        },
       };
-
-      dispatch({
-        type: 'UPDATE_BUCKET',
-        payload: data,
-      });
-      history.push('/');
+      dispatch(bucketActions.updateBucket(data));
     }
   };
 
@@ -120,52 +141,34 @@ const CreateBucket = () => {
     const collabarationData = {
       firstName: collaborators.firstName,
       lastName: collaborators.lastName,
-      email: collaborators.email,
-      username: collaborators.shortId,
-      permissions: ['can_coll_read', 'can_coll_write'],
+      accesskey: collaborators.shortId,
+      permission: { read: true, write: false },
     };
     bucketCollaborators.push(collabarationData);
     setBucketCollaborators([...bucketCollaborators]);
   };
 
-  const onCollaboratorPermission = (userName) => {
+  const onCollaboratorPermission = (e, userName) => {
     const bucketList = bucketCollaborators.find((item) => {
-      return item.username == userName;
+      return item.accesskey == userName;
     });
 
-    if (bucketList.permissions.includes('can_coll_write')) {
-      bucketList.permissions.splice(bucketList.permissions.indexOf('can_coll_write'), 1);
+    if (e.target.checked) {
+      bucketList.permission.write = true;
     } else {
-      bucketList.permissions.push('can_coll_write');
+      bucketList.permission.write = false;
     }
-
     setBucketCollaborators([...bucketCollaborators]);
   };
 
   const onCollabaratorDelete = (collId) => {
     return () => {
       const currentCollList = bucketCollaborators.filter((item) => {
-        return item.username !== collId;
+        return item.accesskey !== collId;
       });
       setBucketCollaborators(currentCollList);
     };
   };
-
-  useEffect(() => {
-    // window.location.replace('#/unauthorised');
-    if (id) {
-      const bucketInfo = bucketList?.find((item) => item.id === id);
-      setBucketName(bucketInfo?.name);
-      const permission = bucketInfo?.permission?.reduce((prev, curr) => {
-        return {
-          ...prev,
-          [curr]: true,
-        };
-      }, {});
-      setBucketPermission(permission);
-      setBucketCollaborators(bucketInfo?.collaborators);
-    }
-  }, []);
 
   const handleCheckbox = (e) => {
     if (e.target.checked) {
@@ -181,6 +184,21 @@ const CreateBucket = () => {
     }
   };
 
+  const handleInfoModal = () => {
+    setInfoModal(true);
+  };
+
+  const bucketNameRulesContent = (
+    <div>
+      <ul>
+        <li>Bucket names must be between 3 (min) and 63 (max) characters long.</li>
+        <li>Bucket names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).</li>
+        <li>Bucket names must begin and end with a letter or number.</li>
+        <li>Bucket names must not be formatted as an IP address (for example, 192.168.4.2).</li>
+      </ul>
+    </div>
+  );
+
   const bucketNameErrorField = bucketNameError || '';
 
   return (
@@ -194,7 +212,7 @@ const CreateBucket = () => {
         <div className={Styles.content}>
           <div className={Styles.formGroup}>
             <div
-              className={classNames(Styles.inputGrp, ' input-field-group', bucketNameErrorField.length ? 'error' : '')}
+              className={classNames(Styles.inputGrp, ' input-field-group', bucketNameErrorField?.length ? 'error' : '')}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
                 Name of Buckets <sup>*</sup>
@@ -202,29 +220,33 @@ const CreateBucket = () => {
               <div>
                 <input
                   type="text"
-                  className="input-field"
+                  className={classNames('input-field', Styles.bucketNameField)}
                   required={true}
                   id="bucketName"
-                  maxLength={64}
+                  maxLength={63}
                   placeholder="Type here"
                   autoComplete="off"
                   onChange={(e) => {
-                    setBucketName(e.target.value);
-                    if (e.target.value) setBucketNameError('');
+                    setBucketName(e.target.value?.toLowerCase());
+                    handleBucketNameValidation(e.target.value);
                   }}
-                  value={bucketName}
+                  defaultValue={bucketName}
+                  readOnly={id}
                 />
-                <div>
-                  <span className={classNames('error-message', bucketNameError.length ? '' : 'hide')}>
+                <div style={{ width: '300px' }}>
+                  <span className={classNames('error-message', bucketNameError?.length ? '' : 'hide')}>
                     {bucketNameError}
                   </span>
                 </div>
               </div>
+              {!id ? (
+                <div className={Styles.infoIcon}>
+                  <i className="icon mbc-icon info" onClick={handleInfoModal} />
+                </div>
+              ) : null}
             </div>
             <br />
-            <div
-              className={classNames(Styles.inputGrp, ' input-field-group', bucketPermissionError.length ? 'error' : '')}
-            >
+            <div className={classNames(Styles.inputGrp, ' input-field-group')}>
               <label className={classNames(Styles.inputLabel, 'input-label')}>
                 Permission <sup>*</sup>
               </label>
@@ -235,7 +257,7 @@ const CreateBucket = () => {
                       name="read"
                       type="checkbox"
                       className="ff-only"
-                      checked={!!bucketPermission.read}
+                      checked={!!bucketPermission?.read}
                       onChange={handleCheckbox}
                     />
                   </span>
@@ -249,20 +271,14 @@ const CreateBucket = () => {
                       name="write"
                       type="checkbox"
                       className="ff-only"
-                      checked={!!bucketPermission.write}
+                      checked={!!bucketPermission?.write}
                       onChange={handleCheckbox}
                     />
                   </span>
                   <span className="label">Write</span>
                 </label>
               </div>
-              <div>
-                <span
-                  className={classNames('error-message', bucketPermissionError.length ? '' : 'hide', Styles.errorMsg)}
-                >
-                  {bucketPermissionError}
-                </span>
-              </div>
+              <div></div>
             </div>
             <div className={classNames('input-field-group include-error')}>
               <div className={Styles.bucketColContent}>
@@ -275,7 +291,7 @@ const CreateBucket = () => {
                       <React.Fragment>
                         <div className={Styles.collUserTitle}>
                           <div className={Styles.collUserTitleCol}>User ID</div>
-                          <div className={Styles.collUserTitleCol}>Name</div>
+                          {!id ? <div className={Styles.collUserTitleCol}>Name</div> : null}
                           <div className={Styles.collUserTitleCol}>Permission</div>
                           <div className={Styles.collUserTitleCol}></div>
                         </div>
@@ -283,8 +299,10 @@ const CreateBucket = () => {
                           {bucketCollaborators?.map((item, collIndex) => {
                             return (
                               <div key={collIndex} className={Styles.collUserContentRow}>
-                                <div className={Styles.collUserTitleCol}>{item.username}</div>
-                                <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                                <div className={Styles.collUserTitleCol}>{item.accesskey}</div>
+                                {!id ? (
+                                  <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                                ) : null}
                                 <div className={Styles.collUserTitleCol}>
                                   <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
                                     <label className={classNames('checkbox', Styles.checkBoxDisable)}>
@@ -292,9 +310,9 @@ const CreateBucket = () => {
                                         <input
                                           type="checkbox"
                                           className="ff-only"
-                                          value="can_coll_read"
+                                          value="read"
                                           checked={true}
-                                          onChange={() => onCollaboratorPermission(item.username, collIndex)}
+                                          readOnly
                                         />
                                       </span>
                                       <span className="label">Read</span>
@@ -307,13 +325,9 @@ const CreateBucket = () => {
                                         <input
                                           type="checkbox"
                                           className="ff-only"
-                                          value="can_coll_write"
-                                          checked={
-                                            item?.permissions !== null
-                                              ? item?.permissions.includes('can_coll_write')
-                                              : false
-                                          }
-                                          onChange={() => onCollaboratorPermission(item.username, collIndex)}
+                                          value="write"
+                                          checked={item?.permission !== null ? item?.permission?.write : false}
+                                          onChange={(e) => onCollaboratorPermission(e, item.accesskey)}
                                         />
                                       </span>
                                       <span className="label">Write</span>
@@ -321,10 +335,7 @@ const CreateBucket = () => {
                                   </div>
                                 </div>
                                 <div className={Styles.collUserTitleCol}>
-                                  <div
-                                    className={Styles.deleteEntry}
-                                    onClick={onCollabaratorDelete(item.username, collIndex)}
-                                  >
+                                  <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.accesskey)}>
                                     <i className="icon mbc-icon trash-outline" />
                                     Delete Entry
                                   </div>
@@ -351,12 +362,24 @@ const CreateBucket = () => {
           </div>
         </div>
       </div>
-      {submission?.modal && (
+      {connect?.modal && (
         <InfoModal
-          title={''}
-          show={submission?.modal}
+          title="Connect"
+          show={connect?.modal}
+          hiddenTitle={true}
           content={<ConnectionModal />}
-          onCancel={onSubmissionModalCancel}
+          onCancel={onConnectionModalCancel}
+        />
+      )}
+      {showInfoModal && (
+        <Modal
+          title="Bucket Name Rules"
+          show={showInfoModal}
+          hiddenTitle={true}
+          showAcceptButton={false}
+          showCancelButton={false}
+          content={bucketNameRulesContent}
+          onCancel={() => setInfoModal(false)}
         />
       )}
     </>
