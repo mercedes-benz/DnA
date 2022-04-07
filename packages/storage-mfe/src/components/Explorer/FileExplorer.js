@@ -18,7 +18,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 
 import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/theme-github';
+import 'ace-builds/src-noconflict/theme-solarized_dark';
 import 'ace-builds/src-noconflict/mode-typescript';
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/mode-java';
@@ -31,7 +31,7 @@ import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/mode-plain_text';
 
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
-import { serializeFolderChain } from '../Bucket/Utils';
+import { serializeFolderChain } from './Utils';
 import { IMAGE_EXTNS, PREVIEW_NOT_ALLOWED_EXTNS } from '../Utility/constants';
 
 // inform chonky on which iconComponent to use
@@ -124,9 +124,20 @@ const FileExplorer = () => {
   const createFolder = useCallback(
     (files, newFolderName) => {
       const newFileMap = { ...files.fileMap };
-      const doesFolderExists = Object.prototype.hasOwnProperty.call(newFileMap, newFolderName);
-      if (doesFolderExists) {
-        dispatch(getFiles(newFileMap, bucketName, newFileMap[newFolderName]));
+      const folderExistsInCurrentDirectory = newFileMap[currentFolderIdRef.current]?.childrenIds?.some((item) =>
+        item.includes(newFolderName),
+      );
+      if (folderExistsInCurrentDirectory) {
+        const objectName = `${newFileMap[currentFolderIdRef.current].objectName}${newFolderName}'/'`;
+        dispatch(
+          getFiles(newFileMap, bucketName, {
+            id: newFolderName,
+            name: newFolderName,
+            isDir: true,
+            parentId: currentFolderIdRef.current,
+            objectName: objectName.replace(`${bucketName}/`, ''),
+          }),
+        );
         setCurrentFolderId(newFolderName);
       } else {
         // Create the new folder
@@ -305,13 +316,17 @@ const FileExplorer = () => {
     }
   };
 
+  // display current folder path in create folder modal
+  const folderPath = serializeFolderChain(folderChain);
+  const currentFolderPath = [...new Set(folderPath.join('').split('/'))].join('/');
+
   const addFolderContent = (
     <div className={Styles.formGroup}>
       <div className={classNames('input-field-group', Styles.inputGrp)}>
         <label className={classNames('input-label', Styles.inputLabel)}>New Folder Name</label>
-        <label
-          className={classNames('input-label', Styles.inputLabel, Styles.folderPath)}
-        >{`${files?.fileMap?.[currentFolderId]?.name} /`}</label>
+        <div className={Styles.folderPath}>
+          <label className={classNames('input-label', Styles.inputLabel)}>{`${bucketName}/${currentFolderPath}`}</label>
+        </div>
         <input
           type="text"
           className="input-field"
@@ -373,6 +388,7 @@ const FileExplorer = () => {
                   modal: false,
                 });
               }}
+              modalWidth="80vw"
               showAcceptButton={false}
               showCancelButton={false}
               show={showPreview.modal}
@@ -384,7 +400,7 @@ const FileExplorer = () => {
                     width="100%"
                     name="storagePreview"
                     mode={aceEditorMode[fileExt] || 'plain_text'}
-                    theme="github"
+                    theme="solarized_dark"
                     fontSize={16}
                     showPrintMargin={false}
                     showGutter={false}
