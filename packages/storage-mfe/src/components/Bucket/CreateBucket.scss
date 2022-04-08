@@ -6,12 +6,31 @@
       padding: 25px 38px;
       .inputGrp {
         display: inline-flex;
+        input:read-only {
+          border: none;
+        }
       }
       .inputLabel {
         min-width: 100px;
         margin-right: 30px;
-        margin-top: auto;
         margin-bottom: auto;
+        margin-top: 15px;
+      }
+      .bucketNameField {
+        width: 300px;
+      }
+      .infoIcon {
+        font-size: var(--font-size-icon-medium);
+        margin-left: 5px;
+        margin-top: -9px;
+        i {
+          cursor: pointer;
+          color: #697582;
+    
+          &:hover {
+            color: #00adef;
+          }
+        }
       }
     }
   }
@@ -89,6 +108,7 @@
         }
         &::-webkit-scrollbar {
           width: 5px;
+          height: 5px;
         }
         .collUserContentRow {
           display: flex;
@@ -158,21 +178,4 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
-}
-
-:global {
-  .mbc-modal {
-    h4 {
-      margin-bottom: 30px;
-    }
-  }
-  .tabs-panel {
-    .tabs-content-wrapper {
-      margin-top: 15px;
-      pre {
-        margin-left: 15px;
-        margin-bottom: 0;
-      }
-    }
-  }
 }
