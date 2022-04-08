@@ -166,6 +166,9 @@ i {
   &:hover 
   {
     cursor: pointer;
+    .notificationMessage{
+      color: #00adef;    
+    }
   }
 }
 
