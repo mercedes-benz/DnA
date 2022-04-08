@@ -162,6 +162,16 @@ i {
   }
 }
 
+.notificationRow{
+  &:hover 
+  {
+    cursor: pointer;
+    .notificationMessage{
+      color: #00adef;    
+    }
+  }
+}
+
 .unreadMessage{
   font-weight: bold;
 }
