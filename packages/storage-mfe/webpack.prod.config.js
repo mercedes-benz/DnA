@@ -128,7 +128,7 @@ module.exports = {
     new webpack.ids.HashedModuleIdsPlugin(),
     new duplicatePackageCheckerPlugin(),
     new Dotenv({
-      path: './.env',
+      path: './.docker.env',
     }),
     new ESLintPlugin({
       extensions: ['js'],

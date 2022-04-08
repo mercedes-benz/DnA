@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: dna-storage-service
+    
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:3000MB}
+      max-request-size: ${MAX_REQUEST_SIZE:3000MB}
+    
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: ${VAULT_SCHEME:http}
+      authentication: ${VAULT_AUTHENTICATION:TOKEN}
+      token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
+      mountpath: ${VAULT_MOUNTPATH:XXXXXX}
+      vaultpath: ${VAULT_PATH:XXXXXX}
+      kv:
+       enabled: true  
+      
+dna:
+  uri: ${DNA_URI:XXXXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}        
+      
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:XXXXXX}  
+server:
+  port: 7175
+  servlet:
+    context-path: /storage
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  accessKey: ${MINIO_ADMIN_ACCESS_KEY:XXXXXX} 
+  secretKey: ${MINIO_ADMIN_SECRET_KEY:XXXXXX}
+  version: ${MINIO_POLICY_VERSION:XXXXXX}
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+    org.springframework.boot.autoconfigure.logging: INFO
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO
