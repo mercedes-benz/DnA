@@ -1,0 +1,18 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"useTags": true,
+	"modelPackage": "com.daimler.data.dto.storage",
+	"apiPackage": "com.daimler.data.api.storage",
+	"invokerPackage": "com.daimler.data.service.storage",
+	"importMappings": {
+		"BindingResult": "org.springframework.validation.BindingResult",
+		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
+		"ByteArrayResource": "org.springframework.core.io.ByteArrayResource",
+		"MultipartFile": "org.springframework.web.multipart.MultipartFile",
+		"Bucket": "io.minio.messages.Bucket",
+		"Item": "io.minio.messages.Item"
+	}
+}

@@ -161,7 +161,6 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 				+ "\n" + getProductOwnersPredicateString(productOwner) + "\n" + getArtsPredicateString(art);
 	}
 
-
 	private String getPublishedAndAccessPredicate(Boolean published, String userId, Boolean isAdmin) {
 		String allTrueCondition = " (jsonb_extract_path_text(data,'publish') in ('true')) ";
 		String allFalseCondition = " (jsonb_extract_path_text(data,'publish') in ('false')) ";
@@ -230,6 +229,8 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 					+ "lower(jsonb_extract_path_text(data,'singleDataSources')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'dataWarehouses')) similar to "
+					+ delimiterSeparatedSearchTerms + " or "
+					+ "lower(jsonb_extract_path_text(data,'description','division')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'description','department')) similar to "
 					+ delimiterSeparatedSearchTerms + " ) ";

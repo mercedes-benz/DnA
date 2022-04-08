@@ -9,7 +9,7 @@ envs:
   - name: PROJECTSMO_FRONTEND_API_BASEURL
     value: ""  
 conf:
-  storageBackendUrl: ""
+  storageBackendUrl: http://storage-be.storage.svc.cluster.local:80
 replicaCount: 1
 
 image:
