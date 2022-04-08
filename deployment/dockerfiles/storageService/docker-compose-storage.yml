@@ -9,5 +9,5 @@ services:
   storage-be:
     image: ${IMAGE_STORAGE_BE:-storage_be}
     build:
-      context: ../packages/storage-backend/
+      context: ../../../packages/storage-backend/
       dockerfile: $PWD/storage-be.Dockerfile
