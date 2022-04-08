@@ -240,7 +240,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         {this.state.showAddTeamMemberModal && (
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
-            modalTitleText={this.state.addTeamMemberInController ? 'controller' : 'team member'}
+            modalTitleText={'team member'}
             showOnlyInteral={true}
             editMode={this.state.editTeamMember}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
