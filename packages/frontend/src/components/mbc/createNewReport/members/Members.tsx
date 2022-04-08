@@ -240,7 +240,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         {this.state.showAddTeamMemberModal && (
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
-            modalTitleText={this.state.addTeamMemberInController ? 'controller' : 'team member'}
+            modalTitleText={'team member'}
             showOnlyInteral={true}
             editMode={this.state.editTeamMember}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
@@ -302,19 +302,19 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
   }
 
   protected onControllerTeamMemberEdit = (index: number) => {
-    this.setState({ addTeamMemberInController: true, addAdminInController: false }, () => {
+    this.setState({ addTeamMemberInController: true, addAdminInController: false, hideTeamPosition: false }, () => {
       this.onTeamMemberEdit(index);
     });
   };
 
   protected onAdminEdit = (index: number) => {
-    this.setState({ addAdminInController: true, addTeamMemberInController: false }, () => {
+    this.setState({ addAdminInController: true, addTeamMemberInController: false, hideTeamPosition: true }, () => {
       this.onTeamMemberEdit(index);
     });
   };
 
   protected onSharingTeamMemberEdit = (index: number) => {
-    this.setState({ addTeamMemberInController: false, addAdminInController: false }, () => {
+    this.setState({ addTeamMemberInController: false, addAdminInController: false, hideTeamPosition: false }, () => {
       this.onTeamMemberEdit(index);
     });
   };
