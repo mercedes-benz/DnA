@@ -21,6 +21,7 @@ export interface IAddTeamMemberModalProps {
   teamMember: ITeams;
   showOnlyInteral?: boolean;
   hideTeamPosition?: boolean;
+  teamPositionNotRequired?: boolean;
   onAddTeamMemberModalCancel: () => void;
   onUpdateTeamMemberList: (teamMemberObj: ITeams) => void;
   validateMemebersList?: (teamMemberObj: ITeams) => boolean;
@@ -177,13 +178,13 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                 className={classNames('input-field-group include-error', teamPositionInternalError.length ? 'error' : '')}
               >
                 <label htmlFor="teamPositionInternal" className="input-label">
-                  Team Position (e.g. IT)<sup>*</sup>
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
                 </label>
                 <input
                   type="text"
                   className="input-field"
-                  required={true}
-                  required-error={requiredError}
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
                   id="teamPositionInternal"
                   name="teamPositionInternal"
                   placeholder="Type here"
@@ -486,13 +487,13 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
             {!this.props.hideTeamPosition ? 
               <div className={classNames('input-field-group include-error', teamPositionError.length ? 'error' : '')}>
                 <label htmlFor="teamPosition" className="input-label">
-                  Team Position (e.g. IT)<sup>*</sup>
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
                 </label>
                 <input
                   type="text"
                   className="input-field"
-                  required={true}
-                  required-error={requiredError}
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
                   id="teamPosition"
                   name="teamPosition"
                   placeholder="Type here"
@@ -745,9 +746,9 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
   protected validateInternalTeamMemberForm = () => {
     let formValid = true;
-    const errorMissingEntry = '*Missing entry';
+    const errorMissingEntry = '*Missing entry'; 
 
-    if (this.state.teamPositionInternal === '' && !this.props.hideTeamPosition) {
+    if (this.state.teamPositionInternal === '' && !this.props.hideTeamPosition && !this.props.teamPositionNotRequired) {
       this.setState({ teamPositionInternalError: errorMissingEntry });
       formValid = false;
     }
