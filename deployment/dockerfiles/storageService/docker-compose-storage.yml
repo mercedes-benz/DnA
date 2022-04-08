@@ -7,7 +7,7 @@ services:
       dockerfile: $PWD/storage-mfe.Dockerfile
   
   storage-be:
-    image: ${STORAGE_BE:-storage_be}
+    image: ${IMAGE_STORAGE_BE:-storage_be}
     build:
       context: ../packages/storage-backend/
       dockerfile: $PWD/storage-be.Dockerfile
