@@ -400,13 +400,10 @@ definitions:
       - productDescription
       - productPhase
       - status
-      - integratedPortal
       - designGuideImplemented
       - frontendTechnologies
       - division
       - department
-      - tags
-      - agileReleaseTrains
   
   CustomerVO:
     type: object
@@ -442,7 +439,6 @@ definitions:
       - hierarchy
       - ressort
       - department
-      - comment  
       
   KPIVO:
     type: object
@@ -463,8 +459,7 @@ definitions:
         description: "KPI - link"        
     required:
       - name
-      - reportingCause 
-      - comment
+      - reportingCause
           
   DataWarehouseVO:
     type: object
@@ -582,7 +577,7 @@ definitions:
         type: string
         description: "Position of team member in project"
     required:
-      - shortId          
+      - shortId       
 
   ReportVO:
     type: object
@@ -693,7 +688,7 @@ definitions:
         $ref: "#/definitions/SubdivisionVO"
     required:
       - id
-      - name      
+      - name
       
   SubdivisionVO:
     type: object
