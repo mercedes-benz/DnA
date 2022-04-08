@@ -210,11 +210,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               )}
             >
               <label id="customerCommentLabel" className="input-label" htmlFor="customerComment">
-                Comment<sup>*</sup>
+                Comment
               </label>
               <textarea
                 className="input-field-area"
-                required={true}
+                required={false}
                 rows={50}
                 id="customerComment"
                 name="comment"
@@ -696,10 +696,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       errors.ressort = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.comment) {
-      errors.comment = errorMissingEntry;
-      formValid = false;
-    } else {
+    // if (!this.state.customerInfo.comment) {
+    //   errors.comment = errorMissingEntry;
+    //   formValid = false;
+    // } 
+    else {
       errors.comment = '';
     }
     setTimeout(() => {
