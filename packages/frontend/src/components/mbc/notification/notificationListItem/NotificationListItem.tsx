@@ -133,8 +133,8 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
       </tr> */}
       <tr
         key={item.id}
-        
-        className={classNames('data-row', item.isRead === 'false' ? Styles.unreadMessage : '')}
+        onClick={onRowClick}
+        className={classNames('data-row', Styles.notificationRow, item.isRead === 'false' ? Styles.unreadMessage : '')}
       >
         <td>
           <div className={Styles.notificationMessage}>
@@ -159,7 +159,7 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
               </span>
               {' '}
             </label>
-            <p className={classNames('label', Styles.checkboxItemLabel, Styles.notificationMessage)} onClick={onRowClick}>
+            <p className={classNames('label', Styles.notificationMessage)}>
                 {item.message}{' '}
             </p>
           </div>
