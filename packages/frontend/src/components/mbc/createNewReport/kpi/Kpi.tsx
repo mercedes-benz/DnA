@@ -181,11 +181,11 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               )}
             >
               <label id="reportKpiCommentLabel" className="input-label" htmlFor="reportKpiComment">
-                Comment<sup>*</sup>
+                Comment
               </label>
               <textarea
                 className="input-field-area"
-                required={true}
+                required={false}
                 rows={50}
                 id="reportKpiComment"
                 name="comment"
@@ -651,10 +651,11 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     if (this.state.errors.kpiLink) {
       formValid = false;
     }
-    if (!this.state.kpiInfo.comment) {
-      errors.comment = errorMissingEntry;
-      formValid = false;
-    } else {
+    // if (!this.state.kpiInfo.comment) {
+    //   errors.comment = errorMissingEntry;
+    //   formValid = false;
+    // } 
+    else {
       errors.comment = '';
     }
     setTimeout(() => {
