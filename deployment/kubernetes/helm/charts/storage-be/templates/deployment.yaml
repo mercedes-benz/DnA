@@ -36,14 +36,14 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /storage/actuator/health/liveness
-              port: api
+              port: http
           readinessProbe:
             timeoutSeconds: 30
             periodSeconds: 30
             failureThreshold: 3
             httpGet:
               path: /storage/actuator/health/readiness
-              port: api
+              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- with .Values.envs }}            
