@@ -1,5 +1,6 @@
 import { Document, Font, Page, StyleSheet, Text, View, Image, Link } from '@react-pdf/renderer';
 import * as React from 'react';
+import { PropsWithChildren } from "react";
 // @ts-ignore
 import ImgAttachment from '../../../../assets/images/attachment.jpg';
 // @ts-ignore
@@ -558,9 +559,11 @@ const Members = ({ showMembers, members }: IMembersProps) => {
   );
 };
 
-export const ReportPdfDoc = (props: IReportPDFProps) => (
-  <Document>
-    <Page style={styles.page} wrap={true}>
+type Props = PropsWithChildren<IReportPDFProps|any>;
+
+export const ReportPdfDoc = (props: Props) => (
+  <Document {...props}>
+    <Page style={styles.page} wrap={true} {...props}>
       <View style={styles.view}>
         <Text style={styles.title}>{props.report.productName}</Text>
         <Text style={styles.subTitle}>Report Summary</Text>
