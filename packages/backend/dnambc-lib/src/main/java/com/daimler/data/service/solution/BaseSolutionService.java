@@ -264,11 +264,17 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		String solutionId = responseSolutionVO.getId();
 		List<ChangeLogVO> changeLogs = new ArrayList<>();
 		CreatedByVO currentUser = this.userStore.getVO();
+		boolean isPublishedOrCreated = false;
 		if (isUpdate) {
 			eventType = "Solution_update";
 			changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
-		} else
+			if(vo.isPublish())
+				isPublishedOrCreated = true;
+		}
+		else {
 			eventType = "Solution_create";
+			isPublishedOrCreated = true;
+		}
 
 		List<String> teamMembers = new ArrayList<>();
 		List<String> teamMembersEmails = new ArrayList<>();
@@ -276,7 +282,12 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			teamMembers.add(user.getShortId());
 			teamMembersEmails.add(user.getEmail());
 		}
-		this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers, teamMembersEmails);
+		if(isPublishedOrCreated) {
+			LOGGER.debug("Publishing message on solution event for solution {} ", solutionName);
+			this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers,teamMembersEmails);
+		}else {
+			LOGGER.debug("Not publishing message on solution event for solution {} , as it is still in draft stage and not published", solutionName);
+		}
 		return responseSolutionVO;
 	}
 

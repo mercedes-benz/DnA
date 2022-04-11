@@ -1576,6 +1576,22 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 
 		return Stream.of(entry);
 	}
+	
+	private String toHumanReadableFormat(String raw) {
+		if(raw!=null) {
+			String seperated = raw.replaceAll(
+				      String.format("%s|%s|%s",
+				         "(?<=[A-Z])(?=[A-Z][a-z])",
+				         "(?<=[^A-Z])(?=[A-Z])",
+				         "(?<=[A-Za-z])(?=[^A-Za-z])"
+				      ),
+				      " "
+				   );
+		    String formatted = Character.toUpperCase(seperated.charAt(0)) + seperated.substring(1);
+		    return formatted;
+		}
+		else return raw;
+	}
 
 	/**
 	 * toChangeDescription convert given keyString to changeDescription
@@ -1595,6 +1611,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 		if (keySet.length > 0) {
 			fieldValue = ConstantsUtility.staticMap.get(keySet[0]) != null ? ConstantsUtility.staticMap.get(keySet[0])
 					: keySet[0];
+			fieldValue = toHumanReadableFormat(fieldValue);
 			changeDescription.append(fieldValue + ": ");
 		}
 		for (int i = (keySet.length - 1), index = keySet.length; i >= 0; i--) {
@@ -1617,7 +1634,6 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				changeDescription.append(" " + String.valueOf(indexValue));
 				at = null;
 			}
-
 		}
 		if (!StringUtils.hasText(fromValue)) {
 			changeDescription.append(" as `" + toValue + "` added ");
