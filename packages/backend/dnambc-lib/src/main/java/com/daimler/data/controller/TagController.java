@@ -137,7 +137,11 @@ public class TagController implements TagsApi {
 					}
 				}
 			}
+			TagVO tag = tagService.getById(id);
+			String tagName = tag!= null ? tag.getName() : "";
+			String eventMessage = "Tag  " + tagName + " has been deleted by Admin " + userId;
 			tagService.deleteTag(id);
+			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			log.info("Tag with id {} deleted successfully", id);
 			successMsg.setSuccess("success");
