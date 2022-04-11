@@ -674,7 +674,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     chips={this.state.tags}
                     setTags={this.setTags}
                     isMandatory={false}
-                    showMissingEntryError={this.state.showTagsMissingError}
+                    showMissingEntryError={false}
                     {...this.props}
                   />
                 </div>
@@ -744,14 +744,14 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ statusError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.tags.length) {
-      this.setState({ showTagsMissingError: true });
-      formValid = false;
-    }
-    // if (!this.state.departmentTags?.length) {
-    //   this.setState({ showDepartmentMissingError: true });
+    // if (!this.state.tags.length) {
+    //   this.setState({ showTagsMissingError: true });
     //   formValid = false;
     // }
+    if (!this.state.departmentTags?.length) {
+      this.setState({ showDepartmentMissingError: true });
+      formValid = false;
+    }
     if (!this.state.artValue?.length) {
       this.setState({ artError: errorMissingEntry });
       formValid = false;

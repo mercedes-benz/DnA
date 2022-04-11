@@ -27,9 +27,23 @@
 
 package com.daimler.data.controller;
 
+import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.daimler.data.api.datasource.DatasourcesApi;
 import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.controller.exceptions.*;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.datasource.DataSourceCollection;
 import com.daimler.data.dto.datasource.DataSourceRequestVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
@@ -38,21 +52,13 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.datasource.DataSourceService;
 import com.daimler.data.service.userinfo.UserInfoService;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.List;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "DataSource API", tags = { "datasources" })
@@ -80,7 +86,6 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	@CacheEvict(value = "data-sources", allEntries = true)
 	public ResponseEntity<DataSourceVO> create(@Valid DataSourceRequestVO requestVO) {
 		DataSourceVO requestDatasourceVO = requestVO.getData();
 		try {
@@ -115,7 +120,6 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources/{id}", produces = { "application/json" }, method = RequestMethod.DELETE)
-	@CacheEvict(value = "data-sources", allEntries = true)
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Id of the datasource", required = true) @PathVariable("id") String id) {
 		try {
@@ -168,7 +172,6 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources", produces = { "application/json" }, method = RequestMethod.GET)
-	@Cacheable("data-sources")
 	public ResponseEntity<DataSourceCollection> getAll() {
 		final List<DataSourceVO> datasources = datasourceService.getAll();
 		DataSourceCollection datasourceCollection = new DataSourceCollection();
