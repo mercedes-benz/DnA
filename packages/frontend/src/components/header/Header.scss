@@ -1,9 +1,9 @@
 .mainHeader {
   display: flex;
   justify-content: space-between;
-  padding: 17px 17px 0 20px;
+  padding: 17px 17px 0 20px !important;
   position: fixed;
-  height: var(--header-size);
+  height: var(--header-size) !important;
   width: 100%;
   top: 0;
   left: 0;
