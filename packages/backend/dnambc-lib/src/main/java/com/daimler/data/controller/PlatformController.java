@@ -136,7 +136,11 @@ public class PlatformController implements PlatformsApi {
 					}
 				}
 			}
+			PlatformVO platform = platformService.getById(id);
+			String platformName = platform!= null ? platform.getName() : "";
+			String eventMessage = "Platform  " + platformName + " has been deleted by Admin " + userId;
 			platformService.deletePlatform(id);
+			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Platform {} deleted successfully", id);
