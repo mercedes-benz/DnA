@@ -1,3 +1,4 @@
+// @ts-nocheck 
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import cn from 'classnames';
 import * as React from 'react';
