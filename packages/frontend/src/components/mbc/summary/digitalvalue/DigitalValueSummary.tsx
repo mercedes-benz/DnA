@@ -275,13 +275,15 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                       <span onClick={this.openChangeLog}>Change Log</span>
                     </li>
                     <li className="contextListItem">
-                      <PDFDownloadLink
-                        document={this.props.onExportToPDFDocument}
-                        className={Styles.pdfLink}
-                        fileName={`${pdfFileName}.pdf`}
-                      >
-                        {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
-                      </PDFDownloadLink>
+                      {// @ts-ignore
+                        <PDFDownloadLink
+                          document={this.props.onExportToPDFDocument}
+                          className={Styles.pdfLink}
+                          fileName={`${pdfFileName}.pdf`}
+                        >
+                          {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
+                        </PDFDownloadLink>
+                      }
                     </li>
                   </ul>
                 </div>
