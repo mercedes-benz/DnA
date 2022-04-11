@@ -2,9 +2,10 @@ import { createHashHistory } from 'history';
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 
-import { bucketInitialState, bucketReducer } from '../components/redux/bucket.reducers';
+import { bucketInitialState, bucketReducer } from '../components/Bucket/redux/bucket.reducers';
 import appReducers, { appInitialState } from '../appRedux/app.reducers';
 import { fileExplorerInitialState, fileExplorerReducer } from '../components/Explorer/redux/fileExplorer.reducers';
+import { connectionInfoInitialState, connectionReducer } from '../components/ConnectionInfo/redux/connection.reducers';
 
 export const history = createHashHistory({
   basename: '/storage',
@@ -16,6 +17,7 @@ export const INITIAL_STATE = Object.assign(
     app: appInitialState,
     bucket: bucketInitialState,
     fileExplorer: fileExplorerInitialState,
+    connectionInfo: connectionInfoInitialState,
   },
 );
 
@@ -24,6 +26,7 @@ const combinedReducers = combineReducers({
   app: appReducers,
   bucket: bucketReducer,
   fileExplorer: fileExplorerReducer,
+  connectionInfo: connectionReducer,
 });
 
 const ACTION_NAME = 'ROOT_ACTIONS__';
