@@ -135,7 +135,11 @@ public class AlgorithmController implements AlgorithmsApi {
 					}
 				}
 			}
+			AlgorithmVO algorithm = algorithmService.getById(id);
+			String algoName = algorithm!= null ? algorithm.getName() : "";
+			String eventMessage = "Algorithm " + algoName + " has been deleted by Admin " + userId;
 			algorithmService.deleteAlgorithm(id);
+			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.debug("Algorithm {} deleted successfully", id);
