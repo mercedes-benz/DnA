@@ -654,9 +654,7 @@ export const SummaryPdfDoc = (props: any) => (
 
         {props.canShowPlatform && (
           <View wrap={false}>
-            <View style={[styles.flexCol4, styles.firstCol]}>
-              <Text style={[styles.subTitle, styles.setMarginTop]}>Compute</Text>
-            </View>
+            <Text style={[styles.subTitle, styles.setMarginTop]}>Compute</Text>
             <View style={styles.flexLayout}>
               <View style={styles.flexCol4}>
                 <View>
