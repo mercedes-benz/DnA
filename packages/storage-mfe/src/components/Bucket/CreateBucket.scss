@@ -26,7 +26,7 @@
         i {
           cursor: pointer;
           color: #697582;
-    
+
           &:hover {
             color: #00adef;
           }
@@ -178,4 +178,9 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 20px;
+}
+.backBtn {
+  position: relative;
+  top: 75px;
+  margin: 0 0 15px 114px;
 }
