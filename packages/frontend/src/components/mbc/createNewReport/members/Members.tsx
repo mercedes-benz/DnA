@@ -41,6 +41,7 @@ export interface IMembersState {
     admin: string;
   };
   hideTeamPosition: boolean;
+  teamPositionNotRequired: boolean;
 }
 
 export interface IAttachmentResponse {
@@ -88,7 +89,8 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         productOwner: '',
         admin: '',
       },
-      hideTeamPosition: true
+      hideTeamPosition: true,
+      teamPositionNotRequired: true
     };
   }
 
@@ -246,6 +248,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
             teamMember={this.state.teamMemberObj}
             hideTeamPosition={this.state.hideTeamPosition}
+            teamPositionNotRequired={this.state.teamPositionNotRequired}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
             validateMemebersList={this.validateMembersList}
