@@ -78,8 +78,6 @@ export const setFiles = (bucketName, historyPush = true) => {
 
 export const getFiles = (files, bucketName, fileToOpen) => {
   return async (dispatch) => {
-    const copyFiles = { ...files };
-
     dispatch({
       type: 'FILE_LOADING',
       payload: true,
@@ -93,10 +91,18 @@ export const getFiles = (files, bucketName, fileToOpen) => {
         const { data } = res.data;
         const result = serializeObjects(data, fileToOpen);
 
-        dispatch({
-          type: 'SET_FILES',
-          payload: { ...copyFiles, ...result },
-        });
+        if (Object.keys(result)?.length) {
+          dispatch({
+            type: 'SET_FILES',
+            payload: { ...files, ...result },
+          });
+        } else {
+          dispatch({
+            type: 'SET_FILES',
+            payload: files,
+          });
+        }
+
         dispatch({
           type: 'FILE_LOADING',
           payload: false,
