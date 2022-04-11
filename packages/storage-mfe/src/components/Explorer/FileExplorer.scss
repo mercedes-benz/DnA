@@ -32,12 +32,21 @@
     margin-bottom: auto;
     margin-right: 15px !important;
     white-space: pre;
+    .folderPathLabel {
+      color: #acb8c4 !important;
+    }
   }
 }
 
 .previewImg {
-   margin-top: 20px;
-   max-height: 425px;
+  margin-top: 20px;
+  max-height: 425px;
+}
+
+.backBtn {
+  position: relative;
+  top: 75px;
+  margin: 0 0 15px 114px;
 }
 
 :global {
@@ -145,6 +154,10 @@
       border-radius: 0;
       .MuiList-root.MuiMenu-list.chonky-contextMenuList {
         background: #383f49;
+        min-width: 185px;
+        .chonky-browserMenuTooltip {
+          display: none;
+        }
       }
     }
   }
@@ -161,6 +174,14 @@
     &.chonky-activeButton {
       .chonky-icon {
         color: #00adef !important;
+      }
+    }
+  }
+  .MuiPaper-root.MuiPopover-paper {
+    .chonky-dropdownList {
+      // show hidden files options
+      li.MuiListItem-gutters:nth-child(4) {
+        display: none;
       }
     }
   }

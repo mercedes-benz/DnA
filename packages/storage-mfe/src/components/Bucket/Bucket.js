@@ -74,7 +74,7 @@ const AllBuckets = () => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.caption)}>
-            <h3>{'My Buckets'}</h3>
+            <h3>{'My Storage'}</h3>
           </div>
         </div>
         <div className={classNames(Styles.content)}>
