@@ -4,6 +4,8 @@ import Styles from './FileExplorer.scss';
 
 import { useDispatch, useSelector } from 'react-redux';
 
+import ConfirmModal from 'dna-container/ConfirmModal';
+
 import { FullFileBrowser, ChonkyActions, FileHelper } from 'chonky';
 
 import Modal from 'dna-container/Modal';
@@ -12,6 +14,7 @@ import { useParams } from 'react-router-dom';
 
 import { setChonkyDefaults } from 'chonky';
 import { ChonkyIconFA } from 'chonky-icon-fontawesome';
+import { getDateTimeFromTimestamp } from '../Utility/utils';
 
 import FileUpload from './Upload';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -33,6 +36,7 @@ import 'ace-builds/src-noconflict/mode-plain_text';
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
 import { serializeFolderChain } from './Utils';
 import { IMAGE_EXTNS, PREVIEW_NOT_ALLOWED_EXTNS } from '../Utility/constants';
+import { history } from '../../store/storeRoot';
 
 // inform chonky on which iconComponent to use
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
@@ -58,7 +62,25 @@ const FileExplorer = () => {
   const [currentFolderId, setCurrentFolderId] = useState(bucketName);
   const [newFolderName, setNewFolderName] = useState('');
   const [folderName, setFolderName] = useState('');
-  const [show, setShow] = useState(false);
+  const [folderNameError, setFolderNameError] = useState('');
+  const [showCreateNewFolderModal, setShowCreateNewFolderModal] = useState(false);
+
+  // track of newly created folder name
+  const [newlyCreatedFolder, setNewlyCreatedFolder] = useState('');
+
+  const [folderExists, setFolderExists] = useState({
+    modal: false,
+    data: {},
+  });
+  const [isEmptyFolder, setIsEmptyFolder] = useState({
+    modal: false,
+    fileToOpen: {},
+  });
+
+  const [showDeleteModal, setShowDeleteModal] = useState({
+    modal: false,
+    data: {},
+  });
 
   const currentFolderIdRef = useRef(currentFolderId);
   const uploadRef = useRef(null);
@@ -79,6 +101,21 @@ const FileExplorer = () => {
     ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
   ];
 
+  // localization
+  const i18n = {
+    // set date format
+    formatters: {
+      formatFileModDate: (intl, file) => {
+        const safeModDate = FileHelper.getModDate(file);
+        if (safeModDate) {
+          return `${getDateTimeFromTimestamp(safeModDate)}`;
+        } else {
+          return null;
+        }
+      },
+    },
+  };
+
   useEffect(() => {
     currentFolderIdRef.current = currentFolderId;
   }, [currentFolderId]);
@@ -97,8 +134,8 @@ const FileExplorer = () => {
   }, [dispatch, bucketName, files]);
 
   useEffect(() => {
-    show && inputRef.current.focus();
-  }, [show]);
+    showCreateNewFolderModal && inputRef.current.focus();
+  }, [showCreateNewFolderModal]);
 
   const useFolderChain = (fileMap, currentFolderId) => {
     return useMemo(() => {
@@ -121,24 +158,33 @@ const FileExplorer = () => {
   };
   const folderChain = useFolderChain(files?.fileMap, currentFolderId);
 
+  const openExistingFolder = (files, newFolderName) => {
+    const newFileMap = { ...files.fileMap };
+    const objectName = `${newFileMap[currentFolderIdRef.current].objectName}${newFolderName}/`;
+    setFolderExists({ modal: false });
+    dispatch(
+      getFiles(newFileMap, bucketName, {
+        id: newFolderName,
+        name: newFolderName,
+        isDir: true,
+        parentId: currentFolderIdRef.current,
+        objectName: objectName.replace(`${bucketName}/`, ''),
+      }),
+    );
+    setCurrentFolderId(newFolderName);
+  };
+
   const createFolder = useCallback(
     (files, newFolderName) => {
       const newFileMap = { ...files.fileMap };
-      const folderExistsInCurrentDirectory = newFileMap[currentFolderIdRef.current]?.childrenIds?.some((item) =>
-        item.includes(newFolderName),
+      const folderExistsInCurrentDirectory = newFileMap[currentFolderIdRef.current]?.childrenIds?.some(
+        (item) =>
+          item === newFolderName ||
+          item === newFileMap[currentFolderIdRef.current].objectName.split('/').join('') + newFolderName,
       );
+
       if (folderExistsInCurrentDirectory) {
-        const objectName = `${newFileMap[currentFolderIdRef.current].objectName}${newFolderName}'/'`;
-        dispatch(
-          getFiles(newFileMap, bucketName, {
-            id: newFolderName,
-            name: newFolderName,
-            isDir: true,
-            parentId: currentFolderIdRef.current,
-            objectName: objectName.replace(`${bucketName}/`, ''),
-          }),
-        );
-        setCurrentFolderId(newFolderName);
+        setFolderExists({ modal: true, data: { files, newFolderName } });
       } else {
         // Create the new folder
         newFileMap[newFolderName] = {
@@ -163,13 +209,18 @@ const FileExplorer = () => {
         });
 
         setCurrentFolderId(newFolderName);
+        setNewlyCreatedFolder(newFolderName);
       }
 
       setNewFolderName('');
       return newFileMap;
     },
-    [dispatch, bucketName],
+    [dispatch],
   );
+
+  const goBack = () => {
+    history.replace('/');
+  };
 
   const onDelete = (data) => {
     // Delete the files
@@ -213,7 +264,7 @@ const FileExplorer = () => {
     dispatch(deleteFiles(bucketName, fileList.join(','), newFileMap));
   };
 
-  const onOpenFolder = (fileToOpen) => {
+  const onOpenFolder = (fileToOpen, isEmptyFolder = false) => {
     setCurrentFolderId(fileToOpen.id);
 
     const moveBackward = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenCount');
@@ -221,9 +272,7 @@ const FileExplorer = () => {
     const inDraftFolderMoveBackward = (files) => Object.prototype.hasOwnProperty.call(files, 'childrenIds');
 
     const serializeObjectName = (files) => {
-      const prefix = serializeFolderChain(folderChain);
-
-      files['objectName'] = prefix[prefix?.length - 1];
+      files['objectName'] = fileToOpen.objectName;
       const objectNameArray = files.objectName?.split('/')?.filter((x) => !!x);
       const currentFolderIndex = objectNameArray.indexOf(fileToOpen.name);
       if (currentFolderIndex !== -1) {
@@ -244,7 +293,27 @@ const FileExplorer = () => {
           serializeObjectName(copyFilesToOpen);
         }
       }
-      dispatch(getFiles(files.fileMap, bucketName, copyFilesToOpen));
+
+      if (isEmptyFolder) {
+        const newFileMap = { ...files.fileMap };
+        const parent = newFileMap[newFileMap[currentFolderId]?.parentId];
+
+        const newChildrenIds = parent.childrenIds?.filter((id) => id !== currentFolderId);
+        const copyParent = { ...parent };
+
+        delete copyParent.childrenIds;
+        newFileMap[copyParent.id] = {
+          ...parent,
+          childrenIds: newChildrenIds,
+          childrenCount: newChildrenIds?.length,
+        };
+
+        delete newFileMap[currentFolderId];
+
+        dispatch(getFiles(newFileMap, bucketName, copyFilesToOpen));
+      } else {
+        dispatch(getFiles(files.fileMap, bucketName, copyFilesToOpen));
+      }
     }
 
     return;
@@ -293,11 +362,14 @@ const FileExplorer = () => {
 
   const handleAction = (data) => {
     if (data.id === ChonkyActions.CreateFolder.id) {
-      setShow(true);
+      setShowCreateNewFolderModal(true);
     } else if (data.id === ChonkyActions.UploadFiles.id) {
       uploadRef.current.click();
     } else if (data.id === ChonkyActions.DeleteFiles.id) {
-      onDelete(data);
+      setShowDeleteModal({
+        modal: true,
+        data,
+      });
     } else if (data.id === ChonkyActions.DownloadFiles.id) {
       data.state.selectedFiles?.forEach((item) => {
         // if selected multiple items, download each file
@@ -307,8 +379,14 @@ const FileExplorer = () => {
       const { targetFile, files: sFiles } = data.payload;
       const fileToOpen = targetFile ?? sFiles[0];
       if (fileToOpen && FileHelper.isDirectory(fileToOpen)) {
-        // on opening directory
-        onOpenFolder(fileToOpen);
+        if (files.fileMap[currentFolderId].isDir && files.fileMap[currentFolderId].childrenCount === 0) {
+          setIsEmptyFolder({ modal: true, fileToOpen });
+        } else if (files.fileMap[newlyCreatedFolder] && !files.fileMap?.[newlyCreatedFolder]?.childrenIds?.length) {
+          setIsEmptyFolder({ modal: true, fileToOpen });
+        } else {
+          // on opening directory
+          onOpenFolder(fileToOpen);
+        }
       } else if (fileToOpen) {
         // on opening files
         onOpenFile(data, fileToOpen);
@@ -320,27 +398,111 @@ const FileExplorer = () => {
   const folderPath = serializeFolderChain(folderChain);
   const currentFolderPath = [...new Set(folderPath.join('').split('/'))].join('/');
 
+  const folderNameValidation = () => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+    if (folderName === '') {
+      setFolderNameError(errorMissingEntry);
+      formValid = false;
+    }
+
+    if (folderName === currentFolderPath.replace('/', '')) {
+      setFolderNameError(`Currently in ${folderName} folder`);
+      formValid = false;
+    }
+    if (folderName === currentFolderId) {
+      setFolderNameError(`Currently in ${folderName} folder`);
+      formValid = false;
+    }
+
+    if (!currentFolderPath && folderName === bucketName) {
+      setFolderNameError(`Currently in ${folderName} folder`);
+      formValid = false;
+    }
+
+    return formValid;
+  };
+
   const addFolderContent = (
     <div className={Styles.formGroup}>
-      <div className={classNames('input-field-group', Styles.inputGrp)}>
-        <label className={classNames('input-label', Styles.inputLabel)}>New Folder Name</label>
+      <div className={classNames('input-field-group', Styles.inputGrp, folderNameError?.length ? 'error' : '')}>
+        <label className={classNames('input-label', Styles.inputLabel)}>
+          New Folder Name <sup>*</sup>
+        </label>
         <div className={Styles.folderPath}>
-          <label className={classNames('input-label', Styles.inputLabel)}>{`${bucketName}/${currentFolderPath}`}</label>
+          <label
+            className={classNames('input-label', Styles.inputLabel, Styles.folderPathLabel)}
+          >{`${bucketName}/${currentFolderPath}`}</label>
         </div>
-        <input
-          type="text"
-          className="input-field"
-          required={true}
-          maxLength={64}
-          placeholder="Enter new folder path"
-          autoComplete="off"
-          onChange={(e) => setFolderName(e.target.value)}
-          value={folderName}
-          ref={inputRef}
-        />
+        <div style={{ maxHeight: 40 }}>
+          <input
+            type="text"
+            className="input-field"
+            required={true}
+            maxLength={64}
+            placeholder="Enter new folder path"
+            autoComplete="off"
+            onChange={(e) => {
+              setFolderName(e.target.value.replace('/', ''));
+              if (e.target.value) setFolderNameError('');
+            }}
+            value={folderName}
+            ref={inputRef}
+          />
+          <span className={classNames('error-message', folderNameError?.length ? '' : 'hide')}>{folderNameError}</span>
+        </div>
       </div>
     </div>
   );
+
+  const folderExistsContent = (
+    <div>
+      <h4>Folder already exists. Do you wish to open the folder?</h4>
+    </div>
+  );
+
+  const folderExistsClose = () => {
+    setFolderExists({ modal: false });
+  };
+
+  const folderExistsAccept = () => {
+    const { files, newFolderName } = folderExists.data;
+    openExistingFolder(files, newFolderName);
+    setFolderExists({ modal: false, data: {} });
+  };
+
+  const emptyFolderWarningContent = (
+    <div>
+      <h4>Folder is empty.</h4>
+      <h5>Empty folders will be removed.</h5>
+    </div>
+  );
+
+  const emptyFolderClose = () => {
+    setIsEmptyFolder({ modal: false, fileToOpen: {} });
+  };
+
+  const emptyFolderAccept = () => {
+    const { fileToOpen } = isEmptyFolder;
+    // on opening directory
+    onOpenFolder(fileToOpen, true);
+    setIsEmptyFolder({ modal: false, fileToOpen });
+  };
+
+  const deleteFileOrFolderContent = (
+    <div>
+      <h4>Are you sure you want to delete selected file(s)/folder(s)?</h4>
+    </div>
+  );
+
+  const deleteClose = () => {
+    setShowDeleteModal({ modal: false, data: {} });
+  };
+
+  const deleteAccept = () => {
+    onDelete(showDeleteModal.data);
+    setShowDeleteModal({ modal: false });
+  };
 
   // set corresponding modes based on the file extensions
   const aceEditorMode = {
@@ -362,6 +524,9 @@ const FileExplorer = () => {
 
   return (
     <>
+      <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goBack}>
+        Back
+      </button>
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
           <div className={Styles.caption}>
@@ -378,6 +543,7 @@ const FileExplorer = () => {
             darkMode={true}
             defaultFileViewActionId={ChonkyActions.EnableListView.id}
             disableDragAndDrop={true}
+            i18n={i18n}
           />
           {showPreview.modal && (
             <Modal
@@ -426,22 +592,57 @@ const FileExplorer = () => {
         showAcceptButton={true}
         acceptButtonTitle="Create"
         onAccept={() => {
-          setNewFolderName(folderName);
-          setFolderName('');
-          setShow(false);
+          if (folderNameValidation()) {
+            setNewFolderName(folderName);
+            setFolderName('');
+            setShowCreateNewFolderModal(false);
+          }
         }}
         showCancelButton={true}
         cancelButtonTitle="Cancel"
         onCancel={() => {
           setNewFolderName('');
           setFolderName('');
-          setShow(false);
+          setShowCreateNewFolderModal(false);
         }}
         modalWidth={'60%'}
         buttonAlignment="right"
-        show={show}
+        show={showCreateNewFolderModal}
         content={addFolderContent}
         scrollableContent={false}
+      />
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="No"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showDeleteModal.modal}
+        content={deleteFileOrFolderContent}
+        onCancel={deleteClose}
+        onAccept={deleteAccept}
+      />
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Proceed"
+        cancelButtonTitle="No"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={folderExists.modal}
+        content={folderExistsContent}
+        onCancel={folderExistsClose}
+        onAccept={folderExistsAccept}
+      />
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Proceed"
+        cancelButtonTitle="No"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={isEmptyFolder.modal}
+        content={emptyFolderWarningContent}
+        onCancel={emptyFolderClose}
+        onAccept={emptyFolderAccept}
       />
     </>
   );
