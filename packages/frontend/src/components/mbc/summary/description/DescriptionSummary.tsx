@@ -1,4 +1,3 @@
-// @ts-nocheck 
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import cn from 'classnames';
 import * as React from 'react';
@@ -201,13 +200,15 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     </li>
                   )}
                   <li className="contextListItem">
-                    <PDFDownloadLink
-                      document={this.props.onExportToPDFDocument}
-                      className={Styles.pdfLink}
-                      fileName={`${pdfFileName}.pdf`}
-                    >
-                      {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
-                    </PDFDownloadLink>
+                    {// @ts-ignore
+                      <PDFDownloadLink
+                        document={this.props.onExportToPDFDocument}
+                        className={Styles.pdfLink}
+                        fileName={`${pdfFileName}.pdf`}
+                      >
+                        {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
+                      </PDFDownloadLink>
+                    }
                   </li>
                 </ul>
               </div>
