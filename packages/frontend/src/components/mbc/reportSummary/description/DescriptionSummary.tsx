@@ -170,13 +170,15 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     </li>
                   )}
                   <li className="contextListItem">
-                    <PDFDownloadLink
-                      document={this.props.onExportToPDFDocument}
-                      className={Styles.pdfLink}
-                      fileName={`${pdfFileName}.pdf`}
-                    >
-                      {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
-                    </PDFDownloadLink>
+                    {// @ts-ignore
+                      <PDFDownloadLink
+                        document={this.props.onExportToPDFDocument}
+                        className={Styles.pdfLink}
+                        fileName={`${pdfFileName}.pdf`}
+                      >
+                        {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
+                      </PDFDownloadLink>
+                    }
                   </li>
                 </ul>
               </div>
