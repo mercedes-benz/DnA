@@ -172,6 +172,7 @@ export const ConnectionModal = () => {
             </div>
           </div>
         </div>
+        <button className={classNames('btn btn-primary', Styles.OkBtn)}>OK</button>
       </div>
     </div>
   );
