@@ -497,14 +497,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           )}
                         >
                           <label id="integratedPortalLabel" htmlFor="integratedPortalField" className="input-label">
-                            Integrated In Portal<sup>*</sup>
+                            Integrated In Portal
                           </label>
                           <div className="custom-select">
                             <select
                               id="integratedPortalField"
                               multiple={true}
-                              required={true}
-                              required-error={requiredError}
+                              required={false}
                               onChange={this.onChangeItegratedPortal}
                               value={integratedInPortalValue}
                             >
@@ -600,14 +599,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       </div>
                       <div className={classNames('input-field-group include-error', artError.length ? 'error' : '')}>
                         <label id="ARTLabel" htmlFor="ARTField" className="input-label">
-                          Agile Release Train<sup>*</sup>
+                          Agile Release Train
                         </label>
                         <div className="custom-select">
                           <select
                             id="ARTField"
                             multiple={true}
-                            required={true}
-                            required-error={requiredError}
+                            required={false}
                             onChange={this.onChangeART}
                             value={artValue}
                           >
@@ -752,14 +750,14 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ showDepartmentMissingError: true });
       formValid = false;
     }
-    if (!this.state.artValue?.length) {
-      this.setState({ artError: errorMissingEntry });
-      formValid = false;
-    }
-    if (!this.state.integratedPortalsValue?.length) {
-      this.setState({ integratedPortalError: errorMissingEntry });
-      formValid = false;
-    }
+    // if (!this.state.artValue?.length) {
+    //   this.setState({ artError: errorMissingEntry });
+    //   formValid = false;
+    // }
+    // if (!this.state.integratedPortalsValue?.length) {
+    //   this.setState({ integratedPortalError: errorMissingEntry });
+    //   formValid = false;
+    // }
     if (!this.state.designGuideValue || this.state.designGuideValue[0].name === 'Choose') {
       this.setState({ designGuideError: errorMissingEntry });
       formValid = false;
