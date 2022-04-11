@@ -1,5 +1,6 @@
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import * as React from 'react';
+import { PropsWithChildren } from "react";
 // @ts-ignore
 import ImgAttachment from '../../../../assets/images/attachment.jpg';
 // @ts-ignore
@@ -533,9 +534,11 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
   });
 };
 
-export const SummaryPdfDoc = (props: any) => (
-  <Document>
-    <Page style={styles.page} wrap={true}>
+type Props = PropsWithChildren<any>
+
+export const SummaryPdfDoc = (props: Props) => (
+  <Document {...props}>
+    <Page style={styles.page} wrap={true} {...props}>
       <View style={styles.view}>
         <Text style={styles.title}>{props.solution.description.productName}</Text>
         <Text style={styles.subTitle}>Solution Summary</Text>
