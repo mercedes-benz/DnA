@@ -65,6 +65,8 @@ data:
             
             set $dashboard_server {{ .Values.appFrontend.ngnix.dashboard | quote }};
 
+            set $storage_server {{ .Values.appFrontend.ngnix.storage | quote }};
+
             root /usr/share/nginx/html;
             index index.htm index.html;
             try_files $uri $uri/ /index.html;
@@ -124,6 +126,17 @@ data:
               proxy_set_header Host $http_host;
               proxy_redirect off;
             }
+
+            location ^~ /storage/ {
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-NginX-Proxy true;
+              proxy_pass $storage_server;
+              proxy_ssl_session_reuse off;
+              proxy_set_header Host $http_host;
+              proxy_redirect off;
+            }
+
             location ^~ /grafana {
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
