@@ -31,7 +31,7 @@ export const BucketList = ({ bucketList }) => {
 
   const deleteBucketContent = (
     <div>
-      <h3>Are you sure you want to delete {selectedItem.bucketName} bucket? </h3>
+      <h3>Are you sure you want to delete {selectedItem.bucketName} ? </h3>
       <h5>A bucket can only be deleted if its empty.</h5>
     </div>
   );
