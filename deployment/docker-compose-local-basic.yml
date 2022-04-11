@@ -7,37 +7,23 @@ services:
       context: ../packages/frontend/
       dockerfile: ../../deployment/dockerfiles/app/result-frontend.Dockerfile
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ../packages/frontend/nginx.conf:/etc/nginx/nginx.conf
     environment:
       - PROJECTSMO_BACKEND_HOST=app-backend
       - PROJECTSMO_BACKEND_PORT=7171
       - PROJECTSMO_FRONTEND_API_BASEURL=api
       - PROJECTSMO_FRONTEND_OIDC_DISABLED=true
-      # - PROJECTSMO_FRONTEND_OAUTH2_TOKEN_URL=
-      # - PROJECTSMO_FRONTEND_OAUTH2_AUTH_URL=
-      # - PROJECTSMO_FRONTEND_OAUTH2_REVOKE_URL=
-      # - PROJECTSMO_FRONTEND_OAUTH2_LOGOUT_URL=
-      # - PROJECTSMO_FRONTEND_OAUTH2_INTROSPECTION_URL=
-      # - PROJECTSMO_FRONTEND_OAUTH2_USERINFO_URL=
-      # - PROJECTSMO_FRONTEND_CLIENT_IDS=
-      # - PROJECTSMO_FRONTEND_REDIRECT_URLS=
       - PROJECTSMO_ENABLE_INTERNAL_USER_INFO=false
       - PROJECTSMO_ENABLE_DATA_COMPLIANCE=false
       - PROJECTSMO_ENABLE_REPORTS=true
       - PROJECTSMO_ENABLE_JUPYTER_WORKSPACE=false
-      # - PROJECTSMO_JUPYTER_NOTEBOOK_URL=
-      # - PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_URL=
       - PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME=5000
       - PROJECTSMO_ENABLE_DATAIKU_WORKSPACE=false
-      # - PROJECTSMO_DATAIKU_LIVE_APP_URL=
-      # - PROJECTSMO_DATAIKU_TRAINING_APP_URL=
-      # - PROJECTSMO_DATAIKU_FERRET_URL=
       - PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE=true
       - PROJECTSMO_ENABLE_MALWARE_SCAN_ONEAPI_INFO=false
       # - PROJECTSMO_MALWARE_SCAN_SWAGGER_UI_URL=
       - PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE=false
       - PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE=false
-      # - PROJECTSMO_ML_PIPELINE_URL=
       - PROJECTSMO_ENABLE_STORAGE_SERVICE=false
       - PROJECTSMO_STORAGE_MFE_APP_URL=http://localhost:8083
       - PROJECTSMO_DNA_COMPANY_NAME=Company_Name
@@ -50,6 +36,14 @@ services:
       - PROJECTSMO_ENABLE_NOTIFICATION=true
     ports:
       - 8080:3000
+    depends_on:
+      - app-backend
+      - dashboard-backend  
+      - naas-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
 
   app-db:
     image: bitnami/postgresql:11.14.0-debian-10-r28
@@ -77,34 +71,15 @@ services:
       - API_DB_USER=postgres
       - API_DB_PASS=postgres
       - OIDC_DISABLED=true
-      # - OIDC_CLIENT_SECRET=""
-      # - OIDC_CLIENT_ID=""
-      # - OIDC_USER_INFO_URL=""
-      # - OIDC_TOKEN_INTROSPECTION_URL=""
-      # - OIDC_TOKEN_REVOCATION_URL=""
-      # - OIDC_PROVIDER=INTERNAL
-      # - REDIRECT_URL=""
       - JWT_SECRET_KEY=oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
-      # - INTERNAL_USER_REQUEST_URL=""
-      # - INTERNAL_USER_CERT_PASS=""
-      # - INTERNAL_USER_CERT_FILE=""
       - INACTIVE_SOLUTION_DURATION_YRS=2
       - JUPYTER_NOTEBOOK=false
-      # - JUPYTER_NOTEBOOK_BASEURI=""
-      # - JUPYTER_NOTEBOOK_TOKEN=""
       - DATAIKU=false
-      # - DATAIKU_PROD_URI=""
-      # - DATAIKU_PROD_API_KEY=""
-      # - DATAIKU_PROD_ADMIN_GROUP=""
-      # - DATAIKU_TRAINING_URI=""
-      # - DATAIKU_TRAINING_API_KEY=""
-      # - DATAIKU_TRAINING_ADMIN_GROUP=""
-      # - DATAIKU_PROJECTS_URI_PATH=""
       - ITSMM=false
-      - ATTACHMENT_MALWARE_SCAN=true
+      - ATTACHMENT_MALWARE_SCAN=false
       - AVSCAN_URI=http://malware-backend:8181/avscan/api/v1
-      - AVSCAN_APP_ID=851a6059-409c-4ca3-b0fd-e2e2cd2920df
-      - AVSCAN_API_KEY=935dcf9c-aac6-40a0-b3e6-c068bb7444f6
+      - AVSCAN_APP_ID=
+      - AVSCAN_API_KEY=
       - DRD_INTERNAL_USER_ENABLED=false
       - S3_EP_URL=http://minio:9000
       - S3_BUCKET_NAME=dna
@@ -113,7 +88,6 @@ services:
       - S3_MAX_PARALLEL_UPLOADTHREADS=20
       - S3_MIN_FILESIZE=1024
       - S3_MAX_FILESIZE=5242880
-      # - CORS_ORIGIN_URL=""
       - VAULT_HOST=vault
       - VAULT_PORT=8200
       - VAULT_SCHEME=http
@@ -134,9 +108,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-        delay: 5s
         max_attempts: 3
-        window: 30s
 
   dashboard-backend:
     image: dna/dashboard-backend
@@ -160,9 +132,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-        delay: 5s
         max_attempts: 3
-        window: 30s
 
   malware-backend:
     image: dna/malware-backend
@@ -189,9 +159,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-        delay: 5s
         max_attempts: 3
-        window: 30s
 
   vault:
     image: vault
@@ -242,9 +210,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-        delay: 5s
         max_attempts: 3
-        window: 30s
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
