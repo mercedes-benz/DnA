@@ -43,6 +43,7 @@ app:
     userNameSpaceTemplate: kubeflow
 
 ingress:
+  enabled: true
   host: ""
 
 cert:
