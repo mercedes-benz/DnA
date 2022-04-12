@@ -7,6 +7,7 @@ Prerequisites for this are:
 * Git
 * Docker
 * Docker Compose
+* Recommend 8GB RAM
 
 **Note:** For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL
 
@@ -24,7 +25,7 @@ cd <<Clonned Folder>>/deployment/
 docker-compose -f docker-compose-local-basic.yml up
 ```
 
-Wait for a few seconds and then open the website by going to http://localhost:8080 in your browser. If you made any changes on source files add `--build --force-recreate` args to docker-compose command. If you facing any issue with docker-compose, please refer [FAQ](./FAQ.md)
+Wait for a **2 minutes** and then open the website by going to http://localhost:8080 in your browser. If you made any changes on source files add `--build --force-recreate` args to docker-compose command. If you facing any issue with docker-compose, please refer [FAQ](./FAQ.md)
 
 To stop the application
 
@@ -66,9 +67,11 @@ File is located at
 ```
 cd <<Clonned Folder>>deployment\kubernetes\helm\values.yaml
 ```
+
 Then enable the particular subchart which you would like to deploy using helm-
 
-set 
+set
+
 ```
 enabled: true #setting true will deploy the subchart
 ```
@@ -86,9 +89,11 @@ helm install dna . -f values.yaml
 ```
 
 To list helm release
+
 ```
 helm list
 ```
+
 Do Helm Upgrade, if you made changes on helm files
 
 ```
@@ -100,7 +105,6 @@ To uninstall the helm app
 ```
 helm uninstall dna
 ```
-
 
 DnA Platform can be configured quite a lot, have a look at possible config parameters:
 
@@ -115,5 +119,5 @@ or follow simple instructions on how to use simple and free Open ID Connect iden
 * [About GIT](https://git-scm.com/doc)
 * [Docker installation.](https://docs.docker.com/get-docker/)
 * [About docker-compose.](https://docs.docker.com/compose/)
-* [Helm installation](https://helm.sh/docs/intro/install/) 
+* [Helm installation](https://helm.sh/docs/intro/install/)
 * [About Helm](https://helm.sh/docs/)

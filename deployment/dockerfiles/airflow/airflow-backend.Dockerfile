@@ -16,17 +16,18 @@ USER 1000:1000
 EXPOSE 7171
 ENTRYPOINT ["java","-jar","/airflow-backend-lib-1.0.0.jar"]
 
-#Multi Step process  - But  slow
+
 #Step-1
-# FROM gradle:6.2.2-jdk8 AS TEMP_BUILD_IMAGE
-# COPY --chown=gradle:gradle . /home/gradle/src
-# WORKDIR /home/gradle/src
-# RUN gradle build --no-daemon 
+FROM gradle:7.4.1-jdk17 AS TEMP_BUILD_IMAGE
+COPY --chown=gradle:gradle . /home/gradle/src
+WORKDIR /home/gradle/src
+RUN gradle build --no-daemon
 #Step-2
-# FROM openjdk:8-jdk-alpine
-# ENV ARTIFACT_NAME=datambc-2.0.0.jar
-# ENV APP_HOME=/usr/app/
-# WORKDIR $APP_HOME
-# COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/build/libs/*.jar $APP_HOME/
-# EXPOSE 7171
-# CMD ["java","-jar",$ARTIFACT_NAME]
+FROM openjdk:14-jdk
+ENV ARTIFACT_NAME=airflow-backend-lib/build/libs/*.jar
+ENV APP_HOME=/usr/app/
+WORKDIR $APP_HOME
+COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/naas-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
+
+EXPOSE 7272
+CMD java -jar $ARTIFACT_NAME
