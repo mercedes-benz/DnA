@@ -40,6 +40,7 @@ image:
   pullPolicy: Always
 
 ingress:
+  enabled: true
   host: ""
 
 imagePullSecret: 
