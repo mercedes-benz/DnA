@@ -66,6 +66,12 @@
       border: none;
       border-radius: 0;
     }
+    .chonky-navbarWrapper {
+      padding-bottom: 12px;
+    }
+    .chonky-toolbarWrapper {
+      padding-bottom: 7px;
+    }
     .chonky-activeButton {
       color: #00adef !important;
     }
@@ -94,6 +100,9 @@
       div[class*="selectionIndicator"] {
         background: #00adef !important;
       }
+      div[class*="focusIndicator"] {
+        box-shadow: none;
+      }
       &::-webkit-scrollbar-thumb {
         background: #00adef;
         border-radius: 10px;
@@ -112,10 +121,11 @@
       div[class*="folderBackSideTop"],
       div[class*="folderFrontSide"] {
         background-color: #697582;
-        box-shadow: #00adef !important;
+        box-shadow: none !important;
       }
       &[class*="previewFile-d"] {
         background-color: #99a5b3;
+        box-shadow: none !important;
       }
     }
     div[class*="gridFileEntryName"] {
@@ -126,6 +136,9 @@
       font-size: var(--font-size-default) !important;
       div[class*="listFileEntryIcon"] {
         color: #acb8c4;
+      }
+      div[class*="listFileEntryProperty"] {
+        text-align: right;
       }
     }
 
@@ -139,6 +152,9 @@
       color: #acb8c4 !important;
       div[class*="selectionIndicator"] {
         background: #00adef !important;
+      }
+      div[class*="focusIndicator"] {
+        box-shadow: none;
       }
       &::-webkit-scrollbar-thumb {
         background: #00adef;
