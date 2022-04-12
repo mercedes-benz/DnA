@@ -177,22 +177,23 @@ spec:
             - containerPort: 7171
           resources: {}
           livenessProbe:
-            initialDelaySeconds: 120
-            timeoutSeconds: 30
-            periodSeconds: 30
-            failureThreshold: 3
+            initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
             httpGet:
-              path: /actuator/health/liveness
-              port: 7171
+              path: {{ .Values.app.probes.livenessProbe.path }}
+              port: {{ .Values.app.probes.livenessProbe.port }}
               
           readinessProbe:
-            initialDelaySeconds: 120
-            timeoutSeconds: 30
-            periodSeconds: 30
-            failureThreshold: 3
+            # initialDelaySeconds: 120
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
             httpGet:
-              path: /actuator/health/readiness
-              port: 7171     
+              path: {{ .Values.app.probes.readinessProbe.path }}
+              port: {{ .Values.app.probes.readinessProbe.port }} 
       securityContext:
         runAsUser: 1000
       imagePullSecrets:
