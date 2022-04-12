@@ -394,11 +394,11 @@ public class BaseStorageService implements StorageService {
 			LOGGER.debug("Scanning for malware for file {}", uploadfile.getName());
 			FileScanDetailsVO fileScanDetailsVO = this.scan(uploadfile);
 			if (Objects.nonNull(fileScanDetailsVO) && Boolean.TRUE.equals(fileScanDetailsVO.getDetected())) {
-				LOGGER.info("File:{} is infected with malware.", uploadfile.getName());
+				LOGGER.info("Malware detected in the uploaded file {}", uploadfile.getName());
 				//setting upload as false
 				proceedToUpload = false;
 				bucketResponseWrapperVO.setErrors(Arrays
-						.asList(new MessageDescription("File:" + uploadfile.getName() + " is infected with malware.")));
+						.asList(new MessageDescription("Malware detected in the uploaded file "+ uploadfile.getName())));
 			} else if (Objects.isNull(fileScanDetailsVO) || StringUtils.hasText(fileScanDetailsVO.getErrorMessage())) {
 				LOGGER.info("Failed to scan file:{}", uploadfile.getName());
 				//setting upload as false
