@@ -60,25 +60,25 @@ export const ConnectionModal = () => {
 
   const connectToJupyter = (
     <code>
-      {`from minio import Minio 
-      MINIO_BUCKET = "${bucketInfo.bucketName}"
-      minio_client = Minio('${bucketInfo.accessInfo.uri}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=False)
-      y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
-      y = pd.read_csv(y_file_obj)`}
+      {`from minio import Minio
+MINIO_BUCKET = "${bucketInfo.bucketName}"
+minio_client = Minio('${bucketInfo.accessInfo.uri}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=False)
+y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
+y = pd.read_csv(y_file_obj)`}
     </code>
   );
 
   const connectToDataiku = (
     <code>
       {`1. Go to Administration.
-        2. Select 'Connection' tab and click on '+ NEW CONNECTION'.
-        3. Select 'Amazon S3' connection.
-        4. Provide the below-required information:
-          - New connection name: <<Name of the connection>>
-          - Access Key: ${bucketInfo.accessInfo.accesskey}
-          - Secret Key: YOUR_BUCKET_SECRET_KEY
-          - Region / Endpoint: ${bucketInfo.accessInfo.uri}
-        5. Click on 'Create' and use the connection in project.
+2. Select 'Connection' tab and click on '+ NEW CONNECTION'.
+3. Select 'Amazon S3' connection.
+4. Provide the below-required information:
+ - New connection name: <<Name of the connection>>
+ - Access Key: ${bucketInfo.accessInfo.accesskey}
+ - Secret Key: YOUR_BUCKET_SECRET_KEY
+ - Region / Endpoint: ${bucketInfo.accessInfo.uri}
+5. Click on 'Create' and use the connection in project.
         `}
     </code>
   );
@@ -175,10 +175,10 @@ export const ConnectionModal = () => {
               >
                 <i className="icon mbc-icon copy" />
               </span>
-              <div className={Styles.preLine}>{connectToJupyter}</div>
+              <div className={Styles.connectionCode}>{connectToJupyter}</div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content', Styles.tabContentContainer)}>
-              <div className={classNames(Styles.preLine)}>{connectToDataiku}</div>
+              <div className={classNames(Styles.connectionCode)}>{connectToDataiku}</div>
             </div>
           </div>
         </div>
