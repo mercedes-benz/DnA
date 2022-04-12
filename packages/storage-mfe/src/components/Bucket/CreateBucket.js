@@ -58,6 +58,10 @@ const CreateBucket = () => {
     }
   }, [id]);
 
+  const goBack = () => {
+    history.replace('/');
+  };
+
   const onConnectionModalCancel = () => {
     history.push('/');
     dispatch(hideConnectionInfo());
@@ -203,6 +207,9 @@ const CreateBucket = () => {
 
   return (
     <>
+      <button className={classNames('btn btn-text back arrow', Styles.backBtn)} type="submit" onClick={goBack}>
+        Back
+      </button>
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
           <div className={Styles.caption}>
