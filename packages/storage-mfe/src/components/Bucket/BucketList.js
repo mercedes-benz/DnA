@@ -18,15 +18,74 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { getDateTimeFromTimestamp } from '../Utility/utils';
 
-export const BucketList = ({ bucketList }) => {
+export const BucketList = () => {
   const dispatch = useDispatch();
   const { connect } = useSelector((state) => state.connectionInfo);
+  const { bucketList } = useSelector((state) => state.bucket);
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState({});
+  const [currentSortOrder, setCurrentSortOrder] = useState('asc');
+  const [nextSortOrder, setNextSortOrder] = useState('desc');
+  const [currentColumnToSort, setCurrentColumnToSort] = useState('bucketName');
+
+  const sortByColumn = (columnName, sortOrder) => {
+    return () => {
+      let sortedArray = [];
+
+      if (columnName === 'permission') {
+        sortedArray = bucketList?.sort((a, b) => {
+          const nameA = a[columnName];
+          const nameB = b[columnName];
+          if (nameA.write < nameB.write) {
+            return sortOrder === 'asc' ? -1 : 1;
+          } else if (nameA.write > nameB.write) {
+            return sortOrder === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+      } else if (columnName === 'creationDate') {
+        sortedArray = bucketList?.sort((a, b) => {
+          const nameA = new Date(a[columnName]);
+          const nameB = new Date(b[columnName]);
+          if (nameA < nameB) {
+            return sortOrder === 'asc' ? -1 : 1;
+          } else if (nameA > nameB) {
+            return sortOrder === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+      } else {
+        sortedArray = bucketList?.sort((a, b) => {
+          const nameA = a[columnName]?.toString() ? a[columnName].toString().toUpperCase() : ''; // ignore upper and lowercase
+          const nameB = b[columnName]?.toString() ? b[columnName].toString().toUpperCase() : ''; // ignore upper and lowercase
+          if (nameA < nameB) {
+            return sortOrder === 'asc' ? -1 : 1;
+          } else if (nameA > nameB) {
+            return sortOrder === 'asc' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
+
+      setNextSortOrder(sortOrder == 'asc' ? 'desc' : 'asc');
+      setCurrentSortOrder(sortOrder);
+      setCurrentColumnToSort(columnName);
+      dispatch({
+        type: 'BUCKET_DATA',
+        payload: sortedArray,
+      });
+    };
+  };
 
   useEffect(() => {
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
+  }, []);
+
+  useEffect(() => {
+    // on page load run sorting function with default values
+    sortByColumn(currentColumnToSort, currentSortOrder);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const deleteBucketContent = (
@@ -46,6 +105,7 @@ export const BucketList = ({ bucketList }) => {
       .deleteBucket(selectedItem.bucketName)
       .then(() => {
         dispatch(bucketActions.getBucketList());
+        Notification.show(`Bucket ${selectedItem.bucketName} deleted successfully.`);
       })
       .catch((e) => {
         Notification.show(
@@ -84,19 +144,34 @@ export const BucketList = ({ bucketList }) => {
               <div className={Styles.bucketCaption}>
                 <div className={Styles.bucketTile}>
                   <div className={Styles.bucketTitleCol}>
-                    <label>
+                    <label
+                      className={
+                        'sortable-column-header ' + (currentColumnToSort === 'bucketName' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('bucketName', nextSortOrder)}
+                    >
                       <i className="icon sort" />
                       Bucket Name
                     </label>
                   </div>
                   <div className={Styles.bucketTitleCol}>
-                    <label>
+                    <label
+                      className={
+                        'sortable-column-header ' + (currentColumnToSort === 'permission' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('permission', nextSortOrder)}
+                    >
                       <i className="icon sort" />
                       Permission
                     </label>
                   </div>
                   <div className={Styles.bucketTitleCol}>
-                    <label>
+                    <label
+                      className={
+                        'sortable-column-header ' + (currentColumnToSort === 'creationDate' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('creationDate', nextSortOrder)}
+                    >
                       <i className="icon sort" />
                       Created On
                     </label>
