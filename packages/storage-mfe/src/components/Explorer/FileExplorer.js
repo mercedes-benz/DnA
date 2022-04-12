@@ -290,7 +290,9 @@ const FileExplorer = () => {
         serializeObjectName(copyFilesToOpen);
       } else if (inDraftFolderMoveBackward(copyFilesToOpen)) {
         if (folderChain?.length > 2 && copyFilesToOpen.objectName?.split('/')?.filter((x) => !!x).length === 1) {
-          serializeObjectName(copyFilesToOpen);
+          const folderPath = serializeFolderChain(folderChain);
+          const index = folderPath.indexOf(copyFilesToOpen.objectName);
+          copyFilesToOpen.objectName = folderPath.splice(0, index + 1)?.join('');
         }
       }
 
@@ -315,7 +317,7 @@ const FileExplorer = () => {
         dispatch(getFiles(files.fileMap, bucketName, copyFilesToOpen));
       }
     }
-
+    setNewlyCreatedFolder('');
     return;
   };
 
@@ -609,6 +611,7 @@ const FileExplorer = () => {
         onCancel={() => {
           setNewFolderName('');
           setFolderName('');
+          setFolderNameError('');
           setShowCreateNewFolderModal(false);
         }}
         modalWidth={'60%'}
