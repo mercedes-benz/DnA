@@ -1620,9 +1620,10 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				at = " at index " + String.valueOf(indexValue);
 				index = i;
 			} else if (i == (keySet.length - 1)) {
-				changeDescription.append(
-						ConstantsUtility.staticMap.get(keySet[i]) != null ? ConstantsUtility.staticMap.get(keySet[i])
-								: keySet[i]);
+				String keySetField = ConstantsUtility.staticMap.get(keySet[i]) != null ? ConstantsUtility.staticMap.get(keySet[i])
+						: keySet[i];
+				changeDescription.append(toHumanReadableFormat(keySetField)
+						);
 			} else {
 				changeDescription.append(" of "
 						+ (ConstantsUtility.staticMap.get(keySet[i]) != null ? ConstantsUtility.staticMap.get(keySet[i])
@@ -1636,9 +1637,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			}
 		}
 		if (!StringUtils.hasText(fromValue)) {
-			changeDescription.append(" as `" + toValue + "` added ");
+			changeDescription.append(" at `" + toValue + "` added ");
 		} else if (!StringUtils.hasText(toValue)) {
-			changeDescription.append(" as `" + fromValue + "` removed ");
+			changeDescription.append(" at `" + fromValue + "` removed ");
 		} else {
 			changeDescription.append(" changed from `" + fromValue + "` to `" + toValue + "`");
 		}
