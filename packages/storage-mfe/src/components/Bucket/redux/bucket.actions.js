@@ -108,6 +108,7 @@ const updateBucket = (data) => {
           payload: false,
         });
         ProgressIndicator.hide();
+        Notification.show(`Bucket ${data.bucketName} updated successfully.`);
         history.push('/');
       });
     } catch (error) {
