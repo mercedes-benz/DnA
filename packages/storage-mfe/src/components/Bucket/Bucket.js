@@ -110,7 +110,7 @@ const AllBuckets = () => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <BucketList bucketList={bucketList} />
+                  <BucketList />
                   {bucketList?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
