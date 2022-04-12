@@ -31,15 +31,15 @@
 
 .tabsContentWrapper {
   margin-top: 0px !important;
-  .preLine {
-    white-space: pre-line;
+  .connectionCode {
+    white-space: pre-wrap;
     margin-left: 15px !important;
     margin-bottom: 15px !important;
     color: #d9dfe4 !important;
     font-family: monospace;
     text-align: left;
     width: 500px;
-    height: 165px;
+    height: 180px;
   }
   .tabContentContainer {
     border: 1px solid #383f49;
