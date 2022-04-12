@@ -576,7 +576,7 @@ const FileExplorer = () => {
                     showGutter={false}
                     highlightActiveLine={false}
                     value={
-                      typeof showPreview.blobURL === 'object'
+                      typeof showPreview.blobURL === 'object' && fileExt === 'json'
                         ? JSON.stringify(showPreview.blobURL, undefined, 2)
                         : showPreview.blobURL
                     }
