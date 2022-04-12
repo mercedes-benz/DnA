@@ -9,6 +9,7 @@ imagePullSecret:
 cert:
   certManager: acme
 ingress:
+  enabled: true
   namespace: ingress
   host: "ingress-host"
   lbIP: ""

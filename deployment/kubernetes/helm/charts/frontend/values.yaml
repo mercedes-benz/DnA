@@ -11,12 +11,13 @@ cert:
 traefik:
   image: ""
 ingress:
+  enabled: true
   namespace: ingress
   host: "ingress-host"
   lbIP: ""
 appFrontend:
   replicaCount: 1
-  image: dna-frontend
+  image: dna/app-frontend
   config: 
     oidcDisabled: true
     oidcProvider: INTERNAL
