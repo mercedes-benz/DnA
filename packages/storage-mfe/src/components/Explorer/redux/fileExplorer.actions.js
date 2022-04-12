@@ -168,6 +168,18 @@ export const deleteFiles = (bucketName, filesPath, files) => {
           payload: false,
         });
         ProgressIndicator.hide();
+        const pathList = filesPath?.split(',');
+        const path = pathList?.map((item) => item?.split('/')?.filter((x) => !!x));
+
+        const fileList = path?.map((item) => {
+          return item[item.length - 1];
+        });
+
+        fileList?.map((file) => {
+          const isFile = /\./g.test(file);
+          const name = isFile ? file : `Folder ${file}`;
+          Notification.show(`${name} deleted successfully.`);
+        });
       });
     } catch (e) {
       ProgressIndicator.hide();

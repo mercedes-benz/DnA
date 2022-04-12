@@ -6,7 +6,7 @@ import { baseURL } from '../../server/api';
 import { getFiles } from './redux/fileExplorer.actions';
 import { useDispatch, useSelector } from 'react-redux';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import { serializeFolderChain } from './Utils';
+import { serializeFolderChain, setObjectKey } from './Utils';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
 const ATTACH_FILES_TO_ACCEPT =
@@ -19,7 +19,7 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
   const prefix = serializeFolderChain(folderChain);
   const objectPath = [...new Set(prefix.join('').split('/'))].join('/');
 
-  const onSuccess = () => {
+  const onSuccess = (response, uploadFile) => {
     const currentFolder = folderChain?.[folderChain?.length - 1];
     const folderId = {
       objectName: objectPath,
@@ -27,6 +27,8 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
       name: currentFolder?.name,
       parentId: currentFolder?.parentId,
     };
+
+    Notification.show(`${uploadFile.name} uploaded successfully.`);
 
     dispatch(getFiles(files.fileMap, bucketName, folderId));
   };
@@ -54,6 +56,34 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
     onSuccess,
     onProgress(step) {
       ProgressIndicator.show(Math.round(step.percent));
+    },
+    beforeUpload: (file) => {
+      let isValid = true;
+
+      // nested folder
+      if (objectPath) {
+        const objectName = objectPath.replace('/', '');
+        const key = objectName + setObjectKey(file.name);
+        // check whether the file already exists
+        files.fileMap[objectName]?.childrenIds?.find((item) => {
+          if (item === key) {
+            Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
+            isValid = false;
+            return item;
+          }
+        });
+      } else {
+        // root folder
+        Object.entries(files.fileMap).find(([, objVal]) => {
+          // check whether the file name already exists in root
+          if (objVal.name === file.name) {
+            Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
+            isValid = false;
+            return false;
+          }
+        });
+      }
+      return isValid;
     },
     onError,
     ...(enableFolderUpload
