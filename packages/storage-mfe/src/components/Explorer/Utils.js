@@ -12,7 +12,7 @@ export const serializeFolderChain = (list) => {
 };
 
 // serialize characters to ensure valid object key
-const setObjectKey = (item) => item.replaceAll(/(\.|\/)/g, '').replaceAll(' ', '');
+export const setObjectKey = (item) => item.replaceAll(/(\.|\/)/g, '').replaceAll(' ', '');
 
 export const serializeAllObjects = (data, bucketName) => {
   let result = {};
