@@ -1,11 +1,13 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import Styles from './ConnectionModal.scss';
 import { omit } from 'lodash';
+import { hideConnectionInfo } from './redux/connection.actions';
+import { history } from '../../store/storeRoot';
 
 const copyToClipboard = (content) => {
   navigator.clipboard.writeText('');
@@ -13,6 +15,7 @@ const copyToClipboard = (content) => {
 };
 
 export const ConnectionModal = () => {
+  const dispatch = useDispatch();
   const { connect } = useSelector((state) => state.connectionInfo);
 
   const [bucketInfo, setBucketInfo] = useState({
@@ -47,6 +50,13 @@ export const ConnectionModal = () => {
       accessInfo: omit(connect?.accessInfo, ['permission']),
     });
   }, [connect?.bucketName, connect?.accessInfo]);
+
+  const handleOK = () => {
+    if (isCreatePage) {
+      history.replace('/');
+    }
+    dispatch(hideConnectionInfo());
+  };
 
   const connectToJupyter = (
     <code>
@@ -172,7 +182,9 @@ export const ConnectionModal = () => {
             </div>
           </div>
         </div>
-        <button className={classNames('btn btn-primary', Styles.OkBtn)}>OK</button>
+        <button className={classNames('btn btn-primary', Styles.OkBtn)} onClick={handleOK}>
+          OK
+        </button>
       </div>
     </div>
   );
