@@ -36,6 +36,20 @@ app:
       memory: "1000Mi"
       cpu: "500m"
 
+  probes:
+    initialDelaySeconds: 180
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /naas/actuator/health/liveness
+      port: api
+    
+    readinessProbe:
+      path: /naas/actuator/health/readiness
+      port: api
+      
+
 image:
   pullPolicy: Always
 
