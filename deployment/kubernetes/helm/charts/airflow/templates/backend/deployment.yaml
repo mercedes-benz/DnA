@@ -120,22 +120,23 @@ spec:
             - mountPath: /git
               name: dag-repo
           livenessProbe:
-            initialDelaySeconds: 120
-            timeoutSeconds: 30
-            periodSeconds: 30
-            failureThreshold: 3
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
             httpGet:
-              path: /airflow/actuator/health/liveness
-              port: api-http
+              path: {{ .Values.probes.livenessProbe.path }}
+              port: {{ .Values.probes.livenessProbe.port }}
               
           readinessProbe:
-            initialDelaySeconds: 180
-            timeoutSeconds: 30
-            periodSeconds: 30
-            failureThreshold: 3
+            # initialDelaySeconds: 120
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
             httpGet:
-              path: /airflow/actuator/health/readiness
-              port: api-http
+              path: {{ .Values.probes.readinessProbe.path }}
+              port: {{ .Values.probes.readinessProbe.port }}    
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
