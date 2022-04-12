@@ -321,42 +321,44 @@ const FileExplorer = () => {
 
   // on opening selected file show preview based on the file extensions
   const onOpenFile = (data, fileToOpen) => {
-    if (data.state.selectedFiles.length === 1) {
-      const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
-      const isImage = IMAGE_EXTNS.includes(extension);
-      const allowedExt = !PREVIEW_NOT_ALLOWED_EXTNS.includes(extension);
+    if (data.state.selectedFiles.length) {
+      if (data.state.selectedFiles.length === 1) {
+        const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
+        const isImage = IMAGE_EXTNS.includes(extension);
+        const allowedExt = !PREVIEW_NOT_ALLOWED_EXTNS.includes(extension);
 
-      if (allowedExt) {
-        ProgressIndicator.show();
-        bucketsObjectApi
-          .previewFiles(bucketName, fileToOpen.objectName, isImage)
-          .then((res) => {
-            let blobURL;
-            if (isImage) {
-              const url = window.URL.createObjectURL(
-                new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }),
-              );
-              blobURL = url;
-            } else {
-              blobURL = res.data;
-            }
-            setPreview({
-              fileName: fileToOpen.name,
-              isImage,
-              modal: true,
-              blobURL,
+        if (allowedExt) {
+          ProgressIndicator.show();
+          bucketsObjectApi
+            .previewFiles(bucketName, fileToOpen.objectName, isImage)
+            .then((res) => {
+              let blobURL;
+              if (isImage) {
+                const url = window.URL.createObjectURL(
+                  new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }),
+                );
+                blobURL = url;
+              } else {
+                blobURL = res.data;
+              }
+              setPreview({
+                fileName: fileToOpen.name,
+                isImage,
+                modal: true,
+                blobURL,
+              });
+              ProgressIndicator.hide();
+            })
+            .catch(() => {
+              ProgressIndicator.hide();
+              Notification.show('Error while previewing file. Please try again later.', 'alert');
             });
-            ProgressIndicator.hide();
-          })
-          .catch(() => {
-            ProgressIndicator.hide();
-            Notification.show('Error while previewing file. Please try again later.', 'alert');
-          });
+        } else {
+          Notification.show('Preview not supported', 'alert');
+        }
       } else {
-        Notification.show('Preview not supported', 'alert');
+        Notification.show('Open selection is for one file at a time.', 'alert');
       }
-    } else {
-      Notification.show('Open selection is for one file at a time.', 'alert');
     }
   };
 
@@ -571,7 +573,11 @@ const FileExplorer = () => {
                     showPrintMargin={false}
                     showGutter={false}
                     highlightActiveLine={false}
-                    value={showPreview.blobURL}
+                    value={
+                      typeof showPreview.blobURL === 'object'
+                        ? JSON.stringify(showPreview.blobURL, undefined, 2)
+                        : showPreview.blobURL
+                    }
                     readOnly={true}
                     style={{
                       height: '65vh',
