@@ -52,22 +52,23 @@ spec:
               name: api
               protocol: TCP
           livenessProbe:
-            initialDelaySeconds: 60
-            timeoutSeconds: 30
-            periodSeconds: 10
-            failureThreshold: 3
+            initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
             httpGet:
-              path: /avscan/actuator/health/liveness
-              port: api
-              
+              path: {{ .Values.app.probes.livenessProbe.path }}
+              port: {{ .Values.app.probes.livenessProbe.port }}
+                
           readinessProbe:
-            initialDelaySeconds: 30
-            timeoutSeconds: 30
-            periodSeconds: 10
-            failureThreshold: 3
+            # initialDelaySeconds: 60
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
             httpGet:
-              path: /avscan/actuator/health/readiness
-              port: api
+              path: {{ .Values.app.probes.readinessProbe.path }}
+              port: {{ .Values.app.probes.readinessProbe.port }}
             requests:
               memory: {{ .Values.resources.requests.memory | quote }}
               cpu: {{ .Values.resources.requests.cpu | quote }}
