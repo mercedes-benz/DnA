@@ -21,7 +21,13 @@ spring:
       
 dna:
   uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}        
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  feature:
+     attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
+  malwareScan:
+     basicAuth: 
+        token: ${MALWARE_SCANNER_BASICAUTH_TOKEN:XXXXXX}
+     uri: ${MALWARE_SCANNER_URI:XXXXXX}           
       
 jwt:
   secret:
