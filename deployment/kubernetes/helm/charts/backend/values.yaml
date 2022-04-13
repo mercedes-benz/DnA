@@ -77,3 +77,14 @@ app:
     secret:
       name: vault-secrets
       rootToken: ""
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: 7171
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: 7171 

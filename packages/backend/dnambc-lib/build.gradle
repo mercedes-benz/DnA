@@ -755,7 +755,7 @@ dependencies {
 
 
     implementation group: 'org.json', name: 'json', version: '20190722'
-
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
     implementation('ch.qos.logback:logback-classic:1.2.3')
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'

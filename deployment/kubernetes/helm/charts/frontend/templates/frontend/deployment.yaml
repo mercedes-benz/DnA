@@ -107,6 +107,26 @@ spec:
           name: frontend
           ports:
             - containerPort: 80
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - "[ -f /opt/bitnami/nginx/tmp/nginx.pid ]"
+              
+          readinessProbe:
+            # initialDelaySeconds: 30
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.readinessProbe.path }}
+              port: {{ .Values.probes.readinessProbe.port }}  
           volumeMounts:
             - name: {{ .Release.Name }}-configmap
               mountPath: /etc/nginx/nginx.conf
