@@ -7,6 +7,7 @@
     flex: 1 auto;
     .searchPanel {
       display: flex;
+      align-items: center;
       > div {
         margin-right: 25px;
       }
@@ -51,4 +52,57 @@
       cursor: pointer;
     }
   }
+}
+
+.addItemButton {
+  margin-top: 13px;
+  button {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: #c0c8d0;
+    vertical-align: middle;
+    i {
+      vertical-align: top;
+      margin-right: 10px;
+      color: #00adef;
+    }
+    span {
+      color:#99a5b3
+    }
+    &:hover span {
+      text-decoration: underline;
+    }
+  }
+  i {
+    width: auto;
+    height: auto;
+    margin-right: 19px;  
+  }
+}
+.updateModelOverlayContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #252a33;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  text-align: center;
+}
+.infoPopup {
+  max-width: 490px;
+}
+.addBtn {
+  display: flex;
+  justify-content: flex-end;
+}
+tr th:last-child {
+  padding-right: 38px !important;
+  text-align: right !important;
 }

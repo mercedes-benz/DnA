@@ -1,3 +1,4 @@
+import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
@@ -6,14 +7,18 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
 import Pagination from '../../pagination/Pagination';
 import Styles from './TagHandling.scss';
+const classNames = cn.bind(Styles);
+import Tags from '../../../formElements/tags/Tags';
 
-import { IFitlerCategory, ITagResult } from '../../../../globals/types';
+import { IFitlerCategory, ITagResult, ITag, ISubDivision } from '../../../../globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 import { ISortField } from '../../allSolutions/AllSolutions';
 import { TagRowItem } from './tagrowitem/TagRowItem';
 
 import { SESSION_STORAGE_KEYS } from '../../../../globals/constants';
 import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
+import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
 
 export interface ITagHandlingState {
   algoCategory: IFitlerCategory;
@@ -28,6 +33,7 @@ export interface ITagHandlingState {
   totalNumberOfRecords: number;
   currentPageNumber: number;
   currentPageOffset: number;
+  itemToAdd: ITagResult;
   totalNumberOfPages: number;
   sortBy: ISortField;
   results: ITagResult[];
@@ -35,6 +41,19 @@ export interface ITagHandlingState {
   tagToBeDeleted: ITagResult;
   searchText: string;
   relatedProductList: IFitlerCategory;
+  addNewItem: boolean;
+  updateItemMode: boolean;
+  newItemNameCategoryError: string;
+  newItemDivisionError: string;
+  updateConfirmModelOverlay: boolean;
+  itemToUpdate: string;
+  newItemNameError: string;
+  selectedDefaultCat: string;
+  itemCategories: IFitlerCategory[];
+  tagToBeUpdatedLocal: ITagResult;
+  tags: ITag[];
+  chips: string[];
+  showTagsMissingError: boolean;
 }
 
 export class TagHandling extends React.Component<any, ITagHandlingState> {
@@ -50,6 +69,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       visualizationCategory: { id: 6, name: 'Visualization' },
       currentFilterCategory: { id: 0, name: 'Select' },
       categories: [{ id: 0, name: 'Select' }],
+      newItemNameError: null,
       sortBy: {
         name: 'name',
         currentSortType: 'desc',
@@ -64,8 +84,46 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       showDeleteTagModal: false,
       tagToBeDeleted: null,
       searchText: null,
+      addNewItem: false,
+      updateItemMode: false,
+      newItemNameCategoryError: null,
+      itemToAdd: {
+        id: '',
+        name: '',
+        category: {
+          id: 8,
+          name: 'Division',
+        },
+      },
+      newItemDivisionError: null,
+      showTagsMissingError: false,
+      updateConfirmModelOverlay: false,
+      itemToUpdate: '',
+      selectedDefaultCat: 'Select',
+      tags: [],
+      chips: [],
+      itemCategories: [
+        {
+          id: 0,
+          name: 'Select',
+        },
+        {
+          id: 8,
+          name: 'Division',
+        },
+      ],
+      tagToBeUpdatedLocal: {
+        id: '',
+        name: '',
+        category: {
+          id: 8,
+          name: 'Division',
+        },
+        subdivisions: [],
+      },
     };
     ApiClient.getDropdownList('categories').then((dropdownList: any) => {
+      dropdownList.data.push({ id: 8, name: 'Division' });
       this.setState({
         categories: this.state.categories.concat(dropdownList.data),
       });
@@ -138,6 +196,31 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         if (res1) {
           res1.forEach((relPrd) => {
             results.push({ category: this.state.relatedProductList, id: relPrd.id + '', name: relPrd.name });
+          });
+        }
+      })
+      .catch((error) => {
+        this.setState(
+          {
+            results: [],
+          },
+          () => {
+            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          },
+        );
+      });
+  };
+  public getDivisions = (results: ITagResult[]) => {
+    return ApiClient.getDivisions()
+      .then((res1) => {
+        if (res1) {
+          res1.forEach((divsion) => {
+            results.push({
+              category: { id: 8, name: 'Division' },
+              id: divsion.id + '',
+              name: divsion.name,
+              subdivisions: divsion.subdivisions.filter((item: ISubDivision) => item.id !== 'EMPTY'),
+            });
           });
         }
       })
@@ -228,6 +311,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         await this.getTags(results);
         await this.getVisualizations(results);
         await this.relatedProductList(results);
+        await this.getDivisions(results);
         break;
       case 1:
         await this.getAlgorithms(results);
@@ -249,6 +333,9 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         break;
       case 7:
         await this.relatedProductList(results);
+        break;
+      case 8:
+        await this.getDivisions(results);
         break;
     }
     if (this.state.searchText) {
@@ -341,19 +428,322 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       },
     );
   };
+  public showUpdateConfirmModal = (tagItem: ITagResult) => {
+    this.setState(
+      {
+        itemToUpdate: tagItem.category.name,
+        addNewItem: true,
+        chips: tagItem.subdivisions.map((item: ISubDivision) => item.name),
+        updateItemMode: true,
+        tagToBeUpdatedLocal: Object.assign({}, tagItem),
+        newItemNameError: null,
+        newItemNameCategoryError: null,
+      },
+      () => {
+        InputFieldsUtils.resetErrors('#solutionAddOrUpdateFormWrapper');
+        SelectBox.defaultSetup(true);
+      },
+    );
+  };
+
   public showDeleteConfirmModal = (tagItem: ITagResult) => {
     this.setState({ tagToBeDeleted: tagItem, showDeleteTagModal: true });
   };
+
+  public onAddItemModalOpen = () => {
+    this.setState(
+      {
+        addNewItem: true,
+        updateItemMode: false,
+        newItemNameError: null,
+        newItemDivisionError: null,
+        chips: [],
+      },
+      () => {
+        InputFieldsUtils.resetErrors('#solutionAddOrUpdateFormWrapper');
+      },
+    );
+  };
+
+  protected onAddItemModalCancel = () => {
+    this.setState({
+      addNewItem: false,
+      newItemNameError: null,
+      newItemNameCategoryError: null,
+      chips: [],
+    });
+  };
+
+  protected onChangeTagAddItem = (e: React.FormEvent<HTMLInputElement>) => {
+    const itemToAdd = this.state.itemToAdd;
+    itemToAdd.name = e.currentTarget.value.toLocaleUpperCase();
+    this.setState({ itemToAdd });
+  };
+
+  protected onChangeUpdateItem = (e: React.FormEvent<HTMLInputElement>) => {
+    const tagToBeUpdatedLocal = this.state.tagToBeUpdatedLocal;
+    tagToBeUpdatedLocal.name = e.currentTarget.value;
+    this.setState({ tagToBeUpdatedLocal });
+  };
+
+  protected onChooseCategories = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    this.setState({ selectedDefaultCat: e.target.value });
+  };
+
+  protected updateConfirmModelOverlayCancel = () => {
+      this.setState({
+        updateConfirmModelOverlay: false,
+      });
+  };
+  protected updateConfirmModelOverlayUpdate = () => {
+    this.setState({
+      updateConfirmModelOverlay: this.addItemFormValidation()
+    });
+  };
+
+  protected setTags = (arr: string[]) => {
+    const tagToBeUpdatedLocal = this.state.tagToBeUpdatedLocal;
+    tagToBeUpdatedLocal.subdivisions = arr.map((item: string) => ({ id: '', name: item }));
+    this.setState({ tagToBeUpdatedLocal });
+  };
+
+  protected addItemFormValidation = () => {
+    let formValidationStatus = true;
+    const errorMissingEntry = '*Missing entry';
+    const noItemValue = this.state.updateItemMode
+      ? this.state.tagToBeUpdatedLocal.name === ''
+      : this.state.itemToAdd.name === '';
+    if (noItemValue) {
+      this.setState({
+        newItemNameError: errorMissingEntry,
+      });
+      formValidationStatus = false;
+    }
+    if (this.state.itemToAdd.category.name === 'Select' || this.state.itemToAdd.category.name === '') {
+      this.setState({
+        newItemNameCategoryError: errorMissingEntry,
+      });
+      formValidationStatus = false;
+    }
+    return formValidationStatus;
+  };
+
+  protected onDivisionAddItem = () => {
+    if (this.addItemFormValidation()) {
+      ProgressIndicator.show();
+      const data = {
+        data: {
+          name: this.state.itemToAdd.name?.toUpperCase()?.trim(),
+          subdivisions: this.state.tagToBeUpdatedLocal.subdivisions,
+        },
+      };
+
+      const requestBody = JSON.parse(JSON.stringify(data));
+      return ApiClient.postDivision(requestBody)
+        .then((res: any) => {
+          this.setState(
+            {
+              addNewItem: false,
+            },
+            () => {
+              this.showNotification('Division Added Successfully!');
+              this.getResults();
+              ProgressIndicator.hide();
+            },
+          );
+        })
+        .catch((error: any) => {
+          // this.setState(
+          //   {
+          //     results: [],
+          //     addNewItem: false,
+          //   },
+          //   () => {
+          ProgressIndicator.hide();
+          this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          //this.getResults();
+          //   },
+          // );
+        });
+    }
+  };
+
+  protected onTagUpdateItem = () => {
+    const itemToUpdate = this.state.tagToBeUpdatedLocal;
+    const data = {
+      data: {
+        id: itemToUpdate.id,
+        name: itemToUpdate.name.toUpperCase()?.trim(),
+        subdivisions: itemToUpdate.subdivisions,
+      },
+    };
+    ProgressIndicator.show();
+    const requestBody = JSON.parse(JSON.stringify(data));
+    return ApiClient.putDivision(requestBody)
+      .then((res: any) => {
+        this.setState(
+          {
+            updateConfirmModelOverlay: false,
+            addNewItem: false,
+          },
+          () => {
+            this.showNotification('Division Updated Successfully!');
+            this.getResults();
+            ProgressIndicator.hide();
+          },
+        );
+      })
+      .catch((error: any) => {
+        // this.setState(
+        //   {
+        //     results: [],
+        //     addNewItem: false,
+        //   },
+        //   () => {
+        ProgressIndicator.hide();
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        //this.getResults();
+        //   },
+        // );
+      });
+  };
+
   public render() {
+    const requiredError = '*Missing entry';
+    const newItemNameCategoryError = this.state.newItemNameCategoryError || '';
+    const newItemNameError = this.state.newItemNameError || '';
+
     const resultData = this.state.results.map((result) => {
       return (
         <TagRowItem
           tagItem={result}
           key={result.id + '' + result.category.id}
           showDeleteConfirmModal={this.showDeleteConfirmModal}
+          showUpdateConfirmModal={this.showUpdateConfirmModal}
         />
       );
     });
+
+    const contentForAddNewItem = (
+      <div id="solutionAddOrUpdateFormWrapper" className={Styles.infoPopup}>
+        <div className={classNames(Styles.modalContent, Styles.formWrapperMain)}>
+          <div>
+            <div
+              className={classNames(
+                'input-field-group include-error',
+                newItemNameCategoryError?.length ? 'error' : ' ',
+                this.state.updateItemMode ? ' inactive ' : '',
+                'hide',
+              )}
+            >
+              <label id="itemCategories" htmlFor="solutionItemCategoriesField" className="input-label">
+                Category<sup>*</sup>
+              </label>
+              <div className="custom-select">
+                <select
+                  id="solutionItemCategoriesField"
+                  onChange={this.onChooseCategories}
+                  required={true}
+                  required-error={requiredError}
+                  value={this.state.selectedDefaultCat}
+                >
+                  {this.state.updateItemMode ? (
+                    <option value={this.state.itemToUpdate}> {this.state.itemToUpdate} </option>
+                  ) : (
+                    this.state.itemCategories.map((obj) => (
+                      <option key={obj.id} value={obj.name}>
+                        {obj.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              <span className={classNames('error-message', this.state.newItemNameCategoryError?.length ? '' : 'hide')}>
+                {this.state.newItemNameCategoryError}
+              </span>
+            </div>
+            <div className={classNames('input-field-group include-error', newItemNameError.length ? 'error' : ' ')}>
+              <label id="itemName" htmlFor="itemNameInput" className="input-label">
+                Division<sup>*</sup>
+              </label>
+              {this.state.updateItemMode ? (
+                <input
+                  type="text"
+                  className="input-field"
+                  required={true}
+                  required-error={requiredError}
+                  id="itemNameInput"
+                  maxLength={200}
+                  placeholder="Type here"
+                  autoComplete="off"
+                  onChange={this.onChangeUpdateItem}
+                  value={this.state.tagToBeUpdatedLocal.name}
+                />
+              ) : (
+                <input
+                  type="text"
+                  className="input-field"
+                  required={true}
+                  required-error={requiredError}
+                  id="itemNameInput"
+                  maxLength={200}
+                  placeholder="Type here"
+                  autoComplete="off"
+                  onChange={this.onChangeTagAddItem}
+                  value={this.state.itemToAdd.name}
+                />
+              )}
+              <span className={classNames('error-message', this.state.newItemNameCategoryError?.length ? '' : 'hide')}>
+                {this.state.newItemNameCategoryError}
+              </span>
+            </div>
+            <Tags
+              title={'Sub Division'}
+              max={100}
+              tags={this.state.tags}
+              chips={this.state.chips}
+              setTags={this.setTags}
+              isMandatory={false}
+              showMissingEntryError={this.state.showTagsMissingError}
+              enableUppercase={true}
+              {...this.props}
+            />
+          </div>
+          <br />
+          <div className={Styles.addBtn}>
+            <button
+              onClick={this.state.updateItemMode ? this.updateConfirmModelOverlayUpdate : this.onDivisionAddItem}
+              className={Styles.actionBtn + ' btn btn-tertiary'}
+              type="button"
+            >
+              {this.state.updateItemMode ? <span>Update</span> : <span>Add</span>}
+            </button>
+          </div>
+        </div>
+        {this.state.updateConfirmModelOverlay && (
+          <div className={Styles.updateModelOverlayContent}>
+            <p>
+              Updating &lt;&lt; {this.state.tagToBeUpdatedLocal.name} &gt;&gt; would also update all the associated
+              solutions. <br /> Do you want to proceed?
+            </p>
+            <div>
+              <button
+                className={Styles.actionBtn + ' btn btn-default'}
+                type="button"
+                onClick={this.updateConfirmModelOverlayCancel}
+              >
+                Cancel
+              </button>{' '}
+              &nbsp;
+              <button className={Styles.actionBtn + ' btn btn-tertiary'} type="button" onClick={this.onTagUpdateItem}>
+                Update
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+
     const modalContent: React.ReactNode = (
       <div id="contentparentdiv" className={Styles.modalContentWrapper}>
         <div className={Styles.modalTitle}>Delete Tag</div>
@@ -363,6 +753,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         </div>
       </div>
     );
+
     return (
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
@@ -404,6 +795,16 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                 </div>
               </div>
             </div>
+            <div>
+              <div>
+                <div className={Styles.addItemButton}>
+                  <button onClick={this.onAddItemModalOpen}>
+                    <i className="icon mbc-icon plus" />
+                    <span>Add New Division</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           {resultData.length === 0 ? (
             <div className={Styles.tagIsEmpty}>There is no tag available</div>
@@ -435,7 +836,9 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                       </label>
                     </th>
 
-                    <th className="actionColumn"><label>Action</label></th>
+                    <th className="actionColumn">
+                      <label>Action</label>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>{resultData}</tbody>
@@ -464,6 +867,13 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             content={modalContent}
             onCancel={this.onCancellingDeleteChanges}
             onAccept={this.onAcceptDeleteChanges}
+          />
+          <InfoModal
+            title={this.state.updateItemMode ? 'Update Division' : 'Add New Division'}
+            modalWidth={'35vw'}
+            show={this.state.addNewItem}
+            content={contentForAddNewItem}
+            onCancel={this.onAddItemModalCancel}
           />
         </div>
       </div>
@@ -548,6 +958,16 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         });
     } else if (tagToBeDeleted.category.id === 7) {
       ApiClient.deleterelatedProductList(tagToBeDeleted.id)
+        .then((res) => {
+          if (res) {
+            handleSuccess();
+          }
+        })
+        .catch((error) => {
+          handleFailure();
+        });
+    } else if (tagToBeDeleted.category.id === 8) {
+      ApiClient.deleteDivision(tagToBeDeleted.id)
         .then((res) => {
           if (res) {
             handleSuccess();
