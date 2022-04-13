@@ -52,10 +52,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.config.MalwareScannerClient;
 import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.ErrorDTO;
+import com.daimler.data.dto.FileScanDetailsVO;
 import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.storage.BucketCollectionVO;
 import com.daimler.data.dto.storage.BucketObjectResponseVO;
@@ -93,6 +95,12 @@ public class BaseStorageService implements StorageService {
 	@Autowired
 	private VaultConfig vaultConfig;
 
+	@Value("${dna.feature.attachmentMalwareScan}")
+	private Boolean attachmentMalwareScan;
+	
+	@Autowired
+	private MalwareScannerClient malwareScannerClient;
+	
 	public BaseStorageService() {
 		super();
 	}
@@ -377,21 +385,43 @@ public class BaseStorageService implements StorageService {
 			String prefix) {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-		HttpStatus httpStatus;
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		boolean proceedToUpload = true;
 		BucketResponseWrapperVO bucketResponseWrapperVO = new BucketResponseWrapperVO();
-		
-		LOGGER.debug("upload object/file through minio client.");
-		MinioGenericResponse minioResponse = dnaMinioClient.objectUpload(currentUser, uploadfile, bucketName, prefix);
-		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-			LOGGER.info("Success from put object minio client.");
-			httpStatus = HttpStatus.OK;
-		} else {
-			LOGGER.info("Failure from put object minio client.");
-			bucketResponseWrapperVO
-					.setErrors(getMessages(minioResponse.getErrors()));
-			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+		//Checking for feature malware scan
+		if (Boolean.TRUE.equals(attachmentMalwareScan)) {
+			LOGGER.debug("Scanning for malware for file {}", uploadfile.getName());
+			FileScanDetailsVO fileScanDetailsVO = this.scan(uploadfile);
+			if (Objects.nonNull(fileScanDetailsVO) && Boolean.TRUE.equals(fileScanDetailsVO.getDetected())) {
+				LOGGER.info("Malware detected in the uploaded file {}", uploadfile.getName());
+				//setting upload as false
+				proceedToUpload = false;
+				bucketResponseWrapperVO.setErrors(Arrays
+						.asList(new MessageDescription("Malware detected in the uploaded file "+ uploadfile.getName())));
+			} else if (Objects.isNull(fileScanDetailsVO) || StringUtils.hasText(fileScanDetailsVO.getErrorMessage())) {
+				LOGGER.info("Failed to scan file:{}", uploadfile.getName());
+				//setting upload as false
+				proceedToUpload = false;
+				bucketResponseWrapperVO.setErrors(
+						Arrays.asList(new MessageDescription("Failed to scan file:" + uploadfile.getName())));
+			}
 		}
-		bucketResponseWrapperVO.setStatus(minioResponse.getStatus());
+
+		if (proceedToUpload) {
+			LOGGER.debug("upload object/file through minio client.");
+			MinioGenericResponse minioResponse = dnaMinioClient.objectUpload(currentUser, uploadfile, bucketName,
+					prefix);
+			if (minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+				LOGGER.info("Success from put object minio client.");
+				httpStatus = HttpStatus.OK;
+			} else {
+				LOGGER.info("Failure from put object minio client.");
+				bucketResponseWrapperVO.setErrors(getMessages(minioResponse.getErrors()));
+				httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+			bucketResponseWrapperVO.setStatus(minioResponse.getStatus());
+		}
 		return new ResponseEntity<>(bucketResponseWrapperVO, httpStatus);
 	}
 
@@ -733,16 +763,14 @@ public class BaseStorageService implements StorageService {
 	
 	@Override
 	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName) {
-		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		HttpStatus httpStatus;
 		BucketResponseVO bucketResponseVO = new BucketResponseVO();
 
-		List<MessageDescription> errors = new ArrayList<MessageDescription>();
 		LOGGER.debug("Check if bucket exists.");
-		Boolean isBucketExists = dnaMinioClient.isBucketExists(bucketName);
+		boolean isBucketExists = dnaMinioClient.isBucketExists(bucketName);
 		if (!isBucketExists) {
 			httpStatus = HttpStatus.NOT_FOUND;
-			errors.add(new MessageDescription("Bucket not found."));
-			//bucketResponseVO.setStatus(ConstantsUtility.FAILURE);
+			LOGGER.info("Bucket not found.");
 		} else {
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
@@ -750,16 +778,22 @@ public class BaseStorageService implements StorageService {
 			// Setting bucket details
 			bucketResponseVO.setBucketName(bucketName);
 			bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucketName, currentUser));
-			bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
-			
+			bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
 			httpStatus = HttpStatus.OK;
-			//responseWrapperVO.setStatus(ConstantsUtility.SUCCESS);
-			errors = null;
 		}
-
-		//responseWrapperVO.setErrors(errors);
 		return new ResponseEntity<>(bucketResponseVO, httpStatus);
 	}
 
+	/**
+	 * To scan file by calling AVscan service
+	 * 
+	 * @param multiPartFile
+	 * @return FileScanDetailsVO
+	 */
+	private FileScanDetailsVO scan(MultipartFile multiPartFile) {
+		LOGGER.debug("Calling avscan client to scan file:{}",multiPartFile.getName());
+		Optional<FileScanDetailsVO> aVScannerRes = malwareScannerClient.scan(multiPartFile);
+		return aVScannerRes.isPresent()?aVScannerRes.get():null;
+	}
 	
 }

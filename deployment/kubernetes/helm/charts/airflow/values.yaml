@@ -197,3 +197,16 @@ Storage:
   storageClass: cinder-retain
   accessModes: ReadWriteOnce
   size: 5Gi
+
+probes:
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  livenessProbe:
+    path: /airflow/actuator/health/liveness
+    port: api-http
+    
+  readinessProbe:
+    path: /airflow/actuator/health/readiness
+    port: api-http
