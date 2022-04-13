@@ -8,37 +8,48 @@ frontend:
   namespace: dna
   imagePullSecret: 
     name: harbor-pull-secrets
-    key: "docker-config" 
-  cert:
-    certManager: acme
-  traefik:
-    image: ""
+    key: "docker-config"
   ingress:
+    enabled: true
     namespace: ingress
-    host: "ingress-host"
+    host: "localhost"
     lbIP: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   appFrontend:
     replicaCount: 1
+    #Specify the frontend image, after building the image from docker file
     image: dna-frontend
-    config: 
+    config:
+    #If you want to enable OIDC authentication then set oidcDisabled to "false"
       oidcDisabled: true
       oidcProvider: INTERNAL
       apiBaseUrl: api
-      jupyterNotebookUrl: ""
-      jupyterNotebookOidcPopUpUrl: ""
+    #Specify the Jupyter Notebook url 
+      jupyterNotebookUrl: http://localhost/notebooks
+      jupyterNotebookOidcPopUpUrl: http://localhost/notebooks/hub/oauth_login?next=
+    #Specify the dataiku live application URL
       dataikuLiveAppUrl: ""
       dataikuTrainingAppUrl: ""
+    #Specify the OAuth token URL for OIDC authentication
       oauth2TokenUrl: ""
       oauth2AuthUrl: ""
       oauth2RevokeUrl: ""
       oauth2LogoutUrl: ""
       oauth2IntrospectionUrl: ""
       oauth2UserInfoUrl: ""
-      frontendClientid: ""
-      redirectUrls: ""
-      swaggerUiUrl: ""
+      frontendClientid: dce5fd33-360d-45fb-8611-0da9440047d2
+      redirectUrls: http://localhost
+    #Specify the swagger URL for malwarescan
+      swaggerUiUrl: http://localhost/avscan/swagger-ui.html#/
       dataikuFerretUrl: ""
+    #Specify the ML pipeline URL
       mlPipelineUrl: ""
+    #Specify the App Header
       appNameHeader: ""
       appNameHome: ""
       contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
@@ -46,20 +57,27 @@ frontend:
       appLogoUrl: /images/branding/logo-app.png
       enableInternalUserInfo: true
       enableDataCompliance: true
+    # Set enabledReports to "true" if you want to enable reports, by default value is "false"
       enabledReports: false
+    # Set enableJupyterWorkspace to "true", if you want to enable Jupyter Workspace
       enableJupyterWorkspace: false
+    # Set enableDataikuWorkspace to "true", if you want to enable Dataiku Workspace, by default value is "false"
       enableDataikuWorkspace: false
       enableMalwareService: false
       enableDataPipelineService: false
+    # Set enableStorageService to "true" to enable Storage Service
       enableStorageService: false
       storageMFEAppURL: http://localhost:8083
       enablePipelineService: false
       enabledMlPipelineService: false
       enableMalwareApiInfo: false
+    # If you want to enable notification, set enableNotification to "true", by default it is false
       enableNotification: false
+    # Specify the company name 
       companyName: XYZ
       backendHost: dna-app-backend-service
 
+  # Configure ngnix as per the 
     ngnix:
       backend: http://dna-app-backend-service.dna.svc.cluster.local:80
       jupyServer: http://proxy-public:8000
@@ -78,18 +96,23 @@ backend:
   imagePullSecret: 
     name: harbor-pull-secrets
     key: "docker-config" 
-  cert:
-    certManager: acme
-  traefik:
-    image: ""
   ingress:
+    enabled: true
     namespace: ingress
     host: "ingress-host"
     lbIP: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   app:
     backend:
       replicaCount: 1
+      #Specify the backend image, after building the image from docker file
       image: backend:latest
+      #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
         notebookSecretToken: ""
@@ -144,7 +167,7 @@ backend:
     vault:
       secret:
         name: vault-secrets
-        rootToken: ""
+        rootToken: s.InZKH42jzesjpHeIZtocuhUp
 
 #Suchart properties for i3postgressql database
 i3postgresql:
@@ -215,11 +238,16 @@ clamav:
     replicaCount: 1
     pullPolicy: Always
   ingress:
+    enabled: true
     host: "" 
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: "" 
   imagePullSecret: 
     name: harbor-pull-secrets
-  cert:
-    certManager: acme
 
   Storage:
     storageClass: cinder
@@ -276,11 +304,16 @@ naas:
   pullPolicy: Always
       
   ingress:
+    enabled: true
     host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   imagePullSecret: 
    name: harbor-pull-secrets
-  cert:
-    certManager: acme
   
 #Subchart properties for notebooks
 notebooks:
@@ -323,10 +356,14 @@ notebooks:
       userNameSpaceTemplate: kubeflow
 
   ingress:
+    enabled: true
     host: ""
-
-  cert:
-    certManager: acme
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
 
   Storage:
     storageClass: cinder
@@ -344,8 +381,6 @@ dashboard:
   image: dashboard-backend
   imagePullSecret: 
     name: harbor-pull-secrets
-  cert:
-    certManager: acme
   dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
   secret:
     name: dashboard-secrets
@@ -361,7 +396,15 @@ dashboard:
   flywayBaselineVersion: "0"
   flywaySchema: "public"
   containerPort: 7173
-  host: ""
+  ingress:
+    enabled: true
+    host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   resources:
     requests:
       memory: "512Mi"
@@ -377,8 +420,6 @@ airflow:
   namespace: airflow
   imagePullSecret: 
     name: harbor-pull-secrets
-  cert:
-    certManager: ""
   backend:
     image: ""
     imagePullPolicy: Always
@@ -392,7 +433,6 @@ airflow:
       oidcClientID: ""
       oidcClientSecret: ""
     containerPort: 7171
-    host: ""
     crossOriginUrl: ""
     apiUrl: ""
     oidcInfoUrl: "" 
@@ -413,6 +453,16 @@ airflow:
     flywayBaselineOnMigrate: ""
     flywayBaselineVersion: ""
     flywaySchema: ""
+
+  ingress:
+    enabled: true
+    host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
 
   pullSecretData: ""
   secret:

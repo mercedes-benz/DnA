@@ -5,15 +5,19 @@
 namespace: dna
 imagePullSecret: 
   name: harbor-pull-secrets
-  key: "docker-config" 
-cert:
-  certManager: acme
-traefik:
-  image: ""
+  key: "docker-config"
 ingress:
+  enabled: true
   namespace: ingress
   host: "ingress-host"
   lbIP: ""
+  
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
 
 probes:
   initialDelaySeconds: 30
@@ -24,10 +28,10 @@ probes:
   readinessProbe:
     path: /
     port: 3000
-  
+
 appFrontend:
   replicaCount: 1
-  image: dna-frontend
+  image: dna/app-frontend
   config: 
     oidcDisabled: true
     oidcProvider: INTERNAL
