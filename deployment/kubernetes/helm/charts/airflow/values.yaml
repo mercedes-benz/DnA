@@ -6,8 +6,6 @@ appName: airflow
 namespace: airflow
 imagePullSecret: 
   name: harbor-pull-secrets
-cert:
-  certManager: ""
 backend:
   image: ""
   imagePullPolicy: Always
@@ -21,7 +19,6 @@ backend:
     oidcClientID: ""
     oidcClientSecret: ""
   containerPort: 7171
-  host: ""
   crossOriginUrl: ""
   apiUrl: ""
   oidcInfoUrl: "" 
@@ -42,6 +39,16 @@ backend:
   flywayBaselineOnMigrate: ""
   flywayBaselineVersion: ""
   flywaySchema: ""
+
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
 
 pullSecretData: 
 secret:
