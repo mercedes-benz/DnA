@@ -32,9 +32,6 @@ service:
   type: ClusterIP
   port: 80
 
-traefik:
-  enabled: true
-
 ingress:
   enabled: true
   annotations:
