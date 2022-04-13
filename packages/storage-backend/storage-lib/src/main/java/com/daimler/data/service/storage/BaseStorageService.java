@@ -52,7 +52,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.application.config.AVScannerClient;
+import com.daimler.data.application.config.MalwareScannerClient;
 import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -99,7 +99,7 @@ public class BaseStorageService implements StorageService {
 	private Boolean attachmentMalwareScan;
 	
 	@Autowired
-	private AVScannerClient aVScannerClient;
+	private MalwareScannerClient malwareScannerClient;
 	
 	public BaseStorageService() {
 		super();
@@ -763,16 +763,14 @@ public class BaseStorageService implements StorageService {
 	
 	@Override
 	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName) {
-		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		HttpStatus httpStatus;
 		BucketResponseVO bucketResponseVO = new BucketResponseVO();
 
-		List<MessageDescription> errors = new ArrayList<MessageDescription>();
 		LOGGER.debug("Check if bucket exists.");
-		Boolean isBucketExists = dnaMinioClient.isBucketExists(bucketName);
+		boolean isBucketExists = dnaMinioClient.isBucketExists(bucketName);
 		if (!isBucketExists) {
 			httpStatus = HttpStatus.NOT_FOUND;
-			errors.add(new MessageDescription("Bucket not found."));
-			//bucketResponseVO.setStatus(ConstantsUtility.FAILURE);
+			LOGGER.info("Bucket not found.");
 		} else {
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
@@ -780,14 +778,9 @@ public class BaseStorageService implements StorageService {
 			// Setting bucket details
 			bucketResponseVO.setBucketName(bucketName);
 			bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucketName, currentUser));
-			bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
-			
+			bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
 			httpStatus = HttpStatus.OK;
-			//responseWrapperVO.setStatus(ConstantsUtility.SUCCESS);
-			errors = null;
 		}
-
-		//responseWrapperVO.setErrors(errors);
 		return new ResponseEntity<>(bucketResponseVO, httpStatus);
 	}
 
@@ -799,7 +792,7 @@ public class BaseStorageService implements StorageService {
 	 */
 	private FileScanDetailsVO scan(MultipartFile multiPartFile) {
 		LOGGER.debug("Calling avscan client to scan file:{}",multiPartFile.getName());
-		Optional<FileScanDetailsVO> aVScannerRes = aVScannerClient.scan(multiPartFile);
+		Optional<FileScanDetailsVO> aVScannerRes = malwareScannerClient.scan(multiPartFile);
 		return aVScannerRes.isPresent()?aVScannerRes.get():null;
 	}
 	
