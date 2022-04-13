@@ -43,7 +43,12 @@ ingress:
   enabled: true
   host: ""
 
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+
 imagePullSecret: 
   name: harbor-pull-secrets
-cert:
-  certManager: ""

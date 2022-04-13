@@ -11,7 +11,7 @@ app:
     replicaCount: 1
     secrets:
       name: oneapi-secrets
-      onapiBasicAuthToken: 
+      onapiBasicAuthToken: ""
     config:
       clamav_backend_url: clamav-service
       clamav_backend_port: 3310
@@ -32,12 +32,17 @@ image:
 
 ingress:
   enabled: true
-  host: "" 
+  host: ""
+
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
 
 imagePullSecret: 
   name: harbor-pull-secrets
-cert:
-  certManager: ""
 
 Storage:
   storageClass: cinder
