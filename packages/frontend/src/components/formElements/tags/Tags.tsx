@@ -14,6 +14,7 @@ export interface ITagsFieldProps {
   isMandatory?: boolean;
   showMissingEntryError: boolean;
   fixedChips?: string[];
+  enableUppercase?: boolean;
 }
 
 export interface ITagsFiledState {
@@ -237,6 +238,10 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       if (!value) {
         return;
+      }
+
+      if(this.props.enableUppercase) {
+        value = value.toUpperCase();
       }
 
       const chip = value.trim();
