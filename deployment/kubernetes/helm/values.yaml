@@ -8,17 +8,18 @@ frontend:
   namespace: dna
   imagePullSecret: 
     name: harbor-pull-secrets
-    key: "docker-config" 
-  cert:
-    certManager: acme
-  traefik:
-    enabled: true
-    image: ""
+    key: "docker-config"
   ingress:
     enabled: true
     namespace: ingress
     host: "localhost"
     lbIP: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   appFrontend:
     replicaCount: 1
     #Specify the frontend image, after building the image from docker file
@@ -95,16 +96,17 @@ backend:
   imagePullSecret: 
     name: harbor-pull-secrets
     key: "docker-config" 
-  cert:
-    certManager: acme
-  traefik:
-    enabled: false
-    image: ""
   ingress:
     enabled: true
     namespace: ingress
     host: "ingress-host"
     lbIP: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   app:
     backend:
       replicaCount: 1
@@ -238,10 +240,14 @@ clamav:
   ingress:
     enabled: true
     host: "" 
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: "" 
   imagePullSecret: 
     name: harbor-pull-secrets
-  cert:
-    certManager: acme
 
   Storage:
     storageClass: cinder
@@ -300,10 +306,14 @@ naas:
   ingress:
     enabled: true
     host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   imagePullSecret: 
    name: harbor-pull-secrets
-  cert:
-    certManager: acme
   
 #Subchart properties for notebooks
 notebooks:
@@ -348,9 +358,12 @@ notebooks:
   ingress:
     enabled: true
     host: ""
-
-  cert:
-    certManager: acme
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
 
   Storage:
     storageClass: cinder
@@ -368,8 +381,6 @@ dashboard:
   image: dashboard-backend
   imagePullSecret: 
     name: harbor-pull-secrets
-  cert:
-    certManager: acme
   dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
   secret:
     name: dashboard-secrets
@@ -385,7 +396,15 @@ dashboard:
   flywayBaselineVersion: "0"
   flywaySchema: "public"
   containerPort: 7173
-  host: ""
+  ingress:
+    enabled: true
+    host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   resources:
     requests:
       memory: "512Mi"
@@ -401,8 +420,6 @@ airflow:
   namespace: airflow
   imagePullSecret: 
     name: harbor-pull-secrets
-  cert:
-    certManager: ""
   backend:
     image: ""
     imagePullPolicy: Always
@@ -416,7 +433,6 @@ airflow:
       oidcClientID: ""
       oidcClientSecret: ""
     containerPort: 7171
-    host: ""
     crossOriginUrl: ""
     apiUrl: ""
     oidcInfoUrl: "" 
@@ -437,6 +453,16 @@ airflow:
     flywayBaselineOnMigrate: ""
     flywayBaselineVersion: ""
     flywaySchema: ""
+
+  ingress:
+    enabled: true
+    host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
 
   pullSecretData: ""
   secret:

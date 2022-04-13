@@ -4,12 +4,10 @@ kind: Ingress
 metadata:
   name: {{ .Chart.Name }}-service-ingress
   namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: {{ .Values.cert.certManager }}
+    {{- toYaml . | nindent 4 }}    
+  {{- end }}
 spec:
   rules:
     - host: {{ .Values.ingress.host }}
