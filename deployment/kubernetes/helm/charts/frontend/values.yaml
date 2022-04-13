@@ -9,6 +9,7 @@ imagePullSecret:
 cert:
   certManager: acme
 traefik:
+  enabled: true
   image: ""
 ingress:
   enabled: true

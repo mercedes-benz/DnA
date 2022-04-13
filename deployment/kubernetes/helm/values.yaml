@@ -12,7 +12,7 @@ frontend:
   cert:
     certManager: acme
   traefik:
-    enabled: false
+    enabled: true
     image: ""
   ingress:
     enabled: true
