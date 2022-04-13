@@ -11,7 +11,7 @@ envs:
   - name: VAULT_HOST
     value: vault.vault.svc.cluster.local
   - name: VAULT_PORT
-    value: 8200         
+    value: "8200"         
   - name: VAULT_SCHEME
     value: http
   - name: VAULT_AUTHENTICATION
@@ -28,7 +28,7 @@ envs:
   - name: DNA_URI
     value: http://dna-app-backend-service.dna.svc.cluster.local:80
   - name: DNA_AUTH_ENABLE
-    value: true  
+    value: "true"  
   - name: JWT_SECRET_KEY
     valueFrom:
       secretKeyRef:
@@ -49,11 +49,25 @@ envs:
         key: minioSecretKey
         name: storage-be   
   - name: MINIO_POLICY_VERSION
-    value: 2012-10-17   
+    value: "2012-10-17"   
   - name: LOGGING_ENVIRONMENT
     value: DEV   
   - name: LOGGING_PATH
     value: /var/log    
+  - name: ATTACHMENT_MALWARE_SCAN
+    value: "false"  
+  - name: MALWARE_SCANNER_URI
+    value: ""
+  - name: MALWARE_SCANNER_APP_ID
+    valueFrom:
+      secretKeyRef:
+        key: malwareApiId
+        name: storage-be  
+  - name: MALWARE_SCANNER_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: malwareApiKey
+        name: storage-be                       
 
 secret:
   - key: vaultToken
@@ -64,6 +78,10 @@ secret:
     value: ""
   - key: minioSecretKey
     value: ""
+  - key: malwareApiId 
+    value: ""
+  - key: malwareApiKey
+    value: ""    
 
 replicaCount: 1
 
