@@ -34,9 +34,9 @@ resources:
     cpu: "500m"
 
 probes:
-  initialDelaySeconds: 60
+  initialDelaySeconds: 120
   timeoutSeconds: 10
-  periodSeconds: 10
+  periodSeconds: 20
   failureThreshold: 3
   livenessProbe:
     path: /dashboards/actuator/health/liveness
