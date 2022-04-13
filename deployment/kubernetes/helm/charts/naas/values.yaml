@@ -39,7 +39,7 @@ app:
   probes:
     initialDelaySeconds: 180
     timeoutSeconds: 10
-    periodSeconds: 10
+    periodSeconds: 30
     failureThreshold: 3
     livenessProbe:
       path: /naas/actuator/health/liveness
