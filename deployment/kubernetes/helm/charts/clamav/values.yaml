@@ -24,6 +24,18 @@ app:
       restricted_url_pattern: /avscan/api/v1/scan.*
       loggingPath: /tmp/clamav/log
       loggingEnvironment: dev
+  probes:
+    initialDelaySeconds: 60
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /avscan/actuator/health/liveness
+      port: api
+    
+    readinessProbe:
+      path: /avscan/actuator/health/readiness
+      port: api
 
 image: 
   repo: ""
