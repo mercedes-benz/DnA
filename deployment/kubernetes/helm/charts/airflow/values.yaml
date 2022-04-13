@@ -21,7 +21,6 @@ backend:
     oidcClientID: ""
     oidcClientSecret: ""
   containerPort: 7171
-  host: ""
   crossOriginUrl: ""
   apiUrl: ""
   oidcInfoUrl: "" 
@@ -42,6 +41,10 @@ backend:
   flywayBaselineOnMigrate: ""
   flywayBaselineVersion: ""
   flywaySchema: ""
+
+ingress:
+  enabled: true
+  host: ""
 
 pullSecretData: 
 secret:

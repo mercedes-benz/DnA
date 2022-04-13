@@ -24,7 +24,9 @@ flywayBaselineOnMigrate: ""
 flywayBaselineVersion: ""
 flywaySchema: ""
 containerPort: 7173
-host: ""
+ingress:
+  enabled: true
+  host: ""
 resources:
   requests:
     memory: "512Mi"
