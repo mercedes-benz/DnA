@@ -1,4 +1,3 @@
-{{- if .Values.traefik.enabled -}}
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
 metadata:
@@ -24,4 +23,3 @@ spec:
                   - ingress
   policyTypes:
     - Ingress
-{{- end }}
