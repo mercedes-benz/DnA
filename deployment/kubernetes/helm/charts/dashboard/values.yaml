@@ -40,3 +40,16 @@ resources:
     memory: "1000Mi"
     cpu: "500m"
 
+probes:
+  initialDelaySeconds: 60
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  livenessProbe:
+    path: /dashboards/actuator/health/liveness
+    port: api
+      
+  readinessProbe:
+    path: /dashboards/actuator/health/readiness
+    port: api
+
