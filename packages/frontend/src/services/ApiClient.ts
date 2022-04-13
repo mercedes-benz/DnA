@@ -35,6 +35,8 @@ import {
   ISubsription,
   ISubsriptionExpiryObjectData,
   INoticationModules,
+  IManageDivision,
+  IManageDivisionRequest,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 
@@ -220,6 +222,22 @@ export class ApiClient {
 
   public static getAppVersion(): Promise<IAppVersion> {
     return this.get(`app-version`);
+  }
+
+  public static getDivisions(): Promise<IManageDivision[]> {
+    return this.get('divisions');
+  }
+
+  public static postDivision(data: IManageDivisionRequest): Promise<IManageDivision[]> {
+    return this.post('divisions', data);
+  }
+
+  public static putDivision(data: IManageDivisionRequest): Promise<IManageDivision[]> {
+    return this.put('divisions', data);
+  }
+
+  public static deleteDivision(id: string): Promise<any> {
+    return this.delete(`divisions/${id}`);
   }
 
   public static getSubDivisions(divisionId: string): Promise<ISubDivision[]> {

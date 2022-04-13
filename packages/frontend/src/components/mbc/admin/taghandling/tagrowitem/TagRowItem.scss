@@ -1,3 +1,13 @@
+.actionCol {
+  width: 226px;
+  display: flex;
+  justify-content: flex-end;
+  float: right;
+  div {
+    margin-left: 20px;
+  }
+}
+
 .actionLinksTD {
   color: #00adef !important;
   cursor: pointer;

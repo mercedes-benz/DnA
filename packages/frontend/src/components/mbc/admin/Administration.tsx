@@ -80,21 +80,6 @@ export default class Administration extends React.Component<IAdministrationProps
                       Report Tag Handling    
                     </a>
                   </li>}
-                  <li className="tab disabled">
-                    <a href="#tab-content-5" id="dummy2">
-                      &nbsp;
-                    </a>
-                  </li>
-                  <li className="tab disabled">
-                    <a href="#tab-content-6" id="dummy3">
-                      &nbsp;
-                    </a>
-                  </li>
-                  <li className="tab disabled">
-                    <a href="#tab-content-7" id="dummy4">
-                      &nbsp;
-                    </a>
-                  </li>
                   
                 </ul>
               </nav>
