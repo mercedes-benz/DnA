@@ -7,8 +7,6 @@ image: ""
 imagePullPolicy: Always
 imagePullSecret: 
   name: harbor-pull-secrets
-cert:
-  certManager: ""
 dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
 secret:
   name: dashboard-secrets
@@ -24,7 +22,16 @@ flywayBaselineOnMigrate: ""
 flywayBaselineVersion: ""
 flywaySchema: ""
 containerPort: 7173
-host: ""
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+
 resources:
   requests:
     memory: "512Mi"
