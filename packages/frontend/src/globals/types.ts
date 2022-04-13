@@ -378,6 +378,16 @@ export interface IDivision {
   name: string;
 }
 
+export interface IManageDivisionRequest {
+  data: IManageDivision;
+}
+
+export interface IManageDivision {
+  id: string;
+  name: string;
+  subdivisions: ISubDivision[];
+}
+
 export interface IDivisionFilterPreference {
   id: string;
   name: string;
@@ -1216,6 +1226,7 @@ export interface ITagResult {
   name: string;
   category: IFitlerCategory;
   datawareHouseItems?: IDatawarehouseInItem;
+  subdivisions?: ISubDivision[];
 }
 export interface IRelatedProduct {
   id: string;
