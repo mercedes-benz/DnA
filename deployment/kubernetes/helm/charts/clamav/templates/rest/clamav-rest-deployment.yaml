@@ -69,6 +69,7 @@ spec:
             httpGet:
               path: {{ .Values.app.probes.readinessProbe.path }}
               port: {{ .Values.app.probes.readinessProbe.port }}
+          resources:
             requests:
               memory: {{ .Values.resources.requests.memory | quote }}
               cpu: {{ .Values.resources.requests.cpu | quote }}
