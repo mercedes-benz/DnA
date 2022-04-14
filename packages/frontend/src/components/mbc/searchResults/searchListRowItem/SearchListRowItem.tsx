@@ -75,7 +75,7 @@ export default class SearchListRowItem extends React.Component<ISearchListRowIte
             {!solution.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
           <td className="wrap-text">{solution.currentPhase ? solution.currentPhase.name : ''}</td>
-          <td>{solution.division.name}</td>
+          <td>{solution.division?.name || 'N/A'}</td>
           <td>
             <div className={Styles.locationDataWrapper}>
               {locations[0] ? locations[0] : ''}

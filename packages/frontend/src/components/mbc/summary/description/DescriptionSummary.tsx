@@ -239,7 +239,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {description.division.name}
+                    {description.division?.name || 'N/A'}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>
