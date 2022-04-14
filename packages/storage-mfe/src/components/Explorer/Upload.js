@@ -9,9 +9,6 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { serializeFolderChain, setObjectKey } from './Utils';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
-const ATTACH_FILES_TO_ACCEPT =
-  '.doc,.docx,.odt,.pptx,.rtf,.pdf,.bmp,.gif,.png,.jpg,.jpeg,.csv,.xsl,.xlsx,.ppt,.txt,.zip,.js,.py,.ts,.tsx,.jsx,.json,.scss,.css,.java,.yml,.yaml';
-
 const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = false }) => {
   const dispatch = useDispatch();
   const { files } = useSelector((state) => state.fileExplorer);
@@ -40,7 +37,6 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
   };
 
   const uploaderProps = {
-    accept: ATTACH_FILES_TO_ACCEPT,
     headers: {
       Authorization: sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT),
     },
