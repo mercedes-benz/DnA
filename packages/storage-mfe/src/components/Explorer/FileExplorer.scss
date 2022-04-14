@@ -212,16 +212,5 @@
     .pdf-doc-page {
       margin-bottom: 5px;
     }
-    &::-webkit-scrollbar-thumb {
-      background: #00adef;
-      border-radius: 10px;
-    }
-    &::-webkit-scrollbar-track {
-      background: #293f55;
-    }
-    &::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
   }
 }
