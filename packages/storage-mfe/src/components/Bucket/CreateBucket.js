@@ -222,7 +222,7 @@ const CreateBucket = () => {
               className={classNames(Styles.inputGrp, ' input-field-group', bucketNameErrorField?.length ? 'error' : '')}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Name of Buckets <sup>*</sup>
+                Name of Bucket <sup>*</sup>
               </label>
               <div>
                 <input
