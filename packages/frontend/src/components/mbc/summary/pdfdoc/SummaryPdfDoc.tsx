@@ -1,4 +1,3 @@
-// @ts-nocheck 
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import * as React from 'react';
 import { PropsWithChildren } from "react";
@@ -561,11 +560,11 @@ export const SummaryPdfDoc = (props: Props) => (
         <View style={styles.flexLayout} wrap={false}>
           <View style={[styles.flexCol2, styles.firstCol]}>
             <Text style={styles.sectionTitle}>Division</Text>
-            <Text>{props.solution.description.division.name}</Text>
+            <Text>{props.solution.description.division?.name || 'NA'}</Text>
           </View>
           <View style={styles.flexCol2}>
             <Text style={styles.sectionTitle}>Sub Division</Text>
-            <Text>{props.solution.description.division.subdivision.name}</Text>
+            <Text>{props.solution.description.division?.subdivision?.name || 'NA'}</Text>
           </View>
           <View style={styles.flexCol2}>
             <Text style={styles.sectionTitle}>Status</Text>
