@@ -273,6 +273,30 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     });
   }
 
+  protected setupEditReportData(
+    subDivisions: ISubDivision[],
+    response: ICreateNewReportResult,
+    report: ICreateNewReport,
+    resetChildComponents: () => void | null,
+  ) {
+    this.setState(
+      {
+        subDivisions,
+        response,
+        report,
+      },
+      () => {
+        this.setOpenTabs(report.openSegments);
+        SelectBox.defaultSetup();
+        ProgressIndicator.hide();
+        resetChildComponents();
+        this.setState({
+          currentState: JSON.parse(JSON.stringify(report)),
+        });
+      },
+    );
+  }
+
   public async getReportById(resetChildComponents?: () => void | null) {
     let { id } = getParams();
     if ((id == null || id === '') && this.state.response.data != null) {
@@ -353,27 +377,19 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.members.admin = res.members.admin || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
-              ApiClient.getSubDivisions(res.description.division.id).then((subDivisions) => {
-                if (!subDivisions.length) {
-                  subDivisions = [{ id: '0', name: 'None' }];
-                }
-                this.setState(
-                  {
-                    subDivisions,
-                    response,
-                    report,
-                  },
-                  () => {
-                    this.setOpenTabs(report.openSegments);
-                    SelectBox.defaultSetup();
-                    ProgressIndicator.hide();
-                    resetChildComponents();
-                    this.setState({
-                      currentState: JSON.parse(JSON.stringify(report)),
-                    });
-                  },
-                );
-              });
+              let subDivisions: ISubDivision[] = [{ id: '0', name: 'None' }];
+              const divisionId = res.description.division?.id;
+              if (divisionId) {
+                ApiClient.getSubDivisions(res.description.division.id)
+                  .then((subDivResponse) => {
+                    subDivisions = subDivResponse;
+                  })
+                  .finally(() => {
+                    this.setupEditReportData(subDivisions, response, report, resetChildComponents);
+                  });
+              } else {
+                this.setupEditReportData(subDivisions, response, report, resetChildComponents);
+              }
             } else {
               ProgressIndicator.hide();
               history.replace('/unauthorised');
