@@ -302,7 +302,7 @@ const CreateBucket = () => {
                           <div className={Styles.collUserTitleCol}>Permission</div>
                           <div className={Styles.collUserTitleCol}></div>
                         </div>
-                        <div className={Styles.collUserContent}>
+                        <div className={classNames('mbc-scroll', Styles.collUserContent)}>
                           {bucketCollaborators?.map((item, collIndex) => {
                             return (
                               <div key={collIndex} className={Styles.collUserContentRow}>
