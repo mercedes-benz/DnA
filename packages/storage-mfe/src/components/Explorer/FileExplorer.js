@@ -572,7 +572,7 @@ const FileExplorer = () => {
                   <img width={'100%'} className={Styles.previewImg} src={showPreview.blobURL} />
                 ) : isPDF ? (
                   <center>
-                    <div id={'pdfDoc'}>
+                    <div id={'pdfDoc'} className="mbc-scroll">
                       <Document file={showPreview.blobURL} onLoadSuccess={onPDFLoadSuccess}>
                         {Array.from(new Array(pdfDocsNumPages), (el, index) => (
                           <Page className={'pdf-doc-page'} key={`page_${index + 1}`} pageNumber={index + 1} />
