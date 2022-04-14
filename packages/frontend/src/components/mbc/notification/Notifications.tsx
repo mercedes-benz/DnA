@@ -441,7 +441,7 @@ const Notifications = (props: any) => {
                         )}
                       )}
                     </ul>  
-                  : <div className={Styles.noChangeLogs}>Change logs are not avaialble!</div> : <div className={Styles.noChangeLogs}>Change logs are not avaialble!</div>}
+                  : <div className={Styles.noChangeLogs}>Change logs are not available!</div> : <div className={Styles.noChangeLogs}>Change logs are not available!</div>}
                   
                   
 
