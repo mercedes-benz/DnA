@@ -386,29 +386,9 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-		boolean proceedToUpload = true;
 		BucketResponseWrapperVO bucketResponseWrapperVO = new BucketResponseWrapperVO();
-
-		//Checking for feature malware scan
-		if (Boolean.TRUE.equals(attachmentMalwareScan)) {
-			LOGGER.debug("Scanning for malware for file {}", uploadfile.getName());
-			FileScanDetailsVO fileScanDetailsVO = this.scan(uploadfile);
-			if (Objects.nonNull(fileScanDetailsVO) && Boolean.TRUE.equals(fileScanDetailsVO.getDetected())) {
-				LOGGER.info("Malware detected in the uploaded file {}", uploadfile.getName());
-				//setting upload as false
-				proceedToUpload = false;
-				bucketResponseWrapperVO.setErrors(Arrays
-						.asList(new MessageDescription("Malware detected in the uploaded file "+ uploadfile.getName())));
-			} else if (Objects.isNull(fileScanDetailsVO) || StringUtils.hasText(fileScanDetailsVO.getErrorMessage())) {
-				LOGGER.info("Failed to scan file:{}", uploadfile.getName());
-				//setting upload as false
-				proceedToUpload = false;
-				bucketResponseWrapperVO.setErrors(
-						Arrays.asList(new MessageDescription("Failed to scan file:" + uploadfile.getName())));
-			}
-		}
-
-		if (proceedToUpload) {
+		List<MessageDescription> errors = validateForUpload(uploadfile);
+		if (ObjectUtils.isEmpty(errors)) {
 			LOGGER.debug("upload object/file through minio client.");
 			MinioGenericResponse minioResponse = dnaMinioClient.objectUpload(currentUser, uploadfile, bucketName,
 					prefix);
@@ -421,10 +401,37 @@ public class BaseStorageService implements StorageService {
 				httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 			}
 			bucketResponseWrapperVO.setStatus(minioResponse.getStatus());
+		} else {
+			bucketResponseWrapperVO.setErrors(errors);
 		}
 		return new ResponseEntity<>(bucketResponseWrapperVO, httpStatus);
 	}
 
+	/*
+	 * To validate file before upload
+	 */
+	private List<MessageDescription> validateForUpload(MultipartFile uploadfile) {
+		List<MessageDescription> errors = new ArrayList<>();
+		if (uploadfile.isEmpty()) {
+			LOGGER.info("Uploaded file is empty.");
+			errors.add(new MessageDescription("Please select file to upload."));
+		} else if (Boolean.TRUE.equals(attachmentMalwareScan)) {
+			LOGGER.info("Scanning for malware for file {}", uploadfile.getOriginalFilename());
+			FileScanDetailsVO fileScanDetailsVO = this.scan(uploadfile);
+			if (Objects.nonNull(fileScanDetailsVO) && Boolean.TRUE.equals(fileScanDetailsVO.getDetected())) {
+				LOGGER.info("Malware detected in the uploaded file {}", uploadfile.getOriginalFilename());
+				// setting upload as false
+				errors.add(new MessageDescription(
+						"Malware detected in the uploaded file " + uploadfile.getOriginalFilename()));
+			} else if (Objects.isNull(fileScanDetailsVO) || StringUtils.hasText(fileScanDetailsVO.getErrorMessage())) {
+				LOGGER.info("Failed to scan file:{}", uploadfile.getName());
+				// setting upload as false
+				errors.add(new MessageDescription("Failed to scan file:" + uploadfile.getName()));
+			}
+		}
+		return errors;
+	}
+	
 	@Override
 	public ResponseEntity<UserRefreshWrapperVO> userRefresh(String userId) {
 		HttpStatus httpStatus;
@@ -791,7 +798,7 @@ public class BaseStorageService implements StorageService {
 	 * @return FileScanDetailsVO
 	 */
 	private FileScanDetailsVO scan(MultipartFile multiPartFile) {
-		LOGGER.debug("Calling avscan client to scan file:{}",multiPartFile.getName());
+		LOGGER.debug("Calling avscan client to scan file:{}",multiPartFile.getOriginalFilename());
 		Optional<FileScanDetailsVO> aVScannerRes = malwareScannerClient.scan(multiPartFile);
 		return aVScannerRes.isPresent()?aVScannerRes.get():null;
 	}
