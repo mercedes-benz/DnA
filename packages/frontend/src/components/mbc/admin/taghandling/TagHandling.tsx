@@ -451,8 +451,11 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
   };
 
   public onAddItemModalOpen = () => {
+    const itemToAdd = this.state.itemToAdd;
+    itemToAdd.name = '';
     this.setState(
       {
+        itemToAdd,
         addNewItem: true,
         updateItemMode: false,
         newItemNameError: null,
