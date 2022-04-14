@@ -1,3 +1,4 @@
+import { IMAGE_EXTNS } from '../components/Utility/constants';
 import server from '../server/api';
 
 const getAllBucketObjects = (bucketName) => {
@@ -32,13 +33,18 @@ const deleteObjects = (bucketName, filesPath) => {
   });
 };
 
-const previewFiles = (bucketName, prefix, isImage) => {
+const previewFiles = (bucketName, prefix, fileExtension) => {
+  const isImage = IMAGE_EXTNS.includes(fileExtension);
+  const isPDF = fileExtension === 'pdf';
+  const responseType = isPDF ? 'arraybuffer' : 'blob';
+  const setResponseType = isImage || isPDF;
+
   return server.get(`/buckets/${bucketName}/objects/metadata`, {
     data: {},
     params: {
       prefix,
     },
-    ...(isImage && { responseType: 'blob' }),
+    ...(setResponseType && { responseType }),
   });
 };
 
