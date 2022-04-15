@@ -21,6 +21,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 
 import { Document, Page } from 'react-pdf/dist/esm/entry.webpack';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
 import AceEditor from 'react-ace';
 //import theme
@@ -563,7 +564,7 @@ const FileExplorer = () => {
                   modal: false,
                 });
               }}
-              modalWidth={isPDF ? '65vw' : '80vw'}
+              modalWidth={isPDF ? '45vw' : '80vw'}
               showAcceptButton={false}
               showCancelButton={false}
               show={showPreview.modal}
@@ -571,15 +572,13 @@ const FileExplorer = () => {
                 showPreview.isImage ? (
                   <img width={'100%'} className={Styles.previewImg} src={showPreview.blobURL} />
                 ) : isPDF ? (
-                  <center>
-                    <div id={'pdfDoc'} className="mbc-scroll">
-                      <Document file={showPreview.blobURL} onLoadSuccess={onPDFLoadSuccess}>
-                        {Array.from(new Array(pdfDocsNumPages), (el, index) => (
-                          <Page className={'pdf-doc-page'} key={`page_${index + 1}`} pageNumber={index + 1} />
-                        ))}
-                      </Document>
-                    </div>
-                  </center>
+                  <div id={'pdfDoc'} className="mbc-scroll">
+                    <Document file={showPreview.blobURL} onLoadSuccess={onPDFLoadSuccess} externalLinkTarget="_blank">
+                      {Array.from(new Array(pdfDocsNumPages), (el, index) => (
+                        <Page className={'pdf-doc-page'} key={`page_${index + 1}`} pageNumber={index + 1} />
+                      ))}
+                    </Document>
+                  </div>
                 ) : (
                   <AceEditor
                     width="100%"
