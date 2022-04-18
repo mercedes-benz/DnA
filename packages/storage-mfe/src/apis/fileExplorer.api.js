@@ -36,7 +36,7 @@ const deleteObjects = (bucketName, filesPath) => {
 const previewFiles = (bucketName, prefix, fileExtension) => {
   const isImage = IMAGE_EXTNS.includes(fileExtension);
   const isPDF = fileExtension === 'pdf';
-  const responseType = isPDF ? 'arraybuffer' : 'blob';
+  const responseType = 'blob';
   const setResponseType = isImage || isPDF;
 
   return server.get(`/buckets/${bucketName}/objects/metadata`, {

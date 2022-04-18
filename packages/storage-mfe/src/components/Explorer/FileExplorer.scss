@@ -49,6 +49,14 @@
   margin: 0 0 15px 114px;
 }
 
+.pdfPwdContainer {
+  display: flex;
+  i {
+    margin-left: 10px;
+    margin-top: 10px;
+  }
+}
+
 :global {
   #storagePreview {
     margin-top: 20px;
