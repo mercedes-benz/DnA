@@ -534,7 +534,7 @@ const FileExplorer = () => {
 
   const passwordInputContent = (
     <div className={classNames('input-field-group', pdfPwdError?.length ? 'error' : '')}>
-      <label className="input-label">Enter the password to open this PDF file.</label>
+      <label className={classNames('input-label', Styles.pwdLabel)}>Enter the password to open this PDF file.</label>
       <div className={Styles.pdfPwdContainer}>
         <input
           className="input-field"
@@ -573,6 +573,9 @@ const FileExplorer = () => {
     setPdfModal(false);
     pdfcallback(pdfPassword);
     setPDFPwdError('');
+    if (!pdfPassword) {
+      setPDFPwdError('Please enter the password');
+    }
   };
 
   const handlePassword = (callback, reason) => {
@@ -734,8 +737,8 @@ const FileExplorer = () => {
       <Modal
         title={'Password'}
         hiddenTitle={true}
-        acceptButtonTitle="Proceed"
-        cancelButtonTitle="No"
+        acceptButtonTitle="Confirm"
+        cancelButtonTitle="Cancel"
         showAcceptButton={true}
         showCancelButton={true}
         show={showPdfModal}
