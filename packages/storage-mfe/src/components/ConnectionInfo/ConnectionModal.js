@@ -165,7 +165,7 @@ y = pd.read_csv(y_file_obj)`}
             </nav>
           </div>
           <div className={classNames('tabs-content-wrapper', Styles.tabsContentWrapper)}>
-            <div id="tab-content-1" className={classNames('tab-content', Styles.tabContentContainer)}>
+            <div id="tab-content-1" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
               <span
                 className={Styles.copyIcon}
                 onClick={() => {
@@ -177,7 +177,7 @@ y = pd.read_csv(y_file_obj)`}
               </span>
               <div className={Styles.connectionCode}>{connectToJupyter}</div>
             </div>
-            <div id="tab-content-2" className={classNames('tab-content', Styles.tabContentContainer)}>
+            <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
               <div className={classNames(Styles.connectionCode)}>{connectToDataiku}</div>
             </div>
           </div>

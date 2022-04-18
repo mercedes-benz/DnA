@@ -203,4 +203,12 @@
       }
     }
   }
+  #pdfDoc {
+    height: 65vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    .pdf-doc-page {
+      margin-bottom: 5px;
+    }
+  }
 }
