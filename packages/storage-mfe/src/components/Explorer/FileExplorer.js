@@ -20,8 +20,13 @@ import FileUpload from './Upload';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 
+import { Document, Page } from 'react-pdf/dist/esm/entry.webpack';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+
 import AceEditor from 'react-ace';
+//import theme
 import 'ace-builds/src-noconflict/theme-solarized_dark';
+//import modes
 import 'ace-builds/src-noconflict/mode-typescript';
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/mode-java';
@@ -32,10 +37,16 @@ import 'ace-builds/src-noconflict/mode-scss';
 import 'ace-builds/src-noconflict/mode-text';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/mode-plain_text';
+import 'ace-builds/src-noconflict/mode-html';
+import 'ace-builds/src-noconflict/mode-markdown';
+import 'ace-builds/src-noconflict/mode-less';
+import 'ace-builds/src-noconflict/mode-sql';
+import 'ace-builds/src-noconflict/mode-kotlin';
+import 'ace-builds/src-noconflict/mode-golang';
 
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
 import { serializeFolderChain } from './Utils';
-import { IMAGE_EXTNS, PREVIEW_NOT_ALLOWED_EXTNS } from '../Utility/constants';
+import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
 import { history } from '../../store/storeRoot';
 
 // inform chonky on which iconComponent to use
@@ -64,6 +75,8 @@ const FileExplorer = () => {
   const [folderName, setFolderName] = useState('');
   const [folderNameError, setFolderNameError] = useState('');
   const [showCreateNewFolderModal, setShowCreateNewFolderModal] = useState(false);
+
+  const [pdfDocsNumPages, setPDFDocsNumPages] = useState(0);
 
   // track of newly created folder name
   const [newlyCreatedFolder, setNewlyCreatedFolder] = useState('');
@@ -108,7 +121,7 @@ const FileExplorer = () => {
       formatFileModDate: (intl, file) => {
         const safeModDate = FileHelper.getModDate(file);
         if (safeModDate) {
-          return `${getDateTimeFromTimestamp(safeModDate)}`;
+          return `${getDateTimeFromTimestamp(safeModDate, '.')}`;
         } else {
           return null;
         }
@@ -327,18 +340,21 @@ const FileExplorer = () => {
       if (data.state.selectedFiles.length === 1) {
         const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
         const isImage = IMAGE_EXTNS.includes(extension);
-        const allowedExt = !PREVIEW_NOT_ALLOWED_EXTNS.includes(extension);
+        const allowedExt = PREVIEW_ALLOWED_EXTNS.includes(extension);
 
         if (allowedExt) {
           ProgressIndicator.show();
           bucketsObjectApi
-            .previewFiles(bucketName, fileToOpen.objectName, isImage)
+            .previewFiles(bucketName, fileToOpen.objectName, extension)
             .then((res) => {
               let blobURL;
               if (isImage) {
                 const url = window.URL.createObjectURL(
                   new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }),
                 );
+                blobURL = url;
+              } else if (extension === 'pdf') {
+                const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
                 blobURL = url;
               } else {
                 blobURL = res.data;
@@ -508,23 +524,13 @@ const FileExplorer = () => {
     setShowDeleteModal({ modal: false });
   };
 
-  // set corresponding modes based on the file extensions
-  const aceEditorMode = {
-    java: 'java',
-    js: 'javascript',
-    jsx: 'javascript',
-    ts: 'typescript',
-    tsx: 'typescript',
-    py: 'python',
-    json: 'json',
-    css: 'css',
-    scss: 'scss',
-    txt: 'text',
-    yml: 'yaml',
-    yaml: 'yaml',
-  };
   const serializedFileName = showPreview.fileName.split('.').filter((x) => !!x);
   const fileExt = serializedFileName[serializedFileName.length - 1];
+  const isPDF = fileExt === 'pdf';
+
+  const onPDFLoadSuccess = ({ numPages }) => {
+    setPDFDocsNumPages(numPages);
+  };
 
   return (
     <>
@@ -558,18 +564,26 @@ const FileExplorer = () => {
                   modal: false,
                 });
               }}
-              modalWidth="80vw"
+              modalWidth={isPDF ? '45vw' : '80vw'}
               showAcceptButton={false}
               showCancelButton={false}
               show={showPreview.modal}
               content={
                 showPreview.isImage ? (
                   <img width={'100%'} className={Styles.previewImg} src={showPreview.blobURL} />
+                ) : isPDF ? (
+                  <div id={'pdfDoc'} className="mbc-scroll">
+                    <Document file={showPreview.blobURL} onLoadSuccess={onPDFLoadSuccess} externalLinkTarget="_blank">
+                      {Array.from(new Array(pdfDocsNumPages), (el, index) => (
+                        <Page className={'pdf-doc-page'} key={`page_${index + 1}`} pageNumber={index + 1} />
+                      ))}
+                    </Document>
+                  </div>
                 ) : (
                   <AceEditor
                     width="100%"
                     name="storagePreview"
-                    mode={aceEditorMode[fileExt] || 'plain_text'}
+                    mode={aceEditorMode[fileExt]}
                     theme="solarized_dark"
                     fontSize={16}
                     showPrintMargin={false}
@@ -585,6 +599,7 @@ const FileExplorer = () => {
                       height: '65vh',
                     }}
                     setOptions={{
+                      useWorker: false,
                       showLineNumbers: false,
                       tabSize: 2,
                     }}
