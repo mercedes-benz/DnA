@@ -5,10 +5,10 @@ import Styles from './FileExplorer.scss';
 import { useDispatch, useSelector } from 'react-redux';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
+import Modal from 'dna-container/Modal';
 
 import { FullFileBrowser, ChonkyActions, FileHelper } from 'chonky';
 
-import Modal from 'dna-container/Modal';
 import { deleteFiles, downloadFoldersOrFiles, getFiles, setFiles } from './redux/fileExplorer.actions';
 import { useParams } from 'react-router-dom';
 
@@ -78,6 +78,13 @@ const FileExplorer = () => {
 
   const [pdfDocsNumPages, setPDFDocsNumPages] = useState(0);
 
+  // pdf password protected states
+  const [pdfPassword, setPdfPassword] = useState('');
+  const [pdfcallback, setPdfCallback] = useState(() => () => {});
+  const [showPdfModal, setPdfModal] = useState(false);
+  const [pdfPwdError, setPDFPwdError] = useState('');
+  const [showPwdText, setShowPwdText] = useState(false);
+
   // track of newly created folder name
   const [newlyCreatedFolder, setNewlyCreatedFolder] = useState('');
 
@@ -98,6 +105,7 @@ const FileExplorer = () => {
   const currentFolderIdRef = useRef(currentFolderId);
   const uploadRef = useRef(null);
   const inputRef = useRef(null);
+  const pwdInputRef = useRef(null);
 
   const [showPreview, setPreview] = useState({
     modal: false,
@@ -341,6 +349,7 @@ const FileExplorer = () => {
         const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
         const isImage = IMAGE_EXTNS.includes(extension);
         const allowedExt = PREVIEW_ALLOWED_EXTNS.includes(extension);
+        const isPDF = extension === 'pdf';
 
         if (allowedExt) {
           ProgressIndicator.show();
@@ -348,13 +357,8 @@ const FileExplorer = () => {
             .previewFiles(bucketName, fileToOpen.objectName, extension)
             .then((res) => {
               let blobURL;
-              if (isImage) {
-                const url = window.URL.createObjectURL(
-                  new Blob([res.data], { 'Content-Type': res.headers['Content-Type'] }),
-                );
-                blobURL = url;
-              } else if (extension === 'pdf') {
-                const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+              if (isImage || isPDF) {
+                const url = window.URL.createObjectURL(new Blob([res.data], { type: res.headers['Content-Type'] }));
                 blobURL = url;
               } else {
                 blobURL = res.data;
@@ -528,8 +532,62 @@ const FileExplorer = () => {
   const fileExt = serializedFileName[serializedFileName.length - 1];
   const isPDF = fileExt === 'pdf';
 
+  const passwordInputContent = (
+    <div className={classNames('input-field-group', pdfPwdError?.length ? 'error' : '')}>
+      <label className="input-label">Enter the password to open this PDF file.</label>
+      <div className={Styles.pdfPwdContainer}>
+        <input
+          className="input-field"
+          type={showPwdText ? 'text' : 'password'}
+          value={pdfPassword || ''}
+          onChange={(e) => setPdfPassword(e.target.value)}
+          style={{ width: '350px' }}
+          ref={pwdInputRef}
+        />
+        {showPwdText ? (
+          <i className={'icon mbc-icon visibility-hide'} onClick={() => setShowPwdText(false)} tooltip-data="Hide" />
+        ) : (
+          <i className={'icon mbc-icon visibility-show '} onClick={() => setShowPwdText(true)} tooltip-data="Show" />
+        )}
+      </div>
+      <span className={classNames('error-message', pdfPwdError?.length ? '' : 'hide')}>{pdfPwdError}</span>
+    </div>
+  );
+
   const onPDFLoadSuccess = ({ numPages }) => {
     setPDFDocsNumPages(numPages);
+  };
+
+  const onPdfInputCancel = () => {
+    setPdfModal(false);
+    setPdfPassword('');
+    setPreview({
+      modal: false,
+      fileName: '',
+      isImage: false,
+      blobURL: '',
+    });
+    setPDFPwdError('');
+  };
+  const onPdfInputAccept = () => {
+    setPdfModal(false);
+    pdfcallback(pdfPassword);
+    setPDFPwdError('');
+  };
+
+  const handlePassword = (callback, reason) => {
+    setPdfCallback(() => callback);
+    setPdfModal(true);
+    pwdInputRef.current.focus();
+    switch (reason) {
+      case 1:
+        setPdfPassword('');
+        break;
+      case 2:
+        setPDFPwdError('Invalid password. Please try again.');
+        break;
+      default:
+    }
   };
 
   return (
@@ -573,7 +631,12 @@ const FileExplorer = () => {
                   <img width={'100%'} className={Styles.previewImg} src={showPreview.blobURL} />
                 ) : isPDF ? (
                   <div id={'pdfDoc'} className="mbc-scroll">
-                    <Document file={showPreview.blobURL} onLoadSuccess={onPDFLoadSuccess} externalLinkTarget="_blank">
+                    <Document
+                      file={showPreview.blobURL}
+                      onLoadSuccess={onPDFLoadSuccess}
+                      externalLinkTarget="_blank"
+                      onPassword={handlePassword}
+                    >
                       {Array.from(new Array(pdfDocsNumPages), (el, index) => (
                         <Page className={'pdf-doc-page'} key={`page_${index + 1}`} pageNumber={index + 1} />
                       ))}
@@ -667,6 +730,20 @@ const FileExplorer = () => {
         content={emptyFolderWarningContent}
         onCancel={emptyFolderClose}
         onAccept={emptyFolderAccept}
+      />
+      <Modal
+        title={'Password'}
+        hiddenTitle={true}
+        acceptButtonTitle="Proceed"
+        cancelButtonTitle="No"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showPdfModal}
+        content={passwordInputContent}
+        onCancel={onPdfInputCancel}
+        onAccept={onPdfInputAccept}
+        modalWidth={'30vw'}
+        buttonAlignment={'center'}
       />
     </>
   );
