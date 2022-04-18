@@ -45,17 +45,6 @@
     border: 1px solid #383f49;
     padding: 10px 0px;
     overflow: auto;
-    &::-webkit-scrollbar-thumb {
-      background: #00adef;
-      border-radius: 10px;
-    }
-    &::-webkit-scrollbar-track {
-      background: #293f55;
-    }
-    &::-webkit-scrollbar {
-      height: 5px;
-      width: 5px;
-    }
   }
 }
 .OkBtn {
