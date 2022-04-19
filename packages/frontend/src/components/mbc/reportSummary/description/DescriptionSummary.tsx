@@ -191,7 +191,11 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="reportDescription">
                     <label className="input-label summary">Description</label>
                     <br />
-                    <div>{description.productDescription}</div>
+                    <div>
+                      <pre className={Styles.reportPre}>
+                        {description.productDescription}
+                      </pre>
+                    </div>
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Tags</label>
