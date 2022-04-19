@@ -13,9 +13,9 @@ spring:
       mail:
         transport.protocol: smtp
         smtp:
-          auth: true
-          starttls.enabled: true
-          starttls.required: true
+          auth: false
+          starttls.enabled: false
+          starttls.required: false
         
   datasource:
     platform: postgres
