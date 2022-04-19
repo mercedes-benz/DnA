@@ -101,6 +101,39 @@ data:
   password.db: |
     {{ .Values.authentication.password.user }}:{{ .Values.authentication.password.bcryptPass }}
 
+  access-rules.json: |
+    {
 
+            "catalogs": [
+
+                {
+
+                    "user": "immuta",
+
+                    "catalog": ".*",
+
+                    "allow": "all"
+
+                },
+
+                {
+
+                    "catalog": "immuta",
+
+                    "allow": "read-only"
+
+                },
+
+                {
+
+                    "catalog": "system",
+
+                    "allow": "read-only"
+
+                }
+
+            ]
+
+        }
 
 ---
