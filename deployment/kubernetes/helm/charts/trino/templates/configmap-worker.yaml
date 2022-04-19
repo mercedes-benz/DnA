@@ -49,12 +49,12 @@ data:
     {{ $configValue }}
   {{- end }}
 
-  exchange-manager.properties: |
-    exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
-  {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
-  {{- end }}
+  #exchange-manager.properties: |
+          #exchange-manager.name={{ .Values.server.exchangeManager.name }}
+    # exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+    #{{- range $configValue := .Values.additionalExchangeManagerProperties }}
+  #{{ $configValue }}
+    #  {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
@@ -62,11 +62,11 @@ data:
     {{ $configValue }}
   {{- end }}
 
-  {{- if .Values.immuta.enabled }}
-  event-listener.properties: |
-    event-listener.name={{ .Values.immuta.listenerName }}
-    immuta.endpoint={{ .Values.immuta.endpoint }}
-    immuta.apikey={{ .Values.immuta.apiKey }}
-    immuta.catalogs=immuta
-  {{- end }}
+  #{{- if .Values.immuta.enabled }}
+  #event-listener.properties: |
+  #  event-listener.name={{ .Values.immuta.listenerName }}
+  #  immuta.endpoint={{ .Values.immuta.endpoint }}
+  #  immuta.apikey={{ .Values.immuta.apiKey }}
+  #  immuta.catalogs=immuta
+  #{{- end }}
 {{- end }}
