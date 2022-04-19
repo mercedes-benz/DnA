@@ -24,6 +24,7 @@ app:
       restricted_url_pattern: /avscan/api/v1/scan.*
       loggingPath: /tmp/clamav/log
       loggingEnvironment: dev
+      corsOriginUrl: ""
   probes:
     initialDelaySeconds: 60
     timeoutSeconds: 10

@@ -47,6 +47,8 @@ spec:
               value: {{ .Values.app.backend.config.loggingPath | quote }}
             - name: LOGGING_ENVIRONMENT
               value: {{ .Values.app.backend.config.loggingEnvironment | quote }}
+            - name: CORS_ORIGIN_URL
+              value: {{ .Values.app.backend.config.corsOriginUrl | quote }}              
           ports:
             - containerPort: 8181
               name: api
