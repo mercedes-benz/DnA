@@ -62,6 +62,41 @@ data:
     {{ $configValue }}
   {{- end }}
 
+  access-rules.json: |
+    {
+
+            "catalogs": [
+
+                {
+
+                    "user": "immuta",
+
+                    "catalog": ".*",
+
+                    "allow": "all"
+
+                },
+
+                {
+
+                    "catalog": "immuta",
+
+                    "allow": "read-only"
+
+                },
+
+                {
+
+                    "catalog": "system",
+
+                    "allow": "read-only"
+
+                }
+
+            ]
+
+        }
+
   #{{- if .Values.immuta.enabled }}
   #event-listener.properties: |
   #  event-listener.name={{ .Values.immuta.listenerName }}
