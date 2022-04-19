@@ -108,6 +108,11 @@ hr {
   float: left;
 }
 
+.reportPre{
+  white-space: pre-wrap;
+  font-family: "Roboto-Medium";  
+}
+
 :global {
   label.input-label.summary {
     color: #99A5B3;
