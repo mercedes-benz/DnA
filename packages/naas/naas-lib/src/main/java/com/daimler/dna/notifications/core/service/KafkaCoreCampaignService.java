@@ -42,8 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
 import com.daimler.dna.notifications.common.consumer.KafkaDynamicConsumerService;
 import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
@@ -118,6 +120,12 @@ public class KafkaCoreCampaignService {
 					vo.setMessageDetails(message.getMessageDetails());
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
+					String emailBody = "<br/>"+ message.getMessage() + "<br/>";
+					if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
+						for (ChangeLogVO changeLog : message.getChangeLogs()) {
+							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
+						}
+					}
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);
 						LOGGER.info("New message with details- user {}, eventType {}, uuid {} added to user notifications", user,
@@ -130,7 +138,7 @@ public class KafkaCoreCampaignService {
 						String userEmail = usersEmails.get(userListPivot);
 						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
 							String emailSubject = message.getEventType()+" Email Notification";
-							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , message.getMessage());
+							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , emailBody);
 							LOGGER.info("Sent email as per user preference, Details: user {}, eventType {}, uuid {}", user,
 									message.getEventType(), message.getUuid());
 						}else {
