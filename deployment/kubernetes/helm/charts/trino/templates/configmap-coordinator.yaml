@@ -101,6 +101,11 @@ data:
   password.db: |
     {{ .Values.authentication.password.user }}:{{ .Values.authentication.password.bcryptPass }}
 
+  access-control.properties: |
+    access-control.name=file
+    security.config-file={{ .Values.server.config.path }}/access-rules.json
+    security.refresh-period=5s
+
   access-rules.json: |
     {
 
