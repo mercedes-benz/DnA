@@ -204,7 +204,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {description.division?.name}
+                    {description.division?.name || 'N/A'}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>
@@ -231,14 +231,14 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="integratedinportal">
                     <label className="input-label summary">Integrated In Portal</label>
                     <br />
-                    {description.integratedPortal?.join(', ')}
+                    {description.integratedPortal?.join(', ') || 'N/A'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="agileReleaseTrain">
                     <label className="input-label summary">Agile Release Train</label>
                     <br />
-                    {description.agileReleaseTrains?.join(', ')}
+                    {description.agileReleaseTrains?.join(', ') || 'N/A'}
                   </div>
                   <div id="designguideimplemented">
                     <label className="input-label summary">Design Guide Implemented</label>
