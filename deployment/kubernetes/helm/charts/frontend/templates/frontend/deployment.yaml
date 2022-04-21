@@ -106,7 +106,7 @@ spec:
           imagePullPolicy: Always
           name: frontend
           ports:
-            - containerPort: 80
+            - containerPort: 3000
           livenessProbe:
             initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
