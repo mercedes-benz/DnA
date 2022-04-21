@@ -135,27 +135,29 @@ public class BaseStorageService implements StorageService {
 					permissionVO = new PermissionVO();
 					permissionVO.setRead(true);
 					permissionVO.setWrite(true);
-					
+
 					UserVO ownerUserVO = onboardOwnerResponse.getUser();
-					//Setting permission
+					// Setting permission
 					ownerUserVO.setPermission(permissionVO);
-					//Setting uri 
-					//TODO need to fetch from MinioClient
-					ownerUserVO.setUri(minioBaseUri+"/"+"buckets/"+bucketVo.getBucketName());
-					
-					//Setting bucket access info for owner
-					responseVO.setBucketAccessinfo(ownerUserVO);					
-					
+					// Setting uri
+					Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
+							bucketVo.getBucketName(), null);
+					ownerUserVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
+					ownerUserVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
+
+					// Setting bucket access info for owner
+					responseVO.setBucketAccessinfo(ownerUserVO);
+
 					LOGGER.info("Onboarding collaborators");
 					if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
 						for (UserVO userVO : bucketVo.getCollaborators()) {
 							if (Objects.nonNull(userVO.getPermission())) {
-								List<String> policies = new ArrayList<String>();
-								if (userVO.getPermission().isRead() != null && userVO.getPermission().isRead()) {
+								List<String> policies = new ArrayList<>();
+								if (Boolean.TRUE.equals(userVO.getPermission().isRead())) {
 									LOGGER.debug("Setting READ access.");
 									policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READ);
 								}
-								if (userVO.getPermission().isWrite() && userVO.getPermission().isWrite()) {
+								if (Boolean.TRUE.equals(userVO.getPermission().isWrite())) {
 									LOGGER.debug("Setting READ/WRITE access.");
 									policies.add(bucketVo.getBucketName() + "_" + ConstantsUtility.READWRITE);
 								}
@@ -199,7 +201,7 @@ public class BaseStorageService implements StorageService {
 	 * 
 	 */
 	private List<MessageDescription> validateCreateBucket(BucketVo bucketVo) {
-		List<MessageDescription> messages = new ArrayList<MessageDescription>();
+		List<MessageDescription> messages = new ArrayList<>();
 		MessageDescription message = null;
 		LOGGER.debug("Check if bucket already exists.");
 		Boolean isBucketExists = dnaMinioClient.isBucketExists(bucketVo.getBucketName());
@@ -224,7 +226,7 @@ public class BaseStorageService implements StorageService {
 	 * 
 	 */
 	private List<MessageDescription> validateUpdateBucket(BucketVo bucketVo) {
-		List<MessageDescription> messages = new ArrayList<MessageDescription>();
+		List<MessageDescription> messages = new ArrayList<>();
 		MessageDescription message = null;
 		LOGGER.debug("Check if bucket already exists.");
 		Boolean isBucketExists = dnaMinioClient.isBucketExists(bucketVo.getBucketName());
@@ -256,7 +258,7 @@ public class BaseStorageService implements StorageService {
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list buckets minio client");
 			httpStatus = minioResponse.getHttpStatus();
-			List<BucketResponseVO> bucketsResponseVO = new ArrayList<BucketResponseVO>();
+			List<BucketResponseVO> bucketsResponseVO = new ArrayList<>();
 			BucketResponseVO bucketResponseVO = null;
 			if(!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
 				for (Bucket bucket : minioResponse.getBuckets()) {
@@ -265,7 +267,7 @@ public class BaseStorageService implements StorageService {
 					bucketResponseVO.setCreationDate(bucket.creationDate().toString());
 					// Setting current user permission for bucket
 					bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-					LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+					LOGGER.debug("Setting collaborators for bucket:{}", bucket.name()!=null?bucket.name():null);
 					bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
 
 					bucketsResponseVO.add(bucketResponseVO);
@@ -274,8 +276,8 @@ public class BaseStorageService implements StorageService {
 			}
 		} else {
 			LOGGER.info("Failure from list buckets minio client");
-			httpStatus = minioResponse.getHttpStatus();
-			bucketCollectionVO.setErrors(getMessages(minioResponse.getErrors()));
+			httpStatus = minioResponse!=null?minioResponse.getHttpStatus():HttpStatus.INTERNAL_SERVER_ERROR;
+			bucketCollectionVO.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
 		}
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
@@ -304,7 +306,7 @@ public class BaseStorageService implements StorageService {
 		} else {
 			LOGGER.info("Failure from list objects minio client");
 			objectResponseWrapperVO
-					.setErrors(getMessages(minioObjectResponse.getErrors()));
+					.setErrors(getMessages(minioObjectResponse!=null?minioObjectResponse.getErrors():null));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 
@@ -315,11 +317,6 @@ public class BaseStorageService implements StorageService {
 	public ResponseEntity<ByteArrayResource> getObjectContent(String bucketName, String prefix) {
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
-		
-		/* work in progress*/
-		// ObjectMetadataWrapperVO objectMetadataWrapperVO = new
-		// ObjectMetadataWrapperVO();
-
 		LOGGER.debug("fetch object/file content through minio client");
 		MinioGenericResponse minioResponse = dnaMinioClient.getObjectContents(currentUser, bucketName, prefix);
 
@@ -330,10 +327,6 @@ public class BaseStorageService implements StorageService {
 				return ResponseEntity.ok().contentLength(resource.contentLength()).contentType(contentType(prefix))
 						.header("Content-disposition", "attachment; filename=\"" + fileName(prefix) + "\"")
 						.body(resource);
-
-				/* work in progress*/
-				// objectMetadataWrapperVO.setData(minioResponse.getData());
-				// httpStatus = HttpStatus.OK;
 			} else {
 				LOGGER.info("No content available.");
 				httpStatus = HttpStatus.NO_CONTENT;
@@ -342,10 +335,6 @@ public class BaseStorageService implements StorageService {
 		} else {
 			LOGGER.info("Failure from get object minio client");
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-			
-			/* work in progress*/
-			// objectMetadataWrapperVO.setErrors(Arrays.asList(new
-			// MessageDescription(minioResponse.getMessage())));
 		}
 
 		return new ResponseEntity<>(null, httpStatus);
@@ -357,8 +346,7 @@ public class BaseStorageService implements StorageService {
 	 */
 	private String fileName(String prefix) {
 		String[] arr = prefix.split("/");
-		String fileName = arr[arr.length - 1];
-		return fileName;
+		return arr[arr.length - 1];
 	}
 
 	/*
@@ -460,10 +448,10 @@ public class BaseStorageService implements StorageService {
 			} else {
 				LOGGER.info("Failure from refresh minio client.");
 				userRefreshWrapperVO
-						.setErrors(getMessages(minioResponse.getErrors()));
+						.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
 				httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 			}
-			userRefreshWrapperVO.setStatus(minioResponse.getStatus());
+			userRefreshWrapperVO.setStatus(minioResponse!=null?minioResponse.getStatus():null);
 		}
 
 		return new ResponseEntity<>(userRefreshWrapperVO, httpStatus);
@@ -471,7 +459,7 @@ public class BaseStorageService implements StorageService {
 
 	@Override
 	public ResponseEntity<UserRefreshWrapperVO> getConnection(String bucketName, String userId, String prefix) {
-		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		HttpStatus httpStatus;
 		UserRefreshWrapperVO userRefreshWrapperVO = new UserRefreshWrapperVO();
 		userRefreshWrapperVO.setStatus(ConstantsUtility.FAILURE);
 
@@ -488,7 +476,7 @@ public class BaseStorageService implements StorageService {
 					.setErrors(Arrays.asList(new MessageDescription("No permission to get Connection details for user:"
 							+ userId + ", only owner or admin can get connection details.")));
 			httpStatus = HttpStatus.FORBIDDEN;
-		} else if (!dnaMinioClient.validateUserInMinio(userId)) {
+		} else if (Boolean.FALSE.equals(dnaMinioClient.validateUserInMinio(userId))) {
 			LOGGER.info("User:{} not present in Minio.", userId);
 			userRefreshWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Minio.")));
@@ -502,8 +490,10 @@ public class BaseStorageService implements StorageService {
 				userVO.setSecretKey(secretKey);
 				//Setting permission
 				userVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, userId));
-				String uri = minioBaseUri+"/"+"buckets/"+bucketName;
-				userVO.setUri(uri);
+				Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
+						bucketName, null);
+				userVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
+				userVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
 				
 				userRefreshWrapperVO.setData(userVO);
 				userRefreshWrapperVO.setStatus(ConstantsUtility.SUCCESS);
@@ -563,7 +553,7 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Failure from minio remove objects.");
 			genericMessage.setSuccess(ConstantsUtility.FAILURE);
 			genericMessage
-					.setErrors(getMessages(minioResponse.getErrors()));
+					.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 		return new ResponseEntity<>(genericMessage, httpStatus);
@@ -587,7 +577,7 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Failure from minio remove bucket.");
 			genericMessage.setSuccess(ConstantsUtility.FAILURE);
 			genericMessage
-					.setErrors(getMessages(minioResponse.getErrors()));
+					.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 		return new ResponseEntity<>(genericMessage, httpStatus);
@@ -600,7 +590,7 @@ public class BaseStorageService implements StorageService {
 	private List<MessageDescription> getMessages(List<ErrorDTO> errors){
 		List<MessageDescription> messages = null;
 		if(!ObjectUtils.isEmpty(errors)) {
-			messages = new ArrayList<MessageDescription>();
+			messages = new ArrayList<>();
 			for(ErrorDTO error:errors) {
 				messages.add(new MessageDescription(error.getErrorMsg()));
 			}
@@ -611,7 +601,7 @@ public class BaseStorageService implements StorageService {
 	@Override
 	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
-		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		HttpStatus httpStatus;
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
@@ -649,8 +639,6 @@ public class BaseStorageService implements StorageService {
 	 * To get Union of list return list of user by making unison of 2 userVO list
 	 */
 	private List<String> getUsersUnion(List<UserVO> list1, List<UserVO> list2) {
-		// Set<UserVO> set = new HashSet<UserVO>();
-
 		Set<UserVO> set = new TreeSet<>(new Comparator<UserVO>() {
 			@Override
 			public int compare(UserVO u1, UserVO u2) {
@@ -663,8 +651,7 @@ public class BaseStorageService implements StorageService {
 		set.addAll(list2);
 
 		// fetching users
-		List<String> usersId = set.stream().map(t -> t.getAccesskey()).collect(Collectors.toList());
-		return usersId;
+		return set.stream().map(t -> t.getAccesskey()).collect(Collectors.toList());
 	}
 	
 	/*
@@ -673,7 +660,7 @@ public class BaseStorageService implements StorageService {
 	 */
 	private List<MessageDescription> updateBucketCollaborator(String bucketName, List<UserVO> existingCollaborators,
 			List<UserVO> newCollaborators) {
-		List<MessageDescription> errors = new ArrayList<MessageDescription>();
+		List<MessageDescription> errors = new ArrayList<>();
 		LOGGER.info("Fetching users from Minio user cache.");
 		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		String readPolicy = bucketName + "_" + ConstantsUtility.READ;
@@ -704,7 +691,7 @@ public class BaseStorageService implements StorageService {
 				// Checking for read permission
 				// if read permission available adding it
 				// if read permission not available removing it
-				if (permissionVO.isRead()) {
+				if (Boolean.TRUE.equals(permissionVO.isRead())) {
 					policy = !policy.contains(readPolicy) ? policy.concat("," + readPolicy) : policy;
 				} else {
 					policy = policy.contains(readPolicy) ? policy.replace(readPolicy, "") : policy;
@@ -713,7 +700,7 @@ public class BaseStorageService implements StorageService {
 				// Checking for read/write permission
 				// if read/write permission available adding it
 				// if read/write permission not available removing it
-				if (permissionVO.isWrite()) {
+				if (Boolean.TRUE.equals(permissionVO.isWrite())) {
 					policy = !policy.contains(readWritePolicy) ? policy.concat("," + readWritePolicy) : policy;
 				} else {
 					policy = policy.contains(readWritePolicy) ? policy.replace(readWritePolicy, "") : policy;
@@ -725,14 +712,14 @@ public class BaseStorageService implements StorageService {
 			// If user presents only in new
 			else if (newCollaborator.isPresent() && !existingCollaborator.isPresent()) {
 				PermissionVO permissionVO = newCollaborator.get().getPermission();
-				List<String> policies = new ArrayList<String>();
+				List<String> policies = new ArrayList<>();
 				// for read permission
-				if (permissionVO.isRead()) {
+				if (Boolean.TRUE.equals(permissionVO.isRead())) {
 					LOGGER.debug("Setting READ access.");
 					policies.add(readPolicy);
 				}
 				// for write permission
-				if (permissionVO.isWrite()) {
+				if (Boolean.TRUE.equals(permissionVO.isWrite())) {
 					LOGGER.debug("Setting READ/WRITE access.");
 					policies.add(readWritePolicy);
 				}
@@ -745,7 +732,7 @@ public class BaseStorageService implements StorageService {
 
 				} else {
 					LOGGER.info("Collaborator:{} onboarding failed", userId);
-					errors = getMessages(onboardUserResponse.getErrors());
+					errors = getMessages(onboardUserResponse!=null?onboardUserResponse.getErrors():null);
 					break;
 				}
 			}
