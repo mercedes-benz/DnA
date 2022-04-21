@@ -37,7 +37,7 @@
   }
 }
 
-.tagIsEmpty{
+.tagIsEmpty {
   display: flex;
   flex-direction: column;
   height: 440px;
@@ -46,9 +46,9 @@
   background-color: #252a33;
   text-align: center;
   width: calc(100% - 40px);
-  .linkStyle{
+  .linkStyle {
     color: #00adef;
-    &:hover{
+    &:hover {
       cursor: pointer;
     }
   }
@@ -70,7 +70,7 @@
       color: #00adef;
     }
     span {
-      color:#99a5b3
+      color: #99a5b3;
     }
     &:hover span {
       text-decoration: underline;
@@ -79,7 +79,19 @@
   i {
     width: auto;
     height: auto;
-    margin-right: 19px;  
+    margin-right: 19px;
+  }
+}
+.disabledAddItemBtn {
+  cursor: default !important;
+  pointer-events: none;
+  button {
+    i {
+      color: #697582 !important;
+      span {
+        color: #697582 !important;
+      }
+    }
   }
 }
 .updateModelOverlayContent {
@@ -105,4 +117,12 @@
 tr th:last-child {
   padding-right: 38px !important;
   text-align: right !important;
+}
+
+.spinner {
+  min-height: 50vh;
+  > div {
+    position: absolute;
+    top: 50%;
+  }
 }
