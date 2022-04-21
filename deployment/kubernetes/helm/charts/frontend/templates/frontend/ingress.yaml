@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Release.Name }}-ingress
+  name: {{ .Release.Name }}-ingress-frontend
   namespace: {{ .Values.namespace }}
   {{- with .Values.ingress.annotations }}
   annotations:

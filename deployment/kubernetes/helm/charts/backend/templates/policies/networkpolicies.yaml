@@ -24,7 +24,7 @@ spec:
       zone: db
   ingress:
     - ports:
-      - port: 64000
+      - port: 5432
         protocol: TCP
   policyTypes:
   - Ingress

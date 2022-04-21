@@ -4,16 +4,16 @@
 
 #Suchart properties for frontend
 frontend:
-  enabled: false
+  enabled: true
   namespace: dna
   imagePullSecret: 
-    name: harbor-pull-secrets
-    key: "docker-config"
+    name: vddockerhub
+#    key: "docker-config"
   ingress:
     enabled: true
     namespace: ingress
     host: "localhost"
-    lbIP: ""
+    lbIP: 
     annotations:
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: traefik
@@ -23,7 +23,7 @@ frontend:
   appFrontend:
     replicaCount: 1
     #Specify the frontend image, after building the image from docker file
-    image: dna-frontend
+    image: vardhandevalla/dna-app-frontend01:latest
     config:
     #If you want to enable OIDC authentication then set oidcDisabled to "false"
       oidcDisabled: true
@@ -33,25 +33,25 @@ frontend:
       jupyterNotebookUrl: http://localhost/notebooks
       jupyterNotebookOidcPopUpUrl: http://localhost/notebooks/hub/oauth_login?next=
     #Specify the dataiku live application URL
-      dataikuLiveAppUrl: ""
-      dataikuTrainingAppUrl: ""
+      dataikuLiveAppUrl: 
+      dataikuTrainingAppUrl: 
     #Specify the OAuth token URL for OIDC authentication
-      oauth2TokenUrl: ""
-      oauth2AuthUrl: ""
-      oauth2RevokeUrl: ""
-      oauth2LogoutUrl: ""
-      oauth2IntrospectionUrl: ""
-      oauth2UserInfoUrl: ""
+      oauth2TokenUrl: 
+      oauth2AuthUrl: 
+      oauth2RevokeUrl: 
+      oauth2LogoutUrl: 
+      oauth2IntrospectionUrl: 
+      oauth2UserInfoUrl: 
       frontendClientid: dce5fd33-360d-45fb-8611-0da9440047d2
-      redirectUrls: http://localhost
+      redirectUrls: 
     #Specify the swagger URL for malwarescan
       swaggerUiUrl: http://localhost/avscan/swagger-ui.html#/
-      dataikuFerretUrl: ""
+      dataikuFerretUrl: 
     #Specify the ML pipeline URL
-      mlPipelineUrl: ""
+      mlPipelineUrl: 
     #Specify the App Header
-      appNameHeader: ""
-      appNameHome: ""
+      appNameHeader: 
+      appNameHome: 
       contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
       brandLogoUrl: /images/branding/logo-brand.png
       appLogoUrl: /images/branding/logo-app.png
@@ -79,7 +79,7 @@ frontend:
 
   # Configure ngnix as per the 
     ngnix:
-      backend: http://dna-app-backend-service.dna.svc.cluster.local:80
+      backend: http://dna-service.dna.svc.cluster.local:7171
       jupyServer: http://proxy-public:8000
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
       avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
@@ -91,11 +91,11 @@ frontend:
 
 #Suchart properties for backend
 backend:
-  enabled: false
+  enabled: true
   namespace: dna
   imagePullSecret: 
-    name: harbor-pull-secrets
-    key: "docker-config" 
+    name: vddockerhub
+#    key: "docker-config" 
   ingress:
     enabled: true
     namespace: ingress
@@ -111,53 +111,53 @@ backend:
     backend:
       replicaCount: 1
       #Specify the backend image, after building the image from docker file
-      image: backend:latest
+      image: vardhandevalla/dna-app-backend:latest
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
-        notebookSecretToken: ""
-        oidcClientID: ""
-        oidcClientSecret: ""
-        drdCertPassword: ""
-        jwtSecretKey: ""
-        s3AccessKey: ""
-        s3SecretKey: ""
-        dataikuProdApiKey: ""
-        dataikuTrainingApiKey: ""
-        avscanApiKey: ""
-        appDBUserName: db
-        appDBPassword: admin
+        notebookSecretToken: 
+        oidcClientID: 
+        oidcClientSecret: 
+        drdCertPassword: XXXXX
+        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+        s3AccessKey: minioadmin
+        s3SecretKey: minioadmin
+        dataikuProdApiKey: 
+        dataikuTrainingApiKey: 
+        avscanApiKey: 
+        appDBUserName: postgres
+        appDBPassword: postgres
       config:
         enableItsmm: false
         enableJupyterNotebook: false
         enableDataiku: false
         enableAttachmentScan: false
         enableInternalUser: false
-        redirectUrl: ""
-        dbUri: jdbc:postgresql://postgresql:64000/db
-        oidcUserInfoUrl: ""
-        oidcTokenIntrospectionUrl: ""
+        redirectUrl: 
+        dbUri: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+        oidcUserInfoUrl: 
+        oidcTokenIntrospectionUrl: 
         oidcProvider: INTERNAL
-        oidcTokenRevocationUrl: ""
-        internalUserRequestUrl: ""
-        internalCertFile: ""
+        oidcTokenRevocationUrl: 
+        internalUserRequestUrl: XXXXX
+        internalCertFile: XXXXX
         oidcDisabled: true
-        s3BucketName: ""
-        s3Url: ""
-        corosOriginUrl: ""
-        jupyterNotebookUrl: ""
+        s3BucketName: dna
+        s3Url: http://minio:9000
+        corosOriginUrl: 
+        jupyterNotebookUrl: 
         vaultHost: vault.vault.svc.cluster.local
         vaultPort: 8200
-        dataikuProdUri: ""
-        dataikuProdAdminGroup: ""
-        dataikutraininguri: ""
-        avscanAppId: ""
-        naasBroker: broker01.kafka.svc.cluster.local:8001
+        dataikuProdUri: 
+        dataikuProdAdminGroup: 
+        dataikutraininguri: 
+        avscanAppId: 
+        naasBroker: kafka-1650536619-0.kafka-1650536619-headless.kafka.svc.cluster.local:9092
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
-        dataikuTrainingAdminGroup: ""
-        avscanUri: ""
+        dataikuTrainingAdminGroup: 
+        avscanUri: 
         flywayBaseline: "true"
         flywayBaselineOnMigrate: "true"
         flywayBaselineVersion: "0"
@@ -167,7 +167,7 @@ backend:
     vault:
       secret:
         name: vault-secrets
-        rootToken: s.InZKH42jzesjpHeIZtocuhUp
+        rootToken: hvs.zhIzcBqwXwz5KkOpTvhFh5zE
 
 #Suchart properties for i3postgressql database
 i3postgresql:
@@ -199,14 +199,14 @@ i3postgresql:
 
 #Subchart properties for bitnami postgresql
 bitnamipostgresql:
-  enabled: false
-  namespace: bitnami
+  enabled: true
+  namespace: dna
   global:
     postgresql:
       postgresqlDatabase: db
-      postgresqlUsername: admin
-      postgresqlPassword: admin
-      servicePort: 64000
+      postgresqlUsername: postgresql
+      postgresqlPassword: postgresql
+      servicePort: 5432
 
 #Subchart properties for clamav
 clamav:
@@ -744,23 +744,30 @@ microgateway:
 
 #Subchart properties for vault
 vault:
-  enabled: false
+  enabled: true 
   namespace: vault
   global:
-  # enabled is the master enabled switch. Setting this to true or false
-  # will enable or disable all the components within this chart by default.
+    # enabled is the master enabled switch. Setting this to true or false
+    # will enable or disable all the components within this chart by default.
     enabled: true
-  # Image pull secret to use for registry authentication.
-    imagePullSecrets: [ ]
-  # imagePullSecrets:
-  #   - name: image-pull-secret
-  # TLS for end-to-end encrypted transport
-  tlsDisable: true
+    # Image pull secret to use for registry authentication.
+    imagePullSecrets:
+    # imagePullSecrets:
+       - name: vddockerhub
+    # TLS for end-to-end encrypted transport
+    tlsDisable: true
+
   server:
+    # Resource requests, limits, etc. for the server cluster placement. This
+    # should map directly to the value of the resources field for a PodSpec.
+    # By default no direct resource request is made.
+
     image:
-      repository: /docker.io_vault
-      tag: 1.3.0
+      repository: docker.io/vardhandevalla/vault
+      tag: latest
+      # Overrides the default Image Pull Policy
       pullPolicy: IfNotPresent
+
     resources:
     # resources:
     #   requests:
@@ -891,10 +898,10 @@ vault:
     dataStorage:
       enabled: true
       # Size of the PVC created
-      size: 10Gi
+      size: 1Gi
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: cinder-retain
+      storageClass: managed
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
 
@@ -906,12 +913,13 @@ vault:
     auditStorage:
       enabled: true
       # Size of the PVC created
-      size: 10Gi
+      size: 1Gi
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: cinder-retain
+      storageClass: managed
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
+
     # Run Vault in "dev" mode. This requires no further setup, no state management,
     # and no initialization. This is useful for experimenting with Vault without
     # needing to unseal, store keys, et. al. All data is lost on restart - do not
@@ -1003,19 +1011,30 @@ vault:
 
   # Vault UI
   ui:
-  # True if you want to create a Service entry for the Vault UI.
-  #
-  # serviceType can be used to control the type of service created. For
-  # example, setting this to "LoadBalancer" will create an external load
-  # balancer (for supported K8S installations) to access the UI.
+    # True if you want to create a Service entry for the Vault UI.
+    #
+    # serviceType can be used to control the type of service created. For
+    # example, setting this to "LoadBalancer" will create an external load
+    # balancer (for supported K8S installations) to access the UI.
     enabled: false
     serviceType: "ClusterIP"
     serviceNodePort: null
     externalPort: 8200
 
+    # loadBalancerSourceRanges:
+    #   - 10.0.0.0/16
+    #   - 1.78.23.3/32
+
+    # loadBalancerIP:
+
+    # Extra annotations to attach to the ui service
+    # This should be a multi-line string mapping directly to the a map of
+    # the annotations to apply to the ui service
+    annotations: { }
+
 #subchart  value for  storageMfe
 storagemfe:
-  enabled: true
+  enabled: false
   namespace: storage-service
   conf:
     storageBackendUrl: ""
@@ -1056,7 +1075,7 @@ storagemfe:
         secretName: my-tls-secret
 
 storagebe:
-  enabled: true
+  enabled: false
   # Default values for storage-be.
   # This is a YAML-formatted file.
   # Declare variables to be passed into your templates.
