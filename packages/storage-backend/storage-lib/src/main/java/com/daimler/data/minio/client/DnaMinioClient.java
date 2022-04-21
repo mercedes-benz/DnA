@@ -175,4 +175,14 @@ public interface DnaMinioClient {
 	 */
 	public void setPolicy(@Nonnull String userOrGroupName, boolean isGroup, @Nonnull String policyName);
 	
+	/**
+	 * To get access uri of bucket for user
+	 * 
+	 * @param userId
+	 * @param bucketName
+	 * @param object
+	 * @return bucketConnectionUri{Map<String,String>}
+	 */
+	public Map<String,String> getUri(String userId, String bucketName, String object);
+	
 }

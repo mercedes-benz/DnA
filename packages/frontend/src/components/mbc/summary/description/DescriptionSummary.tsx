@@ -220,8 +220,27 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="productDescription">
                     <label className="input-label summary">Description</label>
-                    <br />
-                    <div className={Styles.solutionDescription}>{description.description}</div>
+                    <br />                    
+                    <div className={Styles.solutionDescription}>
+                      <pre className={Styles.solutionPre}>
+                        {description.description}
+                      </pre>
+                    </div>
+                    
+                    {/* <div
+                      id="descriptionContainer"
+                      className={classNames(
+                        'input-field-group include-error area'
+                      )}
+                    >
+                      <textarea
+                        className="input-field-area"
+                        rows={50}
+                        id="description"
+                        value={description.description}
+                      />
+                    </div> */}
+                    
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Tags</label>
@@ -308,12 +327,16 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="expectedBenefits">
                     <label className="input-label summary">Expected Benefits</label>
                     <br />
-                    <div> {description.expectedBenefits}</div>
+                    <div> 
+                      <pre className={Styles.solutionPre}>{description.expectedBenefits}</pre>
+                    </div>
                   </div>
                   <div id="businessNeeds">
                     <label className="input-label summary">Business Need</label>
                     <br />
-                    <div> {description.businessNeeds}</div>
+                    <div> 
+                      <pre className={Styles.solutionPre}>{description.businessNeeds}</pre>
+                    </div>
                   </div>
                 </div>
                 {description.status.id === '4' || description.status.id === '5' ? (
