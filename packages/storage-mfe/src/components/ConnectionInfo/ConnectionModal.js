@@ -62,7 +62,7 @@ export const ConnectionModal = () => {
     <code>
       {`from minio import Minio
 MINIO_BUCKET = "${bucketInfo.bucketName}"
-minio_client = Minio('${bucketInfo.accessInfo.uri}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=False)
+minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=False)
 y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
 y = pd.read_csv(y_file_obj)`}
     </code>
@@ -100,9 +100,8 @@ y = pd.read_csv(y_file_obj)`}
           <tbody>
             <tr>
               <td>
-                <strong>Access Key</strong>
+                <strong>Access Key :</strong>
               </td>
-              <td>:</td>
               <td id="accessKey" className={Styles.keys}>
                 {bucketInfo?.accessInfo?.accesskey}
               </td>
@@ -114,17 +113,18 @@ y = pd.read_csv(y_file_obj)`}
             </tr>
             <tr>
               <td>
-                <strong>Secret Key</strong>
+                <strong>Secret Key :</strong>
               </td>
-              <td>:</td>
               <td id="secretKey" className={Styles.keys}>
                 {showSecretKey
                   ? bucketInfo?.accessInfo?.secretKey
                   : Array.from({ length: 30 }, (_, i) => <React.Fragment key={i}>&bull;</React.Fragment>)}
+              </td>
+              <td>
                 {showSecretKey ? (
                   <React.Fragment>
                     <i
-                      className={' icon mbc-icon visibility-hide'}
+                      className={classNames('icon mbc-icon visibility-hide ', Styles.visibilityIcon)}
                       onClick={() => setShowSecretKey(false)}
                       tooltip-data="Hide"
                     />
@@ -132,14 +132,12 @@ y = pd.read_csv(y_file_obj)`}
                 ) : (
                   <React.Fragment>
                     <i
-                      className={' icon mbc-icon visibility-show '}
+                      className={classNames('icon mbc-icon visibility-show ', Styles.visibilityIcon)}
                       onClick={() => setShowSecretKey(true)}
                       tooltip-data="Show"
                     />
                   </React.Fragment>
                 )}
-              </td>
-              <td>
                 <span className={Styles.copyIcon} onClick={() => copyToClipboard(bucketInfo?.accessInfo?.secretKey)}>
                   <i className="icon mbc-icon copy" />
                 </span>
@@ -152,13 +150,13 @@ y = pd.read_csv(y_file_obj)`}
             <nav>
               <ul className="tabs">
                 <li className={'tab active'}>
-                  <a href="#tab-content-1" id="userRoles">
-                    <strong>How to Connect Jupiter NoteBook</strong>
+                  <a href="#tab-content-1" id="jupyterNotebook">
+                    <strong>How to Connect from DNA Jupyter NoteBook</strong>
                   </a>
                 </li>
-                <li className={'tab'}>
-                  <a href="#tab-content-2" id="tagHandling">
-                    <strong>How to Connect Dataiku</strong>
+                <li className={'tab disable'}>
+                  <a href="#tab-content-2" id="dataiku">
+                    <strong style={{ color: '#99a5b3' }}>How to Connect from Dataiku (Coming soon)</strong>
                   </a>
                 </li>
               </ul>
