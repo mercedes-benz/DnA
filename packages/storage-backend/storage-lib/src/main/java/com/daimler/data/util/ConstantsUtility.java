@@ -35,6 +35,8 @@ public class ConstantsUtility {
 	public static final String READWRITE = "RW";
 	public static final String READ = "READ";
 	public static final String DELETE = "DEL";
+	public static final String URI = "uri";
+	public static final String HOSTNAME = "hostName";
 	
 	//Variables for cache
 	public static final String MINIO_USERS_CACHE = "minioUsersCache";
