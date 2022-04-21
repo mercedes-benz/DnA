@@ -581,10 +581,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         <View style={styles.flexLayout} wrap={false}>
           <View style={[styles.flexCol2, styles.firstCol]}>
             <Text style={styles.sectionTitle}>Division</Text>
+            <Text>{props.solution.description.division?.name || 'NA'}</Text>
             <Text>{props.solution.description.division.name}</Text>
           </View>
           <View style={styles.flexCol2}>
             <Text style={styles.sectionTitle}>Sub Division</Text>
+            <Text>{props.solution.description.division?.subdivision?.name || 'NA'}</Text>
             <Text>{props.solution.description.division.subdivision.name}</Text>
           </View>
           <View style={styles.flexCol2}>
