@@ -60,6 +60,10 @@ app:
       dataikuProdUri: ""
       dataikuProdAdminGroup: ""
       dataikutraininguri: ""
+      apacCorpDir: ""
+      emeaCorpDir: ""
+      dataikuUserRoleUriPath: "/admin/users/"
+      dataikuPermissionUriPath: "/permissions"
       avscanAppId: ""
       naasBroker: broker01.kafka.svc.cluster.local:8001
       loggingEnvironment: dev

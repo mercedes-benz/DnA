@@ -306,7 +306,9 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                               </label>
                               <div className="expansion-panel-content">
                                 <div className={Styles.kpiCollContent}>
-                                  <div className={Styles.kpiDesc}>{kpi.comment}</div>
+                                  <div className={Styles.kpiDesc}>
+                                    <pre className={Styles.commentPre}>{kpi.comment}</pre>
+                                  </div>
                                   <div className={Styles.kpiBtnGrp}>
                                     <button
                                       className={'btn btn-primary'}
