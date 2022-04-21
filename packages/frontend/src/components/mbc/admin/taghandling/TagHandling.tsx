@@ -742,7 +742,8 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
           <div className={Styles.updateModelOverlayContent}>
             <p>
               Updating &lt;&lt; {this.state.tagToBeUpdatedLocal.name} &gt;&gt; would also update all the associated
-              solutions. <br /> Do you want to proceed?
+              solutions{this.state.tagToBeUpdatedLocal.category.name === 'Division' && ' and reports'}. <br /> Do you
+              want to proceed?
             </p>
             <div>
               <button

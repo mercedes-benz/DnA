@@ -34,6 +34,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,6 @@ import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
-import io.minio.ObjectWriteResponse;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveBucketArgs;
 import io.minio.RemoveObjectsArgs;
@@ -126,8 +126,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.info("Making new bucket: {}", bucketName);
 			minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
 
-			LOGGER.debug("Creating policies for bucket:", bucketName);
-			policies = new ArrayList<String>();
+			LOGGER.debug("Creating policies for bucket:{}", bucketName);
+			policies = new ArrayList<>();
 			
 			//Setting resource for full bucket path
 			String resource = "arn:aws:s3:::" + bucketName + "/*";
@@ -142,11 +142,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			String sid = "";
 
 			LOGGER.debug("Creating READ policy");
-			//Creating READ policy{eg: bucket1_READ} 
+			//Creating READ policy eg: bucket1_READ 
 			String policyName = bucketName + "_" + ConstantsUtility.READ;
 			//Setting action as view all bucket contents
 			action = "s3:ListBucket,s3:GetObject,s3:GetBucketLocation";
-			CreateBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
+			createBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
 			policies.add(policyName);
 
 			LOGGER.debug("Creating READWRITE(RW) policy");
@@ -155,7 +155,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			//Setting action as view, edit & delete all bucket contents
 			//action = "s3:ListBucket,s3:GetObject,s3:PutObject,s3:DeleteObject";
 			action = "*";
-			CreateBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
+			createBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
 			policies.add(policyName);
 
 			// Create DELETE(DEL) policY
@@ -207,7 +207,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				ByteArrayInputStream bais = new ByteArrayInputStream(uploadfile.getBytes());
 
 				LOGGER.info("Uploading object to minio..{}", uploadfile.getOriginalFilename());
-				ObjectWriteResponse objectWriteResponse = minioClient.putObject(PutObjectArgs.builder().bucket(bucketName)
+				minioClient.putObject(PutObjectArgs.builder().bucket(bucketName)
 						.object(prefix + "/" + uploadfile.getOriginalFilename()).stream(bais, bais.available(), -1)
 						.build());
 				bais.close();
@@ -329,12 +329,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				Iterable<Result<Item>> results = minioClient
 						.listObjects(ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).build());
 
-				List<BucketObjectVO> objects = new ArrayList<BucketObjectVO>();
+				List<BucketObjectVO> objects = new ArrayList<>();
 				BucketObjectVO bucketObjectVO = null;
 				for (Result<Item> result : results) {
 					bucketObjectVO = new BucketObjectVO();
 					Item item = result.get();
-					LOGGER.debug("Got details for object:{}",item.objectName());
+					LOGGER.debug("Got details for object:{}",item.objectName()!=null?item.objectName():null);
 					bucketObjectVO.setEtag(item.etag());
 					bucketObjectVO.setIsLatest(item.isLatest());
 					bucketObjectVO.setObjectName(item.objectName());
@@ -366,9 +366,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException
 				| InternalException | InvalidResponseException | NoSuchAlgorithmException | ServerException
 				| XmlParserException | IOException e) {
-			LOGGER.error("DNA-MINIO-ERR-006::Error occured while listing bucket's object from minio: {}",
+			LOGGER.error("Error occured while listing bucket's object from minio: {}",
 					e.getMessage());
-			minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing bucket's object from minio: "+e.getMessage())));
+			minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, e.getMessage())));
 			minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
 			minioObjectResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -385,9 +385,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.debug("Validating user:{} in minio", userId);
 
 			LOGGER.debug("List all minio users.");
-			// To fetch user list from Minio
-			// Map<String, UserInfo> users = minioAdminClient.listUsers();
-
 			// To fetch user list from cache minioUsersCache
 			Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 			if (users.containsKey(userId)) {
@@ -424,16 +421,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 				LOGGER.debug("Creating SecretKey for user: {}", userId);
 				userSecretKey = UUID.randomUUID().toString();
-				// List<String> memberOf = new ArrayList<String>();
 
-				LOGGER.info("Onboarding user: to minio", userId);
+				LOGGER.info("Onboarding user:{} to minio", userId);
 				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
 
 				// setting policy to user
 				LOGGER.debug("Setting policy for user:{}", userId);
 				minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
 
-				LOGGER.info("Adding user: {} credentials to vault");
+				LOGGER.info("Adding user: {} credentials to vault",userId);
 				vaultConfig.addUserVault(userId, userSecretKey);
 
 				LOGGER.info("User:{} Onboarded successfully.", userId);
@@ -459,7 +455,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
 
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | InvalidCipherTextException e) {
-			LOGGER.error("DNA-MINIO-ERR-007::Error occured while onboarding user to minio: ", e.getMessage());
+			LOGGER.error("Error occured while onboarding user to minio:{} ", e.getMessage());
 			// Building response for user onboard failure
 			minioResponse.setStatus(ConstantsUtility.FAILURE);
 			minioResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -503,7 +499,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | InvalidCipherTextException e) {
 			e.printStackTrace();
-			LOGGER.error("DNA-MINIO-ERR-008::Error occured while refreshing user to minio: ", e.getMessage());
+			LOGGER.error("Error occured while refreshing user to minio:{} ", e.getMessage());
 			minioResponse.setStatus(ConstantsUtility.FAILURE);
 			minioResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while refreshing user to minio: " + userId)));
 		}
@@ -537,12 +533,12 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	@Override
 	public List<UserVO> getBucketCollaborators(String bucketName, String currentUser) {
 		List<UserVO> bucketCollaborators = null;
-		// Getting minio users from ehcache {minioUsersCache}
+		// Getting minio users from ehcache minioUsersCache
 		LOGGER.debug("Getting minio users from ehcache: {}",ConstantsUtility.MINIO_USERS_CACHE);
 		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		if (!usersInfo.isEmpty()) {
 			LOGGER.debug("Got user info from {}.",ConstantsUtility.MINIO_USERS_CACHE);
-			bucketCollaborators = new ArrayList<UserVO>();
+			bucketCollaborators = new ArrayList<>();
 			// Iterating over usersInfo map to get collaborators
 			for (var entry : usersInfo.entrySet()) {
 				if (StringUtils.hasText(entry.getValue().policyName()) && !entry.getKey().equals(currentUser)) {
@@ -597,8 +593,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 	@Override
 	public Boolean validateUserInMinio(String userId) {
-		boolean isUserExist = false;
-		// Getting minio users from ehcache {minioUsersCache}
+		Boolean isUserExist = false;
+		// Getting minio users from ehcache minioUsersCache
 		LOGGER.debug("Getting minio users from ehcache: {}",ConstantsUtility.MINIO_USERS_CACHE);
 		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		if (usersInfo.containsKey(userId)) {
@@ -609,7 +605,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 
 	// To create bucket policy
-	private void CreateBucketPolicy(String policyName, String version, String resource, String action, String effect,
+	private void createBucketPolicy(String policyName, String version, String resource, String action, String effect,
 			String sid) throws NoSuchAlgorithmException, InvalidKeyException, IOException {
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 		// Creating policy in minio
@@ -642,12 +638,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				Iterable<Result<DeleteError>> results = minioClient
 						.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
 
-				List<ErrorDTO> errors = new ArrayList<ErrorDTO>();
+				List<ErrorDTO> errors = new ArrayList<>();
 				for (Result<DeleteError> result : results) {
 					DeleteError deleteError = result.get();
-					ErrorDTO error = new ErrorDTO(null,"Error in deleting object " + deleteError.objectName() + "; " + deleteError.message());
+					ErrorDTO error = new ErrorDTO(null,
+							"Error in deleting object " + deleteError.objectName() + ": " + deleteError.message());
 					errors.add(error);
-					LOGGER.info("Error in deleting object " + deleteError.objectName() + "; " + deleteError.message());
+					LOGGER.info("Error in deleting object {}: {}",
+							deleteError.objectName() != null ? deleteError.objectName() : null,
+							deleteError.message() != null ? deleteError.message() : null);
 				}
 				minioGenericResponse.setErrors(errors);
 
@@ -669,7 +668,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IllegalArgumentException | IOException e) {
-			LOGGER.error("Error occured while removing object from Minio: ", e.getMessage());
+			LOGGER.error("Error occured while removing object from Minio:{} ", e.getMessage());
 			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 			minioGenericResponse
 					.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while removing object from Minio: " + e.getMessage())));
@@ -709,10 +708,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IllegalArgumentException | IOException  e) {
-			LOGGER.error("Error occured while removing bucket from Minio: ", e.getMessage());
+			LOGGER.error("Error occured while removing bucket from Minio:{} ", e.getMessage());
 			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
 			minioGenericResponse.setErrors(Arrays
-					.asList(new ErrorDTO(null, "Error occured while removing bucket from Minio: " + e.getMessage())));
+					.asList(new ErrorDTO(null, e.getMessage())));
 			minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
 		}
 
@@ -801,5 +800,16 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException e) {
 			LOGGER.error("Error occured while updating policy for user:{}", userOrGroupName);
 		}
+	}
+
+	@Override
+	public Map<String,String> getUri(String userId, String bucketName, String object) {
+		Map<String,String> bucketConnectionUri = new HashMap<>();
+		//Setting URI
+		bucketConnectionUri.put(ConstantsUtility.URI, minioBaseUri+"/"+"buckets/"+bucketName);
+		//Setting host name followed by port
+		String hostName = minioBaseUri.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","");
+		bucketConnectionUri.put(ConstantsUtility.HOSTNAME, hostName);
+		return bucketConnectionUri;
 	}
 }
