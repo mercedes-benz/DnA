@@ -348,7 +348,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                               </label>
                               <div className="expansion-panel-content">
                                 <div className={Styles.customerCollContent}>
-                                  <div className={Styles.customerDesc}>{customer.comment}</div>
+                                  <div className={Styles.customerDesc}>
+                                    <pre className={Styles.commentPre}>
+                                      {customer.comment}
+                                    </pre>
+                                  </div>
                                   <div className={Styles.customerBtnGrp}>
                                     <button
                                       className={'btn btn-primary'}
