@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -348,22 +349,24 @@ public class LoginController {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			UserInfo userInfo = mapper.readValue(response.getBody(), UserInfo.class);
-			UserInfoVO userVO = null;
-			try {
-				userVO = userInfoService.getById(userInfo.getId());
-			} catch (NoSuchElementException e) {
-				log.info("User not found, adding the user " + userInfo.getId());
+			log.info("Fetching user from database.");
+			UserInfoVO userVO = userInfoService.getById(userInfo.getId());
+			if(Objects.isNull(userVO)){
+				log.info("User not found, adding the user:{}",userInfo.getId());
+				//Fetching default role as USER
 				UserRoleNsql roleEntity = userRoleService.getRoleUser();
 				UserInfoRole userRole = new UserInfoRole();
 				userRole.setId(roleEntity.getId());
 				userRole.setName(roleEntity.getData().getName());
 				List<UserInfoRole> userRoleList = new ArrayList<>();
 				userRoleList.add(userRole);
+				//Setting entity to add new user
 				UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 				userEntity.setIsLoggedIn("Y");
 				userInfoService.addUser(userEntity);
 				userVO = userInfoAssembler.toVo(userEntity);
 			}
+
 			List<UserRoleVO> rolesVO = userVO.getRoles();
 			List<UserRole> userRoles = userInfoAssembler.toUserRoles(rolesVO);
 			List<UserRole> existingRoles = userInfo.getDigiRole();
@@ -377,7 +380,7 @@ public class LoginController {
 			return null;
 		}
 	}
-
+	
 	private UserInfo fetchOKTAUserInfo(String accessToken, String userId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));

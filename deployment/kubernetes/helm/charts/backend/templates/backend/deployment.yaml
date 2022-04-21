@@ -141,6 +141,14 @@ spec:
                   name: {{ .Values.app.backend.secrets.name }}
             - name: DATAIKU_TRAINING_ADMIN_GROUP
               value: {{ .Values.app.backend.config.dataikuTrainingAdminGroup }}
+            - name: APAC_CORPDIR
+              value: {{ .Values.app.backend.config.apacCorpDir }}    
+            - name: EMEA_CORPDIR
+              value: {{ .Values.app.backend.config.emeaCorpDir }}    
+            - name: DATAIKU_USER_ROLE_URI_PATH
+              value: {{ .Values.app.backend.config.dataikuUserRoleUriPath }}    
+            - name: DATAIKU_PERMISSION_URI_PATH
+              value: {{ .Values.app.backend.config.dataikuPermissionUriPath }}                                              
             - name: AVSCAN_URI
               value: {{ .Values.app.backend.config.avscanUri }}
             - name: AVSCAN_APP_ID
