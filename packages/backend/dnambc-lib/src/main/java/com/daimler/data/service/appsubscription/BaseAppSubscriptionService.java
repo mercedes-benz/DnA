@@ -27,7 +27,6 @@
 
 package com.daimler.data.service.appsubscription;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,8 +65,6 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 		implements AppSubscriptionService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseAppSubscriptionService.class);
-	// private static final SimpleDateFormat sdf = new
-	// SimpleDateFormat("yyyy-MM-dd");
 
 	@Autowired
 	private AppSubscriptionCustomRepository customRepo;
@@ -284,8 +281,10 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 	@Transactional
 	public void updateSolIdForSubscribedAppId(String appId, String solutionId) {
 		AppSubscriptionNsql entity = null;
-		if (appId != null && "".equals(appId))
+		if (StringUtils.hasText(appId)) {
+			LOGGER.info("Fetching record for appId {}", appId);
 			entity = customRepo.findbyUniqueLiteral("appId", appId);
+		}
 		if (entity != null && entity.getData() != null
 				&& !entity.getData().getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 			AppSubscription jsonb = entity.getData();
