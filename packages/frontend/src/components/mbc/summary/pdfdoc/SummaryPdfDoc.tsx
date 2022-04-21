@@ -1,6 +1,5 @@
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import * as React from 'react';
-import { PropsWithChildren } from "react";
 // @ts-ignore
 import ImgAttachment from '../../../../assets/images/attachment.jpg';
 // @ts-ignore
@@ -51,10 +50,14 @@ import {
   IValueFactor,
   IValueRampUp,
   INeededRoleObject,
+  IUserInfo,
+  INotebookInfo,
+  IDataiku,
 } from '../../../../globals/types';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
 import { Envs } from '../../../../globals/Envs';
 import { getDateTimeFromTimestamp } from '../../../../services/utils';
+import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -534,11 +537,29 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
   });
 };
 
-type Props = PropsWithChildren<any>
-
-export const SummaryPdfDoc = (props: Props) => (
-  <Document {...props}>
-    <Page style={styles.page} wrap={true} {...props}>
+interface SummaryPdfDocProps {
+  solution: ICreateNewSolutionData;
+  lastModifiedDate: string;
+  createdDate: string;
+  canShowTeams: boolean;
+  canShowPlatform: boolean;
+  canShowMilestones: boolean;
+  canShowDataSources: boolean;
+  canShowDigitalValue: string;
+  canShowComplianceSummary: number | boolean;
+  user: IUserInfo;
+  noteBookInfo: INotebookInfo;
+  dataIkuInfo: IDataiku;
+  dnaNotebookEnabled: boolean;
+  dnaDataIkuProjectEnabled: boolean;
+  notebookAndDataIkuNotEnabled: boolean;
+  children?: any;
+}
+export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
+  // @ts-ignore
+  <Document>
+    {/* @ts-ignore */}
+    <Page style={styles.page} wrap={true}>
       <View style={styles.view}>
         <Text style={styles.title}>{props.solution.description.productName}</Text>
         <Text style={styles.subTitle}>Solution Summary</Text>
