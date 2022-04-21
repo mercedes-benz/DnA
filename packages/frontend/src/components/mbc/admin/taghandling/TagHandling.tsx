@@ -402,11 +402,10 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
   }
 
   public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
-    // ProgressIndicator.show();
-    const searchText = e.currentTarget.value;
+    const input = e.target as HTMLInputElement;
+    const searchText = input.value;
     this.setState({ searchText }, () => {
       this.getResults('search');
-      // ProgressIndicator.hide();
     });
   }, 500);
   public onCategoryChange = (e: React.FormEvent<HTMLSelectElement>) => {

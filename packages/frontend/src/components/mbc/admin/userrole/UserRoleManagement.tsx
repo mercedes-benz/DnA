@@ -180,6 +180,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       this.getUsers();
     });
   }, 500);
+
   public onRoleFilterChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
 
