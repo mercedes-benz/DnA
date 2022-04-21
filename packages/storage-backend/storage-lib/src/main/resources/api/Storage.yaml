@@ -686,7 +686,10 @@ definitions:
         description: Secret Key of the user
       uri:
         type: string
-        description: uri of the object    
+        description: uri of the object/bucket
+      hostName:
+        type: string
+        description: Host name followed by port for bucket location      
       permission:
         $ref: "#/definitions/PermissionVO"
  
