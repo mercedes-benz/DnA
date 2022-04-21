@@ -19,6 +19,7 @@ import { SESSION_STORAGE_KEYS } from '../../../../globals/constants';
 import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
+import { debounce } from 'lodash';
 
 export interface ITagHandlingState {
   algoCategory: IFitlerCategory;
@@ -54,6 +55,7 @@ export interface ITagHandlingState {
   tags: ITag[];
   chips: string[];
   showTagsMissingError: boolean;
+  isResultLoading: boolean;
 }
 
 export class TagHandling extends React.Component<any, ITagHandlingState> {
@@ -121,6 +123,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         },
         subdivisions: [],
       },
+      isResultLoading: false,
     };
     ApiClient.getDropdownList('categories').then((dropdownList: any) => {
       dropdownList.data.push({ id: 8, name: 'Division' });
@@ -299,7 +302,13 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public async getResults() {
+  public async getResults(action: string) {
+    const showProgressIndicator = ['add', 'update', 'delete'].includes(action);
+    const showContentLoader = ['reset', 'categoryChange', 'search', 'pagination'].includes(action);
+
+    showProgressIndicator && ProgressIndicator.show();
+    showContentLoader && this.setState({ isResultLoading: true });
+
     let results: ITagResult[] = [];
     const filterCategory = this.state.currentFilterCategory;
     switch (filterCategory.id) {
@@ -363,37 +372,42 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       }
     }
 
-    this.setState({
-      results: results.slice(
-        this.state.currentPageOffset >= results.length ? 0 : this.state.currentPageOffset,
-        this.state.currentPageOffset + this.state.maxItemsPerPage < results.length
-          ? this.state.currentPageOffset + this.state.maxItemsPerPage
-          : results.length,
-      ),
-      totalNumberOfPages: Math.ceil(results.length / this.state.maxItemsPerPage),
-      currentPageNumber:
-        this.state.currentPageNumber > Math.ceil(results.length / this.state.maxItemsPerPage)
-          ? Math.ceil(results.length / this.state.maxItemsPerPage) > 0
-            ? Math.ceil(results.length / this.state.maxItemsPerPage)
-            : 1
-          : this.state.currentPageNumber,
-    });
+    this.setState(
+      {
+        results: results.slice(
+          this.state.currentPageOffset > results.length ? 0 : this.state.currentPageOffset,
+          this.state.currentPageOffset + this.state.maxItemsPerPage < results.length
+            ? this.state.currentPageOffset + this.state.maxItemsPerPage
+            : results.length,
+        ),
+        totalNumberOfPages: Math.ceil(results.length / this.state.maxItemsPerPage),
+        currentPageNumber:
+          this.state.currentPageNumber > Math.ceil(results.length / this.state.maxItemsPerPage)
+            ? Math.ceil(results.length / this.state.maxItemsPerPage) > 0
+              ? Math.ceil(results.length / this.state.maxItemsPerPage)
+              : 1
+            : this.state.currentPageNumber,
+      },
+      () => {
+        showProgressIndicator && ProgressIndicator.hide();
+        showContentLoader && this.setState({ isResultLoading: false });
+      },
+    );
   }
   public async componentDidMount() {
-    ProgressIndicator.show();
-    await this.getResults();
     SelectBox.defaultSetup();
-    ProgressIndicator.hide();
+    this.setState({ isResultLoading: true });
+    await this.getResults('');
+    this.setState({ isResultLoading: false });
   }
 
-  public onSearchInput = (e: React.FormEvent<HTMLInputElement>) => {
-    ProgressIndicator.show();
-    const searchText = e.currentTarget.value;
+  public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const searchText = input.value;
     this.setState({ searchText }, () => {
-      this.getResults();
-      ProgressIndicator.hide();
+      this.getResults('search');
     });
-  };
+  }, 500);
   public onCategoryChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
 
@@ -407,7 +421,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             currentPageNumber: 1,
           },
           () => {
-            this.getResults();
+            this.getResults(option.value === '0' ? 'reset' : 'categoryChange');
           },
         );
       });
@@ -424,7 +438,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         sortBy,
       },
       () => {
-        this.getResults();
+        this.getResults('sort');
       },
     );
   };
@@ -494,13 +508,13 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
   };
 
   protected updateConfirmModelOverlayCancel = () => {
-      this.setState({
-        updateConfirmModelOverlay: false,
-      });
+    this.setState({
+      updateConfirmModelOverlay: false,
+    });
   };
   protected updateConfirmModelOverlayUpdate = () => {
     this.setState({
-      updateConfirmModelOverlay: this.addItemFormValidation()
+      updateConfirmModelOverlay: this.addItemFormValidation(),
     });
   };
 
@@ -550,7 +564,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             },
             () => {
               this.showNotification('Division Added Successfully!');
-              this.getResults();
+              this.getResults('add');
               ProgressIndicator.hide();
             },
           );
@@ -591,7 +605,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
           },
           () => {
             this.showNotification('Division Updated Successfully!');
-            this.getResults();
+            this.getResults('update');
             ProgressIndicator.hide();
           },
         );
@@ -727,7 +741,8 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
           <div className={Styles.updateModelOverlayContent}>
             <p>
               Updating &lt;&lt; {this.state.tagToBeUpdatedLocal.name} &gt;&gt; would also update all the associated
-              solutions{this.state.tagToBeUpdatedLocal.category.name === 'Division' && ' and reports'}. <br /> Do you want to proceed?
+              solutions{this.state.tagToBeUpdatedLocal.category.name === 'Division' && ' and reports'}. <br /> Do you
+              want to proceed?
             </p>
             <div>
               <button
@@ -762,7 +777,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         <div className={Styles.wrapper}>
           <div className={Styles.searchPanel}>
             <div>
-              <div className="input-field-group search-field">
+              <div className={`input-field-group search-field ${this.state.isResultLoading ? 'disabled' : ''}`}>
                 <label id="searchLabel" className="input-label" htmlFor="searchInput">
                   Search Entries
                 </label>
@@ -775,16 +790,17 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                   placeholder="Type here"
                   autoComplete="off"
                   onChange={this.onSearchInput}
+                  disabled={!this.state.searchText && this.state.isResultLoading}
                 />
               </div>
             </div>
             <div>
-              <div id="statusContainer" className="input-field-group">
+              <div id="statusContainer" className={`input-field-group ${this.state.isResultLoading ? 'disabled' : ''}`}>
                 <label id="statusLabel" className="input-label" htmlFor="statusSelect">
                   Filter by
                 </label>
                 <div className={Styles.customContainer}>
-                  <div className="custom-select">
+                  <div className={`custom-select ${this.state.isResultLoading ? 'disabled' : ''}`}>
                     <select id="filterBy" onChange={this.onCategoryChange}>
                       {/* {this.state.categories && */}
                       {this.state.categories.map((category: IFitlerCategory) => (
@@ -800,7 +816,12 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             </div>
             <div>
               <div>
-                <div className={Styles.addItemButton}>
+                <div
+                  className={classNames(
+                    Styles.addItemButton,
+                    this.state.isResultLoading ? Styles.disabledAddItemBtn : '',
+                  )}
+                >
                   <button onClick={this.onAddItemModalOpen}>
                     <i className="icon mbc-icon plus" />
                     <span>Add New Division</span>
@@ -813,39 +834,45 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             <div className={Styles.tagIsEmpty}>There is no tag available</div>
           ) : (
             <div className={Styles.tablePanel}>
-              <table className="ul-table users">
-                <thead>
-                  <tr className="header-row">
-                    <th onClick={this.sortTags.bind(null, 'name', this.state.sortBy.nextSortType)}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
-                          (this.state.sortBy.name === 'name' ? this.state.sortBy.currentSortType : '')
-                        }
-                      >
-                        <i className="icon sort" />
-                        Name
-                      </label>
-                    </th>
-                    <th onClick={this.sortTags.bind(null, 'category', this.state.sortBy.nextSortType)}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
-                          (this.state.sortBy.name === 'category' ? this.state.sortBy.currentSortType : '')
-                        }
-                      >
-                        <i className="icon sort" />
-                        Category
-                      </label>
-                    </th>
+              {!this.state.isResultLoading ? (
+                <table className="ul-table users">
+                  <thead>
+                    <tr className="header-row">
+                      <th onClick={this.sortTags.bind(null, 'name', this.state.sortBy.nextSortType)}>
+                        <label
+                          className={
+                            'sortable-column-header ' +
+                            (this.state.sortBy.name === 'name' ? this.state.sortBy.currentSortType : '')
+                          }
+                        >
+                          <i className="icon sort" />
+                          Name
+                        </label>
+                      </th>
+                      <th onClick={this.sortTags.bind(null, 'category', this.state.sortBy.nextSortType)}>
+                        <label
+                          className={
+                            'sortable-column-header ' +
+                            (this.state.sortBy.name === 'category' ? this.state.sortBy.currentSortType : '')
+                          }
+                        >
+                          <i className="icon sort" />
+                          Category
+                        </label>
+                      </th>
 
-                    <th className="actionColumn">
-                      <label>Action</label>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>{resultData}</tbody>
-              </table>
+                      <th className="actionColumn">
+                        <label>Action</label>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>{resultData}</tbody>
+                </table>
+              ) : (
+                <div className={classNames('text-center', Styles.spinner)}>
+                  <div className="progress infinite" />
+                </div>
+              )}
               {this.state.results.length ? (
                 <Pagination
                   totalPages={this.state.totalNumberOfPages}
@@ -892,12 +919,14 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       this.setState({ showDeleteTagModal: false }, () => {
         ProgressIndicator.hide();
         this.showNotification('Tag deleted successfully');
-        this.getResults();
+        this.getResults('delete');
       });
     };
     const handleFailure = () => {
-      ProgressIndicator.hide();
-      this.showErrorNotification('Error during tag delete');
+      this.setState({ showDeleteTagModal: false }, () => {
+        ProgressIndicator.hide();
+        this.showErrorNotification('Error during tag delete');
+      });
     };
     if (tagToBeDeleted.category.id === 1) {
       ApiClient.deleteAlgorithm(tagToBeDeleted.id)
@@ -985,7 +1014,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     const currentPageNumber = this.state.currentPageNumber - 1;
     const currentPageOffset = (currentPageNumber - 1) * this.state.maxItemsPerPage;
     this.setState({ currentPageNumber, currentPageOffset }, () => {
-      this.getResults();
+      this.getResults('pagination');
     });
   };
 
@@ -994,7 +1023,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     const currentPageOffset = currentPageNumber * this.state.maxItemsPerPage;
     currentPageNumber = currentPageNumber + 1;
     this.setState({ currentPageNumber, currentPageOffset }, () => {
-      this.getResults();
+      this.getResults('pagination');
     });
   };
 
@@ -1009,7 +1038,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     const currentPageOffset = 0;
     const maxItemsPerPage = pageNum;
     this.setState({ currentPageOffset, maxItemsPerPage, currentPageNumber: 1 }, () => {
-      this.getResults();
+      this.getResults('pagination');
     });
   };
 }
