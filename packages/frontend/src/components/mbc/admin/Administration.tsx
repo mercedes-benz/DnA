@@ -5,7 +5,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 
 // import { history } from '../../../router/History';
 import Styles from './Administration.scss';
-import { IUserInfo , IRole,  }  from '../../../globals/types';
+import { IUserInfo, IRole } from '../../../globals/types';
 import { USER_ROLE } from '../../../globals/constants';
 
 // @ts-ignore
@@ -29,8 +29,8 @@ export default class Administration extends React.Component<IAdministrationProps
   constructor(props: any) {
     super(props);
     this.state = {
-      currentUserRole:''
-    }
+      currentUserRole: '',
+    };
   }
   public componentDidMount() {
     Tabs.defaultSetup();
@@ -51,42 +51,42 @@ export default class Administration extends React.Component<IAdministrationProps
             <div className="tabs-wrapper admin">
               <nav id="admin-tabs">
                 <ul className="tabs">
-                  { isAdmin  && 
-                  <React.Fragment>
-                    <li className={Styles.tab + ' tab active'}>
-                      <a href="#tab-content-1" id="userRoles">
-                        User Roles
-                      </a>
-                    </li>
-                    <li className={Styles.tab + ' tab'}>
-                      <a href="#tab-content-2" id="tagHandling">
-                        Solution Tag Handling
-                      </a>
-                    </li>
-                    {Envs.ENABLE_MALWARE_SCAN_SERVICE ? (
-                    <li className={Styles.tab + ' tab'}>
-                      <a href="#tab-content-3" id="malwarescanapikeys">
-                        Malware Scan API Keys
-                      </a>
-                    </li>
-                  ) : (
-                    ''
+                  {isAdmin && (
+                    <React.Fragment>
+                      <li className={Styles.tab + ' tab active'}>
+                        <a href="#tab-content-1" id="userRoles">
+                          User Roles
+                        </a>
+                      </li>
+                      <li className={Styles.tab + ' tab'}>
+                        <a href="#tab-content-2" id="tagHandling">
+                          Solution MDM
+                        </a>
+                      </li>
+                      {Envs.ENABLE_MALWARE_SCAN_SERVICE ? (
+                        <li className={Styles.tab + ' tab'}>
+                          <a href="#tab-content-3" id="malwarescanapikeys">
+                            Malware Scan API Keys
+                          </a>
+                        </li>
+                      ) : (
+                        ''
+                      )}
+                    </React.Fragment>
                   )}
-                  </React.Fragment>
-                  }
-                  { (isAdmin || isReportAdmin) &&
-                   <li className={Styles.tab + ' tab ' + (isReportAdmin && 'tab active') }>
-                    <a href="#tab-content-4" id="reporttagHandling">
-                      Report Tag Handling    
-                    </a>
-                  </li>}
-                  
+                  {(isAdmin || isReportAdmin) && (
+                    <li className={Styles.tab + ' tab ' + (isReportAdmin && 'tab active')}>
+                      <a href="#tab-content-4" id="reporttagHandling">
+                        Report MDM
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </nav>
             </div>
             <div className={Styles.tabcontentWrrapper + ' tabs-content-wrapper'}>
               <div id="tab-content-1" className={'tab-content ' + Styles.contentTab}>
-              {this.state.currentUserRole}
+                {this.state.currentUserRole}
                 <UserRoleManagement />
               </div>
               <div id="tab-content-2" className={'tab-content ' + Styles.contentTab}>
