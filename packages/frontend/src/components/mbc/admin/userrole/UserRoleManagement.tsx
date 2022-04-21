@@ -19,6 +19,8 @@ import { ISortField } from '../../allSolutions/AllSolutions';
 import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
 import { SESSION_STORAGE_KEYS } from '../../../../globals/constants';
 import Modal from '../../../formElements/modal/Modal';
+import classNames from 'classnames';
+import { debounce } from 'lodash';
 // const classNames = cn.bind(Styles);
 
 export interface IUserRoleManagementState {
@@ -36,6 +38,7 @@ export interface IUserRoleManagementState {
   showEditUsersModal: boolean;
   currentUserToEdit: IUserInfo;
   currentRoleCategory: IRole;
+  isLoading: boolean;
 }
 
 export class UserRoleManagement extends React.Component<any, IUserRoleManagementState> {
@@ -60,6 +63,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         nextSortType: 'desc',
       },
       showEditUsersModal: false,
+      isLoading: false,
     };
   }
   public getUsers() {
@@ -71,6 +75,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       offset = 0;
       limit = 9999999; // set a max number
     }
+    this.setState({ isLoading: true });
     ApiClient.getUsers(offset, limit, this.state.sortBy.name, this.state.sortBy.currentSortType)
       .then((res) => {
         if (res) {
@@ -109,6 +114,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
             },
             () => {
               //  ProgressIndicator.hide();
+              this.setState({ isLoading: false });
             },
           );
         }
@@ -120,6 +126,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
           },
           () => {
             // ProgressIgitndicator.hide();
+            this.setState({ isLoading: false });
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
           },
         );
@@ -141,12 +148,14 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
     );
   };
   public componentDidMount() {
-    ProgressIndicator.show();
+    this.setState({ isLoading: true });
     ApiClient.getUserRoles()
       .then((res) => {
         if (res) {
           this.setState({ roles: res });
         }
+        this.setState({ isLoading: false });
+        SelectBox.defaultSetup();
       })
       .catch((error) => {
         this.setState(
@@ -155,20 +164,22 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
           },
           () => {
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            this.setState({ isLoading: false });
+            SelectBox.defaultSetup();
           },
         );
       });
 
     this.getUsers();
-    ProgressIndicator.hide();
   }
 
-  public onSearchInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const searchText = e.currentTarget.value;
+  public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const searchText = input.value;
     this.setState({ searchText }, () => {
       this.getUsers();
     });
-  };
+  }, 500);
   public onRoleFilterChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
 
@@ -221,7 +232,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         <div className={Styles.wrapper}>
           <div className={Styles.searchPanel}>
             <div>
-              <div className="input-field-group search-field">
+              <div className={`input-field-group search-field ${this.state.isLoading ? 'disabled' : ''}`}>
                 <label id="searchLabel" className="input-label" htmlFor="searchInput">
                   Search Entries
                 </label>
@@ -234,16 +245,17 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
                   placeholder="Type here"
                   autoComplete="off"
                   onChange={this.onSearchInput}
+                  disabled={!this.state.searchText && this.state.isLoading}
                 />
               </div>
             </div>
             <div>
-              <div id="statusContainer" className="input-field-group">
+              <div id="statusContainer" className={`input-field-group ${this.state.isLoading ? 'disabled' : ''}`}>
                 <label id="statusLabel" className="input-label" htmlFor="statusSelect">
                   Filter by
                 </label>
                 <div className={Styles.customContainer}>
-                  <div className="custom-select">
+                  <div className={`custom-select ${this.state.isLoading ? 'disabled' : ''}`}>
                     <select id="filterBy" onChange={this.onRoleFilterChange} defaultValue="0">
                       <option key="0" id="0" value="0">
                         All
@@ -265,47 +277,55 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
             <div className={Styles.userIsEmpty}>There is no user available</div>
           ) : (
             <div className={Styles.tablePanel}>
-              <table className="ul-table users">
-                <thead>
-                  <tr className="header-row">
-                    <th onClick={this.sortUsers.bind(null, 'firstName', this.state.sortBy.nextSortType)}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
-                          (this.state.sortBy.name === 'firstName' ? this.state.sortBy.currentSortType : '')
-                        }
-                      >
-                        <i className="icon sort" />
-                        Name
-                      </label>
-                    </th>
-                    <th onClick={this.sortUsers.bind(null, 'id', this.state.sortBy.nextSortType)}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
-                          (this.state.sortBy.name === 'id' ? this.state.sortBy.currentSortType : '')
-                        }
-                      >
-                        <i className="icon sort" />
-                        User-ID
-                      </label>
-                    </th>
-                    <th onClick={this.sortUsers.bind(null, 'roles', this.state.sortBy.nextSortType)}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
-                          (this.state.sortBy.name === 'roles' ? this.state.sortBy.currentSortType : '')
-                        }
-                      >
-                        <i className="icon sort" />
-                        Role
-                      </label>
-                    </th>
-                    <th className="actionColumn"><label>Action</label></th>
-                  </tr>
-                </thead>
-                <tbody>{userData}</tbody>
-              </table>
+              {!this.state.isLoading ? (
+                <table className="ul-table users">
+                  <thead>
+                    <tr className="header-row">
+                      <th onClick={this.sortUsers.bind(null, 'firstName', this.state.sortBy.nextSortType)}>
+                        <label
+                          className={
+                            'sortable-column-header ' +
+                            (this.state.sortBy.name === 'firstName' ? this.state.sortBy.currentSortType : '')
+                          }
+                        >
+                          <i className="icon sort" />
+                          Name
+                        </label>
+                      </th>
+                      <th onClick={this.sortUsers.bind(null, 'id', this.state.sortBy.nextSortType)}>
+                        <label
+                          className={
+                            'sortable-column-header ' +
+                            (this.state.sortBy.name === 'id' ? this.state.sortBy.currentSortType : '')
+                          }
+                        >
+                          <i className="icon sort" />
+                          User-ID
+                        </label>
+                      </th>
+                      <th onClick={this.sortUsers.bind(null, 'roles', this.state.sortBy.nextSortType)}>
+                        <label
+                          className={
+                            'sortable-column-header ' +
+                            (this.state.sortBy.name === 'roles' ? this.state.sortBy.currentSortType : '')
+                          }
+                        >
+                          <i className="icon sort" />
+                          Role
+                        </label>
+                      </th>
+                      <th className="actionColumn">
+                        <label>Action</label>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>{userData}</tbody>
+                </table>
+              ) : (
+                <div className={classNames('text-center', Styles.spinner)}>
+                  <div className="progress infinite" />
+                </div>
+              )}
 
               {this.state.users.length ? (
                 <Pagination
@@ -345,7 +365,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       return userRole.id;
     });
     this.setState({ showEditUsersModal: true, currentUserToEdit: user, currentUserRole: roleValue[0] }, () => {
-      SelectBox.defaultSetup();
+      SelectBox.defaultSetup(true);
     });
   };
   public onRoleChange = (e: React.FormEvent<HTMLSelectElement>) => {
