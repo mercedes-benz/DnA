@@ -70,7 +70,7 @@
   }
 }
 
-.userIsEmpty{
+.userIsEmpty {
   display: flex;
   flex-direction: column;
   height: 440px;
@@ -79,11 +79,19 @@
   background-color: #252a33;
   text-align: center;
   width: calc(100% - 40px);
-  .linkStyle{
+  .linkStyle {
     color: #00adef;
-    &:hover{
+    &:hover {
       cursor: pointer;
     }
+  }
+}
+
+.spinner {
+  min-height: 50vh;
+  > div {
+    position: absolute;
+    top: 50%;
   }
 }
 
