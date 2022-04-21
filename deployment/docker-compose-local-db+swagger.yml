@@ -17,7 +17,5 @@ services:
     # Init db on startup
     volumes:
       - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/01-update-script.sql:/docker-entrypoint-initdb.d/01-updatescript.sql
-      - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/02-schema-creation.sql:/docker-entrypoint-initdb.d/02-schema-creation.sql
-      - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/03-schema-data.sql:/docker-entrypoint-initdb.d/02-schema-data.sql
     ports:
       - "5432:5432"
