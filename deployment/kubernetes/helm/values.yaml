@@ -8,7 +8,7 @@ frontend:
   namespace: dna
   imagePullSecret: 
     name: vddockerhub
-#    key: "docker-config"
+  # key: "docker-config"
   ingress:
     enabled: true
     namespace: ingress
@@ -95,7 +95,7 @@ backend:
   namespace: dna
   imagePullSecret: 
     name: vddockerhub
-#    key: "docker-config" 
+  # key: "docker-config" 
   ingress:
     enabled: true
     namespace: ingress
@@ -120,8 +120,8 @@ backend:
         oidcClientSecret: 
         drdCertPassword: XXXXX
         jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
-        s3AccessKey: minioadmin
-        s3SecretKey: minioadmin
+        s3AccessKey: admin
+        s3SecretKey: Ql1aqWvUXg
         dataikuProdApiKey: 
         dataikuTrainingApiKey: 
         avscanApiKey: 
@@ -143,7 +143,7 @@ backend:
         internalCertFile: XXXXX
         oidcDisabled: true
         s3BucketName: dna
-        s3Url: http://minio:9000
+        s3Url: http://minio-1650539457.default.svc.cluster.local:9001
         corosOriginUrl: 
         jupyterNotebookUrl: 
         vaultHost: vault.vault.svc.cluster.local
@@ -204,8 +204,8 @@ bitnamipostgresql:
   global:
     postgresql:
       postgresqlDatabase: db
-      postgresqlUsername: postgresql
-      postgresqlPassword: postgresql
+      postgresqlUsername: postgres
+      postgresqlPassword: postgres
       servicePort: 5432
 
 #Subchart properties for clamav
@@ -265,28 +265,28 @@ clamav:
       
 #Subchart properties for naas
 naas:
-  enabled: false
+  enabled: true
   appName: naas
   namespace: naas
   app:
     backend:
-      image: naas-backend
+      image: vardhandevalla/naas-backend:latest
       secrets:
         name: naas-app-secrets
-        authApiToken: ""
-        jwtKey: ""
+        authApiToken: eyJhbGciOiJIUzUxMiJ9.eyJmaXJzdE5hbWUiOiJEZW1vIiwibGFzdE5hbWUiOiJVc2VyIiwibm91bmNlIjowLjI1NTE0NzQ1MzcxMzQ0MjcsIm1vYmlsZU51bWJlciI6IiIsImRpZ2lSb2xlIjpbeyJpZCI6IjMiLCJuYW1lIjoiQWRtaW4ifV0sImlkIjoiREVNT1VTRVIiLCJkZXBhcnRtZW50IjoiVEUvU1QiLCJlbWFpbCI6ImRlbW91c2VyQHdlYi5kZSJ9.Xfz4jkhCQzqSBO3_R88pj-3WOFzNy1A33NWn7TYuN1_VjMkUlD6uK8X1JxmIX3LtcNN7Fw3_IvLBjDHTsD7S4g
+        jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
         db: 
-          appUserName: ""
-          appPassword: ""
+          appUserName: postgres
+          appPassword: postgres
       config:
-        api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
-        naas_broker: broker01.kafka.svc.cluster.local:8001
+        api_db_url: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+        naas_broker: kafka-1650536619-0.kafka-1650536619-headless.kafka.svc.cluster.local:9092
         max_poll_records: 6000
-        dna_uri: http://dna-app-backend-service.dna.svc.cluster.local:80
+        dna_uri: http://dna-service.dna.svc.cluster.local:7171
         dna_auth_enable: true
-        mailServerHost: ""
-        mailServerPort: ""
-        notificationSenderEmail: ""
+        mailServerHost: 
+        mailServerPort: 
+        notificationSenderEmail: 
         poll_time: 5000
         naas_central_topic: CentralEventTopic
         naas_centralread_topic: CentralReadTopic
@@ -300,6 +300,18 @@ naas:
       limits:
         memory: "1000Mi"
         cpu: "500m"
+    probes:
+      initialDelaySeconds: 180
+      timeoutSeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+      livenessProbe:
+        path: /naas/actuator/health/liveness
+        port: api
+      
+      readinessProbe:
+        path: /naas/actuator/health/readiness
+        port: api
   
   image:
   pullPolicy: Always
@@ -314,7 +326,7 @@ naas:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
   imagePullSecret: 
-   name: harbor-pull-secrets
+   name: vddockerhub
   
 #Subchart properties for notebooks
 notebooks:
