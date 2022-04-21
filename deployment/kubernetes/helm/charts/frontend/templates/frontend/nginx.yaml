@@ -37,7 +37,7 @@ data:
             gzip_comp_level    2;
             gzip_proxied       any;
             gzip_types         text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-            keepalive_timeout  65;
+            keepalive_timeout  7200;
             ssl_protocols      TLSv1 TLSv1.1 TLSv1.2;
 
             include  "/opt/bitnami/nginx/conf/server_blocks/*.conf";
