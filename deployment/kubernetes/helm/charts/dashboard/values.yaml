@@ -3,24 +3,24 @@
 # Declare variables to be passed into your templates.
 
 namespace: dashboard
-image: ""
+image: vardhandevalla/dashboard-backend
 imagePullPolicy: Always
 imagePullSecret: 
-  name: harbor-pull-secrets
-dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
+  name: vddockerhub
+dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
 secret:
   name: dashboard-secrets
-  appUserName: ""
-  appPassword: ""
-  jwtKey: ""
-appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+  appUserName: postgres
+  appPassword: postgres
+  jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+appUrl: http://dna-service.dna.svc.cluster.local:7171
 enableAuth: true
 loggingPath: /tmp/dashboard/log
-loggingEnvironment: ""
-flywayBaseline: ""
-flywayBaselineOnMigrate: ""
-flywayBaselineVersion: ""
-flywaySchema: ""
+loggingEnvironment: dev
+flywayBaseline: 
+flywayBaselineOnMigrate: 
+flywayBaselineVersion: 
+flywaySchema: 
 containerPort: 7173
 ingress:
   enabled: true

@@ -6,22 +6,22 @@ namespace: naas
 app:
   backend:
     replicaCount: 1
-    image: ""
+    image: vardhandevalla/naas-backend:latest
     secrets:
       name: naas-app-secrets
-      jwtKey: ""
+      jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
       db: 
-        appUserName: ""
-        appPassword: ""
+        appUserName: postgres
+        appPassword: postgres
     config:
-      api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
-      naas_broker: ""
+      api_db_url: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+      naas_broker: kafka-1650536619-0.kafka-1650536619-headless.kafka.svc.cluster.local:9092
       max_poll_records: 6000
-      dna_uri: http://dna-app-backend-service.dna.svc.cluster.local:80
+      dna_uri: http://dna-service.dna.svc.cluster.local:7171
       dna_auth_enable: true
-      mailServerHost: ""
-      mailServerPort: ""
-      notificationSenderEmail: ""
+      mailServerHost: 
+      mailServerPort: 
+      notificationSenderEmail: 
       poll_time: 5000
       naas_central_topic: dnaCentralEventTopic
       naas_centralread_topic: dnaCentralReadTopic
@@ -65,4 +65,4 @@ ingress:
     cert-manager.io/cluster-issuer: ""
 
 imagePullSecret: 
-  name: harbor-pull-secrets
+  name: vddockerhub

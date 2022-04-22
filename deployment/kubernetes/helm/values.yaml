@@ -210,13 +210,13 @@ bitnamipostgresql:
 
 #Subchart properties for clamav
 clamav:
-  enabled: false
+  enabled: true
   appName: clamav
   namespace: clamav
   app:
     backend:
       name: clamav-rest
-      image: malwarescan-backend:latest
+      image: vardhandevalla/malware-backend:latest
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -229,13 +229,26 @@ clamav:
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
-        auth_api_host: http://dna-app-backend-service.dna.svc.cluster.local:80/api/subscription/validate
+        auth_api_host: http://dna-service.dna.svc.cluster.local:7171/api/subscription/validate
         restricted_url_pattern: /avscan/api/v1/scan.*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
         corsOriginUrl: ""
+
+    probes:
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+      livenessProbe:
+        path: /avscan/actuator/health/liveness
+        port: api
+      
+      readinessProbe:
+        path: /avscan/actuator/health/readiness
+        port: api
   image:
-    repo: clamav:latest
+    repo: vardhandevalla/clamav:latest
     replicaCount: 1
     pullPolicy: Always
   ingress:
@@ -248,12 +261,12 @@ clamav:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: "" 
   imagePullSecret: 
-    name: harbor-pull-secrets
+    name: vddockerhub
 
   Storage:
-    storageClass: cinder
+    storageClass: managed
     accessModes: ReadWriteOnce
-    size: 5G
+    size: 2G
 
   resources:
     requests:

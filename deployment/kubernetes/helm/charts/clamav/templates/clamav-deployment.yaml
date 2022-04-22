@@ -60,8 +60,8 @@ spec:
         #       - /readyness.sh
         #     initialDelaySeconds: 20
         #     timeoutSeconds: 2
-      securityContext:
-        runAsUser: 1000
+      # securityContext:
+      #   runAsUser: 1000
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret.name }}
       # volumes:
