@@ -220,7 +220,7 @@ clamav:
       replicaCount: 1
       secrets:
         name: oneapi-secrets
-        onapiBasicAuthToken: ""
+        onapiBasicAuthToken: XXXXX
       config: 
         clamav_backend_url: clamav-service
         clamav_backend_port: 3310
@@ -268,13 +268,13 @@ clamav:
     accessModes: ReadWriteOnce
     size: 2G
 
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1000Mi"
-      cpu: "500m"
+  # resources:
+  #   requests:
+  #     memory: "512Mi"
+  #     cpu: "250m"
+  #   limits:
+  #     memory: "1000Mi"
+  #     cpu: "500m"
       
 #Subchart properties for naas
 naas:
