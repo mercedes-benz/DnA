@@ -26,7 +26,7 @@ envs:
   - name: VAULT_PATH
     value: dna/minio  
   - name: DNA_URI
-    value: http://dna-app-backend-service.dna.svc.cluster.local:80
+    value: http://dna-service.dna.svc.cluster.local:80
   - name: DNA_AUTH_ENABLE
     value: "true"  
   - name: JWT_SECRET_KEY
@@ -71,7 +71,7 @@ envs:
 
 secret:
   - key: vaultToken
-    value: ""
+    value: hvs.zhIzcBqwXwz5KkOpTvhFh5zE
   - key: jwt.secret.key 
     value: ""
   - key: minioAccessKey 
