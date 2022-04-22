@@ -58,7 +58,7 @@ frontend:
       enableInternalUserInfo: true
       enableDataCompliance: true
     # Set enabledReports to "true" if you want to enable reports, by default value is "false"
-      enabledReports: false
+      enabledReports: true
     # Set enableJupyterWorkspace to "true", if you want to enable Jupyter Workspace
       enableJupyterWorkspace: false
     # Set enableDataikuWorkspace to "true", if you want to enable Dataiku Workspace, by default value is "false"
@@ -1113,7 +1113,7 @@ storagemfe:
         secretName: my-tls-secret
 
 storagebe:
-  enabled: true
+  enabled: false
     # Default values for storage-be.
   # This is a YAML-formatted file.
   # Declare variables to be passed into your templates.
