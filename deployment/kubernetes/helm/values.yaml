@@ -273,17 +273,17 @@ naas:
       image: vardhandevalla/naas-backend:latest
       secrets:
         name: naas-app-secrets
-        authApiToken: eyJhbGciOiJIUzUxMiJ9.eyJmaXJzdE5hbWUiOiJEZW1vIiwibGFzdE5hbWUiOiJVc2VyIiwibm91bmNlIjowLjI1NTE0NzQ1MzcxMzQ0MjcsIm1vYmlsZU51bWJlciI6IiIsImRpZ2lSb2xlIjpbeyJpZCI6IjMiLCJuYW1lIjoiQWRtaW4ifV0sImlkIjoiREVNT1VTRVIiLCJkZXBhcnRtZW50IjoiVEUvU1QiLCJlbWFpbCI6ImRlbW91c2VyQHdlYi5kZSJ9.Xfz4jkhCQzqSBO3_R88pj-3WOFzNy1A33NWn7TYuN1_VjMkUlD6uK8X1JxmIX3LtcNN7Fw3_IvLBjDHTsD7S4g
+        #authApiToken: eyJhbGciOiJIUzUxMiJ9.eyJmaXJzdE5hbWUiOiJEZW1vIiwibGFzdE5hbWUiOiJVc2VyIiwibm91bmNlIjowLjI1NTE0NzQ1MzcxMzQ0MjcsIm1vYmlsZU51bWJlciI6IiIsImRpZ2lSb2xlIjpbeyJpZCI6IjMiLCJuYW1lIjoiQWRtaW4ifV0sImlkIjoiREVNT1VTRVIiLCJkZXBhcnRtZW50IjoiVEUvU1QiLCJlbWFpbCI6ImRlbW91c2VyQHdlYi5kZSJ9.Xfz4jkhCQzqSBO3_R88pj-3WOFzNy1A33NWn7TYuN1_VjMkUlD6uK8X1JxmIX3LtcNN7Fw3_IvLBjDHTsD7S4g
         jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
         db: 
           appUserName: postgres
           appPassword: postgres
       config:
-        api_db_url: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+        api_db_url: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
         naas_broker: kafka-1650536619-0.kafka-1650536619-headless.kafka.svc.cluster.local:9092
         max_poll_records: 6000
         dna_uri: http://dna-service.dna.svc.cluster.local:7171
-        dna_auth_enable: true
+        dna_auth_enable: false
         mailServerHost: 
         mailServerPort: 
         notificationSenderEmail: 
@@ -389,24 +389,24 @@ notebooks:
 
 #Subchart properties for dashboard
 dashboard:
-  enabled: false
+  enabled: true
   namespace: dashboard
-  image: dashboard-backend
+  image: vardhandevalla/dashboard-backend
   imagePullSecret: 
-    name: harbor-pull-secrets
-  dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
+    name: vddockerhub
+  dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
   secret:
     name: dashboard-secrets
-    appUserName: ""
-    appPassword: ""
-    jwtKey: ""
-  appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
-  enableAuth: true
+    appUserName: dashboard
+    appPassword: dashboard
+    jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+  appUrl: http://dna-service.dna.svc.cluster.local:7171
+  enableAuth: false
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
   flywayBaseline: "true"
   flywayBaselineOnMigrate: "true"
-  flywayBaselineVersion: "0"
+  flywayBaselineVersion: 0
   flywaySchema: "public"
   containerPort: 7173
   ingress:
@@ -425,6 +425,19 @@ dashboard:
     limits:
       memory: "1000Mi"
       cpu: "500m"
+
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 10
+    periodSeconds: 20
+    failureThreshold: 3
+    livenessProbe:
+      path: /dashboards/actuator/health/liveness
+      port: api
+        
+    readinessProbe:
+      path: /dashboards/actuator/health/readiness
+      port: api
 
 #Subchart properties for airflow
 airflow:
