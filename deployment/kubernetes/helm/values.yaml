@@ -1113,8 +1113,8 @@ storagemfe:
         secretName: my-tls-secret
 
 storagebe:
-  enabled: false
-  # Default values for storage-be.
+  enabled: true
+    # Default values for storage-be.
   # This is a YAML-formatted file.
   # Declare variables to be passed into your templates.
   namespace: storage
@@ -1142,7 +1142,7 @@ storagebe:
     - name: VAULT_PATH
       value: dna/minio  
     - name: DNA_URI
-      value: http://dna-app-backend-service.dna.svc.cluster.local:80
+      value: http://dna-service.dna.svc.cluster.local:80
     - name: DNA_AUTH_ENABLE
       value: true  
     - name: JWT_SECRET_KEY
@@ -1153,7 +1153,7 @@ storagebe:
     - name: CORS_ORIGIN_URL
       value: "" 
     - name: MINIO_ENDPOINT
-      value: http://my-release-minio.minio.svc.cluster.local:9000
+      value: http://minio-1650539457.default.svc.cluster.local:9000
     - name: MINIO_ADMIN_ACCESS_KEY
       valueFrom:
         secretKeyRef:
@@ -1173,13 +1173,13 @@ storagebe:
 
   secret:
     - key: vaultToken
-      value: ""
+      value: hvs.zhIzcBqwXwz5KkOpTvhFh5zE
     - key: jwt.secret.key 
-      value: ""
+      value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
     - key: minioAccessKey 
-      value: ""
+      value: admin
     - key: minioSecretKey
-      value: ""
+      value: Ql1aqWvUXg
 
   replicaCount: 1
 
@@ -1190,7 +1190,7 @@ storagebe:
     tag: ""
 
   imagePullSecrets:
-    - name: harbor-pull-secret
+    - name: vddockerhub
   nameOverride: ""
   fullnameOverride: "storage-be"
 
