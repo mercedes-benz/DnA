@@ -83,6 +83,7 @@ export const getFiles = (files, bucketName, fileToOpen) => {
       payload: true,
     });
     ProgressIndicator.show();
+    console.log(fileToOpen.objectName);
     try {
       const prefix = !fileToOpen.objectName ? '/' : fileToOpen.objectName;
       const res = await bucketsObjectApi.getObjects(bucketName, prefix);
@@ -169,7 +170,7 @@ export const deleteFiles = (bucketName, filesPath, files) => {
         });
         ProgressIndicator.hide();
         const pathList = filesPath?.split(',');
-        const path = pathList?.map((item) => item?.split('/')?.filter((x) => !!x));
+        const path = pathList?.map((item) => item?.split('/')?.filter((x) => x));
 
         const fileList = path?.map((item) => {
           return item[item.length - 1];
