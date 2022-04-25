@@ -130,7 +130,7 @@ export const BucketList = () => {
           return key;
         }
       })
-      ?.filter((x) => !!x) // remove falsy values
+      ?.filter((x) => x) // remove falsy values
       ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
       ?.join(' / ');
   };
