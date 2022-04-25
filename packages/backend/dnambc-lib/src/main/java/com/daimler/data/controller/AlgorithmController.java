@@ -38,6 +38,8 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.algorithm.AlgorithmService;
 import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
+
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,7 +141,7 @@ public class AlgorithmController implements AlgorithmsApi {
 			String algoName = algorithm!= null ? algorithm.getName() : "";
 			String eventMessage = "Algorithm " + algoName + " has been deleted by Admin " + userId;
 			algorithmService.deleteAlgorithm(id);
-			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.debug("Algorithm {} deleted successfully", id);
