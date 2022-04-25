@@ -385,47 +385,6 @@ const ReportsFilter = ({
   const getReportsByQueryParams = (filterQueryParams: IReportFilterParams) => {
     const queryParams: IReportFilterParams = { ...filterQueryParams };
 
-    if (queryParams.division.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempString = '{' + item + ',[]}';
-        tempArr.push(tempString);
-      });
-    }
-
-    if (queryParams.subDivision.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      let hasEmpty = false; // To find none selected in sub division since its not mandatory
-      const emptySubDivId = 'EMPTY';
-      distinctSelectedDivisions.forEach((item) => {
-        const tempSubdiv = queryParams.subDivision?.map((value) => {
-          const tempArray = value.split('-');
-          const subDivId = tempArray[0];
-          if (subDivId === emptySubDivId) {
-            hasEmpty = true;
-          }
-          if (item === tempArray[1]) {
-            return subDivId;
-          }
-        });
-
-        if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
-          tempSubdiv.unshift(emptySubDivId);
-        }
-
-        let tempString = '';
-
-        if (tempSubdiv?.length === 0) {
-          tempString += '{' + item + ',[]}';
-        } else {
-          tempString += '{' + item + ',[' + tempSubdiv?.filter((div) => div) + ']}';
-        }
-        tempArr.push(tempString);
-      });
-    }
-
     if (queryParams.division?.length === 0) {
       queryParams.division = [];
       queryParams.subDivision = [];

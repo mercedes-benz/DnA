@@ -186,3 +186,54 @@ export const convertTextToLink = (text: string, env: string) => {
   });
   return text;
 };
+
+export const getDivisionsQueryValue = (divisions: string[], subDivisions: string[]) => {
+  let divisionIds = divisions.join(',');
+  if (divisions.length > 0) {
+    const distinctSelectedDivisions = divisions;
+    const tempArr: any[] = [];
+    distinctSelectedDivisions.forEach((item) => {
+      const tempString = '{' + item + ',[]}';
+      tempArr.push(tempString);
+    });
+    divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
+  }
+
+  if (subDivisions.length > 0) {
+    const distinctSelectedDivisions = divisions;
+    const tempArr: any[] = [];
+    let hasEmpty = false; // To find none selected in sub division since its not mandatory
+    const emptySubDivId = 'EMPTY';
+    distinctSelectedDivisions.forEach((item) => {
+      const tempSubdiv = subDivisions.map((value) => {
+        const tempArray = value.split('-');
+        const subDivId = tempArray[0];
+        if (subDivId === emptySubDivId) {
+          hasEmpty = true;
+        }
+        if (item === tempArray[1]) {
+          return subDivId;
+        }
+      });
+
+      if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
+        tempSubdiv.unshift(emptySubDivId);
+      }
+
+      let tempString = '';
+
+      if (tempSubdiv.length === 0) {
+        tempString += '{' + item + ',[]}';
+      } else {
+        tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
+      }
+
+      tempArr.push(tempString);
+    });
+    divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
+  }
+  if (divisions.length === 0) {
+    divisionIds = '';
+  }
+  return divisionIds;
+};
