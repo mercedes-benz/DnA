@@ -170,7 +170,7 @@ public class RelatedProductController implements RelatedProductsApi {
 			String relatedProductName = relatedProduct!= null ? relatedProduct.getName() : "";
 			String eventMessage = "RelatedProduct  " + relatedProductName + " has been deleted by Admin " + userId;
 			relatedProductService.deleteRelatedProduct(id);
-			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Related-product {} deleted successfully", id);
