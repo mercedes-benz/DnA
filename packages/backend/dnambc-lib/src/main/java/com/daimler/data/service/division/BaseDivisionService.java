@@ -43,6 +43,7 @@ import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DivisionAssembler;
+import com.daimler.data.assembler.SolutionAssembler;
 import com.daimler.data.client.dashboard.DashboardClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -53,6 +54,7 @@ import com.daimler.data.dto.divisions.DivisionRequestVO;
 import com.daimler.data.dto.divisions.DivisionResponseVO;
 import com.daimler.data.dto.divisions.DivisionVO;
 import com.daimler.data.dto.divisions.SubdivisionVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
@@ -84,6 +86,9 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 
 	@Autowired
 	private DashboardClient dashboardClient;
+
+	@Autowired
+	private SolutionAssembler solutionAssembler;
 
 	public BaseDivisionService() {
 		super();
@@ -134,6 +139,11 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 			if (divisionVO != null && divisionVO.getId() != null) {
 				LOGGER.info("New division {} created successfully", vo.getName());
 				responseVO.setData(divisionVO);
+				List<ChangeLogVO> changeLogs = new ArrayList<>();
+				changeLogs = solutionAssembler.jsonObjectCompare(divisionVO, null, currentUser);
+				String eventMessage = "Division " + divisionVO.getName() + " has been added by Admin " + userId;
+				userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, divisionVO.getId(), eventMessage,
+						userId, changeLogs);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 			} else {
 				LOGGER.error("Failed to create new division {} with unknown exception", vo.getName());
@@ -164,16 +174,21 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 			errorMessage.addErrors(notAuthorizedMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 		}
+		DivisionVO existingVO = super.getById(id);
 		LOGGER.debug("Calling solutionService to delete cascading refences to division {}", id);
 		solutionService.deleteTagForEachSolution(id, null, SolutionService.TAG_CATEGORY.DIVISION);
 		deleteById(id);
 		LOGGER.debug("Calling dashboardService to delete cascading refences to division {}", id);
 		dashboardClient.deleteDivisionFromEachReport(id);
+		String divisionName = existingVO != null ? existingVO.getName() : "";
+		String eventMessage = "Division " + divisionName + " has been deleted by Admin " + userId;
+		List<ChangeLogVO> changeLogs = new ArrayList<>();
+		changeLogs = solutionAssembler.jsonObjectCompare(null, existingVO, currentUser);
+		userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, changeLogs);
 		GenericMessage successMsg = new GenericMessage();
 		successMsg.setSuccess("success");
-		LOGGER.info("Division {} deleted successfully", id);
+		LOGGER.info("Division {} deleted successfully", divisionName);
 		return new ResponseEntity<>(successMsg, HttpStatus.OK);
-
 	}
 
 	@Override
@@ -209,6 +224,11 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 					dashboardClient.updateDivisionFromEachReport(vo);
 					response.setData(mergedDivisionVO);
 					response.setErrors(null);
+					List<ChangeLogVO> changeLogs = new ArrayList<>();
+					changeLogs = solutionAssembler.jsonObjectCompare(mergedDivisionVO, existingVO, currentUser);
+					String eventMessage = "Division " + existingVO.getName() + " has been updated by Admin " + userId;
+					userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId,
+							changeLogs);
 					LOGGER.debug("Division with id {} updated successfully", id);
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				} else {
