@@ -1,5 +1,6 @@
 import { IMAGE_EXTNS } from '../components/Utility/constants';
 import server from '../server/api';
+import { encodeParams } from '../server/utils';
 
 const getAllBucketObjects = (bucketName) => {
   return server.get(`/buckets/${bucketName}/objects`, { data: {} });
@@ -20,6 +21,7 @@ const downloadObjects = (bucketName, prefix) => {
     params: {
       prefix,
     },
+    paramsSerializer: (params) => encodeParams(params),
     responseType: 'blob',
   });
 };
@@ -29,6 +31,7 @@ const deleteObjects = (bucketName, filesPath) => {
     params: {
       prefix: `${filesPath}`,
     },
+    paramsSerializer: (params) => encodeParams(params),
     data: {},
   });
 };
@@ -44,6 +47,7 @@ const previewFiles = (bucketName, prefix, fileExtension) => {
     params: {
       prefix,
     },
+    paramsSerializer: (params) => encodeParams(params),
     ...(setResponseType && { responseType }),
   });
 };
