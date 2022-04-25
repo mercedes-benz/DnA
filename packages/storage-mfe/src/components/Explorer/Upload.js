@@ -14,7 +14,18 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
   const { files } = useSelector((state) => state.fileExplorer);
 
   const prefix = serializeFolderChain(folderChain);
-  const objectPath = [...new Set(prefix.join('').split('/'))].join('/');
+
+  let objectPath;
+  const existingFolder = folderChain.filter((item) => item?.childrenCount && item.objectName);
+
+  if (existingFolder?.length && existingFolder.length !== 1) {
+    const existingFolderIndex = prefix.indexOf(existingFolder[existingFolder.length - 1]?.objectName);
+    const newFolderPath = prefix.slice(existingFolderIndex).join('');
+    objectPath = newFolderPath;
+  } else {
+    objectPath = prefix.join('');
+  }
+  // const objectPath = [...new Set(prefix.join('').split('/'))].join('/');
 
   const onSuccess = (response, uploadFile) => {
     const currentFolder = folderChain?.[folderChain?.length - 1];
