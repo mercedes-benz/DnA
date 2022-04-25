@@ -84,7 +84,7 @@ export const getFiles = (files, bucketName, fileToOpen) => {
     });
     ProgressIndicator.show();
     try {
-      const prefix = fileToOpen.name === bucketName ? '/' : fileToOpen.objectName;
+      const prefix = !fileToOpen.objectName ? '/' : fileToOpen.objectName;
       const res = await bucketsObjectApi.getObjects(bucketName, prefix);
 
       if (res?.data) {
