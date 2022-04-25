@@ -55,6 +55,7 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.relatedproduct.RelatedProductService;
 import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -169,7 +170,7 @@ public class RelatedProductController implements RelatedProductsApi {
 			String relatedProductName = relatedProduct!= null ? relatedProduct.getName() : "";
 			String eventMessage = "RelatedProduct  " + relatedProductName + " has been deleted by Admin " + userId;
 			relatedProductService.deleteRelatedProduct(id);
-			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Related-product {} deleted successfully", id);
