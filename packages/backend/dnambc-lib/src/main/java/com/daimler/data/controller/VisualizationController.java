@@ -38,6 +38,8 @@ import com.daimler.data.dto.visualization.VisualizationRequestVO;
 import com.daimler.data.dto.visualization.VisualizationVO;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.visualization.VisualizationService;
+import com.daimler.data.util.ConstantsUtility;
+
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +140,7 @@ public class VisualizationController implements VisualizationsApi {
 			String visualizationName = visualization!= null ? visualization.getName() : "";
 			String eventMessage = "Visualization  " + visualizationName + " has been deleted by Admin " + userId;
 			visualizationService.deleteVisualization(id);
-			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Visualiztion with id {} deleted successfully", id);

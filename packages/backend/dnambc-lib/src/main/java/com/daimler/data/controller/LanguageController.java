@@ -38,6 +38,8 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.language.LanguageService;
 import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
+
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +140,7 @@ public class LanguageController implements LanguagesApi {
 			String languageName = language!= null ? language.getName() : "";
 			String eventMessage = "Language  " + languageName + " has been deleted by Admin " + userId;
 			languageService.deleteLanguage(id);
-			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.debug("Language {} deleted successfully", id);
