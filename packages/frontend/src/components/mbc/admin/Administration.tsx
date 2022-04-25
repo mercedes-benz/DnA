@@ -85,23 +85,29 @@ export default class Administration extends React.Component<IAdministrationProps
               </nav>
             </div>
             <div className={Styles.tabcontentWrrapper + ' tabs-content-wrapper'}>
-              <div id="tab-content-1" className={'tab-content ' + Styles.contentTab}>
-                {this.state.currentUserRole}
-                <UserRoleManagement />
-              </div>
-              <div id="tab-content-2" className={'tab-content ' + Styles.contentTab}>
-                <TagHandling />
-              </div>
-              {Envs.ENABLE_MALWARE_SCAN_SERVICE ? (
-                <div id="tab-content-3" className={'tab-content ' + Styles.contentTab}>
-                  <MalwareScanapikeys />
-                </div>
-              ) : (
-                ''
+              {isAdmin && (
+                <>
+                  <div id="tab-content-1" className={'tab-content ' + Styles.contentTab}>
+                    {this.state.currentUserRole}
+                    <UserRoleManagement />
+                  </div>
+                  <div id="tab-content-2" className={'tab-content ' + Styles.contentTab}>
+                    <TagHandling />
+                  </div>
+                  {Envs.ENABLE_MALWARE_SCAN_SERVICE ? (
+                    <div id="tab-content-3" className={'tab-content ' + Styles.contentTab}>
+                      <MalwareScanapikeys />
+                    </div>
+                  ) : (
+                    ''
+                  )}
+                </>
               )}
-              <div id="tab-content-4" className={'tab-content ' + Styles.contentTab}>
-                <ReportTagHandling />
-              </div>
+              {(isAdmin || isReportAdmin) && (
+                <div id="tab-content-4" className={'tab-content ' + Styles.contentTab}>
+                  <ReportTagHandling />
+                </div>
+              )}
               {/* <div id="tab-content-3" className="tab-content">
                 <h6>Application Settings</h6>
               </div> */}
