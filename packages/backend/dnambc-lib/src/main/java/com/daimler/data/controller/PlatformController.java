@@ -38,6 +38,8 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.platform.PlatformService;
 import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
+
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,7 +142,7 @@ public class PlatformController implements PlatformsApi {
 			String platformName = platform!= null ? platform.getName() : "";
 			String eventMessage = "Platform  " + platformName + " has been deleted by Admin " + userId;
 			platformService.deletePlatform(id);
-			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Platform {} deleted successfully", id);

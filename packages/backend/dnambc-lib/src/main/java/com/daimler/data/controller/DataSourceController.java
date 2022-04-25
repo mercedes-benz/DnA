@@ -52,6 +52,7 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.datasource.DataSourceService;
 import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -147,7 +148,7 @@ public class DataSourceController implements DatasourcesApi {
 			String datasourceName = datasource!= null ? datasource.getName() : "";
 			String eventMessage = "DataSource  " + datasourceName + " has been deleted by Admin " + userId;
 			datasourceService.deleteDataSource(id);
-			userInfoService.notifyAllAdminUsers("Solution_Tag_Handling", id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Datasource {} deleted successfully", id);
