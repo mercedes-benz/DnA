@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-configmap
+  name: {{ .Release.Name }}-frontend-configmap
   namespace: {{ .Values.namespace }}
 data:
   nginx.conf: |
