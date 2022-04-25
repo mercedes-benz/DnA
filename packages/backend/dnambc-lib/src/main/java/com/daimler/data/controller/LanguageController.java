@@ -140,7 +140,7 @@ public class LanguageController implements LanguagesApi {
 			String languageName = language!= null ? language.getName() : "";
 			String eventMessage = "Language  " + languageName + " has been deleted by Admin " + userId;
 			languageService.deleteLanguage(id);
-			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.debug("Language {} deleted successfully", id);

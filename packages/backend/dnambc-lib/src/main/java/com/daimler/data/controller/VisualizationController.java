@@ -140,7 +140,7 @@ public class VisualizationController implements VisualizationsApi {
 			String visualizationName = visualization!= null ? visualization.getName() : "";
 			String eventMessage = "Visualization  " + visualizationName + " has been deleted by Admin " + userId;
 			visualizationService.deleteVisualization(id);
-			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Visualiztion with id {} deleted successfully", id);
