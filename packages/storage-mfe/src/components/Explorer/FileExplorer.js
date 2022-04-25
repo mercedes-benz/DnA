@@ -49,6 +49,8 @@ import { serializeFolderChain } from './Utils';
 import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
 import { history } from '../../store/storeRoot';
 
+import { v4 as uuidv4 } from 'uuid';
+
 // inform chonky on which iconComponent to use
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
@@ -185,14 +187,14 @@ const FileExplorer = () => {
     setFolderExists({ modal: false });
     dispatch(
       getFiles(newFileMap, bucketName, {
-        id: newFolderName,
+        id: objectName.replaceAll('/', ''),
         name: newFolderName,
         isDir: true,
         parentId: currentFolderIdRef.current,
-        objectName: objectName.replace(`${bucketName}/`, ''),
+        objectName: objectName,
       }),
     );
-    setCurrentFolderId(newFolderName);
+    setCurrentFolderId(objectName.replaceAll('/', ''));
   };
 
   const createFolder = useCallback(
@@ -208,8 +210,11 @@ const FileExplorer = () => {
         setFolderExists({ modal: true, data: { files, newFolderName } });
       } else {
         // Create the new folder
-        newFileMap[newFolderName] = {
-          id: newFolderName,
+        // append unique ids to handle duplicate folder names
+        const newFolder = (newFolderName + uuidv4()).replaceAll('-', '');
+
+        newFileMap[newFolder] = {
+          id: newFolder,
           name: newFolderName,
           isDir: true,
           parentId: currentFolderIdRef.current,
@@ -221,7 +226,7 @@ const FileExplorer = () => {
 
         newFileMap[currentFolderIdRef.current] = {
           ...parent,
-          childrenIds: [...(parent.childrenIds ? [...parent.childrenIds] : []), newFolderName],
+          childrenIds: [...(parent.childrenIds ? [...parent.childrenIds] : []), newFolder],
         };
 
         dispatch({
@@ -229,8 +234,8 @@ const FileExplorer = () => {
           payload: newFileMap,
         });
 
-        setCurrentFolderId(newFolderName);
-        setNewlyCreatedFolder(newFolderName);
+        setCurrentFolderId(newFolder);
+        setNewlyCreatedFolder(newFolder);
       }
 
       setNewFolderName('');
@@ -297,7 +302,8 @@ const FileExplorer = () => {
       const objectNameArray = files.objectName?.split('/')?.filter((x) => !!x);
       const currentFolderIndex = objectNameArray.indexOf(fileToOpen.name);
       if (currentFolderIndex !== -1) {
-        const objectName = objectNameArray.slice(0, currentFolderIndex + 1).join('/');
+        // const objectName = objectNameArray.slice(0, currentFolderIndex + 1).join('/');
+        const objectName = objectNameArray.join('/');
         files['objectName'] = `${objectName}/`;
       }
     };
@@ -312,7 +318,7 @@ const FileExplorer = () => {
       } else if (inDraftFolderMoveBackward(copyFilesToOpen)) {
         if (folderChain?.length > 2 && copyFilesToOpen.objectName?.split('/')?.filter((x) => !!x).length === 1) {
           const folderPath = serializeFolderChain(folderChain);
-          const index = folderPath.indexOf(copyFilesToOpen.objectName);
+          const index = folderPath.lastIndexOf(copyFilesToOpen.objectName);
           copyFilesToOpen.objectName = folderPath.splice(0, index + 1)?.join('');
         }
       }
@@ -420,7 +426,16 @@ const FileExplorer = () => {
 
   // display current folder path in create folder modal
   const folderPath = serializeFolderChain(folderChain);
-  const currentFolderPath = [...new Set(folderPath.join('').split('/'))].join('/');
+  let currentFolderPath = '';
+  // const currentFolderPath = [...new Set(folderPath.join('').split('/'))].join('/');
+  const existingFolder = folderChain.filter((item) => item?.childrenCount && item.objectName);
+  if (existingFolder?.length && existingFolder.length !== 1) {
+    const existingFolderIndex = folderPath.indexOf(existingFolder[existingFolder.length - 1]?.objectName);
+
+    currentFolderPath = folderPath.slice(existingFolderIndex).join('');
+  } else {
+    currentFolderPath = folderPath.join('');
+  }
 
   const folderNameValidation = () => {
     let formValid = true;
@@ -429,6 +444,7 @@ const FileExplorer = () => {
       setFolderNameError(errorMissingEntry);
       formValid = false;
     }
+    const currentFolderPathArr = currentFolderPath?.split('/').filter((x) => !!x);
 
     if (folderName === currentFolderPath.replace('/', '')) {
       setFolderNameError(`Currently in ${folderName} folder`);
@@ -440,6 +456,11 @@ const FileExplorer = () => {
     }
 
     if (!currentFolderPath && folderName === bucketName) {
+      setFolderNameError(`Currently in ${folderName} folder`);
+      formValid = false;
+    }
+
+    if (folderName === currentFolderPathArr[currentFolderPathArr.length - 1]) {
       setFolderNameError(`Currently in ${folderName} folder`);
       formValid = false;
     }
