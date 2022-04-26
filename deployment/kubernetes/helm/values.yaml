@@ -42,7 +42,7 @@ frontend:
       oauth2LogoutUrl: 
       oauth2IntrospectionUrl: 
       oauth2UserInfoUrl: 
-      frontendClientid: dce5fd33-360d-45fb-8611-0da9440047d2
+      #frontendClientid: dce5fd33-360d-45fb-8611-0da9440047d2
       redirectUrls: 
     #Specify the swagger URL for malwarescan
       swaggerUiUrl: http://localhost/avscan/swagger-ui.html#/
@@ -75,7 +75,7 @@ frontend:
       enableNotification: false
     # Specify the company name 
       companyName: XYZ
-      backendHost: dna-app-backend-service
+      backendHost: dna-service
 
   # Configure ngnix as per the 
     ngnix:
@@ -142,7 +142,7 @@ backend:
         internalUserRequestUrl: XXXXX
         internalCertFile: XXXXX
         oidcDisabled: true
-        s3BucketName: dna1
+        s3BucketName: dna
         s3Url: http://minio-1650539457.default.svc.cluster.local:9001
         corosOriginUrl: 
         jupyterNotebookUrl: 
@@ -458,26 +458,26 @@ airflow:
   appName: airflow
   namespace: airflow
   imagePullSecret: 
-    name: harbor-pull-secrets
+    name: vddockerhub
   backend:
-    image: ""
+    image: vardhandevalla/airflow-backend
     imagePullPolicy: Always
-    dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
+    dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
       name: airflow-backend-secrets
-      dbPassword: ""
-      dbUsername: ""
+      dbPassword: airflow
+      dbUsername: airflow
       gitToken: ""
-      jwtKey: ""
+      jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
       oidcClientID: ""
       oidcClientSecret: ""
     containerPort: 7171
     crossOriginUrl: ""
-    apiUrl: ""
+    apiUrl: http://dna-service.dna.svc.cluster.local:80
     oidcInfoUrl: "" 
     oidcIntrospectionUrl: "" 
     oidcRevocationUrl: "" 
-    oidcDisabled: false
+    oidcDisabled: true
     gitUrl: "" 
     gitMountPath: /git/airflow-user-dags
     gitBranch: ""
@@ -503,23 +503,23 @@ airflow:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
 
-  pullSecretData: ""
+  #pullSecretData: ""
   secret:
     gitUserName: ""
     gitPassword: ""
     #gitSshKey: ""
     knownHosts: ""
     postgresql:
-      sqlAlchemyConn: ""
+      sqlAlchemyConn: postgresql+psycopg2://airflow:airflow@dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     clientSecret: ""
 
-  gitSync:
-    image: ""
-    repo: ""
-    dest: git-sync
-    branch: master
-    ssh: "false"
-    root: /git
+    gitSync:
+      image: ""
+      repo: ""
+      dest: git-sync
+      branch: master
+      ssh: "false"
+      root: /git
 
   # editor:
   #   gitEnabled: True
@@ -639,17 +639,17 @@ airflow:
       resourcePolicy: keep
       accessMode: ReadWriteOnce
       storage:
-        className: cinder-retain
-        size: 50Gi
+        className: managed
+        size: 2Gi
 
   oidc:
     logout:
       uri: ""
 
   Storage:
-    storageClass: cinder-retain
+    storageClass: managed
     accessModes: ReadWriteOnce
-    size: 5Gi
+    size: 1Gi
   
 #Subchart properties for microgateway
 microgateway:
@@ -1072,8 +1072,8 @@ vault:
 
 #subchart  value for  storageMfe
 storagemfe:
-  enabled: false
-  namespace: storage-service
+  enabled: true
+  namespace: storage
   conf:
     storageBackendUrl: ""
     containerAppUrl: ""
@@ -1081,13 +1081,13 @@ storagemfe:
   replicaCount: 1
 
   image:
-    repository: ""
+    repository: docker.io/vardhandevalla/storage_mfe
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: ""
+    tag: latest
 
   imagePullSecrets:
-    - name: harbor-pull-secret
+    - name: vddockerhub
   
   ingress:
     enabled: true
@@ -1127,7 +1127,7 @@ storagebe:
     - name: VAULT_HOST
       value: vault.vault.svc.cluster.local
     - name: VAULT_PORT
-      value: 8200         
+      value: "8200"         
     - name: VAULT_SCHEME
       value: http
     - name: VAULT_AUTHENTICATION
@@ -1140,11 +1140,11 @@ storagebe:
     - name: VAULT_MOUNTPATH
       value: kv
     - name: VAULT_PATH
-      value: dna1/minio  
+      value: dna/minio  
     - name: DNA_URI
       value: http://dna-service.dna.svc.cluster.local:80
     - name: DNA_AUTH_ENABLE
-      value: true  
+      value: "true"  
     - name: JWT_SECRET_KEY
       valueFrom:
         secretKeyRef:
@@ -1153,7 +1153,7 @@ storagebe:
     - name: CORS_ORIGIN_URL
       value: "" 
     - name: MINIO_ENDPOINT
-      value: http://minio-1650539457.default.svc.cluster.local:9000
+      value: http://minio-1650539457.default.svc.cluster.local:9001
     - name: MINIO_ADMIN_ACCESS_KEY
       valueFrom:
         secretKeyRef:
@@ -1165,7 +1165,7 @@ storagebe:
           key: minioSecretKey
           name: storage-be   
     - name: MINIO_POLICY_VERSION
-      value: 2012-10-17   
+      value: "2012-10-17"   
     - name: LOGGING_ENVIRONMENT
       value: DEV   
     - name: LOGGING_PATH
@@ -1184,10 +1184,10 @@ storagebe:
   replicaCount: 1
 
   image:
-    repository: ""
+    repository: docker.io/vardhandevalla/storage_be
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: ""
+    tag: latest
 
   imagePullSecrets:
     - name: vddockerhub
