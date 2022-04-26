@@ -79,7 +79,7 @@ frontend:
 
   # Configure ngnix as per the 
     ngnix:
-      backend: http://dna-service.dna.svc.cluster.local:7171
+      backend: http://dna-service.dna.svc.cluster.local:80
       jupyServer: http://proxy-public:8000
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
       avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
@@ -142,7 +142,7 @@ backend:
         internalUserRequestUrl: XXXXX
         internalCertFile: XXXXX
         oidcDisabled: true
-        s3BucketName: dna
+        s3BucketName: dna1
         s3Url: http://minio-1650539457.default.svc.cluster.local:9001
         corosOriginUrl: 
         jupyterNotebookUrl: 
@@ -229,7 +229,7 @@ clamav:
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
-        auth_api_host: http://dna-service.dna.svc.cluster.local:7171/api/subscription/validate
+        auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription/validate
         restricted_url_pattern: /avscan/api/v1/scan.*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
@@ -295,7 +295,7 @@ naas:
         api_db_url: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
         naas_broker: kafka-1650536619-0.kafka-1650536619-headless.kafka.svc.cluster.local:9092
         max_poll_records: 6000
-        dna_uri: http://dna-service.dna.svc.cluster.local:7171
+        dna_uri: http://dna-service.dna.svc.cluster.local:80
         dna_auth_enable: false
         mailServerHost: 
         mailServerPort: 
@@ -413,7 +413,7 @@ dashboard:
     appUserName: dashboard
     appPassword: dashboard
     jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
-  appUrl: http://dna-service.dna.svc.cluster.local:7171
+  appUrl: http://dna-service.dna.svc.cluster.local:80
   enableAuth: false
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
@@ -1140,7 +1140,7 @@ storagebe:
     - name: VAULT_MOUNTPATH
       value: kv
     - name: VAULT_PATH
-      value: dna/minio  
+      value: dna1/minio  
     - name: DNA_URI
       value: http://dna-service.dna.svc.cluster.local:80
     - name: DNA_AUTH_ENABLE
