@@ -8,7 +8,7 @@ export const serializeFolderChain = (list) => {
         return item.objectName;
       }
     })
-    ?.filter((x) => !!x); //filter falsy value
+    ?.filter((x) => x); //filter falsy value
 };
 
 // serialize characters to ensure valid object key
