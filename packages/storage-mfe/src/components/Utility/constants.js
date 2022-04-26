@@ -26,6 +26,10 @@ export const PREVIEW_ALLOWED_EXTNS = [
   'yml',
   'yaml',
   'pdf',
+  'csv',
+  'kt',
+  'kts',
+  'go',
 ];
 
 // set corresponding modes based on the file extensions
@@ -50,4 +54,5 @@ export const aceEditorMode = {
   kts: 'kotlin',
   sql: 'sql',
   go: 'golang',
+  csv: 'plain_text',
 };
