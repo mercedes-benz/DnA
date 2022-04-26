@@ -69,16 +69,13 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
 
       // nested folder
       if (objectPath) {
-        const objectName = objectPath.replace('/', '');
+        const objectName = objectPath.replaceAll('/', '');
         const key = objectName + setObjectKey(file.name);
         // check whether the file already exists
-        files.fileMap[objectName]?.childrenIds?.find((item) => {
-          if (item === key) {
-            Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
-            isValid = false;
-            return item;
-          }
-        });
+        if (Object.prototype.hasOwnProperty.call(files.fileMap, key)) {
+          Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
+          isValid = false;
+        }
       } else {
         // root folder
         Object.entries(files.fileMap).find(([, objVal]) => {
