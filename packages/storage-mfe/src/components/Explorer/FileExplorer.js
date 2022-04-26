@@ -185,13 +185,15 @@ const FileExplorer = () => {
     const newFileMap = { ...files.fileMap };
     const objectName = `${newFileMap[currentFolderIdRef.current].objectName}${newFolderName}/`;
     setFolderExists({ modal: false });
+    const expression = `^${bucketName}`;
+    const regExp = new RegExp(expression);
     dispatch(
       getFiles(newFileMap, bucketName, {
         id: objectName.replaceAll('/', ''),
         name: newFolderName,
         isDir: true,
         parentId: currentFolderIdRef.current,
-        objectName: objectName,
+        objectName: regExp.test(objectName) ? objectName.replace(`${bucketName}/`, '') : objectName,
       }),
     );
     setCurrentFolderId(objectName.replaceAll('/', ''));
@@ -299,9 +301,26 @@ const FileExplorer = () => {
 
     const serializeObjectName = (files) => {
       files['objectName'] = fileToOpen.objectName;
-      const objectNameArray = files.objectName?.split('/')?.filter((x) => !!x);
+      const objectNameArray = files.objectName?.split('/')?.filter((x) => x);
       const currentFolderIndex = objectNameArray.indexOf(fileToOpen.name);
-      if (currentFolderIndex !== -1) {
+      const folderPath = serializeFolderChain(folderChain);
+      if (currentFolderIndex === 0) {
+        const draftInitiatedFolderPath = folderChain.filter((item) => item?.childrenCount);
+        const draftInitiatedFolderPathObjectName =
+          draftInitiatedFolderPath[draftInitiatedFolderPath.length - 1]?.objectName;
+        const index = folderPath.findIndex((item) => item === draftInitiatedFolderPathObjectName);
+
+        if (!fileToOpen.childrenCount) {
+          folderPath.push(fileToOpen.objectName);
+          const folderPathArray = folderPath;
+
+          const folder = folderPathArray.splice(index > 0 ? index : 0)?.join('');
+
+          files['objectName'] = folder;
+        } else {
+          files['objectName'] = fileToOpen.objectName;
+        }
+      } else if (currentFolderIndex !== -1) {
         // const objectName = objectNameArray.slice(0, currentFolderIndex + 1).join('/');
         const objectName = objectNameArray.join('/');
         files['objectName'] = `${objectName}/`;
@@ -316,10 +335,24 @@ const FileExplorer = () => {
       if (moveBackward(copyFilesToOpen)) {
         serializeObjectName(copyFilesToOpen);
       } else if (inDraftFolderMoveBackward(copyFilesToOpen)) {
-        if (folderChain?.length > 2 && copyFilesToOpen.objectName?.split('/')?.filter((x) => !!x).length === 1) {
+        // still in draft stage i.e newly created folders
+        if (folderChain?.length > 2 && copyFilesToOpen.objectName?.split('/')?.filter((x) => x).length === 1) {
+          const draftInitiatedFolderPath = folderChain.filter((item) => item?.childrenCount);
           const folderPath = serializeFolderChain(folderChain);
-          const index = folderPath.lastIndexOf(copyFilesToOpen.objectName);
-          copyFilesToOpen.objectName = folderPath.splice(0, index + 1)?.join('');
+          const draftInitiatedFolderPathObjectName =
+            draftInitiatedFolderPath[draftInitiatedFolderPath.length - 1]?.objectName;
+          const index = folderPath.findIndex((item) => item === draftInitiatedFolderPathObjectName);
+          folderPath.pop();
+
+          const folderPathArray = folderPath;
+          if (index === -1) {
+            copyFilesToOpen.objectName = folderPathArray.join('');
+          } else if (folderPathArray[index] === undefined) {
+            const index = folderPathArray.lastIndexOf(fileToOpen.objectName);
+            copyFilesToOpen.objectName = folderPathArray.slice(index > 0 ? index - 1 : 0, index + 1).join('');
+          } else {
+            copyFilesToOpen.objectName = folderPathArray.slice(index)?.join('');
+          }
         }
       }
 
@@ -444,7 +477,7 @@ const FileExplorer = () => {
       setFolderNameError(errorMissingEntry);
       formValid = false;
     }
-    const currentFolderPathArr = currentFolderPath?.split('/').filter((x) => !!x);
+    const currentFolderPathArr = currentFolderPath?.split('/')?.filter((x) => x);
 
     if (folderName === currentFolderPath.replace('/', '')) {
       setFolderNameError(`Currently in ${folderName} folder`);
@@ -549,7 +582,7 @@ const FileExplorer = () => {
     setShowDeleteModal({ modal: false });
   };
 
-  const serializedFileName = showPreview.fileName.split('.').filter((x) => !!x);
+  const serializedFileName = showPreview.fileName?.split('.')?.filter((x) => x);
   const fileExt = serializedFileName[serializedFileName.length - 1];
   const isPDF = fileExt === 'pdf';
 
