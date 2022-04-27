@@ -1075,9 +1075,15 @@ storagemfe:
   enabled: true
   namespace: storage
   conf:
-    storageBackendUrl: ""
-    containerAppUrl: ""
-    apiBaseUrl: ""
+    storageBackendUrl: 
+    # containerAppUrl: http://localhost:51493 
+    # apiBaseUrl: api
+  envs:
+            #Add new env as array value with name/value field. Keep one tab indentation.
+    - name: PROJECTSMO_CONTAINER_APP_URL
+      value: http://localhost:51493 
+    - name: PROJECTSMO_FRONTEND_API_BASEURL
+      value: api
   replicaCount: 1
 
   image:
@@ -1085,9 +1091,22 @@ storagemfe:
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
+  # podSecurityContext:
+  #   runAsUser: 1001
 
   imagePullSecrets:
     - name: vddockerhub
+
+  nameOverride: ""
+  fullnameOverride: "storage-mfe"
+
+  podSecurityContext:
+    runAsUser: 1001
+
+  containerPort: 3000
+  service:
+    type: ClusterIP
+    port: 80
   
   ingress:
     enabled: true
@@ -1113,7 +1132,7 @@ storagemfe:
         secretName: my-tls-secret
 
 storagebe:
-  enabled: false
+  enabled: true
     # Default values for storage-be.
   # This is a YAML-formatted file.
   # Declare variables to be passed into your templates.

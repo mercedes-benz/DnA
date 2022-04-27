@@ -21,6 +21,7 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
       volumes:
         - name: {{ include "storage-mfe.fullname" . }}
           configMap:
