@@ -27,9 +27,10 @@
 
 package com.daimler.data.service.common;
 
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-
 import java.util.List;
+
+import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.solution.CreatedByVO;
 
 public interface CommonService<V, T, ID> {
 
@@ -57,5 +58,7 @@ public interface CommonService<V, T, ID> {
 	boolean deleteById(ID id);
 
 	Long getCount(int limit, int offset);
+
+	String currentUserName(CreatedByVO currentUser);
 
 }

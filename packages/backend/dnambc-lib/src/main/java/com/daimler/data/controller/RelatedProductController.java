@@ -117,8 +117,7 @@ public class RelatedProductController implements RelatedProductsApi {
 				log.info("Related product {} created successfully", requestRelatedProductVO.getName());
 				return new ResponseEntity<>(relatedProductResponse, HttpStatus.CREATED);
 			} else
-				log.info("Unknown error occured while creating Related-product {} ",
-						requestRelatedProductVO.getName());
+				log.info("Unknown error occured while creating Related-product {} ", requestRelatedProductVO.getName());
 			return new ResponseEntity<>(relatedProductResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			log.error("Exception {} , occured while creating Related-product {}", e.getLocalizedMessage(),
@@ -146,7 +145,7 @@ public class RelatedProductController implements RelatedProductsApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 
 			String userId = currentUser != null ? currentUser.getId() : "";
-			
+
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
@@ -167,8 +166,9 @@ public class RelatedProductController implements RelatedProductsApi {
 			}
 			// relatedProductService.deleteById(id);
 			RelatedProductVO relatedProduct = relatedProductService.getById(id);
-			String relatedProductName = relatedProduct!= null ? relatedProduct.getName() : "";
-			String eventMessage = "RelatedProduct  " + relatedProductName + " has been deleted by Admin " + userId;
+			String relatedProductName = relatedProduct != null ? relatedProduct.getName() : "";
+			String userName = relatedProductService.currentUserName(currentUser);
+			String eventMessage = "RelatedProduct  " + relatedProductName + " has been deleted by Admin " + userName;
 			relatedProductService.deleteRelatedProduct(id);
 			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
