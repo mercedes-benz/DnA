@@ -437,7 +437,7 @@ const Notifications = (props: any) => {
                     <ul>
                       {JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {
                         return (
-                          <li key={index}>{data.changeDescription}, {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
+                          <li key={index}>{data.changeDescription} at {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, by {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
                         )}
                       )}
                     </ul>  
