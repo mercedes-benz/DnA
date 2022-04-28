@@ -27,9 +27,23 @@
 
 package com.daimler.data.controller;
 
+import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.daimler.data.api.tag.TagsApi;
 import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.controller.exceptions.*;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.tag.TagCollection;
 import com.daimler.data.dto.tag.TagRequestVO;
@@ -40,22 +54,12 @@ import com.daimler.data.service.tag.TagService;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.util.ConstantsUtility;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @Api(value = "Tag API", tags = { "tags" })
@@ -140,8 +144,9 @@ public class TagController implements TagsApi {
 				}
 			}
 			TagVO tag = tagService.getById(id);
-			String tagName = tag!= null ? tag.getName() : "";
-			String eventMessage = "Tag  " + tagName + " has been deleted by Admin " + userId;
+			String tagName = tag != null ? tag.getName() : "";
+			String userName = tagService.currentUserName(currentUser);
+			String eventMessage = "Tag  " + tagName + " has been deleted by Admin " + userName;
 			tagService.deleteTag(id);
 			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
