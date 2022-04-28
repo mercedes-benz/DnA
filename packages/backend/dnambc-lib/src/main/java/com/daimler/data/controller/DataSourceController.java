@@ -145,8 +145,9 @@ public class DataSourceController implements DatasourcesApi {
 				}
 			}
 			DataSourceVO datasource = datasourceService.getById(id);
-			String datasourceName = datasource!= null ? datasource.getName() : "";
-			String eventMessage = "DataSource  " + datasourceName + " has been deleted by Admin " + userId;
+			String datasourceName = datasource != null ? datasource.getName() : "";
+			String userName = datasourceService.currentUserName(currentUser);
+			String eventMessage = "DataSource  " + datasourceName + " has been deleted by Admin " + userName;
 			datasourceService.deleteDataSource(id);
 			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
