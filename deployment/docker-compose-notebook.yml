@@ -4,7 +4,7 @@ services:
     image: ${IMAGE_RESULT_NOTEBOOK:-pyspark-custom-notebook}
     build:
       context: ./dockerfiles/notebooks
-      dockerfile: $PWD/dockerfiles/notebooks/dev/singleuser-notebook-base.Dockerfile
+      dockerfile: $PWD/dockerfiles/notebooks/singleuser-notebook-base.Dockerfile
       # args:
       #   http_proxy: "$HTTP_PROXY"
       #   https_proxy: "$HTTPS_PROXY"
@@ -14,7 +14,7 @@ services:
     image: ${IMAGE_RESULT_CONFIGPROXY:-configurable-http-proxy}
     build:
       context: ./dockerfiles/notebooks
-      dockerfile: $PWD/dockerfiles/notebooks/dev/configurableHttpProxy.Dockerfile
+      dockerfile: $PWD/dockerfiles/notebooks/configurableHttpProxy.Dockerfile
       # args:
       #   http_proxy: "$HTTP_PROXY"
       #   https_proxy: "$HTTPS_PROXY"
@@ -24,7 +24,7 @@ services:
     image: ${IMAGE_RESULT_HUB:-jupyterhub}
     build:
       context: ./dockerfiles/notebooks
-      dockerfile: $PWD/dockerfiles/notebooks/dev/jupyterhub.Dockerfile
+      dockerfile: $PWD/dockerfiles/notebooks/jupyterhub.Dockerfile
       # args:
       #   http_proxy: "$HTTP_PROXY"
       #   https_proxy: "$HTTPS_PROXY"
