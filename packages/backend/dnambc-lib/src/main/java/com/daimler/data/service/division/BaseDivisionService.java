@@ -141,7 +141,8 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 				responseVO.setData(divisionVO);
 				List<ChangeLogVO> changeLogs = new ArrayList<>();
 				changeLogs = solutionAssembler.jsonObjectCompare(divisionVO, null, currentUser);
-				String eventMessage = "Division " + divisionVO.getName() + " has been added by Admin " + userId;
+				String userName = super.currentUserName(currentUser);
+				String eventMessage = "Division " + divisionVO.getName() + " has been added by Admin " + userName;
 				userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, divisionVO.getId(), eventMessage,
 						userId, changeLogs);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
@@ -181,7 +182,8 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 		LOGGER.debug("Calling dashboardService to delete cascading refences to division {}", id);
 		dashboardClient.deleteDivisionFromEachReport(id);
 		String divisionName = existingVO != null ? existingVO.getName() : "";
-		String eventMessage = "Division " + divisionName + " has been deleted by Admin " + userId;
+		String userName = super.currentUserName(currentUser);
+		String eventMessage = "Division " + divisionName + " has been deleted by Admin " + userName;
 		List<ChangeLogVO> changeLogs = new ArrayList<>();
 		changeLogs = solutionAssembler.jsonObjectCompare(null, existingVO, currentUser);
 		userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, changeLogs);
@@ -226,7 +228,8 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 					response.setErrors(null);
 					List<ChangeLogVO> changeLogs = new ArrayList<>();
 					changeLogs = solutionAssembler.jsonObjectCompare(mergedDivisionVO, existingVO, currentUser);
-					String eventMessage = "Division " + existingVO.getName() + " has been updated by Admin " + userId;
+					String userName = super.currentUserName(currentUser);
+					String eventMessage = "Division " + existingVO.getName() + " has been updated by Admin " + userName;
 					userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId,
 							changeLogs);
 					LOGGER.debug("Division with id {} updated successfully", id);
