@@ -1,4 +1,4 @@
-FROM dna/dev/pyspark-notebook:1.0-default
+FROM jupyter/pyspark-notebook:1.0-default
 
 USER root
 
