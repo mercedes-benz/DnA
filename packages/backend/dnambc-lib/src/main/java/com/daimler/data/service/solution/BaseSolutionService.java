@@ -268,10 +268,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		if (isUpdate) {
 			eventType = "Solution_update";
 			changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
-			if(vo.isPublish())
+			if (vo.isPublish())
 				isPublishedOrCreated = true;
-		}
-		else {
+		} else {
 			eventType = "Solution_create";
 			isPublishedOrCreated = true;
 		}
@@ -282,11 +281,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			teamMembers.add(user.getShortId());
 			teamMembersEmails.add(user.getEmail());
 		}
-		if(isPublishedOrCreated) {
+		if (isPublishedOrCreated) {
 			LOGGER.debug("Publishing message on solution event for solution {} ", solutionName);
-			this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers,teamMembersEmails);
-		}else {
-			LOGGER.debug("Not publishing message on solution event for solution {} , as it is still in draft stage and not published", solutionName);
+			this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers, teamMembersEmails);
+		} else {
+			LOGGER.debug(
+					"Not publishing message on solution event for solution {} , as it is still in draft stage and not published",
+					solutionName);
 		}
 		return responseSolutionVO;
 	}
@@ -752,6 +753,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			Boolean mailRequired = true;
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "dna_system";
+			String userName = super.currentUserName(currentUser);
 
 			/*
 			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
@@ -762,17 +764,17 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 			if ("Solution_delete".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Deleted";
-				message = "Solution " + solutionName + " is delete by user " + userId;
+				message = "Solution " + solutionName + " is delete by user " + userName;
 				LOGGER.info("Publishing message on solution delete for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_update".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Updated";
-				message = "Solution " + solutionName + " is updated by user " + userId;
+				message = "Solution " + solutionName + " is updated by user " + userName;
 				LOGGER.info("Publishing message on solution update for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_create".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Created";
-				message = "Added as team member to Solution " + solutionName + " by user " + userId;
+				message = "Added as team member to Solution " + solutionName + " by user " + userName;
 				LOGGER.info("Publishing message on solution create for solution {} by userId {}", solutionName, userId);
 			}
 			if (eventType != null && eventType != "") {
