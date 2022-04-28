@@ -1,4 +1,4 @@
-FROM jupyter/pyspark-notebook-base:1.0
+FROM jupyter/pyspark-notebook:latest
 
 USER root
 
