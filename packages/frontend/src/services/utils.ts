@@ -135,13 +135,10 @@ export const getDateDifferenceFromToday = (dateFrom: string) => {
 };
 
 export const getDateDifferenceFromTodayUsingGetDate = (dateFrom: string) => {
-  const dateSplitted = dateFrom.split('-');
-  // Making format in MM-DD-YYYY;
-  const tempDate = dateSplitted[1] + '-' + dateSplitted[0] + '-' + dateSplitted[2];
-  const date1 = new Date(tempDate);
-  const date2 = new Date();
-  const diffTime = Math.abs(date2.getDate() - date1.getDate());
-  const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+  const now = new Date().getTime();
+  const dateF = new Date(dateFrom).getTime();
+  const diff = Math.abs(now - dateF);
+  const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24)) - 1;
   return diffDays;
 };
 
