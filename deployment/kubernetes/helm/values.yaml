@@ -8,7 +8,7 @@ frontend:
   namespace: dna
   imagePullSecret: 
     name: vddockerhub
-  # key: "docker-config"
+    #key: 
   ingress:
     enabled: true
     namespace: ingress
@@ -1135,7 +1135,7 @@ storagemfe:
         secretName: my-tls-secret
 
 storagebe:
-  enabled: true
+  enabled: false
     # Default values for storage-be.
   # This is a YAML-formatted file.
   # Declare variables to be passed into your templates.
