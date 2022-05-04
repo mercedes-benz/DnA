@@ -1187,3 +1187,5 @@ storagebe:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+minio:
+  enabled: true
