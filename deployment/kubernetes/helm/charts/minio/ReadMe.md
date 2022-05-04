@@ -1,4 +1,4 @@
-### **Setup Minio on DHCass**
+### **Setup Minio on Kubernetes Cluster**
 
 1. Download the [Helm Bitnami chart](https://artifacthub.io/packages/helm/bitnami/minio).
 2. Update the `values.yaml` based on the requirement. Basic properties need to update if your pull images from private  registry.
