@@ -13,10 +13,10 @@ Prerequisites for this are:
 
 As a first step you need to clone the Git Repo to your local computer, this is done by opening terminal/command prompt (or some visual git client you may have) and executing:
 
-    ```
-    $git clone https://github.com/mercedes-benz/DnA.git
+    
+    git clone https://github.com/mercedes-benz/DnA.git
 
-    ```
+    
 
 Once when cloning is finalized you will have a copy of the entire repository locally (replace <`<Cloned Folder>`> with actual location on your computer) and now you can simply start the application
 
