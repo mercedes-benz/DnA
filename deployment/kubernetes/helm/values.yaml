@@ -10,7 +10,7 @@ frontend:
     name: dockerregistry
     key: "docker-config" 
   ingress:
-    enabled: true
+    enabled: false
     namespace: ingress
     host: "localhost"
     lbIP: ""
@@ -99,7 +99,7 @@ backend:
     name: dockerregistry
     key: "docker-config" 
   ingress:
-    enabled: true
+    enabled: false
     namespace: ingress
     host: "ingress-host"
     lbIP: ""
@@ -227,8 +227,8 @@ clamav:
       config: 
         clamav_backend_url: clamav-service
         clamav_backend_port: 3310
-        max_file_size: 10MB
-        max_request_size: 11MB
+        max_file_size: 4000MB
+        max_request_size: 4000MB
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
@@ -255,7 +255,7 @@ clamav:
     replicaCount: 1
     pullPolicy: Always
   ingress:
-    enabled: true
+    enabled: false 
     host: "" 
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -334,7 +334,7 @@ naas:
   pullPolicy: Always
       
   ingress:
-    enabled: true
+    enabled: false
     host: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -387,7 +387,7 @@ notebooks:
       userNameSpaceTemplate: kubeflow
 
   ingress:
-    enabled: true
+    enabled: false
     host: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -403,7 +403,7 @@ notebooks:
   
   resources:
     cpu: 1
-    memory: 4G
+    memory: 1G
 
 #Subchart properties for dashboard
 dashboard:
@@ -418,19 +418,19 @@ dashboard:
     name: dashboard-secrets
     appUserName: dashboard
     appPassword: dashboard
-  
     jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+    
   appUrl: http://dna-service.dna.svc.cluster.local:80
   enableAuth: false
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
   flywayBaseline: "true"
   flywayBaselineOnMigrate: "true"
-  flywayBaselineVersion: 0
+  flywayBaselineVersion: "0"
   flywaySchema: "public"
   containerPort: 7173
   ingress:
-    enabled: true
+    enabled: false
     host: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -647,7 +647,7 @@ airflow:
       resourcePolicy: keep
       accessMode: ReadWriteOnce
       storage:
-        className: managed
+        className: ""
         size: 2Gi
 
   oidc:
@@ -810,7 +810,7 @@ vault:
     # By default no direct resource request is made.
 
     image:
-      repository: ""
+      repository: vault
       tag: latest
       # Overrides the default Image Pull Policy
       pullPolicy: IfNotPresent
@@ -1117,7 +1117,7 @@ storagemfe:
     port: 80
   
   ingress:
-    enabled: true
+    enabled: false
     annotations:
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -1140,7 +1140,7 @@ storagemfe:
         secretName: my-tls-secret
 
 storagebe:
-  enabled: false
+  enabled: true
     # Default values for storage-be.
   # This is a YAML-formatted file.
   # Declare variables to be passed into your templates.
@@ -1200,7 +1200,7 @@ storagebe:
 
   secret:
     - key: vaultToken
-      value: hvs.zhIzcBqwXwz5KkOpTvhFh5zE
+      value: ""
     - key: jwt.secret.key 
       value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
     - key: minioAccessKey 
