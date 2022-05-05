@@ -20,7 +20,6 @@ cd <<Clonned Folder>>/deployment/
 ```
 ```
 docker-compose -f docker-compose-local-basic.yml up
-
 ```
 
 Wait for a **2 minutes** and then open the website by going to http://localhost:8080 in your browser. If you made any changes on source files add `--build --force-recreate` args to docker-compose command. If you facing any issue with docker-compose, please refer [FAQ](./FAQ.md)
@@ -29,7 +28,6 @@ To stop the application
 
 ```
 docker-compose -f docker-compose-local-basic.yml down
-
 ```
 
 ### **Deploy DnA App in Kubernetes using Helm**
@@ -44,16 +42,15 @@ Prerequisites for this are:
 
 ```
 git clone https://github.com/mercedes-benz/DnA.git
-
 ```
 
 Once when cloning is finalized you will have a copy of the entire repository locally (replace <`<Cloned Folder>`> with actual location on your computer)
 
 ```
 cd <<Clonned Folder>>/deployment/
-
+```
+```
 docker-compose -f docker-compose-local-basic.yml build
-
 ```
 
 This above command will create images for DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker , Minio .
@@ -74,7 +71,6 @@ File is located at
 
 ```
 ./<<Clonned Folder>>deployment\kubernetes\helm\values.yaml
-
 ```
 For pulling the images from the registry, update the dockerconfigjson value in the values.yaml
 
@@ -82,14 +78,12 @@ For more info refer harbor-pull-secret manifest file
 
 ```
 cat <clonnedFloder>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
-
 ```
 Then enable the particular subchart which you would like to deploy using helm-
 
 set
 ```
 enabled: true #setting true will deploy the subchart
-
 ```
 Create namespace accordingly to the services you would like to deploy using helm .
 ```
@@ -111,27 +105,23 @@ Once done, Execute the below command to deploy application on the kubernetes clu
 
 ```
 cd <<Clonned Folder>>\deployment\kubernetes\helm
-
+```
+```
 helm install dna . -f values.yaml
-
 ```
 To list helm release
-
 ```
 helm list
-
 ```
 Do Helm Upgrade, if you made changes on helm files
 
 ```
 helm upgrade dna . -f values.yaml
-
 ```
 To uninstall the helm app
 
 ```
 helm uninstall dna
-
 ```
 
 DnA Platform can be configured quite a lot, have a look at possible config parameters:
