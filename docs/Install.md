@@ -45,7 +45,7 @@ Prerequisites for this are:
 As a first step you need to clone the Git Repo to your local computer, this is done by opening terminal/command prompt (or some visual git client you may have) and executing:
 
 ```
-git clone https://github.com/Daimler/DnA.git
+git clone https://github.com/mercedes-benz/DnA.git
 ```
 
 Once when cloning is finalized you will have a copy of the entire repository locally (replace <`<Cloned Folder>`> with actual location on your computer)
@@ -56,7 +56,7 @@ cd <<Clonned Folder>>/deployment/
 docker-compose -f docker-compose-app.yml build
 ```
 
-The above same command can be used to build other images  for airflow,dashboard,malware,naas,notebook. Just change the particular file name in the command.
+The above same command can be used to build other images  for dashboard,malware,naas,Minio and storage. Just change the particular file name in the command.
 
 Once the images are build. Push the images to your docker repository.
 
@@ -79,7 +79,7 @@ enabled: true #setting true will deploy the subchart
 Once done, Execute the below command to deploy application on the kubernetes cluster. Make sure the namespace are already created before deploying the application on cluster.If not use the below command-
 
 ```
-kubectl create ns airflow
+ Eg : kubectl create ns airflow
 ```
 
 ```
