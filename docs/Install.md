@@ -80,7 +80,7 @@ Before proceeding with the installation, update the image names in the values.ya
 For pulling the images from the registry, update the dockerconfigjson value in the values.yaml
     
     For more info refer harbor-pull-secret manifest file
-     
+
     ```
     $cat <clonnedFloder>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
 
@@ -96,7 +96,7 @@ Then enable the particular subchart which you would like to deploy using helm-
 
     ```
 
-Create namespace accordingly to which service you would like to deploy using helm . 
+Create namespace accordingly to the services you would like to deploy using helm . 
 
     For ref:
         dna namespace contains "Dna-Frontend , DnA backend , Bitnami-postgres"
