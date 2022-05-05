@@ -7,8 +7,8 @@ frontend:
   enabled: true
   namespace: dna
   imagePullSecret: 
-    name: vddockerhub
-    #key: 
+    name: dockerregistry
+    key: "docker-config" 
   ingress:
     enabled: true
     namespace: ingress
@@ -96,8 +96,8 @@ backend:
   enabled: true
   namespace: dna
   imagePullSecret: 
-    name: vddockerhub
-  # key: "docker-config" 
+    name: dockerregistry
+    key: "docker-config" 
   ingress:
     enabled: true
     namespace: ingress
@@ -263,7 +263,8 @@ clamav:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: "" 
   imagePullSecret: 
-    name: vddockerhub
+    name: dockerregistry
+    key: "docker-config" 
 
   Storage:
     storageClass: managed
@@ -341,7 +342,8 @@ naas:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
   imagePullSecret: 
-   name: vddockerhub
+   name: dockerregistry
+   key: "docker-config" 
   
 #Subchart properties for notebooks
 notebooks:
@@ -408,7 +410,8 @@ dashboard:
   namespace: dashboard
   image: vardhandevalla/dashboard-backend
   imagePullSecret: 
-    name: vddockerhub
+    name: dockerregistry
+    key: "docker-config" 
   dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
   secret:
     name: dashboard-secrets
@@ -461,7 +464,8 @@ airflow:
   appName: airflow
   namespace: airflow
   imagePullSecret: 
-    name: vddockerhub
+    name: dockerregistry
+    key: "docker-config" 
   backend:
     image: vardhandevalla/airflow-backend-2
     imagePullPolicy: Always
@@ -795,7 +799,7 @@ vault:
     # Image pull secret to use for registry authentication.
     imagePullSecrets:
     # imagePullSecrets:
-       - name: vddockerhub
+       - name: dockerregistry
     # TLS for end-to-end encrypted transport
     tlsDisable: true
 
@@ -1098,7 +1102,7 @@ storagemfe:
 
 
   imagePullSecrets:
-    - name: vddockerhub
+    - name: dockerregistry
 
   nameOverride: ""
   fullnameOverride: "storage-mfe"
@@ -1212,7 +1216,7 @@ storagebe:
     tag: latest
 
   imagePullSecrets:
-    - name: vddockerhub
+    - name: dockerregistry
   nameOverride: ""
   fullnameOverride: "storage-be"
 
