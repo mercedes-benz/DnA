@@ -23,7 +23,7 @@ frontend:
   appFrontend:
     replicaCount: 1
     #Specify the frontend image, after building the image from docker file
-    image: dna-app-frontend01:latest
+    image: ""
     config:
     #If you want to enable OIDC authentication then set oidcDisabled to "false"
       oidcDisabled: true
@@ -60,21 +60,21 @@ frontend:
       enableInternalUserInfo: true
       enableDataCompliance: true
     # Set enabledReports to "true" if you want to enable reports, by default value is "false"
-      enabledReports: true
+      enabledReports: false
     # Set enableJupyterWorkspace to "true", if you want to enable Jupyter Workspace
       enableJupyterWorkspace: false
     # Set enableDataikuWorkspace to "true", if you want to enable Dataiku Workspace, by default value is "false"
       enableDataikuWorkspace: false
-      enableMalwareService: true
+      enableMalwareService: false
       enableDataPipelineService: false
     # Set enableStorageService to "true" to enable Storage Service
-      enableStorageService: true
+      enableStorageService: false
       storageMFEAppURL: http://localhost:7175
       enablePipelineService: false
       enabledMlPipelineService: false
       enableMalwareApiInfo: false
     # If you want to enable notification, set enableNotification to "true", by default it is false
-      enableNotification: true
+      enableNotification: false
     # Specify the company name 
       companyName: XYZ
       backendHost: dna-service
@@ -113,7 +113,7 @@ backend:
     backend:
       replicaCount: 1
       
-      image: dna-app-backend:latest
+      image: ""
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
@@ -144,7 +144,8 @@ backend:
         internalUserRequestUrl: ""
         internalCertFile: ""
         oidcDisabled: true
-        s3BucketName: dna
+        #Create a bucket in the minio and mention the bucket name in the s3BuckerName
+        s3BucketName: ""
         s3Url: http://minio.storage.svc.cluster.local:9000
         corosOriginUrl: http://localhost:7179
         jupyterNotebookUrl: "" 
@@ -169,7 +170,7 @@ backend:
     vault:
       secret:
         name: vault-secrets
-        rootToken: ***REMOVED***
+        rootToken: ""
 
 #Suchart properties for i3postgressql database
 i3postgresql:
@@ -178,7 +179,7 @@ i3postgresql:
   app:
     db:
       replicaCount: 1
-      image: postgresql:10.3-2.1.0
+      image: ""
       pgssl: "NO"
       dbname: db
       secrets: 
@@ -218,7 +219,7 @@ clamav:
   app:
     backend:
       name: clamav-rest
-      image: malware-backend:latest
+      image: ""
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -250,7 +251,7 @@ clamav:
         path: /avscan/actuator/health/readiness
         port: api
   image:
-    repo: clamav:latest
+    repo: ""
     replicaCount: 1
     pullPolicy: Always
   ingress:
@@ -267,7 +268,7 @@ clamav:
     key: "docker-config" 
 
   Storage:
-    storageClass: managed
+    storageClass: ""
     accessModes: ReadWriteOnce
     size: 2G
 
@@ -286,7 +287,7 @@ naas:
   namespace: naas
   app:
     backend:
-      image: naas-backend:latest
+      image: ""
       secrets:
         name: naas-app-secrets
         authApiToken: ""
@@ -396,7 +397,7 @@ notebooks:
       cert-manager.io/cluster-issuer: ""
 
   Storage:
-    storageClass: cinder
+    storageClass: ""
     accessModes: ReadWriteOnce
     size: 1G
   
@@ -408,7 +409,7 @@ notebooks:
 dashboard:
   enabled: true
   namespace: dashboard
-  image: dashboard-backend
+  image: ""
   imagePullSecret: 
     name: dockerregistry
     key: "docker-config" 
@@ -467,14 +468,14 @@ airflow:
     name: dockerregistry
     key: "docker-config" 
   backend:
-    image: airflow-backend-2
+    image: ""
     imagePullPolicy: Always
     dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
       name: airflow-backend-secrets
       dbPassword: airflow
       dbUsername: airflow
-      gitToken: ***REMOVED***
+      gitToken: "" 
       jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
       oidcClientID: ""
       oidcClientSecret: ""
@@ -485,7 +486,7 @@ airflow:
     oidcIntrospectionUrl: "" 
     oidcRevocationUrl: "" 
     oidcDisabled: true
-    gitUrl: https://:***REMOVED***@github.com/airflow_dags.git
+    gitUrl: ""
     gitMountPath: /git/airflow-user-dags
     gitBranch: main
     dag:
@@ -521,7 +522,7 @@ airflow:
     #clientSecret: eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
 
   gitSync:
-    image: airflow-git-sync:latest
+    image: ""
     repo: https://github.com/airflow_dags.git
     dest: git-sync
     branch: main
@@ -597,7 +598,7 @@ airflow:
 
   docker:
     image:
-      name: airflow-frontend-4
+      name: ""
       tag: latest
 
   service:
@@ -654,7 +655,7 @@ airflow:
       uri: ""
 
   Storage:
-    storageClass: managed 
+    storageClass: ""
     accessModes: ReadWriteOnce
     size: 1Gi
   
@@ -809,7 +810,7 @@ vault:
     # By default no direct resource request is made.
 
     image:
-      repository: docker.io/vault
+      repository: ""
       tag: latest
       # Overrides the default Image Pull Policy
       pullPolicy: IfNotPresent
@@ -947,7 +948,7 @@ vault:
       size: 1Gi
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: managed
+      storageClass: ""
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
 
@@ -962,7 +963,7 @@ vault:
       size: 1Gi
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: managed
+      storageClass: ""
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
 
@@ -1095,7 +1096,7 @@ storagemfe:
   replicaCount: 1
 
   image:
-    repository: docker.io/storage_frontend_mfe
+    repository: ""
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
@@ -1210,7 +1211,7 @@ storagebe:
   replicaCount: 1
 
   image:
-    repository: docker.io/storage_mfe_backend
+    repository: ""
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
