@@ -1,6 +1,6 @@
 ## **Install with docker-compose**
 
-Docker Compose will help to start the application locally on your computer and provide support to develop and debug the docker container in the local machine.
+Docker Compose will help to start the application locally on your computer and provide support to develop and debug the docker containers in the local machine.
 
 Prerequisites for this are:
 
@@ -11,7 +11,7 @@ Prerequisites for this are:
   
   **Note:** For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL
 
-As a first step you need to clone the Git Repo to your local computer, this can be done by executing the below command on terminal/command prompt/some visual git client.
+As a first step you need to clone the Git Repo to your local computer, this can be done by executing the below command on terminal/command prompt/some visual git client(GithubDesktop)
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
@@ -24,7 +24,7 @@ Execute the below docker-compose command to create the DnA application
 docker-compose -f docker-compose-local-basic.yml up
 ```
 
-Wait for a **2 minutes** and then open the website by going to http://localhost:8080 in your browser. If you made any changes on source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose, please refer [FAQ](./FAQ.md)
+Wait for a **2 minutes** and then open the website by going to http://localhost:8080 in your browser. If you made any changes on source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md)
 
 To stop the application
 
@@ -51,7 +51,7 @@ Once when cloning is finishied  you will have a copy of the entire repository lo
 ```
 cd <<Clonned Folder>>/deployment/
 ```
-Execute the below command for create images of DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker , Minio .
+Execute the below command for creating images of DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker and Minio .
 ```
 docker-compose -f docker-compose-local-basic.yml build
 ```
@@ -110,7 +110,7 @@ https://github.com/bitnami/charts/tree/master/bitnami/kafka
 ```
 After installing the kafka, update the value of naasBroker to kafka-service-FQDN in values.yaml
 
-Execute the below command to deploy application on the kubernetes cluster using helm
+Execute the below commands to deploy application on the kubernetes cluster using helm
 
 ```
 cd <<Clonned Folder>>\deployment\kubernetes\helm
@@ -149,5 +149,7 @@ or follow simple instructions on how to use simple and free Open ID Connect iden
 
 **Note:**
 
-*For storing the secrets , go to vault service and enable the KV engine
+*For storing the secrets , go to vault service and enable the KV engine.
+
+*If you face any issue with helm installation, refer [FAQ](./FAQ.md)
 
