@@ -11,7 +11,7 @@ Prerequisites for this are:
 
 **Note:** For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL
 
-as a first step you need to clone the Git Repo to your local computer, this is done by opening terminal/command prompt (or some visual git client you may have) and executing:
+As a first step you need to clone the Git Repo to your local computer, this is done by opening terminal/command prompt (or some visual git client you may have) and executing:
 
 ```
 git clone https://github.com/mercedes-benz/DnA.git
@@ -121,3 +121,18 @@ or follow simple instructions on how to use simple and free Open ID Connect iden
 * [About docker-compose.](https://docs.docker.com/compose/)
 * [Helm installation](https://helm.sh/docs/intro/install/)
 * [About Helm](https://helm.sh/docs/)
+
+
+**Note:**
+
+    hashiCorp vault readiness probe value will fail for first time with the below error 
+        "Readiness probe failed: Key Value --- ----- Seal Type shamir Initialized true Sealed true Total Shares 5 Threshold 3 Unseal Progress 0/3 Unseal Nonce n/a Version 1.10.0 Storage Type file HA Enabled false"
+
+        For this you need to unseal the root key .
+
+        $kubectl exec vault-0 -n vault  -- vault operator unseal QoTLznQB2ZnjUPa+1XMs+jCFJX21lEocnqubQuWR7w1l
+        $kubectl exec vault-0 -n vault  -- vault operator unseal pmvLcr5E3UzITy1+bvfFj+hovUI63KWJzQ6rh+/X0wUM
+        $kubectl exec vault-0 -n vault  -- vault operator unseal IA5sB27LyzuORbMc9IdRtQ3oKAHgsGsnaWtnl3qKAKAb
+
+    For storing the secrets , go to vault service and enable the KV engine 
+
