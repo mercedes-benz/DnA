@@ -23,7 +23,7 @@ frontend:
   appFrontend:
     replicaCount: 1
     #Specify the frontend image, after building the image from docker file
-    image: vardhandevalla/dna-app-frontend01:latest
+    image: dna-app-frontend01:latest
     config:
     #If you want to enable OIDC authentication then set oidcDisabled to "false"
       oidcDisabled: true
@@ -113,7 +113,7 @@ backend:
     backend:
       replicaCount: 1
       
-      image: vardhandevalla/dna-app-backend:latest
+      image: dna-app-backend:latest
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
@@ -218,7 +218,7 @@ clamav:
   app:
     backend:
       name: clamav-rest
-      image: vardhandevalla/malware-backend:latest
+      image: malware-backend:latest
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -250,7 +250,7 @@ clamav:
         path: /avscan/actuator/health/readiness
         port: api
   image:
-    repo: vardhandevalla/clamav:latest
+    repo: clamav:latest
     replicaCount: 1
     pullPolicy: Always
   ingress:
@@ -286,7 +286,7 @@ naas:
   namespace: naas
   app:
     backend:
-      image: vardhandevalla/naas-backend:latest
+      image: naas-backend:latest
       secrets:
         name: naas-app-secrets
         authApiToken: ""
@@ -408,7 +408,7 @@ notebooks:
 dashboard:
   enabled: true
   namespace: dashboard
-  image: vardhandevalla/dashboard-backend
+  image: dashboard-backend
   imagePullSecret: 
     name: dockerregistry
     key: "docker-config" 
@@ -467,7 +467,7 @@ airflow:
     name: dockerregistry
     key: "docker-config" 
   backend:
-    image: vardhandevalla/airflow-backend-2
+    image: airflow-backend-2
     imagePullPolicy: Always
     dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
@@ -485,7 +485,7 @@ airflow:
     oidcIntrospectionUrl: "" 
     oidcRevocationUrl: "" 
     oidcDisabled: true
-    gitUrl: https://vardhandevalla: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@github.com/Vardhandevalla/airflow_dags.git
+    gitUrl: https://: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@github.com/airflow_dags.git
     gitMountPath: /git/airflow-user-dags
     gitBranch: main
     dag:
@@ -512,8 +512,8 @@ airflow:
 
   pullSecretData: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoibXZhZ3VzdGFARjQiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNmJYWmhaM1Z6ZEdGQVJqUT0ifX19
   secret:
-    gitUserName: vardhandevalla
-    gitPassword: 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
+    gitUserName: 
+    gitPassword: 
     #gitSshKey: ""
     knownHosts: ""
     postgresql:
@@ -521,8 +521,8 @@ airflow:
     #clientSecret: eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
 
   gitSync:
-    image: vardhandevalla/airflow-git-sync:latest
-    repo: https://github.com/Vardhandevalla/airflow_dags.git
+    image: airflow-git-sync:latest
+    repo: https://github.com/airflow_dags.git
     dest: git-sync
     branch: main
     ssh: "false"
@@ -586,7 +586,7 @@ airflow:
       dagsInImage: false
       gitSubpath: dags
       inCluster: True
-      gitSyncContainerRepository: vardhandevalla/airflow-git-sync
+      gitSyncContainerRepository: airflow-git-sync
       gitSyncContainerTag: latest
       gitSyncInitContainerName: git-sync-container
       gitSyncRunAsUser: 1000
@@ -597,7 +597,7 @@ airflow:
 
   docker:
     image:
-      name: vardhandevalla/airflow-frontend-4
+      name: airflow-frontend-4
       tag: latest
 
   service:
@@ -809,7 +809,7 @@ vault:
     # By default no direct resource request is made.
 
     image:
-      repository: docker.io/vardhandevalla/vault
+      repository: docker.io/vault
       tag: latest
       # Overrides the default Image Pull Policy
       pullPolicy: IfNotPresent
@@ -1095,7 +1095,7 @@ storagemfe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/storage_frontend_mfe
+    repository: docker.io/storage_frontend_mfe
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
@@ -1210,7 +1210,7 @@ storagebe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/storage_mfe_backend
+    repository: docker.io/storage_mfe_backend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
