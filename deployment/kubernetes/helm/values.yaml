@@ -154,7 +154,7 @@ backend:
         dataikuProdAdminGroup: "" 
         dataikutraininguri: ""
         avscanAppId: ""
-        naasBroker: kafka-headless.kafka.svc.cluster.local:9092
+        naasBroker: ""
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
@@ -296,7 +296,7 @@ naas:
           appPassword: postgres
       config:
         api_db_url: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
-        naas_broker: kafka-headless.kafka.svc.cluster.local:9092
+        naas_broker: ""
         max_poll_records: 6000
         dna_uri: http://dna-service.dna.svc.cluster.local:80
         dna_auth_enable: false
