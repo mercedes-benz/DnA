@@ -171,14 +171,20 @@ or follow simple instructions on how to use simple and free Open ID Connect iden
 
 **Note:**
 
-    hashiCorp vault readiness probe value will fail for first time with the below error 
+    *hashiCorp vault readiness probe value will fail for first time with the below error 
         "Readiness probe failed: Key Value --- ----- Seal Type shamir Initialized true Sealed true Total Shares 5 Threshold 3 Unseal Progress 0/3 Unseal Nonce n/a Version 1.10.0 Storage Type file HA Enabled false"
 
-        For this you need to unseal the root key .
+        For this you need to unseal the vault.
 
-        $kubectl exec vault-0 -n vault  -- vault operator unseal QoTLznQB2ZnjUPa+1XMs+jCFJX21lEocnqubQuWR7w1l
-        $kubectl exec vault-0 -n vault  -- vault operator unseal pmvLcr5E3UzITy1+bvfFj+hovUI63KWJzQ6rh+/X0wUM
-        $kubectl exec vault-0 -n vault  -- vault operator unseal IA5sB27LyzuORbMc9IdRtQ3oKAHgsGsnaWtnl3qKAKAb
+            $kubectk exec vault-0 -n vault -- vault operator init
 
-    For storing the secrets , go to vault service and enable the KV engine 
+                (# The output will contain one root key and 5 sample keys)
+                (# use any 3 keys out of the 5 sample keys  in the below commands to unseal the vault)
+                (# Update the root key value in vault.secret.roottoken parameter in the values.yaml )
+
+            $kubectl exec vault-0 -n vault  -- vault operator unseal key1
+            $kubectl exec vault-0 -n vault  -- vault operator unseal key2
+            $kubectl exec vault-0 -n vault  -- vault operator unseal key3
+
+    *For storing the secrets , go to vault service and enable the KV engine 
 
