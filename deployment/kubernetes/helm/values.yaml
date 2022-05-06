@@ -238,6 +238,9 @@ clamav:
         loggingEnvironment: dev
         corsOriginUrl: ""
 
+  securityContext:
+    runasUser: 0 
+
     probes:
       initialDelaySeconds: 60
       timeoutSeconds: 10
