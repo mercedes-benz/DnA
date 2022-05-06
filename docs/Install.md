@@ -2,11 +2,14 @@
 
 Docker Compose will help to start the application locally on your computer and provide support to develop and debug the docker containers in the local machine.
 
-Prerequisites for this are:
+Software Prerequisites for this are:
 
 * Git
 * Docker
 * Docker Compose
+
+Hardware Prerequisites for this are:
+
 * Recommend 8GB RAM
   
   **Note:** For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL
@@ -21,9 +24,12 @@ cd <<Clonned Folder>>/deployment/
 ```
 Execute the below docker-compose command to create the DnA application
 ```
-docker-compose -f docker-compose-local-basic.yml up
+docker-compose -f docker-compose-local-basic.yml up -d
 ```
-
+For Reference:
+```
+https://github.com/vardhandevalla/dna/blob/feature/helm-opensource2/docker-compose-success.png?raw=true
+```
 Wait for **2 minutes** and then open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md)
 
 To stop the application
