@@ -13,19 +13,19 @@ app:
       kf_pipelines_endpoint: http://ml-pipeline-ui.kubeflow
 
   image:
-    name: jupyterhub:1.0
+    name: learnatdocker/jupyterhub:1.0
     pullPolicy: IfNotPresent
 
   profileListImages:
-    default: pyspark-notebook:1.0-default
-    tensorflow: pyspark-notebook:1.0-tensorflow
+    default: learnatdocker/pyspark-notebook:1.0-default
+    tensorflow: learnatdocker/pyspark-notebook:1.0-tensorflow
 
   proxy:
-    image: configurable-http-proxy:latest
+    image: learnatdocker/configurable-http-proxy:latest
 
   hubConfig:
     name: hub-config
-    KubeSpawnerimage: pyspark-notebook:1.0-default
+    KubeSpawnerimage: learnatdocker/pyspark-notebook:1.0-default
     securitycontext: ""
     serviceAccount: hub 
     oauthAuthenticator: GenericOAuthenticator
@@ -52,7 +52,7 @@ ingress:
     cert-manager.io/cluster-issuer: ""
 
 Storage:
-  storageClass: cinder
+  storageClass: managed
   accessModes: ReadWriteOnce
   size: 1G
 
