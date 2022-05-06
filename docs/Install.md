@@ -28,7 +28,7 @@ docker-compose -f docker-compose-local-basic.yml up -d
 ```
 For Reference:
 
-https://github.com/vardhandevalla/dna/blob/feature/helm-opensource2/docker-compose-success.png?raw=true
+![This is an image](https://github.com/vardhandevalla/dna/blob/feature/helm-opensource2/docker-compose-success.png?raw=true)
 
 Wait for **2 minutes** and then open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md)
 
