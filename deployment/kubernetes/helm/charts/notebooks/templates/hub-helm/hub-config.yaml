@@ -336,13 +336,6 @@ data:
                 'image': {{ .Values.app.profileListImages.tensorflow | squote }},
                 'mem_limit': '6G',
             }
-        }, {
-            'display_name': 'Chronos Environment',
-            'description': "Notebook with sktime and chronos libraries included",
-            'kubespawner_override': {
-                'image': {{ .Values.app.profileListImages.chronos | squote }},
-                'mem_limit': '8G',
-            }
         }
         ]  
 

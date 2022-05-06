@@ -19,7 +19,6 @@ app:
   profileListImages:
     default: pyspark-notebook:1.0-default
     tensorflow: pyspark-notebook:1.0-tensorflow
-    chronos: ""
 
   proxy:
     image: configurable-http-proxy:latest
