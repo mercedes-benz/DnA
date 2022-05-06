@@ -2,13 +2,13 @@
 
 Docker Compose will help to start the application locally on your computer and provide support to develop and debug the docker containers in the local machine.
 
-Software Prerequisites for this are:
+Software Prerequisites:
 
 * Git
 * Docker
 * Docker Compose
 
-Hardware Prerequisites for this are:
+Hardware Prerequisites :
 
 * Recommend 8GB RAM
   
@@ -28,25 +28,25 @@ docker-compose -f docker-compose-local-basic.yml up -d
 ```
 For Reference:
 
-![This is an image](https://github.com/vardhandevalla/dna/blob/feature/helm-opensource2/docker-compose-success.png?raw=true)
+![image](/images/Docker-compose-sucess.png)
 
-Wait for **2 minutes** and then open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md)
+Open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md)
 
 To stop the application
 
 ```
 docker-compose -f docker-compose-local-basic.yml down
 ```
-
-### **Deploy DnA App in Kubernetes using Helm**
+## **Install with Helm**
 
 Helm helps you to deploy and manage Kubernetes applications in an easier way.
 
-Prerequisites for this are:
+Prerequisites :
 
 * Kubernetes Cluster
 * Helm
-  
+* Docker Image Regitsry
+
 As a first step you need to clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some_visual_git_client(GithubDesktop)).
 
 ```
@@ -65,18 +65,16 @@ Execute the below command to create storage-service images ( Storage-mfe and sto
 ```
 docker-compose -f docker-compose-storage.yml build  
 ```
-Just like the above storage-service command, we can build each service images independently (docker-compose -f <docker-compose-service-file-name.yml> build) .
-
 Once the images are build. Push the images to your docker repository.
 
-Before proceeding with the installation, update the image names in the values.yaml
+Before proceeding with the installation, update the image names and required parameters in the values.yaml
 
 File is located at 
 
 ```
 <<Clonned Folder>>deployment\kubernetes\helm\values.yaml
 ```
-For pulling the images from the registry, update the dockerconfigjson value in the values.yaml
+For pulling the images from the registry, update the docker.configjson value in the values.yaml
 
 For more info on kubernetes secret for pulling the images , refer harbor-pull-secret manifest file.
 
