@@ -9,41 +9,41 @@ namespace: notebooks
 app:
   jupyter:
     config:
-      configproxy_auth_token: ""
-      kf_pipelines_endpoint: ""
+      configproxy_auth_token: 5D922D731CBA136B44FD76BABD89B
+      kf_pipelines_endpoint: http://ml-pipeline-ui.kubeflow
 
   image:
-    name: ""
-    pullPolicy: Always
+    name: jupyterhub:1.0
+    pullPolicy: IfNotPresent
 
   profileListImages:
-    default: ""
-    tensorflow: ""
+    default: pyspark-notebook:1.0-default
+    tensorflow: pyspark-notebook:1.0-tensorflow
     chronos: ""
 
   proxy:
-    image: ""
+    image: configurable-http-proxy:latest
 
   hubConfig:
     name: hub-config
-    KubeSpawnerimage: ""
-    serviceAccount: hub 
+    KubeSpawnerimage: pyspark-notebook:1.0-default
     securitycontext: ""
-    oauthAuthenticator: ""
-    oauthClientId: ""
-    oauthClientSecret: ""
-    oauthCallback: ""
-    oauthAuthorizeUrl: ""
-    oauthTokenUrl: ""
-    oauthUserDataUrl: ""
-    oauthUsrKey: ""
-    oauthLoginSvc: ""
+    serviceAccount: hub 
+    oauthAuthenticator: GenericOAuthenticator
+    oauthClientId: XXXX
+    oauthClientSecret: XXXX
+    oauthCallback: XXXX
+    oauthAuthorizeUrl: XXXX
+    oauthTokenUrl: XXXX
+    oauthUserDataUrl: XXXX
+    oauthUsrKey: sub
+    oauthLoginSvc: OIDC
     prespawn_hook: ""
     enableUserNS: "False"
     userNameSpaceTemplate: kubeflow
 
 ingress:
-  enabled: true
+  enabled: false
   host: ""
   annotations:
     traefik.frontend.rule.type: PathPrefix
