@@ -118,7 +118,7 @@ cd <<Clonned Folder>>\deployment\kubernetes\helm
 ```
 helm install dna . -f values.yaml
 ```
-To list helm release
+Execute the below command to list out the helm releases
 ```
 helm list
 ```
