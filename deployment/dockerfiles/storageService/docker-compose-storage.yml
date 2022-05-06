@@ -1,4 +1,4 @@
--version: "2.1"
+version: "2.1"
 services:
   storage-mfe:
     image: ${STORAGE_MFE:-storage_mfe}
