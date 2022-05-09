@@ -61,7 +61,7 @@ spec:
         #     initialDelaySeconds: 20
         #     timeoutSeconds: 2
       securityContext:
-        runAsUser: values.securityContext.runasUser
+        runAsUser: {{ .Values.securityContext.runasUser }}
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret.name }}
       # volumes:
