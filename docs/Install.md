@@ -28,7 +28,7 @@ docker-compose -f docker-compose-local-basic.yml up -d
 ```
 For Reference:
 
-![This is an image](/images/Docker-compose-sucess.png)
+![This is an image](./images/Docker-compose-sucess.png)
 
 Open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md)
 
