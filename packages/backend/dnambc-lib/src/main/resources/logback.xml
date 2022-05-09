@@ -6,9 +6,8 @@
      <property name="LOG_FILE" value="${logPath}/${applicationName}"/>
      
      <property name="LOG_PATTERN"
-     		   value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p
+     		   value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(
      		   [${applicationName}]
-     		   ,%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-} 
      		   )
      		   %clr([%mdc{env:-null}][%mdc{user:-null}]){faint} %clr(---){faint} %clr([%15.15t]){faint}
      		   %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION+CONVERSION_WORD:-%wEx}" />

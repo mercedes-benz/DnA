@@ -1,7 +1,14 @@
-FROM openjdk:14-jdk-alpine
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
-ARG JAR_FILE=dashboard-lib/build/libs/*.jar
-COPY ${JAR_FILE} dashboard-lib-1.0.0.jar
+#Step-1
+FROM gradle:7.4.1-jdk17 AS TEMP_BUILD_IMAGE
+COPY --chown=gradle:gradle . /home/gradle/src
+WORKDIR /home/gradle/src
+RUN gradle build --no-daemon
+#Step-2
+FROM openjdk:17-jdk
+ENV ARTIFACT_NAME=dashboard-lib-1.0.0.jar
+ENV APP_HOME=/usr/app/
+WORKDIR $APP_HOME
+COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/dashboard-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
+
 EXPOSE 7173
-ENTRYPOINT ["java","-jar","/dashboard-lib-1.0.0.jar"]
+CMD java -jar $ARTIFACT_NAME

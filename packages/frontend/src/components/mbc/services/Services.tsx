@@ -8,7 +8,8 @@ const Services = () => {
   const ENABLE_MALWARE_SCAN_SERVICE = Envs.ENABLE_MALWARE_SCAN_SERVICE;
   const enableDataPipelineService = Envs.ENABLE_DATA_PIPELINE_SERVICE;
   const enableMLPipelineService = Envs.ENABLE_ML_PIPELINE_SERVICE;
-  const MLPipelineUrl = enableMLPipelineService? Envs.ML_PIPELINE_URL : '#/comingsoon';
+  const enableStorageService = Envs.ENABLE_STORAGE_SERVICE;
+  const MLPipelineUrl = enableMLPipelineService ? Envs.ML_PIPELINE_URL : '#/comingsoon';
 
   const malwareNav = () => {
     if (ENABLE_MALWARE_SCAN_SERVICE) {
@@ -20,6 +21,13 @@ const Services = () => {
   const pipelineNav = () => {
     if (enableDataPipelineService) {
       history.push('/pipeline');
+    } else {
+      history.push('/comingsoon');
+    }
+  };
+  const storageNav = () => {
+    if (enableStorageService) {
+      history.push('/storage');
     } else {
       history.push('/comingsoon');
     }
@@ -55,7 +63,12 @@ const Services = () => {
                 </span>
               </div>
             </div>
-            <a className={classNames("wrapper-link", Styles.WorkspacesNavigation)} href={MLPipelineUrl} target="_blank" rel="noreferrer">
+            <a
+              className={classNames('wrapper-link', Styles.WorkspacesNavigation)}
+              href={MLPipelineUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
               <div className={Styles.WorkspacesNavigationVisual}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> ML Pipeline {!enableMLPipelineService && <label> ( Coming Soon ) </label>} </span>
@@ -65,6 +78,18 @@ const Services = () => {
                 </span>
               </div>
             </a>
+          </div>
+          <div className={Styles.Workspaces}>
+            <div className={Styles.WorkspacesNavigation} onClick={storageNav}>
+              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={Styles.WorkspacesNavigationTitle}>
+                <span> My Storage {!enableStorageService && <label> ( Coming Soon ) </label>} </span>
+                <span>
+                  {' '}
+                  <i className="icon mbc-icon arrow small right"></i>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -58,7 +58,7 @@ export class NotificationPanel extends React.Component<IHeaderNotificationPanelP
         className={classNames((this.props.show) ? Styles.NotificationPanelContentesection : 'hide')}
         ref={this.connectContainer}
       >
-        <div className={Styles.uparrow}> &nbsp; </div>
+        <div className={Styles.uparrow} />
         {notifications? notifications.length > 0 ? 
         (
           <div>
@@ -93,13 +93,30 @@ export class NotificationPanel extends React.Component<IHeaderNotificationPanelP
           </div>
         )
         :(
-        <div className={Styles.noData}>
-          There are no unread notifications
+        <div>
+          <div className={Styles.noData}>
+            There are no unread notifications
+          </div>
+          <div className={Styles.showAllNotificationLink}>
+            <span onClick={this.showMoreNotifications}>
+              {' '}
+              Show More <i className="icon mbc-icon arrow right small " />{' '}
+            </span>
+          </div>
         </div>
+        
         )
         :(
-        <div className={Styles.noData}>
-          There are no unread notifications
+        <div>
+          <div className={Styles.noData}>
+            There are no unread notifications
+          </div>
+          <div className={Styles.showAllNotificationLink}>
+            <span onClick={this.showMoreNotifications}>
+              {' '}
+              Show More <i className="icon mbc-icon arrow right small " />{' '}
+            </span>
+          </div>
         </div>
         )}
         

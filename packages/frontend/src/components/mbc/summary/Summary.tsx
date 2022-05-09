@@ -8,7 +8,7 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
-import { ConfirmModal } from '../../../components/formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../components/formElements/modal/confirmModal/ConfirmModal';
 import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES } from '../../../globals/constants';
 import {
   IBookMarks,
@@ -179,6 +179,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         publish: false,
         bookmarked: false,
         neededRoles: [],
+        createdDate: '',
+        lastModifiedDate: ''
       },
       canShowDataSources: false,
       canShowDigitalValue: false,
@@ -240,6 +242,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
         solution={this.state.solution}
+        lastModifiedDate={this.state.solution.lastModifiedDate}
+        createdDate={this.state.solution.createdDate}
         canShowTeams={this.state.canShowTeams}
         canShowPlatform={this.state.canShowPlatform}
         canShowMilestones={this.state.canShowMilestones}
@@ -329,6 +333,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       canEdit={isAdmin !== undefined || userInfo.id === this.checkUserCanEditSolution(userInfo)}
                       solutionId={this.state.response.data ? this.state.response.data.id : ''}
                       bookmarked={this.state.solution.bookmarked}
+                      lastModifiedDate={this.state.solution.lastModifiedDate}
+                      createdDate={this.state.solution.createdDate}
                       onEdit={this.onEditSolution}
                       onDelete={this.onDeleteSolution}
                       updateBookmark={this.updateBookmark}
@@ -483,6 +489,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.openSegments = res.openSegments;
             solution.publish = res.publish;
             solution.createdBy = res.createdBy;
+            solution.createdDate = res.createdDate;
+            solution.lastModifiedDate = res.lastModifiedDate;
             this.setState(
               {
                 response,

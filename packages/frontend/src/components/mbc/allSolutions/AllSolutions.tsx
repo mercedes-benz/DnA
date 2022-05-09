@@ -31,15 +31,15 @@ import {
 } from '../../../globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 
 import Styles from './AllSolutions.scss';
 import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 
 import { getQueryParameterByName } from '../../../services/Query';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
-import { trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 
 import SolutionsFilter from '../filters/SolutionsFilter';
@@ -776,55 +776,11 @@ export default class AllSolutions extends React.Component<
     const queryParams = this.state.queryParams;
     const locationIds = queryParams.location.join(',');
     const phaseIds = queryParams.phase.join(',');
-    let divisionIds = queryParams.division.join(',');
-    // const subDivisionIds = queryParams.subDivision.join(',');
+    const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
     const status = queryParams.status.join(',');
     const useCaseType = queryParams.useCaseType.join(',');
     const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume.join(',') : '';
     const tags = queryParams.tag.join(',');
-
-    if (queryParams.division.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempString = '{' + item + ',[]}';
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.subDivision.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      let hasEmpty = false; // To find none selected in sub division since its not mandatory
-      const emptySubDivId = 'EMPTY';
-      distinctSelectedDivisions.forEach((item) => {
-        const tempSubdiv = queryParams.subDivision.map((value) => {
-          const tempArray = value.split('-');
-          const subDivId = tempArray[0];
-          if (subDivId === emptySubDivId) {
-            hasEmpty = true;
-          }
-          if (item === tempArray[1]) {
-            return subDivId;
-          }
-        });
-
-        if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
-          tempSubdiv.unshift(emptySubDivId);
-        }
-
-        let tempString = '';
-
-        if (tempSubdiv.length === 0) {
-          tempString += '{' + item + ',[]}';
-        } else {
-          tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
-        }
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
 
     ApiClient.getSolutionsByGraphQL(
       locationIds,

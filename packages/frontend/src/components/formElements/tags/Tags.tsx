@@ -14,6 +14,7 @@ export interface ITagsFieldProps {
   isMandatory?: boolean;
   showMissingEntryError: boolean;
   fixedChips?: string[];
+  enableUppercase?: boolean;
 }
 
 export interface ITagsFiledState {
@@ -138,7 +139,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
-    if(target.value) {
+    if (target.value) {
       this.updateChips(target.value);
     }
     this.setState({ isFocused: false });
@@ -237,6 +238,10 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       if (!value) {
         return;
+      }
+
+      if(this.props.enableUppercase) {
+        value = value.toUpperCase();
       }
 
       const chip = value.trim();

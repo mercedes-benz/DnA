@@ -1,6 +1,6 @@
 {
   "name": "dna-web",
-  "version": "2.0.8",
+  "version": "3.0.1",
   "description": "Web Frontend for DnA@MBC based on Digital Design System(UILab)",
   "license": "MIT",
   "author": {
@@ -29,7 +29,7 @@
       "https": false,
       "publicPath": "/"
     },
-    "publicPath": ""
+    "publicPath": "auto"
   },
   "scripts": {
     "test": "jest",
@@ -65,12 +65,12 @@
     "ace-builds": "^1.4.12",
     "popper.js": "^1.16.1",
     "rc-upload": "4.3.2",
-    "react": "^17.0.2",
+    "react": "17.0.2",
     "react-ace": "^9.4.3",
     "react-csv": "^2.0.3",
     "react-dnd": "^14.0.2",
     "react-dnd-html5-backend": "^14.0.0",
-    "react-dom": "^17.0.2",
+    "react-dom": "17.0.2",
     "react-simple-maps": "^2.3.0",
     "react-tooltip": "^4.2.18",
     "recharts": "^2.0.9",
@@ -169,5 +169,9 @@
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.8.0",
     "whatwg-fetch": "^3.0.0"
+  },
+  "resolutions": {
+    "@types/react": "17.0.11",
+    "@types/react-dom": "17.0.7"
   }
 }

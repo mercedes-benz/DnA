@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-backend
+  name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Release.Name }}backend
+    app: {{ .Release.Name }}
     zone: web
 spec:
   replicas: {{ .Values.app.backend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}backend
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
         zone: web
-        app: {{ .Release.Name }}backend
+        app: {{ .Release.Name }}
     spec:
       containers:
         - env:
@@ -141,6 +141,14 @@ spec:
                   name: {{ .Values.app.backend.secrets.name }}
             - name: DATAIKU_TRAINING_ADMIN_GROUP
               value: {{ .Values.app.backend.config.dataikuTrainingAdminGroup }}
+            - name: APAC_CORPDIR
+              value: {{ .Values.app.backend.config.apacCorpDir }}    
+            - name: EMEA_CORPDIR
+              value: {{ .Values.app.backend.config.emeaCorpDir }}    
+            - name: DATAIKU_USER_ROLE_URI_PATH
+              value: {{ .Values.app.backend.config.dataikuUserRoleUriPath }}    
+            - name: DATAIKU_PERMISSION_URI_PATH
+              value: {{ .Values.app.backend.config.dataikuPermissionUriPath }}                                              
             - name: AVSCAN_URI
               value: {{ .Values.app.backend.config.avscanUri }}
             - name: AVSCAN_APP_ID
@@ -167,13 +175,33 @@ spec:
             - name: FLYWAY_SCHEMA
               value: {{ .Values.app.backend.config.flywaySchema | quote }}
             - name: JWT_TOKEN_EXPIRY_TIME_IN_MIN
-              value: "90"             
+              value: "90"   
+            - name: DASHBOARD_URI
+              value: {{ .Values.app.backend.config.dashboardUri }}         
           image: {{ .Values.app.backend.image }}
           imagePullPolicy: Always
           name: backend
           ports:
             - containerPort: 7171
-          resources: {}     
+          resources: {}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.app.probes.livenessProbe.path }}
+              port: {{ .Values.app.probes.livenessProbe.port }}
+              
+          readinessProbe:
+            # initialDelaySeconds: 120
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.app.probes.readinessProbe.path }}
+              port: {{ .Values.app.probes.readinessProbe.port }} 
       securityContext:
         runAsUser: 1000
       imagePullSecrets:

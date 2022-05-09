@@ -1,10 +1,10 @@
 import * as React from 'react';
 import Home from '../../src/components/mbc/home/Home';
-import { MainNavigation } from '../components/mainNavigation/MainNavigation';
+import MainNavigation from '../components/mainNavigation/MainNavigation';
 import Footer from '../components/mbc/footer/Footer';
 import { LOCAL_STORAGE_KEYS } from '../globals/constants';
 import { IUserInfo } from '../globals/types';
-import { Header } from './../components/header/Header';
+import Header from './../components/header/Header';
 import SessionAlert from '../components/sessionAlert/SessionAlert';
 
 export const AppContext = React.createContext({

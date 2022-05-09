@@ -3,17 +3,19 @@ spring:
     name: notification-service
   
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: XXXXX@gmail.com
-    password: XXXXXX
+    host: ${DNA_MAIL_SERVER_HOST:XXXX}
+    port: ${DNA_MAIL_SERVER_PORT:XXXX}
+#    host: smtp.gmail.com
+#    port: 587
+#    username: XXXXX@gmail.com
+#    password: XXXXXX
     properties:
       mail:
         transport.protocol: smtp
         smtp:
-          auth: true
-          starttls.enabled: true
-          starttls.required: true
+          auth: false
+          starttls.enabled: false
+          starttls.required: false
         
   datasource:
     platform: postgres
@@ -69,18 +71,23 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 
-#NAAS Authentication with DNA Backend
+#NAAS Authentication with DNA Backend and fetch user notification preferences details
 dna:
   uri: ${DNA_URI:http://localhost:7171}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
+# token: ${DNA_AUTH_API_TOKEN:XXXX}
+  user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
+  notification.senderEmail: ${DNA_NOTIFICATION_SENDER_EMAIL:system@dna-naas}
   
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:XXXXX}
 
 #NAAS Authentication ends
-management.endpoints.web.exposure.include: loggers
+management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:xxxx}
 
@@ -95,7 +102,6 @@ logging:
         dna:
           notifications: INFO
     org.springframework.boot.autoconfigure.logging: ERROR
-    com.daimler.data.controller.ItsmmGameController: ERROR
     org:
       springframework:
         web:
