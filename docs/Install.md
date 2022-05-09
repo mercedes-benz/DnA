@@ -112,7 +112,7 @@ For installaing the kafka , refer the below repo
 ```
 https://github.com/bitnami/charts/tree/master/bitnami/kafka
 ```
-After installing the kafka, update the value of naasBroker to kafka-service-FQDN in values.yaml
+After installing the kafka, update the value of "naasBroker" in values.yaml to kafka-service-FQDN.
 
 Execute the below commands to deploy application on the kubernetes cluster using helm
 
@@ -126,6 +126,25 @@ Execute the below command to list out the helm releases
 ```
 helm list
 ```
+**Vault service**
+After installing the vault service , it will throw an error that "Readiness probe error in vault -- Seal Type shamir Initialized true Sealed"
+
+For this , you need to intialize the valut service and unseal it with any of the 3 keys
+kubectl exec <pod_name> -n <namespace> -- <command>
+```
+kubectl exec vault-0 -n vault  -- vault operator init
+```
+After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in values.yaml wherever required.
+
+We can unseal the vault service with any of the 3 keys out of 5 keys.
+kubectl exec <pod_name> -n <namespace> -- <command>
+```
+kubectl exec vault-0 -n vault  -- vault operator unseal <key_01>
+kubectl exec vault-0 -n vault  -- vault operator unseal <key_02>
+kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
+```
+For storing the secrets , go to vault service and enable the KV engine.
+
 Do Helm Upgrade, if you made changes on helm files
 
 ```
@@ -152,13 +171,6 @@ or follow simple instructions on how to use simple and free Open ID Connect iden
 * [About Helm](https://helm.sh/docs/)
 
 **Note:**
-
-*For storing the secrets , go to vault service and enable the KV engine.
-
-*Once when vault is intialized ,update the root key value in the values.yaml .For generating the root   key execute the below command in the vault container.
-```
-vault operator init
-```
 
 *If you face any issue with helm installation, refer [FAQ](./FAQ.md)
 
