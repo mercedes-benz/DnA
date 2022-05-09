@@ -1,13 +1,13 @@
 import cn from 'classnames';
 import * as React from 'react';
 import Styles from './Kpi.scss';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import { IKpis, IKpiNames, IReportingCauses } from '../../../../globals/types';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
@@ -181,11 +181,11 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               )}
             >
               <label id="reportKpiCommentLabel" className="input-label" htmlFor="reportKpiComment">
-                Comment<sup>*</sup>
+                Comment
               </label>
               <textarea
                 className="input-field-area"
-                required={true}
+                required={false}
                 rows={50}
                 id="reportKpiComment"
                 name="comment"
@@ -306,7 +306,9 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                               </label>
                               <div className="expansion-panel-content">
                                 <div className={Styles.kpiCollContent}>
-                                  <div className={Styles.kpiDesc}>{kpi.comment}</div>
+                                  <div className={Styles.kpiDesc}>
+                                    <pre className={Styles.commentPre}>{kpi.comment}</pre>
+                                  </div>
                                   <div className={Styles.kpiBtnGrp}>
                                     <button
                                       className={'btn btn-primary'}
@@ -651,10 +653,11 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     if (this.state.errors.kpiLink) {
       formValid = false;
     }
-    if (!this.state.kpiInfo.comment) {
-      errors.comment = errorMissingEntry;
-      formValid = false;
-    } else {
+    // if (!this.state.kpiInfo.comment) {
+    //   errors.comment = errorMissingEntry;
+    //   formValid = false;
+    // } 
+    else {
       errors.comment = '';
     }
     setTimeout(() => {

@@ -1,0 +1,221 @@
+.bucketList {
+    button {
+        i {
+            font-size: var(--font-size-icon);
+            &:hover {
+                color: #00adef;
+            }
+        }
+    }
+}
+
+.bucketGrp {
+    .bucketGrpList {
+        .bucketGrpListItem {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            .bucketCaption {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                padding: 10px 0px 10px 0px;
+                color: #99a5b3;
+                font-weight: bold;
+                .bucketTile {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    font-family: "Roboto-Medium";
+                    div {
+                        &:last-child {
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-end;
+                        }
+                        button {
+                            color: #acb8c4;
+                            margin: 0 4px;
+                            &:hover {
+                                color: #00adef;
+                            }
+                        }
+                    }
+                    .bucketTitleCol {
+                        flex: 1;
+                        font-size: var(--font-size-smallest);
+                        font-weight: initial;
+                        label {
+                            margin: 0;
+                            cursor: pointer;
+                            font-weight: normal;
+                            i {
+                                font-size: 9px;
+                            }
+                        }
+                        &:nth-child(4) {
+                            min-width: 180px;
+                            word-break: break-all;
+                        }
+                        i {
+                            right: 0;
+                        }
+                    }
+                }
+            }
+            .bucketGrpListItemPanel {
+                width: 100%;
+                border-bottom: 0;
+                .bucketTile {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                    color: #99a5b3;
+                    margin-bottom: 5px;
+                    div {
+                        &:last-child {
+                            display: flex;
+                            align-items: center;
+                            justify-content: flex-end;
+                        }
+                        button {
+                            color: #acb8c4;
+                            margin: 0 4px;
+                            &:hover {
+                                color: #00adef;
+                            }
+                        }
+                    }
+                    .bucketTitleCol {
+                        flex: 1;
+                        font-size: var(--font-size-default);
+                        color: #99a5b3;
+                        i {
+                            font-size: var(--font-size-icon-small);
+                            right: 0;
+                        }
+                        &:nth-child(4) {
+                            word-break: break-all;
+                        }
+                        .actionBtn {
+                            background-color: transparent;
+                            border: 0;
+                            padding: 0;
+                            font-size: var(--font-size-smallest);
+                            margin: 0;
+                            i {
+                                font-size: var(--font-size-icon-small);
+                            }
+                            &:hover {
+                                color: #00adef;
+                            }
+                        }
+                    }
+                }
+                .bucketColContent {
+                    .projectList {
+                        padding: 5px 30px;
+                        border: 1px solid #383f49;
+                        margin: 8px 24px 15px 15px;
+                        background-color: #2d333b;
+                        .bucketTileCaption {
+                            border-bottom: 1px solid #383f49;
+                            padding: 9px 0;
+                        }
+                        .noPermission {
+                            color: #e84d47;
+                            padding: 7px 0;
+                            display: flex;
+                            align-items: center;
+                            .noPermissionInfo {
+                                color: #99a5b3;
+                                font-size: var(--font-size-smallest);
+                                margin-top: -5px;
+                                cursor: default;
+                                margin-left: 2px;
+                            }
+                        }
+                    }
+                    .projectListAction {
+                        .actionBtnGrp {
+                            margin-right: 27px;
+                            margin-top: -12px;
+                            button {
+                                background-color: transparent;
+                                font-size: 12px;
+                                outline: 0;
+                                border: 0;
+                                float: right;
+                                padding: 0;
+                                color: #99a5b3;
+                                margin-right: 20px;
+                                font-size: 12px;
+                                &:hover {
+                                    background-color: transparent;
+                                    color: #fff;
+                                    span {
+                                        text-decoration: underline;
+                                        color: #00adef;
+                                    }
+                                    i {
+                                        color: #00adef;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &:last-child {
+                    border-bottom: 1px solid #383f49;
+                }
+            }
+        }
+    }
+}
+
+.actionBtnGrp {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    button {
+        background-color: transparent;
+        border: 0;
+        font-size: var(--font-size-smallest);
+        padding: 0;
+        color: #acb8c4;
+        margin: 0;
+        &:hover {
+            background-color: transparent;
+            color: #fff;
+            i {
+                color: #00adef;
+            }
+        }
+        &:hover {
+            span {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
+.expansionLabel {
+    .bucketTile {
+        .bucketTitleCol {
+            &:nth-child(2) {
+                padding-left: 25px;
+            }
+            &:nth-child(3) {
+                min-width: 180px;
+                padding-left: 25px;
+            }
+        }
+    }
+}
+.noCollaborators {
+    font-size: var(--font-size-smallest);
+}

@@ -1,0 +1,21 @@
+version: "2"
+services:
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    restart: on-failure
+    environment:
+      - "API_URL=http://localhost:3000/api/swagger.json"
+    ports:
+      - "3001:8080"
+  db:
+    image: bitnami/postgresql:11.14.0-debian-10-r28
+    restart: on-failure
+    environment:
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=postgres"
+      - "POSTGRES_DB=db"
+    # Init db on startup
+    volumes:
+      - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/01-update-script.sql:/docker-entrypoint-initdb.d/01-updatescript.sql
+    ports:
+      - "5432:5432"

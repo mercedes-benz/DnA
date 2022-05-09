@@ -10,7 +10,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { IconAttachment } from '../../../../components/icons/IconAttachment';
 import { IAttachment, IAttachmentError } from '../../../../globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import Styles from './AttachmentUploader.scss';
 
 const classNames = cn.bind(Styles);

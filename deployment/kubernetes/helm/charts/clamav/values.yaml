@@ -2,7 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-
 appName: clamav
 namespace: clamav
 app:
@@ -12,7 +11,7 @@ app:
     replicaCount: 1
     secrets:
       name: oneapi-secrets
-      onapiBasicAuthToken: 
+      onapiBasicAuthToken: ""
     config:
       clamav_backend_url: clamav-service
       clamav_backend_port: 3310
@@ -25,6 +24,19 @@ app:
       restricted_url_pattern: /avscan/api/v1/scan.*
       loggingPath: /tmp/clamav/log
       loggingEnvironment: dev
+      corsOriginUrl: ""
+  probes:
+    initialDelaySeconds: 60
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /avscan/actuator/health/liveness
+      port: api
+    
+    readinessProbe:
+      path: /avscan/actuator/health/readiness
+      port: api
 
 image: 
   repo: ""
@@ -32,12 +44,18 @@ image:
   pullPolicy: Always
 
 ingress:
-  host: "" 
+  enabled: true
+  host: ""
+
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
 
 imagePullSecret: 
   name: harbor-pull-secrets
-cert:
-  certManager: ""
 
 Storage:
   storageClass: cinder
@@ -46,8 +64,8 @@ Storage:
 
 resources:
   requests:
-    memory: "512Mi"
-    cpu: "250m"
+    memory: "3000Mi"
+    cpu: "500m"
   limits:
-    memory: "1000Mi"
+    memory: "3000Mi"
     cpu: "500m"

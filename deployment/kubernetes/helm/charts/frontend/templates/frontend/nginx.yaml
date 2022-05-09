@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-configmap
+  name: {{ .Release.Name }}-frontend-configmap
   namespace: {{ .Values.namespace }}
 data:
   nginx.conf: |
@@ -41,6 +41,7 @@ data:
             ssl_protocols      TLSv1 TLSv1.1 TLSv1.2;
 
             include  "/opt/bitnami/nginx/conf/server_blocks/*.conf";
+            client_max_body_size 4G;
 
           server {
             listen  3000;
@@ -48,7 +49,7 @@ data:
 
             resolver kube-dns.kube-system.svc.cluster.local valid=10s;
 
-            set $backend "http://{{ .Release.Name }}-backend-service.{{ .Values.namespace }}.svc.cluster.local:80";
+            set $backend {{ .Values.appFrontend.ngnix.backend | quote }};
 
             set $jupy_server {{ .Values.appFrontend.nginx.jupyServer | quote }};
 
@@ -64,6 +65,8 @@ data:
             
             set $dashboard_server {{ .Values.appFrontend.nginx.dashboard | quote }};
 
+            set $storage_server {{ .Values.appFrontend.ngnix.storage | quote }};
+
             root /usr/share/nginx/html;
             index index.htm index.html;
             try_files $uri $uri/ /index.html;
@@ -72,6 +75,10 @@ data:
               add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
               add_header Cache-Control "no-store, no-cache, must-revalidate";
               ssi on;
+            }
+           location ~ .remoteEntry.js$ {
+              expires -1;
+              add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
             }
             location ^~ /notebooks {
               proxy_set_header X-Real-IP $remote_addr;
@@ -119,6 +126,17 @@ data:
               proxy_set_header Host $http_host;
               proxy_redirect off;
             }
+
+            location ^~ /storage/ {
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-NginX-Proxy true;
+              proxy_pass $storage_server;
+              proxy_ssl_session_reuse off;
+              proxy_set_header Host $http_host;
+              proxy_redirect off;
+            }
+
             location ^~ /grafana {
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

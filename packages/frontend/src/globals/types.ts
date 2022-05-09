@@ -378,6 +378,16 @@ export interface IDivision {
   name: string;
 }
 
+export interface IManageDivisionRequest {
+  data: IManageDivision;
+}
+
+export interface IManageDivision {
+  id: string;
+  name: string;
+  subdivisions: ISubDivision[];
+}
+
 export interface IDivisionFilterPreference {
   id: string;
   name: string;
@@ -511,7 +521,7 @@ export interface ICreateNewSolution {
   division: IDivisionAndSubDivision;
   expectedBenefits: string;
   id?: string;
-  lastmodifiedDate?: string;
+  lastModifiedDate?: string;
   locations?: ILocation[];
   currentPhase?: IPhase;
   relatedProducts: string[];
@@ -1013,11 +1023,25 @@ export interface IFilterPreferences {
   useCaseType?: string;
   tags: ITag[];
 }
+
+
+export interface INoticationModules {  
+  solutionNotificationPref: INoticationEnableDisable;
+  notebookNotificationPref: INoticationEnableDisable;
+  userId: string;
+}
+
+export interface INoticationEnableDisable {
+  enableAppNotifications: boolean;
+  enableEmailNotifications: boolean;
+}
+
 export interface IUserPreference {
   filterPreferences: IFilterPreferences;
   id?: string;
   userId: string;
   widgetPreferences?: any[];
+  notificationPreferences?: INoticationModules;
 }
 export interface IUserPreferenceRequest {
   data: IUserPreference;
@@ -1202,6 +1226,7 @@ export interface ITagResult {
   name: string;
   category: IFitlerCategory;
   datawareHouseItems?: IDatawarehouseInItem;
+  subdivisions?: ISubDivision[];
 }
 export interface IRelatedProduct {
   id: string;

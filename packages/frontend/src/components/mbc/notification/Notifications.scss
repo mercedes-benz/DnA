@@ -155,6 +155,21 @@ i {
 
 .checkboxItemLabel{
   font-size: var(--font-size-default) !important;
+  &:hover 
+  {
+    cursor: pointer;    
+    color: #00adef;    
+  }
+}
+
+.notificationRow{
+  &:hover 
+  {
+    cursor: pointer;
+    .notificationMessage{
+      color: #00adef;    
+    }
+  }
 }
 
 .unreadMessage{
@@ -273,6 +288,11 @@ i {
   width: 90%;
 }
 
+.notificationMessage{
+  display: flex;
+  align-items: center;
+}
+
 
 .removeBlock{
   /*margin-top: 10px;*/ 
@@ -289,11 +309,10 @@ i {
 }
 
 .settingsBlock{
-  margin-top: 10px;
   color: #c0c8d0;
-  display: inline-block;
-  width: 50%;
-  text-align: right;
+  position: absolute;
+  top: 27px;
+  right: 38px;
   &:hover{
     cursor: pointer;
     i {
@@ -305,7 +324,7 @@ i {
 
 .slider {
   position: fixed;
-  width: calc(100% - 298px);
+  text-align: left;
   height: 45%;
   bottom: 0;
   overflow: hidden; 
@@ -342,15 +361,12 @@ i {
     }
     .notificationTitle{
       font-size: var(--font-size-sub-headline);
-      margin-bottom: 40px;
+      margin-bottom: 20px;
       color: #dee3e8;
     }
     .notificationContent{
-      p{
-        &:nth-child(2){
-          max-width: 610px;
-        }
-      }
+      height: 150px;
+      overflow: auto;
     }
   }
   .panelBorder{
@@ -405,7 +421,28 @@ i {
 
 .notificationMessage{
   &:hover{
-    cursor: pointer;    
-    color: #00adef;    
+    cursor: pointer;   
   }
+}
+
+.goToSolution{
+  float: right;  
+  &:hover{
+    cursor: pointer;    
+    color: #00adef!important;  
+  }
+}
+
+.noChangeLogs{
+  text-align: center;
+  margin-top: 50px;
+}
+
+.closeDrawer{
+  position: absolute;
+  right: 5px;
+  top: 20px;
+  &:hover{
+    cursor: pointer; 
+  }  
 }

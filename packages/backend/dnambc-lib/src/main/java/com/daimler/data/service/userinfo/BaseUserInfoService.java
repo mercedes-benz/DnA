@@ -27,31 +27,34 @@
 
 package com.daimler.data.service.userinfo;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserFavoriteUseCase;
 import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
 import com.daimler.data.db.repo.userinfo.UserInfoRepository;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
 import com.daimler.data.util.JWTGenerator;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 @Service
 @Transactional
@@ -69,6 +72,9 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 
 	@Autowired
 	private UserInfoAssembler userinfoAssembler;
+
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	public BaseUserInfoService() {
 		super();
@@ -222,6 +228,33 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 			}
 		}
 		return isAdmin;
+	}
+
+	@Override
+	public void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs) {
+		log.debug("Notifying all Admin users on " + eventType + " for " + message);
+		List<UserInfoVO> allUsers = this.getAll();
+		List<String> adminUsersIds = new ArrayList<>();
+		List<String> adminUsersEmails = new ArrayList<>();
+		for (UserInfoVO user : allUsers) {
+			boolean isAdmin = false;
+			if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+				isAdmin = user.getRoles().stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+			}
+			if (isAdmin) {
+				adminUsersIds.add(user.getId());
+				adminUsersEmails.add(user.getEmail());
+			}
+		}
+		try {
+			kafkaProducer.send(eventType, resourceId, "", triggeringUser, message, true, adminUsersIds,
+					adminUsersEmails, changeLogs);
+			log.info("Successfully notified all admin users for event {} for {} ", eventType, message);
+		} catch (Exception e) {
+			log.error("Exception occured while notifying all Admin users on {}  for {} . Failed with exception {}",
+					eventType, message, e.getMessage());
+		}
 	}
 
 	@Override
