@@ -55,17 +55,21 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ReportNsql;
 import com.daimler.data.db.jsonb.report.CustomerDetails;
 import com.daimler.data.db.jsonb.report.DataWarehouse;
+import com.daimler.data.db.jsonb.report.Division;
 import com.daimler.data.db.jsonb.report.KPI;
 import com.daimler.data.db.jsonb.report.SingleDataSource;
+import com.daimler.data.db.jsonb.report.Subdivision;
 import com.daimler.data.db.repo.report.ReportCustomRepository;
 import com.daimler.data.db.repo.report.ReportRepository;
 import com.daimler.data.dto.datawarehouse.DataWarehouseInUseVO;
 import com.daimler.data.dto.department.DepartmentVO;
+import com.daimler.data.dto.divisions.DivisionReportVO;
 import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
 import com.daimler.data.dto.report.ProductOwnerCollection;
 import com.daimler.data.dto.report.ReportResponseVO;
 import com.daimler.data.dto.report.ReportVO;
+import com.daimler.data.dto.report.SubdivisionVO;
 import com.daimler.data.dto.report.TeamMemberVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.BaseCommonService;
@@ -326,6 +330,14 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							}
 						}
 					}
+				} else if (category.equals(CATEGORY.DIVISION)) {
+					Division reportdivision = reportNsql.getData().getDescription().getDivision();
+					if (Objects.nonNull(reportdivision) && StringUtils.hasText(reportdivision.getId())
+							&& reportdivision.getId().equals(name)) {
+						reportdivision.setName(null);
+						reportdivision.setId(null);
+						reportdivision.setSubdivision(null);
+					}
 				}
 				reportCustomRepository.update(reportNsql);
 
@@ -579,6 +591,36 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 											itr.remove();
 										}
 									}
+								}
+							}
+						}
+					}
+				} else if (category.equals(CATEGORY.DIVISION)) {
+					Division reportdivision = reportNsql.getData().getDescription().getDivision();
+					DivisionReportVO divisionVO = (DivisionReportVO) updateObject;
+					if (Objects.nonNull(reportdivision) && StringUtils.hasText(reportdivision.getId())
+							&& reportdivision.getId().equals(divisionVO.getId())) {
+						reportdivision.setName(divisionVO.getName().toUpperCase());
+						Subdivision subdivision = reportdivision.getSubdivision();
+						List<SubdivisionVO> subdivisionlist = divisionVO.getSubdivisions();
+						if (Objects.nonNull(subdivision)) {
+							if (ObjectUtils.isEmpty(subdivisionlist)) {
+								reportdivision.setSubdivision(null);
+							} else {
+								boolean exists = false;
+								for (SubdivisionVO value : subdivisionlist) {
+									if (StringUtils.hasText(value.getId())
+											&& value.getId().equals(subdivision.getId())) {
+										Subdivision subdiv = new Subdivision();
+										subdiv.setId(value.getId());
+										subdiv.setName(value.getName().toUpperCase());
+										reportdivision.setSubdivision(subdiv);
+										exists = true;
+										break;
+									}
+								}
+								if (!exists) {
+									reportdivision.setSubdivision(null);
 								}
 							}
 						}

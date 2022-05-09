@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import Styles from './Customer.scss';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
 import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, ICustomerDetails } from '../../../../globals/types';
@@ -10,7 +10,7 @@ import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMembe
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 
 export interface ICustomerProps {
   customer: ICustomers;
@@ -210,11 +210,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               )}
             >
               <label id="customerCommentLabel" className="input-label" htmlFor="customerComment">
-                Comment<sup>*</sup>
+                Comment
               </label>
               <textarea
                 className="input-field-area"
-                required={true}
+                required={false}
                 rows={50}
                 id="customerComment"
                 name="comment"
@@ -348,7 +348,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                               </label>
                               <div className="expansion-panel-content">
                                 <div className={Styles.customerCollContent}>
-                                  <div className={Styles.customerDesc}>{customer.comment}</div>
+                                  <div className={Styles.customerDesc}>
+                                    <pre className={Styles.commentPre}>
+                                      {customer.comment}
+                                    </pre>
+                                  </div>
                                   <div className={Styles.customerBtnGrp}>
                                     <button
                                       className={'btn btn-primary'}
@@ -696,10 +700,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       errors.ressort = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.comment) {
-      errors.comment = errorMissingEntry;
-      formValid = false;
-    } else {
+    // if (!this.state.customerInfo.comment) {
+    //   errors.comment = errorMissingEntry;
+    //   formValid = false;
+    // } 
+    else {
       errors.comment = '';
     }
     setTimeout(() => {

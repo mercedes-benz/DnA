@@ -7,7 +7,7 @@ import Styles from './EditCode.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 const classNames = cn.bind(Styles);
-import { InfoModal } from '../../../formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
 import { history } from '../../../../router/History';
 import AceEditor from 'react-ace';
 import { PipelineApiClient } from '../../../../services/PipelineApiClient';

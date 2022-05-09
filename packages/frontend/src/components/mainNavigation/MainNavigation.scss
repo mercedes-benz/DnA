@@ -1,5 +1,5 @@
 .mainNavigation {
-  width: 60px;
+  width: 60px !important;
 }
 
 /* Uilab - DDS - Navigation override SCSS */
@@ -13,7 +13,7 @@
     overflow: hidden;
     z-index: 900;
     left: 0;
-    top: 65px;
+    top: 65px !important;
     padding-top: 105px;
     &:hover,
     &.expandEffect {
@@ -24,7 +24,7 @@
     &.maximized {
       background-image: linear-gradient(#000, #000);
       transition: width 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
-      width: 292px;
+      width: 292px !important;
 
       .nav-list .nav-item.has-sub-nav {
         &.opened {
@@ -45,12 +45,11 @@
     }
 
     .nav-list {
-      height: calc(100vh - var(--header-size));
+      height: calc(100vh - var(--header-size)) !important;
       margin: 0;
       overflow: hidden;
       .nav-item {
-        height: 43px;
-        border-top: none;
+        border-top: none !important;
         margin-bottom: 10px;
         border-left-width: 4px !important;
 
@@ -73,24 +72,25 @@
 
           &.opened {
             max-height: 43px;
-            transition: max-height 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+            transition: max-height 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s !important;
 
             > .sub-nav-list {
               opacity: 0;
             }
 
             > .nav-link {
-              height: 43px;
+              height: 43px !important;
               overflow: hidden;
+              transition: none !important;
             }
           }
         }
 
         .nav-link {
-          line-height: 43px;
+          line-height: 43px !important;
           border: none !important;
           padding-left: 17px !important;
-          height: 43px;
+          height: 43px !important;
 
           i {
             margin-right: 15px;
@@ -106,12 +106,13 @@
         }
 
         .sub-nav-list {
-          background-color: transparent;
+          background-color: transparent !important;
           margin-left: 35px;
 
           .nav-item {
             margin-bottom: 0;
             border-left-color: transparent;
+            height: 43px;
 
             &.active .nav-link {
               color: #00adef;
@@ -124,8 +125,13 @@
         }
 
         &:last-child {
-          border-bottom: 0;
+          border-bottom: 0 !important;
         }
+      }
+    }
+    .nav-list {
+      .nav-item:not(.sub-nav-item) {
+        height: 43px !important;
       }
     }
   }

@@ -57,8 +57,8 @@ repositories {
 group 'com.daimler.data'
 version = releaseVersion
 
-sourceCompatibility = 1.14
-targetCompatibility = 1.14
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 //__________________________________________________________//
@@ -372,6 +372,23 @@ swaggerSources {
         }
     }
     
+   userNotificationPreference {
+        def userNotificationPreferenceYaml = "${rootDir}/dnambc-lib/src/main/resources/api/UserNotificationPreference.yaml"
+        def userNotificationPreferenceJson = "${rootDir}/dnambc-lib/src/main/resources/api/UserNotificationPreference.json"
+        inputFile = file(userNotificationPreferenceYaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(userNotificationPreferenceJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
+    
    logoDetails {
         def logoYaml = "${rootDir}/dnambc-lib/src/main/resources/api/Logo.yaml"
         def logoJson = "${rootDir}/dnambc-lib/src/main/resources/api/Logo.json"
@@ -571,6 +588,8 @@ compileJava {
     source "${swaggerSources.widget.code.outputDir}/src/main/java"
     dependsOn swaggerSources.userWidgetPreference.code
     source "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.userNotificationPreference.code
+    source "${swaggerSources.userNotificationPreference.code.outputDir}/src/main/java"
     dependsOn swaggerSources.attachment.code
     source "${swaggerSources.attachment.code.outputDir}/src/main/java"
     dependsOn swaggerSources.relatedProduct.code
@@ -618,6 +637,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.solution.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.widget.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.userWidgetPreference.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.userNotificationPreference.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.attachment.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.relatedProduct.code.outputDir}/src/main/java"}
         java { srcDirs += "${swaggerSources.lov.code.outputDir}/src/main/java"}
@@ -735,7 +755,7 @@ dependencies {
 
 
     implementation group: 'org.json', name: 'json', version: '20190722'
-
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
     implementation('ch.qos.logback:logback-classic:1.2.3')
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'

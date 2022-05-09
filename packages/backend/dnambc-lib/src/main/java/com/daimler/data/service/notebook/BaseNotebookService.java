@@ -47,7 +47,9 @@ import com.daimler.data.db.repo.notebook.NotebookCustomRepository;
 import com.daimler.data.db.repo.notebook.NotebookRepository;
 import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.solution.SolutionService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 @Service
@@ -68,6 +70,9 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 	private NotebookRepository jpaRepo;
 	@Autowired
 	private NotebookAssembler notebookAssembler;
+	
+	@Autowired
+	private SolutionService solutionService;
 
 	public BaseNotebookService() {
 		super();
@@ -94,8 +99,13 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 //			LOGGER.debug("Saving Notebook...");
 //			jpaRepo.save(notebookNsql);
 //		}
+		String solutionName = solutionId;
 		Notebook notebook = null;
 		if (solutionId != null) {
+			SolutionVO solutionVO = solutionService.getById(solutionId);
+			if(solutionVO!=null) {
+				solutionName = solutionVO.getProductName();
+			}
 			NotebookNsql existingNotebook = customRepo.findbyUniqueLiteral("solutionId", solutionId);
 			if (existingNotebook != null) {
 				Notebook existingNotebookDetails = existingNotebook.getData();
@@ -154,18 +164,21 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		String message = "";
 		Boolean mailRequired = true;
 		List<String> subscribedUsers = new ArrayList<>();
+		List<String> subscribedUsersEmail = new ArrayList<>();
 		String notebookName = notebook != null ? notebook.getName() : "";
 		if ("provisioned".equalsIgnoreCase(updateType) && sendNotificationForNotebookLink) {
 			eventType = "Notebook Provisioned";
-			message = "Solution provisioned from notebook " + notebookName;
+			message = "Solution " + solutionName + " provisioned from notebook " + notebookName;
 		}
 		if (sendNotificationForNotebookUnLink) {
 			eventType = "Notebook Unlinked";
-			message = "Notebook " + notebookName + " unlinked from Solution " + solutionId + " before solution delete";
+			message = "Notebook " + notebookName + " unlinked from Solution " + solutionName + " before solution delete";
 		}
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "dna_system";
+		String emailId = currentUser != null ? currentUser.getEmail() : "";
 		subscribedUsers.add(userId);
+		subscribedUsersEmail.add(emailId);
 		try {
 			/*
 			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
@@ -174,7 +187,7 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 			 * subscribedUsers.remove(userId); }
 			 */
 			if (sendNotificationForNotebookLink || sendNotificationForNotebookUnLink)
-				kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers);
+					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,null);
 		} catch (Exception e) {
 			LOGGER.error("Failed while publishing notebookevent of eventType {} solutionId {} with exceptionmsg {} ",
 					eventType, solutionId, e.getMessage());

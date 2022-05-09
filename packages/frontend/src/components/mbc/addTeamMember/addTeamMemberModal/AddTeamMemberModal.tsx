@@ -7,7 +7,7 @@ import { ITeams } from '../../../../globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 // @ts-ignore
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
-import { Modal } from '../../../formElements/modal/Modal';
+import  Modal from '../../../formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
 import { Envs } from '../../../../globals/Envs';
 import * as Validation from '../../../../utils/Validation';
@@ -20,6 +20,8 @@ export interface IAddTeamMemberModalProps {
   showAddTeamMemberModal: boolean;
   teamMember: ITeams;
   showOnlyInteral?: boolean;
+  hideTeamPosition?: boolean;
+  teamPositionNotRequired?: boolean;
   onAddTeamMemberModalCancel: () => void;
   onUpdateTeamMemberList: (teamMemberObj: ITeams) => void;
   validateMemebersList?: (teamMemberObj: ITeams) => boolean;
@@ -171,29 +173,31 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
             </div>
           )}
           <div className={belongingInternal ? Styles.internalWrapper : 'hide'}>
-            <div
-              className={classNames('input-field-group include-error', teamPositionInternalError.length ? 'error' : '')}
-            >
-              <label htmlFor="teamPositionInternal" className="input-label">
-                Team Position (e.g. IT)<sup>*</sup>
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                required={true}
-                required-error={requiredError}
-                id="teamPositionInternal"
-                name="teamPositionInternal"
-                placeholder="Type here"
-                autoComplete="off"
-                value={teamPositionInternal}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
-              <span className={classNames('error-message', teamPositionInternalError.length ? '' : 'hide')}>
-                {teamPositionInternalError}
-              </span>
-            </div>
+            {!this.props.hideTeamPosition ?
+              <div
+                className={classNames('input-field-group include-error', teamPositionInternalError.length ? 'error' : '')}
+              >
+                <label htmlFor="teamPositionInternal" className="input-label">
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
+                  id="teamPositionInternal"
+                  name="teamPositionInternal"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  value={teamPositionInternal}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', teamPositionInternalError.length ? '' : 'hide')}>
+                  {teamPositionInternalError}
+                </span>
+              </div>
+            : ''}
             <div>
               <div className={classNames(Styles.flexLayout, Styles.searchWrapper)}>
                 <div
@@ -480,28 +484,29 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
           </div>
 
           <div className={Styles.flexLayout}>
-            <div className={classNames('input-field-group include-error', teamPositionError.length ? 'error' : '')}>
-              <label htmlFor="teamPosition" className="input-label">
-                Team Position (e.g. IT)<sup>*</sup>
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                required={true}
-                required-error={requiredError}
-                id="teamPosition"
-                name="teamPosition"
-                placeholder="Type here"
-                autoComplete="off"
-                value={teamPosition}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
-              <span className={classNames('error-message', teamPositionError.length ? '' : 'hide')}>
-                {teamPositionError}
-              </span>
-            </div>
-
+            {!this.props.hideTeamPosition ? 
+              <div className={classNames('input-field-group include-error', teamPositionError.length ? 'error' : '')}>
+                <label htmlFor="teamPosition" className="input-label">
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
+                  id="teamPosition"
+                  name="teamPosition"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  value={teamPosition}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', teamPositionError.length ? '' : 'hide')}>
+                  {teamPositionError}
+                </span>
+              </div>
+            :''}
             <div className={classNames('input-field-group include-error', mobileNumberError.length ? 'error' : '')}>
               <label htmlFor="mobileNumber" className="input-label">
                 Mobile No.<sup>*</sup>
@@ -741,9 +746,9 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
   protected validateInternalTeamMemberForm = () => {
     let formValid = true;
-    const errorMissingEntry = '*Missing entry';
+    const errorMissingEntry = '*Missing entry'; 
 
-    if (this.state.teamPositionInternal === '') {
+    if (this.state.teamPositionInternal === '' && !this.props.hideTeamPosition && !this.props.teamPositionNotRequired) {
       this.setState({ teamPositionInternalError: errorMissingEntry });
       formValid = false;
     }
@@ -899,7 +904,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'teamPosition':
         {
-          if (this.state.teamPosition === '' || this.state.teamPosition === null) {
+          if ((this.state.teamPosition === '' || this.state.teamPosition === null) && !this.state.teamPosition) {
             this.setState({ teamPositionError: errorMissingEntry });
           } else {
             this.setState({ teamPositionError: '' });

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { IRole, IUserInfo } from '../../../globals/types';
+import { IUserInfo } from '../../../globals/types';
 import Styles from './Home.scss';
-import { USER_ROLE } from '../../../globals/constants';
 import { Envs } from '../../../globals/Envs';
 
 interface ILandingpageState {
@@ -55,15 +54,6 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                         </span>
                       </Link>
                     </li>
-                    <li>
-                      {this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined ? (
-                        <Link to="Administration">
-                          <span>
-                            Administration <i className="icon mbc-icon arrow small right" />
-                          </span>
-                        </Link>
-                      ) : null}
-                    </li>
                   </ul>
                 </div>
               </div>
@@ -89,17 +79,6 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                           </span>
                         </Link>
                       </li>
-                      {this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined ||
-                      this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN) !== undefined ? (
-                        <li>
-                          <Link to="reportadmin">
-                            <span>
-                              Administration
-                              <i className="icon mbc-icon arrow small right" />
-                            </span>
-                          </Link>
-                        </li>
-                      ) : null}
                     </ul>
                   </div>
                 </div>
@@ -124,11 +103,6 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                           My Services
                           <i className="icon mbc-icon arrow small right" />
                         </span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="services">
-                        <span>&nbsp;</span>
                       </Link>
                     </li>
                   </ul>
