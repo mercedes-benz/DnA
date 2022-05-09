@@ -51,19 +51,19 @@ data:
 
             set $backend {{ .Values.appFrontend.ngnix.backend | quote }};
 
-            set $jupy_server {{ .Values.appFrontend.nginx.jupyServer | quote }};
+            set $jupy_server {{ .Values.appFrontend.ngnix.jupyServer | quote }};
 
-            set $grafana_server {{ .Values.appFrontend.nginx.grafanaServer | quote }};
+            set $grafana_server {{ .Values.appFrontend.ngnix.grafanaServer | quote }};
 
-            #set $avscan_server {{ .Values.appFrontend.nginx.avscanServer | quote }};
+            #set $avscan_server {{ .Values.appFrontend.ngnix.avscanServer | quote }};
 
-            set $avscan_mgw_server {{ .Values.appFrontend.nginx.avscanMgwServer | quote }};
+            set $avscan_mgw_server {{ .Values.appFrontend.ngnix.avscanMgwServer | quote }};
 
-            set $airflow_server {{ .Values.appFrontend.nginx.airflowServer | quote }};
+            set $airflow_server {{ .Values.appFrontend.ngnix.airflowServer | quote }};
 
-            set $naas_server {{ .Values.appFrontend.nginx.naasServer | quote }};
+            set $naas_server {{ .Values.appFrontend.ngnix.naasServer | quote }};
             
-            set $dashboard_server {{ .Values.appFrontend.nginx.dashboard | quote }};
+            set $dashboard_server {{ .Values.appFrontend.ngnix.dashboard | quote }};
 
             set $storage_server {{ .Values.appFrontend.ngnix.storage | quote }};
 
