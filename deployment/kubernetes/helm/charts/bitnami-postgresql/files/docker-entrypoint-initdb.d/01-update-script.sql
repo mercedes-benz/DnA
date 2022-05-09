@@ -12,3 +12,9 @@
     CREATE user admin WITH PASSWORD 'admin';
     GRANT all privileges ON db admin TO admin;
     GRANT USAGE ON SCHEMA public to admin;
+
+    CREATE user hive;
+    CREATE database hive;
+    ALTER user hive WITH PASSWORD 'hive123';
+    GRANT all privileges ON database hive TO hive;
+    GRANT USAGE ON SCHEMA public to hive
