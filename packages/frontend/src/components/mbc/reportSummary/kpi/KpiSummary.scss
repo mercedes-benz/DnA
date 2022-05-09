@@ -87,6 +87,11 @@ hr {
   padding: 25px 38px;
 }
 
+.commentPre{
+  white-space: pre-wrap;
+  font-family: "Roboto-Medium";  
+}
+
 :global {
   label.input-label.summary {
     color: #99A5B3;

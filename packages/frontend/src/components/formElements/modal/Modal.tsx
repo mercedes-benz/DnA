@@ -20,7 +20,7 @@ export interface IModalProps {
   modalStyle?: React.CSSProperties;
 }
 
-export const Modal = (props: IModalProps) => {
+const Modal = (props: IModalProps) => {
   React.useEffect(() => {
     if (props.show) {
       document.querySelector('body').style.overflow = 'hidden';
@@ -49,7 +49,10 @@ export const Modal = (props: IModalProps) => {
             <i className="icon mbc-icon close thin" />
           </button>
         </header>
-        <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}> {props.content}</div>
+        <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}>
+          {' '}
+          {props.content}
+        </div>
         <footer
           className={
             props.showAcceptButton || props.showCancelButton
@@ -80,3 +83,5 @@ export const Modal = (props: IModalProps) => {
     </div>
   );
 };
+
+export default Modal;

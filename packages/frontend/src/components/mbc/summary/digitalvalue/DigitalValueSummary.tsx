@@ -7,7 +7,7 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { InfoModal } from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
 import { ApiClient } from '../../../../services/ApiClient';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import DigitalValuePopupContent from './DigitalValuePopupContent';
@@ -275,13 +275,15 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                       <span onClick={this.openChangeLog}>Change Log</span>
                     </li>
                     <li className="contextListItem">
-                      <PDFDownloadLink
-                        document={this.props.onExportToPDFDocument}
-                        className={Styles.pdfLink}
-                        fileName={`${pdfFileName}.pdf`}
-                      >
-                        {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
-                      </PDFDownloadLink>
+                      {// @ts-ignore
+                        <PDFDownloadLink
+                          document={this.props.onExportToPDFDocument}
+                          className={Styles.pdfLink}
+                          fileName={`${pdfFileName}.pdf`}
+                        >
+                          {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
+                        </PDFDownloadLink>
+                      }
                     </li>
                   </ul>
                 </div>

@@ -44,12 +44,16 @@ class Navigation {
     makeArray(this._element.querySelectorAll('.has-sub-nav>.nav-link')).forEach((subnavtoggle) => {
       subnavtoggle.addEventListener('click', (e) => {
         const subNavItem = e.target.parentNode;
+        const isSubNavLink = subNavItem.classList.contains('nav-link');
+        const navItem = isSubNavLink ? subNavItem.parentNode : subNavItem;
 
         if (subNavItem.classList.contains('opened')) {
-          subNavItem.style.height = null;
+          navItem.style.height = null;
         } else {
-          subNavItem.style.height =
-            subNavItem.querySelectorAll('.nav-link').length * (subNavItem.clientHeight + 2) - 1 + 'px';
+          navItem.setAttribute(
+            'style',
+            `height:${navItem.querySelectorAll('.nav-link').length * (navItem.clientHeight + 2) - 1 + 'px !important'}`,
+          );
         }
 
         subNavItem.classList.toggle('opened');

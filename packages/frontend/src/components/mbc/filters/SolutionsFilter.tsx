@@ -27,7 +27,7 @@ import SelectBox from '../../formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../services/ApiClient';
 import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
 import Tags from '../../formElements/tags/Tags';
-import { trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
 
 import Styles from './Filter.scss';
@@ -564,56 +564,12 @@ const SolutionsFilter = ({
     const queryParams: IFilterParams = { ...filterQueryParams };
     let locationIds = queryParams.location.join(',');
     let phaseIds = queryParams.phase.join(',');
-    let divisionIds = queryParams.division.join(',');
+    let divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
     let status = queryParams.status.join(',');
     let useCaseType = queryParams.useCaseType.join(',');
     const tags = queryParams.tag.join(',');
 
-    if (queryParams.division.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempString = '{' + item + ',[]}';
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.subDivision.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      let hasEmpty = false; // To find none selected in sub division since its not mandatory
-      const emptySubDivId = 'EMPTY';
-      distinctSelectedDivisions.forEach((item) => {
-        const tempSubdiv = queryParams.subDivision.map((value) => {
-          const tempArray = value.split('-');
-          const subDivId = tempArray[0];
-          if (subDivId === emptySubDivId) {
-            hasEmpty = true;
-          }
-          if (item === tempArray[1]) {
-            return subDivId;
-          }
-        });
-
-        if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
-          tempSubdiv.unshift(emptySubDivId);
-        }
-
-        let tempString = '';
-
-        if (tempSubdiv.length === 0) {
-          tempString += '{' + item + ',[]}';
-        } else {
-          tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
-        }
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
     if (queryParams.division.length === 0) {
-      divisionIds = '';
       queryParams.division = [];
       queryParams.subDivision = [];
     }

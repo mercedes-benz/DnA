@@ -50,8 +50,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
+import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
 import com.daimler.dna.notifications.common.util.CacheUtil;
 import com.daimler.dna.notifications.dto.NotificationVO;
+import com.mbc.dna.notifications.mailer.JMailer;
 
 @Component
 public class CacheUpdateEventListener {
@@ -81,6 +84,12 @@ public class CacheUpdateEventListener {
 
 	@Autowired
 	private CacheUtil cacheUtil;
+	
+	@Autowired
+	private DnaNotificationPreferenceClient userNotificationPreferencesClient;
+	
+	@Autowired
+	private JMailer mailer;
 
 	@PostConstruct
 	public void init() {
@@ -133,11 +142,24 @@ public class CacheUpdateEventListener {
 				for (ConsumerRecord<String, GenericEventRecord> record : records) {
 					if (record.value() != null && !readTopic && !deleteTopic) {
 						List<String> users = record.value().getSubscribedUsers();
+						List<String> usersEmails = record.value().getSubscribedUsersEmail();
+						int userListPivot = 0;
 						for (String user : users) {
 							if (StringUtils.hasText(user) && user != "null") {
 								if (cacheUtil.getCache(user) == null) {
 									LOG.info("Creating cache for user {}", user);
 									cacheUtil.createCache(user);
+								}
+								UserNotificationPrefVO preferenceVO = userNotificationPreferencesClient.getUserNotificationPreferences(user);
+								boolean appNotificationPreferenceFlag = true;
+								boolean emailNotificationPreferenceFlag = false;
+								if(record.value().getEventType().contains("Solution")) {
+									appNotificationPreferenceFlag = preferenceVO.getSolutionNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getSolutionNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains("Notebook")) {
+									appNotificationPreferenceFlag = preferenceVO.getNotebookNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getNotebookNotificationPref().isEnableEmailNotifications();
 								}
 								NotificationVO vo = new NotificationVO();
 								vo.setDateTime(record.value().getTime());
@@ -147,7 +169,31 @@ public class CacheUpdateEventListener {
 								vo.setId(record.value().getUuid());
 								vo.setIsRead("false");
 								vo.setMessage(record.value().getMessage());
-								cacheUtil.addEntry(user, vo);
+								vo.setChangeLogs(record.value().getChangeLogs());
+								GenericEventRecord message = record.value();
+								if(appNotificationPreferenceFlag) {
+									cacheUtil.addEntry(user, vo);
+									LOG.info("New message with details- user {}, eventType {}, uuid {} added to user notifications", user,
+											message.getEventType(), message.getUuid());
+								}else {
+									LOG.info("Skipped message as per user preference, Details: user {}, eventType {}, uuid {} ", user,
+											message.getEventType(), message.getUuid());
+								}
+//								if(emailNotificationPreferenceFlag) {
+//									String userEmail = usersEmails!= null && !usersEmails.isEmpty() ? usersEmails.get(userListPivot) : null;
+//									if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
+//										String emailSubject = message.getEventType()+" Email Notification";
+//										mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , message.getMessage());
+//										LOG.info("Sent email as per user preference, Details: user {}, eventType {}, uuid {}", user,
+//												message.getEventType(), message.getUuid());
+//									}else {
+//										LOG.info("Skipped sending email even after user preference is enabled. Cause is email id not found for the user. Details: user {}, eventType {}, uuid {}", user,
+//												message.getEventType(), message.getUuid());
+//									}
+//								}else {
+//									LOG.info("Skipped email as per user preference, Details: user {}, eventType {}, uuid {}", user,
+//											message.getEventType(), message.getUuid());
+//								}
 							}
 						}
 					} else if (record.value() != null && readTopic && !deleteTopic) {
@@ -164,6 +210,7 @@ public class CacheUpdateEventListener {
 						vo.setMessageDetails(record.value().getMessageDetails());
 						vo.setIsRead("true");
 						vo.setMessage(record.value().getMessage());
+						vo.setChangeLogs(record.value().getChangeLogs());
 						cacheUtil.addEntry(user, vo);
 					} else if (record.value() != null && !readTopic && deleteTopic) {
 

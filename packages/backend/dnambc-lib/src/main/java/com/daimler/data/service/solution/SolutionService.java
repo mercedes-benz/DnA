@@ -27,19 +27,19 @@
 
 package com.daimler.data.service.solution;
 
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.service.common.CommonService;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-
 public interface SolutionService extends CommonService<SolutionVO, SolutionNsql, String> {
 
 	enum TAG_CATEGORY {
-		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL;
+		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL, DIVISION;
 	}
 
 	List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
@@ -57,4 +57,14 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	void deleteInActiveSolutionsOlderThan(Calendar startDate);
 
 	List<ChangeLogVO> getChangeLogsBySolutionId(String id);
+
+	/**
+	 * update each solution.
+	 * 
+	 * @param oldValue
+	 * @param newValue
+	 * @param category
+	 * @param updateObject
+	 */
+	void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject);
 }

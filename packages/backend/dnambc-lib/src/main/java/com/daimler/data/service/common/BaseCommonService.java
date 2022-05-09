@@ -27,19 +27,21 @@
 
 package com.daimler.data.service.common;
 
-import com.daimler.data.assembler.GenericAssembler;
-import com.daimler.data.db.repo.common.CommonDataRepository;
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.daimler.data.assembler.GenericAssembler;
+import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.solution.CreatedByVO;
 
 public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
@@ -68,7 +70,7 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 	@Transactional
 	public V getById(ID id) {
 		Optional<T> entityOptional = jpaRepo.findById(id);
-		T entity = entityOptional != null ? entityOptional.get() : null;
+		T entity = !entityOptional.isEmpty() ? entityOptional.get() : null;
 		return assembler.toVo(entity);
 	}
 
@@ -161,4 +163,20 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 		return customRepo.getCount(limit, offset);
 	}
 
+	@Override
+	public String currentUserName(CreatedByVO currentUser) {
+		String userName = "";
+		if (Objects.nonNull(currentUser)) {
+			if (StringUtils.hasText(currentUser.getFirstName())) {
+				userName = currentUser.getFirstName();
+			}
+			if (StringUtils.hasText(currentUser.getLastName())) {
+				userName += " " + currentUser.getLastName();
+			}
+		}
+		if (!StringUtils.hasText(userName)) {
+			userName = currentUser != null ? currentUser.getId() : "dna_system";
+		}
+		return userName;
+	}
 }

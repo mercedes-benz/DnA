@@ -17,7 +17,7 @@ export interface IConfirmModalProps {
   onCancel?: () => void;
 }
 
-export const ConfirmModal = (props: IConfirmModalProps) => (
+const ConfirmModal = (props: IConfirmModalProps) => (
   <div className={props.show ? 'mbc-cfm-modal-wrapper' : Styles.hide}>
     <div className={'mbc-cfm-modal'}>
       <header>
@@ -29,7 +29,9 @@ export const ConfirmModal = (props: IConfirmModalProps) => (
         )}
       </header>
 
-      <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}>{props.content}</div>
+      <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}>
+        {props.content}
+      </div>
       <footer className={props.showAcceptButton || props.showCancelButton ? '' : Styles.hide}>
         <div className="btn-set">
           <button
@@ -61,3 +63,4 @@ export const ConfirmModal = (props: IConfirmModalProps) => (
     </div>
   </div>
 );
+export default ConfirmModal;

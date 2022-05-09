@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { InfoModal } from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
 // @ts-ignore
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 // @ts-ignore
@@ -25,7 +25,7 @@ import {
   IValueFactor,
   IValueRampUp,
 } from '../../../../globals/types';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import AttachmentUploader from '../AttachmentUploader/AttachmentUploader';
 import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
 import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';

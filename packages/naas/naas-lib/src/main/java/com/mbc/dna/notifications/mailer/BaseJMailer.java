@@ -33,15 +33,22 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-@Component
-public class BaseJMailer implements JMailer {
+import lombok.extern.slf4j.Slf4j;
 
+@Component
+@Slf4j
+public class BaseJMailer implements JMailer {
+	
+	@Value("${dna.notification.senderEmail}")
+	private String senderEmailId;
+	
 	public BaseJMailer() {
 		super();
 	}
@@ -50,13 +57,34 @@ public class BaseJMailer implements JMailer {
 	private JavaMailSender javaMailSender;
 
 	@Override
-	public void sendSimpleMail(String to, String subject, String msgTxt) {
-		
-	}
+	public void sendSimpleMail(String eventId, String to, String subject, String msgTxt) {
+                
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message);
+        try {
+	        	
+	        helper.setSubject("This is an HTML email");
+	        helper.setFrom(senderEmailId);
+	        helper.setTo(to);
+	        helper.setSubject(subject);
+	         
+	        boolean html = true;
+	        helper.setText("<p>Hi</p>"
+	        		+ "<br/>Message Details: <br/>"
+	        		+ msgTxt
+	        		+ "<p> You received this auto generated email from DNA as per preferences set. For more details check application. </p>", html);
+	         
+	        javaMailSender.send(message);
+	        log.info("Mail sent successfully for eventRecord {} , please check notification by this id for more details", eventId);
+	        
+        }catch(Exception e){
+        	log.info("Failed in sending eMail for eventRecord {} with exception {} , please check notification by this id for more details", eventId, e.getMessage());
+        }
+        log.info("Mail sent successfully for eventRecord {} , please check notification by this id for more details", eventId);
+    }
 
 	@Override
 	public void sendMailWithAttachments(String to, String subject, String msgTxt, String attachmentsPath) {
-		
 
 	}
 }

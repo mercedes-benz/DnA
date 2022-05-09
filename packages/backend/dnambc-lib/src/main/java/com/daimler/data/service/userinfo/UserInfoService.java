@@ -27,12 +27,13 @@
 
 package com.daimler.data.service.userinfo;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.UserInfoNsql;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.CommonService;
-
-import java.util.List;
 
 public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql, String> {
 
@@ -57,4 +58,7 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 	public Boolean isAdmin(String userId);
 
 	boolean isLoggedIn(final String id);
+
+	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs);
 }

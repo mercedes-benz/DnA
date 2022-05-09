@@ -27,46 +27,16 @@
 
 package com.daimler.data.service.solution;
 
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.assembler.SolutionAssembler;
-import com.daimler.data.db.entities.DataikuNsql;
-import com.daimler.data.db.entities.SolutionNsql;
-import com.daimler.data.db.jsonb.solution.*;
-import com.daimler.data.db.repo.dataiku.DataikuCustomRepository;
-import com.daimler.data.db.repo.solution.SolutionCustomRepository;
-import com.daimler.data.db.repo.solution.SolutionRepository;
-import com.daimler.data.dto.algorithm.AlgorithmVO;
-import com.daimler.data.dto.appsubscription.SubscriptionVO;
-import com.daimler.data.dto.datasource.DataSourceVO;
-import com.daimler.data.dto.language.LanguageVO;
-import com.daimler.data.dto.notebook.NotebookVO;
-import com.daimler.data.dto.platform.PlatformVO;
-import com.daimler.data.dto.solution.ChangeLogVO;
-import com.daimler.data.dto.solution.CreatedByVO;
-import com.daimler.data.dto.solution.SolutionAnalyticsVO;
-import com.daimler.data.dto.solution.SolutionPortfolioVO;
-import com.daimler.data.dto.solution.SolutionVO;
-import com.daimler.data.dto.tag.TagVO;
-import com.daimler.data.dto.visualization.VisualizationVO;
-import com.daimler.data.dto.relatedProduct.RelatedProductVO;
-import com.daimler.data.dto.skill.SkillVO;
-import com.daimler.data.service.algorithm.AlgorithmService;
-import com.daimler.data.service.appsubscription.AppSubscriptionService;
-import com.daimler.data.service.common.BaseCommonService;
-import com.daimler.data.service.dataiku.DataikuService;
-import com.daimler.data.service.datasource.DataSourceService;
-import com.daimler.data.service.language.LanguageService;
-import com.daimler.data.service.notebook.NotebookService;
-import com.daimler.data.service.platform.PlatformService;
-import com.daimler.data.service.tag.TagService;
-import com.daimler.data.service.visualization.VisualizationService;
-import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-import com.daimler.data.service.relatedproduct.RelatedProductService;
-import com.daimler.data.service.skill.SkillService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,9 +45,57 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.assembler.SolutionAssembler;
+import com.daimler.data.db.entities.DataikuNsql;
+import com.daimler.data.db.entities.SolutionNsql;
+import com.daimler.data.db.jsonb.SubDivision;
+import com.daimler.data.db.jsonb.solution.SkillSummary;
+import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
+import com.daimler.data.db.jsonb.solution.SolutionDatasource;
+import com.daimler.data.db.jsonb.solution.SolutionDivision;
+import com.daimler.data.db.jsonb.solution.SolutionLanguage;
+import com.daimler.data.db.jsonb.solution.SolutionPlatform;
+import com.daimler.data.db.jsonb.solution.SolutionVisualization;
+import com.daimler.data.db.repo.dataiku.DataikuCustomRepository;
+import com.daimler.data.db.repo.solution.SolutionCustomRepository;
+import com.daimler.data.db.repo.solution.SolutionRepository;
+import com.daimler.data.dto.algorithm.AlgorithmVO;
+import com.daimler.data.dto.appsubscription.SubscriptionVO;
+import com.daimler.data.dto.datasource.DataSourceVO;
+import com.daimler.data.dto.divisions.DivisionVO;
+import com.daimler.data.dto.divisions.SubdivisionVO;
+import com.daimler.data.dto.language.LanguageVO;
+import com.daimler.data.dto.notebook.NotebookVO;
+import com.daimler.data.dto.platform.PlatformVO;
+import com.daimler.data.dto.relatedProduct.RelatedProductVO;
+import com.daimler.data.dto.skill.SkillVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.SolutionAnalyticsVO;
+import com.daimler.data.dto.solution.SolutionPortfolioVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.solution.TeamMemberVO;
+import com.daimler.data.dto.tag.TagVO;
+import com.daimler.data.dto.visualization.VisualizationVO;
+import com.daimler.data.service.algorithm.AlgorithmService;
+import com.daimler.data.service.appsubscription.AppSubscriptionService;
+import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.dataiku.DataikuService;
+import com.daimler.data.service.datasource.DataSourceService;
+import com.daimler.data.service.language.LanguageService;
+import com.daimler.data.service.notebook.NotebookService;
+import com.daimler.data.service.platform.PlatformService;
+import com.daimler.data.service.relatedproduct.RelatedProductService;
+import com.daimler.data.service.skill.SkillService;
+import com.daimler.data.service.tag.TagService;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.service.visualization.VisualizationService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -98,6 +116,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 	@Autowired
 	private KafkaProducerService kafkaProducer;
+
+	@Autowired
+	private UserInfoService userInfoService;
 
 	@Autowired
 	private TagService tagService;
@@ -171,10 +192,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		boolean isUpdate = vo != null && vo.getId() != null ? true : false;
 		boolean noteBookAttachedAlready = false;
 		String notebookEvent = "provisioned";
+		SolutionVO prevVo = new SolutionVO();
 		if (isUpdate) {
 			String prevNotebookId = "";
 			String currNotebookId = "";
-			SolutionVO prevVo = this.getById(vo.getId());
+			prevVo = this.getById(vo.getId());
 			if (prevVo != null && prevVo.getPortfolio() != null && prevVo.getPortfolio().getDnaNotebookId() != null)
 				prevNotebookId = prevVo.getPortfolio().getDnaNotebookId();
 			if (vo != null && vo.getPortfolio() != null && vo.getPortfolio().getDnaNotebookId() != null)
@@ -240,14 +262,33 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		String eventType = "";
 		String solutionName = responseSolutionVO.getProductName();
 		String solutionId = responseSolutionVO.getId();
-		if (isUpdate)
+		List<ChangeLogVO> changeLogs = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		boolean isPublishedOrCreated = false;
+		if (isUpdate) {
 			eventType = "Solution_update";
-		else
+			changeLogs = solutionAssembler.jsonObjectCompare(vo, prevVo, currentUser);
+			if (vo.isPublish())
+				isPublishedOrCreated = true;
+		} else {
 			eventType = "Solution_create";
+			isPublishedOrCreated = true;
+		}
 
-		List<String> teamMembers = responseSolutionVO.getTeam().stream().map(n -> n.getShortId())
-				.collect(Collectors.toList());
-		this.publishEventMessages(eventType, solutionId, solutionName, teamMembers);
+		List<String> teamMembers = new ArrayList<>();
+		List<String> teamMembersEmails = new ArrayList<>();
+		for (TeamMemberVO user : responseSolutionVO.getTeam()) {
+			teamMembers.add(user.getShortId());
+			teamMembersEmails.add(user.getEmail());
+		}
+		if (isPublishedOrCreated) {
+			LOGGER.debug("Publishing message on solution event for solution {} ", solutionName);
+			this.publishEventMessages(eventType, solutionId, changeLogs, solutionName, teamMembers, teamMembersEmails);
+		} else {
+			LOGGER.debug(
+					"Not publishing message on solution event for solution {} , as it is still in draft stage and not published",
+					solutionName);
+		}
 		return responseSolutionVO;
 	}
 
@@ -256,10 +297,10 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	public void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category) {
 
 		List<SolutionNsql> solutionNsqlList = null;
-		if (StringUtils.isEmpty(tagName) && !StringUtils.isEmpty(relatedProductName)) {
+		if (!StringUtils.hasText(tagName) && StringUtils.hasText(relatedProductName)) {
 			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
 					null, null, Arrays.asList(relatedProductName), 0, 999999999, null, null);
-		} else if (!StringUtils.isEmpty(tagName) && StringUtils.isEmpty(relatedProductName)) {
+		} else if (StringUtils.hasText(tagName) && !StringUtils.hasText(relatedProductName)) {
 			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
 					Arrays.asList(tagName), null, null, 0, 999999999, null, null);
 		} else {
@@ -368,6 +409,63 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						List<SkillSummary> skills = solutionNsql.getData().getSkills().stream()
 								.filter(x -> !x.getNeededSkill().equals(tagName)).collect(Collectors.toList());
 						solutionNsql.getData().setSkills(skills);
+						customRepo.update(solutionNsql);
+					}
+				} else if (category.equals(TAG_CATEGORY.DIVISION)) {
+					LOGGER.debug("Deleting Division:{} from solutions.", tagName);
+					SolutionDivision soldivision = solutionNsql.getData().getDivision();
+					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
+							&& soldivision.getId().equals(tagName)) {
+						soldivision.setName(null);
+						soldivision.setId(null);
+						soldivision.setSubdivision(null);
+						customRepo.update(solutionNsql);
+					}
+				}
+
+			});
+		}
+	}
+
+	@Override
+	@Transactional
+	public void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject) {
+		List<SolutionNsql> solutionNsqlList = null;
+		if (StringUtils.hasText(oldValue)) {
+			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
+					Arrays.asList(oldValue), null, null, 0, 999999999, null, null);
+		}
+		if (!ObjectUtils.isEmpty(solutionNsqlList)) {
+			solutionNsqlList.forEach(solutionNsql -> {
+				if (category.equals(TAG_CATEGORY.DIVISION)) {
+					SolutionDivision soldivision = solutionNsql.getData().getDivision();
+					DivisionVO divisionVO = (DivisionVO) updateObject;
+					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
+							&& soldivision.getId().equals(divisionVO.getId())) {
+						soldivision.setName(divisionVO.getName().toUpperCase());
+						SubDivision subdivision = soldivision.getSubdivision();
+						List<SubdivisionVO> subdivisionlist = divisionVO.getSubdivisions();
+						if (Objects.nonNull(subdivision)) {
+							if (ObjectUtils.isEmpty(subdivisionlist)) {
+								soldivision.setSubdivision(null);
+							} else {
+								boolean exists = false;
+								for (SubdivisionVO value : subdivisionlist) {
+									if (StringUtils.hasText(value.getId())
+											&& value.getId().equals(subdivision.getId())) {
+										SubDivision subdiv = new SubDivision();
+										subdiv.setId(value.getId());
+										subdiv.setName(value.getName().toUpperCase());
+										soldivision.setSubdivision(subdiv);
+										exists = true;
+										break;
+									}
+								}
+								if (!exists) {
+									soldivision.setSubdivision(null);
+								}
+							}
+						}
 						customRepo.update(solutionNsql);
 					}
 				}
@@ -636,21 +734,26 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			String eventType = "Solution_delete";
 			String solutionName = solutionVO.getProductName();
 			String solutionId = solutionVO.getId();
-			List<String> teamMembers = solutionVO.getTeam().stream().map(n -> n.getShortId())
-					.collect(Collectors.toList());
-			this.publishEventMessages(eventType, solutionId, solutionName, teamMembers);
+			List<String> teamMembers = new ArrayList<>();
+			List<String> teamMembersEmails = new ArrayList<>();
+			for (TeamMemberVO user : solutionVO.getTeam()) {
+				teamMembers.add(user.getShortId());
+				teamMembersEmails.add(user.getEmail());
+			}
+			this.publishEventMessages(eventType, solutionId, null, solutionName, teamMembers, teamMembersEmails);
 		}
 
 		return super.deleteById(id);
 	}
 
-	private void publishEventMessages(String eventType, String solutionId, String solutionName,
-			List<String> subscribedUsers) {
+	private void publishEventMessages(String eventType, String solutionId, List<ChangeLogVO> changeLogs,
+			String solutionName, List<String> subscribedUsers, List<String> subscribedUsersEmail) {
 		try {
 			String message = "";
 			Boolean mailRequired = true;
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "dna_system";
+			String userName = super.currentUserName(currentUser);
 
 			/*
 			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
@@ -661,20 +764,25 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 			if ("Solution_delete".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Deleted";
-				message = "Solution " + solutionName + " is delete by user " + userId;
+				message = "Solution " + solutionName + " is delete by user " + userName;
+				LOGGER.info("Publishing message on solution delete for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_update".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Updated";
-				message = "Solution " + solutionName + " is updated by user " + userId;
+				message = "Solution " + solutionName + " is updated by user " + userName;
+				LOGGER.info("Publishing message on solution update for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_create".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Created";
-				message = "Added as team member to Solution " + solutionName + " by user " + userId;
+				message = "Added as team member to Solution " + solutionName + " by user " + userName;
+				LOGGER.info("Publishing message on solution create for solution {} by userId {}", solutionName, userId);
 			}
-			if (eventType != null && eventType != "")
-				kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers);
+			if (eventType != null && eventType != "") {
+				kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,
+						subscribedUsersEmail, changeLogs);
+			}
 		} catch (Exception e) {
-			LOGGER.trace("Failed while publishing notebookevent msg {} ", e.getMessage());
+			LOGGER.trace("Failed while publishing solution event msg {} ", e.getMessage());
 		}
 	}
 

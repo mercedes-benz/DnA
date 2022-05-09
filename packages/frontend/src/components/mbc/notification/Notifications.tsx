@@ -1,9 +1,9 @@
 import cn from 'classnames';
 import React, { useEffect, useState, useContext } from 'react';
-import { withRouter } from "react-router-dom";
+import { withRouter } from 'react-router-dom';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
-import { IUserInfo } from '../../../globals/types';
+import { IChangeLogData, IUserInfo } from '../../../globals/types';
 import Styles from './Notifications.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
@@ -16,19 +16,19 @@ import { history } from '../../../router/History';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 import SelectBox from '../../formElements/SelectBox/SelectBox';
 import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
 import { getQueryParameterByName } from '../../../services/Query';
 import NotificationListItem from './notificationListItem/NotificationListItem';
 import { IconGear } from '../../icons/IconGear';
 // import { INotificationDetails } from '../../../globals/types';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import AppContext from '../../context/ApplicationContext';
 
 export interface INotificationProps {
   user: IUserInfo;
-}  
+}
 
 const Notifications = (props: any) => {
   Tooltip.defaultSetup();
@@ -55,8 +55,7 @@ const Notifications = (props: any) => {
   const [notificationDetails, setNotificationDetails] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const {setMessage} = useContext(AppContext);
-
+  const { setMessage } = useContext(AppContext);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -70,41 +69,25 @@ const Notifications = (props: any) => {
   useEffect(() => {
     getNotifications();
     SelectBox.defaultSetup();
-  }, [
-    currentPageOffset, 
-    maxItemsPerPage
-  ]);
+  }, [currentPageOffset, maxItemsPerPage]);
 
   const getNotifications = () => {
     ProgressIndicator.show();
-    NotificationApiClient.getNotifications(props.user.id, maxItemsPerPage, currentPageOffset).then((response) => {
-      const totalNumberOfPagesInner = Math.ceil(response.totalRecordCount / maxItemsPerPage);
-      setNotificationsList(response.records);
-      setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
-      setTotalNumberOfPages(totalNumberOfPagesInner);
-      ProgressIndicator.hide();
-      history.replace({
-        search: `?page=${currentPageNumber}`,
+    NotificationApiClient.getNotifications(props.user.id, maxItemsPerPage, currentPageOffset)
+      .then((response) => {
+        const totalNumberOfPagesInner = Math.ceil(response.totalRecordCount / maxItemsPerPage);
+        setNotificationsList(response.records);
+        setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
+        setTotalNumberOfPages(totalNumberOfPagesInner);
+        ProgressIndicator.hide();
+        history.replace({
+          search: `?page=${currentPageNumber}`,
+        });
+      })
+      .catch((error) => {
+        showErrorNotification('Something went wrong!');
+        ProgressIndicator.hide();
       });
-    }).catch((error)=>{
-      showErrorNotification('Something went wrong!');
-    });
-    // ApiClient.getNotifications(maxItemsPerPage, currentPageOffset, 'description', 'asc')
-    //   .then((response) => {
-    //     const res = response.data.solutions;
-    //     const totalNumberOfPagesInner = Math.ceil(res.totalCount / maxItemsPerPage);
-    //     setNotificationsList(res.records);
-    //     setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
-    //     setTotalNumberOfPages(totalNumberOfPagesInner);
-    //     ProgressIndicator.hide();
-    //     history.replace({
-    //       search: `?page=${currentPageNumber}`,
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     err;
-    //     ProgressIndicator.hide();
-    //   });
   };
 
   const onPaginationPreviousClick = () => {
@@ -134,28 +117,28 @@ const Notifications = (props: any) => {
     setHideDrawer(!hideDrawer);
   };
 
-  const markNotificationAsRead = (notificationIds: any) => {
+  const markNotificationAsRead = (notificationIds: any, showMessage = true) => {
     ProgressIndicator.show();
      NotificationApiClient.markAsReadNotifications(notificationIds, props.user.id)
       .then((response) => {
-        setMessage('UPDATE_NOTIFICATIONS'); 
-        showNotification('Notification marked as viewed successfully.');
+        setMessage('UPDATE_NOTIFICATIONS');        
         getNotifications();
+        if(showMessage){
+          showNotification('Notification marked as viewed successfully.');
+        }
       })
       .catch((err) => {
-        console.log('Something went wrong');
         showErrorNotification('Something went wrong');
+        ProgressIndicator.hide();
       });
-    // toggleDrawer();
   };
 
   const openDetails = (notificationDetails: any) => {
     setNotificationDetails(JSON.stringify(notificationDetails));
-    /**********************  Following one line will be uncommented if drawer is needed ******************/
-    // setHideDrawer(false);
-
-
-    // toggleDrawer();
+    setHideDrawer(false);
+    if(!notificationDetails.isRead || notificationDetails.isRead === 'false'){
+      markNotificationAsRead([notificationDetails.id], false);
+    }    
   };
 
   const selectNotification = (notificationId: any) => {
@@ -227,25 +210,55 @@ const Notifications = (props: any) => {
   const showErrorNotification = (message: string) => {
     // ProgressIndicator.hide();
     Notification.show(message, 'alert');
-  }
+  };
 
   const showNotification = (message: string) => {
     // ProgressIndicator.hide();
     Notification.show(message);
-  }
+  };
 
   const onInfoModalCancel = () => {
     setShowDeleteModal(false);
-  }
+  };
 
   const onAccept = () => {
     onInfoModalCancel();
-    removeSelected(); 
-  }
+    removeSelected();
+  };
 
   const openDeleteModal = () => {
     setShowDeleteModal(true);    
   }
+
+
+  const getParsedDate = (strDate: any) => {
+    const date = new Date(strDate);
+    let dd: any = date.getDate();
+    let mm: any = date.getMonth() + 1; // January is 0!
+
+    const yyyy = date.getFullYear();
+    if (dd < 10) {
+      dd = '0' + dd;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    return (dd + '.' + mm + '.' + yyyy).toString();
+  };
+
+  const getParsedTime = (strDate: any) => {
+    const date = new Date(strDate);
+    let hh: any = date.getHours();
+    let mm: any = date.getMinutes(); // January is 0!
+
+    if (hh < 10) {
+      hh = '0' + hh;
+    }
+    if (mm < 10) {
+      mm = '0' + mm;
+    }
+    return (hh + ':' + mm).toString();
+  };
 
   
 
@@ -310,10 +323,10 @@ const Notifications = (props: any) => {
                   ''
                 )}
               </div>
-              {/* <div className={Styles.settingsBlock}>
-                <i className={classNames('icon mbc-icon search')} />
+              <div className={Styles.settingsBlock} onClick={()=> {history.push('/usersettings/')}}>
+                {/* <i className={classNames('icon mbc-icon search')} /> */}
                 Settings
-              </div> */}
+              </div>
             </div>
           </div>
 
@@ -321,10 +334,9 @@ const Notifications = (props: any) => {
             <div className={Styles.listContent}>
               {notificationsList == null ? (
                 <div className={Styles.notificationListEmpty}>Notifications are not available</div>
+              ) : notificationsList.length == 0 ? (
+                <div className={Styles.notificationListEmpty}>Notifications are not available</div>
               ) : (
-                notificationsList.length == 0 ? (
-                  <div className={Styles.notificationListEmpty}>Notifications are not available</div>
-                ) : (
                 <React.Fragment>
                   <div className={Styles.notificationList}>
                     <table className={'ul-table'}>
@@ -358,7 +370,7 @@ const Notifications = (props: any) => {
                               Date / Time
                             </label>
                           </th>
-                          <th>{' '}</th>
+                          <th> </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -385,47 +397,67 @@ const Notifications = (props: any) => {
                     </table>
                   </div>
                 </React.Fragment>
-              ))}
+              )}
             </div>
+
+            <div className={classNames(Styles.slider, hideDrawer ? Styles.close : '')}>
+              <div className={Styles.panelBorder} onClick={toggleDrawer}>
+                <div></div>
+              </div>
+              <div className={Styles.contentWrapper}>
+                <div className={Styles.contentHeader}>
+                  <span className={Styles.detailsNotificationType}>
+                    <i className="icon mbc-icon notification" />
+                    {notificationDetails ? JSON.parse(notificationDetails).eventType : ''}
+                  </span>
+                  {notificationDetails ? JSON.parse(notificationDetails).eventType === 'Solution Updated' ? 
+                    <a className={Styles.goToSolution} onClick={()=>{history.push('/summary/' + JSON.parse(notificationDetails).resourceId)}}>Go To Solution</a> 
+                    : '' : ''}
+                  <i className={classNames("icon mbc-icon close thin", Styles.closeDrawer)} onClick={toggleDrawer}/>
+                  {/* {notificationRead ? (
+                    <span className={Styles.detailsMarkAsRead} onClick={() => markAsRead()}>
+                      <i className={'icon mbc-icon visibility-show'} />
+                      &nbsp; Mark as read
+                    </span>
+                  ) : (
+                    <span className={Styles.detailsMarkAsRead} onClick={() => markAsUnread()}>
+                      <i className={'icon mbc-icon visibility-hide'} /> 
+                      &nbsp; Mark as unread
+                    </span>
+                  )} */}
+                </div>
+                <div className={Styles.notificationTitle}>
+                  <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
+                </div>
+                <div className={Styles.notificationContent}>
+                  {/* <p>Hey John Doe,</p> */}
+                  
+                  {notificationDetails?
+                    JSON.parse(notificationDetails)?.changeLogs?
+                    <ul>
+                      {JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {
+                        return (
+                          <li key={index}>{data.changeDescription} at {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, by {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
+                        )}
+                      )}
+                    </ul>  
+                  : <div className={Styles.noChangeLogs}>Change logs are not available!</div> : <div className={Styles.noChangeLogs}>Change logs are not available!</div>}
+                  
+                  
+
+
+                </div>
+                {/* <div className={Styles.btnConatiner}>
+                  <button className="btn btn-primary" type="button">
+                    Go to provision
+                  </button>
+                </div> */}
+              </div>
+            </div>
+
           </div>
 
-          <div className={classNames(Styles.slider, hideDrawer ? Styles.close : '')}>
-            <div className={Styles.panelBorder} onClick={toggleDrawer}>
-              <div></div>
-            </div>
-            <div className={Styles.contentWrapper}>
-              <div className={Styles.contentHeader}>
-                <span className={Styles.detailsNotificationType}>
-                  <i className="icon mbc-icon notification" />
-                  {notificationDetails ? JSON.parse(notificationDetails).eventType : ''}
-                </span>
-
-                {/* {notificationRead ? (
-                  <span className={Styles.detailsMarkAsRead} onClick={() => markAsRead()}>
-                    <i className={'icon mbc-icon visibility-show'} />
-                    &nbsp; Mark as read
-                  </span>
-                ) : (
-                  <span className={Styles.detailsMarkAsRead} onClick={() => markAsUnread()}>
-                    <i className={'icon mbc-icon visibility-hide'} />
-                    &nbsp; Mark as unread
-                  </span>
-                )} */}
-              </div>
-              <div className={Styles.notificationTitle}>
-                <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
-              </div>
-              <div className={Styles.notificationContent}>
-                {/* <p>Hey John Doe,</p> */}
-                <p>{notificationDetails ? JSON.parse(notificationDetails).message : ''}</p>
-              </div>
-              {/* <div className={Styles.btnConatiner}>
-                <button className="btn btn-primary" type="button">
-                  Go to provision
-                </button>
-              </div> */}
-            </div>
-          </div>
+          
         </div>
         {notificationsList.length ? (
           <Pagination
@@ -441,28 +473,27 @@ const Notifications = (props: any) => {
         )}
       </div>
       <ConfirmModal
-          title={''}
-          showAcceptButton={true}
-          showCancelButton={true}
-          acceptButtonTitle={'Confirm'}
-          cancelButtonTitle={'Cancel'}
-          show={showDeleteModal}
-          removalConfirmation={true}
-          content={
-            <div style={{ margin: '35px 0', textAlign: 'center' }}>
-              {/* <div>Delete Notification(s)</div> */}
-              <div className={classNames(Styles.removeConfirmationContent)}>
-                Are you sure to delete selected notification(s)?
-              </div>
+        title={''}
+        showAcceptButton={true}
+        showCancelButton={true}
+        acceptButtonTitle={'Confirm'}
+        cancelButtonTitle={'Cancel'}
+        show={showDeleteModal}
+        removalConfirmation={true}
+        content={
+          <div style={{ margin: '35px 0', textAlign: 'center' }}>
+            {/* <div>Delete Notification(s)</div> */}
+            <div className={classNames(Styles.removeConfirmationContent)}>
+              Are you sure to delete selected notification(s)?
             </div>
-          }
-          onCancel={onInfoModalCancel}
-          onAccept={onAccept}
-        />
+          </div>
+        }
+        onCancel={onInfoModalCancel}
+        onAccept={onAccept}
+      />
     </React.Fragment>
   );
 };
 Notifications.contextType = AppContext;
 export default withRouter(Notifications);
 delete Notifications.contextType;
-
