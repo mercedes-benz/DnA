@@ -5,7 +5,7 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { ILink } from '../../../../globals/types';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import Styles from './ExternalLink.scss';
 
 const classNames = cn.bind(Styles);

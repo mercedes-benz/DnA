@@ -12,7 +12,7 @@ import {
 } from '../../../../../globals/types';
 // @ts-ignore
 import InputFieldsUtils from '../../../../formElements/InputFields/InputFieldsUtils';
-import { Modal } from '../../../../formElements/modal/Modal';
+import  Modal from '../../../../formElements/modal/Modal';
 import Styles from './AddOrEditFactorModal.scss';
 
 const classNames = cn.bind(Styles);

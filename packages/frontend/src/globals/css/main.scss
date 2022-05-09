@@ -746,6 +746,10 @@
 
   /* Table */
   .ul-table, .expanstion-table {
+    tr th label {
+      color: #99a5b3;
+      margin: 0;
+    }
     .sortable-column-header {
       color: #99a5b3;
       font-size: var(--font-size-smallest);
@@ -815,6 +819,7 @@
       margin-bottom: 0;
 
       li {
+        text-align: left;
         &:last-child {
           margin-bottom: 0;
         }
@@ -1268,6 +1273,7 @@
   .mbc-scroll::-webkit-scrollbar {
     display: block;
     width: 5px;
+    height: 5px;
   }
   body::-ms-scrollbar-thumb,
   .mbc-scroll::-ms-scrollbar-thumb {

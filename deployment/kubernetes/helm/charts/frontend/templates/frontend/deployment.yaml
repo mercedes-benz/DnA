@@ -4,24 +4,24 @@ metadata:
   name: {{ .Release.Name }}-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Release.Name }}frontend
+    app: {{ .Release.Name }}-frontend
     zone: web
     
 spec:
   replicas: {{ .Values.appFrontend.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}frontend
+      app: {{ .Release.Name }}-frontend
   template:
     metadata:
       labels:
         zone: web
-        app: {{ .Release.Name }}frontend
+        app: {{ .Release.Name }}-frontend
     spec:
       containers:
         - env:
           - name: PROJECTSMO_BACKEND_HOST
-            value: {{ .Release.Name }}backend
+            value: {{ .Values.appFrontend.config.backendHost }}
           - name: PROJECTSMO_BACKEND_PORT
             value: "80"
           - name: PROJECTSMO_FRONTEND_OIDC_DISABLED
@@ -87,7 +87,11 @@ spec:
           - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE'
             value: {{ .Values.appFrontend.config.enableMalwareService | squote }} 
           - name: 'PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE'
-            value: {{ .Values.appFrontend.config.enableDataPipelineService | squote }} 
+            value: {{ .Values.appFrontend.config.enableDataPipelineService | squote }}
+          - name: 'PROJECTSMO_ENABLE_STORAGE_SERVICE'
+            value: {{ .Values.appFrontend.config.enableStorageService | squote }}
+          - name: 'PROJECTSMO_STORAGE_MFE_APP_URL'
+            value: {{ .Values.appFrontend.config.storageMFEAppURL | squote }}  
           - name: 'PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE'
             value: {{ .Values.appFrontend.config.enabledMlPipelineService | squote }}
           - name: 'PROJECTSMO_ML_PIPELINE_URL'
@@ -102,9 +106,29 @@ spec:
           imagePullPolicy: Always
           name: frontend
           ports:
-            - containerPort: 80
+            - containerPort: 3000
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - "[ -f /opt/bitnami/nginx/tmp/nginx.pid ]"
+              
+          readinessProbe:
+            # initialDelaySeconds: 30
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.readinessProbe.path }}
+              port: {{ .Values.probes.readinessProbe.port }}  
           volumeMounts:
-            - name: {{ .Release.Name }}-configmap
+            - name: {{ .Release.Name }}-frontend-configmap
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
           resources: {}
@@ -113,6 +137,6 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret.name }}
       volumes:
-        - name: {{ .Release.Name }}-configmap
+        - name: {{ .Release.Name }}-frontend-configmap
           configMap:
-            name: {{ .Release.Name }}-configmap
+            name: {{ .Release.Name }}-frontend-configmap

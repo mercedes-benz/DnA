@@ -39,7 +39,8 @@ import org.springframework.web.WebApplicationInitializer;
 @SpringBootApplication
 @ComponentScan({ "com.daimler.dna.notifications", "com.daimler.dna.notifications.common.user",
 		"com.daimler.dna.notifications.common.event.config", "com.daimler.dna.notifications.common.filter",
-		"com.daimler.dna.notifications.common.logging" })
+		"com.daimler.dna.notifications.common.logging","com.daimler.data.dto","com.daimler.dna.notifications.common.dna.client",
+		"com.daimler.dna.notifications.common.auth.client","com.mbc.dna.notifications.mailer"})
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);

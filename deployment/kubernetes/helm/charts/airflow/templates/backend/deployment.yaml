@@ -10,6 +10,8 @@ spec:
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -117,6 +119,24 @@ spec:
           volumeMounts:
             - mountPath: /git
               name: dag-repo
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.livenessProbe.path }}
+              port: {{ .Values.probes.livenessProbe.port }}
+              
+          readinessProbe:
+            # initialDelaySeconds: 120
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.readinessProbe.path }}
+              port: {{ .Values.probes.readinessProbe.port }}    
       securityContext:
         runAsUser: 1000
         fsGroup: 1000

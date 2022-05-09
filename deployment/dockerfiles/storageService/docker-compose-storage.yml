@@ -1,0 +1,13 @@
+version: "2.1"
+services:
+  storage-mfe:
+    image: ${STORAGE_MFE:-storage_mfe}
+    build:
+      context: ../../../packages/storage-mfe/
+      dockerfile: $PWD/storage-mfe.Dockerfile
+  
+  storage-be:
+    image: ${IMAGE_STORAGE_BE:-storage_be}
+    build:
+      context: ../../../packages/storage-backend/
+      dockerfile: $PWD/storage-be.Dockerfile

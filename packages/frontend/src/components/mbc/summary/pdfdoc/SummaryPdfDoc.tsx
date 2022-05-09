@@ -50,9 +50,14 @@ import {
   IValueFactor,
   IValueRampUp,
   INeededRoleObject,
+  IUserInfo,
+  INotebookInfo,
+  IDataiku,
 } from '../../../../globals/types';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
 import { Envs } from '../../../../globals/Envs';
+import { getDateTimeFromTimestamp } from '../../../../services/utils';
+import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -532,8 +537,28 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
   });
 };
 
-export const SummaryPdfDoc = (props: any) => (
+interface SummaryPdfDocProps {
+  solution: ICreateNewSolutionData;
+  lastModifiedDate: string;
+  createdDate: string;
+  canShowTeams: boolean;
+  canShowPlatform: boolean;
+  canShowMilestones: boolean;
+  canShowDataSources: boolean;
+  canShowDigitalValue: string;
+  canShowComplianceSummary: number | boolean;
+  user: IUserInfo;
+  noteBookInfo: INotebookInfo;
+  dataIkuInfo: IDataiku;
+  dnaNotebookEnabled: boolean;
+  dnaDataIkuProjectEnabled: boolean;
+  notebookAndDataIkuNotEnabled: boolean;
+  children?: any;
+}
+export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
+  // @ts-ignore
   <Document>
+    {/* @ts-ignore */}
     <Page style={styles.page} wrap={true}>
       <View style={styles.view}>
         <Text style={styles.title}>{props.solution.description.productName}</Text>
@@ -556,11 +581,11 @@ export const SummaryPdfDoc = (props: any) => (
         <View style={styles.flexLayout} wrap={false}>
           <View style={[styles.flexCol2, styles.firstCol]}>
             <Text style={styles.sectionTitle}>Division</Text>
-            <Text>{props.solution.description.division.name}</Text>
+            <Text>{props.solution.description.division?.name || 'NA'}</Text>
           </View>
           <View style={styles.flexCol2}>
             <Text style={styles.sectionTitle}>Sub Division</Text>
-            <Text>{props.solution.description.division.subdivision.name}</Text>
+            <Text>{props.solution.description.division?.subdivision?.name || 'NA'}</Text>
           </View>
           <View style={styles.flexCol2}>
             <Text style={styles.sectionTitle}>Status</Text>
@@ -585,6 +610,16 @@ export const SummaryPdfDoc = (props: any) => (
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Register support of additional resources</Text>
             <Text>{props.solution.description.additionalResource ? props.solution.description.additionalResource : 'N/A'}</Text>
+          </View>
+        </View>
+        <View style={styles.flexLayout} wrap={false}>
+          <View style={[styles.flexCol2, styles.firstCol]}>
+            <Text style={styles.sectionTitle}>Created On</Text>
+            <Text>{props.createdDate ? getDateTimeFromTimestamp(props.createdDate) : '-'}</Text>
+          </View>
+          <View style={[styles.flexCol2, styles.wideCol]}>
+            <Text style={styles.sectionTitle}>Last Modified On</Text>
+            <Text>{props.lastModifiedDate ? getDateTimeFromTimestamp(props.lastModifiedDate) : '-'}</Text>
           </View>
         </View>
         <View style={styles.seperatorLine} />
@@ -643,7 +678,7 @@ export const SummaryPdfDoc = (props: any) => (
 
         {props.canShowPlatform && (
           <View wrap={false}>
-            <View style={[styles.flexCol4, styles.firstCol]}>
+            <View>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Compute</Text>
             </View>
             <View style={styles.flexLayout}>

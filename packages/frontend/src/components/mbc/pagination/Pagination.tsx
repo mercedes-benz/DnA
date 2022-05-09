@@ -15,7 +15,7 @@ export interface IPaginationState {
   selectedPageNumber: number;
 }
 
-export class Pagination extends React.PureComponent<IPaginationProps, IPaginationState> {
+export default class Pagination extends React.PureComponent<IPaginationProps, IPaginationState> {
   constructor(props: IPaginationProps) {
     super(props);
     this.state = {
@@ -23,7 +23,8 @@ export class Pagination extends React.PureComponent<IPaginationProps, IPaginatio
         parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
     };
   }
-  public render(): React.ReactNode {
+  /* tslint:disable:jsx-no-lambda */
+  public render(): JSX.Element {
     return (
       <div id="pagination-container" className={Styles.container}>
         <button

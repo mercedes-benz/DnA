@@ -1,0 +1,22 @@
+.flexLayout {
+    display: flex;
+    justify-content: space-between;
+    margin: 40px;
+    padding: 50px 30px;
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+    &.threeColumn {
+      > div {
+        width: calc(33% - 7px);
+      }
+    }
+    .optionsList{
+        margin: 25px 0;
+    }
+}
