@@ -145,6 +145,28 @@ kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
 ```
 For storing the secrets , go to vault service and enable the KV engine.
 
+**Dashboard Service**
+To enable the dashboard service go to the vaules.yaml and set the below parameter to true
+```
+enabledReports: true
+```
+
+**Clamav Service**
+To use the clamav service mention the respective values to the below paramters in the values.yaml
+```
+enableAttachmentScan: true
+enableMalwareService: true
+avscanUri:
+avscanApiKey: 
+avscanAppId: 
+```
+**Storage and Naas**
+To enable the storage and naas service mention the respective values to the below parameters in the values.yaml
+```
+enableStorageService: true
+storageMFEAppURL:
+enableNotification: true
+```
 Do Helm Upgrade, if you made changes on helm files
 
 ```
