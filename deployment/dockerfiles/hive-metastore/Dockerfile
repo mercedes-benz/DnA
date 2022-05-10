@@ -1,6 +1,6 @@
 FROM openjdk:11-slim
 
-ARG HADOOP_VERSION=3.2.2
+ARG HADOOP_VERSION=3.2.3
 
 RUN apt-get update && apt-get install -y curl postgresql-client wget procps --no-install-recommends && \
         rm -rf /var/lib/apt/lists/*
