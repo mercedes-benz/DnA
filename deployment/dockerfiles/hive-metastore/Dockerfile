@@ -36,5 +36,5 @@ RUN curl -fSL https://jdbc.postgresql.org/download/postgresql-$POSTGRESQL_JDBC_V
 RUN rm /opt/hive-metastore/lib/guava-19.0.jar && \
         ls -lah /opt/hadoop/share/hadoop/common/lib/ && \
         cp /opt/hadoop/share/hadoop/common/lib/guava-27.0-jre.jar /opt/hive-metastore/lib/ && \
-        cp /opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.2.3.jar /opt/hive-metastore/lib/ && \
+        cp /opt/hadoop/share/hadoop/tools/lib/hadoop-aws-$HADOOP_VERSION.jar /opt/hive-metastore/lib/ && \
         cp /opt/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-* /opt/hive-metastore/lib/
