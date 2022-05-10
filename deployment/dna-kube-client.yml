@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dna-kubeclient-backend
+  labels:
+    name: dna-kubeclient-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: dna-kubeclient-backend
+  template:
+    metadata:
+      labels:
+        name: dna-kubeclient-backend
+    spec:
+      containers:
+        - name: kubeclient-service
+          image: learnatdocker/kubeclient-backend
+          imagePullPolicy: Always
+          env:
+            - name: KUBE_NAMESPACE
+              value: dna
+          ports:
+            - containerPort: 7373
+              protocol: TCP
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1000Mi"
+              cpu: "500m"
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: harbor-pull-secret
