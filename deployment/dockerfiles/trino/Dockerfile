@@ -1,5 +1,5 @@
 # latest trino image compatible with latest immuta plugin
-from trinodb/trino:377
+FROM trinodb/trino:377
 
 ARG IMMUTA_PLUGIN_PATH
 
