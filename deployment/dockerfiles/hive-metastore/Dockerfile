@@ -33,10 +33,8 @@ ARG POSTGRESQL_JDBC_VERSION=42.2.24
 # Install PostgreSQL JDBC driver
 RUN curl -fSL https://jdbc.postgresql.org/download/postgresql-$POSTGRESQL_JDBC_VERSION.jar -o /opt/hive-metastore/lib/postgresql-jdbc.jar
 
-RUN rm -r /opt/hadoop-3.2.2/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar
-
 RUN rm /opt/hive-metastore/lib/guava-19.0.jar && \
         ls -lah /opt/hadoop/share/hadoop/common/lib/ && \
         cp /opt/hadoop/share/hadoop/common/lib/guava-27.0-jre.jar /opt/hive-metastore/lib/ && \
-        cp /opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.2.2.jar /opt/hive-metastore/lib/ && \
+        cp /opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.2.3.jar /opt/hive-metastore/lib/ && \
         cp /opt/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-* /opt/hive-metastore/lib/
