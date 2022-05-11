@@ -263,6 +263,8 @@ definitions:
       solutionId:
         type: string
         description: solution id for which notebook was opened
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"  
     required:
       - name
       - description
