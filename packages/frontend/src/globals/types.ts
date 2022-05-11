@@ -1026,12 +1026,14 @@ export interface IFilterPreferences {
 
 
 export interface INoticationModules {  
-  solutionNotificationPref: INoticationEnableDisable;
-  notebookNotificationPref: INoticationEnableDisable;
+  solutionNotificationPref: INotificationEnableDisable;
+  notebookNotificationPref: INotificationEnableDisable;
+  dashboardNotificationPref: INotificationEnableDisable;
+  persistenceNotificationPref: INotificationEnableDisable;
   userId: string;
 }
 
-export interface INoticationEnableDisable {
+export interface INotificationEnableDisable {
   enableAppNotifications: boolean;
   enableEmailNotifications: boolean;
 }
