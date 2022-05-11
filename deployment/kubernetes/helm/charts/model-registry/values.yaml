@@ -11,10 +11,10 @@ envs:
 replicaCount: 1
 
 image:
-  repository: "learnatdocker/model-registry"
+  repository: "model-registry"
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
 
 imagePullSecrets:
   name: harbor-pull-secret
