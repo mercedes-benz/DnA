@@ -46,6 +46,9 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 		if(notificationPrefJson!=null) {
 			vo.setEnableAppNotifications(notificationPrefJson.isEnableAppNotifications());
 			vo.setEnableEmailNotifications(notificationPrefJson.isEnableEmailNotifications());
+		}else {
+			vo.setEnableAppNotifications(true);
+			vo.setEnableEmailNotifications(false);
 		}
 		return vo;
 	}
