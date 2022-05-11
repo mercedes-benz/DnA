@@ -27,8 +27,8 @@ const NotificationsSettings = (props: INotificationSettings) => {
         .then((res) => {
             if (res) {
                 setNotificationPreferences(res);
-            }
-            migrateResponseToLocalObject(res);
+                migrateResponseToLocalObject(res);
+            }            
             ProgressIndicator.hide();
         }) 
     },[])
@@ -61,7 +61,13 @@ const NotificationsSettings = (props: INotificationSettings) => {
                         break;
                     case 'notebookNotificationPref':
                             temp.title = 'Configure Notifications for Notebooks'; 
-                        break;      
+                        break;
+                    case 'persistenceNotificationPref':
+                            temp.title = 'Configure Notifications for Persistence';
+                        break;
+                    case 'dashboardNotificationPref':
+                            temp.title = 'Configure Notifications for Dashboard'; 
+                        break;          
                 }
                 tempArr.push(temp);
             }
@@ -80,6 +86,22 @@ const NotificationsSettings = (props: INotificationSettings) => {
 
     const onChangeEmailNotificationForNotebook = (e: React.ChangeEvent<HTMLInputElement>) => {
         const target = notificationPreferences?.notebookNotificationPref;
+        target['enableEmailNotifications'] = e.target.checked;
+        setNotificationPreferences(notificationPreferences);
+        const messageForNotification = e.target.checked ? 'Enabled Email Notification Successfully' : 'Disabled Email Notification Successfully';
+        callToUpdatePreference(messageForNotification);
+    }
+
+    const onChangeEmailNotificationForDashboard = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const target = notificationPreferences?.dashboardNotificationPref;
+        target['enableEmailNotifications'] = e.target.checked;
+        setNotificationPreferences(notificationPreferences);
+        const messageForNotification = e.target.checked ? 'Enabled Email Notification Successfully' : 'Disabled Email Notification Successfully';
+        callToUpdatePreference(messageForNotification);
+    }
+
+    const onChangeEmailNotificationForPersistence = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const target = notificationPreferences?.persistenceNotificationPref;
         target['enableEmailNotifications'] = e.target.checked;
         setNotificationPreferences(notificationPreferences);
         const messageForNotification = e.target.checked ? 'Enabled Email Notification Successfully' : 'Disabled Email Notification Successfully';
@@ -113,7 +135,13 @@ const NotificationsSettings = (props: INotificationSettings) => {
                 break;
             case 'notebookNotificationPref':
                 onChangeEmailNotificationForNotebook(e);
-                break;      
+                break;
+            case 'persistenceNotificationPref':
+                onChangeEmailNotificationForPersistence(e);
+                break;
+            case 'dashboardNotificationPref':
+                onChangeEmailNotificationForDashboard(e);
+                break;          
         }
     }
 
