@@ -152,7 +152,7 @@ const NotificationsSettings = (props: INotificationSettings) => {
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                     {tempNotificationPreferences?.map( (item: any, index: number) => {
                         return (
-                            <div id={"optionList-"+index} key={index}>
+                            <div id={"optionList-"+index} key={index} className={Styles.moduleWrapper}>
                                 <label className="input-label summary">{item.title}</label>
                                 <br />
                                 <div className={Styles.optionsList}>
