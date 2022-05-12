@@ -172,3 +172,5 @@ data:
             }
           }
         }
+  config.json: |
+    {{ .Values.configJson | toJson }}

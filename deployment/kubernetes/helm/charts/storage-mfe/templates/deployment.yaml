@@ -49,9 +49,8 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: {{ include "storage-mfe.fullname" . }}
-              mountPath: /etc/nginx/nginx.conf
+              mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
-          {{- with .Values.envs }}
-          env:
-          {{- toYaml . | nindent 12 }}
-          {{- end }}      
+            - name: {{ include "storage-mfe.fullname" . }}
+              mountPath: /usr/share/nginx/html/config.json
+              subPath: config.json                
