@@ -681,7 +681,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                 <div>
                   <div className={classNames('input-field-group')}>
                     <label id="benefitRelevanceSelectLabel" htmlFor="benefitRelevanceSelect" className="input-label">
-                      Benefit Relevance<sup>*</sup>
+                      Benefit Realization Risk<sup>*</sup>
                     </label>
                     <div id="benefitRelevance" className="custom-select">
                       <select
