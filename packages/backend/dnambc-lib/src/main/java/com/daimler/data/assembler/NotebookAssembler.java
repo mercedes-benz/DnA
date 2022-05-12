@@ -30,6 +30,10 @@ package com.daimler.data.assembler;
 import com.daimler.data.db.entities.NotebookNsql;
 import com.daimler.data.db.jsonb.Notebook;
 import com.daimler.data.dto.notebook.NotebookVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -74,4 +78,20 @@ public class NotebookAssembler implements GenericAssembler<NotebookVO, NotebookN
 		}
 		return notebookNsql;
 	}
+	
+	/**
+	 * To convert UserInfoVO to CreatedByVO
+	 * 
+	 * @param userInfoVO
+	 * @return CreatedByVO
+	 */
+	public CreatedByVO toCreatedByVO(UserInfoVO userInfoVO) {
+		CreatedByVO createdByVO = null;
+		if(Objects.nonNull(userInfoVO)) {
+			createdByVO = new CreatedByVO();
+			BeanUtils.copyProperties(userInfoVO, createdByVO);
+		}
+		return createdByVO;
+	}
+	
 }
