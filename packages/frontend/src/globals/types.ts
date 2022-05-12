@@ -61,6 +61,7 @@ export interface INotebookInfo {
   name: string;
   description: string;
   createdOn?: string;
+  createdBy?: IUserInfo;
 }
 export interface INotebookInfoSolutionId {
   name: string;
