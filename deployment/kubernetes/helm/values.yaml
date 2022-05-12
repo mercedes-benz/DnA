@@ -65,7 +65,7 @@ frontend:
       enableJupyterWorkspace: false
     # Set enableDataikuWorkspace to "true", if you want to enable Dataiku Workspace, by default value is "false"
       enableDataikuWorkspace: false
-      enableMalwareService: false
+      enableMalwareService: true
       enableDataPipelineService: false
     # Set enableStorageService to "true" to enable Storage Service
       enableStorageService: false
