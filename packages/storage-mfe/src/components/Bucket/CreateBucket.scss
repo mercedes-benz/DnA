@@ -47,6 +47,11 @@
             margin-top: auto;
             margin-bottom: auto;
             color: #c0c8d0;
+            sup {
+              float: right;
+              top: -12px;
+              right: -8px;
+            }
           }
         }
       }
