@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: model-registry-service
+
+dna:
+  kube:
+      config:
+        namespace: ${KUBE_NAMESPACE:defaultNamespace}
+
+server:
+  port: 7373
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+
+management.endpoints.web.exposure.include: loggers
+management.endpoint.loggers.enabled: true
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com.mb.dna.kube.client.main.Application: DEBUG
+    
