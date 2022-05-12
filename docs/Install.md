@@ -68,10 +68,12 @@ cd <<Clonned Folder>>/deployment/
 
 Execute the below command to create images of DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker and Minio .
 ```
+cd <<Clonned Folder>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
 Execute the below command to create storage-service images ( Storage-mfe and storage-be)
 ```
+cd <<Clonned Folder>>/deployment/dockerfiles/storageService
 docker-compose -f docker-compose-storage.yml build  
 ```
 Refer the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed with <<...>> to the respective values  
@@ -83,12 +85,12 @@ docker push <<your_repository_name>/<image_name_of_your_wish>>
 
 Refer the below content to understand which sub-charts belong to which namespace 
 
-  *dna namespace contains "DnA-Backend, DnA-Frontend, Postgres"
-  *clamav namespace contains "clamav service and malware-backend"
-  *naas namespace contains "Naas-backend"
-  *dashboard namespace contains "dashboard-backend"
-  *vault namespace contains "vault service"
-  *storage namespace contains "storage-service"
+  * dna namespace contains "DnA-Backend, DnA-Frontend, Postgres"
+  * clamav namespace contains "clamav service and malware-backend"
+  * naas namespace contains "Naas-backend"
+  * dashboard namespace contains "dashboard-backend"
+  * vault namespace contains "vault service"
+  * storage namespace contains "storage-service"
 
 Refer the above list and create namespaces according to the services you would like to deploy using helm.
 ```
@@ -142,7 +144,7 @@ helm list
 ```
 To access the application using localhost , port-forward the dna-frontend-service
 ```
-kubectl port-forward dna-frontend-service 7179:3000
+kubectl port-forward service/dna-frontend-service 7179:3000
 ```
 
 **Vault service**
