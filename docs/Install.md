@@ -175,16 +175,18 @@ enabledReports: true
 To use the clamav service mention the respective values to the below paramters in the values.yaml
 ```
 enableAttachmentScan: true
-enableMalwareService: true
-avscanUri:    
+avscanUri:    (# http://<<clamav_service_name>>.<<clamav_namespace>>.svc.cluster.local:8181/avscan/api/v1)
+#Open the http://localhost:7179 and go to myservices->malwarescan (#Genrate the apikey and copy the application key and id  and copy the same into below paramters)
 avscanApiKey:   
 avscanAppId: 
 ```
 **Storage and Naas**
 To enable the storage and naas service mention the respective values to the below parameters in the values.yaml
+
 ```
 enableStorageService: true
-storageMFEAppURL:
+kubectl port-forward service/storage-mfe <<port_num_that_you_wish_to_forward>>:80
+storageMFEAppURL: http://localhost:<<storage_mfe_port_num_that_was_port_forwared>>
 enableNotification: true
 ```
 Do Helm Upgrade, if you made changes on helm files
@@ -192,6 +194,11 @@ Do Helm Upgrade, if you made changes on helm files
 ```
 helm upgrade dna . -f values.yaml
 ```
+Again you can port-foward the DnA Application to avail all the other services :
+```
+kubectl port-forward service/dna-frontend-service 7179:3000
+```
+
 To uninstall the helm app
 
 ```
