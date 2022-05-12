@@ -175,6 +175,7 @@ logging:
           controller.ItsmmGameController: DEBUG
     org.springframework.boot.autoconfigure.logging: INFO
     com.daimler.data.controller.ItsmmGameController: DEBUG
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
     org:
       springframework:
         web:
