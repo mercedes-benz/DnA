@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>dna-kube-client-lib</name>
-	<comment>Project dna-kube-client-lib created by Buildship.</comment>
+	<name>model-registry-lib</name>
+	<comment>Project model-registry-lib created by Buildship.</comment>
 	<projects>
 	</projects>
 	<buildSpec>
