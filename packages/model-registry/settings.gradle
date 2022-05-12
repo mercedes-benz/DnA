@@ -22,5 +22,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'dna-kube-client'
-include('lib')
+rootProject.name = 'model-registry'
+include('model-registry-lib')
