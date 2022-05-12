@@ -97,6 +97,7 @@ services:
       - LOGGING_ENVIRONMENT=DEV
       - LOGGING_PATH=/tmp/app/logs/
       - JWT_TOKEN_EXPIRY_TIME_IN_MIN=90
+      - DASHBOARD_URI=http://dashboard-backend:7173/dashboards
     depends_on:
       - app-db
       - vault
