@@ -19,6 +19,11 @@ ingress:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: ""
 
+configJson:
+    {
+      "key":"value"
+    }
+    
 probes:
   initialDelaySeconds: 30
   timeoutSeconds: 10
@@ -32,46 +37,6 @@ probes:
 appFrontend:
   replicaCount: 1
   image: dna/app-frontend
-  config: 
-    oidcDisabled: true
-    oidcProvider: INTERNAL
-    apiBaseUrl: api
-    jupyterNotebookUrl: ""
-    jupyterNotebookOidcPopUpUrl: ""
-    dataikuLiveAppUrl: ""
-    dataikuTrainingAppUrl: ""
-    oauth2TokenUrl: ""
-    oauth2AuthUrl: ""
-    oauth2RevokeUrl: ""
-    oauth2LogoutUrl: ""
-    oauth2IntrospectionUrl: ""
-    oauth2UserInfoUrl: ""
-    frontendClientid: ""
-    redirectUrls: ""
-    swaggerUiUrl: ""
-    dataikuFerretUrl: ""
-    mlPipelineUrl: ""
-    appNameHeader: ""
-    appNameHome: ""
-    contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
-    brandLogoUrl: /images/branding/logo-brand.png
-    appLogoUrl: /images/branding/logo-app.png
-    enableInternalUserInfo: true
-    enableDataCompliance: true
-    enabledReports: false
-    enableJupyterWorkspace: false
-    enableDataikuWorkspace: false
-    enableMalwareService: false
-    enableDataPipelineService: false
-    enableStorageService: false
-    storageMFEAppURL: http://localhost:8083
-    enablePipelineService: false
-    enabledMlPipelineService: false
-    enableMalwareApiInfo: false
-    enableNotification: false
-    companyName: XYZ
-    backendHost: dna-app-backend-service
-
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
     jupyServer: http://proxy-public:8000
