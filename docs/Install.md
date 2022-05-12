@@ -103,31 +103,31 @@ kubectl create ns storage
 ```
 #### **values.yaml**
 
-*Before proceeding with the installation, update the image names to the respective services in the    values.yaml
+Before proceeding with the installation, update the image names to the respective services in the    values.yaml
 
-  File is located at 
+  * File is located at 
 
   **<<Clonned Folder>>deployment\kubernetes\helm\values.yaml**
 
-*For pulling the images from the registry, update the docker.configjson value in the values.yaml
+For pulling the images from the registry, update the docker.configjson value in the values.yaml
 
   For more info on kubernetes secret for pulling the images , refer harbor-pull-secret manifest file.
 
   ```
   cat <clonnedFloder>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
   ```
-*List of services that dna application offering:
-  Naas ( Notification as a service)
-  Dashboard 
-  Clamav
-  Storage
+List of services that dna application offering:
+  * Naas ( Notification as a service)
+  * Dashboard 
+  * Clamav
+  * Storage
 
-*Set the below paramter to true for the services that you would like to deploy via sub-chart
+Set the below paramter to true for the services that you would like to deploy via sub-chart
 
   **enabled: true**
   
 
-**After installing the kafka, update the value of "naasBroker" in values.yaml to kafka-service-FQDN.
+After installing the kafka, update the value of "naasBroker" in values.yaml to kafka-service-FQDN.
 
 #### **Install the DnA application using helm
 
@@ -142,7 +142,7 @@ Execute the below command to list out the helm releases
 ```
 helm list
 ```
-To access the application using localhost , port-forward the dna-frontend-service
+To access the application using localhost , port-forward the dna-frontend-service to 7179/any_port_of_your_wish.
 ```
 kubectl port-forward service/dna-frontend-service 7179:3000
 ```
@@ -154,7 +154,7 @@ To resolve this , intialize the vault service and unseal the root key .
 ```
 kubectl exec vault-0 -n vault  -- vault operator init
 ```
-After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the values.yaml
+After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe under and backend sections of the values.yaml
 
 We can unseal the vault service with any of the 3 keys out of 5 .
 ```
@@ -163,19 +163,21 @@ kubectl exec vault-0 -n vault  -- vault operator unseal <key_02>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
 ```
 ![This is an image](./images/vault-unsealed.png)
-For storing the secrets , go to vault service and enable the KV engine.
-
+Execute the below commands to enable the kv engine for storing the secrets:
+```
+kubectl exec vault-0 -n vault  -- vault operator login <<root_token_that you generated>>
+kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 kv
+```
 **Dashboard Service**
 To enable the dashboard service go to the vaules.yaml and set the below parameter to true
 ```
 enabledReports: true
 ```
-
 **Clamav Service**
 To use the clamav service mention the respective values to the below paramters in the values.yaml
 ```
 enableAttachmentScan: true
-avscanUri:    (# http://<<clamav_service_name>>.<<clamav_namespace>>.svc.cluster.local:8181/avscan/api/v1)
+avscanUri:    (# http://<<clamav-rest_service_name>>.<<clamav_namespace>>.svc.cluster.local:8181/avscan/api/v1)
 #Open the http://localhost:7179 and go to myservices->malwarescan (#Genrate the apikey and copy the application key and id  and copy the same into below paramters)
 avscanApiKey:   
 avscanAppId: 
@@ -194,9 +196,9 @@ Do Helm Upgrade, if you made changes on helm files
 ```
 helm upgrade dna . -f values.yaml
 ```
-Again you can port-foward the DnA Application to avail all the other services :
+Open the below link in your browser to access all the services that you enabled locally using DnA
 ```
-kubectl port-forward service/dna-frontend-service 7179:3000
+http://localhost:7179
 ```
 
 To uninstall the helm app
