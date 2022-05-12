@@ -4,7 +4,7 @@ services:
     image: dna/model-registry
     container_name: model-registry
     build:
-      context: ../../../packages/dna-kube-client
+      context: ../../../packages/model-registry
       dockerfile: $PWD/dockerfile.Dockerfile
     environment:
     - KUBE_NAMESPACE=dna
