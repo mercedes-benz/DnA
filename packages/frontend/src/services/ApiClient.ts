@@ -737,7 +737,7 @@ export class ApiClient {
     if (locations != '') reqQuery += `location=${locations}&`;
     if (phases != '') reqQuery += `phase=${phases}&`;
     if (divisions != '') reqQuery += `division=${encodeURIComponent(divisions)}&`;
-    if (status != '') reqQuery += `projectStatus=${status}&`;
+    if (status != '') reqQuery += `projectstatus=${status}&`;
     if (useCaseType != '') reqQuery += `useCaseType=${useCaseType}&`;
     if (tagSearch != '') reqQuery += `tags=${tagSearch}&`;
 
