@@ -29,6 +29,7 @@ package com.daimler.data.service.notebook;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,8 +49,10 @@ import com.daimler.data.db.repo.notebook.NotebookRepository;
 import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
+import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 @Service
@@ -74,6 +77,9 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 	@Autowired
 	private SolutionService solutionService;
 
+	@Autowired
+	private UserInfoService userInfoService;
+	
 	public BaseNotebookService() {
 		super();
 	}
@@ -199,6 +205,19 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		existingNotebookDetails.setSolutionId(solutionId);
 		notebookRecord.setData(existingNotebookDetails);
 		customRepo.update(notebookRecord);
+	}
+	
+	@Override
+	public NotebookVO getById(String id) {
+		LOGGER.info("Fetching notebook info from db.");
+		NotebookVO notebookVO = super.getById(id);
+		if(Objects.nonNull(notebookVO)) {
+			LOGGER.info("Fetching user details for user:{}",notebookVO.getUserId());
+			UserInfoVO userInfoVO = userInfoService.getById(notebookVO.getUserId().toUpperCase());
+			LOGGER.debug("Setting createdByVO.");
+			notebookVO.setCreatedBy(notebookAssembler.toCreatedByVO(userInfoVO));
+		}
+		return notebookVO;
 	}
 
 }
