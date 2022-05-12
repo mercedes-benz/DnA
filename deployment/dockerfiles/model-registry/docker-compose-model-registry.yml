@@ -1,4 +1,4 @@
-version: '1.0'
+version: '2.1'
 services:
   model-registry:
     image: dna/model-registry
