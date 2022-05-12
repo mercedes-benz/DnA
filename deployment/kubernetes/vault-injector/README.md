@@ -150,8 +150,6 @@ Vault k8s role is required to map vault secret policy and provide the access to 
 * `dna-policy` - Policy is associated with vault secret
 * `vault-auth` - Service account created on namespace`dashboard`
 
-Note: Service account
-
 ### On Kubernetes manifest side
 
 This section covers the `dashboard-service` deployment with the vault injector.
@@ -206,15 +204,15 @@ Add the following annotation at pod manifest level to read the secret from the v
 
 ```
 
-Now the vault initializes the secret as a file and mount it at the pod level. 
+Now the vault initializes the secret as a file and mount it at the pod level.
 
-| Name                          | Description                                               |
-| ----------------------------- | --------------------------------------------------------- |
-| <`<Vault Kubernetes Role>`> | Name of the Kubernetes role created on vault              |
-| name_of_the_secret            | Name of the secret. It should be unique at the template level |
-| <`<vault secret path>`>     | Secret path of the vault                                  |
+| Name                      | Description                                                   |
+| ------------------------- | ------------------------------------------------------------- |
+| `Vault Kubernetes Role` | Name of the Kubernetes role created on vault                  |
+|  `name_of_the_secret`   | Name of the secret. It should be unique at the template level |
+| `vault secret path`     | Secret path of the vault                                      |
 
-> Note: Sidecar container doesn't modify the template of a pod specification. It will create a file and store the secret. An application that is going to use that secret, has to configure and read it from the file or system environment.
+> Note: Sidecar container doesn't modify the template of a pod specification. It will store the secret as a file in the pod. An application that is going to use that secret, has to configure to read it from the file or system environment.
 
 Below, the template export the secret as an environment variable to the Nginx container.
 
@@ -275,7 +273,6 @@ spec:
               name: api
               protocol: TCP
 ```
-
 
 Reference:
 
