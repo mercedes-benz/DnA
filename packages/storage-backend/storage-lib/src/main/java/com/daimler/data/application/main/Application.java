@@ -37,7 +37,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.WebApplicationInitializer;
 
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
+@SpringBootApplication
 @ComponentScan({ "com.daimler.data.controller", "com.daimler.data.service", "com.daimler.data.assembler",
 		"com.daimler.data.logging", "com.daimler.data.application.config", "com.daimler.data.application.filter",
 		"com.daimler.data.auth.client", "com.daimler.data.minio.client", "com.daimler.data.util", "com.daimler.dna" })
