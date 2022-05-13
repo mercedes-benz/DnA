@@ -714,6 +714,11 @@
     }
   }
 
+  .radio .wrapper input[type="radio"]:disabled::after,
+  .radio.disabled {
+    cursor: not-allowed;
+  }
+
   /* Tabs */
   .tabs-panel .tab {
     font-size: var(--font-size-default);
