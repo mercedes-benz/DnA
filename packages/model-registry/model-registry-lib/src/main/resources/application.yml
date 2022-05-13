@@ -1,6 +1,6 @@
 spring:
   application:
-    name: model-registry-service
+    name: dna-kube-client-service
 
 dna:
   kube:
@@ -13,14 +13,3 @@ server:
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
-
-management.endpoints.web.exposure.include: loggers
-management.endpoint.loggers.enabled: true
-
-logging:
-  service:
-    environment: ${LOGGING_ENVIRONMENT:DEV}
-    path: ${LOGGING_PATH:/var/log}
-  level:
-    com.mb.dna.kube.client.main.Application: DEBUG
-    
