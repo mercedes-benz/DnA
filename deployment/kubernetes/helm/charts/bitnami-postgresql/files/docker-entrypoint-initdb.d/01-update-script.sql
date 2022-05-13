@@ -24,5 +24,3 @@
     ALTER user storage WITH PASSWORD 'storage123';
     GRANT all privileges ON database storage TO storage;
     GRANT USAGE ON SCHEMA public to storage;
-
-    
