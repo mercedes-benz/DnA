@@ -35,6 +35,8 @@ const CreateBucket = () => {
   const [termsOfUse, setTermsOfUse] = useState(false);
   const [termsOfUseError, setTermsOfUseError] = useState(false);
 
+  const isSecretEnabled = process.env.ENABLE_DATA_CLASSIFICATION_SECRET === 'true';
+
   useEffect(() => {
     if (id) {
       ProgressIndicator.show();
@@ -320,7 +322,7 @@ const CreateBucket = () => {
                       </span>
                       <span className="label">Confidential</span>
                     </label>
-                    <label className={classNames('radio')}>
+                    <label className={classNames('radio', !isSecretEnabled ? 'disabled' : '')}>
                       <span className="wrapper">
                         <input
                           type="radio"
@@ -329,6 +331,7 @@ const CreateBucket = () => {
                           name="dataClassification"
                           onChange={handleDataClassification}
                           checked={dataClassification === 'secret'}
+                          disabled={!isSecretEnabled}
                         />
                       </span>
                       <span className="label">Secret</span>
@@ -374,7 +377,7 @@ const CreateBucket = () => {
                 </div>
                 <div className={classNames('input-field-group include-error')}>
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    PII <sup>*</sup>
+                    PII (Personally Identifiable Information) <sup>*</sup>
                   </label>
                   <div className={Styles.pIIField}>
                     <label className={classNames('radio')}>
@@ -508,6 +511,7 @@ const CreateBucket = () => {
                   }}
                 >
                   <div dangerouslySetInnerHTML={{ __html: process.env.TOU_HTML }}></div>
+                  <sup>*</sup>
                 </div>
               </div>
               <span

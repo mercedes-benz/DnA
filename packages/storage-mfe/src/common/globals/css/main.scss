@@ -365,6 +365,11 @@
     opacity: 0.5;
   }
 
+  .radio .wrapper input[type="radio"]:disabled::after,
+  .radio.disabled {
+    cursor: not-allowed;
+  }
+
   /* Input Fields */
   .input-field-group {
     &.include-error {
