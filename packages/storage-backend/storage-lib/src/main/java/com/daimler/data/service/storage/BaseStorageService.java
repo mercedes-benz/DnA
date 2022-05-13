@@ -59,6 +59,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.FileScanDetailsVO;
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.storage.BucketCollectionVO;
 import com.daimler.data.dto.storage.BucketObjectResponseVO;
 import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
@@ -71,6 +72,7 @@ import com.daimler.data.dto.storage.UserVO;
 import com.daimler.data.minio.client.DnaMinioClient;
 import com.daimler.data.util.CacheUtil;
 import com.daimler.data.util.ConstantsUtility;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.minio.admin.UserInfo;
 import io.minio.messages.Bucket;
@@ -101,6 +103,11 @@ public class BaseStorageService implements StorageService {
 	@Autowired
 	private MalwareScannerClient malwareScannerClient;
 	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
+	
+	private static String bucketCreationEvent = "Storage - Bucket Creation";
+	
 	public BaseStorageService() {
 		super();
 	}
@@ -112,6 +119,7 @@ public class BaseStorageService implements StorageService {
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
+		String ownerEmail = userStore.getUserInfo().getEmail();
 		PermissionVO permissionVO = null;
 
 		LOGGER.debug("Validate Bucket before create.");
@@ -143,11 +151,16 @@ public class BaseStorageService implements StorageService {
 					Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
 							bucketVo.getBucketName(), null);
 					ownerUserVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
+					String bucketUri = bucketConnectionUri.get(ConstantsUtility.URI);
 					ownerUserVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
 
 					// Setting bucket access info for owner
 					responseVO.setBucketAccessinfo(ownerUserVO);
-
+					List<String> subscribedUsers = new ArrayList<>();
+					subscribedUsers.add(currentUser);
+					List<String> subscribedUsersEmails = new ArrayList<>();
+					subscribedUsersEmails.add(ownerEmail);
+					
 					LOGGER.info("Onboarding collaborators");
 					if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
 						for (UserVO userVO : bucketVo.getCollaborators()) {
@@ -167,6 +180,8 @@ public class BaseStorageService implements StorageService {
 										.onboardUserMinio(userVO.getAccesskey().toUpperCase(), policies);
 								if (onboardUserResponse != null
 										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+									subscribedUsers.add(userVO.getAccesskey());
+									subscribedUsersEmails.add("");
 									LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());
 								} else {
 									LOGGER.info("Collaborator:{} onboarding failed", userVO.getAccesskey());
@@ -177,7 +192,10 @@ public class BaseStorageService implements StorageService {
 							}
 						}
 					}
-
+					
+					String eventType = bucketCreationEvent;
+					this.publishEventMessages(eventType, bucketUri, null, bucketVo.getBucketName(), subscribedUsers,subscribedUsersEmails);
+					
 				} else {
 					LOGGER.info("Failure from onboard bucket owner.");
 				}
@@ -195,7 +213,40 @@ public class BaseStorageService implements StorageService {
 		responseVO.setData(bucketVo);
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
+	
+	private void publishEventMessages(String eventType, String bucketUri, List<ChangeLogVO> changeLogs, String bucketName,
+			List<String> subscribedUsers, List<String> subscribedUsersEmail) {
+		try {
+			String message = "";
+			Boolean mailRequired = true;
+			com.daimler.data.application.auth.UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String userId = currentUser.getId() != null ? currentUser.getId() : "dna_system";
+			String userName = userId;
+			if(currentUser!=null && currentUser.getFirstName()!= null) {
+				userName = currentUser.getFirstName();
+				if(currentUser.getLastName()!= null)
+					userName = userName + " " + currentUser.getLastName();
+			}
+			
+			/*
+			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
+			 * subscribedUsers.contains(userId)) {
+			 * LOGGER.info("Removed current userid from subscribedUsers");
+			 * subscribedUsers.remove(userId); }
+			 */
 
+			if (bucketCreationEvent.equalsIgnoreCase(eventType)) {
+				message = "Storage unit, bucket-name:  " + bucketName + " is created by user " + userId;
+				LOGGER.info("Publishing message on bucket creation for bucketname {} by userId {}", bucketName, userId);
+			}
+			if (eventType != null && eventType != "") {
+					kafkaProducer.send(eventType, bucketUri, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,changeLogs);
+			}
+		} catch (Exception e) {
+			LOGGER.trace("Failed while publishing storage event msg {} ", e.getMessage());
+		}
+	}
+	
 	/*
 	 * To validate create bucket.
 	 * 
