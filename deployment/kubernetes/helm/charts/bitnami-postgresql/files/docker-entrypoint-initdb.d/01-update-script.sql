@@ -17,4 +17,10 @@
     CREATE database hive;
     ALTER user hive WITH PASSWORD 'hive123';
     GRANT all privileges ON database hive TO hive;
-    GRANT USAGE ON SCHEMA public to hive
+    GRANT USAGE ON SCHEMA public to hive;
+
+    CREATE user storage;
+    CREATE database storage;
+    ALTER user storage WITH PASSWORD 'storage123';
+    GRANT all privileges ON database storage TO storage;
+    GRANT USAGE ON SCHEMA public to storage;
