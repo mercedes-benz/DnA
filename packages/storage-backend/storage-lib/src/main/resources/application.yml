@@ -43,7 +43,10 @@ spring:
       vaultpath: ${VAULT_PATH:XXXXXX}
       kv:
        enabled: true  
-      
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic      
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
