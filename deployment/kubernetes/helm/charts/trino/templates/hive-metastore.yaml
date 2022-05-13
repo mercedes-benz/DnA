@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metastore
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ports:
+  - port: 9083
+    targetPort: 9083
+  selector:
+    app: metastore
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metastore
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app: metastore
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: metastore
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: metastore
+        image: {{ .Values.hivemetastore.image }}
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          value: {{ .Values.hivemetastore.minio.accessKey }}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{ .Values.hivemetastore.minio.secretKey }}
+        - name: METASTORE_HOME
+          value: /opt/hive-metastore
+        ports:
+        - containerPort: 9083
+        volumeMounts:
+        - name: metastore-cfg-vol
+          mountPath: /opt/hive-metastore/conf/metastore-site.xml
+          subPath: metastore-site.xml
+        command: ["/opt/hive-metastore/bin/start-metastore"]
+        args: ["-p", "9083"]
+        resources:
+          requests:
+            memory: {{ .Values.hivemetastore.requests.memory }}
+            cpu: {{ .Values.hivemetastore.requests.cpu }}
+        imagePullPolicy: Always
+      volumes:
+        - name: metastore-cfg-vol
+          configMap:
+            name: metastore-cfg

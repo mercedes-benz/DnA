@@ -10,6 +10,10 @@ import Pagination from 'dna-container/Pagination';
 
 import { bucketActions } from './redux/bucket.actions';
 
+/**
+ * List all buckets corresponding to the user
+ * @visibleName All Buckets
+ */
 const AllBuckets = () => {
   const dispatch = useDispatch();
   const {

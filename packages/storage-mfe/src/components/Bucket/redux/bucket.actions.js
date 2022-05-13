@@ -74,6 +74,7 @@ const createBucket = (data) => {
         },
       });
       ProgressIndicator.hide();
+      Notification.show(`Bucket ${data.bucketName} created successfully.`);
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',
