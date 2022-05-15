@@ -4,9 +4,9 @@ Docker Compose will help to start the application locally on your computer and p
 
 Software Prerequisites:
 
-* Git
-* Docker
-* Docker Compose
+* Git 2.35.1+
+* Docker 20.10.13+
+* Docker Compose v2.3.3
 
 Hardware Prerequisites :
 
@@ -25,7 +25,7 @@ git clone https://github.com/mercedes-benz/DnA.git
 ```
 Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command (replace <`<Cloned Folder>`> with actual location path of your computer)
 ```
-cd <<Clonned Folder>>/deployment/
+cd <<Clonned Folder Path>>/deployment/
 ```
 #### **Docker Compose**
 Execute the below docker-compose command to create the DnA application
@@ -48,10 +48,11 @@ Helm helps you to deploy and manage Kubernetes applications in an easier way.
 
 Prerequisites :
 
-* Kubernetes Cluster
-* Helm
+* Kubernetes Cluster 1.22+
+* Helm v3.8.1
+* kubectl 1.22+
+* Kafka [Refer here](https://github.com/apache/kafka)
 * Docker Image Regitsry
-* Kafka
 
 #### **Git Cloning** 
 
@@ -62,37 +63,37 @@ git clone https://github.com/mercedes-benz/DnA.git
 ```
 Once when cloning is finishied, you will have a copy of the entire repository locally .Go to the deployment folder by executing the the below command  (replace <`<Cloned Folder>`> with actual location path of your computer)
 ```
-cd <<Clonned Folder>>/deployment/
+cd <<Clonned Folder Path>>/deployment/
 ```
 #### **Build & push images**
 
 Execute the below command to create images of DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker and Minio .
 ```
-cd <<Clonned Folder>>/deployment/
+cd <<Clonned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
 Execute the below command to create storage-service images ( Storage-mfe and storage-be)
 ```
-cd <<Clonned Folder>>/deployment/dockerfiles/storageService
+cd <<Clonned Folder Path>>/deployment/dockerfiles/storageService
 docker-compose -f docker-compose-storage.yml build  
 ```
-Refer the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed with <<...>> to the respective values  
+Refer the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values  
 ```
 docker tag <<image_name_that_you_build_with_docker_compose>> <<your_repository_name>/<image_name_of_your_wish>>
 docker push <<your_repository_name>/<image_name_of_your_wish>>
 ```
 #### **Namespaces**
 
-Refer the below content to understand which sub-charts belong to which namespace 
+Refer the below content to understand sub-charts divsion as per the namespaces 
 
-  * dna namespace contains "DnA-Backend, DnA-Frontend, Postgres"
-  * clamav namespace contains "clamav service and malware-backend"
+  * dna namespace contains "DnA-Backend, DnA-Frontend, Postgres "
+  * clamav namespace contains "Clamav service and Malware-backend"
   * naas namespace contains "Naas-backend"
-  * dashboard namespace contains "dashboard-backend"
-  * vault namespace contains "vault service"
-  * storage namespace contains "storage-service"
+  * dashboard namespace contains "Dashboard-backend"
+  * vault namespace contains "Vault service"
+  * storage namespace contains "Storage-service"
 
-Refer the above list and create namespaces according to the services you would like to deploy using helm.
+Create namespaces according to the services you would like to deploy using helm.
 ```
 Kubectl create ns dna
 kubectl create ns clamav
@@ -103,60 +104,41 @@ kubectl create ns storage
 ```
 #### **values.yaml**
 
-Before proceeding with the installation, update the image names to the respective services in the    values.yaml
-
-  * File is located at 
-
-  **<<Clonned Folder>>deployment\kubernetes\helm\values.yaml**
-
+Before proceeding with the installation, update the image names of the respective services in the    values.yaml
+Refer the below file :
+```
+<<Clonned Folder Path>>deployment\kubernetes\helm\values.yaml
+```
 For pulling the images from the registry, update the docker.configjson value in the values.yaml
-
-  For more info on kubernetes secret for pulling the images , refer harbor-pull-secret manifest file.
-
+For more info on kubernetes secret for pulling the images , refer harbor-pull-secret manifest file.
   ```
-  cat <clonnedFloder>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
+  cat <clonnedFloderPath>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
   ```
-List of services that dna application offering:
-  * Naas ( Notification as a service)
-  * Dashboard 
-  * Clamav
-  * Storage
-
 Set the below paramter to true for the services that you would like to deploy via sub-chart
+```
+enabled: true
+```
+After installing the kafka, update the "naasBroker" parameter value in values.yaml to "kafka-service-FQDN".
 
-  **enabled: true**
-  
-
-After installing the kafka, update the value of "naasBroker" in values.yaml to kafka-service-FQDN.
-
-#### **Install the DnA application using helm
-
+#### **Helm**
 Execute the below commands to deploy application on the kubernetes cluster using helm
 ```
-cd <<Clonned Folder>>\deployment\kubernetes\helm
-```
-```
-helm install dna . -f values.yaml
+cd <<Clonned Folder Path>>\deployment\kubernetes\helm
+helm install dna . -f ./charts/values.yaml
 ```
 Execute the below command to list out the helm releases
 ```
 helm list
 ```
-To access the application using localhost , port-forward the dna-frontend-service to 7179/any_port_of_your_wish.
-```
-kubectl port-forward service/dna-frontend-service 7179:3000
-```
 
 **Vault service**
-After installing the vault service , it will throw an error that "Readiness probe error in vault -- Seal Type shamir Initialized true Sealed"
-
+After installing the vault service , it will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`
 To resolve this , intialize the vault service and unseal the root key .
 ```
 kubectl exec vault-0 -n vault  -- vault operator init
 ```
-After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe under and backend sections of the values.yaml
-
-We can unseal the vault service with any of the 3 keys out of 5 .
+After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the values.yaml
+We can unseal the vault service with any of the `3 keys out of 5`.
 ```
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_01>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_02>
@@ -165,9 +147,16 @@ kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
 ![This is an image](./images/vault-unsealed.png)
 Execute the below commands to enable the kv engine for storing the secrets:
 ```
-kubectl exec vault-0 -n vault  -- vault operator login <<root_token_that you generated>>
-kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 kv
+kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
+kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
+
+### **Other interesting services to explore**
+  * Naas ( Notification as a service)
+  * Dashboard 
+  * Clamav
+  * Storage
+
 **Dashboard Service**
 To enable the dashboard service go to the vaules.yaml and set the below parameter to true
 ```
@@ -178,29 +167,36 @@ To use the clamav service mention the respective values to the below paramters i
 ```
 enableAttachmentScan: true
 avscanUri:    (# http://<<clamav-rest_service_name>>.<<clamav_namespace>>.svc.cluster.local:8181/avscan/api/v1)
-#Open the http://localhost:7179 and go to myservices->malwarescan (#Genrate the apikey and copy the application key and id  and copy the same into below paramters)
+```
+#Open the http://localhost:7179 and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id , copy the same into the below parameters
+```
 avscanApiKey:   
 avscanAppId: 
 ```
-**Storage and Naas**
+**Storage**
 To enable the storage and naas service mention the respective values to the below parameters in the values.yaml
-
 ```
 enableStorageService: true
 kubectl port-forward service/storage-mfe <<port_num_that_you_wish_to_forward>>:80
 storageMFEAppURL: http://localhost:<<storage_mfe_port_num_that_was_port_forwared>>
+```
+**Naas**
+```
 enableNotification: true
 ```
+
+**Upgrading**
 Do Helm Upgrade, if you made changes on helm files
 
 ```
-helm upgrade dna . -f values.yaml
+helm upgrade dna . -f ./charts/values.yaml
 ```
-Open the below link in your browser to access all the services that you enabled locally using DnA
+To access the application using localhost : port-forward the dna-frontend-service to any port_of_your_wish.
 ```
-http://localhost:7179
+kubectl port-forward service/dna-frontend-service 7179:3000
 ```
 
+**Uninstalling**
 To uninstall the helm app
 
 ```
@@ -210,7 +206,8 @@ helm uninstall dna
 DnA Platform can be configured quite a lot, have a look at possible config parameters:
 
 * [Environment Variables](./APP-ENV-CONFIG.md)
-or follow simple instructions on how to use simple and free Open ID Connect identity provider
+
+Follow simple instructions on how to use simple and free Open ID Connect identity provider
 
 * [OpenId Connect with OKTA](./OPENID-CONNECT.md)
 ##### FAQ
