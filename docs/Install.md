@@ -108,6 +108,7 @@ For more info on kubernetes secret for pulling the images , refer harbor-pull-se
 After installing the kafka, update the `naasBroker` parameter value in values.yaml to `kafka-service-FQDN`.
 
 #### **Helm**
+
 Execute the below commands to deploy application on the kubernetes cluster using helm
 ```
 cd <<Clonned Folder Path>>\deployment\kubernetes\helm
@@ -118,6 +119,7 @@ Execute the below command to list out the helm releases
 helm list
 ```
 **Vault service**
+
 After installing the vault service , it will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`
 To resolve this , intialize the vault service and unseal the root key .
 ```
@@ -137,6 +139,7 @@ kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
 kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
 **Attachment scan**
+
 To scan the attachments in solution , set the respective values to the below paramters in the values.yaml
 #Open the http://localhost:7179 and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id , copy the same into the below parameters
 ```
@@ -144,12 +147,14 @@ avscanApiKey:
 avscanAppId: 
 ```
 **Upgrading**
+
 Do Helm Upgrade, if you made changes on helm files
 ```
 helm upgrade dna . -f ./charts/values.yaml
 ```
 
 **Accessing the application with localhost**
+
 Port-forward the dna-frontend and storage-mfe service to any port_of_your_wish.
 Eg:
 ```
@@ -163,6 +168,7 @@ PROJECTSMO_CONTAINER_APP_URL:
 ```
 
 **Uninstalling**
+
 To uninstall the helm app
 
 ```
