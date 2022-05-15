@@ -14,8 +14,8 @@ Hardware Prerequisites :
   
 #### **Note**
   
-  * *For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL* *
-  * *Make sure your firewall is not restricting the npm and gradle packages of the docker files* *.
+  * *For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
+  * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
 
 #### **Git Cloning** 
 
@@ -42,6 +42,7 @@ To stop the application
 ```
 docker-compose -f docker-compose-local-basic.yml down
 ```
+-------------------------------------------------------------------------------------------------------
 ## **Install with Helm**
 
 Helm helps you to deploy and manage Kubernetes applications in an easier way.
@@ -79,21 +80,12 @@ docker-compose -f docker-compose-storage.yml build
 ```
 Refer the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values  
 ```
-docker tag <<image_name_that_you_build_with_docker_compose>> <<your_repository_name>/<image_name_of_your_wish>>
-docker push <<your_repository_name>/<image_name_of_your_wish>>
+docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
+docker push <<your_repository_name/image_name_of_your_wish>>
 ```
 #### **Namespaces**
 
-Refer the below content to understand sub-charts divsion as per the namespaces 
-
-  * dna namespace contains "DnA-Backend, DnA-Frontend, Postgres "
-  * clamav namespace contains "Clamav service and Malware-backend"
-  * naas namespace contains "Naas-backend"
-  * dashboard namespace contains "Dashboard-backend"
-  * vault namespace contains "Vault service"
-  * storage namespace contains "Storage-service"
-
-Create namespaces according to the services you would like to deploy using helm.
+Execute the below commands to create namespaces
 ```
 Kubectl create ns dna
 kubectl create ns clamav
@@ -104,8 +96,7 @@ kubectl create ns storage
 ```
 #### **values.yaml**
 
-Before proceeding with the installation, update the image names of the respective services in the    values.yaml
-Refer the below file :
+update the image names of the respective services in the values.yaml
 ```
 <<Clonned Folder Path>>deployment\kubernetes\helm\values.yaml
 ```
@@ -114,11 +105,7 @@ For more info on kubernetes secret for pulling the images , refer harbor-pull-se
   ```
   cat <clonnedFloderPath>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
   ```
-Set the below paramter to true for the services that you would like to deploy via sub-chart
-```
-enabled: true
-```
-After installing the kafka, update the "naasBroker" parameter value in values.yaml to "kafka-service-FQDN".
+After installing the kafka, update the `naasBroker` parameter value in values.yaml to `kafka-service-FQDN`.
 
 #### **Helm**
 Execute the below commands to deploy application on the kubernetes cluster using helm
@@ -130,7 +117,6 @@ Execute the below command to list out the helm releases
 ```
 helm list
 ```
-
 **Vault service**
 After installing the vault service , it will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`
 To resolve this , intialize the vault service and unseal the root key .
@@ -144,56 +130,36 @@ kubectl exec vault-0 -n vault  -- vault operator unseal <key_01>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_02>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
 ```
-![This is an image](./images/vault-unsealed.png)
+![This is an image](./images/vault-unsealed.PNG)
 Execute the below commands to enable the kv engine for storing the secrets:
 ```
 kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
 kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
-
-### **Other interesting services to explore**
-  * Naas ( Notification as a service)
-  * Dashboard 
-  * Clamav
-  * Storage
-
-**Dashboard Service**
-To enable the dashboard service go to the vaules.yaml and set the below parameter to true
-```
-enabledReports: true
-```
-**Clamav Service**
-To use the clamav service mention the respective values to the below paramters in the values.yaml
-```
-enableAttachmentScan: true
-avscanUri:    (# http://<<clamav-rest_service_name>>.<<clamav_namespace>>.svc.cluster.local:8181/avscan/api/v1)
-```
+**Attachment scan**
+To scan the attachments in solution , set the respective values to the below paramters in the values.yaml
 #Open the http://localhost:7179 and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id , copy the same into the below parameters
 ```
 avscanApiKey:   
 avscanAppId: 
 ```
-**Storage**
-To enable the storage and naas service mention the respective values to the below parameters in the values.yaml
-```
-enableStorageService: true
-kubectl port-forward service/storage-mfe <<port_num_that_you_wish_to_forward>>:80
-storageMFEAppURL: http://localhost:<<storage_mfe_port_num_that_was_port_forwared>>
-```
-**Naas**
-```
-enableNotification: true
-```
-
 **Upgrading**
 Do Helm Upgrade, if you made changes on helm files
-
 ```
 helm upgrade dna . -f ./charts/values.yaml
 ```
-To access the application using localhost : port-forward the dna-frontend-service to any port_of_your_wish.
+
+**Accessing the application with localhost**
+Port-forward the dna-frontend and storage-mfe service to any port_of_your_wish.
+Eg:
 ```
+kubectl port-forward service/storage-mfe 7175:80
 kubectl port-forward service/dna-frontend-service 7179:3000
+```
+If you are not using 7175 and 7179 ports then change the below parameter values in values.yaml accordingly 
+```
+storageMFEAppURL:
+PROJECTSMO_CONTAINER_APP_URL:
 ```
 
 **Uninstalling**
@@ -202,7 +168,7 @@ To uninstall the helm app
 ```
 helm uninstall dna
 ```
-
+-------------------------------------------------------------------------------------------------------
 DnA Platform can be configured quite a lot, have a look at possible config parameters:
 
 * [Environment Variables](./APP-ENV-CONFIG.md)
@@ -218,7 +184,7 @@ Follow simple instructions on how to use simple and free Open ID Connect identit
 * [Helm installation](https://helm.sh/docs/intro/install/)
 * [About Helm](https://helm.sh/docs/)
 
-**Note:**
+**Troubleshooting**
 
 *If you face any issue with helm installation, refer [FAQ](./FAQ.md)
 
