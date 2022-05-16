@@ -238,11 +238,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		MinioGenericResponse getBucketResponse = new MinioGenericResponse();
 		try {
 			LOGGER.info("Fetching secrets from vault for user:{}", userId);
-			String userSecretKey =  vaultConfig.validateUserInVault(userId);
-			if(StringUtils.hasText(userSecretKey)) {
-				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
-				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
-						.build();
+			String userSecretKey = vaultConfig.validateUserInVault(userId);
+			if (StringUtils.hasText(userSecretKey)) {
+				LOGGER.debug("Fetch secret from vault successfull for user:{}", userId);
+				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri)
+						.credentials(userId, userSecretKey).build();
 
 				LOGGER.info("Listing all buckets for user:{}", userId);
 				List<Bucket> buckets = minioClient.listBuckets();
@@ -251,19 +251,27 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				getBucketResponse.setBuckets(buckets);
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.OK);
-			}else {
-				LOGGER.debug("User:{} not available in vault.",userId);
-				getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "User:"+userId+" not available.")));
+			} else {
+				LOGGER.debug("User:{} not available in vault.", userId);
+				getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "User:" + userId + " not available.")));
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
 			}
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IOException e) {
-			LOGGER.error("DNA-MINIO-ERR-004::Error occured while listing buckets of minio: {}", e.getMessage());
-			getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing buckets of minio. ")));
-			getBucketResponse.setStatus(ConstantsUtility.FAILURE);
-			getBucketResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+			LOGGER.error("Error occured while listing buckets of minio: {}", e.getMessage());
+			if (e.toString() != null && e.toString().contains("code=403")) {
+				LOGGER.error("Access denied since no bucket available for user:{}", userId);
+				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
+				getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
+				LOGGER.info("No bucket available");
+			} else {
+				getBucketResponse
+						.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing buckets of minio. ")));
+				getBucketResponse.setStatus(ConstantsUtility.FAILURE);
+				getBucketResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}
 		return getBucketResponse;
 	}
@@ -392,7 +400,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Fetching user info
 				UserInfo userInfo = users.get(userId);
 				// Fetching user policies
-				String existingPolicy = userInfo.policyName();
+				String existingPolicy = userInfo.policyName()!=null?userInfo.policyName():"";
 
 				// Validating user in Vault
 				LOGGER.debug("Validating user in Vault.");
@@ -722,9 +730,8 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	 * To remove policies. 
 	 */
 	private void deletePolicy(List<String> policies) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		//Getting MinioAdminClient from config
+		// Getting MinioAdminClient from config
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
-
 		LOGGER.debug("Fetching users from cache.");
 		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		// Iterating over usersInfo map
@@ -735,7 +742,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			UserInfo userInfo = entry.getValue();
 			// To fetch user policy
 			String userPolicy = userInfo.policyName();
-			boolean hasPolicy = false;
 
 			// To check if user has any policy
 			if (StringUtils.hasText(userPolicy)) {
@@ -743,29 +749,25 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				for (String policy : policies) {
 					// Checking whether user has policy
 					if (userPolicy.contains(policy)) {
-						hasPolicy = true;
-
 						// Removing policy
 						userPolicy = userPolicy.replace(policy, "");
+						// To check if policy contains only commas ','
+						if (!userPolicy.chars().allMatch(c -> c == ',')) {
+							// Unlink policy from user in minio
+							minioAdminClient.setPolicy(userId, false, userPolicy);
+
+							// Removing policy from minio
+							minioAdminClient.removeCannedPolicy(policy);
+
+							// updating cache map for user
+							UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
+									userInfo.memberOf());
+							users.put(userId, userInfoTemp);
+						}
+
 					}
 				}
 			}
-			// To check if user has specified policy
-			if (hasPolicy) {
-				// user has policy
-				LOGGER.debug("Updating policy for user:{}", userId);
-				if (StringUtils.hasText(userPolicy) && !userPolicy.chars().allMatch(c -> c == ',')) {
-					minioAdminClient.setPolicy(userId, false, userPolicy);
-				}
-				// updating cache
-				UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
-						userInfo.memberOf());
-				users.put(userId, userInfoTemp);
-			}
-		}
-		// Removing policies in Minio
-		for (String policy : policies) {
-			minioAdminClient.removeCannedPolicy(policy);
 		}
 		// updating minioUsersCache
 		LOGGER.debug("Removing all enteries from {}.", ConstantsUtility.MINIO_USERS_CACHE);
