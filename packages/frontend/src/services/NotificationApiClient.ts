@@ -2,7 +2,7 @@ import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
 
-const baseUrl = Envs.API_BASEURL ? `naas/${Envs.API_BASEURL}` : `http://${window.location.hostname}:7272/naas/api`;
+const baseUrl = Envs.NOTIFICATIONS_API_BASEURL ? Envs.NOTIFICATIONS_API_BASEURL : `http://${window.location.hostname}:7272/naas/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
