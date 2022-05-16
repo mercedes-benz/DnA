@@ -132,6 +132,11 @@ public class KafkaCoreCampaignService {
 							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
 						}
 					}
+					if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+						
+							emailBody += "<br/>" + "\u2022" + " Link to bucket: " + message.getResourceId() + "<br/>";
+						
+					}
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);
 						LOGGER.info("New message with details- user {}, eventType {}, uuid {} added to user notifications", user,
