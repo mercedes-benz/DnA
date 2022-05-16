@@ -1,12 +1,12 @@
 ## **Install with docker-compose**
 
-Docker Compose will help to start the application locally on your computer and provide support to develop and debug the docker containers in the local machine.
+Docker Compose will help to start the application locally on your computer and provides support to develop and debug the docker containers in the local machine.
 
 Software Prerequisites:
 
 * Git 2.35.1+
 * Docker 20.10.13+
-* Docker Compose v2.3.3
+* Docker Compose v2.3.3+
 
 Hardware Prerequisites :
 
@@ -14,7 +14,7 @@ Hardware Prerequisites :
   
 #### **Note**
   
-  * *For windows user, enable WSL engine on Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
+  * *For windows user, enable WSL engine in Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
   * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
 
 #### **Git Cloning** 
@@ -50,7 +50,7 @@ Helm helps you to deploy and manage Kubernetes applications in an easier way.
 Prerequisites :
 
 * Kubernetes Cluster 1.22+
-* Helm v3.8.1
+* Helm v3.8.1+
 * kubectl 1.22+
 * Kafka [Refer here](https://github.com/apache/kafka)
 * Docker Image Regitsry
@@ -78,7 +78,7 @@ Execute the below command to create storage-service images ( Storage-mfe and sto
 cd <<Clonned Folder Path>>/deployment/dockerfiles/storageService
 docker-compose -f docker-compose-storage.yml build  
 ```
-Refer the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values  
+Execute the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values  
 ```
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
@@ -100,7 +100,7 @@ update the image names of the respective services in the values.yaml
 ```
 <<Clonned Folder Path>>deployment\kubernetes\helm\values.yaml
 ```
-For pulling the images from the registry, update the docker.configjson value in the values.yaml
+For pulling the images from the registry, update the docker.configjson value in the values.yaml.
 For more info on kubernetes secret for pulling the images , refer harbor-pull-secret manifest file.
   ```
   cat <clonnedFloderPath>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
@@ -120,12 +120,14 @@ helm list
 ```
 **Vault service**
 
-After installing the vault service , it will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`
+After installing the vault service , it will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`.
+
 To resolve this , intialize the vault service and unseal the root key .
 ```
 kubectl exec vault-0 -n vault  -- vault operator init
 ```
-After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the values.yaml
+After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the values.yaml.
+
 We can unseal the vault service with any of the `3 keys out of 5`.
 ```
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_01>
@@ -140,8 +142,9 @@ kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
 **Attachment scan**
 
-To scan the attachments in solution , set the respective values to the below paramters in the values.yaml
-#Open the http://localhost:7179 and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id , copy the same into the below parameters
+To scan the attachments in solution , set the respective values to the below parameters in the values.yaml.
+
+Open the website http://localhost:7179 in your browser and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id.
 ```
 avscanApiKey:   
 avscanAppId: 
@@ -156,12 +159,14 @@ helm upgrade dna . -f ./charts/values.yaml
 **Accessing the application with localhost**
 
 Port-forward the dna-frontend and storage-mfe service to any port_of_your_wish.
-Eg:
+
 ```
 kubectl port-forward service/storage-mfe 7175:80
 kubectl port-forward service/dna-frontend-service 7179:3000
 ```
-If you are not using 7175 and 7179 ports then change the below parameter values in values.yaml accordingly 
+**Note**
+
+* *If you are not using 7175 and 7179 ports then change the below parameter values in values.yaml accordingly*. 
 ```
 storageMFEAppURL:
 PROJECTSMO_CONTAINER_APP_URL:
@@ -192,5 +197,5 @@ Follow simple instructions on how to use simple and free Open ID Connect identit
 
 **Troubleshooting**
 
-*If you face any issue with helm installation, refer [FAQ](./FAQ.md)
+* *If you face any issue with helm installation, refer [FAQ](./FAQ.md)*.
 
