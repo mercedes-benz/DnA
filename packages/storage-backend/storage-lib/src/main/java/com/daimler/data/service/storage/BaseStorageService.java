@@ -236,7 +236,7 @@ public class BaseStorageService implements StorageService {
 			 */
 
 			if (bucketCreationEvent.equalsIgnoreCase(eventType)) {
-				message = "Storage unit, bucket-name:  " + bucketName + " is created by user " + userId;
+				message = "Storage bucket:  " + bucketName + " is created by user " + userName + ". Link: " + bucketUri;
 				LOGGER.info("Publishing message on bucket creation for bucketname {} by userId {}", bucketName, userId);
 			}
 			if (eventType != null && eventType != "") {
