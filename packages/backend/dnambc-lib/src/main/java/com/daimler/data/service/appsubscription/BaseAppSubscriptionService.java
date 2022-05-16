@@ -359,7 +359,7 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 
 	@Override
 	public boolean isApplicationSubscriptionExist(SubscriptionVO requestSubscriptionVO, String userId) {
-		List<AppSubscriptionNsql> entityList = customRepo.getAllWithFilters(userId, false, null, null, null, null, 0, 0,
+		List<AppSubscriptionNsql> entityList = customRepo.getAllWithFilters(userId, false, ConstantsUtility.OPEN, null, null, null, 0, 0,
 				requestSubscriptionVO.getAppName(), null);
 		return !ObjectUtils.isEmpty(entityList);
 	}
