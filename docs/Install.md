@@ -73,7 +73,7 @@ Execute the below command to create images of DnA-frontend,Dna-Backend, Bitnami-
 cd <<Clonned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
-Execute the below command to create storage-service images ( Storage-mfe and storage-be)
+Execute the below command to create storage-service images ( storage-mfe and storage-be)
 ```
 cd <<Clonned Folder Path>>/deployment/dockerfiles/storageService
 docker-compose -f docker-compose-storage.yml build  
@@ -87,7 +87,7 @@ docker push <<your_repository_name/image_name_of_your_wish>>
 
 Execute the below commands to create namespaces
 ```
-Kubectl create ns dna
+kubectl create ns dna
 kubectl create ns clamav
 kubectl create ns naas
 kubectl create ns dashboard
@@ -98,16 +98,27 @@ kubectl create ns storage
 
 update the image names of the respective services in the values.yaml
 ```
-<<Clonned Folder Path>>deployment\kubernetes\helm\values.yaml
+[Refer values.yaml]()../kubernetes/helm/values.yaml)
 ```
-For pulling the images from the registry, update the docker.configjson value in the values.yaml.
-For more info on kubernetes secret for pulling the images , refer harbor-pull-secret manifest file.
-  ```
-  cat <clonnedFloderPath>\deployment\kubernetes\helm\charts\backend\templates\secrets\harbor-pull-secret.yaml
-  ```
-After installing the kafka, update the `naasBroker` parameter value in values.yaml to `kafka-service-FQDN`.
+For pulling the images from the registry, update the .dockerconfigjson value in the values.yaml.
+
+For more info on kubernetes secret for pulling the images .
+```
+[Refer harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
+```
 
 #### **Helm**
+
+We are offering mutiple services via this helm chart , Have a look into those by clicking the below link 
+
+[Readme.md](../README.md)
+
+In order to use our helm charts you should have kafka service . you can install by refering the link below.
+(https://github.com/apache/kafka)
+
+After installing the kafka, update the `naasBroker` parameter value in values.yaml to the Fully qualified domain name of the kafka service.
+
+[Values.yaml](../deployment/kubernetes/helm/values.yaml)
 
 Execute the below commands to deploy application on the kubernetes cluster using helm
 ```
@@ -120,13 +131,15 @@ helm list
 ```
 **Vault service**
 
-After installing the vault service , it will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`.
+We are providing vault service to store the API keys that were generated in the malware scan service.
+
+After installating the application with helm , vault service will throw an error that `Readiness probe error in vault – Seal Type shamir Initialized true Sealed`.
 
 To resolve this , intialize the vault service and unseal the root key .
 ```
 kubectl exec vault-0 -n vault  -- vault operator init
 ```
-After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the values.yaml.
+After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
 We can unseal the vault service with any of the `3 keys out of 5`.
 ```
@@ -142,7 +155,9 @@ kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
 **Attachment scan**
 
-To scan the attachments in solution , set the respective values to the below parameters in the values.yaml.
+To scan the attachments free from malicious code  you can use the malware scan service . We are creating malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav)
+
+To use this service, set the respective values to the below parameters in the values.yaml.
 
 Open the website http://localhost:7179 in your browser and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id.
 ```
