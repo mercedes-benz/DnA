@@ -350,7 +350,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                                             &nbsp; &nbsp;
                                             <a
                                               className={Styles.airflowLink}
-                                              href={`${Envs.DATA_PIPELINES_API_BASEURL}/graph?dag_id=${dagItem.dagName}`}
+                                              href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dagItem.dagName}`}
                                               target="_blank"
                                               rel="noreferrer"
                                             >
