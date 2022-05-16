@@ -267,7 +267,7 @@ public class BaseStorageService implements StorageService {
 					bucketResponseVO.setCreationDate(bucket.creationDate().toString());
 					// Setting current user permission for bucket
 					bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-					LOGGER.debug("Setting collaborators for bucket:{}", bucket.name()!=null?bucket.name():null);
+					LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
 					bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
 
 					bucketsResponseVO.add(bucketResponseVO);
