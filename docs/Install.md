@@ -69,11 +69,15 @@ cd <<Clonned Folder Path>>/deployment/
 #### **Build & push images**
 
 Execute the below command to create images of DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker and Minio .
+
+[docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
 ```
 cd <<Clonned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
 Execute the below command to create storage-service images ( storage-mfe and storage-be)
+
+[docker-compose-storage.yml](../deployment/dockerfiles/storageService/docker-compose-storage.yml)
 ```
 cd <<Clonned Folder Path>>/deployment/dockerfiles/storageService
 docker-compose -f docker-compose-storage.yml build  
@@ -97,28 +101,27 @@ kubectl create ns storage
 #### **values.yaml**
 
 update the image names of the respective services in the values.yaml
-```
-[Refer values.yaml]()../kubernetes/helm/values.yaml)
-```
+
+Refer [values.yaml](../kubernetes/helm/values.yaml)
+
 For pulling the images from the registry, update the .dockerconfigjson value in the values.yaml.
 
 For more info on kubernetes secret for pulling the images .
-```
-[Refer harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
-```
+
+Refer [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
+
 
 #### **Helm**
 
-We are offering mutiple services via this helm chart , Have a look into those by clicking the below link 
+We are offering mutiple services via this helm chart , Have a look into those by clicking the link 
 
 [Readme.md](../README.md)
 
-In order to use our helm charts you should have kafka service . you can install by refering the link below.
-(https://github.com/apache/kafka)
+In order to use our helm charts you should have kafka service . you can install by referring the [Kafka Service](https://github.com/apache/kafka)
 
 After installing the kafka, update the `naasBroker` parameter value in values.yaml to the Fully qualified domain name of the kafka service.
 
-[Values.yaml](../deployment/kubernetes/helm/values.yaml)
+Refer [Values.yaml](../deployment/kubernetes/helm/values.yaml)
 
 Execute the below commands to deploy application on the kubernetes cluster using helm
 ```
@@ -147,7 +150,10 @@ kubectl exec vault-0 -n vault  -- vault operator unseal <key_01>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_02>
 kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
 ```
+For reference 
+
 ![This is an image](./images/vault-unsealed.PNG)
+
 Execute the below commands to enable the kv engine for storing the secrets:
 ```
 kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
@@ -157,13 +163,18 @@ kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 
 To scan the attachments free from malicious code  you can use the malware scan service . We are creating malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav)
 
-To use this service, set the respective values to the below parameters in the values.yaml.
+To use this service, set the respective values to the below parameters in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
 Open the website http://localhost:7179 in your browser and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id.
 ```
 avscanApiKey:   
 avscanAppId: 
 ```
+For reference:
+
+![This is an image](./images/Generate_api_key_01.PNG)
+![This is an image](./images/Generate_api_key_02.PNG)
+
 **Upgrading**
 
 Do Helm Upgrade, if you made changes on helm files
@@ -179,9 +190,11 @@ Port-forward the dna-frontend and storage-mfe service to any port_of_your_wish.
 kubectl port-forward service/storage-mfe 7175:80
 kubectl port-forward service/dna-frontend-service 7179:3000
 ```
+After executing the above step , you can access the application by opening the (http://localhost:7179) in your browser.
+
 **Note**
 
-* *If you are not using 7175 and 7179 ports then change the below parameter values in values.yaml accordingly*. 
+* *If you are not using 7175 and 7179 ports then change the below parameter values in [values.yaml](../deployment/kubernetes/helm/values.yaml)*. 
 ```
 storageMFEAppURL:
 PROJECTSMO_CONTAINER_APP_URL:
