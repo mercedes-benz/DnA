@@ -19,16 +19,16 @@ Hardware Prerequisites :
 
 #### **Git Cloning** 
 
-As a first step you need to clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some visual git client(GithubDesktop))
+As a first step you need to clone the Git Repo in your local computer. (this can be done by executing the below command on terminal/command prompt/some visual git client(GithubDesktop)).
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
-Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command (replace <`<Cloned Folder>`> with actual location path of your computer)
+Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. (replace <`<Cloned Folder>`> with actual location path of your computer).
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
 #### **Docker Compose**
-Execute the below docker-compose command to create the DnA application
+Execute the below docker-compose command to create the DnA application.
 ```
 docker-compose -f docker-compose-local-basic.yml up -d
 ```
@@ -36,9 +36,9 @@ For Reference:
 
 ![This is an image](./images/Docker-compose-sucess.png)
 
-Open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md)
+Open the website (http://localhost:8080) in your browser. If you have made any changes in the source files add `--build --force-recreate` args to docker-compose command. If you face any issue with docker-compose,refer [FAQ](./FAQ.md).
 
-To stop the application
+To stop the application.
 ```
 docker-compose -f docker-compose-local-basic.yml down
 ```
@@ -62,7 +62,7 @@ As a first step you need to clone the Git Repo in your local computer (this can 
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
-Once when cloning is finishied, you will have a copy of the entire repository locally .Go to the deployment folder by executing the the below command  (replace <`<Cloned Folder>`> with actual location path of your computer)
+Once when cloning is finishied, you will have a copy of the entire repository locally .Go to the deployment folder by executing the the below command.  (replace <`<Cloned Folder>`> with actual location path of your computer).
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
@@ -70,26 +70,26 @@ cd <<Clonned Folder Path>>/deployment/
 
 Execute the below command to create images of DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker and Minio .
 
-[docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
+Refer [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
 ```
 cd <<Clonned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
-Execute the below command to create storage-service images ( storage-mfe and storage-be)
+Execute the below command to create storage-service images ( storage-mfe and storage-be).
 
-[docker-compose-storage.yml](../deployment/dockerfiles/storageService/docker-compose-storage.yml)
+Refer [docker-compose-storage.yml](../deployment/dockerfiles/storageService/docker-compose-storage.yml)
 ```
 cd <<Clonned Folder Path>>/deployment/dockerfiles/storageService
 docker-compose -f docker-compose-storage.yml build  
 ```
-Execute the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values  
+Execute the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values.
 ```
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
 ```
 #### **Namespaces**
 
-Execute the below commands to create namespaces
+Execute the below commands to create namespaces.
 ```
 kubectl create ns dna
 kubectl create ns clamav
@@ -100,35 +100,35 @@ kubectl create ns storage
 ```
 #### **values.yaml**
 
-update the image names of the respective services in the values.yaml
+Update the image names of the respective services in the values.yaml.
 
-Refer [values.yaml](../kubernetes/helm/values.yaml)
+  * Refer [values.yaml](../kubernetes/helm/values.yaml)
 
-For pulling the images from the registry, update the .dockerconfigjson value in the values.yaml.
+Eg: To update the image name of frontend-service , refer the below screenshot .Just like the below update the image names for every service in the [values.yaml](../kubernetes/helm/values.yaml).
 
-For more info on kubernetes secret for pulling the images .
+![This is an image](./images/frontend_image_update.PNG)
 
-Refer [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
+For pulling the images from the registry, update the .dockerconfigjson value in the [values.yaml](../kubernetes/helm/values.yaml).
+
+For more info on kubernetes secret for pulling the images.
+
+  * Refer [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
 
 
 #### **Helm**
 
-We are offering mutiple services via this helm chart , Have a look into those by clicking the link 
+We are offering mutiple services via this helm chart , Have a look into those by clicking the link [Readme.md](../README.md).
 
-[Readme.md](../README.md)
+In order to use our helm charts you should have kafka service . you can install by referring the [Kafka Service](https://github.com/apache/kafka).
 
-In order to use our helm charts you should have kafka service . you can install by referring the [Kafka Service](https://github.com/apache/kafka)
+After installing the kafka, update the `naasBroker` parameter value in [Values.yaml](../deployment/kubernetes/helm/values.yaml) to the Fully qualified domain name of the kafka service.
 
-After installing the kafka, update the `naasBroker` parameter value in values.yaml to the Fully qualified domain name of the kafka service.
-
-Refer [Values.yaml](../deployment/kubernetes/helm/values.yaml)
-
-Execute the below commands to deploy application on the kubernetes cluster using helm
+Execute the below commands to deploy application on the kubernetes cluster using helm.
 ```
 cd <<Clonned Folder Path>>\deployment\kubernetes\helm
 helm install dna . -f ./charts/values.yaml
 ```
-Execute the below command to list out the helm releases
+Execute the below command to list out the helm releases.
 ```
 helm list
 ```
@@ -142,7 +142,7 @@ To resolve this , intialize the vault service and unseal the root key .
 ```
 kubectl exec vault-0 -n vault  -- vault operator init
 ```
-After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the [values.yaml](../deployment/kubernetes/helm/values.yaml)
+After executing the above command , it will give us the root token and 5 keys . Save the root token and mention it in storagebe and backend sections of the [values.yaml](../deployment/kubernetes/helm/values.yaml).
 
 We can unseal the vault service with any of the `3 keys out of 5`.
 ```
@@ -161,9 +161,9 @@ kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
 **Attachment scan**
 
-To scan the attachments free from malicious code  you can use the malware scan service . We are creating malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav)
+To scan the attachments free from malicious code  you can use the malware scan service . We are creating malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav).
 
-To use this service, set the respective values to the below parameters in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
+To use this service, set the respective values to the below parameters in the [values.yaml](../deployment/kubernetes/helm/values.yaml).
 
 Open the website http://localhost:7179 in your browser and go to `myservices->malwarescan -> Genrate the apikey` and copy the application key and application id.
 ```
@@ -177,7 +177,7 @@ For reference:
 
 **Upgrading**
 
-Do Helm Upgrade, if you made changes on helm files
+Do Helm Upgrade, if you made changes on helm files.
 ```
 helm upgrade dna . -f ./charts/values.yaml
 ```
