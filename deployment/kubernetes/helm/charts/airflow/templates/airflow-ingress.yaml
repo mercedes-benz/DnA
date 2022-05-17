@@ -1,0 +1,27 @@
+{{- if .Values.airflow.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "airflow.name" . }}
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.airflow.ingress.host }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: {{ include "airflow-service.name" . }}
+                port: 
+                  name: api-http
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+      - {{ .Values.airflow.ingress.host }}
+      secretName: airflow-tls       
+ {{- end }}
