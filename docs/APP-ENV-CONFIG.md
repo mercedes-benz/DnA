@@ -129,3 +129,130 @@
 | *LOGGING_ENVIRONMENT<br />`string`            | `DEV`                                          | `DEV/PROD/any environment name`           | Environment name.                                              |
 | *LOGGING_PATH<br />`string`                   | `/logs`                                          | NA                 | Path for log file.                                             |
 | SWAGGER_HEADER_AUTH<br />`secret`            |                                           | NA                 | Auth token for swagger ui.                                     |
+
+##### Dashboard Backend Environment Variables
+
+
+| Name                                | Deafult Value                             | Options    | Description                               |
+| :------------------------------------ | ------------------------------------------- | ------------ | ------------------------------------------- |
+| *API_DB_URL<br />`url`               | `<<jdbc:postgresql://localhost:5432/db>>` | NA         | Database host address.                     |
+| *API_DB_USER<br />`string`           | `<<User id>>`                             | NA           | Database user name.                        |
+| *API_DB_PASS<br />`string`           | `<<password>>`                            | NA           | Database password.                         |
+| *CORS_ORIGIN_URL<br />`url pattern`  | `http://*`                                | NA         | CORS origin url restriction patterm.      |
+| *DNA_AUTH_ENABLE<br />`boolean`            | `false`                                   | `true/false` | To enable authorization from DnA backend. |
+| DNA_URI<br />`url`                        | `http://localhost:7171`                   | NA         | DnA backend url to validate jwt token.    |
+| *FLYWAY_ENABLED<br />`boolean`             | `true`                                   | `true/false` | To enable flyway.                          |
+| FLYWAY_BASELINE_ON_MIGRATE<br />`boolean` | `true`                                   | `true/false` | To enable flyway baseline migration.       |
+| FLYWAY_BASELINEVERSION<br />`int`         | `0`                                         | `0/1/2...`   | Flyway baseline version.                   |
+| FLYWAY_SCHEMA<br />`string`               | `public`                                    | `Schema_name`           | Flyway schema.                             |
+| JWT_SECRET_KEY<br />`secret`              | NA                                        | NA         | Default jwt secret key.                    |
+| *LOGGING_ENVIRONMENT<br />`string`         | `DEV`                                          | `DEV/PROD`   | Environment name.                         |
+| *LOGGING_PATH<br />`string`                | `/logs`                                          | NA         | Path for log file.                        |
+| SWAGGER_HEADER_AUTH<br />`secret`         | NA                                          | NA         | Auth token for swagger ui.                 |
+
+##### Notification Backend Environment Variables
+
+
+| Name                                       | Deafult Value                             | Options    | Description                                                    |
+| :------------------------------------------- | ------------------------------------------- | ------------ | ---------------------------------------------------------------- |
+| *API_DB_URL<br />`url`                      | `<<jdbc:postgresql://localhost:5432/db>>` | NA         | Database host address.                                          |
+| *API_DB_USER<br />`string`                  | `<<User id>>`                             | NA           | Database user name.                                             |
+| *API_DB_PASS<br />`string`                  | `<<password>>`                            | NA           | Database password.                                              |
+| *CORS_ORIGIN_URL<br />`url pattern`         | `http://*`                                | NA         | CORS origin url restriction patterm.                           |
+| *DNA_MAIL_SERVER_HOST<br />`string`         | `<<localhost>>`                           | NA           | Mail server host name.                                         |
+| *DNA_MAIL_SERVER_PORT<br />`string`         | `<<port>>`                                | NA           | Mail server port number.                                       |
+| *DNA_AUTH_ENABLE<br />`boolean`                   | `false`                                   | `true/false` | To enable authorization from DnA backend.                      |
+| *DNA_URI<br />`url`                               | `http://localhost:7171`                   | NA         | DnA backend url to validate jwt token.                         |
+| *DNA_USER_NOTIFICATION_PREF_GET_URI<br />`string` | /api/notification-preferences             | NA         | Url path to get user notification preference from DnA backend. |
+| *DNA_NOTIFICATION_SENDER_EMAIL<br />`email`      | `XXXXX@dna-XXXXX`                         | NA         | DnA notification sender email.                                 |
+| JWT_SECRET_KEY<br />`secret`                     | NA                                        | NA         | Default jwt secret key.                                         |
+| *LOGGING_ENVIRONMENT<br />`string`                | `DEV`                                          | `DEV/PROD`   | Environment name.                                              |
+| *LOGGING_PATH<br />`string`                       | `/logs`                                          | NA         | Path for log file.                                             |
+| *MAX_POLL_RECORDS<br />`int`                | `5000`                                    | NA         | maximum no of records needed to pulled in on poll.             |
+| *NAAS_BROKER<br />`url`                     | `<<localhost:9092>>`                      | NA           | Kafka broker url.                                              |
+| *NAAS_CENTRAL_TOPIC<br />`string`           | `dnaCentralEventTopic`                    | NA           | Kafka central topic where event to be published.               |
+| *NAAS_CENTRALREAD_TOPIC<br />`string`       | `dnaCentralReadTopic`                     | NA           | Kafka central topic where read messages will be pushed.        |
+| *NAAS_CENTRALDELTE_TOPIC<br />`string`      | `dnaCentralDeleteTopic`                   | NA           | Kafka central topic where deleted messages will be pushed.     |
+| *POLL_TIME<br />`int`                       | `5000`                                    | NA         | waiting time in milliseconds for each poll.                    |
+| SWAGGER_HEADER_AUTH`string`                | NA                                          | NA         | Auth token to access swagger ui.                               |
+
+##### Malware scanner Backend Environment Variables
+
+
+| Name                               | Deafult Value                                         | Options           | Description                                                 |
+| :----------------------------------- | ------------------------------------------------------- | ------------------- | ------------------------------------------------------------- |
+| *AUTH_API_HOST<br />`url`                 | `<<http://localhost:7171/api/subscription/validate>>` | NA                | url to validate subscription for the service.               |
+| AUTH_API_TOKEN<br />`secret`             | NA                                                    | NA                | NA                                                          |
+| *API_REQUEST_LIMIT<br />`int`             | `1`                                                   | `1,2,3...`        | Limit to allow number of request in given time span.        |
+| *CORS_ORIGIN_URL<br />`url pattern` | `http://*`                                            | NA                | CORS origin url restriction patterm.                        |
+| *CLAMAV_BACKEND_URL<br />`string`   | `localhost`                                           | NA                | CLAMAV url for file scan.                                   |
+| *CLAMAV_BACKEND_PORT<br />`int`     | `3310`                                                | NA                | CLAMAV port.                                                |
+| *LOGGING_ENVIRONMENT<br />`string`        | `DEV`                                                      | DEV/PROD          | Environment name.                                           |
+| *LOGGING_PATH<br />`string`               | `/logs`                                                      | NA                | Path for log file.                                          |
+| *MAX_FILE_SIZE<br />`int`           | `10MB`                                                | `upto 3000MB`     | Maximum allowed file size.                                  |
+| *MAX_REQUEST_SIZE<br />`int`        | `11MB`                                                | `upto 3000MB`     | Maximum allowed request size.                               |
+| ONEAPI_BASICAUTH_TOKEN<br />`secret`     | NA                                                    | NA                | Basic authorization token to allow connection from one API. |
+| *RESTRICTED_URL_PATTERN<br />`string`     | `/avscan/api/v1/scan.*`                               | NA                | Restricted url pattern.                                     |
+| *TIME_UNIT<br />`string`                  | `seconds`                                             | `seconds/minutes` | Time unit to restrict api request limit.                    |
+| *WITH_IN<br />`int`                       | `20`                                                  | `any number`      | Time for which number of api request allowed.               |
+
+##### Storage Backend Environment Variables
+
+
+| Name                               | Deafult Value                        | Options       | Description                                           |
+| :----------------------------------- | -------------------------------------- | --------------- | ------------------------------------------------------- |
+| ATTACHMENT_MALWARE_SCAN<br />`boolean`   | `false`                              | `true/false`    | To enable malware scan for attachments.               |
+| *CORS_ORIGIN_URL<br />`url pattern` | `http://*`                           | NA            | CORS origin url restriction patterm.                  |
+| *DNA_AUTH_ENABLE<br />`boolean`           | `false`                              | `true/false`    | To enable authorization from DnA backend.             |
+| DNA_URI<br />`url`                       | `http://localhost:7171`              | NA            | DnA backend url to validate jwt token.                |
+| *JWT_SECRET_KEY<br />`secret`             | NA                                   | NA            | Default jwt secret key.                                |
+| *LOGGING_ENVIRONMENT<br />`string`        |  `DEV`                                    | `DEV/PROD/Any environment name`      | Environment name.                                      |
+| *LOGGING_PATH<br />`string`               |  `/logs`                                    | NA            | Path for log file.                                     |
+| *MAX_FILE_SIZE<br />`int`           | `10MB`                               | `upto 3000MB` | Maximum allowed file size.                            |
+| *MAX_REQUEST_SIZE<br />`int`        | `11MB`                               | `upto 3000MB` | Maximum allowed request size.                         |
+| MALWARE_SCANNER_APP_ID<br />`secret`     | NA                                   | NA            | Application ID of malware scan service subscription.  |
+| MALWARE_SCANNER_API_KEY<br />`string`    | NA                                   | NA            | API key of malware scan service subscription.         |
+| MALWARE_SCANNER_URI<br />`url`           | `<<http://localhost:7171>>`          | NA            | Malware scanner service url.                          |
+| *MINIO_ENDPOINT<br />`url`                | `<<http://localhost:9000>>`          | NA            | Minio endpoint url.                                   |
+| *MINIO_ADMIN_ACCESS_KEY<br />`secret`     | NA                                   | NA            | Admin access key of Minio.                            |
+| *MINIO_ADMIN_SECRET_KEY<br />`secret`     | NA                                   | NA            | Admin secret key of Minio.                            |
+| *MINIO_POLICY_VERSION<br />`string`       | NA                                   | NA            | Minio policy version.                                 |
+| SWAGGER_HEADER_AUTH<br />`string`        |  NA                                    | NA            | Auth token for swagger ui.                             |
+| *VAULT_HOST<br />`url`                    | localhost                            | NA              | Host name of Hashicorp vault.                          |
+| *VAULT_PORT<br />`string`                 | 8200                                 | NA              | Port number of Hashicorp vault.                        |
+| *VAULT_SCHEME<br />`string`               | http                                 | NA              | Protocol to connect with Hashicorp vault.              |
+| *VAULT_AUTHENTICATION<br />`string`       | TOKEN                                | NA              | Authentication method to connect with Hashicorp vault. |
+| *VAULT_TOKEN<br />`secret`                | 00000000-0000-0000-0000-000000000000 | NA              | Admin token to connect with Hashicorp vault.           |
+| *VAULT_MOUNTPATH<br />`string`            | secret                               | NA              | Mount path to store secret in Hashicorp vault.         |
+| *VAULT_PATH<br />`string`                 | dna/storage                          | NA              | Path in which secrets to be stored in Hashicorp vault. |
+
+<br />
+
+**Note**
+
+1. Marked `*`are mandatory.
+2. Marked `**` These features are coming soon. Changing/updating may result in unexpected behavior.
+
+**Note for Portfolio Locations Widget**
+
+In order to make locations widget understand and display your locations correctly, the locations you have confiugured in Database at table location_nsql also need the locations corordinates information specified in [countries.json](https://github.com/mercedes-benz/DnA/blob/main/packages/frontend/src/globals/maps/countries.json) (DnA/packages/frontend/src/globals/maps/countries.json).
+
+Example JSON - For location1 and location2
+```json
+[
+    {
+        "name": "location1",
+        "latlng": [
+            12.5, 
+            -69.96666666
+        ]
+    },
+    {
+        "name": "location2",
+        "latlng": [
+            33, 
+            65
+        ]
+    }
+]
+```
