@@ -103,4 +103,29 @@
 | *VAULT_MOUNTPATH<br />`string`                   | `secret`                                                   |                     | Mount path to store secret in Hashicorp. vault                                                         |
 | *VAULT_PATH<br />`string`                        | `dna/avscan`                                               |                     | Path in which secrets to be stored in Hashicorp. vault                                                 |
 
+##### Airflow Backend Environment Variables
 
+
+| Name                                   | Deafult Value                             | Options            | Description                                                   |
+| :--------------------------------------- | ------------------------------------------- | -------------------- | --------------------------------------------------------------- |
+| *API_DB_URL<br />`url`                  | `<<jdbc:postgresql://localhost:5432/db>>` | NA                 | Database host address.                                         |
+| *API_DB_USER<br />`string`              | `<<User id>>`                             |                    | Database user name.                                            |
+| *API_DB_PASS<br />`string`              | `<<password>>`                            |                    | Database password.                                             |
+| *AIRFLOW_GIT_URI<br />`url`                   | `https:git/dna/XXX`                       | NA                 | GIT url to push DAG for airflow.                              |
+| *AIRFLOW_GIT_MOUNTPATH<br />`string`          | `*\GITTest\airflow-user-dags`             | NA                 | Path to clone Airflow DAG repository.                         |
+| *AIRFLOW_GIT_TOKEN<br />`string`              | NA                                        | NA                 | Token to connect with Airflow DAG repository.                 |
+| *AIRFLOW_GIT_BRANCH<br />`string`             | `master`                                  | `master/development/any branch` | Airflow DAG repository branch name in which DAG to be pushed. |
+| *AIRFLOW_DAG_MENU_CREATE_WAIT_TIME<br />`int` | `4`                                       | NA                 | Wait time in second for airflow dag menu creation.            |
+| *CORS_ORIGIN_URL<br />`url pattern`     | `http://*`                                | NA                 | CORS origin url restriction patterm.                          |
+| *DNA_AUTH_ENABLE<br />`boolean`               | `false`                                   | `true/false`         | To enable authorization from DnA backend.                     |
+| DNA_URI<br />`url`                           | `http://localhost:7171`                   | NA                 | DnA backend url to validate jwt token.                        |
+| *DAG_PATH<br />`string`                       | `dags`                                    | NA                 | Path inside airflow DAG repository where DAG to be pushed.    |
+| *DAG_FILE_EXTENSION<br />`string`             | `py`                                      | NA                 | DAG file extension example: for python py.                    |
+| *FLYWAY_ENABLED<br />`boolean`                | `true`                                   | `true/false`         | To enable flyway.                                              |
+| FLYWAY_BASELINE_ON_MIGRATE<br />`boolean`    | `true`                                   | `true/false`         | To enable flyway baseline migration.                           |
+| FLYWAY_BASELINEVERSION<br />`int`            | 0                                         | `0/1/2...`           | Flyway baseline version.                                       |
+| FLYWAY_SCHEMA<br />`string`                  | `public`                                    |                    | Flyway schema name.                                                 |
+| *JWT_SECRET_KEY<br />`secret`                 | NA                                        | NA                 | Default jwt secret key.                                        |
+| *LOGGING_ENVIRONMENT<br />`string`            | `DEV`                                          | `DEV/PROD/any environment name`           | Environment name.                                              |
+| *LOGGING_PATH<br />`string`                   | `/logs`                                          | NA                 | Path for log file.                                             |
+| SWAGGER_HEADER_AUTH<br />`secret`            |                                           | NA                 | Auth token for swagger ui.                                     |
