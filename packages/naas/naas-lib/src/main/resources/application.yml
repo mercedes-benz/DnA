@@ -64,8 +64,6 @@ kafka:
     
 server:
   port: 7272
-  servlet:
-    context-path: /naas
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
