@@ -41,8 +41,6 @@ graphql:
 
 server:
   port: 7173
-  servlet:
-    context-path: /dashboards
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
