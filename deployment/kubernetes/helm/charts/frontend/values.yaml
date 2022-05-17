@@ -71,6 +71,11 @@ appFrontend:
     enableNotification: false
     companyName: XYZ
     backendHost: dna-app-backend-service
+    dataPipelinesApiUrl: ""
+    dataPipelinesAppUrl: ""
+    notificationApiUrl: ""
+    dashboardApiUrl: ""
+    storageApiUrl: ""
 
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
