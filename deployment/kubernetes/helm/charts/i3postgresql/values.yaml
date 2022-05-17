@@ -24,7 +24,7 @@ app:
       periodSeconds: 10
       failureThreshold: 3
       readinessProbe:
-        port: api-http 
+        port: ""
     airflowDB:
       airflowUserName: ""
       airflowdbName: ""
