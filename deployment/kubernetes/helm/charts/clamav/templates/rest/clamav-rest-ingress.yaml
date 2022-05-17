@@ -18,34 +18,10 @@ spec:
                 name: {{ .Values.app.backend.name }}-service
                 port: 
                   name: api-http
-            path: /avscan/api
+            path: /
             pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port:
-                  name: api-http
-            path: /avscan/swagger-ui.html
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port: 
-                  name: api-http
-            path: /avscan/swagger-resources
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port:
-                  name: api-http
-            path: /avscan/v2/api-docs
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port:
-                  name: api-http
-            path: /avscan/webjars
-            pathType: Prefix
-{{- end }}
+  tls:
+    - hosts:
+      - {{ .Values.ingress.host }}
+      secretName: clamav-tls       
+ {{- end }}
