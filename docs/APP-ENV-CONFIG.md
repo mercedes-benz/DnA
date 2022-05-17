@@ -235,7 +235,7 @@
 
 **Note for Portfolio Locations Widget**
 
-In order to make locations widget understand and display your locations correctly, the locations you have confiugured in Database at table location_nsql also need the locations corordinates information specified in countries.json (DnA/packages/frontend/src/globals/maps/countries.json).
+In order to make locations widget understand and display your locations correctly, the locations you have confiugured in Database at table location_nsql also need the locations corordinates information specified in [countries.json](https://github.com/mercedes-benz/DnA/blob/main/packages/frontend/src/globals/maps/countries.json) (DnA/packages/frontend/src/globals/maps/countries.json).
 
 Example JSON - For location1 and location2
 ```json
