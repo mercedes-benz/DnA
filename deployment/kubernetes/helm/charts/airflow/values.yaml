@@ -39,7 +39,7 @@ backend:
   flywayBaselineOnMigrate: ""
   flywayBaselineVersion: ""
   flywaySchema: ""
-
+##Ingress for airflow backend service
 ingress:
   enabled: true
   host: ""
@@ -49,7 +49,18 @@ ingress:
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: ""
-
+##Ingress for airflow application
+airflow:
+  ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+    
 pullSecretData: 
 secret:
   gitUserName: ""
