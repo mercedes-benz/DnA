@@ -63,6 +63,8 @@ spec:
                 secretKeyRef:
                   key: jwt.secret.key
                   name: {{ .Values.app.backend.secrets.name }}
+            - name: CORS_ORIGIN_URL
+              value: {{ .Values.app.backend.config.corsOriginUrl }}
           ports:
             - containerPort: 7272
               name: api
