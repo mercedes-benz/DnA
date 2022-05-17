@@ -109,9 +109,7 @@ spec:
           - name: 'PROJECTSMO_NOTIFICATIONS_API_BASEURL'
             value: {{ .Values.appFrontend.config.notificationApiUrl | squote }}
           - name: 'PROJECTSMO_DASHBOARD_API_BASEURL'
-            value: {{ .Values.appFrontend.config.dashboardApiUrl | squote }}
-          - name: 'PROJECRSMO_STORAGE_API_BASEURL'
-            value: {{ .Values.appFrontend.config.storageApiUrl | squote }}    
+            value: {{ .Values.appFrontend.config.dashboardApiUrl | squote }}   
           image: {{ .Values.appFrontend.image }}
           imagePullPolicy: Always
           name: frontend
