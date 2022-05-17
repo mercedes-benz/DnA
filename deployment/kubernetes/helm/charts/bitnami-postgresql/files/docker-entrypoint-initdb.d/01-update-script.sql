@@ -12,3 +12,9 @@
     CREATE user admin WITH PASSWORD 'admin';
     GRANT all privileges ON db admin TO admin;
     GRANT USAGE ON SCHEMA public to admin;
+
+    CREATE user storage;
+    CREATE database storage;
+    ALTER user storage WITH PASSWORD 'storage123';
+    GRANT all privileges ON database storage TO storage;
+    GRANT USAGE ON SCHEMA public to storage;    
