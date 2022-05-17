@@ -6,6 +6,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .Values.service.port }}
+    - name: api-http
+      port: {{ .Values.service.port }}
   selector:
     name: {{ include "airflow-service.name" . }}
