@@ -68,10 +68,10 @@ public class LOVController implements LovApi {
 	private UserStore userStore;
 
 	@Override
-	@ApiOperation(value = "Get all classification types.", nickname = "getAllBusinessGoal", notes = "Get all classification types. This endpoints will be used to Get all valid available classification types.", response = ClassificationVOCollection.class, tags = {
+	@ApiOperation(value = "Get all classification types.", nickname = "getAllclassificationType", notes = "Get all classification types. This endpoints will be used to Get all valid available classification types.", response = ClassificationVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = ClassificationVOCollection.class),
+			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = ClassificationVOCollection.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
