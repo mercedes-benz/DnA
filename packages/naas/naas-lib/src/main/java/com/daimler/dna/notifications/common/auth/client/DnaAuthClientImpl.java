@@ -66,7 +66,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dnaUri, HttpMethod.POST, entity, String.class);
 			if (response != null && response.hasBody()) {
-				LOGGER.info("Success from dna verify login {}");
+				LOGGER.debug("Success from dna verify login {}");
 				res = (JSONObject) new JSONObject(response.getBody()).get("data");
 			}
 		} catch (JSONException e) {
