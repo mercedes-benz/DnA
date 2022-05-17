@@ -51,21 +51,9 @@ data:
 
             set $backend {{ .Values.appFrontend.ngnix.backend | quote }};
 
-            set $jupy_server {{ .Values.appFrontend.ngnix.jupyServer | quote }};
-
             set $grafana_server {{ .Values.appFrontend.ngnix.grafanaServer | quote }};
 
-            #set $avscan_server {{ .Values.appFrontend.ngnix.avscanServer | quote }};
-
             set $avscan_mgw_server {{ .Values.appFrontend.ngnix.avscanMgwServer | quote }};
-
-            set $airflow_server {{ .Values.appFrontend.ngnix.airflowServer | quote }};
-
-            set $naas_server {{ .Values.appFrontend.ngnix.naasServer | quote }};
-            
-            set $dashboard_server {{ .Values.appFrontend.ngnix.dashboard | quote }};
-
-            set $storage_server {{ .Values.appFrontend.ngnix.storage | quote }};
 
             root /usr/share/nginx/html;
             index index.htm index.html;
@@ -80,58 +68,12 @@ data:
               expires -1;
               add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
             }
-            location ^~ /notebooks {
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-NginX-Proxy true;
-              proxy_pass $jupy_server;
-              proxy_ssl_session_reuse off;
-              proxy_set_header Host $http_host;
-              proxy_redirect off;
-            }
-            location ^~ /pipelines {
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-NginX-Proxy true;
-              proxy_pass $airflow_server;
-              proxy_ssl_session_reuse off;
-              proxy_set_header Host $http_host;
-              proxy_redirect off;
-            }
             # For One-API
             location ^~ /malware-scan {
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header X-NginX-Proxy true;
               proxy_pass $avscan_mgw_server;
-              proxy_ssl_session_reuse off;
-              proxy_set_header Host $http_host;
-              proxy_redirect off;
-            }
-            location ^~ /naas {
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-NginX-Proxy true;
-              proxy_pass $naas_server;
-              proxy_ssl_session_reuse off;
-              proxy_set_header Host $http_host;
-              proxy_redirect off;
-            }
-            location ^~ /dashboards {
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-NginX-Proxy true;
-              proxy_pass $dashboard_server;
-              proxy_ssl_session_reuse off;
-              proxy_set_header Host $http_host;
-              proxy_redirect off;
-            }
-
-            location ^~ /storage/ {
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-NginX-Proxy true;
-              proxy_pass $storage_server;
               proxy_ssl_session_reuse off;
               proxy_set_header Host $http_host;
               proxy_redirect off;
