@@ -232,3 +232,27 @@
 
 1. Marked `*`are mandatory.
 2. Marked `**` These features are coming soon. Changing/updating may result in unexpected behavior.
+
+**Note for Portfolio Locations Widget**
+
+In order to make locations widget understand and display your locations correctly, the locations you have confiugured in Database at table location_nsql also need the locations corordinates information specified in countries.json (DnA/packages/frontend/src/globals/maps/countries.json).
+
+Example JSON - For location1 and location2
+```json
+[
+    {
+        "name": "location1",
+        "latlng": [
+            12.5, 
+            -69.96666666
+        ]
+    },
+    {
+        "name": "location2",
+        "latlng": [
+            33, 
+            65
+        ]
+    }
+]
+```
