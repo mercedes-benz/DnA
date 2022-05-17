@@ -10,7 +10,7 @@ Software Prerequisites:
 
 Hardware Prerequisites :
 
-* Recommend 8GB RAM
+* Recommend 6GB free RAM
   
 #### **Note**
   
@@ -68,19 +68,12 @@ cd <<Clonned Folder Path>>/deployment/
 ```
 #### **Build & push images**
 
-Execute the below command to create images of DnA-frontend,Dna-Backend, Bitnami-postgress ,Dashboard , malware , Vault, clamav, Naas-backend , ZooKeeper , Broker and Minio .
+Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-postgress ,dashboard , malware , vault, clamav, naas-backend , zooKeeper , broker , storage-mfe , storage-be and minio .
 
 Refer [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
 ```
 cd <<Clonned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
-```
-Execute the below command to create storage-service images ( storage-mfe and storage-be).
-
-Refer [docker-compose-storage.yml](../deployment/dockerfiles/storageService/docker-compose-storage.yml)
-```
-cd <<Clonned Folder Path>>/deployment/dockerfiles/storageService
-docker-compose -f docker-compose-storage.yml build  
 ```
 Execute the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values.
 ```
