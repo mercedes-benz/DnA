@@ -29,7 +29,23 @@ package com.daimler.data.auth.client;
 
 import org.json.JSONObject;
 
+import com.daimler.data.dto.UserInfoVO;
+
 public interface DnaAuthClient {
 
+	/**
+	 * To verify login by authenticating JWT token from dna-backend
+	 * 
+	 * @param token 
+	 * @return response {@code JSONObject}
+	 */
 	public JSONObject verifyLogin(String jwt);
+	
+	/**
+	 * To get user information by calling dna-backend
+	 * 
+	 * @param userId or shortId of the user
+	 * @return userinfo {@code UserInfoVO}
+	 */
+	public UserInfoVO userInfoById(String userId); 
 }

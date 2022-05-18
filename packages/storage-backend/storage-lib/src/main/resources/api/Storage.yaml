@@ -649,7 +649,7 @@ definitions:
       description:
         type: string
         description: "Description for the Bucket."
-      pIIData:
+      piiData:
         type: boolean
         description: "If Bucket contains personally identifiable information."
       termsOfUse:

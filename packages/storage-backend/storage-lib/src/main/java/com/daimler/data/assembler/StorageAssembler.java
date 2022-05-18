@@ -41,6 +41,8 @@ import com.daimler.data.db.jsonb.Permission;
 import com.daimler.data.db.jsonb.Storage;
 import com.daimler.data.db.jsonb.UserInfo;
 import com.daimler.data.dto.storage.BucketVo;
+import com.daimler.data.dto.storage.CreatedByVO;
+import com.daimler.data.dto.storage.PermissionVO;
 import com.daimler.data.dto.storage.UserVO;
 
 @Component
@@ -60,12 +62,43 @@ public class StorageAssembler {
 			Storage storage = entity.getData();
 			if (Objects.nonNull(storage)) {
 				BeanUtils.copyProperties(entity.getData(), bucketVo);
-				
+				//setting collaborators
+				if(!ObjectUtils.isEmpty(storage.getCollaborators())) {
+					storage.getCollaborators();
+					List<UserVO> collaborators = storage.getCollaborators().stream().filter(Objects::nonNull)
+							.map(this::toUserVO).toList();
+					bucketVo.setCollaborators(collaborators);					
+				}
+				//setting createdBy
+				if(Objects.nonNull(storage.getCreatedBy())) {
+					CreatedByVO createdByVO = new CreatedByVO();
+					BeanUtils.copyProperties(storage.getCreatedBy(), createdByVO);
+					bucketVo.setCreatedBy(createdByVO);
+				}
 			}
+			
 		}
 		return bucketVo;
 	}
 
+	/*
+	 * To convert UserInfo entity value to UserVO
+	 * 
+	 */
+	private UserVO toUserVO(UserInfo userInfo) {
+		UserVO userVO = new UserVO();
+		BeanUtils.copyProperties(userInfo, userVO);
+		userVO.setAccesskey(userInfo.getId());
+		if (Objects.nonNull(userInfo.getPermission())) {
+			PermissionVO permissionVO = new PermissionVO();
+			permissionVO.setRead(userInfo.getPermission().isRead());
+			permissionVO.setWrite(userInfo.getPermission().isWrite());
+			userVO.setPermission(permissionVO);
+		}
+		return userVO;
+	}
+	
+	
 	/**
 	 * To convert BucketVo to StorageNsql
 	 * 
@@ -85,7 +118,7 @@ public class StorageAssembler {
 			Storage storage = new Storage();
 			BeanUtils.copyProperties(vo, storage);
 
-			storage.setPIIData(vo.isPIIData() != null ? vo.isPIIData() : Boolean.FALSE);
+			storage.setPiiData(vo.isPiiData() != null ? vo.isPiiData() : Boolean.FALSE);
 			storage.setTermsOfUse(vo.isTermsOfUse() != null ? vo.isTermsOfUse() : Boolean.FALSE);
 			storage.setClassificationType(
 					StringUtils.hasText(vo.getClassificationType()) ? vo.getClassificationType() : "Internal");
@@ -108,7 +141,6 @@ public class StorageAssembler {
 						.map(this::toUserInfoJson).toList();
 				storage.setCollaborators(collaborators);
 			}
-
 			entity.setData(storage);
 		}
 
@@ -121,25 +153,12 @@ public class StorageAssembler {
 		userInfo.setId(userVO.getAccesskey());
 		if (Objects.nonNull(userVO.getPermission())) {
 			Permission permission = new Permission();
-			BeanUtils.copyProperties(userVO.getPermission(), permission);
+			permission.setRead(userVO.getPermission().isRead());
+			permission.setWrite(userVO.getPermission().isWrite());
 			userInfo.setPermission(permission);
 		}
 
 		return userInfo;
-	}
-	
-	private UserVO toUserInfoVO(UserInfo userInfo) {
-		UserVO userVO = new UserVO();
-		BeanUtils.copyProperties(userInfo, userVO);
-		if (Objects.nonNull(userVO.getPermission())) {
-			
-			
-			Permission permission = new Permission();
-			BeanUtils.copyProperties(userVO.getPermission(), permission);
-			userInfo.setPermission(permission);
-		}
-
-		return userVO;
 	}
 
 }
