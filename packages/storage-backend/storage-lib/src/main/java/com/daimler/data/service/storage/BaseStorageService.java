@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -56,6 +57,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.config.MalwareScannerClient;
 import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.assembler.StorageAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.StorageNsql;
@@ -64,6 +66,7 @@ import com.daimler.data.db.repo.storage.StorageRepository;
 import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.FileScanDetailsVO;
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.storage.BucketCollectionVO;
 import com.daimler.data.dto.storage.BucketObjectResponseVO;
@@ -122,6 +125,9 @@ public class BaseStorageService implements StorageService {
 	
 	@Autowired
 	private StorageAssembler storageAssembler;
+	
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
 	
 	public BaseStorageService() {
 		super();
@@ -869,7 +875,6 @@ public class BaseStorageService implements StorageService {
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
 			// Setting bucket details
-			bucketVo.setCollaborators(dnaMinioClient.getBucketCollaborators(bucketName, currentUser));
 			bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
 			httpStatus = HttpStatus.OK;
 		}
@@ -914,7 +919,7 @@ public class BaseStorageService implements StorageService {
 					bucketVo.setBucketName(bucketName);
 					bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
 					// Setting default values
-					bucketVo.setPIIData(false);
+					bucketVo.setPiiData(false);
 					bucketVo.setClassificationType("Internal");
 					bucketVo.setTermsOfUse(false);
 
@@ -946,11 +951,22 @@ public class BaseStorageService implements StorageService {
 								if (Objects.isNull(bucketVo.getCreatedBy())) {
 									CreatedByVO createdByVO = new CreatedByVO();
 									createdByVO.setId(entry.getKey());
+									UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
+									if (Objects.nonNull(userInfoVO)) {
+										BeanUtils.copyProperties(userInfoVO, createdByVO);
+									}
 									bucketVo.setCreatedBy(createdByVO);
-								} 
+								}
 							}
 
-							collaborators.add(userVO);
+							if (Objects.nonNull(userVO)) {
+								UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
+								if (Objects.nonNull(userInfoVO)) {
+									BeanUtils.copyProperties(userInfoVO, userVO);
+								}
+								userVO.setPermission(permissionVO);
+								collaborators.add(userVO);
+							}
 						}
 					}
 					// setting collaborators
