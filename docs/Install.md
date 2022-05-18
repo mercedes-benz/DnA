@@ -193,7 +193,7 @@ By default, we are disabling the ingress in [values.yaml](../deployment/kubernet
 
 Eg : Please refer the below image and enable the ingress for every microservice.
 
-[enabling the ingress for frontend service](./images/ingress_enabled_true.PNG)
+![enabling the ingress for frontend service](./images/ingress_enabled_true.PNG)
 
 **Note**
 
