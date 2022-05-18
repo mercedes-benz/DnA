@@ -3,6 +3,8 @@
  */
 package com.mb.dna.kube.client.main;
 
+import java.util.Map;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -13,6 +15,7 @@ import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodSpec;
+import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.util.Config;
 
 @SpringBootApplication
@@ -30,12 +33,13 @@ public class Application {
         V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio")).findFirst().get();
         V1PodSpec minioPodSpec = minioPod.getSpec();
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
-//        minioContainer.get
-//        String accessKey = ;
-//        String secretKey = ;
         minioContainer.getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
-        
-        
+        V1Secret result = api.readNamespacedSecret("mlpipeline-minio-artifact", KUBEFLOW_NAMESPACE, null);
+        System.out.println(result.getData().toString());
+        Map<String, byte[]> secretsMap = result.getData();
+        for (String key: secretsMap.keySet()) {
+            System.out.println(key + ": " + secretsMap.get(key));
+        }
 	}catch(Exception e) {
 		e.printStackTrace();
 	}
