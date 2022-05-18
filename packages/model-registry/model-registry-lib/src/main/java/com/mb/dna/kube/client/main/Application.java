@@ -48,6 +48,7 @@ public class Application {
     	MinioClient minioClient = null;
     	try {
     		minioBaseUri = minioPodSpec.getHostname();
+    		System.out.println("hostname is : " + minioBaseUri);
     		minioClient = MinioClient.builder()
     		        .endpoint(minioBaseUri, 9000, true)
     		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
