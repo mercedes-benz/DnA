@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodSpec;
@@ -28,7 +29,13 @@ public class Application {
         V1PodList items = api.listNamespacedPod(KUBEFLOW_NAMESPACE,null, null, null, null, null, null, null, null, 10, false);
         V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio")).findFirst().get();
         V1PodSpec minioPodSpec = minioPod.getSpec();
-        minioPodSpec.getContainers().get(0).getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
+        V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
+//        minioContainer.get
+//        String accessKey = ;
+//        String secretKey = ;
+        minioContainer.getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
+        
+        
 	}catch(Exception e) {
 		e.printStackTrace();
 	}
