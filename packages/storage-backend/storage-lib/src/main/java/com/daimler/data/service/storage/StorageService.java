@@ -34,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.storage.BucketCollectionVO;
 import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
-import com.daimler.data.dto.storage.BucketResponseVO;
 import com.daimler.data.dto.storage.BucketResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketVo;
 import com.daimler.data.dto.storage.UserRefreshWrapperVO;
@@ -139,8 +138,16 @@ public interface StorageService {
 	 * To get bucket details for given bucket name
 	 * 
 	 * @param bucketName
-	 * @return ResponseEntity<BucketResponseVO>
+	 * @return ResponseEntity<BucketVo>
 	 */
-	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName);
+	public ResponseEntity<BucketVo> getByBucketName(String bucketName);
+	
+	/**
+	 * To migrate storage buckets
+	 * 
+	 * @param 
+	 * @return ResponseEntity<GenericMessage>
+	 */
+	public ResponseEntity<GenericMessage> bucketMigrate();
 	
 }
