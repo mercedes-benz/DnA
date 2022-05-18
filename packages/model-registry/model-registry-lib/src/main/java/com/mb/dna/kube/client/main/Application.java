@@ -46,7 +46,6 @@ public class Application {
         V1PodSpec minioPodSpec = minioPod.getSpec();
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
         minioContainer.getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
-        LOG.info(mapper.writeValueAsString(minioPodSpec));
         String minioBaseUri = "http://192.168.133.24";
         String minioAdminAccessKeySample = "minio";
     	String minioAdminSecretKeySample = "minio123";
