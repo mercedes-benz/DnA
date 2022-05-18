@@ -1,0 +1,9 @@
+version: "2.1"
+services:
+  hive-metastore:
+    image: dna/hive-metastore
+    container_name: hive-metastore
+    build:
+      #context: ./dockerfiles/hive-metastore/Dockerfile
+      dockerfile: $PWD/Dockerfile
+    
