@@ -234,11 +234,18 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	}
 
 	@Override
-	public MinioGenericResponse getAllBuckets(String userId) {
+	public MinioGenericResponse getAllBuckets(String userId, boolean isAdmin) {
 		MinioGenericResponse getBucketResponse = new MinioGenericResponse();
 		try {
-			LOGGER.info("Fetching secrets from vault for user:{}", userId);
-			String userSecretKey = vaultConfig.validateUserInVault(userId);
+			String userSecretKey ="";
+			if(isAdmin) {
+				//Setting minio admin credentials
+				userId = minioAdminAccessKey;
+				userSecretKey = minioAdminSecretKey;
+			}else {
+				LOGGER.info("Fetching secrets from vault for user:{}", userId);
+				userSecretKey = vaultConfig.validateUserInVault(userId);
+			}
 			if (StringUtils.hasText(userSecretKey)) {
 				LOGGER.debug("Fetch secret from vault successfull for user:{}", userId);
 				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri)
