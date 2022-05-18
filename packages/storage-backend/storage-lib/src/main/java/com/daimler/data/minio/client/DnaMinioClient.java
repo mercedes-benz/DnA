@@ -65,7 +65,7 @@ public interface DnaMinioClient {
 	 * @param userId
 	 * @return MinioGenericResponse
 	 */
-	public MinioGenericResponse getAllBuckets(String userId);
+	public MinioGenericResponse getAllBuckets(String userId, boolean isAdmin);
 
 	/**
 	 * To list all the objects inside buckets
