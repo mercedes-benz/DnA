@@ -5,6 +5,8 @@ package com.mb.dna.kube.client.main;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -29,10 +31,13 @@ import io.minio.messages.Item;
 public class Application {
 
   private static String KUBEFLOW_NAMESPACE = "kubeflow";
-	
+  
+  private static final Logger LOG = LoggerFactory.getLogger(Application.class);
+  
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);
     try {
+    	ObjectMapper mapper = new ObjectMapper();
 		ApiClient client = Config.defaultClient();
 		Configuration.setDefaultApiClient(client);
         CoreV1Api api = new CoreV1Api();
@@ -41,41 +46,35 @@ public class Application {
         V1PodSpec minioPodSpec = minioPod.getSpec();
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
         minioContainer.getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
-        
+        LOG.info(mapper.writeValueAsString(minioPodSpec));
         String minioBaseUri = "";
         String minioAdminAccessKeySample = "minio";
     	String minioAdminSecretKeySample = "minio123";
-    	MinioClient minioClient = null;
+    	MinioClient minioClient = "http://192.168.133.24";
     	try {
-    		minioBaseUri = minioPodSpec.getHostname();
-    		System.out.println("hostname is : " + minioBaseUri);
+    		//minioBaseUri = minioPodSpec.getHostname();
+    		LOG.info("hostname is : " + minioBaseUri);
     		minioClient = MinioClient.builder()
     		        .endpoint(minioBaseUri, 9000, true)
     		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
     		        .build();
-    	}catch(Exception e) {
-    		minioBaseUri = "http://"+minioPodSpec.getHostname();
-    		minioClient = MinioClient.builder()
-		        .endpoint(minioBaseUri, 9000, true)
-		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
-		        .build();
     	}
     	boolean found =
     			  minioClient.bucketExists(BucketExistsArgs.builder().bucket("models").build());
     			if (found) {
     				Iterable<Result<Item>> results = minioClient.listObjects(
     					    ListObjectsArgs.builder().bucket("models").recursive(true).build());
-    				ObjectMapper mapper = new ObjectMapper();
-    				System.out.println(mapper.writeValueAsString(results));
+    				
+    				LOG.info(mapper.writeValueAsString(results));
     			} else {
-    			  System.out.println("my-bucketname does not exist");
+    				LOG.info("my-bucketname does not exist");
     			}
     			
 		V1Secret result = api.readNamespacedSecret("mlpipeline-minio-artifact", KUBEFLOW_NAMESPACE, "true" );
-        System.out.println("Got results successfully");
+		LOG.info("Got results successfully");
         Map<String, byte[]> secretsMap = result.getData();
         for (String key: secretsMap.keySet()) {
-            System.out.println(key + ": " + secretsMap.get(key));
+        	LOG.info(key + ": " + secretsMap.get(key));
         }
     	        
 	}catch(Exception e) {
