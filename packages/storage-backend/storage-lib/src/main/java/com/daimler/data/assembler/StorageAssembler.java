@@ -62,18 +62,24 @@ public class StorageAssembler {
 			Storage storage = entity.getData();
 			if (Objects.nonNull(storage)) {
 				BeanUtils.copyProperties(entity.getData(), bucketVo);
-				//setting collaborators
-				if(!ObjectUtils.isEmpty(storage.getCollaborators())) {
+				// setting collaborators
+				if (!ObjectUtils.isEmpty(storage.getCollaborators())) {
 					storage.getCollaborators();
 					List<UserVO> collaborators = storage.getCollaborators().stream().filter(Objects::nonNull)
 							.map(this::toUserVO).toList();
-					bucketVo.setCollaborators(collaborators);					
+					bucketVo.setCollaborators(collaborators);
 				}
-				//setting createdBy
-				if(Objects.nonNull(storage.getCreatedBy())) {
+				// setting createdBy
+				if (Objects.nonNull(storage.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
 					BeanUtils.copyProperties(storage.getCreatedBy(), createdByVO);
 					bucketVo.setCreatedBy(createdByVO);
+				}
+				// Setting updatedBy
+				if (Objects.nonNull(storage.getUpdatedBy())) {
+					CreatedByVO updatedByVO = new CreatedByVO();
+					BeanUtils.copyProperties(storage.getUpdatedBy(), updatedByVO);
+					bucketVo.setUpdatedBy(updatedByVO);
 				}
 			}
 			
@@ -124,17 +130,25 @@ public class StorageAssembler {
 					StringUtils.hasText(vo.getClassificationType()) ? vo.getClassificationType() : "Internal");
 
 			// created by
-			if (vo.getCreatedBy() != null) {
+			if (Objects.nonNull(vo.getCreatedBy())) {
 				UserInfo userDetails = new UserInfo();
-				userDetails.setId(vo.getCreatedBy().getId());
-				userDetails.setFirstName(vo.getCreatedBy().getFirstName());
-				userDetails.setLastName(vo.getCreatedBy().getLastName());
-				userDetails.setEmail(vo.getCreatedBy().getEmail());
-				userDetails.setDepartment(vo.getCreatedBy().getDepartment());
-				userDetails.setMobileNumber(vo.getCreatedBy().getMobileNumber());
+				BeanUtils.copyProperties(vo.getCreatedBy(), userDetails);
+				
+//				userDetails.setId(vo.getCreatedBy().getId());
+//				userDetails.setFirstName(vo.getCreatedBy().getFirstName());
+//				userDetails.setLastName(vo.getCreatedBy().getLastName());
+//				userDetails.setEmail(vo.getCreatedBy().getEmail());
+//				userDetails.setDepartment(vo.getCreatedBy().getDepartment());
+//				userDetails.setMobileNumber(vo.getCreatedBy().getMobileNumber());
 				storage.setCreatedBy(userDetails);
 			}
-
+			//Updated by
+			if(Objects.nonNull(vo.getUpdatedBy())) {
+				UserInfo userDetails = new UserInfo();
+				BeanUtils.copyProperties(vo.getUpdatedBy(), userDetails);
+				storage.setUpdatedBy(userDetails);
+			}
+			
 			// Collaborators
 			if (!ObjectUtils.isEmpty(vo.getCollaborators())) {
 				List<UserInfo> collaborators = vo.getCollaborators().stream().filter(Objects::nonNull)
