@@ -48,12 +48,12 @@ implements Reconciler {
   public Result reconcile(Request request) {
     V1Node node = nodeLister.get(request.getName());
 
-    System.out.println("get all pods in namespace " + namespace);
-    podLister.namespace(namespace).list().stream()
-        .map(pod -> pod.getMetadata().getName())
-        .forEach(System.out::println);
-
-    System.out.println("triggered reconciling " + node.getMetadata().getName());
+//    System.out.println("get all pods in namespace " + namespace);
+//    podLister.namespace(namespace).list().stream()
+//        .map(pod ->  pod.getMetadata().getName())
+//        .forEach(System.out::println);
+//
+//    System.out.println("triggered reconciling " + node.getMetadata().getName());
     return new Result(false);
   }
   
@@ -61,7 +61,7 @@ implements Reconciler {
   public NamespaceMetadataDto reconcileResult() {
 	  NamespaceMetadataDto metadataDto = new NamespaceMetadataDto();
 	  List<String> pods = new ArrayList<>();
-	  System.out.println("get all pods in namespace " + namespace);
+//	  System.out.println("get all pods in namespace " + namespace);
 	  
 	  podLister.namespace(namespace).list().stream()
         .map(pod -> pod.getMetadata().getName())
