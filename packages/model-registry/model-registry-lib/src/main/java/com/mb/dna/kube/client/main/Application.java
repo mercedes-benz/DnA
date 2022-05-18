@@ -47,18 +47,13 @@ public class Application {
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
         minioContainer.getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
         LOG.info(mapper.writeValueAsString(minioPodSpec));
-        String minioBaseUri = "";
+        String minioBaseUri = "http://192.168.133.24";
         String minioAdminAccessKeySample = "minio";
     	String minioAdminSecretKeySample = "minio123";
-    	MinioClient minioClient = "http://192.168.133.24";
-    	try {
-    		//minioBaseUri = minioPodSpec.getHostname();
-    		LOG.info("hostname is : " + minioBaseUri);
-    		minioClient = MinioClient.builder()
+    	MinioClient minioClient = MinioClient.builder()
     		        .endpoint(minioBaseUri, 9000, true)
     		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
     		        .build();
-    	}
     	boolean found =
     			  minioClient.bucketExists(BucketExistsArgs.builder().bucket("models").build());
     			if (found) {
