@@ -31,16 +31,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.WebApplicationInitializer;
 
-@SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
+@SpringBootApplication
 @ComponentScan({ "com.daimler.data.controller", "com.daimler.data.service", "com.daimler.data.assembler",
 		"com.daimler.data.logging", "com.daimler.data.application.config", "com.daimler.data.application.filter",
-		"com.daimler.data.auth.client", "com.daimler.data.minio.client", "com.daimler.data.util" })
+		"com.daimler.data.auth.client", "com.daimler.data.minio.client", "com.daimler.data.util", "com.daimler.dna",
+		"com.daimler.data.db"})
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
