@@ -50,20 +50,14 @@ public class Application {
         String minioBaseUri = "";
         String minioAdminAccessKeySample = "minio";
     	String minioAdminSecretKeySample = "minio123";
-    	MinioClient minioClient = null;
+    	MinioClient minioClient = "http://192.168.133.24";
     	try {
-    		minioBaseUri = minioPodSpec.getHostname();
+    		//minioBaseUri = minioPodSpec.getHostname();
     		LOG.info("hostname is : " + minioBaseUri);
     		minioClient = MinioClient.builder()
     		        .endpoint(minioBaseUri, 9000, true)
     		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
     		        .build();
-    	}catch(Exception e) {
-    		minioBaseUri = "http://"+minioPodSpec.getHostname();
-    		minioClient = MinioClient.builder()
-		        .endpoint(minioBaseUri, 9000, true)
-		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
-		        .build();
     	}
     	boolean found =
     			  minioClient.bucketExists(BucketExistsArgs.builder().bucket("models").build());
