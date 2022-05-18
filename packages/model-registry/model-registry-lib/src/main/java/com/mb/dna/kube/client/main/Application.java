@@ -3,6 +3,8 @@
  */
 package com.mb.dna.kube.client.main;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ import io.minio.BucketExistsArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.Result;
+import io.minio.messages.Bucket;
 import io.minio.messages.Item;
 
 @SpringBootApplication
@@ -46,31 +49,21 @@ public class Application {
         V1PodSpec minioPodSpec = minioPod.getSpec();
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
         minioContainer.getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
-        String minioBaseUri = "http://192.168.133.24";
+        String minioBaseUri = "http://192.168.129.172";
         String minioAdminAccessKeySample = "minio";
     	String minioAdminSecretKeySample = "minio123";
     	MinioClient minioClient = MinioClient.builder()
-    		        .endpoint(minioBaseUri, 9000, true)
+    				.endpoint(minioBaseUri+":9000")
     		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
     		        .build();
-    	boolean found =
-    			  minioClient.bucketExists(BucketExistsArgs.builder().bucket("models").build());
-    			if (found) {
-    				Iterable<Result<Item>> results = minioClient.listObjects(
-    					    ListObjectsArgs.builder().bucket("models").recursive(true).build());
-    				
-    				LOG.info(mapper.writeValueAsString(results));
-    			} else {
-    				LOG.info("my-bucketname does not exist");
-    			}
-    			
-		V1Secret result = api.readNamespacedSecret("mlpipeline-minio-artifact", KUBEFLOW_NAMESPACE, "true" );
-		LOG.info("Got results successfully");
-        Map<String, byte[]> secretsMap = result.getData();
-        for (String key: secretsMap.keySet()) {
-        	LOG.info(key + ": " + secretsMap.get(key));
-        }
-    	        
+    	List<Bucket> bucketList = minioClient.listBuckets();
+    	Iterable<Result<Item>> results = minioClient.listObjects(
+				    ListObjectsArgs.builder().bucket("models").recursive(true).build());
+    	  Iterator<Result<Item>> iterator1 = results.iterator();
+          while (iterator1.hasNext()) {
+            Result<Item> el = iterator1.next();
+            LOG.info(el.get().objectName());
+          }    
 	}catch(Exception e) {
 		e.printStackTrace();
 	}
