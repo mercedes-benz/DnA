@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "model-registry.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: {{ include "model-registry.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      name: {{ include "model-registry.name" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ include "model-registry.name" . }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name | quote }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets.name | quote }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.envs }}            
+          env:
+          {{- toYaml . | nindent 12 }}
+          {{- end }} 
