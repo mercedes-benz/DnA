@@ -185,6 +185,16 @@ kubectl port-forward service/dna-frontend-service 7179:3000
 ```
 After executing the above step , you can access the application by opening the (http://localhost:7179) in your browser.
 
+**Production Environemnt**
+
+We are already providing ingress manifest files for every microservice. So install any kubernetes ingress controller to install the application directly in the production environment.
+
+By default, we are disabling the ingress in [values.yaml](../deployment/kubernetes/helm/values.yaml)* . If you are using in the production env then set the parameter `enabled: true` in the ingress section.
+
+Eg : Please refer the below image and enable the ingress for every microservice.
+
+[enabling the ingress for frontend service](./images/ingress_enabled_true.PNG)
+
 **Note**
 
 * *If you are not using 7175 and 7179 ports then change the below parameter values in [values.yaml](../deployment/kubernetes/helm/values.yaml)*. 
@@ -219,4 +229,3 @@ Follow simple instructions on how to use simple and free Open ID Connect identit
 **Troubleshooting**
 
 * *If you face any issue with helm installation, refer [FAQ](./FAQ.md)*.
-
