@@ -257,7 +257,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
 			}
-		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+		}catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IOException e) {
 			LOGGER.error("Error occured while listing buckets of minio: {}", e.getMessage());
