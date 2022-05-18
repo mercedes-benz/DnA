@@ -1196,3 +1196,8 @@ storagebe:
     #   memory: 128Mi
 minio:
   enabled: true
+
+#Subchart properties for model-registry
+
+model-registry:
+  enabled: true
