@@ -864,7 +864,7 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Bucket not found.");
 		} else {
 			//Fetching bucket details from database
-			StorageNsql entity = customRepo.findbyUniqueLiteral(bucketName, bucketName);
+			StorageNsql entity = customRepo.findbyUniqueLiteral("bucketName", bucketName);
 			bucketVo = storageAssembler.toBucketVo(entity);
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
