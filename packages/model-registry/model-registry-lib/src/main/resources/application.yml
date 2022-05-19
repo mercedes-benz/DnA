@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: model-registry-service
+
+dna:
+  kube:
+      config:
+        namespace: ${KUBE_NAMESPACE:defaultNamespace}
+
+server:
+  port: 7373
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
