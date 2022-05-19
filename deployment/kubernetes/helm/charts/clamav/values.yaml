@@ -4,6 +4,8 @@
 
 appName: clamav
 namespace: clamav
+securityContext:
+  runasUser: 1000 
 app:
   backend:
     name: clamav-rest
@@ -44,8 +46,6 @@ app:
     secret:
       rootToken: ""
   
-securityContext:
-  runasUser: 1000 
 
   probes:
     initialDelaySeconds: 60
