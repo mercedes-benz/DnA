@@ -22,6 +22,7 @@ import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.Config;
 import io.minio.BucketExistsArgs;
 import io.minio.ListObjectsArgs;
@@ -66,15 +67,20 @@ public class Application {
             Result<Item> el = iterator1.next();
             LOG.info(el.get().objectName());
           }    
-          
+          V1SecretList secretsList = api.listNamespacedSecret(KUBEFLOW_NAMESPACE, "true", null, null, null, null, null, null, null, null, false);
+          List<V1Secret> secrets = secretsList.getItems();
+          for(V1Secret secret : secrets) {
+        	  Map<String, byte[]> secretsMap = secret.getData();
+        	  for (String key: secretsMap.keySet()) {
+            	  LOG.info(key + ": " + secretsMap.get(key));
+              }
+          }
           V1Secret result = api.readNamespacedSecret("mlpipeline-minio-artifact", KUBEFLOW_NAMESPACE, "true" );
           LOG.info("Got results successfully");
           Map<String, byte[]> secretsMap = result.getData();
           for (String key: secretsMap.keySet()) {
         	  LOG.info(key + ": " + secretsMap.get(key));
           }
-          
-          
 	}catch(Exception e) {
 		e.printStackTrace();
 	}
