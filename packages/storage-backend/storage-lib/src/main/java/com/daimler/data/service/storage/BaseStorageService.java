@@ -134,7 +134,6 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
-	@Transactional
 	public ResponseEntity<BucketResponseWrapperVO> createBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
@@ -249,6 +248,7 @@ public class BaseStorageService implements StorageService {
 				|| !StringUtils.hasText(requestbucketVo.getCreatedBy().getId())) {
 			requestbucketVo.setCreatedBy(userStore.getVO());
 			requestbucketVo.setCreatedDate(new Date());
+			requestbucketVo.setLastModifiedDate(new Date());
 		}
 		StorageNsql storageNsql = storageAssembler.toEntity(requestbucketVo);
 		StorageNsql savedEntity = jpaRepo.save(storageNsql);
@@ -660,7 +660,6 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
-	@Transactional
 	public ResponseEntity<GenericMessage> deleteBucket(String bucketName) {
 		GenericMessage genericMessage = new GenericMessage();
 		HttpStatus httpStatus;
@@ -706,7 +705,6 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
-	@Transactional
 	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
@@ -761,7 +759,6 @@ public class BaseStorageService implements StorageService {
 		set.addAll(list1);
 		// Adding list two to set
 		set.addAll(list2);
-
 		// fetching users
 		return set.stream().map(t -> t.getAccesskey()).collect(Collectors.toList());
 	}
@@ -927,6 +924,7 @@ public class BaseStorageService implements StorageService {
 					BucketVo bucketVo = new BucketVo();
 					bucketVo.setBucketName(bucketName);
 					bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
+					bucketVo.setLastModifiedDate(Date.from(bucket.creationDate().toInstant()));
 					// Setting default values
 					bucketVo.setPiiData(false);
 					bucketVo.setClassificationType("Internal");
