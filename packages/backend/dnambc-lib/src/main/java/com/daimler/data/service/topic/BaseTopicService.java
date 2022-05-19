@@ -37,20 +37,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseTopicService
-        extends BaseCommonService<TopicVO, TopicNsql, String>
-        implements TopicService {
+public class BaseTopicService extends BaseCommonService<TopicVO, TopicNsql, String> implements TopicService {
 
-    @Autowired
-    private TopicCustomRepository customRepo;
-    @Autowired
-    private TopicRepository jpaRepo;
-    @Autowired
-    private TopicAssembler assembler;
+	@Autowired
+	private TopicCustomRepository customRepo;
+	@Autowired
+	private TopicRepository jpaRepo;
+	@Autowired
+	private TopicAssembler assembler;
 
-    public BaseTopicService() {
-        super();
-    }
+	public BaseTopicService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseTopicService(TopicCustomRepository customRepo

@@ -1,0 +1,133 @@
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .textDesc {
+    color: #697582;
+  }
+
+  .rowLine {
+    display: inline-block;
+  }
+
+  .formWrapper {
+    margin: 0;
+  }
+
+  .tagsWrapper {
+    margin-top: 0;
+  }
+}
+
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 7px);
+  }
+}
+
+.wrapper {
+  background: #252a33 !important;
+  margin-top: 60px !important;
+
+  .teamListWrapper {
+    margin: 60px -38px;
+
+    .avatarIcon {
+      width: 55px;
+      height: 55px;
+    }
+
+    .addTeamMemberWrapper {
+      min-height: 110px;
+      padding-left: 40px;
+
+      button {
+        padding: 0;
+        margin: 0 0 0 30px;
+        background: none;
+        border: none;
+        outline: none;
+        color: #c0c8d0;
+        vertical-align: middle;
+
+        i {
+          vertical-align: top;
+          margin-right: 10px;
+          color: #00adef;
+        }
+
+        &:hover span {
+          text-decoration: underline;
+        }
+      }
+
+      .teamsErrorMessage {
+        margin: 3px 0 0 85px;
+        font-size: var(--font-size-small);
+      }
+    }
+  }
+}
+
+.addCollabarionUserAdd {
+  .searchWrapper {
+    margin-bottom: 15px;
+    > div {
+      width: auto !important;
+
+      &:first-child {
+        flex: 1;
+        position: relative;
+        background-image: none!important;
+        .clearSearch {
+          height: 40px;
+          position: absolute;
+          right: 5px;
+          width: 40px;
+          text-align: center;
+          top: 32px;
+          cursor: pointer;
+
+          i {
+            line-height: 40px;
+            color: #697582;
+          }
+
+          &:hover i {
+            color: #00adef;
+          }
+        }
+      }
+
+      &:last-child {
+        margin-top: 32px;
+      }
+    }
+  }
+  span {
+    margin: 0;
+  }
+  .internalWrapper {
+    .actionWrapper {
+      > div {
+        width: auto !important;
+
+        &:first-child {
+          flex: 1;
+        }
+      }
+
+      text-align: right;
+      margin: 30px 0;
+    }
+  }
+
+  .externalWrapper {
+    .actionWrapper {
+      text-align: center;
+      margin: 30px 0;
+    }
+  }
+}

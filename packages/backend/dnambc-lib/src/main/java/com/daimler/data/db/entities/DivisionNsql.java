@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "division_nsql")
-public class DivisionNsql extends BaseEntity<Division>
-        implements Serializable {
+public class DivisionNsql extends BaseEntity<Division> implements Serializable {
 
-    private static final long serialVersionUID = -3056536559897829565L;
+	private static final long serialVersionUID = -3056536559897829565L;
 
-    public DivisionNsql() {
-        super();
-    }
-
+	public DivisionNsql() {
+		super();
+	}
 
 }

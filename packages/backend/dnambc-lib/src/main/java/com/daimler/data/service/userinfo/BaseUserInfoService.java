@@ -27,59 +27,58 @@
 
 package com.daimler.data.service.userinfo;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserFavoriteUseCase;
 import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
 import com.daimler.data.db.repo.userinfo.UserInfoRepository;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
 import com.daimler.data.util.JWTGenerator;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 @Service
 @Transactional
 @Slf4j
-public class BaseUserInfoService
-        extends BaseCommonService<UserInfoVO, UserInfoNsql, String>
-        implements UserInfoService {
+public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoNsql, String>
+		implements UserInfoService {
 
-	
-	
+	@Autowired
+	private UserInfoCustomRepository customRepo;
+	@Autowired
+	private UserInfoRepository jpaRepo;
 
+	@Autowired
+	private SolutionService solutionService;
 
-	
-	
-    @Autowired
-    private UserInfoCustomRepository customRepo;
-    @Autowired
-    private UserInfoRepository jpaRepo;
+	@Autowired
+	private UserInfoAssembler userinfoAssembler;
 
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
-    @Autowired
-    private UserInfoAssembler userinfoAssembler;
-
-    public BaseUserInfoService() {
-        super();
-    }
+	public BaseUserInfoService() {
+		super();
+	}
 
 	/*
 	 * @Override public boolean updateUserToken(final String id, String token) {
@@ -92,125 +91,126 @@ public class BaseUserInfoService
 	 * }
 	 */
 
-    @Override
-    public boolean updateNewUserToken(final String id, boolean isLogin) {
-        UserInfoNsql userinfo = jpaRepo.findById(id).get();
-        if(isLogin) {
-        	 userinfo.setIsLoggedIn("Y");
-        }else {
-        	 userinfo.setIsLoggedIn("N");
-        }
-        customRepo.update(userinfo);
-        return true;
+	@Override
+	public boolean updateNewUserToken(final String id, boolean isLogin) {
+		UserInfoNsql userinfo = jpaRepo.findById(id).get();
+		if (isLogin) {
+			userinfo.setIsLoggedIn("Y");
+		} else {
+			userinfo.setIsLoggedIn("N");
+		}
+		customRepo.update(userinfo);
+		return true;
 
-    }
+	}
 
-    
-    @Override
-    public UserInfoVO updateBookMarkedSolutions(final String id, List<String> bookmarks, boolean deleteBookmarks) {
-        UserInfoNsql userInfoEntityExisting = jpaRepo.findById(id).get();
-        UserInfoVO userInfoVO = userinfoAssembler.toVo(userInfoEntityExisting);
-        for (String bookmark : bookmarks) {
-            if (!deleteBookmarks) {
-                if (solutionService.getById(bookmark) != null) {
-                    boolean existingFav = false;
-                    if (userInfoVO.getFavoriteUsecases() != null) {
-                        for (UserFavoriteUseCaseVO favUseCase : userInfoVO.getFavoriteUsecases()) {
-                            if (favUseCase.getUsecaseId().equals(bookmark)) {
-                                existingFav = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!existingFav) {
-                        UserFavoriteUseCaseVO newFavorite = new UserFavoriteUseCaseVO();
-                        newFavorite.setUsecaseId(bookmark);
-                        userInfoVO.addFavoriteUsecasesItem(newFavorite);
-                    }
-                }
-            } else {
-                if (userInfoVO.getFavoriteUsecases() != null) {
-                    Iterator<UserFavoriteUseCaseVO> favUsecases = userInfoVO.getFavoriteUsecases().iterator();
-                    while (favUsecases.hasNext()) {
-                        UserFavoriteUseCaseVO favUsecase = favUsecases.next();
-                        if (bookmark.equals(favUsecase.getUsecaseId())) {
-                            favUsecases.remove();
-                        }
-                    }
-                }
-            }
-        }
+	@Override
+	public UserInfoVO updateBookMarkedSolutions(final String id, List<String> bookmarks, boolean deleteBookmarks) {
+		log.debug("updating bookmarks {} with delete flag as ", bookmarks, deleteBookmarks);
+		UserInfoNsql userInfoEntityExisting = jpaRepo.findById(id).get();
+		UserInfoVO userInfoVO = userinfoAssembler.toVo(userInfoEntityExisting);
+		for (String bookmark : bookmarks) {
+			if (!deleteBookmarks) {
+				if (solutionService.getById(bookmark) != null) {
+					boolean existingFav = false;
+					if (userInfoVO.getFavoriteUsecases() != null) {
+						for (UserFavoriteUseCaseVO favUseCase : userInfoVO.getFavoriteUsecases()) {
+							if (favUseCase.getUsecaseId().equals(bookmark)) {
+								existingFav = true;
+								break;
+							}
+						}
+					}
+					if (!existingFav) {
+						UserFavoriteUseCaseVO newFavorite = new UserFavoriteUseCaseVO();
+						newFavorite.setUsecaseId(bookmark);
+						userInfoVO.addFavoriteUsecasesItem(newFavorite);
+					}
+				}
+			} else {
+				if (userInfoVO.getFavoriteUsecases() != null) {
+					Iterator<UserFavoriteUseCaseVO> favUsecases = userInfoVO.getFavoriteUsecases().iterator();
+					while (favUsecases.hasNext()) {
+						UserFavoriteUseCaseVO favUsecase = favUsecases.next();
+						if (bookmark.equals(favUsecase.getUsecaseId())) {
+							favUsecases.remove();
+						}
+					}
+				}
+			}
+		}
 
-        UserInfoNsql userInfoEntity = userinfoAssembler.toEntity(userInfoVO);
-        userInfoEntity.setIsLoggedIn(userInfoEntityExisting.getIsLoggedIn());
-        customRepo.update(userInfoEntity);
-        return userInfoVO;
+		UserInfoNsql userInfoEntity = userinfoAssembler.toEntity(userInfoVO);
+		userInfoEntity.setIsLoggedIn(userInfoEntityExisting.getIsLoggedIn());
+		customRepo.update(userInfoEntity);
+		return userInfoVO;
 
-    }
+	}
 
-    @Override
-    public List<SolutionVO> getAllBookMarkedSolutionsForUser(final String userId) {
-        UserInfoNsql userinfo = jpaRepo.findById(userId).get();
-        List<UserFavoriteUseCase> favoriteUseCases = userinfo.getData().getFavoriteUsecases();
-        if (favoriteUseCases != null && favoriteUseCases.size() > 0) {
-            List<SolutionVO> solutionVOList = new ArrayList<>();
-            favoriteUseCases.forEach(fav -> {
-                SolutionVO favSolution = solutionService.getById(fav.getUsecaseId());
-                solutionVOList.add(favSolution);
-            });
-            return solutionVOList;
-        } else {
-            return null;
-        }
-    }
+	@Override
+	public List<SolutionVO> getAllBookMarkedSolutionsForUser(final String userId) {
+		UserInfoNsql userinfo = jpaRepo.findById(userId).get();
+		List<UserFavoriteUseCase> favoriteUseCases = userinfo.getData().getFavoriteUsecases();
+		if (favoriteUseCases != null && favoriteUseCases.size() > 0) {
+			List<SolutionVO> solutionVOList = new ArrayList<>();
+			favoriteUseCases.forEach(fav -> {
+				SolutionVO favSolution = solutionService.getById(fav.getUsecaseId());
+				solutionVOList.add(favSolution);
+			});
+			return solutionVOList;
+		} else {
+			return null;
+		}
+	}
 
-    @Override
-    public boolean validateUserToken(final String id, String token) {
-        UserInfoNsql userinfo = jpaRepo.findById(id).get();
-        if (userinfo != null && userinfo.getIsLoggedIn().equalsIgnoreCase("Y")) {
-            // Validate Claimed roles
-            log.trace("Validating claimed roles for user:"+id+", token:"+token);
-            Claims claims = JWTGenerator.decodeJWT(token);
-            List<LinkedHashMap<String, String>> claimedRoles = (List<LinkedHashMap<String, String>>) claims.get("digiRole");
-            if (claimedRoles != null && !claimedRoles.isEmpty()) {
-                List<UserInfoRole> userRoles = userinfo.getData().getRoles();
-                if (userRoles != null && !userRoles.isEmpty()) {
-                    if (userRoles.size() != claimedRoles.size()) {
-                        //Claimed roles dont match with User Roles
-                        return false;
-                    }
-                    for (LinkedHashMap<String, String> roleClaimed : claimedRoles) {
-                        boolean roleFound = false;
-                        for (UserInfoRole userRole : userRoles) {
-                            if (userRole.getId().equals(roleClaimed.get("id"))) {
-                                roleFound = true;
-                                break;
-                            }
-                        }
-                        if (!roleFound) {
-                            return false;
-                        }
-                    }
-                } else {
-                    //Claimed roles dont match with User Roles
-                    return false;
-                }
-            }
-            log.trace("Roles verified for user checking token validity for user:"+id+", token:"+token);
-            // Validate Token
+	@Override
+	public boolean validateUserToken(final String id, String token) {
+		UserInfoNsql userinfo = jpaRepo.findById(id).get();
+		if (userinfo != null && userinfo.getIsLoggedIn().equalsIgnoreCase("Y")) {
+			// Validate Claimed roles
+			log.debug("Validating claimed roles for user {} and token {}", id, token);
+			Claims claims = JWTGenerator.decodeJWT(token);
+			List<LinkedHashMap<String, String>> claimedRoles = (List<LinkedHashMap<String, String>>) claims
+					.get("digiRole");
+			if (claimedRoles != null && !claimedRoles.isEmpty()) {
+				List<UserInfoRole> userRoles = userinfo.getData().getRoles();
+				if (userRoles != null && !userRoles.isEmpty()) {
+					if (userRoles.size() != claimedRoles.size()) {
+						// Claimed roles dont match with User Roles
+						return false;
+					}
+					for (LinkedHashMap<String, String> roleClaimed : claimedRoles) {
+						boolean roleFound = false;
+						for (UserInfoRole userRole : userRoles) {
+							if (userRole.getId().equals(roleClaimed.get("id"))) {
+								roleFound = true;
+								break;
+							}
+						}
+						if (!roleFound) {
+							return false;
+						}
+					}
+				} else {
+					// Claimed roles dont match with User Roles
+					return false;
+				}
+			}
+			log.debug("Roles verified for user checking token validity for user {} and token {}", id, token);
+			// Validate Token
 			/*
 			 * String[] tokens = userinfo.getToken().split("#"); if (tokens != null) { for
 			 * (String tkn : tokens) { if (tkn.equals(token)) { return true; } } }
 			 */
-        }else {
-        	return false;
-        }
-        return true;
-    }
+		} else {
+			return false;
+		}
+		return true;
+	}
 
-    public void addUser(UserInfoNsql userinfo) {
-        jpaRepo.save(userinfo);
-    }
+	public void addUser(UserInfoNsql userinfo) {
+		jpaRepo.save(userinfo);
+	}
 
 	/**
 	 * To check whether user is admin or not
@@ -231,9 +231,36 @@ public class BaseUserInfoService
 	}
 
 	@Override
-	public boolean isLoggedIn(String id) {
-		 UserInfoNsql userinfo = jpaRepo.findById(id).get();
-	   return !ObjectUtils.isEmpty(userinfo) && userinfo.getIsLoggedIn().equalsIgnoreCase("Y");
+	public void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs) {
+		log.debug("Notifying all Admin users on " + eventType + " for " + message);
+		List<UserInfoVO> allUsers = this.getAll();
+		List<String> adminUsersIds = new ArrayList<>();
+		List<String> adminUsersEmails = new ArrayList<>();
+		for (UserInfoVO user : allUsers) {
+			boolean isAdmin = false;
+			if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+				isAdmin = user.getRoles().stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+			}
+			if (isAdmin) {
+				adminUsersIds.add(user.getId());
+				adminUsersEmails.add(user.getEmail());
+			}
+		}
+		try {
+			kafkaProducer.send(eventType, resourceId, "", triggeringUser, message, true, adminUsersIds,
+					adminUsersEmails, changeLogs);
+			log.info("Successfully notified all admin users for event {} for {} ", eventType, message);
+		} catch (Exception e) {
+			log.error("Exception occured while notifying all Admin users on {}  for {} . Failed with exception {}",
+					eventType, message, e.getMessage());
+		}
 	}
-    
+
+	@Override
+	public boolean isLoggedIn(String id) {
+		UserInfoNsql userinfo = jpaRepo.findById(id).get();
+		return !ObjectUtils.isEmpty(userinfo) && userinfo.getIsLoggedIn().equalsIgnoreCase("Y");
+	}
+
 }

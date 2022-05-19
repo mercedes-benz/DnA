@@ -66,92 +66,92 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @RestController
-@Api(value = "Notebook API", tags = {"notebooks"})
+@Api(value = "Notebook API", tags = { "notebooks" })
 @RequestMapping("/api")
 @ConditionalOnExpression("${dna.feature.jupyternotebook}")
-public class NotebookController implements NotebooksApi{
-	
+public class NotebookController implements NotebooksApi {
+
 	@Autowired
 	private NotebookService notebookService;
-	
+
 	@Autowired
 	private UserStore userStore;
-	
+
 	@Autowired
-	private JupyterNotebookAdapter  notebookAdapter;
-	
-    //@Autowired
-    //private UserInfoService userInfoService;
-	
+	private JupyterNotebookAdapter notebookAdapter;
+
+	// @Autowired
+	// private UserInfoService userInfoService;
+
 	private static Logger LOGGER = LoggerFactory.getLogger(NotebookController.class);
 
 	@Override
-	@ApiOperation(value = "Get notebooks details.", nickname = "getNotebookDetails", notes = "Get notebooks details.", response = NotebookVO.class, tags={ "notebooks", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of succes or failure", response = NotebookVO.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/notebooks",method = RequestMethod.GET)
+	@ApiOperation(value = "Get notebooks details.", nickname = "getNotebookDetails", notes = "Get notebooks details.", response = NotebookVO.class, tags = {
+			"notebooks", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = NotebookVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/notebooks", method = RequestMethod.GET)
 	public ResponseEntity<NotebookVO> getNotebookDetails() {
 		try {
-		String userId = getCurrentUser();
-		NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
-		if (existingNotebook != null && existingNotebook.getId() != null) {
-            return new ResponseEntity<>(existingNotebook, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(existingNotebook, HttpStatus.NO_CONTENT);
-        }
-		}catch(Exception e) {
-			//e.printStackTrace();
-			LOGGER.error("Exception occurred while fetching notebook {} ",e.getMessage());
+			String userId = getCurrentUser();
+			NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
+			if (existingNotebook != null && existingNotebook.getId() != null) {
+				return new ResponseEntity<>(existingNotebook, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(existingNotebook, HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred while fetching notebook {} ", e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-	@ApiOperation(value = "Edit notebook details", nickname = "updateNotebookDetails", notes = "Edit notebook details.", response = NotebookResponseVO.class, tags={ "notebooks", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successfully started.", response = NotebookResponseVO.class),
-        @ApiResponse(code = 201, message = "Successfully started.", response = NotebookResponseVO.class),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 404, message = "Invalid id, record not found."),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/notebooks",
-        method = RequestMethod.PUT)
-	public ResponseEntity<NotebookResponseVO> updateNotebookDetails(@ApiParam(value = "Request Body that contains data required for updating notebook detail" ,required=true )  @Valid @RequestBody NotebookVO notebookVO){
+
+	@ApiOperation(value = "Edit notebook details", nickname = "updateNotebookDetails", notes = "Edit notebook details.", response = NotebookResponseVO.class, tags = {
+			"notebooks", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully started.", response = NotebookResponseVO.class),
+			@ApiResponse(code = 201, message = "Successfully started.", response = NotebookResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 404, message = "Invalid id, record not found."),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/notebooks", method = RequestMethod.PUT)
+	public ResponseEntity<NotebookResponseVO> updateNotebookDetails(
+			@ApiParam(value = "Request Body that contains data required for updating notebook detail", required = true) @Valid @RequestBody NotebookVO notebookVO) {
 		String userId = getCurrentUser();
 		GenericMessage resposeMessage = new GenericMessage();
 		NotebookResponseVO responseVO = new NotebookResponseVO();
 		NotebookVO responseNotebookVO = new NotebookVO();
 		try {
-		NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
-		if (existingNotebook != null  && existingNotebook.getId() != null) {
-			existingNotebook.setDescription(notebookVO.getDescription());
-			existingNotebook.setName(notebookVO.getName());
-			responseNotebookVO = notebookService.create(existingNotebook);
-			responseVO.setData(responseNotebookVO);
-			responseVO.setResponseMesage(null);
-			return new ResponseEntity<>(responseVO, HttpStatus.OK);
-		}else {
-			resposeMessage.setSuccess("Failed");
-			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription errMsg = new MessageDescription();
-			String msg = "Did not find existing notebook record to update";
-			errMsg.setMessage(msg);
-			errors.add(errMsg);
-			resposeMessage.setErrors(errors);
-			responseVO.setData(notebookVO);
-			responseVO.setResponseMesage(resposeMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.NO_CONTENT);
-		}
-		}catch(Exception e) {
-			//e.printStackTrace(); 
-			LOGGER.error("Exception occurred while fetching and updating notebook {} ",e.getMessage());
+			NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
+			if (existingNotebook != null && existingNotebook.getId() != null) {
+				existingNotebook.setDescription(notebookVO.getDescription());
+				existingNotebook.setName(notebookVO.getName());
+				responseNotebookVO = notebookService.create(existingNotebook);
+				responseVO.setData(responseNotebookVO);
+				responseVO.setResponseMesage(null);
+				return new ResponseEntity<>(responseVO, HttpStatus.OK);
+			} else {
+				resposeMessage.setSuccess("Failed");
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription errMsg = new MessageDescription();
+				String msg = "Did not find existing notebook record to update";
+				errMsg.setMessage(msg);
+				errors.add(errMsg);
+				resposeMessage.setErrors(errors);
+				responseVO.setData(notebookVO);
+				responseVO.setResponseMesage(resposeMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred while fetching and updating notebook {} ", e.getMessage());
 			resposeMessage.setSuccess("Failed");
 			List<MessageDescription> errors = new ArrayList<>();
 			MessageDescription errMsg = new MessageDescription();
@@ -165,142 +165,142 @@ public class NotebookController implements NotebooksApi{
 		}
 	}
 
-
 	@Override
-	@ApiOperation(value = "start existing notebooks using user", nickname = "startNotebook", notes = "start existing notebooks using user", response = com.daimler.data.controller.exceptions.GenericMessage.class, tags={ "notebooks", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successfully started.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
-        @ApiResponse(code = 201, message = "Successfully started.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 404, message = "Invalid id, record not found."),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/notebooks/server",
-        method = RequestMethod.POST)
-    public ResponseEntity<NotebookResponseVO> startNotebook(@NotNull @ApiParam(value = "Is user new or already having existing notebook", required = true) @Valid @RequestParam(value = "newUser", required = true) String newUser, @ApiParam(value = "Request Body that contains data required for creating a new notebook detail" ,required=true )  @Valid @RequestBody NotebookVO notebookVO){
-		try {
-		GenericMessage resposeMessage = new GenericMessage();
-		NotebookResponseVO responseVO = new NotebookResponseVO();
-		NotebookVO responseNotebookVO = new NotebookVO();
+	@ApiOperation(value = "start existing notebooks using user", nickname = "startNotebook", notes = "start existing notebooks using user", response = com.daimler.data.controller.exceptions.GenericMessage.class, tags = {
+			"notebooks", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully started.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
+			@ApiResponse(code = 201, message = "Successfully started.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 404, message = "Invalid id, record not found."),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/notebooks/server", method = RequestMethod.POST)
+	public ResponseEntity<NotebookResponseVO> startNotebook(
+			@NotNull @ApiParam(value = "Is user new or already having existing notebook", required = true) @Valid @RequestParam(value = "newUser", required = true) String newUser,
+			@ApiParam(value = "Request Body that contains data required for creating a new notebook detail", required = true) @Valid @RequestBody NotebookVO notebookVO) {
 		String userId = getCurrentUser();
-		NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
-		if (existingNotebook == null || existingNotebook.getId() == null) {
-			JupyterUserInfoDto user = notebookAdapter.getJupyterUserDetails(userId);
-			if(user==null || user.getName()==null) {
-				String[] shortIds = {userId};
-				List<JupyterUserInfoDto> createdUsers = notebookAdapter.createJupyterUser(shortIds);
-				if(createdUsers== null || createdUsers.isEmpty()) {
-					resposeMessage.setSuccess("Failed");
-					List<MessageDescription> errors = new ArrayList<>();
-					MessageDescription errMsg = new MessageDescription();
-					String msg = "Failed to create Jupyter user.";
-					errMsg.setMessage(msg);
-					errors.add(errMsg);
-					resposeMessage.setErrors(errors);
-					responseVO.setData(null);
-					responseVO.setResponseMesage(resposeMessage);
-					return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		try {
+			GenericMessage resposeMessage = new GenericMessage();
+			NotebookResponseVO responseVO = new NotebookResponseVO();
+			NotebookVO responseNotebookVO = new NotebookVO();
+			NotebookVO existingNotebook = notebookService.getByUniqueliteral("userId", userId);
+			if (existingNotebook == null || existingNotebook.getId() == null) {
+				JupyterUserInfoDto user = notebookAdapter.getJupyterUserDetails(userId);
+				if (user == null || user.getName() == null) {
+					String[] shortIds = { userId };
+					List<JupyterUserInfoDto> createdUsers = notebookAdapter.createJupyterUser(shortIds);
+					if (createdUsers == null || createdUsers.isEmpty()) {
+						resposeMessage.setSuccess("Failed");
+						List<MessageDescription> errors = new ArrayList<>();
+						MessageDescription errMsg = new MessageDescription();
+						String msg = "Failed to create Jupyter user.";
+						errMsg.setMessage(msg);
+						errors.add(errMsg);
+						resposeMessage.setErrors(errors);
+						responseVO.setData(null);
+						responseVO.setResponseMesage(resposeMessage);
+						LOGGER.debug("Failed to create Jupyter user for {} ", userId);
+						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+
 				}
-				
-			}
-			notebookVO.setCreatedOn(new Date());
-			notebookVO.setUserId(userId);
-			responseNotebookVO = notebookService.create(notebookVO);
-		}else
-			responseNotebookVO = existingNotebook;
+				notebookVO.setCreatedOn(new Date());
+				notebookVO.setUserId(userId);
+				responseNotebookVO = notebookService.create(notebookVO);
+			} else
+				responseNotebookVO = existingNotebook;
 			JupyterNotebookGenericResponse startResponse = notebookAdapter.startJupyterUserNotebook(userId);
-			if(startResponse!=null && !"500".equals(startResponse.getStatus())) {
+			if (startResponse != null && !"500".equals(startResponse.getStatus())) {
 				resposeMessage.setSuccess(startResponse.getMessage());
 				responseVO.setData(responseNotebookVO);
 				responseVO.setResponseMesage(resposeMessage);
+				LOGGER.debug("Notebook started successfully for user {}", userId);
 				return new ResponseEntity<>(responseVO, HttpStatus.OK);
-			}else {
+			} else {
 				resposeMessage.setSuccess("Failed");
 				List<MessageDescription> errors = new ArrayList<>();
 				MessageDescription errMsg = new MessageDescription();
 				String msg = "Failed to start.";
-				if(startResponse!=null) 
+				if (startResponse != null)
 					msg += " " + startResponse.getMessage();
 				errMsg.setMessage(msg);
 				errors.add(errMsg);
 				resposeMessage.setErrors(errors);
 				responseVO.setData(responseNotebookVO);
 				responseVO.setResponseMesage(resposeMessage);
+				LOGGER.debug("Failed to start notebook for user {} ", userId);
 				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-		}catch(Exception e) {
-			LOGGER.error("Exception occurred while fetching notebook {} ",e.getMessage());
+		} catch (Exception e) {
+			LOGGER.error("Exception {} occurred while fetching notebook for user {} ", e.getMessage(), userId);
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@Override
-	@ApiOperation(value = "stops existing notebooks using user", nickname = "stopNotebook", notes = "stop existing notebooks using user", response = com.daimler.data.controller.exceptions.GenericMessage.class, tags={ "notebooks", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successfully stopped.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
-        @ApiResponse(code = 400, message = "Bad request"),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 404, message = "Invalid id, record not found."),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/notebooks/server",
-        method = RequestMethod.DELETE)
-    public ResponseEntity<com.daimler.data.controller.exceptions.GenericMessage> stopNotebook(){
+	@ApiOperation(value = "stops existing notebooks using user", nickname = "stopNotebook", notes = "stop existing notebooks using user", response = com.daimler.data.controller.exceptions.GenericMessage.class, tags = {
+			"notebooks", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successfully stopped.", response = com.daimler.data.controller.exceptions.GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 404, message = "Invalid id, record not found."),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/notebooks/server", method = RequestMethod.DELETE)
+	public ResponseEntity<com.daimler.data.controller.exceptions.GenericMessage> stopNotebook() {
 		String userId = getCurrentUser();
 		JupyterNotebookGenericResponse stopResponse = notebookAdapter.stopJupyterUserNotebook(userId);
 		GenericMessage resposeMessage = new GenericMessage();
-		if(stopResponse!=null && !"500".equals(stopResponse.getStatus())) {
+		if (stopResponse != null && !"500".equals(stopResponse.getStatus())) {
 			resposeMessage.setSuccess(stopResponse.getMessage());
+			LOGGER.debug("Notebook stopped for user {} with response {} ", userId, stopResponse.getMessage());
 			return new ResponseEntity<>(resposeMessage, HttpStatus.OK);
-		}else {
+		} else {
 			resposeMessage.setSuccess("Failed");
 			List<MessageDescription> errors = new ArrayList<>();
 			MessageDescription errMsg = new MessageDescription();
 			String msg = "Failed to stop.";
-			if(stopResponse!=null) 
+			if (stopResponse != null)
 				msg += " " + stopResponse.getMessage();
 			errMsg.setMessage(msg);
 			errors.add(errMsg);
 			resposeMessage.setErrors(errors);
+			LOGGER.debug("Failed to stop Notebook for user {} with response {} ", userId, stopResponse.getMessage());
 			return new ResponseEntity<>(resposeMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-	
-	private String getCurrentUser(){
+
+	private String getCurrentUser() {
 		CreatedByVO currentUser = this.userStore.getVO();
-        String userId = currentUser != null ? currentUser.getId() : null;
-        /*
-        Boolean isAdmin = false;
-        if (userId != null && !"".equalsIgnoreCase(userId)) {
-            UserInfoVO userInfoVO = userInfoService.getById(userId);
-            if (userInfoVO != null) {
-            	List<UserRoleVO>  userRoles = userInfoVO.getRoles();
-            	if(userRoles!=null && !userRoles.isEmpty())
-            		isAdmin = userRoles.stream().anyMatch(role-> "admin".equalsIgnoreCase(role.getName()));
-            }
-        }
-        */
-        return userId.toLowerCase();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		/*
+		 * Boolean isAdmin = false; if (userId != null && !"".equalsIgnoreCase(userId))
+		 * { UserInfoVO userInfoVO = userInfoService.getById(userId); if (userInfoVO !=
+		 * null) { List<UserRoleVO> userRoles = userInfoVO.getRoles();
+		 * if(userRoles!=null && !userRoles.isEmpty()) isAdmin =
+		 * userRoles.stream().anyMatch(role-> "admin".equalsIgnoreCase(role.getName()));
+		 * } }
+		 */
+		return userId.toLowerCase();
 	}
 
-	
 	@Override
-	@ApiOperation(value = "Get notebook for a given Id.", nickname = "getById", notes = "Get notebook for a given identifier. This endpoints will be used to get a notebook for a given identifier.", response = NotebookVO.class, tags={ "notebooks", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = NotebookVO.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/notebooks/{id}",
-        method = RequestMethod.GET)
+	@ApiOperation(value = "Get notebook for a given Id.", nickname = "getById", notes = "Get notebook for a given identifier. This endpoints will be used to get a notebook for a given identifier.", response = NotebookVO.class, tags = {
+			"notebooks", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = NotebookVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/notebooks/{id}", method = RequestMethod.GET)
 	public ResponseEntity<NotebookVO> getById(
-			@ApiParam(value = "Notebook ID to be fetched",required=true) @PathVariable("id") String id) {
-		LOGGER.trace("Entering getById");
+			@ApiParam(value = "Notebook ID to be fetched", required = true) @PathVariable("id") String id) {
 		NotebookVO notebookVO = notebookService.getById(id);
 		return notebookVO != null ? new ResponseEntity<>(notebookVO, HttpStatus.OK)
 				: new ResponseEntity<>(notebookVO, HttpStatus.NO_CONTENT);

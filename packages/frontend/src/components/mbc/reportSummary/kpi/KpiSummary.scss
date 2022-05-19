@@ -1,0 +1,101 @@
+.mainPanel {
+  /*padding: 0px 184px 0px 184px;*/
+  .wrapper {
+    background: #252a33;
+    margin: 15px 0;
+    padding: 25px 0;
+    position: relative;
+
+    h3,
+    span.kpiNo {
+      padding: 0 38px;
+      color: #99A5B3;
+      font-weight: bold;
+    }
+
+    .contextMenu {
+      float: right;
+      margin: 5px 20px 0 0;
+      &.open .contextMenuTrigger {
+        z-index: 10;
+        position: relative;
+      }
+
+      .contextMenuTrigger {
+        padding: 12px 10px;
+        cursor: pointer;
+
+        &:hover {
+          color: #00adef;
+        }
+      }
+    }
+  }
+}
+hr {
+  background-color: #697582;
+  margin-left: 40px;
+  margin-right: 40px;
+}
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .textDesc {
+    color: #697582;
+  }
+
+  .rowLine {
+    display: inline-block;
+  }
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    margin: 40px;
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+    &.threeColumn {
+      > div {
+        width: calc(33% - 7px);
+      }
+    }
+    i {
+      font-size: var(--font-size-icon-small);
+    }
+  }
+  .kpiListView {
+    margin: 40px 0px 0;
+    .commentSection {
+      font-size: 13px;
+      margin: 40px 40px;
+    }
+    i:hover {
+      color: #00adef;
+      cursor: pointer;
+    }
+  }
+}
+.wrapper {
+  background: #252a33 !important;
+  padding: 25px 38px;
+}
+
+.commentPre{
+  white-space: pre-wrap;
+  font-family: "Roboto-Medium";  
+}
+
+:global {
+  label.input-label.summary {
+    color: #99A5B3;
+    font-size: var(--font-size-small);
+    font-weight: bold;
+  }
+}

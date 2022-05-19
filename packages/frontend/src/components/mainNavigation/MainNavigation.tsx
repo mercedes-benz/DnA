@@ -7,6 +7,7 @@ import { getTranslatedLabel } from '../../globals/i18n/TranslationsProvider';
 import { USER_ROLE } from './../../globals/constants';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './MainNavigation.scss';
+import { Envs } from './../../globals/Envs';
 
 export interface IMainNavigationProps {
   showExpandEffect: boolean;
@@ -22,7 +23,7 @@ export interface IMainNavigationState {
 
 const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN];
 
-export class MainNavigation extends React.Component<IMainNavigationProps, IMainNavigationState> {
+export default class MainNavigation extends React.Component<IMainNavigationProps, IMainNavigationState> {
   protected isTouch = false;
   protected mainNavContainer: HTMLDivElement;
 
@@ -83,7 +84,36 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
     }
   }
 
+  public componentDidUpdate(
+    prevProps: Readonly<IMainNavigationProps>,
+    prevState: Readonly<IMainNavigationState>,
+    snapshot?: any,
+  ): void {
+    // set height of the active side nav item
+    const activeNavItem = document?.querySelectorAll('.nav-item.has-sub-nav.active.opened')?.[0];
+    this.props.isMaximized && activeNavItem?.setAttribute('style', 'height: 134px !important');
+  }
+
   public render() {
+    const reportNav = {
+      id: 3,
+      title: 'Reports',
+      icon: 'reports',
+      subNavItems: [
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 1,
+          route: `/createnewreport`,
+          title: 'CreateNewReport',
+        },
+        {
+          allowedRoles: UserAndAdminRole,
+          id: 2,
+          route: `/allreports`,
+          title: 'AllReports',
+        },
+      ],
+    };
     const navItems = [
       {
         allowedRoles: UserAndAdminRole,
@@ -119,7 +149,7 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
         ],
       },
       {
-        id: 3,
+        id: 4,
         title: 'MyWorkspace',
         icon: 'workspace',
         subNavItems: [
@@ -138,6 +168,10 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
         ],
       },
     ];
+
+    if (Envs.ENABLE_REPORTS) {
+      navItems.splice(3, 0, reportNav);
+    }
 
     return (
       <nav
@@ -167,7 +201,7 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
             );
           })}
         </ul> */}
-        <ul className="nav-list">
+        <ul className="nav-list mbc-scroll sub">
           {navItems.map((navItem, index) => {
             return navItem.subNavItems ? (
               <li
@@ -187,7 +221,9 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
                     return (
                       <li
                         key={`${index}${subIndex}`}
-                        className={classNames('nav-item', { active: getPath().includes(subNavItem.route) })}
+                        className={classNames('nav-item sub-nav-item', {
+                          active: getPath().includes(subNavItem.route),
+                        })}
                       >
                         <Link className="nav-link" to={subNavItem.route}>
                           {getTranslatedLabel(subNavItem.title)}
@@ -203,7 +239,12 @@ export class MainNavigation extends React.Component<IMainNavigationProps, IMainN
                 className={classNames('nav-item', { active: getPath().includes(navItem.route) })}
                 title={navItem.title}
               >
-                <Link className="nav-link" to={navItem.route}>
+                <Link
+                  className="nav-link"
+                  to={{
+                    pathname: navItem.route,
+                  }}
+                >
                   <i className={classNames('icon', 'mbc-icon', navItem.icon)} />
                   {getTranslatedLabel(navItem.title)}
                 </Link>

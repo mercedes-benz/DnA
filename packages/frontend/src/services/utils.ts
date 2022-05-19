@@ -76,7 +76,7 @@ export const DataFormater = (value: number) => {
 };
 
 export const attachEllipsis = (value: string, length: number) => {
-  return value.length >= length ? value.substring(0, length) + '...' : value;
+  return value?.length >= length ? value.substring(0, length) + '...' : value;
 };
 
 export const trackPageView = (url: string, title: string, userId: string) => {
@@ -103,14 +103,16 @@ export const trackEvent = (category: string, action: string, name: string, value
 
 export const getDateFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
+  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
   const sep = seperator || '-';
-  return d.getUTCDate() + sep + (d.getUTCMonth() + 1) + sep + d.getUTCFullYear();
+  return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
 };
 
 export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
-  const time = d.getUTCHours();
-  const mins = d.getUTCMinutes();
+  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
+  const time = td.getUTCHours();
+  const mins = td.getUTCMinutes();
   return (
     getDateFromTimestamp(givenDate, seperator) +
     ' at ' +
@@ -135,13 +137,10 @@ export const getDateDifferenceFromToday = (dateFrom: string) => {
 };
 
 export const getDateDifferenceFromTodayUsingGetDate = (dateFrom: string) => {
-  const dateSplitted = dateFrom.split('-');
-  // Making format in MM-DD-YYYY;
-  const tempDate = dateSplitted[1] + '-' + dateSplitted[0] + '-' + dateSplitted[2];
-  const date1 = new Date(tempDate);
-  const date2 = new Date();
-  const diffTime = Math.abs(date2.getDate() - date1.getDate());
-  const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+  const now = new Date().getTime();
+  const dateF = new Date(dateFrom).getTime();
+  const diff = Math.abs(now - dateF);
+  const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24)) - 1;
   return diffDays;
 };
 
@@ -185,4 +184,55 @@ export const convertTextToLink = (text: string, env: string) => {
     text = text.replace(searchString, anchor);
   });
   return text;
+};
+
+export const getDivisionsQueryValue = (divisions: string[], subDivisions: string[]) => {
+  let divisionIds = divisions.join(',');
+  if (divisions.length > 0) {
+    const distinctSelectedDivisions = divisions;
+    const tempArr: any[] = [];
+    distinctSelectedDivisions.forEach((item) => {
+      const tempString = '{' + item + ',[]}';
+      tempArr.push(tempString);
+    });
+    divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
+  }
+
+  if (subDivisions.length > 0) {
+    const distinctSelectedDivisions = divisions;
+    const tempArr: any[] = [];
+    let hasEmpty = false; // To find none selected in sub division since its not mandatory
+    const emptySubDivId = 'EMPTY';
+    distinctSelectedDivisions.forEach((item) => {
+      const tempSubdiv = subDivisions.map((value) => {
+        const tempArray = value.split('-');
+        const subDivId = tempArray[0];
+        if (subDivId === emptySubDivId) {
+          hasEmpty = true;
+        }
+        if (item === tempArray[1]) {
+          return subDivId;
+        }
+      });
+
+      if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
+        tempSubdiv.unshift(emptySubDivId);
+      }
+
+      let tempString = '';
+
+      if (tempSubdiv.length === 0) {
+        tempString += '{' + item + ',[]}';
+      } else {
+        tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
+      }
+
+      tempArr.push(tempString);
+    });
+    divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
+  }
+  if (divisions.length === 0) {
+    divisionIds = '';
+  }
+  return divisionIds;
 };

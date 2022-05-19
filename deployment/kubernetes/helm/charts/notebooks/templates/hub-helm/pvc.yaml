@@ -1,0 +1,14 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: hub-db-dir
+  namespace: {{ .Values.namespace }}
+  labels:
+    component: jupyter
+spec:
+  storageClassName: {{ .Values.Storage.storageClass }}
+  accessModes:
+    - {{ .Values.Storage.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.Storage.size | quote }}

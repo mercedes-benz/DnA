@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.dataiku;
 import com.daimler.data.db.entities.DataikuNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface DataikuCustomRepository
-        extends CommonDataRepository<DataikuNsql, String> {
+public interface DataikuCustomRepository extends CommonDataRepository<DataikuNsql, String> {
 
 }

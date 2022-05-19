@@ -6,6 +6,7 @@ import Styles from './SolutionListRowItem.scss';
 import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
 import { SOLUTION_LOGO_IMAGE_TYPES } from '../../../../globals/constants';
 import { DataFormater } from '../../../../services/utils';
+import { Envs } from '../../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -88,8 +89,11 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
       },
     );
   };
-  public goTonotebook = (event: any) => {
+  public goToNotebook = (event: any) => {
     history.push('/notebook/');
+    event.stopPropagation();
+  };
+  public goToDataiku = (event: any) => {
     event.stopPropagation();
   };
   public addToBookmarks = (e: React.FormEvent<HTMLSpanElement>) => {
@@ -153,20 +157,27 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
                 {solution.portfolio?.dnaNotebookId && (
                   <React.Fragment>
                     {this.props.noteBookData?.solutionId === solution.id ? (
-                      <label className={Styles.gotoNotebook} title="Go To Notebook" onClick={this.goTonotebook}>
-                        <i className="icon mbc-icon jupyter" /> Notebook
+                      <label className={Styles.goToLink} title="Go to notebook" onClick={this.goToNotebook}>
+                        <i className="icon mbc-icon jupyter" />
                       </label>
                     ) : (
-                      <label>
-                        <i className="icon mbc-icon jupyter" /> Notebook
+                      <label title="Has notebook">
+                        <i className="icon mbc-icon jupyter" />
                       </label>
                     )}
                   </React.Fragment>
                 )}
                 {solution.portfolio?.dnaDataikuProjectId !== null && (
-                  <label>
-                    <i className="icon mbc-icon dataiku" /> Dataiku
-                  </label>
+                  <a
+                    href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={this.goToDataiku}
+                  >
+                    <label title="Go to dataiku project">
+                      <i className="icon mbc-icon dataiku" />
+                    </label>
+                  </a>
                 )}
               </div>
             </div>
@@ -175,7 +186,7 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
             {!solution.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
           <td className="wrap-text">{solution.currentPhase ? solution.currentPhase.name : ''}</td>
-          <td>{solution.division.name}</td>
+          <td>{solution.division?.name || 'N/A'}</td>
           {this.props.showDigitalValue ? (
             <td>
               {solution.digitalValue && solution.digitalValue.digitalValue
@@ -212,7 +223,7 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
                       this.state.showLocationsContextMenu ? '' : 'hide',
                     )}
                   >
-                    <ul className="contextList">
+                    <ul className="contextList mbc-scroll sub">
                       <li className="contextListItem">
                         <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
                       </li>

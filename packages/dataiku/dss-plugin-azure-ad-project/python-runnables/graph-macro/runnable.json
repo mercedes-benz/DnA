@@ -1,0 +1,39 @@
+{
+    "meta": {
+        "label": "Create DnA Preconfigured Project",
+        "description": "Generates project groups and sets permissions",
+        "icon": "icon-windows"
+    },
+
+    "impersonate": false,
+
+    "params": [
+        {
+            "name": "projectName",
+            "label": "Project name",
+            "type": "STRING",
+            "mandatory": true
+        },
+        {
+            "name": "copyProject",
+            "label" : "Create a copy of existing project",
+            "type": "BOOLEAN"
+        },
+        {
+            "name": "templateProjectKey",
+            "type": "SELECT",
+            "label": "Project to be copied",
+            "description": "",
+            "getChoicesFromPython": true,
+            "visibilityCondition" : "model.copyProject"
+        }
+    ],
+
+    "resultType": "JSON_OBJECT",
+
+    "paramsPythonSetup": "project_keys.py",
+
+    "macroRoles": [
+        {"type": "PROJECT_CREATOR"}
+    ]
+}

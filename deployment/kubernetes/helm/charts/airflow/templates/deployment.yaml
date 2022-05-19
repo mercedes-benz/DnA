@@ -1,0 +1,187 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "airflow.name" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ include "airflow-service.name" . }}
+
+  template:
+    metadata:
+      labels:
+          name: {{ include "airflow.name" . }}
+          namespace: {{ .Values.namespace }}
+      annotations:
+        checksum/configmap-git-sync: {{ include (print $.Template.BasePath "/configmap-git-sync.yaml") . | sha256sum }}
+        checksum/configmap-git-sync-known-hosts: {{ include (print $.Template.BasePath "/configmap-git-sync-known-hosts.yaml") . | sha256sum }}
+        checksum/configmap-webserver: {{ include (print $.Template.BasePath "/configmap-webserver.yaml") . | sha256sum }}
+        checksum/configmaps: {{ include (print $.Template.BasePath "/configmaps.yaml") . | sha256sum }}
+        checksum/secret-client-secret: {{ include (print $.Template.BasePath "/secret-client-secret.yaml") . | sha256sum }}
+        checksum/secret-git-sync: {{ include (print $.Template.BasePath "/secret-git-sync.yaml") . | sha256sum }}
+        checksum/secret-sql-alchemy: {{ include (print $.Template.BasePath "/secret-sql-alchemy.yaml") . | sha256sum }}
+
+    spec:
+      serviceAccountName: {{ include "airflow-service-account.name" . }}
+      initContainers:
+      - name: "init"
+        image: "{{ .Values.docker.image.name }}:{{ .Values.docker.image.tag }}"
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: airflow-configmap
+          mountPath: /usr/local/airflow/airflow.cfg
+          subPath: airflow.cfg
+        - name: airflow-dags-git
+          mountPath: {{ .Values.volumes.gitDagsPath }}
+        - name: {{ include "airflow-logs" . }}
+          mountPath: {{ .Values.volumes.logsPath }}
+        - name: {{ include "airflow-webserver-config.name" . }}
+          mountPath: /usr/local/airflow/webserver_config.py
+          subPath: webserver_config.py
+        - name: client-secret
+          mountPath: /usr/local/airflow/client-secret.json
+          subPath: client-secret.json
+        envFrom:
+          - secretRef:
+              name: {{ include "airflow.secret" . }}
+        command:
+          - "bash"
+        args:
+          - "-cx"
+          - "./tmp/airflow-env-init.sh"
+      - name: "git-sync-init"
+        image: {{ .Values.gitSync.image }}
+        volumeMounts:
+        - mountPath: /git
+          name: airflow-dags-git
+        # - mountPath: /etc/git-secret
+        #   name: git-secret
+        securityContext:
+          runAsUser: 1000 # git-sync user
+        env:
+          - name: GIT_SYNC_ONE_TIME
+            value: "true"
+        envFrom:
+          - configMapRef:
+              name: {{ include "airflow-git-sync.name" . }}
+          - secretRef:
+              name: {{ include "airflow-git-sync.secret" . }}
+      containers:
+      - name: webserver
+        image: {{ .Values.docker.image.name }}:{{ .Values.docker.image.tag }}
+        imagePullPolicy: Always
+        ports:
+          - name: webserver
+            containerPort: 8080
+        args: ["webserver"]
+        env:
+          - name: AIRFLOW_KUBE_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        envFrom:
+          - secretRef:
+              name: {{ include "airflow.secret" . }}
+        resources:
+          requests:
+            memory: {{ .Values.webserver.requests.memory | quote}}
+            cpu: {{ .Values.webserver.requests.cpu | quote}}
+          limits:
+            memory: {{ .Values.webserver.limits.memory | quote}}
+            cpu: {{ .Values.webserver.limits.cpu | quote}}    
+        volumeMounts:
+          - name: airflow-configmap
+            mountPath: /usr/local/airflow/airflow.cfg
+            subPath: airflow.cfg
+          - name: airflow-dags-git
+            mountPath: {{ .Values.volumes.gitDagsPath }}
+          - name: {{ include "airflow-logs" . }}
+            mountPath: {{ .Values.volumes.logsPath }}
+          - name: {{ include "airflow-webserver-config.name" . }}
+            mountPath: /usr/local/airflow/webserver_config.py
+            subPath: webserver_config.py
+          - name: client-secret
+            mountPath: /usr/local/airflow/client-secret.json
+            subPath: client-secret.json
+      - name: scheduler
+        image: {{ .Values.docker.image.name }}:{{ .Values.docker.image.tag }}
+        imagePullPolicy: Always
+        args: ["scheduler"]
+        env:
+          - name: AIRFLOW_KUBE_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        envFrom:
+          - secretRef:
+              name: {{ include "airflow.secret" . }}
+        resources:
+          requests:
+            memory: {{ .Values.scheduler.requests.memory | quote}}
+            cpu: {{ .Values.scheduler.requests.cpu | quote}}
+          limits:
+            memory: {{ .Values.scheduler.limits.memory | quote}}
+            cpu: {{ .Values.scheduler.limits.cpu | quote}}
+        volumeMounts:
+          - name: airflow-configmap
+            mountPath: /usr/local/airflow/airflow.cfg
+            subPath: airflow.cfg
+          - name: airflow-dags-git
+            mountPath: {{ .Values.volumes.gitDagsPath }}
+          - name: {{ include "airflow-logs" . }}
+            mountPath: {{ .Values.volumes.logsPath }}
+          - name: {{ include "airflow-webserver-config.name" . }}
+            mountPath: /usr/local/airflow/webserver_config.py
+            subPath: webserver_config.py
+          - name: client-secret
+            mountPath: /usr/local/airflow/client-secret.json
+            subPath: client-secret.json
+      - name: git-sync-container
+        image: {{ .Values.gitSync.image }}
+        volumeMounts:
+          - mountPath: /git
+            name: airflow-dags-git
+          # - mountPath: /etc/git-secret
+          #   name: git-secret
+        securityContext:
+          runAsUser: 1000 # git-sync user
+        envFrom:
+          - configMapRef:
+              name: {{ include "airflow-git-sync.name" . }}
+          - secretRef:
+              name: {{ include "airflow-git-sync.secret" . }}
+        resources:
+          requests:
+            memory: {{ .Values.gitContainer.requests.memory | quote}}
+            cpu: {{ .Values.gitContainer.requests.cpu | quote}}
+          limits:
+            memory: {{ .Values.gitContainer.limits.memory | quote}}
+            cpu: {{ .Values.gitContainer.limits.cpu | quote}}
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 65533
+      imagePullSecrets:
+        - name: {{ include "image-pull.secret.name" . }}
+      volumes:
+        - name: airflow-dags-git
+          emptyDir: {}
+        - name: {{ include "airflow-logs" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "airflow-logs" . }}
+        # - name: git-secret
+        #   secret:
+        #     secretName: {{ include "airflow-git-sync.secret" . }}
+        #     defaultMode: 0400
+        - name: airflow-configmap
+          configMap:
+            name: {{ include "airflow-config.name" . }}
+        - name: {{ include "airflow-webserver-config.name" . }}
+          configMap:
+            name: {{ include "airflow-webserver-config.name" . }}
+        - name: client-secret
+          secret:
+            secretName: {{ include "airflow-client.secret" . }}

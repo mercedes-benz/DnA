@@ -25,7 +25,6 @@
  * LICENSE END 
  */
 
-
 package com.daimler.data.application.config;
 
 import java.util.HashMap;
@@ -44,7 +43,6 @@ import org.springframework.vault.support.VaultResponse;
 import com.daimler.data.dto.VaultDTO;
 import com.daimler.data.dto.VaultGenericResponse;
 
-
 @Configuration
 public class VaultConfig {
 
@@ -55,10 +53,10 @@ public class VaultConfig {
 
 	@Value("${spring.cloud.vault.scheme}")
 	private String vaultScheme;
-	
+
 	@Value("${spring.cloud.vault.host}")
 	private String vaultHost;
-	
+
 	@Value("${spring.cloud.vault.port}")
 	private String vaultPort;
 
@@ -68,7 +66,6 @@ public class VaultConfig {
 	@Value("${spring.cloud.vault.mountpath}")
 	private String mountPath;
 
-
 	/**
 	 * Write the secret at {@code path}
 	 * 
@@ -77,16 +74,16 @@ public class VaultConfig {
 	 * @return VaultAdapterGenericResponse
 	 */
 	public VaultGenericResponse createApiKey(String appId, String apiKey) {
-		LOGGER.trace("Entering createApiKey");
 		try {
-			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), new TokenAuthentication(vaultToken));
+			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(),
+					new TokenAuthentication(vaultToken));
 			Map<String, String> secMap = new HashMap<String, String>();
 			secMap.put(appId, apiKey);
 			vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).put(vaultPathUtility(appId), secMap);
-			return new VaultGenericResponse("200", "Api key created successfully",
-					new VaultDTO(appId, apiKey));
+			LOGGER.debug("In createApiKey, API Key created successfully for appId {} ", appId);
+			return new VaultGenericResponse("200", "Api key created successfully", new VaultDTO(appId, apiKey));
 		} catch (Exception e) {
-			LOGGER.error("Error occured {}", e.getMessage());
+			LOGGER.error("Error occured {} while creating apikey for appId {} ", e.getMessage(), appId);
 			return new VaultGenericResponse("500", e.getMessage(), null);
 		}
 	}
@@ -101,23 +98,27 @@ public class VaultConfig {
 	 * @return VaultAdapterGenericResponse
 	 */
 	public VaultGenericResponse validateApiKey(String appId, String apiKey) {
-		LOGGER.trace("Entering validateApiKey");
 		try {
-			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), new TokenAuthentication(vaultToken));
-			VaultResponse vaultresponse = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPathUtility(appId));
-			if (vaultresponse != null && vaultresponse.getData()!=null && vaultresponse.getData().get(appId)!=null &&
-					vaultresponse.getData().get(appId).equals(apiKey)) {
+			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(),
+					new TokenAuthentication(vaultToken));
+			VaultResponse vaultresponse = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2)
+					.get(vaultPathUtility(appId));
+			if (vaultresponse != null && vaultresponse.getData() != null && vaultresponse.getData().get(appId) != null
+					&& vaultresponse.getData().get(appId).equals(apiKey)) {
+				LOGGER.debug("In validateApiKey, Api key is valid for appID {} , returning", appId);
 				return new VaultGenericResponse("200", "Valid api key", new VaultDTO(appId, apiKey));
 			} else {
+				LOGGER.debug("In validateApiKey, Invalid API key for appId {} , returning", appId);
 				return new VaultGenericResponse("404", "Invalid api key", null);
 			}
 
 		} catch (Exception e) {
-			LOGGER.error("Error occured {}", e.getMessage());
+			LOGGER.error("In validateApiKey, Error occured {} while validating apiKey for appId {} ", e.getMessage(),
+					appId);
 			return new VaultGenericResponse("500", e.getMessage(), null);
 		}
 	}
-	
+
 	/**
 	 * Return data<k,v> from {@code path}
 	 * 
@@ -125,16 +126,17 @@ public class VaultConfig {
 	 * @return VaultResponse
 	 */
 	public VaultResponse getApiKeys(String appId) {
-		LOGGER.trace("Entering validateApiKey");
 		try {
-			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), new TokenAuthentication(vaultToken));			
+			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(),
+					new TokenAuthentication(vaultToken));
 			return vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPathUtility(appId));
 		} catch (Exception e) {
-			LOGGER.error("Error occured {}", e.getMessage());
+			LOGGER.error("In getApiKeys, Error occured while fetching API Keys for appID {} Error is {}", appId,
+					e.getMessage());
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Return vault Path where value will be written
 	 * 
@@ -142,17 +144,15 @@ public class VaultConfig {
 	 * @return
 	 */
 	private String vaultPathUtility(String appId) {
-		LOGGER.debug("Processing vaultPathUtility");
-		return vaultPath+"/"+appId;
+		return vaultPath + "/" + appId;
 	}
-	
+
 	/**
 	 * push host,port,scheme in VaultEndpoint
 	 * 
 	 * @return VaultEndpoint
 	 */
 	private VaultEndpoint getVaultEndpoint() {
-		LOGGER.debug("Processing getVaultEndpoint");
 		VaultEndpoint vaultEndpoint = new VaultEndpoint();
 		vaultEndpoint.setScheme(vaultScheme);
 		vaultEndpoint.setHost(vaultHost);

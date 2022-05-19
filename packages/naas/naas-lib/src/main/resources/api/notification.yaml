@@ -1,0 +1,388 @@
+#  This source is part of the Daimler AG.
+#  Copyright  Daimler and/or its affiliates.  All rights reserved.
+#  
+#  No part of this work may be reproduced, stored in a retrieval system, adopted or transmitted in any form or by any means, electronic, mechanical, photographic, graphic, optic recording or otherwise, translated in any language or computer language, without the prior written permission of Daimler AG and/or its affiliates.
+#  
+# 
+#  
+#  
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : notifications.yaml
+#  **
+#  ** Module     : core
+#  ** 
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core notifications Service"
+host: "localhost:8282"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "notifications"
+   description: "This service is used to manage notifications."
+
+schemes:
+- "https"
+
+paths:
+
+# path to get or search notifications, mark as read or delete
+#
+#  supprorted http methods GET, POST and DELETE 
+#
+# path example ../notifications
+
+ /notifications:
+#  post:
+  post:
+    tags:
+    - "notifications"
+    summary: "service to pbulish a message to central events topic"
+    description:  "service to pbulish a message to central events topic"
+    operationId: "publishToCentralTopic"
+    parameters:
+      - name: "requestVO"
+        in: "body"
+        description: "request for publishing message"
+        required: true
+        schema: 
+          $ref: "#/definitions/NotificationRequestVO"
+    responses:
+      200:
+       description: "Published successfully."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      500:
+       description: "Internal error"
+         
+  get:
+   tags:
+    - "notifications"
+   summary: "Get all notifications with filters."
+   description:  "Get all notifications based on filter values"
+   operationId: "getAll"
+   parameters:
+        - name: userId
+          in: query
+          description: shortId of the user
+          required: true
+          type: string  
+        - name: eventCategory
+          in: query
+          description: category of event, example- SYSTEM, SOLUTION_UPDATE etc
+          required: false
+          type: string  
+        - name: readType
+          in: query
+          description: Read or Unread filter
+          required: false
+          type: string
+          enum: [read,unread]
+        - name: searchTerm
+          in: query
+          description: searchTerm to filter notifications. Example "Solution abc" or "Notebook provisioning"
+          required: false
+          type: string    
+        - name: offset
+          in: query
+          description: page number from which listing of notifications should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of notifications. Example 10
+          required: false
+          type: integer
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/NotificationCollectionVO"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+# path to delete or mark as notification as read 
+#
+#  supported http methods DELETE PUT
+#
+# path examples----
+#   DELETE    .../notifications/xxx
+#   PUT       .../notifications/xxx
+
+# /notifications/{id}:
+  delete:
+    tags:
+    - "notifications"
+    summary: "Deletes the notifications identified by given ID."
+    description:  "Deletes the notifications identified by given ID"
+    operationId: "markAsDelete"
+    parameters:
+      - name: "requestVO"
+        in: "body"
+        description: "request for marking messages as deleted for given user and selected messages"
+        required: true
+        schema: 
+          $ref: "#/definitions/MarkedSelection"
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error"
+  put:
+    tags:
+    - "notifications"
+    summary: "marks the notification identified by given ID as read."
+    description:  "marks the notification identified by given ID as read"
+    operationId: "markAsRead"
+    parameters:
+      - name: "requestVO"
+        in: "body"
+        description: "request for marking messages as read for given user and selected messages"
+        required: true
+        schema: 
+          $ref: "#/definitions/MarkedSelection"
+    responses:
+      200:
+       description: "Marked as read."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      500:
+       description: "Internal error"
+ 
+
+# path to get categories of notification 
+#
+#  supported http methods GET
+#
+# path examples----
+#   GET    .../notifications/categories
+#
+# /notifications/categories:
+#  get:
+#    tags:
+#    - "notifications"
+#    summary: "Get categories of available notifications."
+#    description:  "Get categories of available notifications."
+#    operationId: "getCategories"
+#    responses:
+#      200:
+#       description: "Returns categories of notifications."
+#       schema:
+#         $ref: "#/definitions/EventCategoriesCollectionVO"
+#      400:
+#       description: "Bad request"
+#      401:
+#       description: "Request does not have sufficient credentials."
+#      403:
+#       description: "Request is not authorized."
+#      404:
+#       description: "Invalid id, record not found."
+#      500:
+#       description: "Internal error"
+            
+definitions:
+
+ NotificationVO:
+  type: object
+  properties: 
+    id:
+     type: string
+     description: "ID of notification"
+    eventType:
+     type: string
+     description: "eventType of the notification"
+    resourceId:
+     type: string
+     description: "Resource Id of the notification"
+    messageDetails:
+     type: string
+     description: "Detailed descriptions of the notification"
+    changeLogs:
+     type: array
+     items:
+      $ref: "#/definitions/ChangeLogVO"
+    message:
+      type: string
+      description: "notification message"
+    isRead:
+      type: string
+      description: "is notification marked as read"
+    dateTime:
+      type: string
+      description: "time of when notification was published"
+    
+         
+ NotificationCollectionVO:
+    description: "Collection of notification."
+    type: object
+    properties:
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/NotificationVO"
+      categories:
+        type: array
+        items:
+          type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      totalRecordCount:
+        type: integer
+        format: int32
+
+ MarkedSelection:
+  type: object
+  properties:
+    userId: 
+      type: string
+      description: user shortid
+    messageIds:
+      type: array
+      description: Collection of ids selected to mark as read or delete
+      items:
+        type: string
+  required:
+    -userID
+    -messageIds
+        
+# EventCategoriesCollectionVO:
+#    description: "Collection of event categories."
+#    type: object
+#    properties:
+#      records:
+#        type: array
+#        items:
+#          type: string
+                   
+ GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+ MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "error message"
+      
+ NotificationRequestVO:
+    type: object
+    properties:
+      data:
+        type: object
+        properties: 
+          eventType:
+            type: string
+            description: "event type"
+          publishingUser:
+            type: string
+            description: "userId of publisher sending message example - shortid, SYSTEM"
+          message:
+            type: string
+            description: "Event message"
+#          mailRequired: 
+#            type: boolean
+#            description: "boolean whether mail is required as part of notification"
+          subscribedUsers:
+            type: array
+            description: "list of subscribed users shortIds" 
+            items: 
+              type: string
+    required:
+      - eventType
+      - publishingUser
+      - message
+#      - mailRequired
+      - subscribedUsers
+      
+ CreatedByVO:
+   type: object
+   properties:
+     id:
+       type: string
+       description: "ID of user"
+     firstName:
+       type: string
+       description: "First Name of the user"
+     lastName:
+       type: string
+       description: "Last Name of the user"
+     department:
+       type: string
+       description: "Department of the user"
+     email:
+       type: string
+       description: "E-Mail of the user"
+     mobileNumber:
+       type: string
+       description: "Mobile number of the user"              
+#private String eventType;
+#  private String publishingUser;
+#  private String message;
+#  private Boolean mailRequired;
+#  private List<String> subscribedUsers;
+ 

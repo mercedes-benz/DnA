@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ItsmmConstants {
-	
+
 	public static final String GAME_STARTED_STATUS = "STARTED";
 	public static final String GAME_STOPPED_STATUS = "STOPPED";
 	public static final String USER_ANSWER_SEEN_STATUS = "ANSWERSEEN";
@@ -39,5 +39,5 @@ public class ItsmmConstants {
 	public static final String USER_GAME_START_STATUS = "STARTED";
 	public static final String USER_GAME_STOP_STATUS = "STOPPED";
 	public static final String USER_GAME_NOSTARTED_STATUS = "NOTSTARTED";
-	
+
 }

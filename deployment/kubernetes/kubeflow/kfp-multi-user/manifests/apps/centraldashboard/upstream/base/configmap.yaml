@@ -1,0 +1,81 @@
+apiVersion: v1
+data:
+  settings: |-
+    {
+      "DASHBOARD_FORCE_IFRAME": true
+    }
+  links: |-
+    {
+      "menuLinks": [
+        {
+          "type": "item",
+          "text": "Experiments",
+          "link": "/pipeline/#/experiments",
+          "icon": "done-all"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/pipelines",
+          "text": "Pipelines",
+          "icon": "kubeflow:pipeline-centered"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/runs",
+          "text": "Runs",
+          "icon": "maps:directions-run"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/recurringruns",
+          "text": "Recurring Runs",
+          "icon": "device:access-alarm"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/artifacts",
+          "text": "Artifacts",
+          "icon": "editor:bubble-chart"
+        },
+        {
+          "type": "item",
+          "link": "/pipeline/#/executions",
+          "text": "Executions",
+          "icon": "av:play-arrow"
+        },
+        {
+          "type": "item",
+          "link": "/models/",
+          "text": "Models",
+          "icon": "kubeflow:models"
+        }
+      ],
+      "externalLinks": [ ],
+        "quickLinks": [
+          {
+            "text": "Upload a pipeline",
+            "desc": "Pipelines",
+            "link": "/pipeline/"
+          },
+          {
+            "text": "View all pipeline runs",
+            "desc": "Pipelines",
+            "link": "/pipeline/#/runs"
+          }
+        ],
+        "documentationItems": [
+          {
+            "text": "DnA",
+            "desc": "DnA platform is the best open-source platform!",
+            "link": "DNA_URL_HTTPS_DEV/"
+          },
+          {
+            "text": "Getting Started with Kubeflow",
+            "desc": "Get your machine-learning workflow up and running on Kubeflow",
+            "link": "https://www.kubeflow.org/docs/started/"
+          }
+        ]
+    }
+kind: ConfigMap
+metadata:
+  name: centraldashboard-config

@@ -32,9 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class DivisionCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<DivisionNsql, String>
-        implements DivisionCustomRepository {
-
+public class DivisionCustomRepositoryImpl extends CommonDataRepositoryImpl<DivisionNsql, String>
+		implements DivisionCustomRepository {
 
 }

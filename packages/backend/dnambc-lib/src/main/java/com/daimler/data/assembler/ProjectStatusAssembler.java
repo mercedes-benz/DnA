@@ -35,40 +35,39 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
-public class ProjectStatusAssembler
-        implements GenericAssembler<ProjectStatusVO, ProjectStatusNsql> {
+public class ProjectStatusAssembler implements GenericAssembler<ProjectStatusVO, ProjectStatusNsql> {
 
-    @Override
-    public ProjectStatusVO toVo(ProjectStatusNsql entity) {
-        ProjectStatusVO projectStatusVO = null;
-        if (Objects.nonNull(entity)) {
-            projectStatusVO = new ProjectStatusVO();
-            projectStatusVO.setId(entity.getId());
-            String name = entity.getData().getName();
-            if(name.equalsIgnoreCase("ON TRACK")){
-                name = "Active";
-            }else if(name.equalsIgnoreCase("INACTIVE")){
-                name= "On hold";
-            }else if(name.equalsIgnoreCase("CLOSED")){
-                name= "Closed";
-            }
-            projectStatusVO.setName(name);
-        }
-        return projectStatusVO;
-    }
+	@Override
+	public ProjectStatusVO toVo(ProjectStatusNsql entity) {
+		ProjectStatusVO projectStatusVO = null;
+		if (Objects.nonNull(entity)) {
+			projectStatusVO = new ProjectStatusVO();
+			projectStatusVO.setId(entity.getId());
+			String name = entity.getData().getName();
+			if (name.equalsIgnoreCase("ON TRACK")) {
+				name = "Active";
+			} else if (name.equalsIgnoreCase("INACTIVE")) {
+				name = "On hold";
+			} else if (name.equalsIgnoreCase("CLOSED")) {
+				name = "Closed";
+			}
+			projectStatusVO.setName(name);
+		}
+		return projectStatusVO;
+	}
 
-    @Override
-    public ProjectStatusNsql toEntity(ProjectStatusVO vo) {
-        ProjectStatusNsql projectstatusNsql = null;
-        if (Objects.nonNull(vo)) {
-            projectstatusNsql = new ProjectStatusNsql();
-            ProjectStatus projectstatus = new ProjectStatus();
-            projectstatus.setName(vo.getName() );
-            projectstatusNsql.setData(projectstatus);
-            if (vo.getId() != null)
-                projectstatusNsql.setId(vo.getId());
-        }
-        return projectstatusNsql;
-    }
+	@Override
+	public ProjectStatusNsql toEntity(ProjectStatusVO vo) {
+		ProjectStatusNsql projectstatusNsql = null;
+		if (Objects.nonNull(vo)) {
+			projectstatusNsql = new ProjectStatusNsql();
+			ProjectStatus projectstatus = new ProjectStatus();
+			projectstatus.setName(vo.getName());
+			projectstatusNsql.setData(projectstatus);
+			if (vo.getId() != null)
+				projectstatusNsql.setId(vo.getId());
+		}
+		return projectstatusNsql;
+	}
 
 }

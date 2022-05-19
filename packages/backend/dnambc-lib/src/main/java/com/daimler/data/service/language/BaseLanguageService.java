@@ -35,37 +35,39 @@ import com.daimler.data.db.repo.language.LanguageRepository;
 import com.daimler.data.dto.language.LanguageVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class BaseLanguageService
-        extends BaseCommonService<LanguageVO, LanguageNsql, String>
-        implements LanguageService {
+@Slf4j
+public class BaseLanguageService extends BaseCommonService<LanguageVO, LanguageNsql, String>
+		implements LanguageService {
 
-    @Autowired
-    private LanguageCustomRepository customRepo;
-    @Autowired
-    private LanguageRepository jpaRepo;
-    @Autowired
-    private LanguageAssembler algoAssembler;
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private LanguageCustomRepository customRepo;
+	@Autowired
+	private LanguageRepository jpaRepo;
+	@Autowired
+	private LanguageAssembler algoAssembler;
+	@Autowired
+	private SolutionService solutionService;
 
+	public BaseLanguageService() {
+		super();
+	}
 
-    public BaseLanguageService() {
-        super();
-    }
-
-    @Override
-    @Transactional
-    public boolean deleteLanguage(String id) {
-        LanguageNsql langEntity = jpaRepo.getOne(id);
-        String langName = langEntity.getData().getName();
-        solutionService.deleteTagForEachSolution(langName, null, SolutionService.TAG_CATEGORY.LANG);
-        return deleteById(id);
-    }
-
+	@Override
+	@Transactional
+	public boolean deleteLanguage(String id) {
+		LanguageNsql langEntity = jpaRepo.getOne(id);
+		String langName = langEntity.getData().getName();
+		log.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to language {}", id);
+		solutionService.deleteTagForEachSolution(langName, null, SolutionService.TAG_CATEGORY.LANG);
+		return deleteById(id);
+	}
 
 }

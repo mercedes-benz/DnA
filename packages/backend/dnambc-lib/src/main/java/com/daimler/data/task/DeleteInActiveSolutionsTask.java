@@ -41,19 +41,20 @@ import java.util.Date;
 @Component
 @SuppressWarnings(value = "unused")
 public class DeleteInActiveSolutionsTask {
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private SolutionService solutionService;
 
-    @Value("${task.delete.inactive-solutions-duration}")
-    private String inActiveYears;
+	@Value("${task.delete.inactive-solutions-duration}")
+	private String inActiveYears;
 
-    @Scheduled(cron = "0 0 12 * * ?")
-    //@Scheduled(cron = "2 * * * * ?")
-    public void deleteInActiveSolutionsTask() {
-        log.info("Running task to delete In-Active solutions that are more than " + inActiveYears + " years old at:" + new Date().toString());
-        Calendar now = Calendar.getInstance();
-        now.add(Calendar.YEAR, -Integer.parseInt(inActiveYears));
-        solutionService.deleteInActiveSolutionsOlderThan(now);
+	@Scheduled(cron = "0 0 12 * * ?")
+	// @Scheduled(cron = "2 * * * * ?")
+	public void deleteInActiveSolutionsTask() {
+		log.info("Running task to delete In-Active solutions that are more than " + inActiveYears + " years old at:"
+				+ new Date().toString());
+		Calendar now = Calendar.getInstance();
+		now.add(Calendar.YEAR, -Integer.parseInt(inActiveYears));
+		solutionService.deleteInActiveSolutionsOlderThan(now);
 
-    }
+	}
 }

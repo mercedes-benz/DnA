@@ -35,10 +35,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SolutionDatasource {
-	
+
 	private String id;
 	private String name;
-	
+
 //	public SolutionDatasource() {
 //		super();
 //	}
@@ -64,5 +64,5 @@ public class SolutionDatasource {
 //	public void setName(String name) {
 //		this.name = name;
 //	}
-	
+
 }

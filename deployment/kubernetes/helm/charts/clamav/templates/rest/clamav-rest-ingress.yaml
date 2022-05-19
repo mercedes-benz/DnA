@@ -1,0 +1,51 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.backend.name }}-ingress
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: {{ .Values.app.backend.name }}-service
+                port: 
+                  name: api-http
+            path: /avscan/api
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Values.app.backend.name }}-service
+                port:
+                  name: api-http
+            path: /avscan/swagger-ui.html
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Values.app.backend.name }}-service
+                port: 
+                  name: api-http
+            path: /avscan/swagger-resources
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Values.app.backend.name }}-service
+                port:
+                  name: api-http
+            path: /avscan/v2/api-docs
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Values.app.backend.name }}-service
+                port:
+                  name: api-http
+            path: /avscan/webjars
+            pathType: Prefix
+{{- end }}
