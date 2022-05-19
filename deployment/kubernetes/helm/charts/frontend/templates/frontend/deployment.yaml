@@ -49,8 +49,8 @@ spec:
               mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
             - name: {{ .Release.Name }}-frontend-configmap
-              mountPath: /usr/share/nginx/html/config.json
-              subPath: config.json                 
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js                 
           resources: {}
       securityContext:
         runAsUser: 1001
