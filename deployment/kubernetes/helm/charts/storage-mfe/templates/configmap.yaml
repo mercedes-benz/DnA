@@ -84,5 +84,5 @@ data:
             }            
           }
         }
-  config.json: |
-    {{ .Values.configJson | toJson }}
+  config.js: |
+    {{ .Values.configJs | toJson }}
