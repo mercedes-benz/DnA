@@ -36,8 +36,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Tag  implements Serializable{
-	
+public class Tag implements Serializable {
+
 	private String id;
 	private String name;
 //
@@ -65,7 +65,5 @@ public class Tag  implements Serializable{
 //	public void setName(String name) {
 //		this.name = name;
 //	}
-	
-	
-	
+
 }

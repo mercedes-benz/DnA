@@ -1,7 +1,7 @@
 .searchPanel {
   position: relative;
   flex: 1 auto;
-  margin: -2px 40px 0 calc(50% - 100px);
+  margin: -1px 25px 0 calc(24% - 100px);
   input::placeholder {
     color: #c0c8d0;
   }
@@ -46,6 +46,7 @@
 
     > i {
       vertical-align: sub;
+      font-size: var(--font-size-icon-nav);
       &.active:hover {
         color: #00adef;
       }

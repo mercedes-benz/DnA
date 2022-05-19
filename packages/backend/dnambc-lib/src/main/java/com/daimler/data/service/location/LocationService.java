@@ -31,6 +31,5 @@ import com.daimler.data.db.entities.LocationNsql;
 import com.daimler.data.dto.location.LocationVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface LocationService
-        extends CommonService<LocationVO, LocationNsql, String> {
+public interface LocationService extends CommonService<LocationVO, LocationNsql, String> {
 }

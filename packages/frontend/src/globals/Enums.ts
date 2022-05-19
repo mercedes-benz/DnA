@@ -26,3 +26,12 @@ export enum ComputeFixedTag {
   NOTEBOOK = 'DnA Internal Notebook',
   MALWARESCANSERVICE = 'DnA Malware Scan Service',
 }
+
+export enum ErrorMsg {
+  CUSTOMER_TAB = '*Please add minimum one customer.',
+  KPI_TAB = '*Please add minimum one KPI',
+  DATAFUNCTION_TAB = '*Please add minimum one data source',
+  MEMBERS_TAB_DEVELOPERS = '*Please add minimum one developer',
+  MEMBERS_TAB_PRODUCT_OWNER = '*Please add product owner',
+  MEMBERS_TAB_ADMIN = '*Please add an admin',
+}

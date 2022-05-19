@@ -32,15 +32,20 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
+import com.daimler.data.db.entities.lov.AdditionalResourceNsql;
 import com.daimler.data.db.entities.lov.BenefitRelevanceNsql;
 import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
 import com.daimler.data.db.entities.lov.MaturityLevelNsql;
 import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
+import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
+import com.daimler.data.dto.lov.AdditionalResourceVO;
 import com.daimler.data.dto.lov.BenefitRelevanceVO;
 import com.daimler.data.dto.lov.BusinessGoalVO;
 import com.daimler.data.dto.lov.CategoryVO;
+import com.daimler.data.dto.lov.DataStrategyDomainVO;
 import com.daimler.data.dto.lov.MaturityLevelVO;
 import com.daimler.data.dto.lov.StrategicRelevanceVO;
 
@@ -91,10 +96,11 @@ public class LovAssembler {
 	public List<StrategicRelevanceVO> toStrategicRelevanceVOList(List<StrategicRelevanceNsql> entityList) {
 		List<StrategicRelevanceVO> strategicRelevanceVOList = null;
 		if (entityList != null && !entityList.isEmpty())
-			strategicRelevanceVOList = entityList.stream().map(n -> toStrategicRelevanceVO(n)).collect(Collectors.toList());
+			strategicRelevanceVOList = entityList.stream().map(n -> toStrategicRelevanceVO(n))
+					.collect(Collectors.toList());
 		return strategicRelevanceVOList;
 	}
-	
+
 	/**
 	 * toBenefitRelevanceVO
 	 * 
@@ -124,7 +130,7 @@ public class LovAssembler {
 			benefitRelevanceVOList = entityList.stream().map(n -> toBenefitRelevanceVO(n)).collect(Collectors.toList());
 		return benefitRelevanceVOList;
 	}
-	
+
 	/**
 	 * toMaturityLevelVO
 	 * 
@@ -154,7 +160,7 @@ public class LovAssembler {
 			maturityLevelVOList = entityList.stream().map(n -> toMaturityLevelVO(n)).collect(Collectors.toList());
 		return maturityLevelVOList;
 	}
-	
+
 	/**
 	 * toCategoryVO
 	 * 
@@ -183,5 +189,69 @@ public class LovAssembler {
 		if (entityList != null && !entityList.isEmpty())
 			categoryVOList = entityList.stream().map(n -> toCategoryVO(n)).collect(Collectors.toList());
 		return categoryVOList;
+	}
+	
+	/**
+	 * To convert StrategyDomainNsql to DataStrategyDomainVO
+	 * 
+	 * @param entityList {List<StrategyDomainNsql>}
+	 * @return strategyDomainsVO {List<DataStrategyDomainVO>}
+	 */
+	public List<DataStrategyDomainVO> toStrategyDomainVOList(List<DataStrategyDomainNsql> entityList) {
+		List<DataStrategyDomainVO> strategyDomainsVOList = null;
+		if (entityList != null && !entityList.isEmpty())
+			strategyDomainsVOList = entityList.stream().map(n -> toStrategyDomainVO(n)).collect(Collectors.toList());
+		return strategyDomainsVOList;
+	}
+
+	/**
+	 * To convert StrategyDomainNsql to DataStrategyDomainVO
+	 * 
+	 * @param entity {StrategyDomainNsql}
+	 * @return strategyDomains {DataStrategyDomainVO}
+	 */
+	public DataStrategyDomainVO toStrategyDomainVO(DataStrategyDomainNsql entity) {
+		DataStrategyDomainVO dataStrategyDomainVO = null;
+		if (Objects.nonNull(entity)) {
+			dataStrategyDomainVO = new DataStrategyDomainVO();
+			dataStrategyDomainVO.setId(entity.getId());
+			if (entity.getData() != null)
+				dataStrategyDomainVO.setName(entity.getData().getName());
+		}
+		return dataStrategyDomainVO;
+	}
+	
+	/**
+	 * To convert AdditionalResourceNsql to AdditionalResourceVO
+	 * 
+	 * @param entityList {List<AdditionalResourceNsql>}
+	 * @return additionalResourcesVO {List<AdditionalResourceVO>}
+	 */
+	public List<AdditionalResourceVO> toAdditionalResourceVOList(List<AdditionalResourceNsql> entityList) {
+		List<AdditionalResourceVO> additionalResourcesVO = null;
+		if (!ObjectUtils.isEmpty(entityList)) {
+			additionalResourcesVO = entityList.stream().map(n -> toAdditionalResourceVO(n))
+					.collect(Collectors.toList());
+		}
+
+		return additionalResourcesVO;
+	}
+
+	/**
+	 * To convert AdditionalResourceNsql to AdditionalResourceVO
+	 * 
+	 * @param entity {AdditionalResourceNsql}
+	 * @return additionalResourceVO {AdditionalResourceVO}
+	 */
+	public AdditionalResourceVO toAdditionalResourceVO(AdditionalResourceNsql entity) {
+		AdditionalResourceVO additionalResourceVO = null;
+		if (Objects.nonNull(entity)) {
+			additionalResourceVO = new AdditionalResourceVO();
+			additionalResourceVO.setId(entity.getId());
+			if (entity.getData() != null) {
+				additionalResourceVO.setName(entity.getData().getName());
+			}
+		}
+		return additionalResourceVO;
 	}
 }

@@ -50,64 +50,68 @@ import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@Api(value = "Logo API", tags = {"logo"})
+@Api(value = "Logo API", tags = { "logo" })
 @RequestMapping("/api")
 @Slf4j
-public class LogoController implements LogoApi{
+public class LogoController implements LogoApi {
 
 	@Autowired
-    private AttachmentService attachmentService;
-	@RequestMapping(value = "/logo",
-	    produces = {"application/json"},
-	    consumes = {"application/json"},
-	    method = RequestMethod.POST)
-    public ResponseEntity<UploadResponseVO> uploadLogo(LogoVO logoVO)
-    {	
+	private AttachmentService attachmentService;
+
+	@RequestMapping(value = "/logo", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<UploadResponseVO> uploadLogo(LogoVO logoVO) {
 		UploadResponseVO responseVO = new UploadResponseVO();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			LogoDetailsVO fileDetails = this.attachmentService.uploadLogoToS3Bucket(logoVO);
 			responseVO.setLogoDetails(fileDetails);
-		}catch(Exception e) {
-			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error. "+ e.getMessage());
+		} catch (Exception e) {
+			MessageDescription exceptionMsg = new MessageDescription(
+					"Failed to delete due to internal error. " + e.getMessage());
 			errors.add(exceptionMsg);
 			responseVO.setErrors(errors);
-			return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
+			log.error("File {} failed while Uploading to bucket with exception {} ", logoVO.getFileName(),
+					e.getMessage());
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return new ResponseEntity<>(responseVO,HttpStatus.CREATED);
-    }
+		log.info("File {} Uploaded to bucket successfully", logoVO.getFileName());
+		return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
+	}
 
-	@RequestMapping(value = "/logo/{id}",
-		    produces = {"application/json"},
-		    method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> deleteLogo(@PathVariable("id") String keyName){
+	@RequestMapping(value = "/logo/{id}", produces = { "application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteLogo(@PathVariable("id") String keyName) {
 		GenericMessage returnMessage = new GenericMessage();
 		String path = ConstantsUtility.S3_PATH_TO_UPLOAD_LOGO + keyName;
 		try {
 			this.attachmentService.deleteFileFromS3Bucket(path);
 			returnMessage.setSuccess("success");
-			return new ResponseEntity<>(returnMessage,HttpStatus.OK);
-		}catch(Exception e) {
-			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error. "+ e.getMessage());
+			log.info("File {} deleted from bucket successfully", keyName);
+			return new ResponseEntity<>(returnMessage, HttpStatus.OK);
+		} catch (Exception e) {
+			MessageDescription exceptionMsg = new MessageDescription(
+					"Failed to delete due to internal error. " + e.getMessage());
 			returnMessage.addErrors(exceptionMsg);
 			returnMessage.setSuccess("Failed");
-			return new ResponseEntity<>(returnMessage,HttpStatus.INTERNAL_SERVER_ERROR);
+			log.error("File {} failed to delete from bucket with exception {}", keyName, e.getMessage());
+			return new ResponseEntity<>(returnMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-    }
-	
-	@RequestMapping(value = "/logo/{id}",
-		    method = RequestMethod.GET)
-    public ResponseEntity<LogoVO> getLogo(@PathVariable("id") String id){
-			try {
+	}
+
+	@RequestMapping(value = "/logo/{id}", method = RequestMethod.GET)
+	public ResponseEntity<LogoVO> getLogo(@PathVariable("id") String id) {
+		try {
 			String path = ConstantsUtility.S3_PATH_TO_UPLOAD_LOGO + id;
-			 this.attachmentService.getAvailableFilesFromBucket();
+			this.attachmentService.getAvailableFilesFromBucket();
 			byte[] content = this.attachmentService.getFile(path);
 			LogoVO logoVO = new LogoVO();
-				logoVO.setLogo(content);
-				logoVO.setFileSize(this.attachmentService.formatedSize(content.length));
-			return new ResponseEntity<>(logoVO,HttpStatus.OK);
-			}catch(Exception e) {
-				return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
-			}
-    }
+			logoVO.setLogo(content);
+			logoVO.setFileSize(this.attachmentService.formatedSize(content.length));
+			log.debug("Returning file {} successfully", id);
+			return new ResponseEntity<>(logoVO, HttpStatus.OK);
+		} catch (Exception e) {
+			log.debug("Returning empty file {}, exception {}", id, e.getMessage());
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+	}
 }

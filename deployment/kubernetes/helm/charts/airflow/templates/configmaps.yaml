@@ -1,0 +1,243 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "airflow-config.name" . }}
+  namespace: {{ .Values.namespace }}
+data:
+  airflow.cfg: |
+    [core]
+    dags_folder = {{ .Values.volumes.dagsPath }}
+    base_log_folder = {{ .Values.volumes.logsPath }}
+    logging_level = {{ .Values.configuration.loggingLevel }}
+    executor = {{ .Values.configuration.executor }}
+    parallelism = {{ .Values.configuration.parallelism }}
+    load_examples = {{ .Values.configuration.loadExamples }}
+    plugins_folder = {{ .Values.configuration.pluginsFolder }}
+    sql_alchemy_conn = {{ .Values.secret.postgresql.sqlAlchemyConn }}
+
+    [scheduler]
+    dag_dir_list_interval = {{ .Values.configuration.scheduler.dagDirListInterval }}
+    child_process_log_directory = {{ .Values.configuration.scheduler.childProcessLogDirectory }}
+    # Task instances listen for external kill signal (when you clear tasks
+    # from the CLI or the UI), this defines the frequency at which they should
+    # listen (in seconds).
+    job_heartbeat_sec = {{ .Values.configuration.scheduler.jobHeartbeatSec }}
+    parsing_processes = {{ .Values.configuration.scheduler.parsingProcesses }}
+
+    # The scheduler constantly tries to trigger new tasks (look at the
+    # scheduler section in the docs for more information). This defines
+    # how often the scheduler should run (in seconds).
+    scheduler_heartbeat_sec = {{ .Values.configuration.scheduler.schedulerHeartbeatSec }}
+
+    # after how much time a new DAGs should be picked up from the filesystem
+    min_file_process_interval = {{ .Values.configuration.scheduler.minFileProcessInterval }}
+
+    statsd_on = {{ .Values.configuration.scheduler.statsdOn }}
+    statsd_host = {{ .Values.configuration.scheduler.statsdHost }}
+    statsd_port = {{ .Values.configuration.scheduler.statsdPort }}
+    statsd_prefix = {{ .Values.configuration.scheduler.statsdPrefix }}
+
+    # How many seconds to wait between file-parsing loops to prevent the logs from being spammed.
+    min_file_parsing_loop_time = {{ .Values.configuration.scheduler.minFileParsingLoopTime }}
+
+    print_stats_interval = {{ .Values.configuration.scheduler.printStatsInterval }}
+    scheduler_zombie_task_threshold = {{ .Values.configuration.scheduler.schedulerZombieTaskThreshold }}
+    max_tis_per_query = {{ .Values.configuration.scheduler.maxTisPerQuery }}
+    authenticate = {{ .Values.configuration.scheduler.authenticate }}
+
+    # Turn off scheduler catchup by setting this to False.
+    # Default behavior is unchanged and
+    # Command Line Backfills still work, but the scheduler
+    # will not do scheduler catchup if this is False,
+    # however it can be set on a per DAG basis in the
+    # DAG definition (catchup)
+    catchup_by_default = {{ .Values.configuration.scheduler.catchupByDefault }}
+
+    [webserver]
+    # The base url of your website as airflow cannot guess what domain or
+    # cname you are using. This is used in automated emails that
+    # airflow sends to point links to the right web server
+    base_url = {{ .Values.configuration.webserver.baseUrl }}{{ .Values.configuration.webserver.path }}
+    rbac = {{ .Values.configuration.webserver.rbac }}
+    enable_proxy_fix = True
+
+    # The ip specified when starting the web server
+    web_server_host = {{ .Values.configuration.webserver.host }}
+
+    # The port on which to run the web server
+    web_server_port = {{ .Values.configuration.webserver.port }}
+
+    # Paths to the SSL certificate and key for the web server. When both are
+    # provided SSL will be enabled. This does not change the web server port.
+    web_server_ssl_cert =
+    web_server_ssl_key =
+
+    # Number of seconds the webserver waits before killing gunicorn master that doesn't respond
+    web_server_master_timeout = {{ .Values.configuration.webserver.masterTimeout }}
+
+    # Number of seconds the gunicorn webserver waits before timing out on a worker
+    web_server_worker_timeout = {{ .Values.configuration.webserver.workerTimeout }}
+
+    # Number of workers to refresh at a time. When set to 0, worker refresh is
+    # disabled. When nonzero, airflow periodically refreshes webserver workers by
+    # bringing up new ones and killing old ones.
+    worker_refresh_batch_size = {{ .Values.configuration.webserver.workerRefreshBatchSize }}
+
+    # Number of seconds to wait before refreshing a batch of workers.
+    worker_refresh_interval = {{ .Values.configuration.webserver.workerRefreshInterval }}
+
+    # Secret key used to run your flask app
+    secret_key = {{ .Values.configuration.webserver.secretKey }}
+
+    # Number of workers to run the Gunicorn web server
+    workers = {{ .Values.configuration.webserver.numberOfWorkers }}
+
+    # The worker class gunicorn should use. Choices include
+    # sync (default), eventlet, gevent
+    worker_class = {{ .Values.configuration.webserver.workerClass }}
+
+    # Log files for the gunicorn webserver. '-' means log to stderr.
+    access_logfile = -
+    error_logfile = -
+
+    # Expose the configuration file in the web server
+    expose_config = {{ .Values.configuration.webserver.exposeConfig }}
+
+    # Default DAG view.  Valid values are:
+    # tree, graph, duration, gantt, landing_times
+    dag_default_view = {{ .Values.configuration.webserver.dagDefaultView }}
+
+    # Default DAG orientation. Valid values are:
+    # LR (Left->Right), TB (Top->Bottom), RL (Right->Left), BT (Bottom->Top)
+    dag_orientation = {{ .Values.configuration.webserver.dagOrientation }}
+
+    # Puts the webserver in demonstration mode; blurs the names of Operators for
+    # privacy.
+    demo_mode = {{ .Values.configuration.webserver.demoMode }}
+
+    # The amount of time (in secs) webserver will wait for initial handshake
+    # while fetching logs from other worker machine
+    log_fetch_timeout_sec = {{ .Values.configuration.webserver.logFetchTimeoutSec }}
+
+    # By default, the webserver shows paused DAGs. Flip this to hide paused
+    # DAGs by default
+    hide_paused_dags_by_default = {{ .Values.configuration.webserver.hidePausedDagsByDefault }}
+
+    # Consistent page size across all listing views in the UI
+    page_size = {{ .Values.configuration.webserver.pageSize }}
+
+    [smtp]
+    # If you want airflow to send emails on retries, failure, and you want to use
+    # the airflow.utils.email.send_email_smtp function, you have to configure an
+    # smtp server here
+    smtp_host =
+    smtp_starttls =
+    smtp_ssl =
+    # Uncomment and set the user/pass settings if you want to use SMTP AUTH
+    # smtp_user = airflow
+    # smtp_password = airflow
+    smtp_port =
+    smtp_mail_from =
+
+    [kubernetes]
+    executor = {{ .Values.configuration.executor }}
+    #pod_template_file=/usr/local/airflow/workerpod.yaml
+    airflow_configmap = {{ include "airflow-config.name" . }}
+    worker_container_repository = {{ .Values.docker.image.name }}
+    worker_container_tag = {{ .Values.docker.image.tag }}
+    worker_container_image_pull_policy = {{ .Values.configuration.kubernetes.workerContainerImagePullPolicy }}
+    worker_service_account_name = {{ .Values.configuration.kubernetes.workerServiceAccountName }}
+    namespace = {{ include "airflow.namespace" . }}
+    delete_worker_pods = {{ .Values.configuration.kubernetes.deleteWorkerPods }}
+    dags_in_image = {{ .Values.configuration.kubernetes.dagsInImage }}
+    git_repo = {{ .Values.gitSync.repo }}
+    git_branch = {{ .Values.gitSync.branch }}
+    git_subpath = {{ .Values.configuration.kubernetes.gitSubpath }}
+    git_user = {{ .Values.secret.gitUserName}}
+    git_password = {{ .Values.secret.gitPassword}}
+    git_sync_root = {{ .Values.gitSync.root }}
+    git_sync_dest = {{ .Values.gitSync.dest }}
+    git_dags_folder_mount_point = {{ .Values.volumes.gitDagsPath }}
+    dags_volume_claim =
+    dags_volume_subpath =
+    logs_volume_claim = {{ include "airflow-logs" . }}
+    logs_volume_subpath =
+    dags_volume_host =
+    logs_volume_host =
+    in_cluster = {{ .Values.configuration.kubernetes.inCluster }}
+    gcp_service_account_keys =
+
+    # Example affinity and toleration definitions.
+    # Affinity configuration as a single line formatted JSON object.
+    # See the affinity model for top-level key names (e.g. ``nodeAffinity``, etc.):
+    # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#affinity-v1-core
+    affinity = {"podAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": [{"topologyKey": "kubernetes.io/hostname","labelSelector": {"matchLabels": {"namespace": {{ .Values.namespace | quote }}}}}]}}
+
+    # For cloning DAGs from git repositories into volumes: https://github.com/kubernetes/git-sync
+    git_sync_credentials_secret = {{ include "airflow-git-sync.secret" .}}
+    git_sync_container_repository = {{ .Values.configuration.kubernetes.gitSyncContainerRepository }}
+    git_sync_container_tag = {{ .Values.configuration.kubernetes.gitSyncContainerTag }}
+    git_sync_init_container_name = {{ .Values.configuration.kubernetes.gitSyncInitContainerName }}
+    git_sync_run_as_user = {{ .Values.configuration.kubernetes.gitSyncRunAsUser }}
+    #git_ssh_known_hosts_configmap_name = {{ include "airflow-git-sync-known-hosts.configmap" . }}
+    #git_ssh_key_secret_name = {{ include "airflow-git-sync.secret" .}}
+
+    # Specifies the uid to run the first process of the worker pods containers as
+    run_as_user = {{ .Values.configuration.kubernetes.runAsUser }}
+    fs_group = {{ .Values.configuration.kubernetes.fsGroup }}
+
+    # Any image pull secrets to be given to worker pods, If more than one secret is
+    # required, provide a comma separated list: secret_a,secret_b
+    image_pull_secrets = {{ include "image-pull.secret.name" . }}
+
+    [kubernetes_node_selectors]
+    # The Key-value pairs to be given to worker pods.
+    # The worker pods will be scheduled to the nodes of the specified key-value pairs.
+    # Should be supplied in the format: key = value
+
+    [kubernetes_annotations]
+    # The Key-value annotations pairs to be given to worker pods.
+    # Should be supplied in the format: key = value
+
+    [hive]
+    # Default mapreduce queue for HiveOperator tasks
+    default_hive_mapred_queue =
+
+    [ldap]
+    # set this to ldaps://<your.ldap.server>:<port>
+    uri =
+    user_filter = objectClass=*
+    user_name_attr = uid
+    group_member_attr = memberOf
+    superuser_filter =
+    data_profiler_filter =
+    bind_user = cn=Manager,dc=example,dc=com
+    bind_password = insecure
+    basedn = dc=example,dc=com
+    cacert = /etc/ca/ldap_ca.crt
+    search_scope = LEVEL
+
+    [kerberos]
+    ccache = /tmp/airflow_krb5_ccache
+    # gets augmented with fqdn
+    principal = airflow
+    reinit_frequency = 3600
+    kinit_path = kinit
+    keytab = airflow.keytab
+
+    [cli]
+    api_client = airflow.api.client.json_client
+    endpoint_url = http://0.0.0.0:8080
+
+    [api]
+    auth_backend = airflow.api.auth.backend.default
+
+    [github_enterprise]
+    api_rev = v3
+
+    [admin]
+    # UI to hide sensitive variable fields when set to True
+    hide_sensitive_variable_fields = True
+
+    [elasticsearch]
+    elasticsearch_host =

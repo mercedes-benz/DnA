@@ -8,7 +8,7 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
-import { ConfirmModal } from '../../../components/formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../components/formElements/modal/confirmModal/ConfirmModal';
 import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES } from '../../../globals/constants';
 import {
   IBookMarks,
@@ -99,13 +99,16 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           description: '',
           tags: [],
           businessNeeds: '',
-          businessGoal: '',
+          businessGoal: [],
           attachments: [],
           businessGoalsList: [],
           logoDetails: null,
+          dataStrategyDomain: '',
+          requestedFTECount: 0,
+          additionalResource: ''
         },
         openSegments: [],
-        team: [],
+        team: { team: [] },
         currentPhase: null,
         milestones: { phases: [], rollouts: { details: [], description: '' } },
         analytics: { languages: [], algorithms: [], visualizations: [] },
@@ -175,6 +178,9 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         },
         publish: false,
         bookmarked: false,
+        neededRoles: [],
+        createdDate: '',
+        lastModifiedDate: ''
       },
       canShowDataSources: false,
       canShowDigitalValue: false,
@@ -236,6 +242,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
         solution={this.state.solution}
+        lastModifiedDate={this.state.solution.lastModifiedDate}
+        createdDate={this.state.solution.createdDate}
         canShowTeams={this.state.canShowTeams}
         canShowPlatform={this.state.canShowPlatform}
         canShowMilestones={this.state.canShowMilestones}
@@ -325,6 +333,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       canEdit={isAdmin !== undefined || userInfo.id === this.checkUserCanEditSolution(userInfo)}
                       solutionId={this.state.response.data ? this.state.response.data.id : ''}
                       bookmarked={this.state.solution.bookmarked}
+                      lastModifiedDate={this.state.solution.lastModifiedDate}
+                      createdDate={this.state.solution.createdDate}
                       onEdit={this.onEditSolution}
                       onDelete={this.onDeleteSolution}
                       updateBookmark={this.updateBookmark}
@@ -339,10 +349,11 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         dnaNotebookEnabled={this.state.dnaNotebookEnabled}
                         dnaDataIkuProjectEnabled={this.state.dnaDataIkuProjectEnabled}
                         notebookAndDataIkuNotEnabled={this.state.notebookAndDataIkuNotEnabled}
-                        user={this.props.user}
                       />
                     )}
-                    {this.state.canShowTeams && <TeamSummary team={this.state.solution.team} />}
+                    {this.state.canShowTeams && (
+                      <TeamSummary team={this.state.solution.team} neededRoles={this.state.solution.neededRoles} />
+                    )}
 
                     {this.state.canShowMilestones && (
                       <MilestonesSummary milestones={this.state.solution.milestones} phases={this.state.phases} />
@@ -455,14 +466,18 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.description.location = res.locations;
             solution.description.status = res.projectStatus;
             solution.description.relatedProducts = res.relatedProducts;
-            solution.description.businessGoal = res.businessGoal;
+            solution.description.businessGoal = res.businessGoals;
             solution.description.tags = res.tags;
             solution.description.logoDetails = res.logoDetails;
             solution.description.attachments = res.attachments;
             solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
+            solution.description.dataStrategyDomain = res.dataStrategyDomain;
+            solution.description.additionalResource = res.additionalResource;
+            solution.description.requestedFTECount = res.requestedFTECount;
             solution.milestones = res.milestones;
             solution.currentPhase = res.currentPhase;
-            solution.team = res.team;
+            solution.team.team = res.team;
+            solution.neededRoles = res.skills;
             solution.dataSources = res.dataSources;
             solution.digitalValue = res.digitalValue;
             solution.datacompliance = res.dataCompliance;
@@ -473,6 +488,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             solution.openSegments = res.openSegments;
             solution.publish = res.publish;
             solution.createdBy = res.createdBy;
+            solution.createdDate = res.createdDate;
+            solution.lastModifiedDate = res.lastModifiedDate;
             this.setState(
               {
                 response,
@@ -496,7 +513,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         solution.sharing.result.name &&
                         solution.sharing.result.name !== 'Choose') ||
                       (solution.sharing.resultUrl && solution.sharing.resultUrl !== ''))),
-                canShowTeams: solution.team && solution.team.length > 0,
+                canShowTeams: solution.team && solution.team.team.length > 0,
                 canShowDigitalValue:
                   solution.digitalValue &&
                   (isAdmin !== undefined || userInfo.id === this.checkUserCanViewDigitalValue(userInfo))
@@ -562,8 +579,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
 
   protected checkUserCanEditSolution(userInfo: IUserInfo) {
     let userId = '';
-    if (this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
-      userId = this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+    if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
+      userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (this.state.solution.createdBy) {
       userId = this.state.solution.createdBy.id;
     } else {
@@ -580,13 +597,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           userId = this.state.solution.digitalValue.permissions.find(
             (teamMember) => teamMember.shortId === userInfo.id,
           ).shortId;
-        } else if (this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
-          userId = this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+        } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
+          userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
         } else if (this.state.solution.createdBy) {
           userId = this.state.solution.createdBy.id;
         }
-      } else if (this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
-        userId = this.state.solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+      } else if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
+        userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
       } else if (this.state.solution.createdBy) {
         userId = this.state.solution.createdBy.id;
       }

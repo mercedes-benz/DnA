@@ -6,6 +6,7 @@ import { IAllSolutionsListItem, ILocation, INotebookInfoSolutionId } from '../..
 import { history } from '../../../..//router/History';
 import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
 import { attachEllipsis } from '../../../../services/utils';
+import { Envs } from '../../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -208,7 +209,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
         </div>
 
         <div className={Styles.solRegin}>
-          <span>{solution.division.name}</span>
+          <span>{solution.division?.name || 'N/A'}</span>
           <span className={Styles.locationDataWrapper}>
             {locations[0] ? locations[0] : ''}
             {locations.length > 1 ? (
@@ -234,7 +235,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
                     showLocationsContextMenu ? '' : 'hide',
                   )}
                 >
-                  <ul className="contextList">
+                  <ul className="contextList mbc-scroll sub">
                     <li className="contextListItem">
                       <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
                     </li>
@@ -253,23 +254,29 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
           {solution.portfolio?.dnaNotebookId != null && (
             <React.Fragment>
               {props.noteBookData?.solutionId === solution.id ? (
-                <label className={Styles.gotoNotebook} title="Go To Notebook" onClick={goTonotebook}>
-                  <i className="icon mbc-icon jupyter" /> Notebook
+                <label className={Styles.goToLink} title="Go to notebook" onClick={goTonotebook}>
+                  <i className="icon mbc-icon jupyter" />
                 </label>
               ) : (
-                <label>
-                  <i className="icon mbc-icon jupyter" /> Notebook
+                <label title="Has notebook">
+                  <i className="icon mbc-icon jupyter" />
                 </label>
               )}
             </React.Fragment>
           )}
           {solution.portfolio?.dnaDataikuProjectId !== null && (
-            <label>
-              <i className="icon mbc-icon dataiku" /> Dataiku
-            </label>
+            <a
+              href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <label className={Styles.goToLink} title="Go to dataiku project">
+                <i className="icon mbc-icon dataiku" />
+              </label>
+            </a>
           )}
           <div className={Styles.solBm}>
-            {solution.bookmarked ? <i className="icon mbc-icon bookmark-fill" /> : null}
+            {solution.bookmarked ? <i title="Bookmarked solution" className="icon mbc-icon bookmark-fill" /> : null}
           </div>
         </div>
       </div>

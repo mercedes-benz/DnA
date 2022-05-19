@@ -28,18 +28,25 @@
 package com.daimler.data.service.dashboard;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.daimler.data.assembler.DashboardAssembler;
 import com.daimler.data.db.repo.solution.SolutionCustomRepository;
+import com.daimler.data.dto.SolDigitalValueDTO;
 import com.daimler.data.dto.dashboard.DatasourceWidgetVO;
 import com.daimler.data.dto.dashboard.LocationWidgetVO;
 import com.daimler.data.dto.dashboard.MilestoneWidgetVO;
+import com.daimler.data.dto.dashboard.SolDigitalValuesummaryVO;
 
 @Service
 public class DashboardServiceImpl implements DashboardService {
@@ -49,69 +56,98 @@ public class DashboardServiceImpl implements DashboardService {
 	@Autowired
 	private SolutionCustomRepository customRepo;
 
+	@Autowired
+	private DashboardAssembler dashboardAssembler;
+
 	@Override
 	public Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
-		LOGGER.trace("Entering getSolCountWithNotebook.");
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
 		return customRepo.getSolCountWithNotebook(published, phases, dataVolumes, divisions, locations, statuses,
 				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
 	}
 
 	@Override
 	public List<DatasourceWidgetVO> getSolDatasource(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
-		LOGGER.trace("Entering getSolDatasource.");
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
 		List<DatasourceWidgetVO> res = customRepo.getSolutionDataVolume(published, phases, dataVolumes, divisions,
 				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
-		LOGGER.trace("Returning from getSolDatasource.");
 		return res;
 	}
 
 	@Override
 	public List<LocationWidgetVO> getSolLocation(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
-		LOGGER.trace("Entering getSolLocation.");
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
 		List<LocationWidgetVO> res = customRepo.getSolutionLocations(published, phases, dataVolumes, divisions,
 				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
-		LOGGER.trace("Returning from getSolLocation.");
 		return res;
 	}
 
 	@Override
 	public List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
-		LOGGER.trace("Entering getSolMilestone.");
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
 		List<MilestoneWidgetVO> res = customRepo.getSolMilestone(published, phases, dataVolumes, divisions, locations,
 				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
-		LOGGER.trace("Returning from getSolMilestone.");
 		return res;
 	}
 
 	@Override
-	public BigDecimal getSolDigitalValue(Boolean published, List<String> phases,
-			List<String> dataVolumes, List<Map<String, List<String>>> divisions, List<String> locations,
-			List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
-		LOGGER.trace("Entering getSolDigitalValue.");
-		return customRepo.getDigitalValuesSum(published, phases, dataVolumes, divisions,
-				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
+	public BigDecimal getSolDigitalValue(Boolean published, List<String> phases, List<String> dataVolumes,
+			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+		return customRepo.getDigitalValuesSum(published, phases, dataVolumes, divisions, locations, statuses,
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
 	}
 
 	@Override
-	public Long getSolCount(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
+	public Long getSolCount(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
 		return customRepo.getCountUsingNativeQuery(published, phases, dataVolumes, divisions, locations, statuses,
 				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
 	}
+
+	@Override
+	public List<SolDigitalValuesummaryVO> getSolDigitalValueSummary(Boolean published, List<String> phases,
+			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
+			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
+			List<String> searchTerms, List<String> tags) {
+		List<SolDigitalValueDTO> result = customRepo.getDigitalValueUsingNativeQuery(published, phases, dataVolumes,
+				divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
+		SortedSet<SolDigitalValueDTO> digitalValueSortedSet = null;
+		Map<BigDecimal, SortedSet<SolDigitalValueDTO>> digitalValueSummaryTreeMap = new TreeMap<BigDecimal, SortedSet<SolDigitalValueDTO>>();
+		for (SolDigitalValueDTO dto : result) {
+			if (dto.getCalculatedDigitalValueVO() != null && dto.getCalculatedDigitalValueVO().getYear() != null) {
+				if (!digitalValueSummaryTreeMap.containsKey(dto.getCalculatedDigitalValueVO().getYear())) {
+					digitalValueSortedSet = new TreeSet<SolDigitalValueDTO>(digitalValueComp);
+					digitalValueSortedSet.add(dto);
+					digitalValueSummaryTreeMap.put(dto.getCalculatedDigitalValueVO().getYear(), digitalValueSortedSet);
+				} else {
+					digitalValueSummaryTreeMap.get(dto.getCalculatedDigitalValueVO().getYear()).add(dto);
+				}
+			}
+		}
+		return dashboardAssembler.toDigitalValueSummary(digitalValueSummaryTreeMap);
+	}
+
+	/**
+	 * Comparator to sort Digital Value DTO based on digital values
+	 * 
+	 */
+	private Comparator<SolDigitalValueDTO> digitalValueComp = new Comparator<SolDigitalValueDTO>() {
+		@Override
+		public int compare(SolDigitalValueDTO s1, SolDigitalValueDTO s2) {
+			if (s2.getCalculatedDigitalValueVO().getValue()
+					.compareTo(s1.getCalculatedDigitalValueVO().getValue()) == 0) {
+				return 1;
+			} else {
+				return (s2.getCalculatedDigitalValueVO().getValue()
+						.compareTo(s1.getCalculatedDigitalValueVO().getValue()));
+			}
+		}
+	};
 
 }

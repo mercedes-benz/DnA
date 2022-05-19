@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.userinfo;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface UserInfoCustomRepository
-        extends CommonDataRepository<UserInfoNsql, String> {
+public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoNsql, String> {
 
 }

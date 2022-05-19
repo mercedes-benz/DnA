@@ -1,0 +1,5 @@
+{
+  "group_prefix": "{{dss_instance_id}}",
+  "create_technical_user_script_path": "{{dss_create_technical_user_script_path}}",
+  "is_automation_node": "{{is_automation_node}}"
+}

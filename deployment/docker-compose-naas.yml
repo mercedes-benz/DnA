@@ -1,0 +1,9 @@
+version: "2.1"
+services:
+    
+  naas-backend:
+    image: ${NAAS_BACKEND:-naas_backend}
+    build:
+      context: ../packages/naas/
+      dockerfile: $PWD/dockerfiles/naas/naas-backend.Dockerfile
+  

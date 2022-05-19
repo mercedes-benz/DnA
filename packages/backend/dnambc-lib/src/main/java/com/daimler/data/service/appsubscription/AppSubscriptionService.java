@@ -67,7 +67,7 @@ public interface AppSubscriptionService extends CommonService<SubscriptionVO, Ap
 	 * @return List<SubscriptionVO>
 	 */
 	public List<SubscriptionVO> getAllWithFilters(String userId, boolean isAdmin, String recordStatus, String appId,
-			String sortBy, String sortOrder, int offset, int limit);
+			String sortBy, String sortOrder, int offset, int limit, String searchTerm);
 
 	/**
 	 * <p>
@@ -76,8 +76,12 @@ public interface AppSubscriptionService extends CommonService<SubscriptionVO, Ap
 	 * 
 	 * @param userId
 	 * @param isAdmin
+	 * @param recordStatus{OPEN/DELETED}
+	 * @param appId
+	 * @param searchTerm{any             text in appName & Description}
+	 * @return count
 	 */
-	public Long getCount(String userId, boolean isAdmin, String recordStatus, String appId);
+	public Long getCount(String userId, boolean isAdmin, String recordStatus, String appId, String searchTerm);
 
 	/**
 	 * <p>
@@ -109,7 +113,7 @@ public interface AppSubscriptionService extends CommonService<SubscriptionVO, Ap
 	 * @param solutionId
 	 */
 	public void updateSolIdForSubscribedAppId(String appId, String solutionId);
-	
+
 	/**
 	 * <p>
 	 * Update subscription as set expiry days.
@@ -120,10 +124,11 @@ public interface AppSubscriptionService extends CommonService<SubscriptionVO, Ap
 	 * @return SubscriptionVO
 	 */
 	public SubscriptionVO updateSubscription(String userId, SubscriptionExpireVO expireVO);
-	
+
 	/**
 	 * <p>
-	 * isApplicationSubscriptionExist checks whether the application lready exist or not
+	 * isApplicationSubscriptionExist checks whether the application lready exist or
+	 * not
 	 * </p>
 	 * 
 	 * @param userId

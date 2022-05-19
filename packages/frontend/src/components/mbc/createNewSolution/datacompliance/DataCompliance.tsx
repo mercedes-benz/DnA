@@ -1,13 +1,14 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { ConfirmModal } from '../../../../components/formElements/modal/confirmModal/ConfirmModal';
-import { InfoModal } from '../../../../components/formElements/modal/infoModal/InfoModal';
+import { DATA_COMPLIANCE_INFO_LINKS } from '../../../../globals/constants';
+import ConfirmModal from '../../../../components/formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
 import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
 import { IAttachment, IDataCompliance, ILink, ITeams } from '../../../../globals/types';
 import AttachmentUploader from '../AttachmentUploader/AttachmentUploader';
 import ExternalLink from '../externalLink/ExternalLink';
-import AddTeamMemberModal from '../teams/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from '../teams/teamMemberListItem/TeamMemberListItem';
+import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
 import Styles from './DataCompliance.scss';
 
 const classNames = cn.bind(Styles);
@@ -131,6 +132,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             <span className="wrapper">
               <input
                 type="checkbox"
+                className="ff-only"
                 checked={this.state.datacompliance.expertGuidelineNeeded}
                 onChange={this.onChangeOfExpertGuidelines}
               />
@@ -158,17 +160,15 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
         : true
       : true;
 
+    const guidelinesLink = DATA_COMPLIANCE_INFO_LINKS.GUIDELINES;
+
     const contentForInfoModal = (
       <div className={Styles.processFlowWrapper}>
         <div className={Styles.step1Container}>
           <label>Step 1</label>
           <p>
             You start with the{' '}
-            <a
-              href=""
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={guidelinesLink} target="_blank" rel="noreferrer">
               Quick Check of the Initial Guidelines
             </a>{' '}
             to assess the legal criticality of your Use Case and to find out whether the application of the Expert
@@ -183,11 +183,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <label>Step 2</label>
           <p>
             If yes, you fill in the{' '}
-            <a
-              href=""
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={guidelinesLink} target="_blank" rel="noreferrer">
               Use Case Description
             </a>{' '}
             as part of the Expert Guidelines. From a comprehensive set of questions only those will be displayed in
@@ -199,11 +195,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <label>Step 3</label>
           <p>
             Your Use Case Description forms the basis for the{' '}
-            <a
-              href=""
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={guidelinesLink} target="_blank" rel="noreferrer">
               Use Case Evaluation
             </a>{' '}
             as part of the Expert Guidelines. DataQ will automatically display the relevant rules and measures to
@@ -216,7 +208,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
           <label>Step 4</label>
           <p>
             For critical Use Cases you can seek consultation from your{' '}
-            <a href="" target="_blank" rel="noreferrer">
+            <a href={DATA_COMPLIANCE_INFO_LINKS.LOCAL_OFFICER} target="_blank" rel="noreferrer">
               Local Compliance Officer
             </a>{' '}
             (1st level support).
@@ -248,6 +240,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
                   <span className="wrapper">
                     <input
                       type="checkbox"
+                      className="ff-only"
                       checked={this.state.datacompliance.quickCheck}
                       onChange={this.onChangeOfQuickCheck}
                     />
@@ -269,6 +262,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
                     <input
                       disabled={canDisabledUsecase}
                       type="checkbox"
+                      className="ff-only"
                       checked={this.state.datacompliance.useCaseDescAndEval}
                       onChange={this.onChangeOfUseCaseDescAndEval}
                     />
@@ -285,6 +279,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
                     <input
                       disabled={canDisabledReadyForImplementation}
                       type="checkbox"
+                      className="ff-only"
                       checked={this.state.datacompliance.readyForImplementation}
                       onChange={this.onChangeReadyForImplementationCheck}
                     />
@@ -364,7 +359,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             modalWidth={'35vw'}
             show={this.state.showInfoModal}
             content={contentForInfoModal}
-            moreInfoLink=""
+            moreInfoLink={DATA_COMPLIANCE_INFO_LINKS.MORE_INFO}
             onCancel={this.onInfoModalCancel}
           />
         )}

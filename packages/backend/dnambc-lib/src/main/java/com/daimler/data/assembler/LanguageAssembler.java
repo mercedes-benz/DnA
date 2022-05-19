@@ -37,28 +37,28 @@ import java.util.Objects;
 @Component
 public class LanguageAssembler implements GenericAssembler<LanguageVO, LanguageNsql> {
 
-    @Override
-    public LanguageVO toVo(LanguageNsql entity) {
-        LanguageVO languageVO = null;
-        if (Objects.nonNull(entity)) {
-            languageVO = new LanguageVO();
-            languageVO.setId(entity.getId());
-            languageVO.setName(entity.getData().getName());
-        }
-        return languageVO;
-    }
+	@Override
+	public LanguageVO toVo(LanguageNsql entity) {
+		LanguageVO languageVO = null;
+		if (Objects.nonNull(entity)) {
+			languageVO = new LanguageVO();
+			languageVO.setId(entity.getId());
+			languageVO.setName(entity.getData().getName());
+		}
+		return languageVO;
+	}
 
-    @Override
-    public LanguageNsql toEntity(LanguageVO vo) {
-        LanguageNsql languageNsql = null;
-        if (Objects.nonNull(vo)) {
-            languageNsql = new LanguageNsql();
-            Language language = new Language();
-            language.setName(vo.getName() );
-            languageNsql.setData(language);
-            if (vo.getId() != null)
-                languageNsql.setId(vo.getId());
-        }
-        return languageNsql;
-    }
+	@Override
+	public LanguageNsql toEntity(LanguageVO vo) {
+		LanguageNsql languageNsql = null;
+		if (Objects.nonNull(vo)) {
+			languageNsql = new LanguageNsql();
+			Language language = new Language();
+			language.setName(vo.getName());
+			languageNsql.setData(language);
+			if (vo.getId() != null)
+				languageNsql.setId(vo.getId());
+		}
+		return languageNsql;
+	}
 }

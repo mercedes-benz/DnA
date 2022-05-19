@@ -31,41 +31,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Division {
+public class Division implements Serializable {
 
-    private String name;
-    private List<SubDivision> subdivisions;
+	private static final long serialVersionUID = 1L;
 
-//    public Division() {
-//        super();
-//    }
-//
-//    public Division(String name, List<SubDivision> subdivisions) {
-//        super();
-//        this.name = name;
-//        this.subdivisions = subdivisions;
-//    }
-//
-//    public String getName() {
-//        return name;
-//    }
-//
-//    public void setName(String name) {
-//        this.name = name;
-//    }
-//
-//    public List<SubDivision> getSubdivisions() {
-//        return subdivisions;
-//    }
-//
-//    public void setSubdivisions(List<SubDivision> subdivisions) {
-//        this.subdivisions = subdivisions;
-//    }
-
+	private String name;
+	private List<SubDivision> subdivisions;
 
 }

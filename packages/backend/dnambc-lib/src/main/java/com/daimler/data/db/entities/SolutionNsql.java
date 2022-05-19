@@ -35,19 +35,17 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "solution_nsql")
-public class SolutionNsql extends BaseEntity<Solution>
-        implements Serializable {
+public class SolutionNsql extends BaseEntity<Solution> implements Serializable {
 
-    private static final long serialVersionUID = 4857908075537600169L;
+	private static final long serialVersionUID = 4857908075537600169L;
 
-    public SolutionNsql() {
-        super();
-    }
-    
-    public SolutionNsql(String id, Solution data) {
-    	this.setId(id);
-    	this.setData(data);
-    }
+	public SolutionNsql() {
+		super();
+	}
 
+	public SolutionNsql(String id, Solution data) {
+		this.setId(id);
+		this.setData(data);
+	}
 
 }

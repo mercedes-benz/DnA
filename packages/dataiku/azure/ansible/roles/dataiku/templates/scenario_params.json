@@ -1,0 +1,75 @@
+{
+  "name": "run_ad_sync", 
+  "versionTag": {
+      "lastModifiedBy": {
+          "login": "admin"
+      }, 
+      "lastModifiedOn": 1613126869102, 
+      "versionNumber": 8
+  }, 
+  "tags": [], 
+  "triggers": [
+      {
+          "delay": 5, 
+          "active": true, 
+          "type": "temporal", 
+          "id": "6UqwhNtD", 
+          "params": {
+              "count": 5, 
+              "hour": 9, 
+              "daysOfWeek": [
+                  null
+              ], 
+              "frequency": "Hourly", 
+              "minute": 40, 
+              "dayOfMonth": 1
+          }
+      }
+  ], 
+  "delayedTriggersBehavior": {
+      "delayWhileRunning": true, 
+      "squashDelayedTriggers": true, 
+      "suppressTriggersWhileRunning": true
+  }, 
+  "automationLocal": false, 
+  "params": {
+      "steps": [
+          {
+              "name": "Step #2", 
+              "runConditionStatuses": [
+                  "SUCCESS", 
+                  "WARNING"
+              ], 
+              "runConditionType": "RUN_IF_STATUS_MATCH", 
+              "maxRetriesOnFail": 0, 
+              "resetScenarioStatus": false, 
+              "runConditionExpression": "", 
+              "params": {
+                  "adminConfig": {}, 
+                  "config": {
+                      "copyProject": false, 
+                      "flag_simulate": false, 
+                      "azure_ad_connection": {
+                          "mode": "PRESET", 
+                          "name": "Azure AD"
+                      }
+                  }, 
+                  "proceedOnFailure": false, 
+                  "runnableType": "pyrunnable_azure-ad-sync_graph-macro"
+              }, 
+              "delayBetweenRetries": 10, 
+              "type": "runnable", 
+              "id": "runmacro_pyrunnable_azure-ad-sync_graph-macro"
+          }
+      ]
+  }, 
+  "reporters": [], 
+  "active": true, 
+  "checklists": {
+      "checklists": []
+  }, 
+  "customFields": {}, 
+  "type": "step_based", 
+  "id": "run_ad_sync", 
+  "projectKey": "ADMIN_MACROS"
+}

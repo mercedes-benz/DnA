@@ -1,11 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+	<springProperty name="applicationName" source="spring.application.name" scope="context"></springProperty>
+    <springProperty name="logPath" source="logging.service.path"></springProperty>
+     <property name="LOG_FILE" value="${logPath}/${applicationName}"/>
+     
+     <property name="LOG_PATTERN"
+     		   value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(
+     		   [${applicationName}]
+     		   )
+     		   %clr([%mdc{env:-null}][%mdc{user:-null}]){faint} %clr(---){faint} %clr([%15.15t]){faint}
+     		   %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION+CONVERSION_WORD:-%wEx}" />
+     		   
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n</pattern>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>utf8</charset>
         </encoder>
     </appender>
+    
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    	<file>${LOG_FILE}.log</file>
+    	<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    		<fileNamePattern>${applicationName}.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+    	</rollingPolicy>
+    	<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+    		<maxFileSize>5MB</maxFileSize>
+    	</triggeringPolicy>
+    	<encoder>
+    		<pattern>${LOG_PATTERN}</pattern>
+    		<charset>utf8</charset>
+    	</encoder>
+    </appender>
     <root level="INFO">
+    	<appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </root>
+    
+    
 </configuration>

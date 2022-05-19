@@ -1,0 +1,15 @@
+{
+  "library": "spring-mvc",
+  "dateLibrary": "legacy",
+  "hideGenerationTimestamp": true,
+  "modelPackage": "com.daimler.data.dto.userwidgetpref",
+  "apiPackage": "com.daimler.data.api.userwidgetpref",
+  "invokerPackage": "com.daimler.data.service.userwidgetpref",
+  "importMappings": {
+    "BindingResult":"org.springframework.validation.BindingResult",
+    "GenericMessage":"com.daimler.data.controller.exceptions.GenericMessage",
+    "MessageDescription":"com.daimler.data.controller.exceptions.MessageDescription",
+    "SubdivisionVO":"com.daimler.data.dto.report.SubdivisionVO",
+    "ArtVO":"com.daimler.data.dto.report.ArtVO" 
+  }
+}

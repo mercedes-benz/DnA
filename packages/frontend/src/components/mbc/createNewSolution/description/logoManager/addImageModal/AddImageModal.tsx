@@ -2,7 +2,7 @@ import cn from 'classnames';
 // import Upload from 'rc-upload';
 // import { RcFile } from 'rc-upload/lib/interface';
 import React, { useEffect, useState } from 'react';
-import { Modal } from '../../../../../../components/formElements/modal/Modal';
+import  Modal  from '../../../../../../components/formElements/modal/Modal';
 import { IconImage } from '../../../../../../components/icons/IconImage';
 import { PredefinedSolutionLogoImagesInfo, SOLUTION_LOGO_IMAGE_TYPES } from '../../../../../../globals/constants';
 import { ILogoDetails } from '../../../../../../globals/types';
@@ -62,7 +62,7 @@ const AddImageModal = (props: IAddImageModalProps) => {
         <IconImage className={Styles.titleIcon} />
         Preset Images
       </h4>
-      <div className={Styles.predefinedImageGridWrapper}>
+      <div className={classNames(Styles.predefinedImageGridWrapper, 'mbc-scroll')}>
         <div className={Styles.predefinedImageGrid}>
           {PredefinedSolutionLogoImagesInfo.images.map((item: any) => {
             const isSelectedItem = item.id === (selectedImageInfo ? selectedImageInfo.id : 'default');

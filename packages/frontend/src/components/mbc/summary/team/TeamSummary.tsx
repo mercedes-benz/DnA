@@ -12,7 +12,19 @@ import Styles from './TeamSummary.scss';
 const classNames = cn.bind(Styles);
 
 export interface ITeamProps {
-  team: ITeams[];
+  team: ITeamRequest;
+  neededRoles: INeededRoleObject[];
+}
+
+export interface ITeamRequest {
+  team?: ITeams[];
+}
+
+export interface INeededRoleObject {
+  fromDate: string;
+  neededSkill: string;
+  requestedFTECount: string;
+  toDate: string;
 }
 
 export default class TeamSummary extends React.Component<ITeamProps, any> {
@@ -21,15 +33,35 @@ export default class TeamSummary extends React.Component<ITeamProps, any> {
   }
 
   public render() {
-    const teamMembersList = this.props.team.map((member: ITeams, index: number) => {
+    const teamMembersList = this.props.team.team.map((member: ITeams, index: number) => {
       return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
     });
     return (
       <React.Fragment>
-        <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
+        <div className={classNames(Styles.flexLayout, Styles.mainPanel, 'mainPanelSection')}>
           <div id="teamMembersWrapper" className={Styles.wrapper}>
-            <h3>Team</h3>
-            <div>{teamMembersList}</div>
+            <div>
+              <h3>Members</h3>
+              <div>{teamMembersList}</div>
+            </div>
+            <div id="neededRoles">
+              <h3>Needed Roles/Skills</h3>
+              <br />
+              <div className={Styles.rolesList}>
+                {this.props.neededRoles
+                  ? this.props.neededRoles.length > 0
+                    ? this.props.neededRoles.map((item, index) => {
+                        return (
+                          <div key={item.neededSkill + index} id={item.neededSkill + index}>
+                            {item.neededSkill}:{' '}
+                            {item.requestedFTECount ? item.requestedFTECount.toString().replace('.', ',') : 'N/A'}
+                          </div>
+                        );
+                      })
+                    : 'N/A'
+                  : 'N/A'}
+              </div>
+            </div>
           </div>
         </div>{' '}
       </React.Fragment>

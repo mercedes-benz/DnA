@@ -37,9 +37,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ValueDriver implements Serializable{
-	
+public class ValueDriver implements Serializable {
+
 	private static final long serialVersionUID = 3354309990000112321L;
 	private List<Factor> valueFactors;
-	
+
 }

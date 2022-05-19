@@ -1,0 +1,18 @@
+{
+  "params": [
+      {
+          "name": "group_prefix",
+          "label": "Group Prefix",
+          "type": "STRING",
+          "description": "Group names in AD should start with this prefix to grant permissions for this Dataiku instance",
+          "mandatory": true
+      },
+      {
+          "name": "create_technical_user_script_path",
+          "label": "Technical user script location",
+          "type": "STRING",
+          "description": "Technical user script location",
+          "mandatory": true
+      }
+  ]
+}

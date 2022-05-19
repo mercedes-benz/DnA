@@ -10,7 +10,7 @@ import {
 } from '../../../../globals/types';
 import { history } from '../../../../router/History';
 import { PipelineApiClient } from '../../../../services/PipelineApiClient';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
@@ -177,7 +177,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                         <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
                           <label className={'checkbox ' + Styles.checkBoxDisable}>
                             <span className="wrapper">
-                              <input type="checkbox" value="can_dag_read" checked={true} />
+                              <input type="checkbox" className="ff-only" value="can_dag_read" checked={true} />
                             </span>
                             <span className="label">Read</span>
                           </label>
@@ -188,6 +188,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                             <span className="wrapper">
                               <input
                                 type="checkbox"
+                                className="ff-only"
                                 value="can_dag_edit"
                                 checked={item.permissions !== null ? item.permissions?.includes('can_dag_edit') : false}
                                 onClick={onPermissionEdit(item.username, collIndex)}
@@ -266,7 +267,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                   >
                     <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
                       <span className="animation-wrapper"></span>
-                      <input type="checkbox" id={index + '1'} />
+                      <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                       <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                         <div className={Styles.dagTile}>
                           <div className={Styles.dagTitleCol}>{item.projectId}</div>

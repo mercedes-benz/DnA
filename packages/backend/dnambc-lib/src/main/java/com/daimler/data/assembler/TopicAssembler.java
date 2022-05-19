@@ -35,32 +35,31 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
-public class TopicAssembler
-        implements GenericAssembler<TopicVO, TopicNsql> {
+public class TopicAssembler implements GenericAssembler<TopicVO, TopicNsql> {
 
-    @Override
-    public TopicVO toVo(TopicNsql entity) {
-        TopicVO topicVO = null;
-        if (Objects.nonNull(entity)) {
-            topicVO = new TopicVO();
-            topicVO.setId(entity.getId());
-            topicVO.setName(entity.getData().getName());
-        }
-        return topicVO;
-    }
+	@Override
+	public TopicVO toVo(TopicNsql entity) {
+		TopicVO topicVO = null;
+		if (Objects.nonNull(entity)) {
+			topicVO = new TopicVO();
+			topicVO.setId(entity.getId());
+			topicVO.setName(entity.getData().getName());
+		}
+		return topicVO;
+	}
 
-    @Override
-    public TopicNsql toEntity(TopicVO vo) {
-        TopicNsql topicNsql = null;
-        if (Objects.nonNull(vo)) {
-            topicNsql = new TopicNsql();
-            Topic topic = new Topic();
-            topic.setName(vo.getName() );
-            topicNsql.setData(topic);
-            if (vo.getId() != null)
-                topicNsql.setId(vo.getId());
-        }
-        return topicNsql;
-    }
+	@Override
+	public TopicNsql toEntity(TopicVO vo) {
+		TopicNsql topicNsql = null;
+		if (Objects.nonNull(vo)) {
+			topicNsql = new TopicNsql();
+			Topic topic = new Topic();
+			topic.setName(vo.getName());
+			topicNsql.setData(topic);
+			if (vo.getId() != null)
+				topicNsql.setId(vo.getId());
+		}
+		return topicNsql;
+	}
 
 }

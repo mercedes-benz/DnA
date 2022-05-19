@@ -19,7 +19,7 @@ coverage/
 *.gz
 *.iso
 *.jar
-gradle-wrapper.jar
+#gradle-wrapper.jar
 *.rar
 *.tar
 *.tgz
@@ -84,11 +84,25 @@ tests/cucumber-tests/.factorypath
 tests/cucumber-tests/.project
 tests/cucumber-tests/com.mbrdi.datambc/target/test-classes/*
 
-# IGNORE SECRETS #
-*-secrets.yaml
-deployment/kubernetes/airflow/client-secret.json
-deployment/kubernetes/airflow/values-dev.yaml
-deployment/kubernetes/airflow/generated.yaml
-
-#Folders to remove
 .vscode
+.unotes
+
+# DASHBOARD BACKEND #
+packages/dashboard-backend/dashboard-lib/bin
+packages/dashboard-backend/dashboard-lib/build
+packages/dashboard-backend/dashboard-lib/.classpath
+packages/dashboard-backend/dashboard-lib/.settings
+packages/dashboard-backend/dashboard-lib/.project
+packages/dashboard-backend/.project
+packages/dashboard-backend/.gradle
+packages/dashboard-backend/.settings
+
+# Airflow BACKEND #
+../backend/.settings/org.eclipse.buildship.core.prefs
+../backend/dnambc-lib/.classpath
+packages/naas/naas-lib/bin
+../airflow-backend/.settings
+../airflow-backend/airflow-backend-lib/.classpath
+
+#Helm
+Chart.lock

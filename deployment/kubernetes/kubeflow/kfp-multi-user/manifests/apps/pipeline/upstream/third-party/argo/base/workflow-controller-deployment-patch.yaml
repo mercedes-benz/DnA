@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-controller
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+        - name: workflow-controller
+          image: gcr.io/ml-pipeline/workflow-controller:v3.1.6-patch-license-compliance
+          args:
+            - --configmap
+            - workflow-controller-configmap
+            - --executor-image
+            - dna/ml-pipeline/argoexec:kale1.0
+          resources:
+            requests:
+              cpu: 100m
+              memory: 500Mi

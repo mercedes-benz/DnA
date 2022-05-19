@@ -32,6 +32,8 @@ import com.daimler.data.dto.projectstatus.ProjectStatusCollection;
 import com.daimler.data.dto.projectstatus.ProjectStatusVO;
 import com.daimler.data.service.projectstatus.ProjectStatusService;
 import io.swagger.annotations.*;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,62 +45,63 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@Api(value = "ProjectStatus API", tags = {"projectstatuses"})
+@Api(value = "ProjectStatus API", tags = { "projectstatuses" })
 @RequestMapping("/api")
-public class ProjectStatusController
-        implements ProjectStatusesApi {
+@Slf4j
+public class ProjectStatusController implements ProjectStatusesApi {
 
+	@Autowired
+	private ProjectStatusService projectStatusService;
 
-    @Autowired
-    private ProjectStatusService projectStatusService;
+	@Override
+	@ApiOperation(value = "Get all available project-statuses.", nickname = "getAll", notes = "Get all project-statuses. This endpoints will be used to Get all valid available project-statuses maintenance records.", response = ProjectStatusCollection.class, tags = {
+			"projectstatuses", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = ProjectStatusCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/project-statuses", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<ProjectStatusCollection> getAll() {
+		final List<ProjectStatusVO> projectStatusesVo = projectStatusService.getAll();
+		ProjectStatusCollection projectstatusCollection = new ProjectStatusCollection();
+		if (projectStatusesVo != null && projectStatusesVo.size() > 0) {
+			projectstatusCollection.addAll(projectStatusesVo);
+			log.debug("Returning all available project status");
+			return new ResponseEntity<>(projectstatusCollection, HttpStatus.OK);
+		} else {
+			log.debug("No project status collection found, returning empty");
+			return new ResponseEntity<>(projectstatusCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
-    @Override
-    @ApiOperation(value = "Get all available project-statuses.", nickname = "getAll", notes = "Get all project-statuses. This endpoints will be used to Get all valid available project-statuses maintenance records.", response = ProjectStatusCollection.class, tags={ "projectstatuses", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of succes or failure", response = ProjectStatusCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-            @ApiResponse(code = 400, message = "Bad request."),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Method not allowed"),
-            @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/project-statuses",
-            produces = { "application/json" },
-            consumes = { "application/json" },
-            method = RequestMethod.GET)
-    public ResponseEntity<ProjectStatusCollection> getAll() {
-        final List<ProjectStatusVO> projectStatusesVo = projectStatusService.getAll();
-        ProjectStatusCollection projectstatusCollection = new ProjectStatusCollection();
-        if (projectStatusesVo != null && projectStatusesVo.size() > 0) {
-            projectstatusCollection.addAll(projectStatusesVo);
-            return new ResponseEntity<>(projectstatusCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(projectstatusCollection, HttpStatus.NO_CONTENT);
-        }
-    }
-
-
-    @Override
-    @ApiOperation(value = "Get available project-status for a given project-status id.", nickname = "getById", notes = "Get project-status. This endpoints will be used to Get valid available project-status for a given project-status-id maintenance records.", response = ProjectStatusVO.class, tags = {"projectstatuses",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of success or failure", response = ProjectStatusVO.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-            @ApiResponse(code = 400, message = "Bad request."),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Method not allowed"),
-            @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/project-statuses/{id}",
-            produces = { "application/json" },
-            consumes = { "application/json" },
-            method = RequestMethod.GET)
-    public ResponseEntity<ProjectStatusVO> getById(@ApiParam(value = "Id of the project-status for which details are to be fetched", required = true) @PathVariable("id") String id) {
-        final ProjectStatusVO projectstatusVO = projectStatusService.getById(id);
-        if (projectstatusVO != null)
-            return new ResponseEntity<>(projectstatusVO, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(projectstatusVO, HttpStatus.NO_CONTENT);
-    }
-
+	@Override
+	@ApiOperation(value = "Get available project-status for a given project-status id.", nickname = "getById", notes = "Get project-status. This endpoints will be used to Get valid available project-status for a given project-status-id maintenance records.", response = ProjectStatusVO.class, tags = {
+			"projectstatuses", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ProjectStatusVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/project-statuses/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<ProjectStatusVO> getById(
+			@ApiParam(value = "Id of the project-status for which details are to be fetched", required = true) @PathVariable("id") String id) {
+		final ProjectStatusVO projectstatusVO = projectStatusService.getById(id);
+		if (projectstatusVO != null) {
+			log.debug("Returning project status {} ", id);
+			return new ResponseEntity<>(projectstatusVO, HttpStatus.OK);
+		} else {
+			log.debug("Returning empty, no project status {} found", id);
+			return new ResponseEntity<>(projectstatusVO, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

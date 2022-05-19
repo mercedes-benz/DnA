@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: dna-airflow-backend
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}    
+  jpa:
+    database: POSTGRESQL
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+     ddl-auto: none
+      
+
+  datasource:
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/airflow_db}
+    username: ${API_DB_USER:airflow_user}
+    password: ${API_DB_PASS:airflow_pass}
+    driverClassName: org.postgresql.Driver
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+        
+server:
+  port: 7171
+  servlet:
+    context-path: /airflow
+    
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}    
+
+dna:
+  uri: ${DNA_URI:XXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
+  
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:XXXX}
+    byPassUrl: ${JWT_BYPASS_URIS:/api/login;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate}
+
+git:
+  uri: ${AIRFLOW_GIT_URI:XXXX}
+  mountPath: ${AIRFLOW_GIT_MOUNTPATH:C:\GITTest\airflow-user-dags}
+  token: ${AIRFLOW_GIT_TOKEN:XXXX}
+  branch: ${AIRFLOW_GIT_BRANCH:master}
+  dagPath: ${DAG_PATH:dags}
+  dagFileExtension: ${DAG_FILE_EXTENSION:py}
+
+dag:
+  menuCreate:
+     waitTime: ${AIRFLOW_DAG_MENU_CREATE_WAIT_TIME:4}
+     reTry: ${AIRFLOW_DAGMENU_CREATE_RETRY:20}
+
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/logs}
+  level:
+    com:
+      daimler:
+          dna:
+            airflow: INFO
+    org.springframework.boot.autoconfigure.logging: INFO

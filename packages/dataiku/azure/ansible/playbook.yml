@@ -1,0 +1,123 @@
+---
+
+- hosts: all
+  vars_files:
+    - environment/config.yml
+  vars:
+     saml_idp_metadata: "{{ lookup('file', saml_idp_metadata_path) }}"
+     date_now: "{{ lookup('pipe', 'date +%Y-%m-%d') }}"
+  pre_tasks:
+    - name: Ensure DSS license path is set before installation
+      fail: msg='DSS_LICENSE_FILE environment variable is not set'
+      when: dss_license_file_path == ""
+      tags: [ always ]
+
+    - name: Ensure SAML IDP Metadata is set before installation
+      fail: msg='SAML_IDP_METADATA_FILE environment variable is not set'
+      when: saml_idp_metadata_path == ""
+      tags: [ azure ]
+
+    - name: Ensure SAML_ENTITY_ID is set before installation
+      fail: msg='SAML_ENTITY_ID environment variable is not set'
+      when: saml_entity_id == ""
+      tags: [ azure ]
+
+    - name: Ensure AZURE_APP_SECRET is set before installation
+      fail: msg='AZURE_APP_SECRET environment variable is not set'
+      when: azure_app_secret == ""
+      tags: [ always ]
+
+    - name: Ensure AZURE_APP_ID is set before installation
+      fail: msg='AZURE_APP_ID environment variable is not set'
+      when: azure_app_id == ""
+      tags: [ always ]
+
+    - name: Ensure AZURE_TENANT_ID is set before installation
+      fail: msg='AZURE_TENANT_ID environment variable is not set'
+      when: azure_tenant_id == ""
+      tags: [ always ]
+
+    - name: Ensure DSS_INSTANCE_ID is set before installation
+      fail: msg='DSS_INSTANCE_ID environment variable is not set'
+      when: dss_instance_id == ""
+      tags: [ always ]
+
+    - name: Ensure AZURE_DSS_LICENSE_GROUP_PREFIX is set before installation
+      fail: msg='AZURE_DSS_LICENSE_GROUP_PREFIX environment variable is not set'
+      when: azure_dss_license_group_prefix == ""
+      tags: [ always ]
+
+    - name: Ensure DSS_EXTOLLO_SSL_KEY_FILE is set before installation
+      fail: msg='DSS_EXTOLLO_SSL_KEY_FILE environment variable is not set'
+      when: dss_extollo_ssl_key_path == ""
+      tags: [ extollo ]
+
+    - name: Ensure DSS_EXTOLLO_SSL_CRT_FILE is set before installation
+      fail: msg='DSS_EXTOLLO_SSL_CRT_FILE environment variable is not set'
+      when: dss_extollo_ssl_crt_path == ""
+      tags: [ extollo ]
+
+    - name: Ensure DOMAIN_NAME is set before installation
+      fail: msg='DOMAIN_NAME environment variable is not set'
+      when: domain == ""
+      tags: [ training, prod ]
+  
+    - name: Ensure SAML_IDP_METADATA_FILE is set before installation
+      fail: msg='SAML_IDP_METADATA_FILE environment variable is not set'
+      when: saml_idp_metadata_path == ""
+      tags: [ training, prod ]
+
+    - name: Ensure SAML_ENTITY_ID is set before installation
+      fail: msg='SAML_ENTITY_ID environment variable is not set'
+      when: saml_entity_id == ""
+      tags: [ training, prod ]
+
+    - name: Ensure VM_ADMIN_USER is set before installation
+      fail: msg='VM_ADMIN_USER environment variable is not set'
+      when: vm_admin_user == ""
+      tags: [ prod ]
+
+    - name: Ensure IS_TRAINING_ENV flag is set
+      fail: msg='IS_TRAINING_ENV environment variable is not set'
+      when: is_training_env == ""
+      tags: [ training ]
+
+    - name: Ensure DNA_PLATFORM_URL is set
+      fail: msg='DNA_PLATFORM_URL environment variable is not set'
+      when: dna_platform_url == ""
+      tags: [ training, prod ]
+
+    - name: Ensure GRAFANA_STREAM_ID flag is set
+      fail: msg='GRAFANA_STREAM_ID environment variable is not set'
+      when: grafana_stream_id == ""
+      tags: [ training, prod ]
+
+    - name: Ensure GRAFANA_API_KEY flag is set
+      fail: msg='GRAFANA_API_KEY environment variable is not set'
+      when: grafana_api_key == ""
+      tags: [ training, prod ]
+
+    - name: Ensure IS_AUTOMATION_NODE flag is set
+      fail: msg='IS_AUTOMATION_NODE environment variable is not set'
+      when: is_automation_node == ""
+      tags: [ automation_node ]
+
+    - name: Ensure AUT_NODE_SSL_CHAIN is set
+      fail: msg='AUT_NODE_SSL_CHAIN environment variable is not set'
+      when: aut_node_ssl_chain == ""
+      tags: [ prod ]
+
+  roles:
+    - role: extollo
+      become: true
+      tags: [ extollo ]
+
+    - role: letsencrypt
+      become: true
+      tags: [ letsencrypt ]
+
+    - role: dataiku
+      become: true
+
+    - role: dataiku-upgrade
+      become: true

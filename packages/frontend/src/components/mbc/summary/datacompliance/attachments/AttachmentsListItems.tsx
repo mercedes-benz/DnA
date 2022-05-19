@@ -46,7 +46,7 @@ export default class AttachmentsListItem extends React.Component<IAttachmentsLis
                   </div>
                 );
               })
-            : 'NA'}
+            : 'N/A'}
         </div>
       </React.Fragment>
     );

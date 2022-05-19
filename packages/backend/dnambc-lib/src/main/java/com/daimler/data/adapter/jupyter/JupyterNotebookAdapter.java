@@ -29,7 +29,8 @@ package com.daimler.data.adapter.jupyter;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -43,114 +44,131 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class JupyterNotebookAdapter {
-	
-	 @Value("${jupyternotebook.baseuri}")
-	 private String baseUri;
-	 
-	 @Value("${jupyternotebook.token}")
-	 private String authToken;
-	
-	 @Autowired
-	 RestTemplate restTemplate;
-	 
-	 
-	 public JupyterUserInfoDto getJupyterUserDetails(String userShortId) {
-		 try {
-		 HttpHeaders headers = new HttpHeaders();
-		 headers.set("Accept", "application/json");
-		 headers.set("Content-Type", "application/json");
-		 headers.set("Authorization", "token "+ authToken);
-		 HttpEntity entity = new HttpEntity<>(headers);
-		 String getUserUri = baseUri + "/" + userShortId;
-		 ResponseEntity<JupyterUserInfoDto> response = restTemplate.exchange(getUserUri, HttpMethod.GET, entity, JupyterUserInfoDto.class);
-		 if(response!=null) {
-			 return response.getBody();
-		 }
-		 else
-			 return null;
-		 }catch(Exception e) {
-			 return null;
-		 }
-	 }
-	 
-	 
-	 public List<JupyterUserInfoDto> createJupyterUser(String[] usersShortIds) {
-		 try {
-		 HttpHeaders headers = new HttpHeaders();
-		 headers.set("Accept", "application/json");
-		 headers.set("Content-Type", "application/json");
-		 headers.set("Authorization", "token "+ authToken);
-		 JupyterCreateUsersReqDto reqDto = new JupyterCreateUsersReqDto();
-		 reqDto.setAdmin(false);
-		 reqDto.setUsernames(usersShortIds);
-		 HttpEntity<JupyterCreateUsersReqDto> entity = new HttpEntity<JupyterCreateUsersReqDto>(reqDto,headers);
-		 String createUserUri = baseUri;
-		 ResponseEntity<Object> response = restTemplate.exchange(createUserUri, HttpMethod.POST, entity, Object.class);
-		 if(response!=null) {
-			 	List<JupyterUserInfoDto> createdUsersInfo = new ArrayList<>();
-			 	createdUsersInfo = (List<JupyterUserInfoDto>) response.getBody();
-			 	return createdUsersInfo;
-		 }
-		 return null;
-		 }catch(Exception e) {
-			 return null;
-		 }
-	 }
-	 
-	 
-	 public JupyterNotebookGenericResponse startJupyterUserNotebook(String userShortId) {
-		 try {
-		 HttpHeaders headers = new HttpHeaders();
-		 headers.set("Accept", "application/json");
-		 headers.set("Content-Type", "application/json");
-		 headers.set("Authorization", "token "+ authToken);
-		 HttpEntity entity = new HttpEntity<>(headers);
-		 String startUserNotebookUri = baseUri + "/" + userShortId + "/server";
-		 ResponseEntity<JupyterNotebookGenericResponse> response = restTemplate.exchange(startUserNotebookUri, HttpMethod.POST, entity, JupyterNotebookGenericResponse.class);
-		 if(response!=null) {
-			 HttpStatus responseStatus = response.getStatusCode();
-			 if(responseStatus != null && responseStatus.is2xxSuccessful())
-			 {
-				 JupyterNotebookGenericResponse startSuccessResponse = new JupyterNotebookGenericResponse("200","Started Successfully");
-				 return startSuccessResponse;
-			 }
-			 	 response.getBody();
-		 }
-		 return null;
-		 }catch(HttpClientErrorException e) {
-			 JupyterNotebookGenericResponse startClientErrorResponse = new JupyterNotebookGenericResponse("400","Started Already");
-			 return startClientErrorResponse;
-		 }catch(Exception e) {
-			 JupyterNotebookGenericResponse startServerErrorResponse = new JupyterNotebookGenericResponse("500",e.getMessage());
-			 return startServerErrorResponse;
-		 }
-	 }
-	 
-	 public JupyterNotebookGenericResponse stopJupyterUserNotebook(String userShortId) {
-		 try {
-		 HttpHeaders headers = new HttpHeaders();
-		 headers.set("Accept", "application/json");
-		 headers.set("Content-Type", "application/json");
-		 headers.set("Authorization", "token "+ authToken);
-		 HttpEntity entity = new HttpEntity<>(headers);
-		 String startUserNotebookUri = baseUri + "/" + userShortId + "/server";
-		 ResponseEntity<JupyterNotebookGenericResponse> response = restTemplate.exchange(startUserNotebookUri, HttpMethod.DELETE, entity, JupyterNotebookGenericResponse.class);
-		 if(response!=null) {
-			 HttpStatus responseStatus = response.getStatusCode();
-			 if(responseStatus != null && responseStatus.is2xxSuccessful())
-			 {
-				 JupyterNotebookGenericResponse startSuccessResponse = new JupyterNotebookGenericResponse("200","Stopped Successfully");
-				 return startSuccessResponse;
-			 }
-			 	 response.getBody();
-		 }
-		 return null;
-		 }catch(HttpClientErrorException e) {
-			 JupyterNotebookGenericResponse startClientErrorResponse = new JupyterNotebookGenericResponse("400","Stopped Already");
-			 return startClientErrorResponse;
-		 }catch(Exception e) {
-			 JupyterNotebookGenericResponse startServerErrorResponse = new JupyterNotebookGenericResponse("500",e.getMessage());
-			 return startServerErrorResponse;
-		 }
-	 }
+
+	private static Logger LOGGER = LoggerFactory.getLogger(JupyterNotebookAdapter.class);
+
+	@Value("${jupyternotebook.baseuri}")
+	private String baseUri;
+
+	@Value("${jupyternotebook.token}")
+	private String authToken;
+
+	@Autowired
+	RestTemplate restTemplate;
+
+	public JupyterUserInfoDto getJupyterUserDetails(String userShortId) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token " + authToken);
+			HttpEntity entity = new HttpEntity<>(headers);
+			String getUserUri = baseUri + "/" + userShortId;
+			ResponseEntity<JupyterUserInfoDto> response = restTemplate.exchange(getUserUri, HttpMethod.GET, entity,
+					JupyterUserInfoDto.class);
+			if (response != null) {
+				LOGGER.debug("In getJupyterUserDetails, returning after getting valid response from Jupyter");
+				return response.getBody();
+			} else
+				LOGGER.debug("In getJupyterUserDetails, returning null after getting response from Jupyter");
+			return null;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public List<JupyterUserInfoDto> createJupyterUser(String[] usersShortIds) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token " + authToken);
+			JupyterCreateUsersReqDto reqDto = new JupyterCreateUsersReqDto();
+			reqDto.setAdmin(false);
+			reqDto.setUsernames(usersShortIds);
+			HttpEntity<JupyterCreateUsersReqDto> entity = new HttpEntity<JupyterCreateUsersReqDto>(reqDto, headers);
+			String createUserUri = baseUri;
+			ResponseEntity<Object> response = restTemplate.exchange(createUserUri, HttpMethod.POST, entity,
+					Object.class);
+			if (response != null) {
+				List<JupyterUserInfoDto> createdUsersInfo = new ArrayList<>();
+				createdUsersInfo = (List<JupyterUserInfoDto>) response.getBody();
+				LOGGER.debug("In createJupyterUser, returning after getting response from Jupyter");
+				return createdUsersInfo;
+			}
+			return null;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public JupyterNotebookGenericResponse startJupyterUserNotebook(String userShortId) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token " + authToken);
+			HttpEntity entity = new HttpEntity<>(headers);
+			String startUserNotebookUri = baseUri + "/" + userShortId + "/server";
+			ResponseEntity<JupyterNotebookGenericResponse> response = restTemplate.exchange(startUserNotebookUri,
+					HttpMethod.POST, entity, JupyterNotebookGenericResponse.class);
+			if (response != null) {
+				HttpStatus responseStatus = response.getStatusCode();
+				if (responseStatus != null && responseStatus.is2xxSuccessful()) {
+					JupyterNotebookGenericResponse startSuccessResponse = new JupyterNotebookGenericResponse("200",
+							"Started Successfully");
+					LOGGER.info(
+							"In startJupyterUserNotebook, returning after getting starting notebook successfully for {} ",
+							userShortId);
+					return startSuccessResponse;
+				}
+				response.getBody();
+			}
+			return null;
+		} catch (HttpClientErrorException e) {
+			JupyterNotebookGenericResponse startClientErrorResponse = new JupyterNotebookGenericResponse("400",
+					"Started Already");
+			LOGGER.info("In startJupyterUserNotebook, {} notebook already started, returning", userShortId);
+			return startClientErrorResponse;
+		} catch (Exception e) {
+			JupyterNotebookGenericResponse startServerErrorResponse = new JupyterNotebookGenericResponse("500",
+					e.getMessage());
+			LOGGER.error("In startJupyterUserNotebook, failed to start notebook {}", e.getMessage());
+			return startServerErrorResponse;
+		}
+	}
+
+	public JupyterNotebookGenericResponse stopJupyterUserNotebook(String userShortId) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token " + authToken);
+			HttpEntity entity = new HttpEntity<>(headers);
+			String startUserNotebookUri = baseUri + "/" + userShortId + "/server";
+			ResponseEntity<JupyterNotebookGenericResponse> response = restTemplate.exchange(startUserNotebookUri,
+					HttpMethod.DELETE, entity, JupyterNotebookGenericResponse.class);
+			if (response != null) {
+				HttpStatus responseStatus = response.getStatusCode();
+				if (responseStatus != null && responseStatus.is2xxSuccessful()) {
+					JupyterNotebookGenericResponse startSuccessResponse = new JupyterNotebookGenericResponse("200",
+							"Stopped Successfully");
+					LOGGER.info("In stopJupyterUserNotebook, {} notebook stopped successfully, returning", userShortId);
+					return startSuccessResponse;
+				}
+				response.getBody();
+			}
+			return null;
+		} catch (HttpClientErrorException e) {
+			JupyterNotebookGenericResponse startClientErrorResponse = new JupyterNotebookGenericResponse("400",
+					"Stopped Already");
+			LOGGER.info("In stopJupyterUserNotebook, {} notebook already stopped, returning", userShortId);
+			return startClientErrorResponse;
+		} catch (Exception e) {
+			JupyterNotebookGenericResponse startServerErrorResponse = new JupyterNotebookGenericResponse("500",
+					e.getMessage());
+			LOGGER.error("In stopJupyterUserNotebook, failed to stop notebook {}", e.getMessage());
+			return startServerErrorResponse;
+		}
+	}
 }

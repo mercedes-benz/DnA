@@ -1,0 +1,125 @@
+{
+    "name": "run_maintenance_jobs",
+    "versionTag": {
+        "lastModifiedBy": {
+            "login": "admin"
+        },
+        "lastModifiedOn": 1616669165186,
+        "versionNumber": 2
+    },
+    "tags": [],
+    "triggers": [
+        {
+            "name": "run-once-a-day",
+            "delay": 5,
+            "params": {
+                "count": 5,
+                "hour": 2,
+                "daysOfWeek": [
+                    "Saturday"
+                ],
+                "frequency": "Daily",
+                "minute": 0,
+                "dayOfMonth": 1
+            },
+            "active": true,
+            "type": "temporal",
+            "id": "L70KQyBM"
+        }
+    ],
+    "delayedTriggersBehavior": {
+        "delayWhileRunning": true,
+        "squashDelayedTriggers": true,
+        "suppressTriggersWhileRunning": true
+    },
+    "automationLocal": false,
+    "params": {
+        "steps": [
+            {
+                "name": "Clear Job Logs",
+                "runConditionStatuses": [
+                    "SUCCESS",
+                    "WARNING"
+                ],
+                "runConditionType": "RUN_IF_STATUS_MATCH",
+                "maxRetriesOnFail": 0,
+                "resetScenarioStatus": false,
+                "runConditionExpression": "",
+                "params": {
+                    "adminConfig": {
+                        "allProjects": true
+                    },
+                    "config": {
+                        "age": 30,
+                        "performDeletion": false
+                    },
+                    "proceedOnFailure": false,
+                    "runnableType": "pyrunnable_builtin-macros_clear-job-logs"
+                },
+                "delayBetweenRetries": 10,
+                "type": "runnable",
+                "id": "runmacro_pyrunnable_builtin-macros_clear-job-logs"
+            },
+            {
+                "name": "Kill Jupyer Session",
+                "runConditionStatuses": [
+                    "SUCCESS",
+                    "WARNING"
+                ],
+                "runConditionType": "RUN_IF_STATUS_MATCH",
+                "maxRetriesOnFail": 0,
+                "resetScenarioStatus": false,
+                "runConditionExpression": "",
+                "params": {
+                    "adminConfig": {},
+                    "config": {
+                        "maxIdleTimeHours": 24,
+                        "dontKillConnectedKernels": true,
+                        "simulate": false,
+                        "maxSessionAgeHours": 48,
+                        "dontKillBusyKernels": true
+                    },
+                    "proceedOnFailure": false,
+                    "runnableType": "pyrunnable_builtin-macros_kill-jupyter-sessions"
+                },
+                "delayBetweenRetries": 10,
+                "type": "runnable",
+                "id": "runmacro_pyrunnable_builtin-macros_kill-jupyter-sessions"
+            },
+            {
+                "name": "Clear Scenario Logs",
+                "runConditionStatuses": [
+                    "SUCCESS",
+                    "WARNING"
+                ],
+                "runConditionType": "RUN_IF_STATUS_MATCH",
+                "maxRetriesOnFail": 0,
+                "resetScenarioStatus": false,
+                "runConditionExpression": "",
+                "params": {
+                    "adminConfig": {
+                        "allProjects": false
+                    },
+                    "config": {
+                        "age": 30,
+                        "performDeletion": false
+                    },
+                    "proceedOnFailure": false,
+                    "runnableType": "pyrunnable_builtin-macros_clear-scenario-logs"
+                },
+                "delayBetweenRetries": 10,
+                "type": "runnable",
+                "id": "runmacro_pyrunnable_builtin-macros_clear-scenario-logs"
+            }
+        ]
+    },
+    "reporters": [],
+    "active": true,
+    "checklists": {
+        "checklists": []
+    },
+    "customFields": {},
+    "type": "step_based",
+    "id": "run_maintenance_jobs",
+    "projectKey": "ADMIN_MACROS"
+}

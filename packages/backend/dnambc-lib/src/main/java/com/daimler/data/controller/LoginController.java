@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +91,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LoginController {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(LoginController.class);
-	
+
 	@Value("${oidc.provider}")
 	private String oidcProvider;
 
@@ -120,7 +121,7 @@ public class LoginController {
 
 	@Value("${dna.feature.internal-user-enabled}")
 	private boolean internalUserEnabled;
-	
+
 	@Value("${dna.user.role}")
 	private String USER_ROLE;
 
@@ -158,7 +159,7 @@ public class LoginController {
 			return new ResponseEntity<>("{\"errmsg\": \"Invalid Token!\"}", HttpStatus.BAD_REQUEST);
 		}
 		if (oidcDisabled) {
-			log.info("OIDC is disabled, generating a dummy token");
+			log.debug("OIDC is disabled, generating a dummy token");
 //            String jwt = JWTGenerator.createJWT(getMockUser());
 //            userinfoService.updateUserToken(getMockUser().getId(), jwt);
 			userInfoService.updateNewUserToken("DEMOUSER", true);
@@ -167,7 +168,7 @@ public class LoginController {
 							+ "\",\"loggedIn\":\"Y\"}",
 					HttpStatus.OK);
 		} else if ("OKTA".equalsIgnoreCase(oidcProvider) || "GOOGLE".equalsIgnoreCase(oidcProvider)) {
-			log.info("Verifying access token with {}",oidcProvider);
+			log.debug("Verifying access token with {}", oidcProvider);
 			IntrospectionResponse response = doOKTATokenIntrospection(oauthToken);
 			if (response.getSub() != null && response.getActive().equalsIgnoreCase("true")) {
 				UserInfo userInfo = fetchOKTAUserInfo(oauthToken, response.getSub());
@@ -186,7 +187,7 @@ public class LoginController {
 			}
 
 		} else {
-			log.info("OIDC is enabled, introspecting the token");
+			log.debug("OIDC is enabled, introspecting the token");
 
 			IntrospectionResponse response = doTokenIntrospection(oauthToken);
 			if (response.getSub() != null) {
@@ -217,19 +218,19 @@ public class LoginController {
 	@RequestMapping(value = "/verifyLogin", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<String> verifyLogin(@RequestHeader("Authorization") String jwt) {
-		log.info("Verify login ");
+		log.trace("Verify login ");
 		if (StringUtils.isEmpty(jwt)) {
 			return new ResponseEntity<>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
 		} else {
 			boolean tokenMappedToUser = false;
 			String userId = "";
 			Claims claims = JWTGenerator.decodeJWT(jwt);
-			log.debug("Verify login claim {}",claims);
+			log.debug("Verify login claim {}", claims);
 			if (claims == null) {
 				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
 			}
-		    userId = (String) claims.get("id");
-			log.debug("Verify login {}",userId);
+			userId = (String) claims.get("id");
+			log.debug("Verify login {}", userId);
 			String oauthToken = (String) claims.get("authToken");
 			if (StringUtils.isEmpty(userId)) {
 				return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
@@ -296,7 +297,7 @@ public class LoginController {
 			if (!oidcDisabled) {
 				revokeToken(oauthToken);
 			}
-				userId = (String) claims.get("id");
+			userId = (String) claims.get("id");
 
 			userInfoService.updateNewUserToken(userId, false);
 			return new ResponseEntity<String>("{\"msg\": \"User Logged out Successfully!\"}", HttpStatus.OK);
@@ -348,22 +349,24 @@ public class LoginController {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			UserInfo userInfo = mapper.readValue(response.getBody(), UserInfo.class);
-			UserInfoVO userVO = null;
-			try {
-				userVO = userInfoService.getById(userInfo.getId());
-			} catch (NoSuchElementException e) {
-				log.info("User not found, adding the user " + userInfo.getId());
+			log.info("Fetching user from database.");
+			UserInfoVO userVO = userInfoService.getById(userInfo.getId());
+			if(Objects.isNull(userVO)){
+				log.info("User not found, adding the user:{}",userInfo.getId());
+				//Fetching default role as USER
 				UserRoleNsql roleEntity = userRoleService.getRoleUser();
 				UserInfoRole userRole = new UserInfoRole();
 				userRole.setId(roleEntity.getId());
 				userRole.setName(roleEntity.getData().getName());
 				List<UserInfoRole> userRoleList = new ArrayList<>();
 				userRoleList.add(userRole);
+				//Setting entity to add new user
 				UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 				userEntity.setIsLoggedIn("Y");
 				userInfoService.addUser(userEntity);
 				userVO = userInfoAssembler.toVo(userEntity);
 			}
+
 			List<UserRoleVO> rolesVO = userVO.getRoles();
 			List<UserRole> userRoles = userInfoAssembler.toUserRoles(rolesVO);
 			List<UserRole> existingRoles = userInfo.getDigiRole();
@@ -377,7 +380,7 @@ public class LoginController {
 			return null;
 		}
 	}
-
+	
 	private UserInfo fetchOKTAUserInfo(String accessToken, String userId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
@@ -397,7 +400,7 @@ public class LoginController {
 				UserInfoRole userRole = new UserInfoRole();
 				userRole.setId(roleEntity.getId());
 				userRole.setName(roleEntity.getData().getName());
-				if("Admin".equalsIgnoreCase(USER_ROLE)) {
+				if ("Admin".equalsIgnoreCase(USER_ROLE)) {
 					userRole.setId("3");
 					userRole.setName("Admin");
 				}

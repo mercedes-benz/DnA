@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.projectstatus;
 import com.daimler.data.db.entities.ProjectStatusNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface ProjectStatusCustomRepository
-        extends CommonDataRepository<ProjectStatusNsql, String> {
+public interface ProjectStatusCustomRepository extends CommonDataRepository<ProjectStatusNsql, String> {
 
 }

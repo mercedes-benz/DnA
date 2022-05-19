@@ -31,7 +31,6 @@ import com.daimler.data.db.entities.DataVolumeNsql;
 import com.daimler.data.dto.datavolume.DataVolumeVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface DataVolumeService
-        extends CommonService<DataVolumeVO, DataVolumeNsql, String> {
+public interface DataVolumeService extends CommonService<DataVolumeVO, DataVolumeNsql, String> {
 
 }

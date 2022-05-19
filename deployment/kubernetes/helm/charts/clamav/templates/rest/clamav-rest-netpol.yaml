@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.app.backend.name }}-web-allow-netpol
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      name: {{ .Values.app.backend.name }}
+  ingress:
+    #- from: []
+    # - from:
+    #   - podSelector: 
+    #       matchLabels:
+    #         component: jupyter
+    - ports:
+      - port: 8181
+    #   from: []
+  #   - ports:
+  #     - port: 8080
+  #       protocol: TCP
+  # policyTypes:
+  # - Ingress

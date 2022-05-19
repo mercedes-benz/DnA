@@ -32,9 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class UserInfoCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<UserInfoNsql, String>
-        implements UserInfoCustomRepository {
-
+public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserInfoNsql, String>
+		implements UserInfoCustomRepository {
 
 }
