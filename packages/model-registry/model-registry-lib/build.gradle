@@ -108,6 +108,16 @@ dependencies {
 	
 	// https://mvnrepository.com/artifact/net.minidev/json-smart
     implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+    
+    implementation("io.minio:minio:8.3.6")
+    // https://mvnrepository.com/artifact/io.minio/minio-admin
+	implementation group: 'io.minio', name: 'minio-admin', version: '8.3.6'
+	
+	 implementation("com.squareup.okhttp3:okhttp") {
+        version {
+            strictly '4.9.0'
+        }
+    }
 }
 
 tasks.named('test') {

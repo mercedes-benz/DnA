@@ -151,7 +151,7 @@ public class BaseStorageService implements StorageService {
 					Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
 							bucketVo.getBucketName(), null);
 					ownerUserVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
-					String bucketUri = bucketConnectionUri.get(ConstantsUtility.URI);
+					String bucketUri = "/#/storage/explorer/" + bucketVo.getBucketName();
 					ownerUserVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
 
 					// Setting bucket access info for owner
@@ -236,7 +236,7 @@ public class BaseStorageService implements StorageService {
 			 */
 
 			if (bucketCreationEvent.equalsIgnoreCase(eventType)) {
-				message = "Storage bucket:  " + bucketName + " is created by user " + userName + ". Link: " + bucketUri;
+				message = "Storage bucket:  " + bucketName + ", is created by user " + userName;
 				LOGGER.info("Publishing message on bucket creation for bucketname {} by userId {}", bucketName, userId);
 			}
 			if (eventType != null && eventType != "") {
