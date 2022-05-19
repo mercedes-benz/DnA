@@ -1,6 +1,6 @@
 spring:
   application:
-    name: dna-kube-client-service
+    name: model-registry-service
 
 dna:
   kube:

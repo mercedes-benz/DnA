@@ -34,6 +34,10 @@ const getConnectionInfo = (bucketName) => {
   return server.get(`/buckets/${bucketName}/connect`, { data: {} });
 };
 
+const getDataConnectionTypes = () => {
+  return server.get('/classifications', { data: {} });
+};
+
 export const bucketsApi = {
   getAllBuckets,
   getBucketByName,
@@ -41,4 +45,5 @@ export const bucketsApi = {
   updateBucket,
   deleteBucket,
   getConnectionInfo,
+  getDataConnectionTypes,
 };

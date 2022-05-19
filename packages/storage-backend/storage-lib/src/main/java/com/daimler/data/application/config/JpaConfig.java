@@ -34,8 +34,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "com.daimler.dna.notifications.common.db.repo")
-@EntityScan("com.daimler.dna.notifications.common.db.entities")
+@EnableJpaRepositories(basePackages = {"com.daimler.dna.notifications.common.db.repo","com.daimler.data.db.repo.storage"})
+@EntityScan({"com.daimler.dna.notifications.common.db.entities","com.daimler.data.db.entities"})
 public class JpaConfig {
 
 }
