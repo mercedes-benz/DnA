@@ -43,7 +43,7 @@ export const BucketList = () => {
           }
           return 0;
         });
-      } else if (columnName === 'createdDate') {
+      } else if (columnName === 'createdDate' || columnName === 'lastModifiedDate') {
         sortedArray = bucketList?.sort((a, b) => {
           const nameA = new Date(a[columnName]);
           const nameB = new Date(b[columnName]);
