@@ -49,7 +49,7 @@ public class Application {
         V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio")).findFirst().get();
         V1PodSpec minioPodSpec = minioPod.getSpec();
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
-        minioContainer.getEnv().forEach(x -> LOG.info("Environment name: " + x.getName() + " , value: " + x.getValue()));
+        minioContainer.getEnv().forEach(x -> LOG.info("Environment name: " + x.getName() + " , value: " + x.getValueFrom()));
         String podIp = minioPod.getStatus().getPodIP();
         LOG.info("Pod ip is : "+ podIp);
         String minioBaseUri = "http://"+podIp;
