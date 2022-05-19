@@ -79,7 +79,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: vault.root.token
-                  name: {{ .Values.app.vault.secret.name }}
+                  name: {{ .Values.app.backend.secrets.name }}
             - name: VAULT_MOUNTPATH
               value: kv
             - name: DNA_URI
