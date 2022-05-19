@@ -63,7 +63,7 @@ dependencies:
   condition: storagemfe.enabled
 
 - name: storagebe
-  repository: file://charts/storage-mfe
+  repository: file://charts/storage-be
   version: 0.1.0
   condition: storagebe.enabled
 
