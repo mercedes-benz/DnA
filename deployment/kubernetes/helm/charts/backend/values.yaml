@@ -55,8 +55,6 @@ app:
       s3Url: ""
       corosOriginUrl: ""
       jupyterNotebookUrl: ""
-      vaultHost: vault.vault.svc.cluster.local
-      vaultPort: 8200
       dataikuProdUri: ""
       dataikuProdAdminGroup: ""
       dataikutraininguri: ""
@@ -76,11 +74,9 @@ app:
       flywayBaselineVersion: "0"
       flywaySchema: "public"
       dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
+      avscanSubsProvisionAPI: /api/subscription/provision
+      avscanUploadApi: /api/v1/scan/upload
 
-  vault:
-    secret:
-      name: vault-secrets
-      rootToken: ""
   probes:
     initialDelaySeconds: 120
     timeoutSeconds: 30

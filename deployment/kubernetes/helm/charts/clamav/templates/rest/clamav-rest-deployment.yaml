@@ -34,8 +34,6 @@ spec:
               value: {{ .Values.app.backend.config.with_in | quote }}
             - name: TIME_UNIT
               value: {{ .Values.app.backend.config.time_unit | quote }}
-            - name: AUTH_API_HOST
-              value: {{ .Values.app.backend.config.auth_api_host }}
             - name: RESTRICTED_URL_PATTERN
               value: {{ .Values.app.backend.config.restricted_url_pattern | quote }}
             - name: ONEAPI_BASICAUTH_TOKEN
@@ -48,7 +46,55 @@ spec:
             - name: LOGGING_ENVIRONMENT
               value: {{ .Values.app.backend.config.loggingEnvironment | quote }}
             - name: CORS_ORIGIN_URL
-              value: {{ .Values.app.backend.config.corsOriginUrl | quote }}              
+              value: {{ .Values.app.backend.config.corsOriginUrl | quote }}
+            - name: API_DB_URL
+              value: {{ .Values.app.backend.config.dbUri }}
+            - name: API_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.username
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: API_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.password
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: FLYWAY_ENABLED
+              value: {{ .Values.app.backend.config.flywayEnabled | quote }}
+            - name: FLYWAY_BASELINE_ON_MIGRATE
+              value: {{ .Values.app.backend.config.flywayBaselineOnMigrate | quote }}
+            - name: FLYWAY_BASELINEVERSION
+              value: {{ .Values.app.backend.config.flywayBaselineVersion | quote }}
+            - name: FLYWAY_SCHEMA
+              value: {{ .Values.app.backend.config.flywaySchema | quote }}
+            - name: VAULT_HOST
+              value: {{ .Values.app.backend.config.vaultHost }}
+            - name: VAULT_PORT
+              value: {{ .Values.app.backend.config.vaultPort | quote }}
+            - name: VAULT_SCHEME
+              value: http
+            - name: VAULT_AUTHENTICATION
+              value: TOKEN
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: vault.root.token
+                  name: {{ .Values.app.vault.secret.name }}
+            - name: VAULT_MOUNTPATH
+              value: kv
+            - name: DNA_URI
+              value: {{ .Values.app.backend.config.appUrl }}
+            - name: DNA_AUTH_ENABLE
+              value: {{ .Values.app.backend.config.enableAuth | quote}}
+            - name: DNA_VERIFY_LOGIN_API
+              value: {{ .Values.app.backend.config.verifyLoginApi | quote }}
+            - name: DNA_UNSUBSCRIBE_MALWARE_SCAN_API
+              value: {{ .Values.app.backend.config.unscribeMalwareScanApi | quote }} 
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                 key: jwt.secret.key
+                 name: {{ .Values.app.backend.secrets.name }}          
           ports:
             - containerPort: 8181
               name: api

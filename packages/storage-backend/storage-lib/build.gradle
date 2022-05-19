@@ -68,6 +68,19 @@ swaggerSources {
         }
     }
         
+    lov {
+        def lovYaml = "${rootDir}/storage-lib/src/main/resources/api/Lov.yaml"
+        def lovJson = "${rootDir}/storage-lib/src/main/resources/api/Lov.json"
+        inputFile = file(lovYaml)
+        def ignoreFile = "${rootDir}/storage-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(lovJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+           }
+      }    
+        
 }
 
 
@@ -75,6 +88,8 @@ compileJava {
     dependsOn processResources
     dependsOn swaggerSources.storage.code
     source "${swaggerSources.storage.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.lov.code
+    source "${swaggerSources.lov.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -85,10 +100,12 @@ sourceSets {
     }
     main {
         java { srcDirs += "${swaggerSources.storage.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.lov.code.outputDir}/src/main/java"}
     }
 }
 
 dependencies {
+	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
     
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
