@@ -12,6 +12,9 @@ app:
     secrets:
       name: oneapi-secrets
       onapiBasicAuthToken: ""
+      jwtSecretKey: ""
+      appDBUserName: malware
+      appDBPassword: ""
     config:
       clamav_backend_url: clamav-service
       clamav_backend_port: 3310
@@ -25,6 +28,18 @@ app:
       loggingPath: /tmp/clamav/log
       loggingEnvironment: dev
       corsOriginUrl: ""
+      dbUri: ""
+      flywayEnabled: true
+      flywayBaselineOnMigrate: true
+      flywayBaselineVersion: 0
+      flywaySchema: public
+      vaultHost: ""
+      vaultPort: ""
+      appUrl: ""
+      enableAuth: ""
+      verifyLoginApi: /api/verifyLogin
+      unscribeMalwareScanApi: /api/malwarescan/unsubscribe/ 
+      
   probes:
     initialDelaySeconds: 60
     timeoutSeconds: 10
@@ -69,3 +84,7 @@ resources:
   limits:
     memory: "3000Mi"
     cpu: "500m"
+
+vault:
+  secret:
+    rootToken: ""
