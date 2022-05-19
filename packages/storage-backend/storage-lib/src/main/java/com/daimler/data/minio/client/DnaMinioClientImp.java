@@ -238,11 +238,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		MinioGenericResponse getBucketResponse = new MinioGenericResponse();
 		try {
 			LOGGER.info("Fetching secrets from vault for user:{}", userId);
-			String userSecretKey =  vaultConfig.validateUserInVault(userId);
-			if(StringUtils.hasText(userSecretKey)) {
-				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
-				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
-						.build();
+			String userSecretKey = vaultConfig.validateUserInVault(userId);
+			if (StringUtils.hasText(userSecretKey)) {
+				LOGGER.debug("Fetch secret from vault successfull for user:{}", userId);
+				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri)
+						.credentials(userId, userSecretKey).build();
 
 				LOGGER.info("Listing all buckets for user:{}", userId);
 				List<Bucket> buckets = minioClient.listBuckets();
@@ -251,9 +251,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				getBucketResponse.setBuckets(buckets);
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.OK);
-			}else {
-				LOGGER.debug("User:{} not available in vault.",userId);
-				getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "User:"+userId+" not available.")));
+			} else {
+				LOGGER.debug("User:{} not available in vault.", userId);
+				getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "User:" + userId + " not available.")));
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
 			}
@@ -261,13 +261,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
 				| IOException e) {
 			LOGGER.error("Error occured while listing buckets of minio: {}", e.getMessage());
-			if(e.toString()!=null && e.toString().contains("code=403")) {
-				LOGGER.error("Access denied since no bucket available for user:{}",userId);
+			if (e.toString() != null && e.toString().contains("code=403")) {
+				LOGGER.error("Access denied since no bucket available for user:{}", userId);
 				getBucketResponse.setStatus(ConstantsUtility.SUCCESS);
 				getBucketResponse.setHttpStatus(HttpStatus.NO_CONTENT);
 				LOGGER.info("No bucket available");
-			}else {
-				getBucketResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing buckets of minio. ")));
+			} else {
+				getBucketResponse
+						.setErrors(Arrays.asList(new ErrorDTO(null, "Error occured while listing buckets of minio. ")));
 				getBucketResponse.setStatus(ConstantsUtility.FAILURE);
 				getBucketResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
