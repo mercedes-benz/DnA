@@ -52,5 +52,5 @@ spec:
               mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
             - name: {{ include "storage-mfe.fullname" . }}
-              mountPath: /usr/share/nginx/html/config.json
-              subPath: config.json                
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js                
