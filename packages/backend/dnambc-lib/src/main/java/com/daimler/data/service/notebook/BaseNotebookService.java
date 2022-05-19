@@ -27,7 +27,9 @@
 
 package com.daimler.data.service.notebook;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.NotebookAssembler;
 import com.daimler.data.controller.NotebookController;
 import com.daimler.data.db.entities.NotebookNsql;
@@ -44,39 +47,56 @@ import com.daimler.data.db.jsonb.Notebook;
 import com.daimler.data.db.repo.notebook.NotebookCustomRepository;
 import com.daimler.data.db.repo.notebook.NotebookRepository;
 import com.daimler.data.dto.notebook.NotebookVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.solution.SolutionService;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 @Service
-public class BaseNotebookService
-        extends BaseCommonService<NotebookVO, NotebookNsql, String>
-        implements NotebookService {
+public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookNsql, String>
+		implements NotebookService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseNotebookService.class);
+
+	@Autowired
+	private UserStore userStore;
+
+	@Autowired
+	private KafkaProducerService kafkaProducer;
+
+	@Autowired
+	private NotebookCustomRepository customRepo;
+	@Autowired
+	private NotebookRepository jpaRepo;
+	@Autowired
+	private NotebookAssembler notebookAssembler;
 	
-    @Autowired
-    private NotebookCustomRepository customRepo;
-    @Autowired
-    private NotebookRepository jpaRepo;
-    @Autowired
-    private NotebookAssembler notebookAssembler;
+	@Autowired
+	private SolutionService solutionService;
 
-    public BaseNotebookService() {
-        super();
-    }
-    
+	@Autowired
+	private UserInfoService userInfoService;
+	
+	public BaseNotebookService() {
+		super();
+	}
 
-    /**
-     * updateSolutionIdofDnaNotebook
-     * <p> update solution id of DnA Notebook
-     * 
-     * @param dnaNotebookId
-     * @param solutionId
-     */
+	/**
+	 * updateSolutionIdofDnaNotebook
+	 * <p>
+	 * update solution id of DnA Notebook
+	 * 
+	 * @param dnaNotebookId
+	 * @param solutionId
+	 */
 	@Override
 	@Transactional
-	public void updateSolutionIdofDnaNotebook(String dnaNotebookId, String solutionId) {
-		LOGGER.trace("Start updateSolutionIdofDnaNotebook...");
-		
+	public void updateSolutionIdofDnaNotebook(String updateType, String dnaNotebookId, String solutionId) {
+		boolean sendNotificationForNotebookLink = false;
+		boolean sendNotificationForNotebookUnLink = false;
 //		Optional<NotebookNsql> notebookOptional= jpaRepo.findById(dnaNotebookId);
 //		NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty()) ? notebookOptional.get()
 //				: null;
@@ -85,56 +105,119 @@ public class BaseNotebookService
 //			LOGGER.debug("Saving Notebook...");
 //			jpaRepo.save(notebookNsql);
 //		}
-		
-		if(solutionId!=null) {
+		String solutionName = solutionId;
+		Notebook notebook = null;
+		if (solutionId != null) {
+			SolutionVO solutionVO = solutionService.getById(solutionId);
+			if(solutionVO!=null) {
+				solutionName = solutionVO.getProductName();
+			}
 			NotebookNsql existingNotebook = customRepo.findbyUniqueLiteral("solutionId", solutionId);
-			if(existingNotebook!=null) {
+			if (existingNotebook != null) {
 				Notebook existingNotebookDetails = existingNotebook.getData();
-				if(dnaNotebookId!=null && !"".equals(dnaNotebookId)) {
+				if (dnaNotebookId != null && !"".equals(dnaNotebookId)) {
 					String preNotebookId = existingNotebook.getId();
-					if(!preNotebookId.equalsIgnoreCase(dnaNotebookId)) {
+					notebook = existingNotebook.getData();
+					if (!preNotebookId.equalsIgnoreCase(dnaNotebookId)) {
 						updateNotebook(null, existingNotebook);
-						LOGGER.debug("Solution {} unlinked from old notebook {} ",solutionId,existingNotebook.getId() );
+						LOGGER.debug("Solution {} unlinked from old notebook {} ", solutionId,
+								existingNotebook.getId());
 						Optional<NotebookNsql> notebookOptional = jpaRepo.findById(dnaNotebookId);
-						NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty()) ? notebookOptional.get(): null;
-						if(notebookNsql!=null) {
+						NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty())
+								? notebookOptional.get()
+								: null;
+						if (notebookNsql != null) {
 							updateNotebook(solutionId, notebookNsql);
-							LOGGER.debug("Solution {} linked to notebook {} ",solutionId, notebookNsql.getId());
+							sendNotificationForNotebookLink = true;
+							LOGGER.debug("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
 						}
 					}
-				}else {
+				} else {
 					updateNotebook(null, existingNotebook);
-					LOGGER.debug("Solution {} unlinked from notebook {} ",solutionId, existingNotebook.getId());
+					sendNotificationForNotebookUnLink = true;
+					LOGGER.debug("Solution {} unlinked from notebook {} ", solutionId, existingNotebook.getId());
 				}
-			}else {
-				if(dnaNotebookId!=null) {
+			} else {
+				if (dnaNotebookId != null) {
 					Optional<NotebookNsql> notebookOptional = jpaRepo.findById(dnaNotebookId);
-					NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty()) ? notebookOptional.get(): null;
-					if(notebookNsql!=null) {
+					NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty())
+							? notebookOptional.get()
+							: null;
+					if (notebookNsql != null) {
 						updateNotebook(solutionId, notebookNsql);
-						LOGGER.debug("Solution {} linked to notebook {} ",solutionId, notebookNsql.getId());
+						sendNotificationForNotebookLink = true;
+						LOGGER.debug("Solution {} linked to notebook {} ", solutionId, notebookNsql.getId());
 					}
 				}
 			}
-		}else {
-			if(dnaNotebookId!=null) {
+		} else {
+			if (dnaNotebookId != null) {
 				Optional<NotebookNsql> notebookOptional = jpaRepo.findById(dnaNotebookId);
-				NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty()) ? notebookOptional.get(): null;
-				if(notebookNsql!=null) {
+				NotebookNsql notebookNsql = (notebookOptional != null && !notebookOptional.isEmpty())
+						? notebookOptional.get()
+						: null;
+				if (notebookNsql != null) {
+					notebook = notebookNsql.getData();
 					updateNotebook(null, notebookNsql);
-					LOGGER.debug("Solution {} unlinked from notebook {} , on delete of solution",solutionId, notebookNsql.getId());
+					sendNotificationForNotebookUnLink = true;
+					LOGGER.debug("Solution {} unlinked from notebook {} , on delete of solution", solutionId,
+							notebookNsql.getId());
 				}
 			}
 		}
-		LOGGER.trace("Returning from updateSolutionIdofDnaNotebook...");
+
+		String eventType = "";
+		String message = "";
+		Boolean mailRequired = true;
+		List<String> subscribedUsers = new ArrayList<>();
+		List<String> subscribedUsersEmail = new ArrayList<>();
+		String notebookName = notebook != null ? notebook.getName() : "";
+		if ("provisioned".equalsIgnoreCase(updateType) && sendNotificationForNotebookLink) {
+			eventType = "Notebook Provisioned";
+			message = "Solution " + solutionName + " provisioned from notebook " + notebookName;
+		}
+		if (sendNotificationForNotebookUnLink) {
+			eventType = "Notebook Unlinked";
+			message = "Notebook " + notebookName + " unlinked from Solution " + solutionName + " before solution delete";
+		}
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "dna_system";
+		String emailId = currentUser != null ? currentUser.getEmail() : "";
+		subscribedUsers.add(userId);
+		subscribedUsersEmail.add(emailId);
+		try {
+			/*
+			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
+			 * subscribedUsers.contains(userId)) {
+			 * LOGGER.info("Removed current userid from subscribedUsers");
+			 * subscribedUsers.remove(userId); }
+			 */
+			if (sendNotificationForNotebookLink || sendNotificationForNotebookUnLink)
+					kafkaProducer.send(eventType, solutionId, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,null);
+		} catch (Exception e) {
+			LOGGER.error("Failed while publishing notebookevent of eventType {} solutionId {} with exceptionmsg {} ",
+					eventType, solutionId, e.getMessage());
+		}
 	}
 
 	private void updateNotebook(String solutionId, NotebookNsql notebookRecord) {
-    	Notebook existingNotebookDetails = notebookRecord.getData();
-    	existingNotebookDetails.setSolutionId(solutionId);
-    	notebookRecord.setData(existingNotebookDetails);
+		Notebook existingNotebookDetails = notebookRecord.getData();
+		existingNotebookDetails.setSolutionId(solutionId);
+		notebookRecord.setData(existingNotebookDetails);
 		customRepo.update(notebookRecord);
-    }
-    
+	}
+	
+	@Override
+	public NotebookVO getById(String id) {
+		LOGGER.info("Fetching notebook info from db.");
+		NotebookVO notebookVO = super.getById(id);
+		if(Objects.nonNull(notebookVO)) {
+			LOGGER.info("Fetching user details for user:{}",notebookVO.getUserId());
+			UserInfoVO userInfoVO = userInfoService.getById(notebookVO.getUserId().toUpperCase());
+			LOGGER.debug("Setting createdByVO.");
+			notebookVO.setCreatedBy(notebookAssembler.toCreatedByVO(userInfoVO));
+		}
+		return notebookVO;
+	}
 
 }

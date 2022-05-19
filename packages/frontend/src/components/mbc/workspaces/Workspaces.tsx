@@ -5,11 +5,11 @@ import { Envs } from '../../../globals/Envs';
 
 const Workspaces = () => {
   const [enableJupiyterNoteWorkspace, setEnableJupiyterNoteWorkspace] = useState(true);
-  const [enableDataikuWorkspace, setEnableDataikuWorkspace] = useState(true);
+  const [ENABLE_DATAIKU_WORKSPACE, setENABLE_DATAIKU_WORKSPACE] = useState(true);
 
   useEffect(() => {
-    setEnableJupiyterNoteWorkspace(Envs.ENABLEJUPYTERWORKSPACE);
-    setEnableDataikuWorkspace(Envs.ENABLEDATAIKUWORKSPACE);
+    setEnableJupiyterNoteWorkspace(Envs.ENABLE_JUPYTER_WORKSPACE);
+    setENABLE_DATAIKU_WORKSPACE(Envs.ENABLE_DATAIKU_WORKSPACE);
   });
 
   const jupyterNav = () => {
@@ -20,7 +20,7 @@ const Workspaces = () => {
     }
   };
   const dataIkuNav = () => {
-    if (enableDataikuWorkspace) {
+    if (ENABLE_DATAIKU_WORKSPACE) {
       history.push('/mydataiku');
     } else {
       history.push('/comingsoon');
@@ -47,7 +47,7 @@ const Workspaces = () => {
             <div className={Styles.WorkspacesNavigation} onClick={dataIkuNav}>
               <div className={Styles.WorkspacesNavigationVisual}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
-                <span> Dataiku {!enableDataikuWorkspace && <label> ( Coming Soon ) </label>}</span>
+                <span> Dataiku {!ENABLE_DATAIKU_WORKSPACE && <label> ( Coming Soon ) </label>}</span>
                 <span>
                   {' '}
                   <i className="icon mbc-icon arrow small right "></i>

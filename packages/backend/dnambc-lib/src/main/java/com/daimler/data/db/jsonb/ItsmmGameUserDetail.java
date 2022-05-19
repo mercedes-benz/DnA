@@ -37,10 +37,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItsmmGameUserDetail implements Serializable{
+public class ItsmmGameUserDetail implements Serializable {
 
 	private static final long serialVersionUID = -3130070748243031563L;
-	
+
 	private Long timeTaken;
 	private String shortId;
 	private Date userEventStartTime;
@@ -50,5 +50,5 @@ public class ItsmmGameUserDetail implements Serializable{
 //	private Boolean answerSubmitted;
 	private String answer;
 	private String codeSnippet;
-	
+
 }

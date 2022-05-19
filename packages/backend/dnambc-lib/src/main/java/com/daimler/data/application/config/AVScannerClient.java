@@ -54,19 +54,19 @@ import com.daimler.data.dto.FileScanDetailsVO;
 public class AVScannerClient {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(AVScannerClient.class);
-	
+
 	@Value("${avscan.uri}")
 	private String avscanBaseUri;
 
 	@Value("${avscan.appid}")
 	private String appId;
-	
-    @Value("${avscan.apiKey}")
+
+	@Value("${avscan.apiKey}")
 	private String apiKey;
-	
+
 	@Autowired
 	RestTemplate restTemplate;
-	
+
 	/**
 	 * To scan file for malware
 	 * 
@@ -74,7 +74,6 @@ public class AVScannerClient {
 	 * @return
 	 */
 	public Optional<FileScanDetailsVO> scan(MultipartFile file) {
-		LOGGER.trace("Entering scan");
 		FileScanDetailsVO fileScanDetailsVO = new FileScanDetailsVO();
 		try {
 			String avscanUri = avscanBaseUri + "/scan/upload";
@@ -94,22 +93,22 @@ public class AVScannerClient {
 			ResponseEntity<AVScanResponseWrapperVO> response = restTemplate.exchange(avscanUri, HttpMethod.POST,
 					requestEntity, AVScanResponseWrapperVO.class);
 			if (response != null && response.hasBody()) {
-				LOGGER.info("Success from avscan");
+				LOGGER.debug("Success from avscan for file {}", file.getName());
 				if (!ObjectUtils.isEmpty(response.getBody().getFileDetails())) {
 					fileScanDetailsVO = response.getBody().getFileDetails().get(0);
 				}
 			}
 		} catch (HttpClientErrorException e) {
-			LOGGER.error("HttpClientErrorException occured:{}", e.getMessage());
+			LOGGER.error("HttpClientErrorException occured:{} while scanning file {}", e.getMessage(), file.getName());
 			fileScanDetailsVO.setErrorMessage(this.getErrorMsg(e.getMessage()));
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling avscan service:{}", e.getMessage());
+			LOGGER.error("Error occured while calling avscan service:{} while scanning file {} ", e.getMessage(),
+					file.getName());
 			fileScanDetailsVO.setErrorMessage(this.getErrorMsg(e.getMessage()));
 		}
-		LOGGER.trace("returning from scan");
 		return Optional.ofNullable(fileScanDetailsVO);
 	}
-	
+
 	/**
 	 * To extract error from exception msg
 	 * 

@@ -357,9 +357,11 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/FileDetailsVO"
-      businessGoal:
-        type: string
-        description: "Description of business goal from the solution"
+      businessGoals:
+        description: "Description of business goals for the solution"
+        type: array
+        items:
+          type: string
       productName:
         type: string
         description: "Solution Product name"
@@ -444,6 +446,21 @@ definitions:
       bookmarked:
         type: boolean
         description: "Flag to identify if solution is in bookmarked by user. Display only not required as input."
+      skills:
+        description: "Needed Roles/Skills for the solution"
+        type: array
+        items:
+          $ref: "#/definitions/SkillSummaryVO"
+      dataStrategyDomain:      
+        description: "Solution Data strategy domain"  
+        type: string
+      additionalResource: 
+        description: "Register support of additional resources"  
+        type: string
+      requestedFTECount:
+        description: "Total Number of FTE requested for the needed Roles/Skills."
+        type: number
+        minimum: 0    
     required:
       - productName
       - description
@@ -459,7 +476,9 @@ definitions:
       - milestones
       #     - dataSources
       #- relatedProducts
-      - businessGoal
+      - businessGoals
+      #- skills
+      #- dataStrategyDomain
 
   SolutionCollection:
     description: "Collection of Solutions."
@@ -1162,4 +1181,24 @@ definitions:
       data:
         type: array
         items:
-          $ref: "#/definitions/ChangeLogVO"      
+          $ref: "#/definitions/ChangeLogVO"     
+          
+  SkillSummaryVO:
+    description: "Summary of needed skills and requested FTE."
+    type: object
+    properties:
+      neededSkill:
+        type: string
+        description: "Needed Skill."
+      fromDate:
+        type: string
+        format: date
+        description: "Start date for needed skills." 
+      toDate:
+        type: string
+        format: date
+        description: "End date for needed skills." 
+      requestedFTECount:
+        type: number
+        minimum: 0
+        description: "Number of FTE requested for the needed Role/Skill."     

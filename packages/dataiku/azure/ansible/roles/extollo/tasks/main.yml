@@ -1,0 +1,65 @@
+---
+
+- name: Install APT proxy
+  template:
+    src: proxy.conf
+    dest:  /etc/apt/apt.conf.d/proxy.conf
+    force: yes
+
+- name: Add an Apt signing key for Nginx
+  apt_key:
+    url:  https://nginx.org/keys/nginx_signing.key
+    state: present
+  tags: [ssl]
+
+- name: Add Nginx apt repository
+  apt_repository:
+    repo: deb https://nginx.org/packages/ubuntu/ bionic nginx
+    state: present
+    update_cache: yes
+  tags: [ssl]
+
+- name: Install Nginx
+  apt:
+    name: "nginx"
+    state: latest
+    update_cache: true
+  tags: [ssl]
+
+- name: Copy SSL crt file
+  copy:
+    src: "{{dss_extollo_ssl_crt_path}}"
+    dest: "/etc/nginx/dss-extollo.crt"
+  tags: [ssl]
+
+- name: Copy SSL key file
+  copy:
+    src: "{{dss_extollo_ssl_key_path}}"
+    dest: "/etc/nginx/dss-extollo.key"
+  tags: [ssl]
+
+- name: Install Nginx sites-enabled configuration
+  template:
+    src: dss-proxy-extollo.conf
+    dest: /etc/nginx/sites-enabled/default
+    force: yes
+  tags: [ssl]
+
+- name: Install Nginx configuration
+  template:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    force: yes
+  tags: [ssl]
+
+- name: Start Nginx
+  service:
+    name: nginx
+    state: restarted
+    enabled: yes
+  become: yes
+  tags: [ssl]
+  
+
+
+

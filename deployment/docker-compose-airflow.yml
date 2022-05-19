@@ -1,0 +1,9 @@
+version: "2.1"
+services:
+    
+  airflow-backend:
+    image: ${AIRFLOW_BACKEND:-airflow_backend}
+    build:
+      context: ../packages/airflow-backend/
+      dockerfile: $PWD/dockerfiles/airflow/airflow-backend.Dockerfile
+  

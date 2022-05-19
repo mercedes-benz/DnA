@@ -41,11 +41,11 @@ import lombok.NoArgsConstructor;
 public class Factor implements Serializable {
 
 	private static final long serialVersionUID = -9083450082730724443L;
-	
+
 	private String description;
 	private String category;
 	private BigDecimal value;
 	private String source;
 	private List<RampUpYear> rampUps;
-	
+
 }

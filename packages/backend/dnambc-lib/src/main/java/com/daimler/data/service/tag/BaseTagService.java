@@ -45,30 +45,28 @@ import java.util.Iterator;
 import java.util.List;
 
 @Service
-public class BaseTagService
-        extends BaseCommonService<TagVO, TagNsql, String>
-        implements TagService {
+public class BaseTagService extends BaseCommonService<TagVO, TagNsql, String> implements TagService {
 
-    @Autowired
-    private TagCustomRepository customRepo;
-    @Autowired
-    private TagRepository jpaRepo;
-    @Autowired
-    private TagAssembler tagAssembler;
+	@Autowired
+	private TagCustomRepository customRepo;
+	@Autowired
+	private TagRepository jpaRepo;
+	@Autowired
+	private TagAssembler tagAssembler;
 
-    @Autowired
-    private SolutionService solutionService;
+	@Autowired
+	private SolutionService solutionService;
 
-    public BaseTagService() {
-        super();
-    }
+	public BaseTagService() {
+		super();
+	}
 
-    @Transactional
-    @Override
-    public boolean deleteTag(final String tagIdToDelete) {
-        TagNsql tagEntity = jpaRepo.getOne(tagIdToDelete);
-        String tagName = tagEntity.getData().getName();
-        solutionService.deleteTagForEachSolution(tagName, null, SolutionService.TAG_CATEGORY.TAG);
+	@Transactional
+	@Override
+	public boolean deleteTag(final String tagIdToDelete) {
+		TagNsql tagEntity = jpaRepo.getOne(tagIdToDelete);
+		String tagName = tagEntity.getData().getName();
+		solutionService.deleteTagForEachSolution(tagName, null, SolutionService.TAG_CATEGORY.TAG);
 //        List<SolutionNsql> solutionNsqlList = solutionCustomRepository.getAllWithFilters(null, null, null, null, null, null, null, null, null, Arrays.asList(tagName), 0, 999999999);
 //        if (solutionNsqlList != null && !solutionNsqlList.isEmpty()) {
 //            solutionNsqlList.forEach(solutionNsql -> {
@@ -86,8 +84,7 @@ public class BaseTagService
 //                }
 //            });
 //        }
-        return deleteById(tagIdToDelete);
-    }
-
+		return deleteById(tagIdToDelete);
+	}
 
 }

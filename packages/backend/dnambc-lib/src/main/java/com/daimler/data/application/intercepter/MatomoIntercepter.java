@@ -53,37 +53,36 @@ import com.daimler.data.controller.LoginController.UserInfo;
 @Component
 public class MatomoIntercepter implements HandlerInterceptor {
 
-    private Logger log = LoggerFactory.getLogger(MatomoIntercepter.class);
-    
-    @Value("${matomo.tracking}")
-    private boolean enableTracking;
-    
-    @Value("${matomo.siteId}")
-    private Integer siteId;
-    
-    @Value("${matomo.hostUrl}")
-    private String hostUrl;
+	private Logger log = LoggerFactory.getLogger(MatomoIntercepter.class);
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception exception) 
-      throws Exception {
-        if(enableTracking) {
-        	log.debug(
-                    "Tracking is enabled!! Sending request to action tracker..");
-        	String action = request.getHeader("action");
-        	if(StringUtils.hasText(action)) {
-            	UserInfo userInfo = (UserInfo) request.getAttribute("userDetails");
-            	URL actionUrl = new URL(request.getRequestURL().toString());
-            	PiwikRequest pr = new PiwikRequest(siteId, actionUrl);
-            	pr.setActionName(action);
-            	pr.setEventAction(action);
-            	if(Objects.nonNull(userInfo)) {
-            	  	pr.setUserId(userInfo.getId());
-            	}
-            	PiwikTracker tracker = new PiwikTracker(hostUrl);
-            	tracker.sendRequestAsync(pr);
-        	}
-        	
-        }
-    }
+	@Value("${matomo.tracking}")
+	private boolean enableTracking;
+
+	@Value("${matomo.siteId}")
+	private Integer siteId;
+
+	@Value("${matomo.hostUrl}")
+	private String hostUrl;
+
+	@Override
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+			Exception exception) throws Exception {
+		if (enableTracking) {
+			log.debug("Tracking is enabled!! Sending request to action tracker..");
+			String action = request.getHeader("action");
+			if (StringUtils.hasText(action)) {
+				UserInfo userInfo = (UserInfo) request.getAttribute("userDetails");
+				URL actionUrl = new URL(request.getRequestURL().toString());
+				PiwikRequest pr = new PiwikRequest(siteId, actionUrl);
+				pr.setActionName(action);
+				pr.setEventAction(action);
+				if (Objects.nonNull(userInfo)) {
+					pr.setUserId(userInfo.getId());
+				}
+				PiwikTracker tracker = new PiwikTracker(hostUrl);
+				tracker.sendRequestAsync(pr);
+			}
+
+		}
+	}
 }

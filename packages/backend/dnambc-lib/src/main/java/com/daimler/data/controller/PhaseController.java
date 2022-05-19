@@ -35,6 +35,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,40 +48,38 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@Api(value = "Phase API",tags = {"phases"})
+@Api(value = "Phase API", tags = { "phases" })
 @RequestMapping("/api")
-public class PhaseController
-        implements PhasesApi {
+@Slf4j
+public class PhaseController implements PhasesApi {
 
+	@Autowired
+	private PhaseService phaseService;
 
-    @Autowired
-    private PhaseService phaseService;
+	@Override
+	public ResponseEntity<Void> createPhase(@Valid PhaseVO phaseVO) {
+		return new ResponseEntity<>(null, HttpStatus.NOT_IMPLEMENTED);
+	}
 
-
-    @Override
-    public ResponseEntity<Void> createPhase(@Valid PhaseVO phaseVO) {
-        return new ResponseEntity<>(null, HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    @Override
-    @ApiOperation(value = "Get all available phases.", nickname = "getAll", notes = "Get all phases. This endpoints will be used to Get all valid available phases maintenance records.", response = PhaseCollection.class, tags = {"phases",})
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully completed fetching all phases", response = PhaseCollection.class),
-            @ApiResponse(code = 204, message = "Fetch complete, no content found"),
-            @ApiResponse(code = 500, message = "Internal error")})
-    @RequestMapping(value = "/phases",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    public ResponseEntity<PhaseCollection> getAll() {
-        final List<PhaseVO> phasesVO = phaseService.getAll();
-        PhaseCollection phaseCollection = new PhaseCollection();
-        if (phasesVO != null && phasesVO.size() > 0) {
-            phaseCollection.addAll(phasesVO);
-            return new ResponseEntity<>(phaseCollection, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(phaseCollection, HttpStatus.NO_CONTENT);
-        }
-    }
-
+	@Override
+	@ApiOperation(value = "Get all available phases.", nickname = "getAll", notes = "Get all phases. This endpoints will be used to Get all valid available phases maintenance records.", response = PhaseCollection.class, tags = {
+			"phases", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Successfully completed fetching all phases", response = PhaseCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/phases", produces = { "application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<PhaseCollection> getAll() {
+		final List<PhaseVO> phasesVO = phaseService.getAll();
+		PhaseCollection phaseCollection = new PhaseCollection();
+		if (phasesVO != null && phasesVO.size() > 0) {
+			phaseCollection.addAll(phasesVO);
+			log.debug("Returning all available phases");
+			return new ResponseEntity<>(phaseCollection, HttpStatus.OK);
+		} else {
+			log.debug("No phases available, returning empty");
+			return new ResponseEntity<>(phaseCollection, HttpStatus.NO_CONTENT);
+		}
+	}
 
 }

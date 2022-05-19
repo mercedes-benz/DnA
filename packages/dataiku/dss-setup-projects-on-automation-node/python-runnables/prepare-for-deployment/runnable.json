@@ -1,0 +1,29 @@
+{
+    "meta": {
+        "label": "Setup projects on automation node",
+        "description": "Creates necessary connections and users for project on automation node",
+        "icon": "icon-building"
+    },
+
+    "impersonate": false,
+
+    "params": [
+      {
+            "name": "infraName",
+            "type": "SELECT",
+            "label": "Infrastructure to use",
+            "description": "Automation node infrastructure id",
+            "getChoicesFromPython": true
+      },
+      {
+            "name": "bundleId",
+            "type": "STRING",
+            "label": "Bundle id",
+            "description": "The id of the bundle that will be created and deployed"
+      }
+    ],
+
+    "resultType": "RESULT_TABLE",
+    "paramsPythonSetup": "infras_names.py",
+    "macroRoles": []
+}

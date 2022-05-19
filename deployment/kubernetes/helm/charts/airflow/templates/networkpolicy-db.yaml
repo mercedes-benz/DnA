@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: airflow-{{ include "airflow-db-service.name" . }}-netpol
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ include "airflow-db-service.name" . }}
+  ingress:
+    - from:
+      - podSelector: 
+          matchLabels:
+              name: {{ include "airflow-service.name" . }}
+    - ports:
+      - port: {{ .Values.db.port }}

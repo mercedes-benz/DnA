@@ -41,20 +41,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class BaseProjectStatusService
-        extends BaseCommonService<ProjectStatusVO, ProjectStatusNsql, String>
-        implements ProjectStatusService {
+public class BaseProjectStatusService extends BaseCommonService<ProjectStatusVO, ProjectStatusNsql, String>
+		implements ProjectStatusService {
 
-    @Autowired
-    private ProjectStatusCustomRepository customRepo;
-    @Autowired
-    private ProjectStatusRepository jpaRepo;
-    @Autowired
-    private ProjectStatusAssembler assembler;
+	@Autowired
+	private ProjectStatusCustomRepository customRepo;
+	@Autowired
+	private ProjectStatusRepository jpaRepo;
+	@Autowired
+	private ProjectStatusAssembler assembler;
 
-    public BaseProjectStatusService() {
-        super();
-    }
+	public BaseProjectStatusService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseProjectStatusService(ProjectStatusCustomRepository customRepo
@@ -66,14 +65,13 @@ public class BaseProjectStatusService
 //        this.assembler = assembler;
 //    }
 
-    @Override
-    public List<ProjectStatusVO> getAll() {
-        List<ProjectStatusVO> voList = super.getAll();
-        List<ProjectStatusVO> filteredList = new ArrayList<>();
-        filteredList = voList.stream().filter
-                (vo -> vo != null && (!"2".equals(vo.getId()) && !"3".equals(vo.getId()))).collect(Collectors.toList());
-        return filteredList;
-    }
-
+	@Override
+	public List<ProjectStatusVO> getAll() {
+		List<ProjectStatusVO> voList = super.getAll();
+		List<ProjectStatusVO> filteredList = new ArrayList<>();
+		filteredList = voList.stream().filter(vo -> vo != null && (!"2".equals(vo.getId()) && !"3".equals(vo.getId())))
+				.collect(Collectors.toList());
+		return filteredList;
+	}
 
 }

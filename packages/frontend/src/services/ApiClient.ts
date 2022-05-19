@@ -9,8 +9,11 @@ import {
   IBookMarks,
   IBookMarksResponse,
   ICreateNewSolution,
+  ICreateNewReport,
   ICreateNewSolutionRequest,
+  ICreateNewReportRequest,
   ICreateNewSolutionResult,
+  ICreateNewReportResult,
   IDataSource,
   IDataSourceMaster,
   IError,
@@ -31,6 +34,9 @@ import {
   INotebookInfo,
   ISubsription,
   ISubsriptionExpiryObjectData,
+  INoticationModules,
+  IManageDivision,
+  IManageDivisionRequest,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 
@@ -138,9 +144,12 @@ export class ApiClient {
             result.errors.forEach((error: IError) => {
               message += error.message + ' ';
             });
+          } else if (response.status === 409) {
+            message = 'Value or Item already exist!';
           } else {
             message = 'Some Error Occurred';
           }
+
           throw new Error(message);
         });
       }
@@ -215,6 +224,22 @@ export class ApiClient {
     return this.get(`app-version`);
   }
 
+  public static getDivisions(): Promise<IManageDivision[]> {
+    return this.get('divisions');
+  }
+
+  public static postDivision(data: IManageDivisionRequest): Promise<IManageDivision[]> {
+    return this.post('divisions', data);
+  }
+
+  public static putDivision(data: IManageDivisionRequest): Promise<IManageDivision[]> {
+    return this.put('divisions', data);
+  }
+
+  public static deleteDivision(id: string): Promise<any> {
+    return this.delete(`divisions/${id}`);
+  }
+
   public static getSubDivisions(divisionId: string): Promise<ISubDivision[]> {
     return this.get('subdivisions/' + divisionId);
   }
@@ -277,6 +302,18 @@ export class ApiClient {
     return this.delete(`relatedProducts/${id}`);
   }
 
+  public static getDescriptionLovData(): Promise<any[]> {
+    return Promise.all([
+      this.get(`lov/businessgoals`), 
+      this.get('lov/strategydomains'),
+      this.get('lov/additionalresources')
+    ]);
+  }
+
+  public static getSkills(): Promise<any[]> {
+    return this.get('skills');
+  }
+
   public static getCreateNewSolutionData(): Promise<any[]> {
     return Promise.all([
       this.get('locations'),
@@ -297,6 +334,24 @@ export class ApiClient {
       this.get('lov/maturitylevels'),
       this.get('lov/benefitrelevances'),
       this.get('lov/strategicrelevances'),
+    ]);
+  }
+  public static getCreateNewReportData(): Promise<any[]> {
+    return Promise.all([
+      this.get('locations'),
+      this.get('divisions'),
+      this.get('project-statuses'),
+      this.get('phases'),
+      this.get('tags'),
+      this.get('languages'),
+      this.get('results'),
+      this.get('algorithms'),
+      this.get('visualizations'),
+      this.get('datasources'),
+      this.get('datavolumes'),
+      this.get('platforms'),
+      this.get('relatedproducts'),
+      this.get('project-statuses'),
     ]);
   }
 
@@ -356,6 +411,9 @@ export class ApiClient {
   public static createNewSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
     return this.post('solutions', data);
   }
+  public static createNewReport(data: ICreateNewReportRequest): Promise<ICreateNewReportResult> {
+    return this.post('solutions', data);
+  }
   public static generateNewApiKey(data: ISubsription) {
     return this.post('subscription', data);
   }
@@ -365,8 +423,21 @@ export class ApiClient {
   public static getMalwarescanSubscriListWithPagination(limit: number, offset: number) {
     return this.get('subscription?limit=' + limit + '&offset=' + offset);
   }
-  public static getMalwarescanSubscriListAdmin(limit: number, offset: number) {
-    return this.get('subscription?admin=true&limit=' + limit + '&offset=' + offset);
+  public static getMalwarescanSubscriListAdmin(
+    limit: number,
+    offset: number,
+    sortBy: string,
+    sortOrder: string,
+    searchTerm: string,
+  ) {
+    let paramToPass =
+      'subscription?admin=true&limit=' + limit + '&offset=' + offset + '&sortBy=' + sortBy + '&sortOrder=' + sortOrder;
+    if (searchTerm == null) {
+      paramToPass += '&searchTerm=' + '';
+    } else {
+      paramToPass += '&searchTerm=' + searchTerm;
+    }
+    return this.get(paramToPass);
   }
   public static getRefreshApiKey(appId: String) {
     return this.get('subscription/' + appId + '/refresh/');
@@ -401,6 +472,9 @@ export class ApiClient {
     return queryUrl ? this.get(`solutions?${queryUrl}`) : this.get('solutions');
   }
   public static getSolutionById(id: string): Promise<ICreateNewSolution> {
+    return this.get(`solutions/${id}`);
+  }
+  public static getReportById(id: string): Promise<ICreateNewReport> {
     return this.get(`solutions/${id}`);
   }
   public static getChangeLogs(id: string): Promise<any> {
@@ -558,7 +632,7 @@ export class ApiClient {
         createdBy {
           id,
           email
-        }
+        },
       }`;
     }
 
@@ -637,6 +711,39 @@ export class ApiClient {
     return this.get('/users/bookmarks?userId=' + userId);
   }
 
+  public static getDashboardDataOld(
+    calledResource: string,
+    locations: string,
+    phases: string,
+    divisions: string,
+    status: string,
+    useCaseType: string,
+    tagSearch: string,
+  ): Promise<IWidgetsResponse[]> {
+    const reqQuery = `location="${locations}"&phase="${phases}"&division="${divisions}"&projectStatus="${status}"&useCaseType="${useCaseType}"&tags="${tagSearch}"&published=true`;
+    return this.get(`dashboard/${calledResource}?` + reqQuery);
+  }
+
+  public static getDashboardData(
+    calledResource: string,
+    locations: string,
+    phases: string,
+    divisions: string,
+    status: string,
+    useCaseType: string,
+    tagSearch: string,
+  ): Promise<IWidgetsResponse[]> {
+    let reqQuery = 'published=true&';
+    if (locations != '') reqQuery += `location=${locations}&`;
+    if (phases != '') reqQuery += `phase=${phases}&`;
+    if (divisions != '') reqQuery += `division=${encodeURIComponent(divisions)}&`;
+    if (status != '') reqQuery += `projectstatus=${status}&`;
+    if (useCaseType != '') reqQuery += `useCaseType=${useCaseType}&`;
+    if (tagSearch != '') reqQuery += `tags=${tagSearch}&`;
+
+    return this.get(`dashboard/${calledResource}?` + reqQuery);
+  }
+
   public static getAllWidgets(): Promise<IWidgetsResponse[]> {
     return this.get('widgets');
   }
@@ -651,6 +758,14 @@ export class ApiClient {
 
   public static removeUserPreference(id: string): Promise<any> {
     return this.delete(`widget-preference/${id}`);
+  }
+
+  public static getNotificationPreferences(userId: string) {
+    return this.get(`notification-preferences?userId=${userId}`);
+  }
+
+  public static enableEmailNotifications(notificationPreferences: INoticationModules) {
+    return this.post(`notification-preferences`, { data: notificationPreferences });
   }
 
   public static downloadAttachment(attachment: IAttachment): Promise<any> {
@@ -697,7 +812,9 @@ export class ApiClient {
         productName,
         description,
         businessNeed,
-        businessGoal,
+        businessGoals,
+        additionalResource,
+        dataStrategyDomain,
         relatedProducts,
         attachments {
           id,
@@ -906,6 +1023,12 @@ export class ApiClient {
         createdBy {
           id,
           email
+        },
+        skills {
+          fromDate,
+          neededSkill,
+          requestedFTECount,
+          toDate
         }
       }`;
     const apiQuery = {

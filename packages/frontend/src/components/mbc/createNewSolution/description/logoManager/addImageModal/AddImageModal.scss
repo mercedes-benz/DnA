@@ -21,39 +21,7 @@
       border-bottom: 1px solid #383f49;
       padding-bottom: 50px;
       max-height: 55vh;
-      &::-webkit-scrollbar-thumb {
-        background: #00adef;
-        border-radius: 10px;
-      }
-      &::-webkit-scrollbar-track {
-        background: #293f55;
-      }
-      &::-webkit-scrollbar {
-        display: block;
-        width: 5px;
-      }
-      &::-ms-scrollbar-thumb {
-        background: #00adef;
-        border-radius: 10px;
-      }
-      &::-ms-scrollbar-track {
-        background: #293f55;
-      }
-      &::-ms-scrollbar {
-        display: block;
-        width: 5px;
-      }
-      &::-moz-scrollbar-thumb {
-        background: #00adef;
-        border-radius: 10px;
-      }
-      &::-moz-scrollbar-track {
-        background: #293f55;
-      }
-      &::-moz-scrollbar {
-        display: block;
-        width: 5px;
-      }
+      
       .predefinedImageGrid {
         display: grid;
         grid-gap: 16px;

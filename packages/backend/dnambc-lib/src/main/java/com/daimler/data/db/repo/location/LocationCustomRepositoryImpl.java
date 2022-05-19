@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class LocationCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<LocationNsql, String>
-        implements LocationCustomRepository {
+public class LocationCustomRepositoryImpl extends CommonDataRepositoryImpl<LocationNsql, String>
+		implements LocationCustomRepository {
 
 }

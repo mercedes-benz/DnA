@@ -33,6 +33,11 @@ const base = {
     filename: `${packageName}_${version}_[name].[fullhash].js`,
     chunkFilename: `${packageName}_${version}_[name].[fullhash].bundle.js`,
   },
+  devServer: {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  },
   module: {
     rules: [
       {
@@ -91,6 +96,12 @@ const base = {
           },
           {
             loader: 'postcss-loader',
+            options: {
+              sourceMap: devMode,
+            },
+          },
+          {
+            loader: 'sass-loader',
             options: {
               sourceMap: devMode,
             },
@@ -198,8 +209,8 @@ if (!swidgetMode) {
       ],
       chunksSortMode: function (chunk1, chunk2) {
         var orders = ['polyfill', 'app'];
-        var order1 = orders.indexOf(chunk1.names[0]);
-        var order2 = orders.indexOf(chunk2.names[0]);
+        var order1 = orders.indexOf(chunk1.names?.[0]);
+        var order2 = orders.indexOf(chunk2.names?.[0]);
         if (order1 > order2) {
           return 1;
         } else if (order1 < order2) {

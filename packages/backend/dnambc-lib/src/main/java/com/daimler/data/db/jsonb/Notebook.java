@@ -39,14 +39,13 @@ import java.util.Date;
 @AllArgsConstructor
 public class Notebook implements Serializable {
 
-    private static final long serialVersionUID = -7477338063032638875L;
+	private static final long serialVersionUID = -7477338063032638875L;
 
-    private String name;
-    private String description;
-    private Date createdOn; 
-    private String userId;
-    //private SolutionTeamMember AssociatedUser;
-    private String solutionId;
-
+	private String name;
+	private String description;
+	private Date createdOn;
+	private String userId;
+	// private SolutionTeamMember AssociatedUser;
+	private String solutionId;
 
 }

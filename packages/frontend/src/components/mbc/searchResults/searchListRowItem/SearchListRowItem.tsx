@@ -75,7 +75,7 @@ export default class SearchListRowItem extends React.Component<ISearchListRowIte
             {!solution.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
           <td className="wrap-text">{solution.currentPhase ? solution.currentPhase.name : ''}</td>
-          <td>{solution.division.name}</td>
+          <td>{solution.division?.name || 'N/A'}</td>
           <td>
             <div className={Styles.locationDataWrapper}>
               {locations[0] ? locations[0] : ''}
@@ -105,7 +105,7 @@ export default class SearchListRowItem extends React.Component<ISearchListRowIte
                       this.state.showLocationsContextMenu ? '' : 'hide',
                     )}
                   >
-                    <ul className="contextList">
+                    <ul className="contextList mbc-scroll sub">
                       <li className="contextListItem">
                         <p className="locationsText">{locations.length ? locations.join(', ') : ''}</p>
                       </li>

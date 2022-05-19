@@ -39,10 +39,10 @@ import java.io.Serializable;
 public class WidgetInfo implements Serializable {
 
 	private static final long serialVersionUID = 5318363016443964854L;
-	
+
 	private String id;
 	private String name;
-	
+
 //	public WidgetInfo() {
 //		super();
 //	}
@@ -65,6 +65,5 @@ public class WidgetInfo implements Serializable {
 //	public void setName(String name) {
 //		this.name = name;
 //	}
-	
-	
+
 }

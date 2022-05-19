@@ -27,35 +27,38 @@
 
 package com.daimler.data.service.userinfo;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.UserInfoNsql;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.CommonService;
 
-import java.util.List;
-
-public interface UserInfoService
-        extends CommonService<UserInfoVO, UserInfoNsql, String> {
+public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql, String> {
 
 	/* boolean updateUserToken(String id, String token); */
-    
-    boolean updateNewUserToken(String id, boolean isLogin);
 
-    boolean validateUserToken(final String id, String token);
+	boolean updateNewUserToken(String id, boolean isLogin);
 
-    void addUser(UserInfoNsql userinfo);
+	boolean validateUserToken(final String id, String token);
 
-    UserInfoVO updateBookMarkedSolutions(final String id, List<String> bookmarks, boolean deleteBookmarks);
+	void addUser(UserInfoNsql userinfo);
 
-    List<SolutionVO> getAllBookMarkedSolutionsForUser(final String userId);
-    
-    /**
-     * To check whether user is admin or not
-     * 
-     * @param userId
-     * @return isAdmin
-     */
-    public Boolean isAdmin(String userId);
-    
-    boolean isLoggedIn(final String id);
+	UserInfoVO updateBookMarkedSolutions(final String id, List<String> bookmarks, boolean deleteBookmarks);
+
+	List<SolutionVO> getAllBookMarkedSolutionsForUser(final String userId);
+
+	/**
+	 * To check whether user is admin or not
+	 * 
+	 * @param userId
+	 * @return isAdmin
+	 */
+	public Boolean isAdmin(String userId);
+
+	boolean isLoggedIn(final String id);
+
+	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs);
 }

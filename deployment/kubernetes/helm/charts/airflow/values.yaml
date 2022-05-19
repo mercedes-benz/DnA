@@ -1,0 +1,212 @@
+# Default values for airflow.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+appName: airflow
+namespace: airflow
+imagePullSecret: 
+  name: harbor-pull-secrets
+backend:
+  image: ""
+  imagePullPolicy: Always
+  dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
+  secret:
+    name: airflow-backend-secrets
+    dbPassword: ""
+    dbUsername: ""
+    gitToken: ""
+    jwtKey: ""
+    oidcClientID: ""
+    oidcClientSecret: ""
+  containerPort: 7171
+  crossOriginUrl: ""
+  apiUrl: ""
+  oidcInfoUrl: "" 
+  oidcIntrospectionUrl: "" 
+  oidcRevocationUrl: "" 
+  oidcDisabled: false
+  gitUrl: "" 
+  gitMountPath: /git/airflow-user-dags
+  gitBranch: ""
+  dag:
+    path: dags
+    ext: py
+    waitTime: 20
+    retry: 20
+  loggingPath: /tmp/airflow/log
+  loggingEnvironment: dev
+  flywayBaseline: ""
+  flywayBaselineOnMigrate: ""
+  flywayBaselineVersion: ""
+  flywaySchema: ""
+
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+
+pullSecretData: 
+secret:
+  gitUserName: ""
+  gitPassword: ""
+  #gitSshKey: ""
+  knownHosts: ""
+  postgresql:
+    sqlAlchemyConn: ""
+  clientSecret: ""
+
+gitSync:
+  image: ""
+  repo: ""
+  dest: git-sync
+  branch: master
+  ssh: "false"
+  root: /git
+
+# editor:
+#   gitEnabled: True
+#   gitCMD: /usr/bin/git
+#   gitDefaultArgs: -c color.ui=true
+#   gitIntRepo: False
+#   lineLength: 88
+#   stringNormalization: False
+  
+configuration:
+  loggingLevel: INFO
+  executor: KubernetesExecutor
+  parallelism: 32
+  pluginsFolder: /usr/local/airflow/plugins
+  loadExamples: False
+  scheduler:
+    dagDirListInterval: 5
+    childProcessLogDirectory: /usr/local/airflow/logs/scheduler
+    jobHeartbeatSec: 5
+    parsingProcesses: 2
+    schedulerHeartbeatSec: 5
+    minFileProcessInterval: 0
+    statsdOn: False
+    statsdHost: localhost
+    statsdPort: 8125
+    statsdPrefix: airflow
+    minFileParsingLoopTime: 1
+    printStatsInterval: 30
+    schedulerZombieTaskThreshold: 300
+    maxTisPerQuery: 0
+    authenticate: False
+    catchupByDefault: True
+  webserver:
+    baseUrl: ""
+    path: /pipelines
+    rbac: True
+    host: 0.0.0.0
+    port: 8080
+    masterTimeout: 120
+    workerTimeout: 120
+    workerRefreshBatchSize: 1
+    workerRefreshInterval: 30
+    secretKey: ""
+    numberOfWorkers: 4
+    workerClass: sync
+    exposeConfig: True
+    dagDefaultView: graph
+    dagOrientation: LR
+    demoMode: False
+    logFetchTimeoutSec: 5
+    hidePausedDagsByDefault: False
+    pageSize: 100
+  kubernetes:
+    workerContainerImagePullPolicy: Always
+    workerServiceAccountName: airflow
+    deleteWorkerPods: True
+    dagsInImage: False
+    gitSubpath: dags
+    inCluster: True
+    gitSyncContainerRepository: ""
+    gitSyncContainerTag: 3.3.0
+    gitSyncInitContainerName: git-sync-container
+    gitSyncRunAsUser: 1000
+    runAsUser: 1000
+    fsGroup: 65533
+  kubernetesLabels:
+    airflowWorker:
+
+docker:
+  image:
+    name: ""
+    tag: ""
+
+service:
+  port: 8080
+
+db:
+  port: 64000
+
+webserver:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 2000Mi
+    cpu: 1000m
+
+scheduler:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 2000Mi
+    cpu: 1000m
+
+gitContainer:
+  requests:
+    memory: 250Mi
+    cpu: 250m
+  limits:
+    memory: 1000Mi
+    cpu: 500m
+
+backendResources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1000Mi
+    cpu: 500m
+
+volumes:
+  logsPath: /usr/local/airflow/logs
+  dagsPath: /usr/local/airflow/dags/git-sync/dags
+  gitDagsPath: /usr/local/airflow/dags
+  airflowLogsClaim:
+    resourcePolicy: keep
+    accessMode: ReadWriteOnce
+    storage:
+      className: cinder-retain
+      size: 10Gi
+
+oidc:
+  logout:
+    uri: ""
+
+Storage:
+  storageClass: cinder-retain
+  accessModes: ReadWriteOnce
+  size: 5Gi
+
+probes:
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  livenessProbe:
+    path: /airflow/actuator/health/liveness
+    port: api-http
+    
+  readinessProbe:
+    path: /airflow/actuator/health/readiness
+    port: api-http

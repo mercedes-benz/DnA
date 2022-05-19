@@ -35,14 +35,12 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "notebook_nsql")
-public class NotebookNsql extends BaseEntity<Notebook>
-        implements Serializable {
+public class NotebookNsql extends BaseEntity<Notebook> implements Serializable {
 
-    private static final long serialVersionUID = 4857908075537600169L;
+	private static final long serialVersionUID = 4857908075537600169L;
 
-    public NotebookNsql() {
-        super();
-    }
-
+	public NotebookNsql() {
+		super();
+	}
 
 }

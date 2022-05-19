@@ -5,6 +5,7 @@ import { IDataiku } from '../../../../../globals/types';
 import Styles from './DataikuInfo.scss';
 import DataikuProjects from './dataikuProjects/DataikuProjects';
 import { getDateFromTimestamp } from '../../../../../services/utils';
+import { Envs } from '../../../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -68,7 +69,15 @@ const DataikuInfo = forwardRef((props: IDataikuInfoProps, ref: Ref<IDataikuInfoR
               <i className="icon mbc-icon dataiku" />
             </div>
             <div className={Styles.projectCardContent}>
-              <h6>{dataikuInfo.name}</h6>
+              <h6>
+                <a
+                  href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + dataikuInfo.projectKey + '/'}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {dataikuInfo.name}
+                </a>
+              </h6>
               <label>
                 Created on {getDateFromTimestamp(dataikuInfo.creationTag?.lastModifiedOn, '.')} by{' '}
                 {dataikuInfo.creationTag?.lastModifiedBy.login}

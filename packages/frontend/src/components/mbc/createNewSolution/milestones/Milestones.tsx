@@ -19,7 +19,7 @@ import {
   IRolloutDetail,
 } from '../../../../globals/types';
 // import { ApiClient } from '../../../../services/ApiClient';
-import { Modal } from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
 import Styles from './Milestones.scss';
 const classNames = cn.bind(Styles);
@@ -212,7 +212,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
   constructor(props: IMilestonesProps) {
     super(props);
     this.state = {
-      milestonesList: this.props.milestones,
+      milestonesList: JSON.parse(JSON.stringify(this.props.milestones)),
       showMilestonesModal: false,
       cancelChanges: false,
       years: [
@@ -598,6 +598,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                     <input
                       name="currentPhase"
                       type="radio"
+                      className="ff-only"
                       value={obj.id}
                       checked={isCurrentPhase}
                       onChange={this.onCurrentPhaseRadioChange}
@@ -746,6 +747,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                     <input
                       name="currentPhase"
                       type="radio"
+                      className="ff-only"
                       value={obj.id}
                       checked={isCurrentPhase}
                       onChange={this.onCurrentPhaseRadioChange}
@@ -1010,6 +1012,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
         showMilestonesModal: false,
         milestones,
         currentMilestoneIndex: -1,
+        milestonesList: JSON.parse(JSON.stringify(milestones)),
       });
       this.props.modifyMileStones(milestones, this.state.currentPhase);
     }

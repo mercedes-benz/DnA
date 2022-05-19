@@ -37,22 +37,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseUserRoleService
-        extends BaseCommonService<UserRoleVO, UserRoleNsql, String>
-        implements UserRoleService {
+public class BaseUserRoleService extends BaseCommonService<UserRoleVO, UserRoleNsql, String>
+		implements UserRoleService {
 
-    @Autowired
-    private UserRoleCustomRepository customRepo;
-    @Autowired
-    private UserRoleRepository jpaRepo;
-    @Autowired
-    private UserRoleAssembler assembler;
+	@Autowired
+	private UserRoleCustomRepository customRepo;
+	@Autowired
+	private UserRoleRepository jpaRepo;
+	@Autowired
+	private UserRoleAssembler assembler;
 
-    private final String ROLE_USER = "1";
+	private final String ROLE_USER = "1";
 
-    public BaseUserRoleService() {
-        super();
-    }
+	public BaseUserRoleService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseUserRoleService(UserRoleCustomRepository customRepo
@@ -64,9 +63,9 @@ public class BaseUserRoleService
 //        this.assembler = assembler;
 //    }
 
-    @Autowired
-    public UserRoleNsql getRoleUser(){
-        return jpaRepo.findById(ROLE_USER).get();
-    }
+	@Autowired
+	public UserRoleNsql getRoleUser() {
+		return jpaRepo.findById(ROLE_USER).get();
+	}
 
 }

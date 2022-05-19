@@ -1,0 +1,23 @@
+[
+  {
+    "type": "parameter-set-azure-ad-sync-identification",
+    "name": "{{azure_ad_sync_preset_name}}",
+    "owner": "admin",
+    "defaultPermission": {
+      "use": false
+    },
+    "permissions": [],
+    "pluginConfig": {},
+    "config": {
+      "auth_method": "auth_app_token",
+      "flag_user_credentials": false,
+      "graph_tenant_id": "{{azure_tenant_id}}",
+      "graph_app_id": "{{azure_app_id}}",
+      "graph_app_secret": "{{sso_azure_secret.stdout}}",
+      "group_prefix": "{{dss_instance_id}}",
+      "licence_group_prefix": "{{azure_dss_license_group_prefix}}",
+      "is_training_env": "{{is_training_env}}",
+      "del_user_and_training_projects": false
+    }
+  }
+]

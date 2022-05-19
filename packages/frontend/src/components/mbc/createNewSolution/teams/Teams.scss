@@ -72,6 +72,69 @@
   }
 }
 
+.wrapperNeededRole {
+  background: #252a33 !important;
+  margin-top: 15px !important;
+  padding: 25px 38px;
+  position: relative;
+  .roleInfo{
+    font-size: var(--font-size-icon-medium);
+    position: absolute;
+    top: 31px;
+    right: 33px;
+    &:hover{
+      cursor: pointer;
+    }
+  }
+  .roleWrapperContent{
+    margin-top: 60px;
+  }
+  .roleAddButton {
+    background-color: transparent;
+    outline: none;
+    margin-top: 13px;
+    margin-bottom: 10px;
+    color: #acb8c4;
+    border: 0;
+    padding: 0;
+  
+    i {
+      vertical-align: top;
+      margin-right: 10px;
+      color: #00adef;
+    }
+  }
+  .roleAddButton:focus {
+    outline: none;
+  }
+  .roleAddButton i {
+    font-size: var(--font-size-icon-medium);
+    margin-top: -2px;
+  }
+}
+
+.roleCountFieldList{
+  margin-top: 10px;
+  .deleteIcon{
+    font-size: var(--font-size-icon-medium);
+    &:hover {
+      color: #00adef;
+      cursor: pointer;
+    }
+  }
+}
+
+.roleInfo {
+  font-size: var(--font-size-icon-medium);
+  margin-top: -2px;
+}
+
+.fteField{
+  text-align: right;
+}
+
+
+
 .addTeamMemberModal {
   min-height: 350px;
   min-width: 650px;

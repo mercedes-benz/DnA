@@ -1,0 +1,91 @@
+---
+
+dss_version: "10.0.4"
+dss_install_archive_name: "dataiku-dss-{{dss_version}}"
+dss_install_archive_name_with_extension: "{{dss_install_archive_name}}.tar.gz"
+dss_download_url: "https://cdn.downloads.dataiku.com/public/dss/{{dss_version}}/{{dss_install_archive_name_with_extension}}"
+
+dss_system_user: "dataiku"
+
+dss_user_isolation_group: "user_isolation"
+
+dss_power_user_group: "DSS_POWER_USER"
+
+dss_install_directory: /opt/dataiku
+dss_home_directory: "/opt/dataiku/{{dss_install_archive_name}}"
+dss_data_directory: /data/dataiku
+dss_datasets_directory: /data/datasets
+dss_folders_directory: /data/folders
+dss_backup_directory: /data/backup
+dss_python_version: python2.7
+
+dss_jupyter_config_dir: "{{dss_data_directory}}/jupyter-run/jupyter/config"
+dss_jupyter_data_dir: "{{dss_data_directory}}/jupyter-run/jupyter"
+
+dss_create_technical_user_script_path: "/opt/dataiku/create_dataiku_technical_user.sh"
+cran_keyserver_key_path: "/opt/dataiku/cran_keyserver_key.txt"
+
+dss_azure_ad_sync_plugin_name: "azure-ad-sync"
+
+dss_plugin_version: "9.0"
+dss_plugin_url: "https://update.dataiku.com/dss/{{dss_plugin_version}}/plugins"
+
+dss_timeseries_forecast_plugin_version: "1.1.0"
+dss_timeseries_forecast_plugin_name: "dss-plugin-timeseries-forecast-{{dss_timeseries_forecast_plugin_version}}.zip"
+dss_timeseries_forecast_plugin_url: "{{dss_plugin_url}}/timeseries-forecast/{{dss_timeseries_forecast_plugin_version}}/{{dss_timeseries_forecast_plugin_name}}"
+
+dss_model_drift_plugin_version: "3.0.0"
+dss_model_drift_plugin_name: "dss-plugin-model-drift-{{dss_model_drift_plugin_version}}.zip"
+dss_model_drift_plugin_url: "{{dss_plugin_url}}/model-drift/{{dss_model_drift_plugin_version}}/{{dss_model_drift_plugin_name}}"
+
+dss_excel_sheet_importer_plugin_version: "1.0.1"
+dss_excel_sheet_importer_plugin_name: "dss-plugin-excel-sheet-importer-{{dss_excel_sheet_importer_plugin_version}}.zip"
+dss_excel_sheet_importer_url: "{{dss_plugin_url}}/excel-sheet-importer/{{dss_excel_sheet_importer_plugin_version}}/{{dss_excel_sheet_importer_plugin_name}}"
+
+dss_events_aggregator_plugin_version: "0.2.9"
+dss_events_aggregator_plugin_name: "dss-plugin-events-aggregator-{{dss_events_aggregator_plugin_version}}.zip"
+dss_events_aggregator_plugin_url: "{{dss_plugin_url}}/events-aggregator/{{dss_events_aggregator_plugin_version}}/{{dss_events_aggregator_plugin_name}}"
+
+dss_timeseries_preparation_plugin_version: "2.0.0"
+dss_timeseries_preparation_plugin_name: "dss-plugin-timeseries-preparation-{{dss_timeseries_preparation_plugin_version}}.zip"
+dss_timeseries_preparation_plugin_url: "{{dss_plugin_url}}/timeseries-preparation/{{dss_timeseries_preparation_plugin_version}}/{{dss_timeseries_preparation_plugin_name}}"
+
+dss_port: "10000"
+
+dss_license_file_path: "{{ lookup('env', 'DSS_LICENSE_FILE') }}"
+saml_idp_metadata_path: "{{ lookup('env', 'SAML_IDP_METADATA_FILE') }}"
+saml_entity_id: "{{ lookup('env', 'SAML_ENTITY_ID') }}"
+
+azure_app_id: "{{ lookup('env', 'AZURE_APP_ID') }}"
+azure_app_secret: "{{ lookup('env', 'AZURE_APP_SECRET') }}"
+azure_tenant_id: "{{ lookup('env', 'AZURE_TENANT_ID') }}"
+azure_ad_sync_preset_name: "Azure AD"
+
+azure_dss_license_group_prefix: "{{ lookup('env', 'AZURE_DSS_LICENSE_GROUP_PREFIX') }}"
+dss_instance_id: "{{ lookup('env', 'DSS_INSTANCE_ID') }}"
+is_training_env: "{{ lookup('env', 'IS_TRAINING_ENV') }}"
+
+domain: "{{ lookup('env', 'DOMAIN_NAME') }}"
+
+dss_extollo_ssl_key_path: "{{ lookup('env', 'DSS_EXTOLLO_SSL_KEY_FILE') }}"
+
+dss_extollo_ssl_crt_path: "{{ lookup('env', 'DSS_EXTOLLO_SSL_CRT_FILE') }}"
+
+azure_storage_conn_string: "{{ lookup('env', 'AZURE_STORAGE_CONNECTION_STRING') }}"
+
+azure_storage_container: "{{ lookup('env', 'AZURE_STORAGE_CONTAINER') }}" 
+
+dna_platform_url: "{{ lookup('env', 'DNA_PLATFORM_URL') }}"
+
+proxy: "http://xxxx:xx"
+
+vm_admin_user: "{{ lookup('env', 'VM_ADMIN_USER') }}"
+
+metrics_endpoint: "https://xxxx/xxxx"
+grafana_push_endpoint: "grafana/api/live/push"
+grafana_stream_id: "{{ lookup('env', 'GRAFANA_STREAM_ID') }}"
+grafana_url: "{{dna_platform_url}}/{{grafana_push_endpoint}}/{{grafana_stream_id}}"
+grafana_api_key: "{{ lookup('env', 'GRAFANA_API_KEY') }}"
+
+is_automation_node: "{{ lookup('env', 'IS_AUTOMATION_NODE') }}"
+aut_node_ssl_chain: "{{ lookup('env', 'AUT_NODE_SSL_CHAIN') }}"

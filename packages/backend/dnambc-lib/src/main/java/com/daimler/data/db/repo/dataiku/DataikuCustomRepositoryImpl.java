@@ -33,8 +33,7 @@ import com.daimler.data.db.entities.DataikuNsql;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
 @Repository
-public class DataikuCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<DataikuNsql, String>
-        implements DataikuCustomRepository {
+public class DataikuCustomRepositoryImpl extends CommonDataRepositoryImpl<DataikuNsql, String>
+		implements DataikuCustomRepository {
 
 }
