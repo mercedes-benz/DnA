@@ -1,8 +1,8 @@
-{{- if .Values.ingress.enabled -}}
+{{- if .Values.airflow.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.app.backend.name }}-ingress
+  name: {{ include "airflow.name" . }}
   namespace: {{ .Values.namespace }}
   {{- with .Values.ingress.annotations }}
   annotations:
@@ -10,18 +10,18 @@ metadata:
   {{- end }}
 spec:
   rules:
-    - host: {{ .Values.ingress.host }}
+    - host: {{ .Values.airflow.ingress.host }}
       http:
         paths:
           - backend:
               service:
-                name: {{ .Values.app.backend.name }}-service
+                name: {{ include "airflow-service.name" . }}
                 port: 
                   name: api-http
             path: /
             pathType: Prefix
   tls:
     - hosts:
-      - {{ .Values.ingress.host }}
-      secretName: clamav-tls       
+      - {{ .Values.airflow.ingress.host }}
+      secretName: airflow-tls       
  {{- end }}

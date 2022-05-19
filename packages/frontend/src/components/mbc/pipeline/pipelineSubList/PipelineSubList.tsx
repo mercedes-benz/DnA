@@ -19,6 +19,7 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import classNames from 'classnames';
+import { Envs } from '../../../../globals/Envs';
 // import { TagRowItem } from '../../admin/taghandling/tagrowitem/TagRowItem';
 // import { isEmpty, iteratee, sortBy } from 'lodash';
 
@@ -349,7 +350,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                                             &nbsp; &nbsp;
                                             <a
                                               className={Styles.airflowLink}
-                                              href={`/pipelines/graph?dag_id=${dagItem.dagName}`}
+                                              href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dagItem.dagName}`}
                                               target="_blank"
                                               rel="noreferrer"
                                             >
