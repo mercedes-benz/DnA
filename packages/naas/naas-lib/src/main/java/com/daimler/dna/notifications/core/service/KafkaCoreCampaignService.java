@@ -78,6 +78,9 @@ public class KafkaCoreCampaignService {
 	@Value("${kafka.centralTopic.name}")
 	private String dnaCentralTopicName;
 	
+	@Value("${dna.uri}")
+	private String dnaBaseUri;
+	
 	private static String SOLUTION_NOTIFICATION_KEY = "Solution";
 	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
@@ -127,14 +130,15 @@ public class KafkaCoreCampaignService {
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
 					String emailBody = "<br/>"+ message.getMessage() + "<br/>";
+					String bucketURL = dnaBaseUri + message.getResourceId();
 					if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
 						for (ChangeLogVO changeLog : message.getChangeLogs()) {
 							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
 						}
 					}
 					if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
-						
-							emailBody += "<br/>" + "\u2022" + " Link to bucket: " + message.getResourceId() + "<br/>";
+							
+							emailBody += "<br/>" + "\u2022" + "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
 						
 					}
 					if(appNotificationPreferenceFlag) {
