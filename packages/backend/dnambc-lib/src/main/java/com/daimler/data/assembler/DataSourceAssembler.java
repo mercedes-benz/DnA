@@ -35,32 +35,31 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
-public class DataSourceAssembler
-        implements GenericAssembler<DataSourceVO, DataSourceNsql> {
+public class DataSourceAssembler implements GenericAssembler<DataSourceVO, DataSourceNsql> {
 
-    @Override
-    public DataSourceVO toVo(DataSourceNsql entity) {
-        DataSourceVO datasourceVO = null;
-        if (Objects.nonNull(entity)) {
-            datasourceVO = new DataSourceVO();
-            datasourceVO.setId(entity.getId());
-            datasourceVO.setName(entity.getData().getName());
-        }
-        return datasourceVO;
-    }
+	@Override
+	public DataSourceVO toVo(DataSourceNsql entity) {
+		DataSourceVO datasourceVO = null;
+		if (Objects.nonNull(entity)) {
+			datasourceVO = new DataSourceVO();
+			datasourceVO.setId(entity.getId());
+			datasourceVO.setName(entity.getData().getName());
+		}
+		return datasourceVO;
+	}
 
-    @Override
-    public DataSourceNsql toEntity(DataSourceVO vo) {
-        DataSourceNsql datasourceNsql = null;
-        if (Objects.nonNull(vo)) {
-            datasourceNsql = new DataSourceNsql();
-            DataSource datasource = new DataSource();
-            datasource.setName(vo.getName() );
-            datasourceNsql.setData(datasource);
-            if (vo.getId() != null)
-                datasourceNsql.setId(vo.getId());
-        }
-        return datasourceNsql;
-    }
+	@Override
+	public DataSourceNsql toEntity(DataSourceVO vo) {
+		DataSourceNsql datasourceNsql = null;
+		if (Objects.nonNull(vo)) {
+			datasourceNsql = new DataSourceNsql();
+			DataSource datasource = new DataSource();
+			datasource.setName(vo.getName());
+			datasourceNsql.setData(datasource);
+			if (vo.getId() != null)
+				datasourceNsql.setId(vo.getId());
+		}
+		return datasourceNsql;
+	}
 
 }

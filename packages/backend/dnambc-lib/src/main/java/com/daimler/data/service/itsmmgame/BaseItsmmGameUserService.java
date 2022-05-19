@@ -40,20 +40,19 @@ import com.daimler.data.dto.itsmmgame.ItsmmGameUserResultsWraperVO;
 import com.daimler.data.service.common.BaseCommonService;
 
 @Service
-public class BaseItsmmGameUserService
-        extends BaseCommonService<ItsmmGameUserDetailsVO, ItsmmGameUserDetailNsql, String>
-        implements ItsmmGameUserService {
+public class BaseItsmmGameUserService extends BaseCommonService<ItsmmGameUserDetailsVO, ItsmmGameUserDetailNsql, String>
+		implements ItsmmGameUserService {
 
-    @Autowired
-    private ItsmmGameUserCustomRepository customRepo;
-    @Autowired
-    private ItsmmGameUserRepository jpaRepo;
-    @Autowired
-    private ItsmmGameUserAssembler algoAssembler;
+	@Autowired
+	private ItsmmGameUserCustomRepository customRepo;
+	@Autowired
+	private ItsmmGameUserRepository jpaRepo;
+	@Autowired
+	private ItsmmGameUserAssembler algoAssembler;
 
-    public BaseItsmmGameUserService() {
-        super();
-    }
+	public BaseItsmmGameUserService() {
+		super();
+	}
 
 	@Override
 	public ItsmmGameUserResultsWraperVO getResults(String answer) {

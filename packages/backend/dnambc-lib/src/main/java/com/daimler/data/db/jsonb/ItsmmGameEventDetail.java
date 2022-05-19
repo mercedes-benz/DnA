@@ -45,5 +45,5 @@ public class ItsmmGameEventDetail {
 	private Date gameStartTime;
 	private Boolean gameStopped;
 	private Date gameStopTime;
-	
+
 }

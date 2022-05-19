@@ -35,10 +35,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CurrentPhase {
-	
+
 	private String id;
 	private String name;
-	
+
 //	public CurrentPhase() {
 //		super();
 //
@@ -66,6 +66,5 @@ public class CurrentPhase {
 //		this.name = name;
 //	}
 //
-	
-	
+
 }

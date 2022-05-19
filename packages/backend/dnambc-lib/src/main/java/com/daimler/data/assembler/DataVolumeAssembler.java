@@ -35,32 +35,31 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
-public class DataVolumeAssembler
-        implements GenericAssembler<DataVolumeVO, DataVolumeNsql> {
+public class DataVolumeAssembler implements GenericAssembler<DataVolumeVO, DataVolumeNsql> {
 
-    @Override
-    public DataVolumeVO toVo(DataVolumeNsql entity) {
-        DataVolumeVO dataVolumeVO = null;
-        if (Objects.nonNull(entity)) {
-            dataVolumeVO = new DataVolumeVO();
-            dataVolumeVO.setId(entity.getId());
-            dataVolumeVO.setName(entity.getData().getName());
-        }
-        return dataVolumeVO;
-    }
+	@Override
+	public DataVolumeVO toVo(DataVolumeNsql entity) {
+		DataVolumeVO dataVolumeVO = null;
+		if (Objects.nonNull(entity)) {
+			dataVolumeVO = new DataVolumeVO();
+			dataVolumeVO.setId(entity.getId());
+			dataVolumeVO.setName(entity.getData().getName());
+		}
+		return dataVolumeVO;
+	}
 
-    @Override
-    public DataVolumeNsql toEntity(DataVolumeVO vo) {
-        DataVolumeNsql datavolumeNsql = null;
-        if (Objects.nonNull(vo)) {
-            datavolumeNsql = new DataVolumeNsql();
-            DataVolume datavolume = new DataVolume();
-            datavolume.setName(vo.getName() );
-            datavolumeNsql.setData(datavolume);
-            if (vo.getId() != null)
-                datavolumeNsql.setId(vo.getId());
-        }
-        return datavolumeNsql;
-    }
+	@Override
+	public DataVolumeNsql toEntity(DataVolumeVO vo) {
+		DataVolumeNsql datavolumeNsql = null;
+		if (Objects.nonNull(vo)) {
+			datavolumeNsql = new DataVolumeNsql();
+			DataVolume datavolume = new DataVolume();
+			datavolume.setName(vo.getName());
+			datavolumeNsql.setData(datavolume);
+			if (vo.getId() != null)
+				datavolumeNsql.setId(vo.getId());
+		}
+		return datavolumeNsql;
+	}
 
 }

@@ -37,13 +37,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolutionDivision  implements Serializable{
+public class SolutionDivision implements Serializable {
 
-		private String id;
-		private String name;
-		private SubDivision subdivision;
-		
-		
+	private String id;
+	private String name;
+	private SubDivision subdivision;
+
 //		public SolutionDivision() {
 //			super();
 //		}

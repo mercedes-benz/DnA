@@ -27,7 +27,6 @@
 
 package com.daimler.data.service.appsubscription;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,7 +65,6 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 		implements AppSubscriptionService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseAppSubscriptionService.class);
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
 	@Autowired
 	private AppSubscriptionCustomRepository customRepo;
@@ -95,11 +93,12 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 		HttpStatus httpStatus = null;
 		List<MessageDescription> messages = new ArrayList<>();
 		MessageDescription message = null;
+		String uniqueAppId = apiKeyValidationVO.getAppId();
 		SubscriptionVO existingSubscriptionVO = super.getByUniqueliteral("appId", apiKeyValidationVO.getAppId());
 		if (existingSubscriptionVO != null && StringUtils.hasText(existingSubscriptionVO.getAppId())) {
 			if (StringUtils.hasText(existingSubscriptionVO.getRecordStatus())
 					&& existingSubscriptionVO.getRecordStatus().equals(ConstantsUtility.DELETED)) {
-				LOGGER.info("Subscription is deleted by owner/admin");
+				LOGGER.info("Subscription is deleted by owner/admin for appId {} ", uniqueAppId);
 				message = new MessageDescription();
 				message.setMessage("Subscription is deleted by owner/admin.");
 				messages.add(message);
@@ -107,18 +106,18 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 				httpStatus = HttpStatus.BAD_REQUEST;
 			} else if (existingSubscriptionVO.getExpireOn() != null
 					&& existingSubscriptionVO.getExpireOn().before(new Date())) {
-				LOGGER.info("Subscription is expired please contact admin.");
+				LOGGER.info("Subscription is expired please contact admin. appId {} ",uniqueAppId);
 				message = new MessageDescription();
 				message.setMessage("Subscription is expired please contact admin.");
 				messages.add(message);
 				validationResponseVO.setValidApiKey(false);
 				httpStatus = HttpStatus.OK;
 			} else {
-				LOGGER.trace("Entering validateApiKey");
+				LOGGER.debug("Entering validateApiKey for appId {}",uniqueAppId);
 				VaultGenericResponse vaultResponse = vaultConfig.validateApiKey(apiKeyValidationVO.getAppId(),
 						apiKeyValidationVO.getApiKey());
 				if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-					LOGGER.info("Valid apikey");
+					LOGGER.info("Valid apikey for appId {}",uniqueAppId);
 					existingSubscriptionVO.setUsageCount(
 							existingSubscriptionVO.getUsageCount() != null ? existingSubscriptionVO.getUsageCount() + 1
 									: 1);
@@ -128,6 +127,7 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 					httpStatus = HttpStatus.OK;
 				} else {
 					message = new MessageDescription();
+					LOGGER.info("Failed to validate apikey for appId {}",uniqueAppId);
 					message.setMessage("Failed to validate");
 					messages.add(message);
 					validationResponseVO.setValidApiKey(false);
@@ -136,6 +136,7 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 			}
 		} else {
 			message = new MessageDescription();
+			LOGGER.info("Api Key is invalid for appId {}",uniqueAppId);
 			message.setMessage("Api Key is invalid");
 			messages.add(message);
 			validationResponseVO.setValidApiKey(false);
@@ -151,7 +152,7 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 
 		return new ResponseEntity<ApiKeyValidationResponseVO>(validationResponseVO, httpStatus);
 	}
-	
+
 	/**
 	 * create/update api key in vault
 	 * 
@@ -161,7 +162,6 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 	@Override
 	@Transactional
 	public SubscriptionVO createApiKey(SubscriptionVO requestSubscriptionVO, String userId) {
-		LOGGER.trace("Entering createApiKey");
 		String appId = UUID.randomUUID().toString();
 		String apiKey = UUID.randomUUID().toString();
 		VaultGenericResponse vaultResponse = vaultConfig.createApiKey(appId, apiKey);
@@ -195,14 +195,12 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 	@Override
 	@Transactional
 	public List<SubscriptionVO> getAllWithFilters(String userId, boolean isAdmin, String recordStatus, String appId,
-			String sortBy, String sortOrder, int offset, int limit) {
-		LOGGER.trace("Entering getAllWithFilters");
+			String sortBy, String sortOrder, int offset, int limit, String searchTerm) {
 		List<AppSubscriptionNsql> appSubscriptionEntities = customRepo.getAllWithFilters(userId, isAdmin, recordStatus,
-				appId, sortBy, sortOrder, offset, limit, null);
+				appId, sortBy, sortOrder, offset, limit, null, searchTerm);
 		if (!ObjectUtils.isEmpty(appSubscriptionEntities)) {
 			List<SubscriptionVO> SubscriptionsVO = appSubscriptionEntities.stream()
 					.map(n -> appSubscriptionAssembler.toVo(n)).collect(Collectors.toList());
-			LOGGER.info("Setting api key");
 			for (SubscriptionVO subscriptionVO : SubscriptionsVO) {
 				VaultResponse vaultResponse = vaultConfig.getApiKeys(subscriptionVO.getAppId());
 				if (vaultResponse != null && vaultResponse.getData() != null
@@ -225,9 +223,8 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 	 */
 	@Override
 	@Transactional
-	public Long getCount(String userId, boolean isAdmin, String recordStatus, String appId) {
-		LOGGER.trace("Entering getCount");
-		return customRepo.getCount(userId, isAdmin, recordStatus, appId);
+	public Long getCount(String userId, boolean isAdmin, String recordStatus, String appId, String searchTerm) {
+		return customRepo.getCount(userId, isAdmin, recordStatus, appId, searchTerm);
 	}
 
 	/**
@@ -240,14 +237,13 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 	@Override
 	@Transactional
 	public SubscriptionVO deleteSubscriptionById(String id, String userId, SubscriptionVO existingSubscriptionVO) {
-		LOGGER.trace("Entering deleteSubscriptionById");
 		if (existingSubscriptionVO != null) {
 			existingSubscriptionVO.setUpdatedBy(userId);
 			existingSubscriptionVO.setUpdatedDate(new Date());
 			existingSubscriptionVO.setRecordStatus(ConstantsUtility.DELETED);
 			return super.create(existingSubscriptionVO);
 		} else {
-			LOGGER.info("No Subscription found for given identification");
+			LOGGER.info("No Subscription found for given identification id {}", id);
 			return null;
 		}
 	}
@@ -261,12 +257,11 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 	@Override
 	@Transactional
 	public SubscriptionVO refreshApiKeyByAppId(String appId, String userId, SubscriptionVO existingSubscriptionVO) {
-		LOGGER.trace("Entering refreshApiKeyByAppId");
 		if (existingSubscriptionVO != null && StringUtils.hasText(existingSubscriptionVO.getAppId())) {
 			String apiKey = UUID.randomUUID().toString();
 			VaultGenericResponse vaultResponse = vaultConfig.createApiKey(appId, apiKey);
 			if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-				LOGGER.info("Api Key refreshed successfully");
+				LOGGER.info("Api Key refreshed successfully for appId {}", appId);
 				existingSubscriptionVO.setApiKey(apiKey);
 				existingSubscriptionVO.setUpdatedBy(userId);
 				existingSubscriptionVO.setUpdatedDate(new Date());
@@ -281,27 +276,27 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 			return null;
 		}
 	}
-	
+
 	@Override
 	@Transactional
 	public void updateSolIdForSubscribedAppId(String appId, String solutionId) {
-		LOGGER.trace("Entering updateSolutionIdForAppId.");
 		AppSubscriptionNsql entity = null;
-		if(appId!=null && "".equals(appId))
-			customRepo.findbyUniqueLiteral("appId", appId);
+		if (StringUtils.hasText(appId)) {
+			LOGGER.info("Fetching record for appId {}", appId);
+			entity = customRepo.findbyUniqueLiteral("appId", appId);
+		}
 		if (entity != null && entity.getData() != null
 				&& !entity.getData().getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 			AppSubscription jsonb = entity.getData();
 			jsonb.setSolutionId(solutionId);
 			entity.setData(jsonb);
 			customRepo.update(entity);
-			LOGGER.info("Solution Provisioning successful");
+			LOGGER.info("Solution Provisioning successfull for appId {}", appId);
 		} else {
-			LOGGER.info("No Subscription found for Solution Provisioning.");
+			LOGGER.info("No Subscription found for Solution Provisioning. for appId {}", appId);
 		}
-		LOGGER.trace("Returning from updateSolutionIdForAppId.");
 	}
-	
+
 	@Override
 	@Transactional
 	public SubscriptionVO updateSubscription(String userId, SubscriptionExpireVO expireVO) {
@@ -317,6 +312,7 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 			entity.getData().setExpireOn(setExpiryDate(expireVO.getExpiryDays()));
 			responseEntity = jpaRepo.save(entity);
 		}
+		LOGGER.info("Updating subscription for appId {} , expiryDays {} ", expireVO.getAppId(), expireVO.getExpiryDays());
 		return appSubscriptionAssembler.toVo(responseEntity);
 	}
 
@@ -331,19 +327,17 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 	@Override
 	@Transactional
 	public SubscriptionVO getById(String id) {
-		LOGGER.trace("Entering getById.");
 		SubscriptionVO subscriptionVO = super.getById(id);
-		if(!ObjectUtils.isEmpty(subscriptionVO)) {
+		if (!ObjectUtils.isEmpty(subscriptionVO)) {
 			VaultResponse vaultResponse = vaultConfig.getApiKeys(subscriptionVO.getAppId());
 			if (vaultResponse != null && vaultResponse.getData() != null
 					&& vaultResponse.getData().get(subscriptionVO.getAppId()) != null) {
 				subscriptionVO.setApiKey(vaultResponse.getData().get(subscriptionVO.getAppId()).toString());
 			}
 		}
-		LOGGER.trace("Returning from getById.");
 		return subscriptionVO;
 	}
-	
+
 	private Date setExpiryDate(Integer expiryDays) {
 		Date expiryDate = null;
 		if (expiryDays != null) {
@@ -365,7 +359,8 @@ public class BaseAppSubscriptionService extends BaseCommonService<SubscriptionVO
 
 	@Override
 	public boolean isApplicationSubscriptionExist(SubscriptionVO requestSubscriptionVO, String userId) {
-		List<AppSubscriptionNsql> entityList = customRepo.getAllWithFilters(userId, false, null, null, null, null, 0, 0,requestSubscriptionVO.getAppName());
+		List<AppSubscriptionNsql> entityList = customRepo.getAllWithFilters(userId, false, ConstantsUtility.OPEN, null, null, null, 0, 0,
+				requestSubscriptionVO.getAppName(), null);
 		return !ObjectUtils.isEmpty(entityList);
 	}
 }

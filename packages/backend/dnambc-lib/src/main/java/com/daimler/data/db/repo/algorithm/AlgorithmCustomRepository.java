@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.algorithm;
 import com.daimler.data.db.entities.AlgorithmNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface AlgorithmCustomRepository
-        extends CommonDataRepository<AlgorithmNsql, String> {
+public interface AlgorithmCustomRepository extends CommonDataRepository<AlgorithmNsql, String> {
 
 }

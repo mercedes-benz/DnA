@@ -17,7 +17,7 @@ import { USER_ROLE } from '../../../globals/constants';
 import { Envs } from '../../../globals/Envs';
 import { ApiClient } from '../../../services/ApiClient';
 // import { getQueryParameterByName } from '../../../services/Query';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 
 // @ts-ignore
 import * as _ from 'lodash';
@@ -110,7 +110,7 @@ export interface ICreateNewSolutionProps {
 
 export interface ICreateNewSolutionData {
   description: IDescriptionRequest;
-  team?: ITeams[];
+  team?: ITeamRequest;
   currentPhase?: IPhase;
   milestones?: IMilestonesList;
   dataSources: IDataSource;
@@ -123,6 +123,20 @@ export interface ICreateNewSolutionData {
   publish: boolean;
   createdBy?: IUserInfo;
   bookmarked?: boolean;
+  neededRoles: INeededRoleObject[];
+  createdDate: string;
+  lastModifiedDate: string;
+}
+
+export interface ITeamRequest {
+  team?: ITeams[];
+}
+
+export interface INeededRoleObject {
+  fromDate: string;
+  neededSkill: string;
+  requestedFTECount: string;
+  toDate: string;
 }
 export interface IDescriptionRequest {
   productName: string;
@@ -137,8 +151,11 @@ export interface IDescriptionRequest {
   tags: string[];
   logoDetails: ILogoDetails;
   attachments: IAttachment[];
-  businessGoal: string;
+  businessGoal: string[];
   businessGoalsList: IBusinessGoal[];
+  dataStrategyDomain: string;
+  requestedFTECount: number;
+  additionalResource: string;
 }
 
 export default class CreateNewSolution extends React.Component<ICreateNewSolutionProps, ICreateNewSolutionState> {
@@ -214,13 +231,16 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           description: '',
           tags: [],
           businessNeeds: '',
-          businessGoal: '',
+          businessGoal: [],
           logoDetails: null,
           attachments: [],
           businessGoalsList: [],
+          dataStrategyDomain: '',
+          requestedFTECount: 0,
+          additionalResource: '',
         },
         openSegments: [],
-        team: [],
+        team: { team: [] },
         currentPhase: null,
         milestones: { phases: [], rollouts: { details: [], description: '' } },
         analytics: { languages: [], algorithms: [], visualizations: [] },
@@ -266,6 +286,9 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           dnaSubscriptionAppId: null,
         },
         publish: false,
+        neededRoles: [],
+        createdDate: '',
+        lastModifiedDate: '',
       },
       // stateChanged: false,
       currentState: null,
@@ -365,6 +388,32 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     });
   }
 
+  protected setupEditSolutionData(
+    subDivisions: ISubDivision[],
+    response: ICreateNewSolutionResult,
+    solution: ICreateNewSolutionData,
+    resetChildComponents: () => void | null,
+  ) {
+    this.setState(
+      {
+        subDivisions,
+        response,
+        solution,
+      },
+      () => {
+        this.setOpenTabs(solution.openSegments);
+        SelectBox.defaultSetup();
+        ProgressIndicator.hide();
+        resetChildComponents();
+        this.setState({
+          // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.solution)))),
+          // currentStateHash: JSON.stringify(this.state.solution),
+          currentState: JSON.parse(JSON.stringify(solution)),
+        });
+      },
+    );
+  }
+
   public async getSolutionById(resetChildComponents?: () => void | null) {
     let { id } = getParams();
     if ((id == null || id === '') && this.state.response.data != null) {
@@ -389,7 +438,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               const solution = this.state.solution;
               solution.description.productName = res.productName;
               solution.description.businessNeeds = res.businessNeed;
-              solution.description.businessGoal = res.businessGoal;
+              solution.description.businessGoal = res.businessGoals;
               solution.description.description = res.description;
               solution.description.division = res.division;
               solution.description.expectedBenefits = res.expectedBenefits;
@@ -400,10 +449,15 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.description.logoDetails = res.logoDetails;
               solution.description.attachments = res.attachments;
               solution.description.reasonForHoldOrClose = res.reasonForHoldOrClose;
+              solution.description.dataStrategyDomain = res.dataStrategyDomain;
+              solution.description.additionalResource = res.additionalResource;
+              // solution.description.neededRoles = res.skills;
+              solution.description.requestedFTECount = res.requestedFTECount;
               solution.milestones = res.milestones;
               // this.milestoneComponent.current.updateComponentValues(res.milestones);
               solution.currentPhase = res.currentPhase;
-              solution.team = res.team;
+              solution.team.team = res.team;
+              solution.neededRoles = res.skills;
               solution.dataSources = res.dataSources;
               // solution.digitalValue = this.translateToMillions(res.digitalValue);
               // this.digitalValueComponent.current.updateComponentValues(this.translateToMillions(res.digitalValue));
@@ -415,29 +469,19 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.datacompliance = res.dataCompliance;
               solution.openSegments = res.openSegments;
               solution.publish = res.publish;
-              ApiClient.getSubDivisions(res.division.id).then((subDivisions) => {
-                if (!subDivisions.length) {
-                  subDivisions = [{ id: '0', name: 'None' }];
-                }
-                this.setState(
-                  {
-                    subDivisions,
-                    response,
-                    solution,
-                  },
-                  () => {
-                    this.setOpenTabs(solution.openSegments);
-                    SelectBox.defaultSetup();
-                    ProgressIndicator.hide();
-                    resetChildComponents();
-                    this.setState({
-                      // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.solution)))),
-                      // currentStateHash: JSON.stringify(this.state.solution),
-                      currentState: JSON.parse(JSON.stringify(solution)),
-                    });
-                  },
-                );
-              });
+              let subDivisions: ISubDivision[] = [{ id: '0', name: 'None' }];
+              const divisionId = res.division?.id;
+              if (divisionId) {
+                ApiClient.getSubDivisions(divisionId)
+                  .then((subDivResponse) => {
+                    subDivisions = subDivResponse;
+                  })
+                  .finally(() => {
+                    this.setupEditSolutionData(subDivisions, response, solution, resetChildComponents);
+                  });
+              } else {
+                this.setupEditSolutionData(subDivisions, response, solution, resetChildComponents);
+              }  
             } else {
               ProgressIndicator.hide();
               history.replace('/unauthorised');
@@ -497,7 +541,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                     }
                   >
                     <a href="#tab-content-3" id="teams" onClick={this.setCurrentTab}>
-                      Team
+                      Members
                     </a>
                   </li>
                   <li
@@ -542,7 +586,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                       Sharing
                     </a>
                   </li>
-                  {Envs.ENABLEDATACOMPLIANCE ? (
+                  {Envs.ENABLE_DATA_COMPLIANCE ? (
                     <li
                       className={
                         this.state.tabClassNames.has('DataCompliance')
@@ -606,6 +650,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                 {currentTab === 'teams' && (
                   <Teams
                     team={this.state.solution.team}
+                    neededRoles={this.state.solution.neededRoles}
                     modifyTeam={this.modifySolutionTeam}
                     onSaveDraft={this.onSaveDraft}
                   />
@@ -660,7 +705,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   />
                 )}
               </div>
-              {Envs.ENABLEDATACOMPLIANCE ? (
+              {Envs.ENABLE_DATA_COMPLIANCE ? (
                 <div id="tab-content-8" className="tab-content">
                   {currentTab === 'datacompliance' && (
                     <DataCompliance
@@ -862,7 +907,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
   protected saveSharing = () => {
     this.state.solution.openSegments.push('Sharing');
     this.setState({ publishFlag: false });
-    const nextTab = Envs.ENABLEDATACOMPLIANCE ? 'datacompliance' : 'digitalvalue';
+    const nextTab = Envs.ENABLE_DATA_COMPLIANCE ? 'datacompliance' : 'digitalvalue';
     this.callApiToSave(this.state.solution.publish, nextTab);
   };
   protected saveDataCompliance = () => {
@@ -891,7 +936,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         productName: solution.description.productName,
         reasonForHoldOrClose: solution.description.reasonForHoldOrClose,
         businessNeed: solution.description.businessNeeds,
-        businessGoal: solution.description.businessGoal,
+        businessGoals: solution.description.businessGoal,
         description: solution.description.description,
         division: solution.description.division,
         expectedBenefits: solution.description.expectedBenefits,
@@ -902,7 +947,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         tags: solution.description.tags,
         logoDetails: solution.description.logoDetails,
         attachments: solution.description.attachments,
-        team: solution.team,
+        team: solution.team.team,
         currentPhase: solution.currentPhase,
         milestones: solution.milestones,
         dataSources: solution.dataSources,
@@ -913,6 +958,10 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         publish: isPublished,
         analytics: solution.analytics,
         sharing: solution.sharing,
+        dataStrategyDomain: solution.description.dataStrategyDomain,
+        requestedFTECount: solution.description.requestedFTECount,
+        skills: solution.neededRoles,
+        additionalResource: solution.description.additionalResource,
       },
     };
     ProgressIndicator.show();
@@ -997,9 +1046,10 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     });
   };
 
-  protected modifySolutionTeam = (team: ITeams[]) => {
+  protected modifySolutionTeam = (team: ITeamRequest, neededRoles: INeededRoleObject[]) => {
     const currentSolutionObject = this.state.solution;
     currentSolutionObject.team = team;
+    currentSolutionObject.neededRoles = neededRoles;
     this.setState({
       solution: currentSolutionObject,
     });

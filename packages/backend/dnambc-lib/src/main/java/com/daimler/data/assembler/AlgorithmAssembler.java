@@ -37,28 +37,28 @@ import java.util.Objects;
 @Component
 public class AlgorithmAssembler implements GenericAssembler<AlgorithmVO, AlgorithmNsql> {
 
-    @Override
-    public AlgorithmVO toVo(AlgorithmNsql entity) {
-        AlgorithmVO algorithmVO = null;
-        if (Objects.nonNull(entity)) {
-            algorithmVO = new AlgorithmVO();
-            algorithmVO.setId(entity.getId());
-            algorithmVO.setName(entity.getData().getName());
-        }
-        return algorithmVO;
-    }
+	@Override
+	public AlgorithmVO toVo(AlgorithmNsql entity) {
+		AlgorithmVO algorithmVO = null;
+		if (Objects.nonNull(entity)) {
+			algorithmVO = new AlgorithmVO();
+			algorithmVO.setId(entity.getId());
+			algorithmVO.setName(entity.getData().getName());
+		}
+		return algorithmVO;
+	}
 
-    @Override
-    public AlgorithmNsql toEntity(AlgorithmVO vo) {
-        AlgorithmNsql algorithmNsql = null;
-        if (Objects.nonNull(vo)) {
-            algorithmNsql = new AlgorithmNsql();
-            Algorithm algorithm = new Algorithm();
-            algorithm.setName(vo.getName() );
-            algorithmNsql.setData(algorithm);
-            if (vo.getId() != null)
-                algorithmNsql.setId(vo.getId());
-        }
-        return algorithmNsql;
-    }
+	@Override
+	public AlgorithmNsql toEntity(AlgorithmVO vo) {
+		AlgorithmNsql algorithmNsql = null;
+		if (Objects.nonNull(vo)) {
+			algorithmNsql = new AlgorithmNsql();
+			Algorithm algorithm = new Algorithm();
+			algorithm.setName(vo.getName());
+			algorithmNsql.setData(algorithm);
+			if (vo.getId() != null)
+				algorithmNsql.setId(vo.getId());
+		}
+		return algorithmNsql;
+	}
 }

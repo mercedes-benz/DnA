@@ -30,7 +30,6 @@ package com.daimler.data.db.repo.userrole;
 import com.daimler.data.db.entities.UserRoleNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface UserRoleCustomRepository
-        extends CommonDataRepository<UserRoleNsql, String> {
+public interface UserRoleCustomRepository extends CommonDataRepository<UserRoleNsql, String> {
 
 }

@@ -41,7 +41,7 @@ import lombok.NoArgsConstructor;
 public class ValueCalculator implements Serializable {
 
 	private static final long serialVersionUID = -147664283453030921L;
-	
+
 	private BigDecimal breakEvenPoint;
 	private List<RampUpYear> calculatedValueRampUpYears;
 	private CostFactorSummary costFactorSummary;

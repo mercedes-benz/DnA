@@ -31,8 +31,7 @@ import com.daimler.data.db.entities.DataSourceNsql;
 import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.service.common.CommonService;
 
-public interface DataSourceService
-        extends CommonService<DataSourceVO, DataSourceNsql, String> {
+public interface DataSourceService extends CommonService<DataSourceVO, DataSourceNsql, String> {
 
-    boolean deleteDataSource(final String id);
+	boolean deleteDataSource(final String id);
 }

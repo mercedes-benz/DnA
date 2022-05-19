@@ -1,0 +1,55 @@
+# Default values for i3postgresql.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: dashboard
+image: ""
+imagePullPolicy: Always
+imagePullSecret: 
+  name: harbor-pull-secrets
+dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
+secret:
+  name: dashboard-secrets
+  appUserName: ""
+  appPassword: ""
+  jwtKey: ""
+appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+enableAuth: true
+loggingPath: /tmp/dashboard/log
+loggingEnvironment: ""
+flywayBaseline: ""
+flywayBaselineOnMigrate: ""
+flywayBaselineVersion: ""
+flywaySchema: ""
+containerPort: 7173
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1000Mi"
+    cpu: "500m"
+
+probes:
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  periodSeconds: 20
+  failureThreshold: 3
+  livenessProbe:
+    path: /dashboards/actuator/health/liveness
+    port: api
+      
+  readinessProbe:
+    path: /dashboards/actuator/health/readiness
+    port: api
+

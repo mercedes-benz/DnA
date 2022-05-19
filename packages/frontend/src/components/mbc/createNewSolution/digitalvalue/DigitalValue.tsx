@@ -1,8 +1,10 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { InfoModal } from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
 // @ts-ignore
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
+// @ts-ignore
+import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
 // @ts-ignore
 import ImgCostDriver from '../../../../assets/images/cost-driver-info.png';
 // @ts-ignore
@@ -25,10 +27,10 @@ import {
   IValueFactor,
   IValueRampUp,
 } from '../../../../globals/types';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import AttachmentUploader from '../AttachmentUploader/AttachmentUploader';
-import AddTeamMemberModal from '../teams/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from '../teams/teamMemberListItem/TeamMemberListItem';
+import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
 import AddOrEditFactorModal from './addOrEditFactorModal/AddOrEditFactorModal';
 import Styles from './DigitalValue.scss';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
@@ -681,7 +683,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                 <div>
                   <div className={classNames('input-field-group')}>
                     <label id="benefitRelevanceSelectLabel" htmlFor="benefitRelevanceSelect" className="input-label">
-                      Benefit Relevance<sup>*</sup>
+                      Benefit Realization Risk<sup>*</sup>
                     </label>
                     <div id="benefitRelevance" className="custom-select">
                       <select
@@ -1414,6 +1416,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     }
     this.setState({ showAddOrEditFactorModal: true }, () => {
       this.addOrEditFactorModalRef.current.setFactorData(this.state.factorItem, isEditMode);
+      InputFields.defaultSetup();
     });
   };
 

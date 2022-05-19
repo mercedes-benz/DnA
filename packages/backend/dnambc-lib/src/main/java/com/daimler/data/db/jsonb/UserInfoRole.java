@@ -38,10 +38,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class UserInfoRole implements Serializable {
 
-    private static final long serialVersionUID = 8543495231860530213L;
+	private static final long serialVersionUID = 8543495231860530213L;
 
-    private String id;
-    private String name;
+	private String id;
+	private String name;
 
 //    public UserInfoRole() {
 //        super();

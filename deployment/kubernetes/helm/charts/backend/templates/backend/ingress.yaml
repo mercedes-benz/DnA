@@ -1,0 +1,51 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: {{ .Release.Name }}-service
+                port: 
+                  name: api-http
+            path: /api
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Release.Name }}-service
+                port:
+                  name: api-http
+            path: /swagger-ui.html
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Release.Name }}-service
+                port: 
+                  name: api-http
+            path: /swagger-resources
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Release.Name }}-service
+                port:
+                  name: api-http
+            path: /v2/api-docs
+            pathType: Prefix
+          - backend:
+              service:
+                name: {{ .Release.Name }}-service
+                port:
+                  name: api-http
+            path: /webjars
+            pathType: Prefix
+{{- end }}

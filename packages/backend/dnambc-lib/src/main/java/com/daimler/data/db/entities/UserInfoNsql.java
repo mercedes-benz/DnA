@@ -39,52 +39,48 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@TypeDefs({
-        @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
-})
+@TypeDefs({ @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class) })
 @Table(name = "userinfo_nsql")
 public class UserInfoNsql implements Serializable {
 
-    private static final long serialVersionUID = -6342864256804097049L;
+	private static final long serialVersionUID = -6342864256804097049L;
 
-    @Id
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id;
+	@Id
+	@Column(name = "id", updatable = false, nullable = false)
+	private String id;
 
-    @Type(type = "jsonb")
-    @Column(columnDefinition = "jsonb")
-    private UserInfo data;
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private UserInfo data;
 
-    @Column(name = "is_logged_in")
-    private String isLoggedIn;
-    
+	@Column(name = "is_logged_in")
+	private String isLoggedIn;
 
-    
-    public UserInfoNsql() {
-        super();
-    }
+	public UserInfoNsql() {
+		super();
+	}
 
-    @PrePersist
-    public void populateId() {
-        if (Objects.isNull(this.getId()))
-            this.setId(UUID.randomUUID().toString());
-    }
+	@PrePersist
+	public void populateId() {
+		if (Objects.isNull(this.getId()))
+			this.setId(UUID.randomUUID().toString());
+	}
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public UserInfo getData() {
-        return data;
-    }
+	public UserInfo getData() {
+		return data;
+	}
 
-    public void setData(UserInfo data) {
-        this.data = data;
-    }
+	public void setData(UserInfo data) {
+		this.data = data;
+	}
 
 	public String getIsLoggedIn() {
 		return isLoggedIn;

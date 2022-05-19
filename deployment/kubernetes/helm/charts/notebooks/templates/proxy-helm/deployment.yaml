@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy
+  namespace: {{ .Values.namespace }}
+  labels:
+    component: proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: proxy
+  
+  template:
+    metadata:
+      labels:
+        component: proxy
+    spec:
+      containers:
+        - name: chp
+          image: {{ .Values.app.proxy.image }}
+          command:
+            - configurable-http-proxy
+            - --ip=0.0.0.0
+            - --api-ip=0.0.0.0
+            - --api-port=8001
+            - --default-target=http://$(HUB_SERVICE_HOST):$(HUB_SERVICE_PORT)
+            - --error-target=http://$(HUB_SERVICE_HOST):$(HUB_SERVICE_PORT)/hub/error
+            - --port=8000
+            - --log-level=error
+          securityContext:
+            # Don't allow any process to execute as root inside the container
+            #allowPrivilegeEscalation: false
+            runAsUser: 1000
+          env:
+            - name: CONFIGPROXY_AUTH_TOKEN
+              value: {{ .Values.app.jupyter.config.configproxy_auth_token | quote }}
+          ports:
+            - containerPort: 8000
+              name: proxy-public
+            - containerPort: 8001
+              name: api

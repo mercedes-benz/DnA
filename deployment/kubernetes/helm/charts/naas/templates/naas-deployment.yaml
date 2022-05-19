@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: {{ .Chart.Name }}-backend
+spec:
+  replicas: {{ .Values.app.backend.replicaCount }}
+  selector:
+    matchLabels:
+      name: {{ .Chart.Name }}-backend
+  template:
+    metadata:
+      labels:
+        name: {{ .Chart.Name }}-backend
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-service
+          image: {{ .Values.app.backend.image }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: API_DB_URL
+              value: {{ .Values.app.backend.config.api_db_url  }} 
+            - name: API_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.username
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: API_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: postgres.app.password
+                  name: {{ .Values.app.backend.secrets.name }}
+            - name: NAAS_BROKER
+              value: {{ .Values.app.backend.config.naas_broker }}
+            - name: MAX_POLL_RECORDS
+              value: {{ .Values.app.backend.config.max_poll_records | quote }}
+            - name: DNA_URI
+              value: {{ .Values.app.backend.config.dna_uri }}
+            - name: DNA_AUTH_ENABLE
+              value: {{ .Values.app.backend.config.dna_auth_enable | quote }}
+            - name: DNA_MAIL_SERVER_HOST
+              value: {{ .Values.app.backend.config.mailServerHost | quote }}
+            - name: DNA_MAIL_SERVER_PORT
+              value: {{ .Values.app.backend.config.mailServerPort | quote }}
+            - name: DNA_NOTIFICATION_SENDER_EMAIL
+              value: {{ .Values.app.backend.config.notificationSenderEmail | quote }}
+            - name: POLL_TIME
+              value: {{ .Values.app.backend.config.poll_time | quote }}
+            - name: NAAS_CENTRAL_TOPIC
+              value: {{ .Values.app.backend.config.naas_central_topic | quote }}
+            - name: NAAS_CENTRALREAD_TOPIC
+              value: {{ .Values.app.backend.config.naas_centralread_topic | quote }}
+            - name: NAAS_CENTRALDELTE_TOPIC
+              value: {{ .Values.app.backend.config.naas_centraldelte_topic | quote }}
+            - name: LOGGING_PATH
+              value: {{ .Values.app.backend.config.loggingPath | quote }}
+            - name: LOGGING_ENVIRONMENT
+              value: {{ .Values.app.backend.config.loggingEnvironment | quote }}
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: jwt.secret.key
+                  name: {{ .Values.app.backend.secrets.name }}
+          ports:
+            - containerPort: 7272
+              name: api
+              protocol: TCP
+          resources:
+            requests:
+              memory: {{ .Values.app.resources.requests.memory }}
+              cpu: {{ .Values.app.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.app.resources.limits.memory }}
+              cpu: {{ .Values.app.resources.limits.cpu }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.app.probes.livenessProbe.path }}
+              port: {{ .Values.app.probes.livenessProbe.port }}
+              
+          readinessProbe:
+            # initialDelaySeconds: 180
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.app.probes.readinessProbe.path }}
+              port: {{ .Values.app.probes.readinessProbe.port }}  
+
+          # volumeMounts:
+          #   - mountPath: /var/lib/clamav
+          #     name: avdata
+          # livenessProbe:
+          #   exec:
+          #     command:
+          #     - /readyness.sh
+          #   initialDelaySeconds: 20
+          #   timeoutSeconds: 2
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}
+      # volumes:
+      #   - name: avdata
+      #     persistentVolumeClaim:
+      #       claimName: clamav-db-dir

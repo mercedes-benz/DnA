@@ -36,11 +36,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolutionLocation  implements Serializable{
+public class SolutionLocation implements Serializable {
 
 	private String id;
 	private String name;
-	
+
 //	public SolutionLocation() {
 //		super();
 //	}
@@ -65,6 +65,5 @@ public class SolutionLocation  implements Serializable{
 //	public void setName(String name) {
 //		this.name = name;
 //	}
-	
-	
+
 }

@@ -36,12 +36,12 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WidgetUserRole implements Serializable{
+public class WidgetUserRole implements Serializable {
 
 	private static final long serialVersionUID = -3339186074306871734L;
 	private String id;
-    private String name;
-	
+	private String name;
+
 //    public WidgetUserRole() {
 //		super();
 //	}
@@ -68,5 +68,5 @@ public class WidgetUserRole implements Serializable{
 //		this.name = name;
 //	}
 //
-    
+
 }

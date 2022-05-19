@@ -1,7 +1,12 @@
 spring:
   application:
     name: dna-backend-service
-
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}
+    
   jpa:
     database: POSTGRESQL
     show-sql: false
@@ -14,10 +19,12 @@ spring:
       ddl-auto: none
 
   datasource:
+    hikari:
+      connection-timeout: 4000
     platform: postgres
     url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
-    username: ${API_DB_USER:admin}
-    password: ${API_DB_PASS:admin}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
 
   servlet:
@@ -26,6 +33,11 @@ spring:
       max-request-size: 5MB
       
   cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
     vault:
       host: ${VAULT_HOST:localhost}
       port: ${VAULT_PORT:8200}
@@ -37,6 +49,10 @@ spring:
       kv:
        enabled: true    
 
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
 #DNA feature configuration allowed or not(true/false) 
 dna:
   feature:
@@ -82,7 +98,7 @@ oidc:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:xxxxxx}
-    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate}
+    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences}
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
 
 drd:
@@ -118,6 +134,11 @@ matomo:
 
   
 dataiku:
+  apacCorpdir: ${APAC_CORPDIR:xxxxx}
+  emeaCorpdir: ${EMEA_CORPDIR:xxxxx}
+  projectsUriPath: ${DATAIKU_PROJECTS_URI_PATH:xxxxx}
+  userRoleUriPath: ${DATAIKU_USER_ROLE_URI_PATH:xxxxx}
+  projectPermissionUriPath: ${DATAIKU_PERMISSION_URI_PATH:xxxxx}
   production:
     uri: ${DATAIKU_PROD_URI:xxxxx}
     apiKey: ${DATAIKU_PROD_API_KEY:xxxxx}
@@ -125,14 +146,27 @@ dataiku:
   training:
     uri: ${DATAIKU_TRAINING_URI:xxxxx}
     apiKey: ${DATAIKU_TRAINING_API_KEY:xxxxx}
-    adminGroup: ${DATAIKU_TRAINING_ADMIN_GROUP:xxxxx}    
+    adminGroup: ${DATAIKU_TRAINING_ADMIN_GROUP:xxxxx} 
+    
+dashboard:
+  uri: ${DASHBOARD_URI:xxxxx}       
   
 avscan:
   uri: ${AVSCAN_URI:xxxxx}
   appid: ${AVSCAN_APP_ID:xxxxx}
   apiKey: ${AVSCAN_API_KEY:xxxxx} 
 
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+
 logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
   level:
     com:
       daimler:

@@ -37,11 +37,16 @@ import com.daimler.data.dto.logo.LogoVO;
 
 public interface AttachmentService {
 
-	FileDetailsVO uploadFileToS3Bucket(MultipartFile file, String keyName) throws Exception ;
+	FileDetailsVO uploadFileToS3Bucket(MultipartFile file, String keyName) throws Exception;
+
 	void deleteFileFromS3Bucket(String fileName);
+
 	List<FileDetailsVO> getAvailableFilesFromBucket();
+
 	byte[] getFile(String keyName) throws Exception;
-	LogoDetailsVO uploadLogoToS3Bucket(LogoVO logo) throws Exception ;
+
+	LogoDetailsVO uploadLogoToS3Bucket(LogoVO logo) throws Exception;
+
 	String formatedSize(long size);
-		
+
 }

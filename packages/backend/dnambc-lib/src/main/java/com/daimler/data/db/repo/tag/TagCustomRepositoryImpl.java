@@ -32,8 +32,6 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class TagCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<TagNsql, String>
-        implements TagCustomRepository {
+public class TagCustomRepositoryImpl extends CommonDataRepositoryImpl<TagNsql, String> implements TagCustomRepository {
 
 }

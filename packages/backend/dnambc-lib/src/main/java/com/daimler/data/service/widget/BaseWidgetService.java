@@ -37,20 +37,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseWidgetService
-        extends BaseCommonService<WidgetVO, WidgetNsql, String>
-        implements WidgetService {
+public class BaseWidgetService extends BaseCommonService<WidgetVO, WidgetNsql, String> implements WidgetService {
 
-    @Autowired
-    private WidgetCustomRepository customRepo;
-    @Autowired
-    private WidgetRepository jpaRepo;
-    @Autowired
-    private WidgetAssembler widgetAssembler;
+	@Autowired
+	private WidgetCustomRepository customRepo;
+	@Autowired
+	private WidgetRepository jpaRepo;
+	@Autowired
+	private WidgetAssembler widgetAssembler;
 
-    public BaseWidgetService() {
-        super();
-    }
+	public BaseWidgetService() {
+		super();
+	}
 
 //    @Autowired
 //    public BaseWidgetService(WidgetCustomRepository customRepo
@@ -61,6 +59,5 @@ public class BaseWidgetService
 //        this.jpaRepo = jpaRepo;
 //        this.widgetAssembler = widgetAssembler;
 //    }
-
 
 }

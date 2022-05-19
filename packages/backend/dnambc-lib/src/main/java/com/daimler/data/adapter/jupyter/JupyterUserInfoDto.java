@@ -37,8 +37,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JupyterUserInfoDto {
-    
-    private String kind;
+
+	private String kind;
 	private String name;
 	private Boolean admin;
 	private String[] groups;
@@ -46,6 +46,6 @@ public class JupyterUserInfoDto {
 	private String pending;
 	private Date created;
 	private Date last_activity;
-	//private JupyterServerDto servers;
+	// private JupyterServerDto servers;
 	private String auth_state;
 }

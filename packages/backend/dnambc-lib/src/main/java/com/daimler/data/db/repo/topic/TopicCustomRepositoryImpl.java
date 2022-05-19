@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class TopicCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<TopicNsql, String>
-        implements TopicCustomRepository {
+public class TopicCustomRepositoryImpl extends CommonDataRepositoryImpl<TopicNsql, String>
+		implements TopicCustomRepository {
 
 }

@@ -27,39 +27,38 @@
 
 package com.daimler.data.service.common;
 
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-
 import java.util.List;
+
+import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.solution.CreatedByVO;
 
 public interface CommonService<V, T, ID> {
 
-    List<V> getAll();
-    
-    List<V> getAll(int limit,int offset);
+	List<V> getAll();
 
-    V getById(ID id);
+	List<V> getAll(int limit, int offset);
 
-    V getByUniqueliteral(String uniqueLiteral, String value);
+	V getById(ID id);
 
-    List<V> getAllSortedByUniqueLiteralAsc(String uniqueLiteral);
+	V getByUniqueliteral(String uniqueLiteral, String value);
 
-    List<V> getAllSortedByUniqueLiteralDesc(String uniqueLiteral);
+	List<V> getAllSortedByUniqueLiteralAsc(String uniqueLiteral);
 
-    List<V> getAllSortedByUniqueLiteral(int limit, int offset,String uniqueLiteral, CommonDataRepositoryImpl.SORT_TYPE sortOrder);
+	List<V> getAllSortedByUniqueLiteralDesc(String uniqueLiteral);
 
-    V create(V vo);
+	List<V> getAllSortedByUniqueLiteral(int limit, int offset, String uniqueLiteral,
+			CommonDataRepositoryImpl.SORT_TYPE sortOrder);
 
-    void insertAll(List<V> voList);
+	V create(V vo);
 
-    void deleteAll();
+	void insertAll(List<V> voList);
 
-    boolean deleteById(ID id);
+	void deleteAll();
+
+	boolean deleteById(ID id);
 
 	Long getCount(int limit, int offset);
 
-
-
-
-
+	String currentUserName(CreatedByVO currentUser);
 
 }

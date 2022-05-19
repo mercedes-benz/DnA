@@ -21,15 +21,16 @@ import {
 } from '../../../globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
-import { Modal } from '../../formElements/modal/Modal';
+import Modal from '../../formElements/modal/Modal';
 import Provisionsolution from '../provisionsolution/Provisionsolution';
 import Styles from './ListProjects.scss';
 import ProjectListRowItem from './projectListRowItem/ProjectListRowItem';
 import { getDateFromTimestamp, convertTextToLink } from '../../../services/utils';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 import { getDataForCSV } from '../../../services/DataikuCSV';
 import DataNotExist from '../../dataNotExist/DataNotExist';
-import { InfoModal } from '../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
+import { SUPPORT_EMAIL_ID } from '../../../globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -182,7 +183,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       <React.Fragment>
         <h4>{this.state.projectData.name}</h4>
         <p className={Styles.projectDescription}>{this.state.projectData.shortDesc}</p>
-        <div className={classNames(Styles.modalFlexLayout, Styles.threeColumn)}>
+        <div className={classNames(Styles.modalFlexLayout, Styles.threeColumn, 'mbc-scroll')}>
           <div>
             <div>
               <label id="createdOn" className="input-label summary">
@@ -251,7 +252,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
               const totalChecklistCount = checklist.items.length;
               totalDone = checklist.items.filter((item) => item.done).length;
               return (
-                <div key={index}>
+                <div key={index} className={classNames(Styles.checklistWrapper, 'mbc-scroll sub')}>
                   <label className="input-label summary">{checklist.title}</label>
                   <p className={Styles.doneChecklistCount}>
                     ({totalDone}/{totalChecklistCount} done)
@@ -290,14 +291,14 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       <React.Fragment>
         There is no Live project available, in order to create a new Dataiku Live project, please send an email to
         &nbsp;
-        <a href="mailto:xxxxx">xxxxx</a>
+        <a href={'mailto:' + SUPPORT_EMAIL_ID}>{SUPPORT_EMAIL_ID}</a>
       </React.Fragment>
     );
     const liveProjectSearchEmpty = (
       <React.Fragment>
         Searched result could not be found in Live projects, in order to create a new Dataiku Live project, please send
         an email to &nbsp;
-        <a href="mailto:xxxxx">xxxxx</a>
+        <a href={'mailto:' + SUPPORT_EMAIL_ID}>{SUPPORT_EMAIL_ID}</a>
       </React.Fragment>
     );
     const trainingProjectEmpty = (
@@ -335,7 +336,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
           <div className={Styles.modalContent}>
             <p>
               In order to create a new Dataiku Live project, please send an email to &nbsp;
-              <a href="mailto:xxxxx">xxxxx</a>
+              <a href={'mailto:' + SUPPORT_EMAIL_ID}>{SUPPORT_EMAIL_ID}</a>
             </p>
           </div>
         </div>

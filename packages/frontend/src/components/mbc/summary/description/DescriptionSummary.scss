@@ -88,6 +88,15 @@ hr {
   }
 }
 
+.solutionDescription{
+  word-wrap: break-word;
+}
+
+.solutionPre{
+  white-space: pre-wrap;
+  font-family: "Roboto-Medium";  
+}
+
 .wrapper {
   background: #252a33 !important;
 
