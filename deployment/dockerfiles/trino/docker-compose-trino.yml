@@ -1,7 +1,7 @@
 version: "2.1"
 services:
   trino:
-    image: dna/trino
+    image: ${TRINO_IMAGE:-trino_immuta}
     container_name: trino
     build:
       #context: ./dockerfiles/trino/Dockerfile
