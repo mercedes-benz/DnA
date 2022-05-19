@@ -171,10 +171,8 @@ services:
       - 8200:8200
 
   clamav:
-    image: mkodockx/docker-clamav
+    image: mkodockx/docker-clamav:stretch-slim
     container_name: clamav
-    volumes:
-      - ./dockerfiles/clamav/clamd.conf:/etc/clamav/clamd.conf
     ports:
       - 3310:3310
 
