@@ -53,8 +53,8 @@ public class Application {
         String podIp = minioPod.getStatus().getPodIP();
         LOG.info("Pod ip is : "+ podIp);
         String minioBaseUri = "http://"+podIp;
-        String minioAdminAccessKeySample = "minio";
-    	String minioAdminSecretKeySample = "minio123";
+        String minioAdminAccessKeySample = "";
+    	String minioAdminSecretKeySample = "";
     	MinioClient minioClient = MinioClient.builder()
     				.endpoint(minioBaseUri+":9000")
     		        .credentials(minioAdminAccessKeySample, minioAdminSecretKeySample)
