@@ -30,9 +30,13 @@ const CreateBucket = () => {
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
 
+  const [bucketId, setBucketId] = useState('');
+  const [createdBy, setCreatedBy] = useState({});
+  const [createdDate, setCreatedDate] = useState(new Date());
+
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [dataClassification, setDataClassification] = useState('Internal');
-  const [PII, setPII] = useState('no');
+  const [PII, setPII] = useState(false);
   const [termsOfUse, setTermsOfUse] = useState(false);
   const [termsOfUseError, setTermsOfUseError] = useState(false);
 
@@ -62,6 +66,11 @@ const CreateBucket = () => {
             setBucketName(res?.data?.bucketName);
             setBucketPermission(res?.data?.permission);
             setBucketCollaborators(res?.data?.collaborators);
+            setDataClassification(res?.data?.classificationType);
+            setPII(res?.data?.piiData);
+            setBucketId(res?.data?.id);
+            setCreatedBy(res?.data?.createdBy);
+            setCreatedDate(res?.data?.createdDate);
           } else {
             // reset history to base page before accessing container app's public routes;
             history.replace('/');
@@ -147,6 +156,9 @@ const CreateBucket = () => {
       const data = {
         bucketName: bucketName,
         collaborators: bucketCollaborators,
+        classificationType: dataClassification,
+        piiData: PII,
+        termsOfUse: termsOfUse,
       };
       dispatch(bucketActions.createBucket(data));
     }
@@ -161,7 +173,13 @@ const CreateBucket = () => {
 
       const data = {
         bucketName: bucketName,
+        id: bucketId,
+        createdBy,
+        createdDate,
         collaborators: bucketCollaborators,
+        classificationType: dataClassification,
+        piiData: PII,
+        termsOfUse: termsOfUse,
       };
       dispatch(bucketActions.updateBucket(data));
     }
@@ -172,6 +190,9 @@ const CreateBucket = () => {
       firstName: collaborators.firstName,
       lastName: collaborators.lastName,
       accesskey: collaborators.shortId,
+      department: collaborators.department,
+      email: collaborators.email,
+      mobileNumber: collaborators.mobileNumber,
       permission: { read: true, write: false },
     };
     bucketCollaborators.push(collabarationData);
@@ -223,7 +244,7 @@ const CreateBucket = () => {
   };
 
   const handlePII = (e) => {
-    setPII(e.target.value);
+    setPII(e.target.value === 'true' ? true : false);
   };
 
   const bucketNameRulesContent = (
@@ -373,10 +394,10 @@ const CreateBucket = () => {
                         <input
                           type="radio"
                           className="ff-only"
-                          value="yes"
+                          value={true}
                           name="pii"
                           onChange={handlePII}
-                          checked={PII === 'yes'}
+                          checked={PII === true}
                         />
                       </span>
                       <span className="label">Yes</span>
@@ -386,10 +407,10 @@ const CreateBucket = () => {
                         <input
                           type="radio"
                           className="ff-only"
-                          value="no"
+                          value={false}
                           name="pii"
                           onChange={handlePII}
-                          checked={PII === 'no'}
+                          checked={PII === false}
                         />
                       </span>
                       <span className="label">No</span>
@@ -409,7 +430,7 @@ const CreateBucket = () => {
                       <React.Fragment>
                         <div className={Styles.collUserTitle}>
                           <div className={Styles.collUserTitleCol}>User ID</div>
-                          {!id ? <div className={Styles.collUserTitleCol}>Name</div> : null}
+                          <div className={Styles.collUserTitleCol}>Name</div>
                           <div className={Styles.collUserTitleCol}>Permission</div>
                           <div className={Styles.collUserTitleCol}></div>
                         </div>
@@ -418,9 +439,7 @@ const CreateBucket = () => {
                             return (
                               <div key={collIndex} className={Styles.collUserContentRow}>
                                 <div className={Styles.collUserTitleCol}>{item.accesskey}</div>
-                                {!id ? (
-                                  <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
-                                ) : null}
+                                <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                                 <div className={Styles.collUserTitleCol}>
                                   <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
                                     <label className={classNames('checkbox', Styles.checkBoxDisable)}>

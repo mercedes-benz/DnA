@@ -122,6 +122,7 @@ export default class AddUser extends React.Component<IAddUserProps, IAddUserStat
           firstName: data.firstName,
           shortId: data.id,
           lastName: data.lastName,
+          mobileNumber: data.mobileNumber,
         };
         this.setState({
           showNotFoundError: false,
