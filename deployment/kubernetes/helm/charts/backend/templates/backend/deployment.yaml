@@ -108,21 +108,6 @@ spec:
                 secretKeyRef:
                   key: notebook.secret.token
                   name: {{ .Values.app.backend.secrets.name }}
-            - name: VAULT_HOST
-              value: {{ .Values.app.backend.config.vaultHost }}
-            - name: VAULT_PORT
-              value: {{ .Values.app.backend.config.vaultPort | quote }}
-            - name: VAULT_SCHEME
-              value: http
-            - name: VAULT_AUTHENTICATION
-              value: TOKEN
-            - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  key: vault.root.token
-                  name: {{ .Values.app.vault.secret.name }}
-            - name: VAULT_MOUNTPATH
-              value: kv
             - name: DATAIKU_PROD_URI
               value: {{ .Values.app.backend.config.dataikuProdUri }}
             - name: DATAIKU_PROD_API_KEY
@@ -177,7 +162,11 @@ spec:
             - name: JWT_TOKEN_EXPIRY_TIME_IN_MIN
               value: "90"   
             - name: DASHBOARD_URI
-              value: {{ .Values.app.backend.config.dashboardUri }}         
+              value: {{ .Values.app.backend.config.dashboardUri }}
+            - name: AVSCAN_SUBSCRIPTION_PROVISION_API
+              value: {{ .Values.app.backend.config.avscanSubsProvisionAPI }}
+            - name: AVSCAN_UPLOAD_API
+              value: {{ .Values.app.backend.config.avscanUploadApi }} 
           image: {{ .Values.app.backend.image }}
           imagePullPolicy: Always
           name: backend
