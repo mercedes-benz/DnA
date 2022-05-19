@@ -30,12 +30,27 @@ const CreateBucket = () => {
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
 
-  const [dataClassification, setDataClassification] = useState('internal');
+  const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+  const [dataClassification, setDataClassification] = useState('Internal');
   const [PII, setPII] = useState('no');
   const [termsOfUse, setTermsOfUse] = useState(false);
   const [termsOfUseError, setTermsOfUseError] = useState(false);
 
   const isSecretEnabled = process.env.ENABLE_DATA_CLASSIFICATION_SECRET === 'true';
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    bucketsApi
+      .getDataConnectionTypes()
+      .then((res) => {
+        setDataClassificationDropdown(res?.data?.data || []);
+        ProgressIndicator.hide();
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while fetching Data Connection Type list', 'alert');
+      });
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -283,59 +298,32 @@ const CreateBucket = () => {
                     Data Classification <sup>*</sup>
                   </label>
                   <div className={Styles.dataClassificationField}>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
-                          value="public"
-                          name="dataClassification"
-                          onChange={handleDataClassification}
-                          checked={dataClassification === 'public'}
-                        />
-                      </span>
-                      <span className="label">Public</span>
-                    </label>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
-                          value="internal"
-                          name="dataClassification"
-                          onChange={handleDataClassification}
-                          checked={dataClassification === 'internal'}
-                        />
-                      </span>
-                      <span className="label">Internal</span>
-                    </label>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
-                          value="confidential"
-                          name="dataClassification"
-                          onChange={handleDataClassification}
-                          checked={dataClassification === 'confidential'}
-                        />
-                      </span>
-                      <span className="label">Confidential</span>
-                    </label>
-                    <label className={classNames('radio', !isSecretEnabled ? 'disabled' : '')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
-                          value="secret"
-                          name="dataClassification"
-                          onChange={handleDataClassification}
-                          checked={dataClassification === 'secret'}
-                          disabled={!isSecretEnabled}
-                        />
-                      </span>
-                      <span className="label">Secret</span>
-                    </label>
+                    {dataClassificationDropdown?.length
+                      ? dataClassificationDropdown.map((item) => {
+                          return (
+                            <label
+                              key={item.id}
+                              className={classNames(
+                                'radio',
+                                item.name === 'Secret' && !isSecretEnabled ? 'disabled' : '',
+                              )}
+                            >
+                              <span className="wrapper">
+                                <input
+                                  type="radio"
+                                  className="ff-only"
+                                  value={item.name}
+                                  name="dataClassification"
+                                  onChange={handleDataClassification}
+                                  checked={dataClassification === item.name}
+                                  disabled={item.name === 'Secret' && !isSecretEnabled}
+                                />
+                              </span>
+                              <span className="label">{item.name}</span>
+                            </label>
+                          );
+                        })
+                      : null}
                   </div>
                 </div>
               </div>
