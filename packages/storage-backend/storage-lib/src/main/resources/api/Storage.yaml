@@ -707,7 +707,7 @@ definitions:
       data:
         type: array
         items:
-          $ref: "#/definitions/BucketResponseVO"
+          $ref: "#/definitions/BucketVo"
       warnings:
         type: array
         items:

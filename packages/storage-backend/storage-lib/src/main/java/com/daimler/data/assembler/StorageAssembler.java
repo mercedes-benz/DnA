@@ -87,6 +87,23 @@ public class StorageAssembler {
 		return bucketVo;
 	}
 
+	/**
+	 * To form BucketVo
+	 * 
+	 * @param entities {@code List<StorageNsql>}
+	 * @param bucketName
+	 * @return bucket view object {@code BucketVo}
+	 */
+	public BucketVo toBucketVo(List<StorageNsql> entities, String bucketName) {
+		BucketVo bucketVo = null;
+		List<StorageNsql> filteredEntities = entities.stream()
+				.filter(item -> item.getData().getBucketName().equals(bucketName)).toList();
+		if (!ObjectUtils.isEmpty(filteredEntities)) {
+			bucketVo = toBucketVo(filteredEntities.get(0));
+		}
+		return bucketVo;
+	}
+	
 	/*
 	 * To convert UserInfo entity value to UserVO
 	 * 
@@ -133,13 +150,6 @@ public class StorageAssembler {
 			if (Objects.nonNull(vo.getCreatedBy())) {
 				UserInfo userDetails = new UserInfo();
 				BeanUtils.copyProperties(vo.getCreatedBy(), userDetails);
-				
-//				userDetails.setId(vo.getCreatedBy().getId());
-//				userDetails.setFirstName(vo.getCreatedBy().getFirstName());
-//				userDetails.setLastName(vo.getCreatedBy().getLastName());
-//				userDetails.setEmail(vo.getCreatedBy().getEmail());
-//				userDetails.setDepartment(vo.getCreatedBy().getDepartment());
-//				userDetails.setMobileNumber(vo.getCreatedBy().getMobileNumber());
 				storage.setCreatedBy(userDetails);
 			}
 			//Updated by
@@ -161,6 +171,10 @@ public class StorageAssembler {
 		return entity;
 	}
 
+	/*
+	 * to convert UserVO to UserInfo json
+	 * 
+	 */
 	private UserInfo toUserInfoJson(UserVO userVO) {
 		UserInfo userInfo = new UserInfo();
 		BeanUtils.copyProperties(userVO, userInfo);
@@ -171,7 +185,6 @@ public class StorageAssembler {
 			permission.setWrite(userVO.getPermission().isWrite());
 			userInfo.setPermission(permission);
 		}
-
 		return userInfo;
 	}
 
