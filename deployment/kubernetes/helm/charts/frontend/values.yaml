@@ -71,14 +71,14 @@ appFrontend:
     enableNotification: false
     companyName: XYZ
     backendHost: dna-app-backend-service
+    dataPipelinesApiUrl: ""
+    dataPipelinesAppUrl: ""
+    notificationApiUrl: ""
+    dashboardApiUrl: ""
+    storageApiUrl: ""
 
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
-    jupyServer: http://proxy-public:8000
+    # jupyServer: http://proxy-public:8000
     grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
-    avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
     avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
-    airflowServer: http://airflow.airflow.svc.cluster.local:8080
-    naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
-    dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
-    storage: http://storage-be.storage.svc.cluster.local:80

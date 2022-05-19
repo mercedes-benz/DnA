@@ -24,7 +24,7 @@ app:
       with_in: 2
       time_unit: seconds
       auth_api_host: ""
-      restricted_url_pattern: /avscan/api/v1/scan.*
+      restricted_url_pattern: /api/v1/scan.*
       loggingPath: /tmp/clamav/log
       loggingEnvironment: dev
       corsOriginUrl: ""
@@ -46,11 +46,11 @@ app:
     periodSeconds: 10
     failureThreshold: 3
     livenessProbe:
-      path: /avscan/actuator/health/liveness
+      path: /actuator/health/liveness
       port: api
     
     readinessProbe:
-      path: /avscan/actuator/health/readiness
+      path: /actuator/health/readiness
       port: api
 
 image: 

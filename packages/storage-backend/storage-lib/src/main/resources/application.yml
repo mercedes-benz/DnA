@@ -68,8 +68,6 @@ jwt:
     key: ${JWT_SECRET_KEY:XXXXXX}
 server:
   port: 7175
-  servlet:
-    context-path: /storage
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
