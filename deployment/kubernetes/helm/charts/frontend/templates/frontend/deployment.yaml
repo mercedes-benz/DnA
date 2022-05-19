@@ -102,6 +102,14 @@ spec:
             value: {{ .Values.appFrontend.config.companyName | squote }} 
           - name: 'PROJECTSMO_ENABLE_NOTIFICATION'
             value: {{ .Values.appFrontend.config.enableNotification | squote }}
+          - name: 'PROJECTSMO_DATA_PIPELINES_API_BASEURL'
+            value: {{ .Values.appFrontend.config.dataPipelinesApiUrl | squote }}
+          - name: 'PROJECTSMO_DATA_PIPELINES_APP_BASEURL'
+            value: {{ .Values.appFrontend.config.dataPipelinesAppUrl | squote }}
+          - name: 'PROJECTSMO_NOTIFICATIONS_API_BASEURL'
+            value: {{ .Values.appFrontend.config.notificationApiUrl | squote }}
+          - name: 'PROJECTSMO_DASHBOARD_API_BASEURL'
+            value: {{ .Values.appFrontend.config.dashboardApiUrl | squote }}   
           image: {{ .Values.appFrontend.image }}
           imagePullPolicy: Always
           name: frontend

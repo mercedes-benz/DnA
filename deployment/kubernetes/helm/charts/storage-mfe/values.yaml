@@ -12,6 +12,8 @@ envs:
     value: <div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>
   - name: PROJECTSMO_ENABLE_DATA_CLASSIFICATION_SECRET
     value: "false"
+  - name: PROJECTSMO_STORAGE_API_BASEURL
+    value: ""  
 conf:
   storageBackendUrl: http://storage-be.storage.svc.cluster.local:80
 replicaCount: 1
