@@ -27,9 +27,25 @@
 
 package com.daimler.data.db.repo.storage;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.StorageNsql;
 
 public interface StorageRepository {
+	/**
+	 * To find a record based on unique identifier
+	 * 
+	 * @param uniqueliteralName
+	 * @param value
+	 * @return record {@code StorageNsql}
+	 */
 	StorageNsql findbyUniqueLiteral(String uniqueliteralName, String value);
 
+	/**
+	 * To find all the records based on user access
+	 * 
+	 * @param userId
+	 * @return records {@code List<StorageNsql>}
+	 */
+	List<StorageNsql> getAllWithFilters(String userId);
 }
