@@ -48,8 +48,10 @@ public class Application {
         V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio")).findFirst().get();
         V1PodSpec minioPodSpec = minioPod.getSpec();
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
-        minioContainer.getEnv().forEach(x -> System.out.println("Environment name: " + x.getName() + " , value: " + x.getValue()));
-        String minioBaseUri = "http://192.168.129.172";
+        minioContainer.getEnv().forEach(x -> LOG.info("Environment name: " + x.getName() + " , value: " + x.getValue()));
+        String podIp = minioPod.getStatus().getHostIP();
+        LOG.info("Pod ip is : "+ podIp);
+        String minioBaseUri = "http://"+podIp;
         String minioAdminAccessKeySample = "minio";
     	String minioAdminSecretKeySample = "minio123";
     	MinioClient minioClient = MinioClient.builder()
