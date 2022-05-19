@@ -94,7 +94,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                  key: jwt.secret.key
-                 name: {{ .Values.secret.name }}          
+                 name: {{ .Values.secrets.name }}          
           ports:
             - containerPort: 8181
               name: api
