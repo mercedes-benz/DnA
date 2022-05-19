@@ -83,13 +83,13 @@ spec:
             - name: VAULT_MOUNTPATH
               value: kv
             - name: DNA_URI
-              value: {{ .Values.backend.config.appUrl }}
+              value: {{ .Values.app.backend.config.appUrl }}
             - name: DNA_AUTH_ENABLE
-              value: {{ .Values.backend.config.enableAuth | quote}}
+              value: {{ .Values.app.backend.config.enableAuth | quote}}
             - name: DNA_VERIFY_LOGIN_API
-              value: {{ .Values.backend.config.verifyLoginApi | quote }}
+              value: {{ .Values.app.backend.config.verifyLoginApi | quote }}
             - name: DNA_UNSUBSCRIBE_MALWARE_SCAN_API
-              value: {{ .Values.backend.config.unscribeMalwareScanApi | quote }} 
+              value: {{ .Values.app.backend.config.unscribeMalwareScanApi | quote }} 
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
