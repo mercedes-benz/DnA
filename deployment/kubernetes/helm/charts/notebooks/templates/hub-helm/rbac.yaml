@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hub
+  namespace: {{ .Values.namespace }}
+  labels:
+    component: jupyter
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: hub
+  #namespace: notebooks-dev
+  labels:
+    component: jupyter
+rules:
+  - apiGroups: [""]       # "" indicates the core API group
+    resources: ["pods", "persistentvolumeclaims"]
+    verbs: ["get", "watch", "list", "create", "delete"]
+  - apiGroups: [""]       # "" indicates the core API group
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: [""]       # "" indicates the core API group
+    resources: ["namespaces", "serviceaccounts"]
+    verbs: ["create", "get", "watch", "list", "patch"]
+  - apiGroups: [""]       # "" indicates the core API group
+    resources: ["serviceaccounts"]
+    verbs: ["create", "get", "watch", "list"]    
+  - apiGroups: ["rbac.authorization.k8s.io"]       # "" indicates the core API group
+    resources: ["roles","rolebindings"]
+    verbs: ["create", "get", "watch", "list", "patch"]             
+  - apiGroups: ["networking.k8s.io"]       # "" indicates the core API group
+    resources: ["networkpolicies"]
+    verbs: ["create", "get", "watch", "list", "delete"] 
+  - apiGroups: [""]       # "" indicates the core API group
+    resources: ["configmaps"]
+    verbs: ["create", "get", "watch", "list", "delete"]        
+  - apiGroups: ["kubeflow.org"]       # "" indicates the core API group
+    resources: ["profiles", "poddefaults" ]
+    verbs: ["create", "get", "watch", "list", "patch","delete"]   
+  - apiGroups: ["security.istio.io"]       # "" indicates the core API group
+    resources: ["authorizationpolicies"]
+    verbs: ["create", "get", "watch", "list", "patch","delete"]
+  - apiGroups: ["argoproj.io"]       # "" indicates the core API group
+    resources: ["pods","workflows"]
+    verbs: ["create", "get", "watch", "list", "patch"]  
+  - apiGroups: ["networking.istio.io"]       # "" indicates the core API group
+    resources: ["envoyfilters"]
+    verbs: ["create", "get", "watch", "list", "patch","delete"]      
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: hub
+  #namespace: notebooks-dev
+  labels:
+    component: jupyter
+subjects:
+  - kind: ServiceAccount
+    name: hub
+    namespace: {{ .Values.namespace }}
+roleRef:
+  kind: ClusterRole
+  name: hub
+  apiGroup: rbac.authorization.k8s.io

@@ -37,28 +37,28 @@ import java.util.Objects;
 @Component
 public class PhaseAssembler implements GenericAssembler<PhaseVO, PhaseNsql> {
 
-    @Override
-    public PhaseVO toVo(PhaseNsql entity) {
-        PhaseVO phaseVO = null;
-        if (Objects.nonNull(entity)) {
-            phaseVO = new PhaseVO();
-            phaseVO.setId(entity.getId());
-            phaseVO.setName(entity.getData().getName());
-        }
-        return phaseVO;
-    }
+	@Override
+	public PhaseVO toVo(PhaseNsql entity) {
+		PhaseVO phaseVO = null;
+		if (Objects.nonNull(entity)) {
+			phaseVO = new PhaseVO();
+			phaseVO.setId(entity.getId());
+			phaseVO.setName(entity.getData().getName());
+		}
+		return phaseVO;
+	}
 
-    @Override
-    public PhaseNsql toEntity(PhaseVO vo) {
-        PhaseNsql phaseNsql = null;
-        if (Objects.nonNull(vo)) {
-            phaseNsql = new PhaseNsql();
-            Phase phase = new Phase();
-            phase.setName(vo.getName() );
-            phaseNsql.setData(phase);
-            if (vo.getId() != null)
-                phaseNsql.setId(vo.getId());
-        }
-        return phaseNsql;
-    }
+	@Override
+	public PhaseNsql toEntity(PhaseVO vo) {
+		PhaseNsql phaseNsql = null;
+		if (Objects.nonNull(vo)) {
+			phaseNsql = new PhaseNsql();
+			Phase phase = new Phase();
+			phase.setName(vo.getName());
+			phaseNsql.setData(phase);
+			if (vo.getId() != null)
+				phaseNsql.setId(vo.getId());
+		}
+		return phaseNsql;
+	}
 }

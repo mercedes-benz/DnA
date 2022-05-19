@@ -1,8 +1,10 @@
+import classNames from 'classnames';
 import * as React from 'react';
 import Styles from './Modal.scss';
 
 export interface IModalProps {
   title: string;
+  hiddenTitle?: boolean;
   titleIconImage?: React.ReactNode;
   content: string | React.ReactNode;
   show: boolean;
@@ -15,9 +17,10 @@ export interface IModalProps {
   onAccept?: () => void;
   onCancel?: () => void;
   modalWidth?: string;
+  modalStyle?: React.CSSProperties;
 }
 
-export const Modal = (props: IModalProps) => {
+const Modal = (props: IModalProps) => {
   React.useEffect(() => {
     if (props.show) {
       document.querySelector('body').style.overflow = 'hidden';
@@ -36,9 +39,9 @@ export const Modal = (props: IModalProps) => {
 
   return (
     <div className={props.show ? 'mbc-modal-wrapper' : Styles.hide}>
-      <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '' }}>
+      <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
         <header>
-          <h4>
+          <h4 className={classNames(props.hiddenTitle ? 'hidden' : '')}>
             {props.titleIconImage ? props.titleIconImage : null}
             {props.title}
           </h4>
@@ -46,7 +49,10 @@ export const Modal = (props: IModalProps) => {
             <i className="icon mbc-icon close thin" />
           </button>
         </header>
-        <div className={props.scrollableContent ? 'modal-content scrollable' : 'modal-content'}> {props.content}</div>
+        <div className={props.scrollableContent ? 'modal-content scrollable mbc-scroll' : 'modal-content'}>
+          {' '}
+          {props.content}
+        </div>
         <footer
           className={
             props.showAcceptButton || props.showCancelButton
@@ -77,3 +83,5 @@ export const Modal = (props: IModalProps) => {
     </div>
   );
 };
+
+export default Modal;

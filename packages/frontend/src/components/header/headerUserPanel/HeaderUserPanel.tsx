@@ -1,5 +1,5 @@
 import cn from 'classnames';
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import { ApiClient } from '../../../../src/services/ApiClient';
 import { USER_ROLE } from '../../../globals/constants';
 import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
@@ -12,59 +12,57 @@ import { Envs } from '../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 
-export interface IHeaderUserPanelProps {
+interface IHeaderUserPanelProps {
   show?: boolean;
   onClose?: () => void;
   user: IUserInfo;
 }
-export interface IHeaderUserPanelState {
-  isAdmin: boolean;
-}
 
-export class HeaderUserPanel extends React.Component<IHeaderUserPanelProps, IHeaderUserPanelState> {
-  protected isTouch = false;
-  protected domContainer: HTMLDivElement;
+let isTouch = false;
 
-  public constructor(props: IHeaderUserPanelProps, context?: any) {
-    super(props, context);
-    this.state = {
-      isAdmin: this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined,
+export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
+  const enableAdmin =
+    props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined ||
+    props.user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN) !== undefined;
+
+  useEffect(() => {
+    eventClenUp();
+
+    if(props.show) {
+      document.addEventListener('touchend', handleUserPanelOutside, true);
+      document.addEventListener('click', handleUserPanelOutside, true);
+    }
+  }, [props.show]);
+
+  useEffect(() => {
+    return () => {
+      eventClenUp();
     };
+  }, []);
+
+  const eventClenUp = () => {
+    document.removeEventListener('touchend', handleUserPanelOutside, true);
+    document.removeEventListener('click', handleUserPanelOutside, true);
   }
 
-  public componentWillMount() {
-    document.addEventListener('touchend', this.handleUserPanelOutside, true);
-    document.addEventListener('click', this.handleUserPanelOutside, true);
-  }
+  const handleUserPanelOutside = (event: MouseEvent | TouchEvent) => {
+    const helpMenuWrapper = document?.querySelector('#profileMenuContentWrapper');
 
-  public componentWillUnmount() {
-    document.removeEventListener('touchend', this.handleUserPanelOutside, true);
-    document.removeEventListener('click', this.handleUserPanelOutside, true);
-  }
+    if (event.type === 'touchend') {
+      isTouch = true;
+    }
+    // Click event has been simulated by touchscreen browser.
+    if (event.type === 'click' && isTouch === true) {
+      return;
+    }
+    const target = event.target as Element;
+    if (!helpMenuWrapper?.contains(target) && !target.classList.contains('profile')) {
+      eventClenUp();
+      props.onClose();
+    }
+  };
 
-  public render() {
-    return (
-      <div className={classNames(this.props.show ? Styles.userContexMenu : 'hide')} ref={this.connectContainer}>
-        <div className={Styles.upArrow} />
-        <ul className={classNames(Styles.innerContainer)}>
-          {/* <li onClick={this.navigateToMyProfile}>{getTranslatedLabel('MyProfile')}</li> */}
-          <li className={Styles.userName}>
-            {' '}
-            <span>{this.props.user.firstName + ' ' + this.props.user.lastName}</span>
-            <label>{this.props.user.eMail}</label>{' '}
-          </li>
-          <li onClick={this.navigateToMySolutions}>{getTranslatedLabel('MySolutions')}</li>
-          <li onClick={this.navigateToMyBookmarks}>{getTranslatedLabel('MyBookmarks')}</li>
-          {this.state.isAdmin && (
-            <li onClick={this.navigateToAdministration}>{getTranslatedLabel('Administration')}</li>
-          )}
-          <li onClick={this.onLogout}>{getTranslatedLabel('LogoutButton')}</li>
-        </ul>
-      </div>
-    );
-  }
-
-  protected onLogout = () => {
+  const onLogout = () => {
     ApiClient.logoutUser()
       .then(() => {
         const access_token = Pkce.readAccessToken();
@@ -91,51 +89,49 @@ export class HeaderUserPanel extends React.Component<IHeaderUserPanelProps, IHea
       });
   };
 
-  protected navigateToMyBookmarks = (event: React.MouseEvent<HTMLElement>) => {
+  const navigateToMyBookmarks = (event: React.MouseEvent<HTMLElement>) => {
     history.push(`/bookmarks`);
-    this.props.onClose();
+    props.onClose();
   };
-  protected navigateToAdministration = (event: React.MouseEvent<HTMLElement>) => {
+  
+  const navigateToAdministration = (event: React.MouseEvent<HTMLElement>) => {
     history.push(`/administration`);
-    // this.props.onClose();
+    props.onClose();
   };
-  protected navigateToMySolutions = (event: React.MouseEvent<HTMLElement>) => {
+
+  const navigateToMySolutions = (event: React.MouseEvent<HTMLElement>) => {
     history.push(`/mysolutions`);
-    this.props.onClose();
-  };
-  protected navigateToMyProfile = (event: React.MouseEvent<HTMLElement>) => {
-    history.push(`/profile`);
-    this.props.onClose();
+    props.onClose();
   };
 
-  protected connectContainer = (element: HTMLDivElement) => {
-    this.domContainer = element;
+  const navigateToSettings = (event: React.MouseEvent<HTMLElement>) => {
+    history.push(`/usersettings`);
+    props.onClose();
   };
 
-  protected handleUserPanelOutside = (event: MouseEvent | TouchEvent) => {
-    if (!this.props.show) {
-      return;
-    }
-
-    if (event.type === 'touchend') {
-      this.isTouch = true;
-    }
-
-    // Click event has been simulated by touchscreen browser.
-    if (event.type === 'click' && this.isTouch === true) {
-      return;
-    }
-
-    const target = event.target as Element;
-
-    if (
-      this.domContainer &&
-      target.className !== 'userAvatar' &&
-      target.className.indexOf('iconContainer') === -1 &&
-      this.domContainer.contains(target) === false
-    ) {
-      event.stopPropagation();
-      this.props.onClose();
-    }
-  };
-}
+  // const navigateToMyProfile = (event: React.MouseEvent<HTMLElement>) => {
+  //   history.push(`/profile`);
+  //   props.onClose();
+  // };
+  
+  return (
+    <div id="profileMenuContentWrapper" className={classNames(props.show ? Styles.userContexMenu : 'hide')}>
+      <div className={Styles.upArrow} />
+      <ul className={classNames(Styles.innerContainer)}>
+        {/* <li onClick={navigateToMyProfile}>{getTranslatedLabel('MyProfile')}</li> */}
+        <li className={Styles.userName}>
+          {' '}
+          <span>{props.user.firstName + ' ' + props.user.lastName}</span>
+          <label>{props.user.eMail}</label>{' '}
+        </li>
+        <li onClick={navigateToMySolutions}>{getTranslatedLabel('MySolutions')}</li>
+        <li onClick={navigateToMyBookmarks}>{getTranslatedLabel('MyBookmarks')}</li>
+        {enableAdmin && (
+          <li onClick={navigateToAdministration}>{getTranslatedLabel('Administration')}</li>
+        )}
+        <li onClick={navigateToSettings}>{getTranslatedLabel('Settings')}</li>
+        <li onClick={onLogout}>{getTranslatedLabel('LogoutButton')}</li>
+      </ul>
+    </div>
+  );
+};

@@ -27,11 +27,13 @@
 
 package com.daimler.data.assembler;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,13 +41,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.dto.SolDigitalValueDTO;
+import com.daimler.data.dto.dashboard.DigitalValueVO;
+import com.daimler.data.dto.dashboard.SolDigitalValuesummaryVO;
 import com.daimler.data.util.ConstantsUtility;
 
 @Component
-public class DashboardAssembler{
+public class DashboardAssembler {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(DashboardAssembler.class);
-	
+
 	public List<String> toList(String parameter) {
 		List<String> results = null;
 		if (StringUtils.hasText(parameter)) {
@@ -57,8 +62,6 @@ public class DashboardAssembler{
 		return results;
 	}
 
-	
-	
 	public List<Map<String, List<String>>> toDivisions(String division) {
 		List<Map<String, List<String>>> divisions = null;
 		if (StringUtils.hasText(division)) {
@@ -95,5 +98,44 @@ public class DashboardAssembler{
 
 		return divisions;
 	}
-	
+
+	/**
+	 * To convert solDigitalValues to digital value summary response
+	 * 
+	 * @param treeMap
+	 * @return List<SolDigitalValuesummaryVO>
+	 */
+	public List<SolDigitalValuesummaryVO> toDigitalValueSummary(
+			Map<BigDecimal, SortedSet<SolDigitalValueDTO>> digitalValueSummaryTreeMap) {
+		List<SolDigitalValuesummaryVO> solDigitalValuesummary = new ArrayList<SolDigitalValuesummaryVO>();
+		SolDigitalValuesummaryVO solDigitalValuesummaryVO = null;
+		for (Map.Entry<BigDecimal, SortedSet<SolDigitalValueDTO>> map : digitalValueSummaryTreeMap.entrySet()) {
+			solDigitalValuesummaryVO = new SolDigitalValuesummaryVO();
+			solDigitalValuesummaryVO.setYear(map.getKey());
+			solDigitalValuesummaryVO.setDigitalValueVO(this.toDigitalValueVO(map.getValue()));
+			solDigitalValuesummary.add(solDigitalValuesummaryVO);
+		}
+		return solDigitalValuesummary;
+	}
+
+	/*
+	 * To convert solDigitalValues to digital value.
+	 * 
+	 * @param solDigitalValues(SortedSet<SolDigitalValueDTO>)
+	 * 
+	 * @return List<DigitalValueVO>
+	 */
+	private List<DigitalValueVO> toDigitalValueVO(SortedSet<SolDigitalValueDTO> solDigitalValues) {
+		List<DigitalValueVO> digitalValues = new ArrayList<DigitalValueVO>();
+		DigitalValueVO digitalValueVO = null;
+		for (SolDigitalValueDTO vo : solDigitalValues) {
+			digitalValueVO = new DigitalValueVO();
+			digitalValueVO.setSolutionId(vo.getId());
+			digitalValueVO.setProductName(vo.getProductName());
+			digitalValueVO.setDigitalValue(vo.getCalculatedDigitalValueVO().getValue());
+			digitalValues.add(digitalValueVO);
+		}
+		return digitalValues;
+	}
+
 }

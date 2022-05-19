@@ -1,0 +1,93 @@
+apiVersion: v2
+name: helm
+description: A Helm chart for Kubernetes
+dependencies:
+- name: frontend
+  repository: file://charts/frontend
+  version: 0.1.0
+  condition: frontend.enabled
+
+- name: backend
+  repository: file://charts/backend
+  version: 0.1.0
+  condition: backend.enabled
+
+- name: i3postgresql
+  repository: file://charts/i3postgresql
+  version: 0.1.0
+  condition: i3postgresql.enabled
+
+- name: bitnamipostgresql
+  repository: file://charts/bitnami-postgresql
+  version: 10.16.1
+  condition: bitnamipostgresql.enabled
+
+- name: clamav
+  repository: file://charts/clamav
+  version: 0.1.0
+  condition: clamav.enabled
+
+- name: naas
+  repository: file://charts/naas
+  version: 0.1.0
+  condition: naas.enabled
+
+- name: notebooks
+  repository: file://charts/notebooks
+  version: 0.1.0
+  condition: notebooks.enabled
+
+- name: dashboard
+  repository: file://charts/dashboard
+  version: 0.1.0
+  condition: dashboard.enabled
+
+- name: airflow
+  repository: file://charts/airflow
+  version: 0.1.0
+  condition: airflow.enabled
+
+- name: microgateway
+  repository: file://charts/microgateway
+  version: 4.2.1
+  condition: microgateway.enabled
+
+- name: vault
+  repository: file://charts/vault
+  version: 0.2.1
+  condition: vault.enabled
+
+- name: storagemfe
+  repository: file://charts/storage-mfe
+  version: 0.1.0
+  condition: storagemfe.enabled
+
+- name: storagebe
+  repository: file://charts/storage-be
+  version: 0.1.0
+  condition: storagebe.enabled
+
+- name: minio
+  repository: file://charts/minio
+  version: 10.1.3
+  condition: minio.enabled
+# A chart can be either an 'application' or a 'library' chart.
+#
+# Application charts are a collection of templates that can be packaged into versioned archives
+# to be deployed.
+#
+# Library charts provide useful utilities or functions for the chart developer. They're included as
+# a dependency of application charts to inject those utilities and functions into the rendering
+# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.1.0
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application. Versions are not expected to
+# follow Semantic Versioning. They should reflect the version the application is using.
+# It is recommended to use it with quotes.
+appVersion: "1.16.0"

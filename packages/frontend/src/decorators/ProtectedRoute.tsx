@@ -9,6 +9,8 @@ import { Layout } from './Layout';
 import { Pkce } from '../../src/services/Pkce';
 import Progress from '../components/progress/Progress';
 import { trackPageView } from '../services/utils';
+import AppContext from '../components/context/ApplicationContext';
+import ErrorBoundary from '../utils/ErrorBoundary';
 
 interface IProtectedRouteProps extends RouteProps {
   component: React.LazyExoticComponent<{ user: IUserInfo } | any>;
@@ -20,6 +22,7 @@ interface IProtectedRouteState {
   user: IUserInfo;
   loading: boolean;
   redirectPath: string;
+  message: string;
 }
 
 const initialUserState: IUserInfo = {
@@ -33,10 +36,16 @@ const initialUserState: IUserInfo = {
 };
 
 export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProtectedRouteState> {
+  constructor(props: IProtectedRouteProps) {
+    super(props);
+    this.setMessage = this.setMessage.bind(this);
+  }
+
   public state = {
     loading: true,
     user: initialUserState,
     redirectPath: '',
+    message: 'COMPLETE_UPDATE_NOTIFICATIONS',
   };
 
   public componentDidMount() {
@@ -76,36 +85,45 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
       });
   }
 
+  public setMessage(msg: string) {
+    this.setState({ message: msg });
+  }
+
   /* tslint:disable:jsx-no-lambda */
   public render(): JSX.Element {
     const { component: Component, ...rest } = this.props;
     const roles = this.state.user.roles;
+    const { message } = this.state;
+    const { setMessage } = this;
     return (
-      <Route
-        {...rest}
-        render={(props) =>
-          this.props.allowedRoles.find((allowedRole) => {
-            const userHasAccess = roles.find((userRole) => userRole.id === allowedRole);
-            return userHasAccess;
-          }) ? (
-            <>
-              <Layout user={this.state.user}>
-                <Component {...props} user={this.state.user} />
-              </Layout>
-            </>
-          ) : this.state.loading ? (
-            <Progress show={true} />
-          ) : this.state.redirectPath !== '' ? (
-            <Redirect
-              to={{
-                pathname: this.state.redirectPath,
-              }}
-            />
-          ) : (
-            ''
-          )
-        }
-      />
+      <AppContext.Provider value={{ message, setMessage }}>
+        <Route
+          {...rest}
+          render={(props) =>
+            this.props.allowedRoles.find((allowedRole) => {
+              const userHasAccess = roles.find((userRole) => userRole.id === allowedRole);
+              return userHasAccess;
+            }) ? (
+              /* @ts-ignore */
+              <ErrorBoundary>
+                <Layout user={this.state.user} {...props}>
+                  <Component {...props} user={this.state.user} />
+                </Layout>
+              </ErrorBoundary>
+            ) : this.state.loading ? (
+              <Progress show={true} />
+            ) : this.state.redirectPath !== '' ? (
+              <Redirect
+                to={{
+                  pathname: this.state.redirectPath,
+                }}
+              />
+            ) : (
+              ''
+            )
+          }
+        />
+      </AppContext.Provider>
     );
   }
 }

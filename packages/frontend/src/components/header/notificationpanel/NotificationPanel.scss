@@ -1,12 +1,12 @@
 .NotificationPanelContentesection {
   box-shadow: 0px 5px 15px 0px rgb(0 0 0 / 15%);
   font-size: var(--font-size-small);
-  left: -139px;
+  left: -170px;
   margin: 0;
   padding: 0px 0;
   position: absolute;
   text-align: left;
-  top: 14px;
+  top: 43px;
   width: 310px;
   background-color: #383f49;
   .showAllNotificationLink {
@@ -35,39 +35,7 @@
     min-height: auto;
     max-height: 320px;
     overflow-y: auto;
-    &::-webkit-scrollbar-thumb {
-      background: #2d333c;
-      border-radius: 10px;
-    }
-    &::-webkit-scrollbar-track {
-      background: #383f49;
-    }
-    &::-webkit-scrollbar {
-      display: block;
-      width: 5px;
-    }
-    &::-ms-scrollbar-thumb {
-      background: #2d333c;
-      border-radius: 10px;
-    }
-    &::-ms-scrollbar-track {
-      background: #293f55;
-    }
-    &::-ms-scrollbar {
-      display: block;
-      width: 5px;
-    }
-    &::-moz-scrollbar-thumb {
-      background: #2d333c;
-      border-radius: 10px;
-    }
-    &::-moz-scrollbar-track {
-      background: #293f55;
-    }
-    &::-moz-scrollbar {
-      display: block;
-      width: 5px;
-    }
+    
     .NotificationPanelContent:last-child {
       border-bottom: 1px solid transparent;
     }
@@ -78,7 +46,7 @@
     border-right: 10px solid transparent;
     left: 143px;
     position: absolute;
-    top: -28px;
+    top: -10px;
     z-index: 15;
   }
 
@@ -117,5 +85,9 @@
         }
       }
     }
+  }
+  .noData{
+    text-align: center;
+    padding: 15px;
   }
 }

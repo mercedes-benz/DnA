@@ -33,18 +33,16 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
 
-
 /**
  * The persistent class for the location_nsql database table.
  */
 @Entity
 @Table(name = "location_nsql")
-public class LocationNsql extends BaseEntity<Location>
-        implements Serializable {
+public class LocationNsql extends BaseEntity<Location> implements Serializable {
 
-    private static final long serialVersionUID = -7715637669188213350L;
+	private static final long serialVersionUID = -7715637669188213350L;
 
-    public LocationNsql() {
-    }
+	public LocationNsql() {
+	}
 
 }

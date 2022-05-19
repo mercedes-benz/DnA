@@ -29,17 +29,62 @@ package com.daimler.data.db.repo.lov;
 
 import java.util.List;
 
+import com.daimler.data.db.entities.lov.AdditionalResourceNsql;
 import com.daimler.data.db.entities.lov.BenefitRelevanceNsql;
 import com.daimler.data.db.entities.lov.BusinessGoalNsql;
 import com.daimler.data.db.entities.lov.CategoryNsql;
+import com.daimler.data.db.entities.lov.DataStrategyDomainNsql;
 import com.daimler.data.db.entities.lov.MaturityLevelNsql;
 import com.daimler.data.db.entities.lov.StrategicRelevanceNsql;
 
 public interface LovRepository  {
 	
+	/**
+	 * To fetch all business Goals. 
+	 * 
+	 * @return businessGoals
+	 */
 	List<BusinessGoalNsql> getAllBusinessGoal();
+	
+	/**
+	 * To fetch all Benefit Relevances
+	 * 
+	 * @return benefitRelevances
+	 */
 	List<BenefitRelevanceNsql> getAllBenefitRelevance();
+	
+	/**
+	 * To fetch all Strategic Relevances
+	 * 
+	 * @return strategicRelevances
+	 */
 	List<StrategicRelevanceNsql> getAllStrategicRelevance();
+	
+	/**
+	 * To fetch all maturityLevels
+	 * 
+	 * @return maturityLevels
+	 */
 	List<MaturityLevelNsql> getAllMaturityLevel();
+	
+	/**
+	 * To fetch all categories
+	 * 
+	 * @return categories
+	 */
 	List<CategoryNsql> getAllCategory();
+	
+	/**
+	 * To fetch all strategyDomains
+	 * 
+	 * @return strategyDomains
+	 */
+	List<DataStrategyDomainNsql> getAllStrategyDomain();
+	
+	/**
+	 * To fetch all Additional Resources
+	 * 
+	 * @return additionalResources {List<DataStrategyDomainNsql>}
+	 */
+	List<AdditionalResourceNsql> getAllAdditionalResource();
 }

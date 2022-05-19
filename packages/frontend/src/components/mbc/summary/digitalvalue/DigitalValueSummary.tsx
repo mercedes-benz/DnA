@@ -7,7 +7,7 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { InfoModal } from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
 import { ApiClient } from '../../../../services/ApiClient';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import DigitalValuePopupContent from './DigitalValuePopupContent';
@@ -196,41 +196,43 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
 
     const changeLog = (
       <table className="ul-table solutions">
-        <tr className="header-row">
-          <th colSpan={8}>
-            <span className="hidden">`</span>
-          </th>
-        </tr>
-        {this.state.changeLogs
-          ? this.state.changeLogs.map((data: IChangeLogData, index: number) => {
-              return (
-                <tr key={index} className="data-row">
-                  <td className="wrap-text">
-                    {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)}
-                  </td>
-                  <td className="wrap-text">
-                    {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td>
-                    <span className="hidden">`</span>
-                  </td>
-                  <td className="wrap-text">{data.changeDescription}</td>
-                </tr>
-              );
-            })
-          : ''}
+        <tbody>
+          <tr className="header-row">
+            <th colSpan={8}>
+              <span className="hidden">`</span>
+            </th>
+          </tr>
+          {this.state.changeLogs
+            ? this.state.changeLogs.map((data: IChangeLogData, index: number) => {
+                return (
+                  <tr key={index} className="data-row">
+                    <td className="wrap-text">
+                      {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)}
+                    </td>
+                    <td className="wrap-text">
+                      {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td className="wrap-text">{data.changeDescription}</td>
+                  </tr>
+                );
+              })
+            : ''}
+        </tbody>
       </table>
     );
     return (
@@ -273,13 +275,15 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                       <span onClick={this.openChangeLog}>Change Log</span>
                     </li>
                     <li className="contextListItem">
-                      <PDFDownloadLink
-                        document={this.props.onExportToPDFDocument}
-                        className={Styles.pdfLink}
-                        fileName={`${pdfFileName}.pdf`}
-                      >
-                        {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
-                      </PDFDownloadLink>
+                      {// @ts-ignore
+                        <PDFDownloadLink
+                          document={this.props.onExportToPDFDocument}
+                          className={Styles.pdfLink}
+                          fileName={`${pdfFileName}.pdf`}
+                        >
+                          {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
+                        </PDFDownloadLink>
+                      }
                     </li>
                   </ul>
                 </div>

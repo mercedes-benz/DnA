@@ -37,7 +37,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class JupyterServerDto {
-	
+
 	private String name;
 	private Boolean ready;
 	private String pending;
@@ -47,6 +47,5 @@ public class JupyterServerDto {
 	private Date last_activity;
 	private JupyterGenericCommentDto state;
 	private JupyterGenericCommentDto user_options;
-	
 
 }

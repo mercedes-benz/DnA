@@ -35,12 +35,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SolutionMilestone {
-	
+
 	private String milestoneDescription;
 	private SolutionPhase phase;
 	private int month;
 	private int year;
-	
+
 //	public SolutionMilestone() {
 //		super();
 //	}
@@ -84,6 +84,5 @@ public class SolutionMilestone {
 //	public void setYear(int year) {
 //		this.year = year;
 //	}
-	
-	
+
 }

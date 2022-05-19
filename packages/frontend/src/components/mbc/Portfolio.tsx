@@ -13,27 +13,12 @@ import Tooltip from '../../assets/modules/uilab/js/src/tooltip';
 import countriesdata from '../../globals/maps/countries.json';
 import {
   IBarChartDataItem,
-  IBreakEvenYearSolutions,
-  IDataVolume,
-  IDivision,
-  // IDivisionFilterPreference,
   IFilterParams,
-  // IFilterPreferences,
-  ILocation,
   ILocationsMapChartDataItem,
   IPhase,
-  IPorfolioSolutionItem,
-  IPortfolioSolutionsData,
-  IProjectStatus,
-  // IScatterChartDataItem,
-  IProjectType,
   ISolutionDigitalValue,
   IStackedBarChartDataItem,
-  ISubDivisionSolution,
-  ITag,
   IUserInfo,
-  // IUserPreference,
-  // IUserPreferenceRequest,
   IWidgetsResponse,
 } from '../../globals/types';
 import { history } from '../../router/History';
@@ -44,8 +29,10 @@ import BarChartWidget from './widgets/BarChartWidget/BarChartWidget';
 // import ScatterChartWidget from './widgets/ScatterChartWidget/ScatterChartWidget';
 import StackedBarChartWidget from './widgets/StackedBarChartWidget/StackedBarChartWidget';
 import WorldMapBubbleWidget from './widgets/WorldMapBubbleWidget/WorldMapBubbleWidget';
+// import { SESSION_STORAGE_KEYS } from '../../globals/constants';
 
-import SolutionsFilter from '../solutionsFilter/SolutionsFilter';
+import SolutionsFilter from './filters/SolutionsFilter';
+// import {getDropDownData} from '../../services/FetchMasterData';
 
 const classNames = cn.bind(Styles);
 
@@ -54,29 +41,17 @@ export interface IFilterType {
 }
 
 export interface IPortfolioState {
-  phases: IPhase[];
-  divisions: IDivision[];
-  subDivisions: ISubDivisionSolution[];
-  locations: ILocation[];
-  projectStatuses: IProjectStatus[];
-  projectTypes: IProjectType[];
-  phaseFilterValues: IPhase[];
-  divisionFilterValues: IDivision[];
-  subDivisionFilterValues: ISubDivisionSolution[];
-  locationFilterValues: ILocation[];
-  statusFilterValue: IProjectStatus;
-  typeFilterValue: IProjectType;
-  tagFilterValues: ITag[];
-  tagValues: ITag[];
-  dataVolumes: IDataVolume[];
   openWidgetPanel: boolean;
   openFilterPanel: boolean;
   widgets: IWidgetsResponse[];
   queryParams: IFilterParams;
-  solutions: IPorfolioSolutionItem[];
+  totalSolutionCounts: number;
   solutionsDataKPI: string;
   digitalValueDataKPI: string;
   dnaNotebooksDataKPI: string;
+  solutionsDataKPILoader: boolean;
+  digitalValueDataKPILoader: boolean;
+  dnaNotebooksDataKPILoader: boolean;
   // digitalValueChartData: IScatterChartDataItem[];
   newDigitalValueChartData: IStackedBarChartDataItem[];
   milestonesChartData: IBarChartDataItem[];
@@ -84,10 +59,10 @@ export interface IPortfolioState {
   locationsChartData: ILocationsMapChartDataItem[];
   portfolioFirstTimeDataLoaded: boolean;
   portfolioDataFilterApplied: boolean;
-  userPreferenceDataId: string;
-  tags: string[];
-  flagForSubDivision: number;
-  getValuesFromFilter: any;
+  showDigitalValueLoader: boolean;
+  showMilestoneLoader: boolean;
+  showDataSourceLoader: boolean;
+  showLocationLoader: boolean;
 }
 
 export interface IPortfolioProps {
@@ -209,25 +184,6 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
   constructor(props: IPortfolioProps) {
     super(props);
     this.state = {
-      phases: [],
-      divisions: [],
-      subDivisions: [],
-      locations: [],
-      projectStatuses: [],
-      projectTypes: [
-        { id: '1', name: 'My Bookmarks', routePath: 'bookmarks' },
-        { id: '2', name: 'My Solutions', routePath: 'mysolutions' },
-      ],
-      phaseFilterValues: [],
-      divisionFilterValues: [],
-      subDivisionFilterValues: [],
-      locationFilterValues: [],
-      statusFilterValue: null,
-      typeFilterValue: null,
-      tagValues: [],
-      tagFilterValues: [],
-      tags: [],
-      dataVolumes: [],
       openWidgetPanel: false,
       openFilterPanel: false,
       widgets: [],
@@ -240,10 +196,13 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         useCaseType: [],
         tag: [],
       },
-      solutions: [],
+      totalSolutionCounts: 0,
       solutionsDataKPI: '-',
       digitalValueDataKPI: '-',
       dnaNotebooksDataKPI: '-',
+      solutionsDataKPILoader: false,
+      digitalValueDataKPILoader: false,
+      dnaNotebooksDataKPILoader: false,
       // digitalValueChartData: [],
       newDigitalValueChartData: [],
       milestonesChartData: [],
@@ -251,10 +210,270 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       locationsChartData: [],
       portfolioFirstTimeDataLoaded: false,
       portfolioDataFilterApplied: false,
-      userPreferenceDataId: null,
-      flagForSubDivision: 0,
-      getValuesFromFilter: {},
+      showDigitalValueLoader: true,
+      showMilestoneLoader: true,
+      showDataSourceLoader: true,
+      showLocationLoader: true,
     };
+  }
+
+  public getWidgetData(
+    locations: string,
+    phases: string,
+    divisions: string,
+    status: string,
+    useCaseType: string,
+    tagSearch: string,
+  ) {
+    ProgressIndicator.hide();
+    this.setState({
+      solutionsDataKPI: '-',
+      digitalValueDataKPI: '-',
+      dnaNotebooksDataKPI: '-',
+      solutionsDataKPILoader: true,
+      digitalValueDataKPILoader: true,
+      dnaNotebooksDataKPILoader: true,
+      dataSourcesChartData: [],
+      showDataSourceLoader: true,
+      milestonesChartData: [],
+      showMilestoneLoader: true,
+      newDigitalValueChartData: [],
+      showDigitalValueLoader: true,
+      locationsChartData: [],
+      showLocationLoader: true,
+    });
+
+    ApiClient.getDashboardData('datasources', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        const dataSourcesChartData: IBarChartDataItem[] = [];
+        res.dataSources.forEach((item: any) => {
+          if (item.dataVolume.name !== 'Choose' && item.dataVolume.name !== null) {
+            const dataVolume = item.dataVolume;
+            const name = dataVolume.name;
+            let barFillColor = '#57C9F5';
+            switch (dataVolume.id) {
+              case '2':
+                barFillColor = '#3F84C4';
+                break;
+              case '3':
+                barFillColor = '#2BBBF1';
+                break;
+              case '4':
+                barFillColor = '#186BB8';
+                break;
+            }
+            dataSourcesChartData.push({
+              id: dataVolume.id,
+              labelValue: name,
+              barValue: item.solutionCount,
+              barFillColor,
+            });
+          }
+        });
+        this.setState({ dataSourcesChartData, showDataSourceLoader: false });
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        this.setState({ dataSourcesChartData: [], showDataSourceLoader: false });
+      });
+
+    ApiClient.getDashboardData('locations', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        const locationsChartData: ILocationsMapChartDataItem[] = [];
+        res.locations.forEach((item: any) => {
+          const location = item.location;
+          locationsChartData.push({
+            id: location.id,
+            countryName: location.name,
+            coordinates: this.getCoordinatesByCountry(location.name) as [number, number],
+            countValue: item.solutionCount,
+          });
+        });
+        this.setState({ locationsChartData, showLocationLoader: false });
+      })
+      .catch((error: any) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        this.setState({ locationsChartData: [], showLocationLoader: false });
+      });
+    ApiClient.getDashboardData('milestones', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        const milestonesChartData: IBarChartDataItem[] = [];
+        res.milestones.forEach((item: any) => {
+          const phase: IPhase = item.phase;
+          let name = phase.name;
+          let barFillColor = '#57C9F5';
+          switch (phase.id) {
+            case '2':
+              barFillColor = '#3F84C4';
+              break;
+            case '3':
+              name = 'POC';
+              barFillColor = '#2BBBF1';
+              break;
+            case '4':
+              barFillColor = '#186BB8';
+              break;
+            case '5':
+              name = 'Professionaliz.';
+              barFillColor = '#29CBDF';
+              break;
+            case '6':
+              name = 'Rollout';
+              barFillColor = '#00ADEF';
+              break;
+            default:
+              break;
+          }
+          milestonesChartData.push({
+            id: phase.id,
+            labelValue: name,
+            barValue: item.solutionCount,
+            barFillColor,
+          });
+        });
+        this.setState({ milestonesChartData, showMilestoneLoader: false });
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        this.setState({ milestonesChartData: [], showMilestoneLoader: false });
+      });
+    ApiClient.getDashboardData('digitalvalue', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        const totalDigitalValue = res.totalDigitalValue;
+        this.setState({
+          digitalValueDataKPI: (Math.round((totalDigitalValue + Number.EPSILON) * 100) / 100).toString(),
+        });
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
+    ApiClient.getDashboardData('solutioncount', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        const totalSolutionCount = res.totalCount;
+        this.setState({ solutionsDataKPI: totalSolutionCount.toString(), totalSolutionCounts: totalSolutionCount });
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
+    ApiClient.getDashboardData('notebook/solutioncount', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        const totalSolutionCount = res.totalCount;
+        this.setState({ dnaNotebooksDataKPI: totalSolutionCount.toString() });
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
+    ApiClient.getDashboardData('digitalvaluesummary', locations, phases, divisions, status, useCaseType, tagSearch)
+      .then((res: any) => {
+        if (res) {
+          const totalDigitalValue = res.solDigitalValuesummary;
+          const newDigitalValueChartData: IStackedBarChartDataItem[] = [];
+          const currentYear = new Date().getFullYear();
+          let startYear = currentYear;
+          const tenthYearFromNow = currentYear + 10;
+          do {
+            const tempObj: any = {};
+
+            tempObj.id = startYear.toString();
+            tempObj.labelValue = startYear.toString();
+
+            tempObj.firstBarValue = 0;
+            tempObj.firstBarFillColor = '#9DE1FC';
+            tempObj.secondBarValue = 0;
+            tempObj.secondBarFillColor = '#29CBDF';
+            tempObj.thirdBarValue = 0;
+            tempObj.thirdBarFillColor = '#186BB8';
+            tempObj.fourthBarValue = 0;
+            tempObj.fourthBarFillColor = '#2BBBF1';
+            tempObj.fifthBarValue = 0;
+            tempObj.fifthBarFillColor = '#3F84C4';
+
+            const filteredObjectWithYear = totalDigitalValue.filter((item: any) => {
+              if (item.year == startYear.toString()) {
+                return item;
+              }
+            })[0];
+
+            if (filteredObjectWithYear) {
+              const sortedSolutions = filteredObjectWithYear.digitalValueVO;
+
+              if (sortedSolutions.length >= 1) {
+                const firstSolution = sortedSolutions[0];
+                tempObj.firstBarValue = firstSolution.digitalValue;
+                tempObj.firstSolution = firstSolution;
+              }
+              if (sortedSolutions.length >= 2) {
+                const firstSolution = sortedSolutions[0];
+                tempObj.firstBarValue = firstSolution.digitalValue;
+                tempObj.firstSolution = firstSolution;
+
+                const secondSolution = sortedSolutions[1];
+                tempObj.secondBarValue = secondSolution.digitalValue;
+                tempObj.secondSolution = secondSolution;
+              }
+              if (sortedSolutions.length >= 3) {
+                const firstSolution = sortedSolutions[0];
+                tempObj.firstBarValue = firstSolution.digitalValue;
+                tempObj.firstSolution = firstSolution;
+
+                const secondSolution = sortedSolutions[1];
+                tempObj.secondBarValue = secondSolution.digitalValue;
+                tempObj.secondSolution = secondSolution;
+
+                const thirdSolution = sortedSolutions[2];
+                tempObj.thirdBarValue = thirdSolution.digitalValue;
+                tempObj.thirdSolution = thirdSolution;
+              }
+              if (sortedSolutions.length >= 4) {
+                const firstSolution = sortedSolutions[0];
+                tempObj.firstBarValue = firstSolution.digitalValue;
+                tempObj.firstSolution = firstSolution;
+
+                const secondSolution = sortedSolutions[1];
+                tempObj.secondBarValue = secondSolution.digitalValue;
+                tempObj.secondSolution = secondSolution;
+
+                const thirdSolution = sortedSolutions[2];
+                tempObj.thirdBarValue = thirdSolution.digitalValue;
+                tempObj.thirdSolution = thirdSolution;
+
+                const fourthSolution = sortedSolutions[3];
+                tempObj.fourthBarValue = fourthSolution.digitalValue;
+                tempObj.fourthSolution = fourthSolution;
+              }
+              if (sortedSolutions.length >= 5) {
+                const firstSolution = sortedSolutions[0];
+                tempObj.firstBarValue = firstSolution.digitalValue;
+                tempObj.firstSolution = firstSolution;
+
+                const secondSolution = sortedSolutions[1];
+                tempObj.secondBarValue = secondSolution.digitalValue;
+                tempObj.secondSolution = secondSolution;
+
+                const thirdSolution = sortedSolutions[2];
+                tempObj.thirdBarValue = thirdSolution.digitalValue;
+                tempObj.thirdSolution = thirdSolution;
+
+                const fourthSolution = sortedSolutions[3];
+                tempObj.fourthBarValue = fourthSolution.digitalValue;
+                tempObj.fourthSolution = fourthSolution;
+
+                const fifthSolution = sortedSolutions[4];
+                tempObj.fifthBarValue = fifthSolution.digitalValue;
+                tempObj.fifthSolution = fifthSolution;
+              }
+            }
+
+            newDigitalValueChartData.push(tempObj);
+            startYear++;
+          } while (startYear <= tenthYearFromNow);
+          this.setState({ newDigitalValueChartData, showDigitalValueLoader: false });
+        }
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+        this.setState({ newDigitalValueChartData: [], showDigitalValueLoader: false });
+      });
   }
 
   public render() {
@@ -265,6 +484,13 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       newDigitalValueChartData,
       milestonesChartData,
       dataSourcesChartData,
+      showDigitalValueLoader,
+      showDataSourceLoader,
+      showLocationLoader,
+      showMilestoneLoader,
+      solutionsDataKPILoader,
+      digitalValueDataKPILoader,
+      dnaNotebooksDataKPILoader,
     } = this.state;
 
     return (
@@ -276,7 +502,21 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               <div className={classNames(Styles.portTile)}>
                 <div className={classNames(Styles.portTileVal)}>
                   <h5> Digital Value (€) </h5>
-                  <span>{digitalValueDataKPI !== '-' ? DataFormater(parseFloat(digitalValueDataKPI)) : '-'}</span>
+                  <span>
+                    {digitalValueDataKPI !== '-' ? (
+                      DataFormater(parseFloat(digitalValueDataKPI))
+                    ) : (
+                      <div>
+                        {digitalValueDataKPILoader ? (
+                          <div className={classNames(Styles.KPILoader)}>
+                            <div className="progress infinite"></div>
+                          </div>
+                        ) : (
+                          <div className={Styles.noDataMessage}>-</div>
+                        )}
+                      </div>
+                    )}
+                  </span>
                 </div>
                 <div className={classNames(Styles.portNavMore)}>
                   <label className="hide">
@@ -290,9 +530,23 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               <div className={classNames(Styles.portTile)}>
                 <div className={classNames(Styles.portTileVal)}>
                   <h5> Solutions Count </h5>
-                  <span>{solutionsDataKPI ? solutionsDataKPI : '-'}</span>
+                  <span>
+                    {solutionsDataKPI !== '-' ? (
+                      solutionsDataKPI
+                    ) : (
+                      <div>
+                        {solutionsDataKPILoader ? (
+                          <div className={Styles.KPILoader}>
+                            <div className="progress infinite"></div>
+                          </div>
+                        ) : (
+                          <div className={Styles.noDataMessage}>-</div>
+                        )}
+                      </div>
+                    )}
+                  </span>
                 </div>
-                <div className={classNames(Styles.portNavMore)}>
+                <div className={classNames(solutionsDataKPI !== '-' ? Styles.portNavMore : 'hide')}>
                   <label className="hidden">
                     <i className="icon mbc-icon listItem context" />
                   </label>
@@ -304,7 +558,21 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
               <div className={classNames(Styles.portTile)}>
                 <div className={classNames(Styles.portTileVal)}>
                   <h5>Solutions using DnA Notebook</h5>
-                  <span>{dnaNotebooksDataKPI ? dnaNotebooksDataKPI : '-'}</span>
+                  <span>
+                    {dnaNotebooksDataKPI !== '-' ? (
+                      dnaNotebooksDataKPI
+                    ) : (
+                      <div>
+                        {dnaNotebooksDataKPILoader ? (
+                          <div className={Styles.KPILoader}>
+                            <div className="progress infinite"></div>
+                          </div>
+                        ) : (
+                          <div className={Styles.noDataMessage}>-</div>
+                        )}
+                      </div>
+                    )}
+                  </span>
                 </div>
                 <div className={classNames(Styles.portNavMore)}>
                   <label className="hide">
@@ -343,7 +611,15 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                           onChartBarClick={this.onDigitalValueChartBarClick}
                         />
                       ) : (
-                        <div className={Styles.noDataMessage}>Data Not Available...</div>
+                        <div>
+                          {showDigitalValueLoader ? (
+                            <div className={Styles.widgetLoader}>
+                              <div className="progress infinite"></div>
+                            </div>
+                          ) : (
+                            <div className={Styles.noDataMessage}>Data Not Available...</div>
+                          )}
+                        </div>
                       )}
                     </section>
                   </div>
@@ -362,7 +638,15 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                           onChartBarClick={this.onMilestonesChartBarClick}
                         />
                       ) : (
-                        <div className={Styles.noDataMessage}>Data Not Available...</div>
+                        <div>
+                          {showMilestoneLoader ? (
+                            <div className={Styles.widgetLoader}>
+                              <div className="progress infinite"></div>
+                            </div>
+                          ) : (
+                            <div className={Styles.noDataMessage}>Data Not Available...</div>
+                          )}
+                        </div>
                       )}
                     </section>
                   </div>
@@ -383,7 +667,15 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                           onChartBarClick={this.onDataSourcesChartBarClick}
                         />
                       ) : (
-                        <div className={Styles.noDataMessage}>Data Not Available...</div>
+                        <div>
+                          {showDataSourceLoader ? (
+                            <div className={Styles.widgetLoader}>
+                              <div className="progress infinite"></div>
+                            </div>
+                          ) : (
+                            <div className={Styles.noDataMessage}>Data Not Available...</div>
+                          )}
+                        </div>
                       )}
                     </section>
                   </div>
@@ -393,10 +685,22 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                       <span className="sub-title-text">based on development location.</span>
                     </header>
                     <section>
-                      <WorldMapBubbleWidget
-                        data={this.state.locationsChartData}
-                        onLocationMarkerClick={this.onLocationChartMarkerClick}
-                      />
+                      {this.state.locationsChartData.length ? (
+                        <WorldMapBubbleWidget
+                          data={this.state.locationsChartData}
+                          onLocationMarkerClick={this.onLocationChartMarkerClick}
+                        />
+                      ) : (
+                        <div>
+                          {showLocationLoader ? (
+                            <div className={Styles.widgetLoader}>
+                              <div className="progress infinite"></div>
+                            </div>
+                          ) : (
+                            <div className={Styles.noDataMessage}>Data Not Available...</div>
+                          )}
+                        </div>
+                      )}
                     </section>
                   </div>
                 </div>
@@ -406,23 +710,16 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         </div>
         <SolutionsFilter
           userId={this.props.user.id}
-          getSolutions={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams)}
+          getSolutions={(
+            locations: string,
+            phases: string,
+            divisions: string,
+            status: string,
+            useCaseType: string,
+            tags: string,
+          ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
           solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
           setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
-          getValuesFromFilter={(value: any) => {
-            this.setState({ locations: value.locations ? value.locations : [] });
-            this.setState({ phases: value.phases ? value.phases : [] });
-            this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
-            this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
-            this.setState((prev) => {
-              return {
-                getValuesFromFilter: {
-                  ...prev.getValuesFromFilter,
-                  ...value,
-                },
-              };
-            });
-          }}
         />
       </div>
     );
@@ -462,137 +759,37 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       });
   }
 
-  protected getFilteredSolutions = (queryParams: IFilterParams) => {
+  // protected getFilteredSolutions = (queryParams: IFilterParams) => {
+  //   ProgressIndicator.show();
+  //   this.setState(
+  //     {
+  //       queryParams,
+  //       // portfolioDataFilterApplied: true,
+  //     },
+  //     () => {
+  //       this.getSolutions();
+  //       // this.storeFilterValuesInSession();
+  //     },
+  //   );
+  // };
+
+  protected getSolutions = (
+    locations: string,
+    phases: string,
+    divisions: string,
+    status: string,
+    useCaseType: string,
+    tags: string,
+  ) => {
     ProgressIndicator.show();
     this.setState(
       {
-        queryParams,
-        // portfolioDataFilterApplied: true,
+        portfolioFirstTimeDataLoaded: true,
       },
       () => {
-        this.getSolutions();
-        // this.storeFilterValuesInSession();
+        this.getWidgetData(locations, phases, divisions, status, useCaseType, tags);
       },
     );
-  };
-
-  protected getSolutions = () => {
-    const queryParams = this.state.queryParams;
-    let locationIds = queryParams.location.join(',');
-    let phaseIds = queryParams.phase.join(',');
-    let divisionIds = queryParams.division.join(',');
-    // let subDivisionIds = queryParams.subDivision.join(',');
-    let status = queryParams.status.join(',');
-    let useCaseType = queryParams.useCaseType.join(',');
-    const tags = queryParams.tag.join(',');
-
-    if (queryParams.division.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempString = '{' + item + ',[]}';
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.subDivision.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempSubdiv = queryParams.subDivision.map((value) => {
-          const tempArray = value.split('-');
-          if (item === tempArray[1]) {
-            return tempArray[0];
-          }
-        });
-        let tempString = '';
-        // if (tempSubdiv.length === 0) {
-        //   tempString += '{' + item + ',[0,null]}';
-        // }
-        // if (this.state.subDivisions.length === queryParams.subDivision.length && tempSubdiv.length > 0) {
-        //   tempString += '{' + item + ',[0,' + tempSubdiv.filter(div => div) + ',null]}';
-        // } else {
-        //   tempString += '{' + item + ',[' + tempSubdiv.filter(div => div) + ']}';
-        // }
-
-        if (tempSubdiv.length === 0) {
-          tempString += '{' + item + ',[]}';
-        } else {
-          tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
-        }
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.division.length === 0) {
-      divisionIds = '';
-    }
-
-    if (queryParams.location.length === this.state.locations.length) {
-      locationIds = '';
-    }
-
-    if (queryParams.phase.length === this.state.phases.length) {
-      phaseIds = '';
-    }
-
-    if (queryParams.status.length === this.state.projectStatuses.length) {
-      status = '';
-    }
-
-    if (queryParams.useCaseType.length === this.state.projectTypes.length) {
-      useCaseType = '';
-    }
-
-    ApiClient.getSolutionsByGraphQLForPortfolio(locationIds, phaseIds, divisionIds, status, useCaseType, tags)
-      .then((res) => {
-        if (res) {
-          const solutionsData = res.data.solutions as IPortfolioSolutionsData;
-          this.setState(
-            {
-              solutions: solutionsData.totalCount ? solutionsData.records : [],
-              solutionsDataKPI: '-',
-              digitalValueDataKPI: '-',
-              // digitalValueChartData: [],
-              newDigitalValueChartData: [],
-              milestonesChartData: [],
-              dataSourcesChartData: [],
-              locationsChartData: [],
-              portfolioFirstTimeDataLoaded: true,
-              tags: queryParams.tag,
-              flagForSubDivision: 0,
-            },
-            () => {
-              if (solutionsData.records && solutionsData.records.length) {
-                this.createAndSetPortfolioStateData(solutionsData.records);
-              }
-              ProgressIndicator.show();
-              ProgressIndicator.hide();
-            },
-          );
-        }
-      })
-      .catch((error) => {
-        this.setState(
-          {
-            solutions: [],
-            solutionsDataKPI: '-',
-            digitalValueDataKPI: '-',
-            // digitalValueChartData: [],
-            newDigitalValueChartData: [],
-            milestonesChartData: [],
-            dataSourcesChartData: [],
-            locationsChartData: [],
-            portfolioFirstTimeDataLoaded: true,
-            flagForSubDivision: 0,
-          },
-          () => {
-            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-          },
-        );
-      });
   };
 
   protected showErrorNotification(message: string) {
@@ -607,250 +804,6 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     });
     return values;
   }
-  protected createAndSetPortfolioStateData = (solutions: IPorfolioSolutionItem[]) => {
-    const solutionsCount = solutions.length;
-    // const digitalValueChartData: IScatterChartDataItem[] = [];
-    const newDigitalValueChartData: IStackedBarChartDataItem[] = [];
-    const milestonesChartData: IBarChartDataItem[] = [];
-    const dataSourcesChartData: IBarChartDataItem[] = [];
-    const locationsChartData: ILocationsMapChartDataItem[] = [];
-    let totalDigitalValue = 0;
-    let dnaNotebooksDataKPI = 0;
-    const { phases, locationFilterValues, dataVolumes } = this.state.getValuesFromFilter;
-    const currentYear = new Date().getFullYear();
-    let startYear = currentYear;
-    const tenthYearFromNow = currentYear + 10;
-    do {
-      const year = startYear.toString();
-      newDigitalValueChartData.push({
-        id: year,
-        labelValue: year,
-        firstBarValue: 0,
-        firstBarFillColor: '#9DE1FC',
-        secondBarValue: 0,
-        secondBarFillColor: '#29CBDF',
-        thirdBarValue: 0,
-        thirdBarFillColor: '#186BB8',
-        fourthBarValue: 0,
-        fourthBarFillColor: '#2BBBF1',
-        fifthBarValue: 0,
-        fifthBarFillColor: '#3F84C4',
-      });
-      startYear++;
-    } while (startYear <= tenthYearFromNow);
-
-    const tempBreakEvenYearDigitalValue: IBreakEvenYearSolutions[] = [];
-
-    phases.forEach((phase: IPhase) => {
-      let name = phase.name;
-      let barFillColor = '#57C9F5';
-      switch (phase.id) {
-        case '2':
-          barFillColor = '#3F84C4';
-          break;
-        case '3':
-          name = 'POC';
-          barFillColor = '#2BBBF1';
-          break;
-        case '4':
-          barFillColor = '#186BB8';
-          break;
-        case '5':
-          name = 'Professionaliz.';
-          barFillColor = '#29CBDF';
-          break;
-        case '6':
-          name = 'Rollout';
-          barFillColor = '#00ADEF';
-          break;
-        default:
-          break;
-      }
-      milestonesChartData.push({
-        id: phase.id,
-        labelValue: name,
-        barValue: 0,
-        barFillColor,
-      });
-    });
-
-    dataVolumes.forEach((dataVolume: IDataVolume) => {
-      const name = dataVolume.name;
-      let barFillColor = '#57C9F5';
-      switch (dataVolume.id) {
-        case '2':
-          barFillColor = '#3F84C4';
-          break;
-        case '3':
-          barFillColor = '#2BBBF1';
-          break;
-        case '4':
-          barFillColor = '#186BB8';
-          break;
-      }
-      dataSourcesChartData.push({
-        id: dataVolume.id,
-        labelValue: name,
-        barValue: 0,
-        barFillColor,
-      });
-    });
-
-    solutions.forEach((solution) => {
-      // For dnaNotebooksDataKPI
-      if (solution.portfolio?.dnaNotebookId) {
-        dnaNotebooksDataKPI += 1;
-      }
-
-      const digitalValue = solution.digitalValue;
-      if (digitalValue) {
-        if (digitalValue.digitalEffort === null) {
-          digitalValue.digitalEffort = 0;
-        }
-        if (digitalValue.digitalValue === null) {
-          digitalValue.digitalValue = 0;
-        }
-        totalDigitalValue += digitalValue.digitalValue;
-      }
-
-      // if (digitalValue && digitalValue.digitalEffort && digitalValue.digitalValue) {
-      //   const valueData = digitalValue.digitalValue;
-      //   digitalValueChartData.push({
-      //     id: solution.id,
-      //     labelValue: solution.productName,
-      //     descriptionValue: solution.description,
-      //     yAxisValue: valueData,
-      //     xAxisValue: digitalValue.digitalEffort,
-      //     zAxisValue: solution.team.length,
-      //   });
-      // }
-
-      if (
-        digitalValue &&
-        digitalValue.digitalValue &&
-        digitalValue.digitalValue > 0 &&
-        digitalValue.valueCalculator &&
-        digitalValue.valueCalculator.calculatedDigitalValue &&
-        digitalValue.valueCalculator.calculatedDigitalValue.year
-      ) {
-        const breakEvenYear = parseInt(digitalValue.valueCalculator.calculatedDigitalValue.year, 10);
-        if (breakEvenYear >= currentYear && breakEvenYear <= tenthYearFromNow) {
-          const existedBreakEvenYear = tempBreakEvenYearDigitalValue.find(
-            (item) => item.breakEvenYear === breakEvenYear,
-          );
-          const breakEvenYearSolutions = existedBreakEvenYear || {
-            breakEvenYear,
-            solutions: [],
-          };
-
-          breakEvenYearSolutions.solutions.push({
-            id: solution.id,
-            productName: solution.productName,
-            description: solution.description,
-            digitalValue: solution.digitalValue.digitalValue,
-          });
-
-          if (!existedBreakEvenYear) {
-            tempBreakEvenYearDigitalValue.push(breakEvenYearSolutions);
-          }
-        }
-      }
-
-      const currentPhase = solution.currentPhase;
-      if (currentPhase && currentPhase.id) {
-        if (milestonesChartData[parseInt(currentPhase.id, 10) - 1]) {
-          milestonesChartData[parseInt(currentPhase.id, 10) - 1].barValue += 1;
-        }
-      }
-      const dataSources = solution.dataSources;
-      if (dataSources && dataSources.dataVolume && dataSources.dataVolume.id && dataSources.dataVolume.id !== '0') {
-        if (dataSourcesChartData[parseInt(dataSources.dataVolume.id, 10) - 1]) {
-          dataSourcesChartData[parseInt(dataSources.dataVolume.id, 10) - 1].barValue += 1;
-        }
-      }
-
-      const locations = solution.locations;
-      locations.forEach((location: ILocation) => {
-        const hasFilterSelected = locationFilterValues.find((item: ILocation) => {
-          return item.id === location.id;
-        });
-        if (hasFilterSelected) {
-          let locationDataItemIndex = -1;
-          const locationDataItem = locationsChartData.find((item: ILocationsMapChartDataItem, index: number) => {
-            locationDataItemIndex = index;
-            return item.countryName === location.name;
-          });
-
-          locationDataItemIndex = locationDataItem ? locationDataItemIndex : -1;
-
-          const locationsChartDataItem = locationDataItem
-            ? locationDataItem
-            : {
-                id: location.id,
-                countryName: location.name,
-                coordinates: this.getCoordinatesByCountry(location.name) as [number, number],
-                countValue: 0,
-              };
-
-          locationsChartDataItem.countValue += 1;
-          if (locationDataItemIndex !== -1) {
-            locationsChartData.splice(locationDataItemIndex, 1);
-            locationsChartData.splice(locationDataItemIndex, 0, locationsChartDataItem);
-          } else {
-            locationsChartData.push(locationsChartDataItem);
-          }
-        }
-      });
-    });
-
-    tempBreakEvenYearDigitalValue.forEach((item: IBreakEvenYearSolutions) => {
-      const breakEvenYearData = newDigitalValueChartData.find(
-        (data) => data.labelValue === item.breakEvenYear.toString(),
-      );
-      const sortedSolutions = item.solutions.sort((a: ISolutionDigitalValue, b: ISolutionDigitalValue) => {
-        const key = 'digitalValue' as keyof ISolutionDigitalValue;
-        const aValue = a[key] as number;
-        const bValue = b[key] as number;
-        return bValue - aValue; // Sort by decending
-      });
-      if (sortedSolutions.length >= 1) {
-        const firstSolution = sortedSolutions[0];
-        breakEvenYearData.firstBarValue = firstSolution.digitalValue;
-        breakEvenYearData.firstSolution = firstSolution;
-      }
-      if (sortedSolutions.length >= 2) {
-        const secondSolution = sortedSolutions[1];
-        breakEvenYearData.secondBarValue = secondSolution.digitalValue;
-        breakEvenYearData.secondSolution = secondSolution;
-      }
-      if (sortedSolutions.length >= 3) {
-        const thirdSolution = sortedSolutions[2];
-        breakEvenYearData.thirdBarValue = thirdSolution.digitalValue;
-        breakEvenYearData.thirdSolution = thirdSolution;
-      }
-      if (sortedSolutions.length >= 4) {
-        const fourthSolution = sortedSolutions[3];
-        breakEvenYearData.fourthBarValue = fourthSolution.digitalValue;
-        breakEvenYearData.fourthSolution = fourthSolution;
-      }
-      if (sortedSolutions.length >= 5) {
-        const fifthSolution = sortedSolutions[4];
-        breakEvenYearData.fifthBarValue = fifthSolution.digitalValue;
-        breakEvenYearData.fifthSolution = fifthSolution;
-      }
-    });
-
-    this.setState({
-      digitalValueDataKPI: (Math.round((totalDigitalValue + Number.EPSILON) * 100) / 100).toString(),
-      solutionsDataKPI: solutionsCount.toString(),
-      dnaNotebooksDataKPI: dnaNotebooksDataKPI.toString(),
-      // digitalValueChartData,
-      newDigitalValueChartData,
-      milestonesChartData,
-      dataSourcesChartData,
-      locationsChartData,
-    });
-  };
 
   protected getCoordinatesByCountry = (name: string) => {
     const countryData = countriesdata?.find((countryItem: any) => {
@@ -866,9 +819,8 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
   };
 
   protected onSummaryKpiBtnClick = () => {
-    if (this.state.solutions.length) {
+    if (this.state.totalSolutionCounts > 0) {
       trackEvent('Portfolio', 'View Solutions', 'From Solution count KPI');
-      sessionStorage.setItem('subDivisionCount', JSON.stringify(this.state.subDivisions.length));
       history.push('/viewsolutions/digitalvalue');
     } else {
       Notification.show('No solutions available to view.', 'alert');
@@ -881,7 +833,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
 
   protected onDigitalValueChartBarClick = (item: any) => {
     // Any change in payload datakeys need an update in below code
-    const solutionId = item.payload[item.tooltipPayload[0].dataKey.replace('BarValue', 'Solution')].id;
+    const solutionId = item.payload[item.tooltipPayload[0].dataKey.replace('BarValue', 'Solution')].solutionId;
     trackEvent('Portfolio', 'View Solution Summary', 'From Digital Value Chart Bar - ' + solutionId);
     history.push('/summary/' + solutionId);
   };
@@ -896,14 +848,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
 
   protected onLocationChartMarkerClick = (marker: ILocationsMapChartDataItem) => {
     trackEvent('Portfolio', 'View Solutions', 'From Location Chart Map Marker - ' + marker.countryName);
-    history.push({
-      pathname: `/viewsolutions/location/${marker.id}`,
-      state: this.state.getValuesFromFilter,
-    });
+    history.push(`/viewsolutions/location/${marker.id}`);
   };
 
   protected goToViewSolutionsFor(kpiId: string, item: any) {
-    const { phases, dataVolumes } = this.state.getValuesFromFilter;
     if (item) {
       const payload = item.activePayload[0] ? item.activePayload[0].payload : null;
       if (payload && payload.barValue) {
@@ -913,13 +861,11 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
         switch (kpiId) {
           case 'phase':
             eventFrom = 'From Milestones Chart Bar';
-            const phase = phases.find((phase: IPhase) => phase.id === payloadId);
-            value = phase.name;
+            value = payload.labelValue;
             break;
           case 'datavolume':
             eventFrom = 'From Data Sources Chart Bar';
-            const volume = dataVolumes.find((volume: IDataVolume) => volume.id === payloadId);
-            value = volume.name;
+            value = payload.labelValue;
             break;
         }
         if (eventFrom && value) {

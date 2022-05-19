@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
 import { IconTick } from '../../../../components/icons/IconTick';
-import { IPortfolio, INotebookInfo, IUserInfo, IDataiku } from '../../../../globals/types';
+import { IPortfolio, INotebookInfo, IDataiku } from '../../../../globals/types';
 import Styles from './PlatformSummary.scss';
 const classNames = cn.bind(Styles);
 import { getDateFromTimestamp } from '../../../../services/utils';
@@ -14,7 +14,6 @@ export interface ITeamProps {
   dnaNotebookEnabled: boolean;
   dnaDataIkuProjectEnabled: boolean;
   notebookAndDataIkuNotEnabled: boolean;
-  user: IUserInfo;
 }
 
 export default function PlatformSummary(props: ITeamProps) {
@@ -29,8 +28,8 @@ export default function PlatformSummary(props: ITeamProps) {
           );
         })
       : 'NA';
-  const solOnCloud = props.portfolio?.solutionOnCloud ? <IconTick /> : 'NA';
-  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms ? <IconTick /> : 'NA';
+  const solOnCloud = props.portfolio?.solutionOnCloud ? <IconTick /> : 'N/A';
+  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms ? <IconTick /> : 'N/A';
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
@@ -44,7 +43,7 @@ export default function PlatformSummary(props: ITeamProps) {
                 <label>{solOnCloud}</label>
               </div>
               <div id="usageOfDaimlerInteral" className={classNames(Styles.solutionSection)}>
-                <label className="input-label summary">Usage Of {Envs.DNA_COMPANYNAME} Platforms</label>
+                <label className="input-label summary">Usage Of {Envs.DNA_COMPANY_NAME} Platforms</label>
                 <br />
                 <label>{usageOfDaimler}</label>
                 {(props.dnaNotebookEnabled || props.dnaDataIkuProjectEnabled) && (
@@ -56,7 +55,15 @@ export default function PlatformSummary(props: ITeamProps) {
                     <div className={Styles.jupeterCardContent}>
                       <h6>
                         {(props.dnaNotebookEnabled && props.noteBookInfo.name) ||
-                          (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.name)}
+                          (props.dnaDataIkuProjectEnabled && (
+                            <a
+                              href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {props.dataIkuInfo.name}
+                            </a>
+                          ))}
                       </h6>
                       <label>
                         Created on{' '}
@@ -65,7 +72,7 @@ export default function PlatformSummary(props: ITeamProps) {
                             (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                           '.',
                         )}{' '}
-                        by {props.user.firstName}
+                        by {props.noteBookInfo.createdBy.firstName}
                       </label>
                       <div className={Styles.JuperterCardDesc}>
                         {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||

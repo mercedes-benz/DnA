@@ -12,8 +12,8 @@ import {
 import Styles from './CreateNewPipeline.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { Modal } from '../../../formElements/modal/Modal';
-import { ConfirmModal } from '../../../formElements/modal/confirmModal/ConfirmModal';
+import Modal from '../../../formElements/modal/Modal';
+import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
 import { getParams } from '../../../../router/RouterUtils';
 import AddUser from './addUser/AddUser';
 const classNames = cn.bind(Styles);
@@ -702,7 +702,7 @@ const CreateNewPipeline = () => {
                         >
                           <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
                             <span className="animation-wrapper"></span>
-                            <input type="checkbox" id={index + '1'} />
+                            <input type="checkbox" className="ff-only" id={index + '1'} defaultChecked={index === 0} />
                             <label
                               className={'expansion-panel-label' + ' ' + Styles.dagContentCaption}
                               htmlFor={index + '1'}
@@ -809,7 +809,12 @@ const CreateNewPipeline = () => {
                                                     >
                                                       <label className={'checkbox ' + Styles.checkBoxDisable}>
                                                         <span className="wrapper">
-                                                          <input type="checkbox" value="can_dag_read" checked={true} />
+                                                          <input
+                                                            type="checkbox"
+                                                            className="ff-only"
+                                                            value="can_dag_read"
+                                                            checked={true}
+                                                          />
                                                         </span>
                                                         <span className="label">Read</span>
                                                       </label>
@@ -824,6 +829,7 @@ const CreateNewPipeline = () => {
                                                         <span className="wrapper">
                                                           <input
                                                             type="checkbox"
+                                                            className="ff-only"
                                                             value="can_dag_edit"
                                                             checked={
                                                               item.permissions !== null

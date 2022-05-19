@@ -37,28 +37,28 @@ import java.util.Objects;
 @Component
 public class TagAssembler implements GenericAssembler<TagVO, TagNsql> {
 
-    @Override
-    public TagVO toVo(TagNsql entity) {
-    	TagVO tagVO = null;
-        if (Objects.nonNull(entity)) {
-        	tagVO = new TagVO();
-        	tagVO.setId(entity.getId());
-        	tagVO.setName(entity.getData().getName());
-        }
-        return tagVO;
-    }
+	@Override
+	public TagVO toVo(TagNsql entity) {
+		TagVO tagVO = null;
+		if (Objects.nonNull(entity)) {
+			tagVO = new TagVO();
+			tagVO.setId(entity.getId());
+			tagVO.setName(entity.getData().getName());
+		}
+		return tagVO;
+	}
 
-    @Override
-    public TagNsql toEntity(TagVO vo) {
-    	TagNsql tagNsql = null;
-        if (Objects.nonNull(vo)) {
-        	tagNsql = new TagNsql();
-            Tag tag = new Tag();
-            tag.setName(vo.getName() );
-            tagNsql.setData(tag);
-            if (vo.getId() != null)
-            	tagNsql.setId(vo.getId());
-        }
-        return tagNsql;
-    }
+	@Override
+	public TagNsql toEntity(TagVO vo) {
+		TagNsql tagNsql = null;
+		if (Objects.nonNull(vo)) {
+			tagNsql = new TagNsql();
+			Tag tag = new Tag();
+			tag.setName(vo.getName());
+			tagNsql.setData(tag);
+			if (vo.getId() != null)
+				tagNsql.setId(vo.getId());
+		}
+		return tagNsql;
+	}
 }

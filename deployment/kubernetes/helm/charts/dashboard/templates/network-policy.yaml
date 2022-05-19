@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Chart.Name }}-web-allow-netpol
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      name: {{ .Chart.Name }}-backend
+  ingress:
+    - ports:
+      - port: {{ .Values.containerPort }}

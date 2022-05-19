@@ -1,0 +1,94 @@
+# Default values for backend.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: dna
+imagePullSecret: 
+  name: harbor-pull-secrets
+  key: "docker-config"
+ingress:
+  enabled: true
+  namespace: ingress
+  host: "ingress-host"
+  lbIP: ""
+
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+app:
+  backend:
+    replicaCount: 1
+    image: backend:latest
+    secrets: 
+      name: app-secrets
+      notebookSecretToken: ""
+      oidcClientID: ""
+      oidcClientSecret: ""
+      drdCertPassword: ""
+      jwtSecretKey: ""
+      s3AccessKey: ""
+      s3SecretKey: ""
+      dataikuProdApiKey: ""
+      dataikuTrainingApiKey: ""
+      avscanApiKey: ""
+      appDBUserName: db
+      appDBPassword: admin
+    config:
+      enableItsmm: false
+      enableJupyterNotebook: false
+      enableDataiku: false
+      enableAttachmentScan: false
+      enableInternalUser: false
+      redirectUrl: ""
+      dbUri: jdbc:postgresql://postgresql:64000/db
+      oidcUserInfoUrl: ""
+      oidcTokenIntrospectionUrl: ""
+      oidcProvider: INTERNAL
+      oidcTokenRevocationUrl: ""
+      internalUserRequestUrl: ""
+      internalCertFile: ""
+      oidcDisabled: true
+      s3BucketName: ""
+      s3Url: ""
+      corosOriginUrl: ""
+      jupyterNotebookUrl: ""
+      vaultHost: vault.vault.svc.cluster.local
+      vaultPort: 8200
+      dataikuProdUri: ""
+      dataikuProdAdminGroup: ""
+      dataikutraininguri: ""
+      apacCorpDir: ""
+      emeaCorpDir: ""
+      dataikuUserRoleUriPath: "/admin/users/"
+      dataikuPermissionUriPath: "/permissions"
+      avscanAppId: ""
+      naasBroker: broker01.kafka.svc.cluster.local:8001
+      loggingEnvironment: dev
+      loggingPath: /tmp/app/log
+      dataikuProjectUri: /projects/
+      dataikuTrainingAdminGroup: ""
+      avscanUri: ""
+      flywayBaseline: "true"
+      flywayBaselineOnMigrate: "true"
+      flywayBaselineVersion: "0"
+      flywaySchema: "public"
+      dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173/dashboards
+
+  vault:
+    secret:
+      name: vault-secrets
+      rootToken: ""
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: 7171
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: 7171 

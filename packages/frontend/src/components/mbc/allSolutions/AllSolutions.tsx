@@ -31,20 +31,21 @@ import {
 } from '../../../globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
-import { Pagination } from '../pagination/Pagination';
+import Pagination from '../pagination/Pagination';
 
 import Styles from './AllSolutions.scss';
 import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 
 import { getQueryParameterByName } from '../../../services/Query';
-import { ConfirmModal } from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
-import { trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 
-import SolutionsFilter from '../../solutionsFilter/SolutionsFilter';
-import filterStyle from '../../solutionsFilter/SolutionsFilter.scss';
+import SolutionsFilter from '../filters/SolutionsFilter';
+import filterStyle from '../filters/Filter.scss';
 import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
+// import {getDropDownData} from '../../../services/FetchMasterData';
 
 const classNames = cn.bind(Styles);
 
@@ -286,6 +287,7 @@ export default class AllSolutions extends React.Component<
       .catch((err) => {
         return err;
       });
+    // this.getDropDownData();
   }
 
   public render() {
@@ -339,6 +341,7 @@ export default class AllSolutions extends React.Component<
       const container = hideFilterView
         ? document?.querySelector('.mainPanel')
         : document?.querySelector('.triggerWrapper');
+      Tooltip.defaultSetup();
       return container ? createPortal(element, container) : null;
     };
 
@@ -578,15 +581,15 @@ export default class AllSolutions extends React.Component<
             <>
               <SolutionsFilter
                 userId={this.props.user.id}
-                getSolutions={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams)}
+                getFilterQueryParams={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams)}
                 solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
                 setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
-                getValuesFromFilter={(value: any) => {
-                  this.setState({ locations: value.locations ? value.locations : [] });
-                  this.setState({ phases: value.phases ? value.phases : [] });
-                  this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
-                  this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
-                }}
+                // getValuesFromFilter={(value: any) => {
+                //   this.setState({ locations: value.locations ? value.locations : [] });
+                //   this.setState({ phases: value.phases ? value.phases : [] });
+                //   this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
+                //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
+                // }}
               />
             </>
           )}
@@ -771,87 +774,13 @@ export default class AllSolutions extends React.Component<
 
   protected getSolutions = (getPublished?: boolean) => {
     const queryParams = this.state.queryParams;
-    let locationIds = queryParams.location.join(',');
-    let phaseIds = queryParams.phase.join(',');
-    let divisionIds = queryParams.division.join(',');
-    // const subDivisionIds = queryParams.subDivision.join(',');
-    let status = queryParams.status.join(',');
-    let useCaseType = queryParams.useCaseType.join(',');
+    const locationIds = queryParams.location.join(',');
+    const phaseIds = queryParams.phase.join(',');
+    const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
+    const status = queryParams.status.join(',');
+    const useCaseType = queryParams.useCaseType.join(',');
     const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume.join(',') : '';
     const tags = queryParams.tag.join(',');
-
-    if (queryParams.division.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempString = '{' + item + ',[]}';
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.subDivision.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      // let subDivisionCount = 0;
-      if (this.state.enablePortfolioSolutionsView) {
-        // subDivisionCount = parseInt(JSON.parse(JSON.stringify(sessionStorage.getItem('subDivisionCount'))), 10);
-        sessionStorage.removeItem('subDivisionCount');
-      }
-      distinctSelectedDivisions.forEach((item) => {
-        const tempSubdiv = queryParams.subDivision.map((value) => {
-          const tempArray = value.split('-');
-          if (item === tempArray[1]) {
-            return tempArray[0];
-          }
-        });
-        let tempString = '';
-        // if (tempSubdiv.length === 0) {
-        //   tempString += '{' + item + ',[0,null]}';
-        // }
-        // if (this.state.enablePortfolioSolutionsView) {
-        //   if (subDivisionCount === queryParams.subDivision.length && tempSubdiv.length > 0) {
-        //     tempString += '{' + item + ',[0,' + tempSubdiv.filter(div => div) + ',null]}';
-        //   } else {
-        //     tempString += '{' + item + ',[' + tempSubdiv.filter(div => div) + ']}';
-        //   }
-        // } else {
-        //   if (this.state.subDivisions.length === queryParams.subDivision.length && tempSubdiv.length > 0) {
-        //     tempString += '{' + item + ',[0,' + tempSubdiv.filter(div => div) + ',null]}';
-        //   } else {
-        //     tempString += '{' + item + ',[' + tempSubdiv.filter(div => div) + ']}';
-        //   }
-        // }
-
-        if (tempSubdiv.length === 0) {
-          tempString += '{' + item + ',[]}';
-        } else {
-          tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
-        }
-
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.division.length === 0) {
-      divisionIds = '';
-    }
-    if (queryParams.location.length === this.state.locations.length) {
-      locationIds = '';
-    }
-
-    if (queryParams.phase.length === this.state.phases.length) {
-      phaseIds = '';
-    }
-
-    if (queryParams.status.length === this.state.projectStatuses.length) {
-      status = '';
-    }
-
-    if (queryParams.useCaseType.length === this.state.projectTypes.length) {
-      useCaseType = '';
-    }
 
     ApiClient.getSolutionsByGraphQL(
       locationIds,
@@ -1052,4 +981,12 @@ export default class AllSolutions extends React.Component<
       history.push('/summary/' + solutionId);
     };
   };
+
+  // protected getDropDownData = () => {
+  //   getDropDownData(this.state.queryParams).then((res: any) => {
+  //     this.setState(res);
+  //   }).catch(err => {
+  //     this.showErrorNotification(err);
+  //   });
+  // }
 }

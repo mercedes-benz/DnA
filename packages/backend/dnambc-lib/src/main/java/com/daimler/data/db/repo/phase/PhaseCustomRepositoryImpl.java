@@ -32,8 +32,7 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class PhaseCustomRepositoryImpl
-        extends CommonDataRepositoryImpl<PhaseNsql, String>
-        implements PhaseCustomRepository {
+public class PhaseCustomRepositoryImpl extends CommonDataRepositoryImpl<PhaseNsql, String>
+		implements PhaseCustomRepository {
 
 }
