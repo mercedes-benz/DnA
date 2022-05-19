@@ -331,7 +331,43 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"         
+          description: "Internal error"  
+          
+  # Unsubscribe Malware Scan for a given solutionId
+  #
+  #  Supported http methods PUT
+  #
+  # path example ../malwarescan/unsubscribe/{solutionId}
+  /malwarescan/unsubscribe/{solutionId}:
+    put:
+      tags:
+        - "solutions"
+      summary: "Unsubscribe Malware Scan for a given solutionId"
+      description: "Unsubscribe Malware Scan for a given solutionId"
+      operationId: "unsubscribeMalwareScan"
+      parameters:
+        - name: "solutionId"
+          in: "path"
+          description: "Solution ID"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"                 
 
 definitions:
   SolutionVO:
