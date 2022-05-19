@@ -2,10 +2,12 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 namespace: storage
-configJson: 
-    {
-      "key":"value"
-    }
+configJs: |
+    window["INJECTED_ENVIRONMENT"]={
+      OIDC_DISABLED: false,
+      DNA_APPNAME_HEADER: 'Sathish AAP',
+      DNA_CONTACTUS_HTML: '<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>', 
+      };
 conf:
   storageBackendUrl: http://storage-be.storage.svc.cluster.local:80
 replicaCount: 1
