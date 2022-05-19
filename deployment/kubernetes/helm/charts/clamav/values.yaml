@@ -39,7 +39,14 @@ app:
       enableAuth: ""
       verifyLoginApi: /api/verifyLogin
       unscribeMalwareScanApi: /api/malwarescan/unsubscribe/ 
-      
+
+  vault:
+    secret:
+      rootToken: ""
+  
+securityContext:
+  runasUser: 1000 
+
   probes:
     initialDelaySeconds: 60
     timeoutSeconds: 10
