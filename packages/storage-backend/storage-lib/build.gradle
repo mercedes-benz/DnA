@@ -68,6 +68,19 @@ swaggerSources {
         }
     }
         
+    lov {
+        def lovYaml = "${rootDir}/storage-lib/src/main/resources/api/Lov.yaml"
+        def lovJson = "${rootDir}/storage-lib/src/main/resources/api/Lov.json"
+        inputFile = file(lovYaml)
+        def ignoreFile = "${rootDir}/storage-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(lovJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+           }
+      }    
+        
 }
 
 
@@ -75,6 +88,8 @@ compileJava {
     dependsOn processResources
     dependsOn swaggerSources.storage.code
     source "${swaggerSources.storage.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.lov.code
+    source "${swaggerSources.lov.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -85,11 +100,17 @@ sourceSets {
     }
     main {
         java { srcDirs += "${swaggerSources.storage.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.lov.code.outputDir}/src/main/java"}
     }
 }
 
 dependencies {
+	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
+    
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
 
 	//2nd level caching dependency 
 	implementation 'org.springframework.boot:spring-boot-starter-cache:2.4.3'
@@ -137,6 +158,14 @@ dependencies {
             strictly '4.9.0'
         }
     }
+    
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
+
+    implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
+
+	// https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
     
     
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-vault-config

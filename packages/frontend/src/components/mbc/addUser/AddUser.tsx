@@ -13,7 +13,9 @@ import Styles from './AddUser.scss';
 const classNames = cn.bind(Styles);
 
 export interface IAddUserProps {
+  /** function used to set collaborators information */
   getCollabarators: (teamMemberObj: IUserDetails, dagId: string) => void;
+  /** string to be passed as a parameter to getCollaborator function */
   dagId: string;
 }
 export interface IAddUserState {
@@ -29,6 +31,11 @@ export interface IAddUserState {
   showNotFoundError: boolean;
   teamMemberError: string;
 }
+
+/**
+ * Component to be used to add Users/Collaborators
+ * @visibleName Add User
+ */
 export default class AddUser extends React.Component<IAddUserProps, IAddUserState> {
   constructor(props: any) {
     super(props);
