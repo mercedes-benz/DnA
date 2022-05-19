@@ -76,6 +76,8 @@ app:
       flywayBaselineVersion: "0"
       flywaySchema: "public"
       dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173/dashboards
+      avscanSubsProvisionAPI: /api/subscription/provision
+      avscanUploadApi: /api/v1/scan/upload
 
   vault:
     secret:
