@@ -49,7 +49,7 @@ public class Application {
         V1PodSpec minioPodSpec = minioPod.getSpec();
         V1Container minioContainer = minioPodSpec.getContainers().stream().filter(container -> container.getName().contains("minio")).findFirst().get();
         minioContainer.getEnv().forEach(x -> LOG.info("Environment name: " + x.getName() + " , value: " + x.getValue()));
-        String podIp = minioPod.getStatus().getHostIP();
+        String podIp = minioPod.getStatus().getPodIP();
         LOG.info("Pod ip is : "+ podIp);
         String minioBaseUri = "http://"+podIp;
         String minioAdminAccessKeySample = "minio";
@@ -66,6 +66,15 @@ public class Application {
             Result<Item> el = iterator1.next();
             LOG.info(el.get().objectName());
           }    
+          
+          V1Secret result = api.readNamespacedSecret("mlpipeline-minio-artifact", KUBEFLOW_NAMESPACE, "true" );
+          LOG.info("Got results successfully");
+          Map<String, byte[]> secretsMap = result.getData();
+          for (String key: secretsMap.keySet()) {
+        	  LOG.info(key + ": " + secretsMap.get(key));
+          }
+          
+          
 	}catch(Exception e) {
 		e.printStackTrace();
 	}
