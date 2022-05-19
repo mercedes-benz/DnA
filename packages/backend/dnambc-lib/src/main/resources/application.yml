@@ -37,17 +37,7 @@ spring:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:localhost:9092}
-    vault:
-      host: ${VAULT_HOST:localhost}
-      port: ${VAULT_PORT:8200}
-      scheme: ${VAULT_SCHEME:http}
-      authentication: ${VAULT_AUTHENTICATION:TOKEN}
-      token: ${VAULT_TOKEN:***REMOVED***}
-      mountpath: ${VAULT_MOUNTPATH:secret}
-      vaultpath: ${VAULT_PATH:dnambc/avscan}
-      kv:
-       enabled: true    
+          brokers: ${NAAS_BROKER:localhost:9092}   
 
 
 kafka:
@@ -155,6 +145,8 @@ avscan:
   uri: ${AVSCAN_URI:xxxxx}
   appid: ${AVSCAN_APP_ID:xxxxx}
   apiKey: ${AVSCAN_API_KEY:xxxxx} 
+  subscriptionProvisionApi: ${AVSCAN_SUBSCRIPTION_PROVISION_API:/api/subscription/provision}
+  scanApi: ${AVSCAN_UPLOAD_API:/api/v1/scan/upload}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
