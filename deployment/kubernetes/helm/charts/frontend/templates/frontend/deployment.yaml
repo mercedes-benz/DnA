@@ -109,7 +109,9 @@ spec:
           - name: 'PROJECTSMO_NOTIFICATIONS_API_BASEURL'
             value: {{ .Values.appFrontend.config.notificationApiUrl | squote }}
           - name: 'PROJECTSMO_DASHBOARD_API_BASEURL'
-            value: {{ .Values.appFrontend.config.dashboardApiUrl | squote }}   
+            value: {{ .Values.appFrontend.config.dashboardApiUrl | squote }}
+          - name: 'PROJECTSMO_MALWARESCAN_API_BASEURL'
+            value: {{ .Values.appFrontend.config.malwarescanApiUrl | squote }}     
           image: {{ .Values.appFrontend.image }}
           imagePullPolicy: Always
           name: frontend
