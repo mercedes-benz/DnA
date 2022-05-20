@@ -27,18 +27,12 @@
 
 package com.daimler.data.controller;
 
-import com.daimler.data.api.userinfo.UsersApi;
-import com.daimler.data.controller.exceptions.*;
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-import com.daimler.data.db.repo.userinfo.UserInfoCustomRepositoryImpl;
-import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
-import com.daimler.data.dto.solution.SolutionVO;
-import com.daimler.data.dto.userinfo.*;
-import com.daimler.data.service.userinfo.UserInfoService;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,13 +40,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import com.daimler.data.api.userinfo.UsersApi;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.userinfo.BookmarkRequestVO;
+import com.daimler.data.dto.userinfo.BookmarkResponseVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRequestVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
+import com.daimler.data.dto.userinfo.UsersCollection;
+import com.daimler.data.service.userinfo.UserInfoService;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "UserInfo API", tags = { "users" })
