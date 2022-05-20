@@ -32,15 +32,20 @@ import com.daimler.data.controller.exceptions.*;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.db.repo.userinfo.UserInfoCustomRepositoryImpl;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.*;
 import com.daimler.data.service.userinfo.UserInfoService;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -55,6 +60,8 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class UserInfoController implements UsersApi {
 
+	private static Logger logger = LoggerFactory.getLogger(UserInfoController.class);
+	
 	@Autowired
 	private UserInfoService userInfoService;
 
@@ -72,15 +79,16 @@ public class UserInfoController implements UsersApi {
 	@RequestMapping(value = "/users", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<UsersCollection> getAll(
+			@ApiParam(value = "searchTerm to filter users. SearchTerm is a keywords which are used to search userId,name and email of users. Example \"DEMOUSER, DEMO, demouser@email\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
 			@ApiParam(value = "page size to limit the number of solutions, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "Sort users based on given column, example name") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort users based on given order, example asc,desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+			@ApiParam(value = "Sort users based on given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		try {
 			int defaultLimit = 10;
-			if (offset == null)
+			if (offset == null || offset < 0)
 				offset = 0;
-			if (limit == null || limit == 0) {
+			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
 
@@ -90,17 +98,12 @@ public class UserInfoController implements UsersApi {
 			if (sortOrder == null) {
 				sortOrder = "asc";
 			}
-			List<UserInfoVO> usersInfo = null;
-			if (sortOrder.equals("asc")) {
-				usersInfo = userInfoService.getAllSortedByUniqueLiteral(limit, offset, sortBy,
-						CommonDataRepositoryImpl.SORT_TYPE.ASC);
-			} else if (sortOrder.equals(("desc"))) {
-				usersInfo = userInfoService.getAllSortedByUniqueLiteral(limit, offset, sortBy,
-						CommonDataRepositoryImpl.SORT_TYPE.DESC);
-			}
-			Long count = userInfoService.getCount(limit, offset);
+			logger.info("Fetching user information with given identifier.");
+			List<UserInfoVO> usersInfo = userInfoService.getAllWithFilters(searchTerm, limit, offset, sortBy, sortOrder);
+			
+			Long count = userInfoService.getCountWithFilters(searchTerm);
 			UsersCollection usersCollection = new UsersCollection();
-			if (usersInfo != null && usersInfo.size() > 0) {
+			if (!ObjectUtils.isEmpty(usersInfo)) {
 				usersCollection.setRecords(usersInfo);
 				usersCollection.setTotalCount(count.intValue());
 				log.debug("returning all users details");
