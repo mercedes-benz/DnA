@@ -108,6 +108,9 @@
         padding-bottom: 15px;
         border-bottom: 1px solid #383f49;
         .collUserTitleCol {
+          &:first-child {
+            max-width: 150px;
+          }
           flex: 1;
           font-size: var(--font-size-smallest);
           padding-right: 12px;
@@ -128,6 +131,9 @@
           justify-content: space-between;
           width: 100%;
           .collUserTitleCol {
+            &:first-child {
+              max-width: 150px;
+            }
             display: flex;
             align-items: center;
             justify-content: flex-start;
