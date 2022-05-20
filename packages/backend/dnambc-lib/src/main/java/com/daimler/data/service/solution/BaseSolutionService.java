@@ -736,6 +736,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 		if (solutionVO != null && solutionVO.getId() != null && solutionVO.getPortfolio() != null
 				&& StringUtils.hasText(solutionVO.getPortfolio().getDnaSubscriptionAppId())) {
+			LOGGER.info("Updating malware scan subscription linkage.");
 			aVScannerClient.updateSolIdForSubscribedAppId(solutionVO.getPortfolio().getDnaSubscriptionAppId(), "",
 					null);
 		}
