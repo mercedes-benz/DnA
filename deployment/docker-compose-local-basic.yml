@@ -151,8 +151,12 @@ services:
       - TIME_UNIT=seconds
       - LOGGING_ENVIRONMENT=DEV
       - LOGGING_PATH=/tmp/clamav/log
+      - API_DB_URL=jdbc:postgresql://app-db:5432/malware
+      - API_DB_USER=malware 
+      - API_DB_PASS=malware123      
     depends_on:
-      - clamav    
+      - clamav
+      - db
     ports:
       - 7174:8181
     deploy:
