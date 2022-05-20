@@ -103,14 +103,16 @@ export const trackEvent = (category: string, action: string, name: string, value
 
 export const getDateFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
+  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
   const sep = seperator || '-';
-  return d.getUTCDate() + sep + (d.getUTCMonth() + 1) + sep + d.getUTCFullYear();
+  return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
 };
 
 export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
-  const time = d.getUTCHours();
-  const mins = d.getUTCMinutes();
+  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
+  const time = td.getUTCHours();
+  const mins = td.getUTCMinutes();
   return (
     getDateFromTimestamp(givenDate, seperator) +
     ' at ' +

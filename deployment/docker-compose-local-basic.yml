@@ -24,8 +24,8 @@ services:
       # - PROJECTSMO_MALWARE_SCAN_SWAGGER_UI_URL=
       - PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE=false
       - PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE=false
-      - PROJECTSMO_ENABLE_STORAGE_SERVICE=false
-      - PROJECTSMO_STORAGE_MFE_APP_URL=http://localhost:8083
+      - PROJECTSMO_ENABLE_STORAGE_SERVICE=true
+      - PROJECTSMO_STORAGE_MFE_APP_URL=http://localhost:8081
       - PROJECTSMO_DNA_COMPANY_NAME=Company_Name
       - PROJECTSMO_DEPLOY_VERSION=0.91
       - PROJECTSMO_DNA_APPNAME_HEADER=DnA App
@@ -171,10 +171,8 @@ services:
       - 8200:8200
 
   clamav:
-    image: mkodockx/docker-clamav
+    image: mkodockx/docker-clamav:stretch-slim
     container_name: clamav
-    volumes:
-      - ./dockerfiles/clamav/clamd.conf:/etc/clamav/clamd.conf
     ports:
       - 3310:3310
 
@@ -236,6 +234,70 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
   
+  storage-frontend:
+    image: dna/storage-frontend
+    container_name: storage-frontend
+    build:
+      context: ../packages/storage-mfe/
+      dockerfile: ../../deployment/dockerfiles/storageService/storage-mfe.Dockerfile
+    volumes:
+      - ../packages/storage-mfe/nginx.conf:/etc/nginx/nginx.conf
+    environment:
+      - PROJECTSMO_CONTAINER_APP_URL=http://app-frontend:3000
+      - PROJECTSMO_FRONTEND_API_BASEURL=api
+      - PROJECTSMO_STORAGE_TOU_HTML=<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>
+      - PROJECTSMO_ENABLE_DATA_CLASSIFICATION_SECRET=false
+    ports:
+      - 8081:3000
+    depends_on:
+      - storage-backend
+      - app-frontend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  storage-backend:
+    image: dna/storage-backend
+    container_name: storage-backend
+    build:
+      context: ../packages/storage-backend/
+      dockerfile: ../../deployment/dockerfiles/storageService/storage-be.Dockerfile
+    environment:
+      - MAX_FILE_SIZE=3000MB
+      - MAX_REQUEST_SIZE=3000MB
+      - VAULT_HOST=vault
+      - VAULT_PORT=8200
+      - VAULT_SCHEME=http
+      - VAULT_AUTHENTICATION=TOKEN
+      - VAULT_TOKEN=myroot
+      - VAULT_MOUNTPATH=secret
+      - VAULT_PATH=dna/minio
+      - DNA_URI=http://app-backend:7171
+      - DNA_AUTH_ENABLE=true
+      - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ADMIN_ACCESS_KEY=minioadmin
+      - MINIO_ADMIN_SECRET_KEY=minioadmin
+      - MINIO_POLICY_VERSION=2012-10-17
+      - LOGGING_ENVIRONMENT=DEV
+      - ATTACHMENT_MALWARE_SCAN=false
+      - API_DB_USER=storage
+      - API_DB_PASS=storage123
+      - API_DB_URL=jdbc:postgresql://app-db:5432/storage
+      - NAAS_BROKER=broker:29092
+    ports:
+      - 7175:7175
+    depends_on:
+      - minio
+      - vault
+      - broker
+      - app-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
   minio:
     image: minio/minio:latest
     command: server /export --console-address ":9001"

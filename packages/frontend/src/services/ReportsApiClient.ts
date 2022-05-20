@@ -10,8 +10,8 @@ import {
   IAddNewCategoriesItem,
 } from '../globals/types';
 
-const baseUrl = Envs.API_BASEURL
-  ? `dashboards/${Envs.API_BASEURL}`
+const baseUrl = Envs.DASHBOARD_API_BASEURL
+  ? Envs.DASHBOARD_API_BASEURL
   : `http://${window.location.hostname}:7173/dashboards/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
