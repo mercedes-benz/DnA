@@ -4,6 +4,8 @@
 
 appName: clamav
 namespace: clamav
+securityContext:
+  runasUser: 1000 
 app:
   backend:
     name: clamav-rest
@@ -39,7 +41,12 @@ app:
       enableAuth: ""
       verifyLoginApi: /api/verifyLogin
       unscribeMalwareScanApi: /api/malwarescan/unsubscribe/ 
-      
+
+  vault:
+    secret:
+      rootToken: ""
+  
+
   probes:
     initialDelaySeconds: 60
     timeoutSeconds: 10
