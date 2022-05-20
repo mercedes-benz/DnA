@@ -173,7 +173,7 @@ public class BaseStorageService implements StorageService {
 					Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
 							bucketVo.getBucketName(), null);
 					ownerUserVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
-					String bucketUri = "/#/storage/explorer/" + bucketVo.getBucketName();
+					String bucketUri = bucketVo.getBucketName();
 					ownerUserVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
 
 					// Setting bucket access info for owner
@@ -203,7 +203,7 @@ public class BaseStorageService implements StorageService {
 								if (onboardUserResponse != null
 										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 									subscribedUsers.add(userVO.getAccesskey());
-									subscribedUsersEmails.add("");
+									subscribedUsersEmails.add(userVO.getEmail());
 									LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());
 								} else {
 									LOGGER.info("Collaborator:{} onboarding failed", userVO.getAccesskey());
