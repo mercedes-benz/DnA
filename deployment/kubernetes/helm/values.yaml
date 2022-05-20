@@ -121,9 +121,9 @@ backend:
         oidcClientID: ""
         oidcClientSecret: "" 
         drdCertPassword: ""
-        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
-        s3AccessKey: admin
-        s3SecretKey: S6O!#uiOop
+        jwtSecretKey: 
+        s3AccessKey: 
+        s3SecretKey: 
         dataikuProdApiKey: ""
         dataikuTrainingApiKey: "" 
         avscanApiKey: ""
@@ -301,7 +301,7 @@ naas:
       secrets:
         name: naas-app-secrets
         authApiToken: ""
-        jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+        jwtKey: 
         db: 
           appUserName: postgres
           appPassword: postgres
@@ -428,7 +428,7 @@ dashboard:
     name: dashboard-secrets
     appUserName: dashboard
     appPassword: dashboard
-    jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+    jwtKey: 
     
   appUrl: http://dna-service.dna.svc.cluster.local:80
   enableAuth: false
@@ -486,7 +486,7 @@ airflow:
       dbPassword: airflow
       dbUsername: airflow
       gitToken: "" 
-      jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+      jwtKey: 
       oidcClientID: ""
       oidcClientSecret: ""
     containerPort: 7171
@@ -521,7 +521,7 @@ airflow:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
 
-  pullSecretData: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoibXZhZ3VzdGFARjQiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNmJYWmhaM1Z6ZEdGQVJqUT0ifX19
+  pullSecretData: 
   secret:
     gitUserName: 
     gitPassword: 
@@ -1205,11 +1205,11 @@ storagebe:
     - key: vaultToken
       value: ""
     - key: jwt.secret.key 
-      value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+      value: 
     - key: minioAccessKey 
-      value: admin
+      value: 
     - key: minioSecretKey
-      value: S6O!#uiOop
+      value: 
 
   replicaCount: 1
 
