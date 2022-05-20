@@ -30,6 +30,7 @@ package com.daimler.data.service.storage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -47,6 +49,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,18 +57,24 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.config.MalwareScannerClient;
 import com.daimler.data.application.config.VaultConfig;
+import com.daimler.data.assembler.StorageAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.StorageNsql;
+import com.daimler.data.db.repo.storage.IStorageRepository;
+import com.daimler.data.db.repo.storage.StorageRepository;
 import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.FileScanDetailsVO;
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.storage.BucketCollectionVO;
 import com.daimler.data.dto.storage.BucketObjectResponseVO;
 import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
-import com.daimler.data.dto.storage.BucketResponseVO;
 import com.daimler.data.dto.storage.BucketResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketVo;
+import com.daimler.data.dto.storage.CreatedByVO;
 import com.daimler.data.dto.storage.PermissionVO;
 import com.daimler.data.dto.storage.UserRefreshWrapperVO;
 import com.daimler.data.dto.storage.UserVO;
@@ -108,6 +117,18 @@ public class BaseStorageService implements StorageService {
 	
 	private static String bucketCreationEvent = "Storage - Bucket Creation";
 	
+	@Autowired
+	private IStorageRepository jpaRepo;
+	
+	@Autowired
+	private StorageRepository customRepo;
+	
+	@Autowired
+	private StorageAssembler storageAssembler;
+	
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
+	
 	public BaseStorageService() {
 		super();
 	}
@@ -133,7 +154,7 @@ public class BaseStorageService implements StorageService {
 			MinioGenericResponse createBucketResponse = dnaMinioClient.createBucket(bucketVo.getBucketName());
 			if (createBucketResponse != null && createBucketResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 				LOGGER.info("Success from make minio bucket");
-				responseVO.setStatus(ConstantsUtility.SUCCESS);
+				responseVO.setStatus(createBucketResponse.getStatus());
 				LOGGER.info("Onboarding current user:{}", currentUser);
 				MinioGenericResponse onboardOwnerResponse = dnaMinioClient.onboardUserMinio(currentUser,
 						createBucketResponse.getPolicies());
@@ -200,6 +221,10 @@ public class BaseStorageService implements StorageService {
 					LOGGER.info("Failure from onboard bucket owner.");
 				}
 
+				//To save bucket info in db
+				BucketVo savedBucketVo = saveBucket(bucketVo);
+				bucketVo.setId(savedBucketVo.getId());
+				
 				responseVO.setStatus(createBucketResponse.getStatus());
 				httpStatus = HttpStatus.OK;
 			} else {
@@ -213,6 +238,25 @@ public class BaseStorageService implements StorageService {
 		responseVO.setData(bucketVo);
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
+	
+	/*
+	 * To save bucket info to database
+	 * 
+	 */
+	private BucketVo saveBucket(BucketVo requestbucketVo) {
+		if (Objects.isNull(requestbucketVo.getCreatedBy())
+				|| !StringUtils.hasText(requestbucketVo.getCreatedBy().getId())) {
+			requestbucketVo.setCreatedBy(userStore.getVO());
+			requestbucketVo.setCreatedDate(new Date());
+			requestbucketVo.setLastModifiedDate(new Date());
+		}
+		LOGGER.info("Converting to entity.");
+		StorageNsql storageNsql = storageAssembler.toEntity(requestbucketVo);
+		LOGGER.info("Saving entity.");
+		StorageNsql savedEntity = jpaRepo.save(storageNsql);
+		return storageAssembler.toBucketVo(savedEntity);
+	}
+	
 	
 	private void publishEventMessages(String eventType, String bucketUri, List<ChangeLogVO> changeLogs, String bucketName,
 			List<String> subscribedUsers, List<String> subscribedUsersEmail) {
@@ -303,33 +347,39 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
-
 		BucketCollectionVO bucketCollectionVO = new BucketCollectionVO();
 		LOGGER.debug("list buckets for user:{}", currentUser);
-		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser);
+		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser, false);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list buckets minio client");
 			httpStatus = minioResponse.getHttpStatus();
-			List<BucketResponseVO> bucketsResponseVO = new ArrayList<>();
-			BucketResponseVO bucketResponseVO = null;
-			if(!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
+			if (!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
+				// Fetching data from database for specified users
+				LOGGER.info("Fetching records from database.");
+				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser);
+				List<BucketVo> bucketsVO = new ArrayList<>();
+				// Iterating over bucket list got from minio
 				for (Bucket bucket : minioResponse.getBuckets()) {
-					bucketResponseVO = new BucketResponseVO();
-					bucketResponseVO.setBucketName(bucket.name());
-					bucketResponseVO.setCreationDate(bucket.creationDate().toString());
-					// Setting current user permission for bucket
-					bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-					LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
-					bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
-
-					bucketsResponseVO.add(bucketResponseVO);
+					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.name());
+					if (Objects.isNull(bucketVo)) {
+						bucketVo = new BucketVo();
+						bucketVo.setBucketName(bucket.name());
+						bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
+						LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+						bucketVo.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
+					}
+					if (Objects.isNull(bucketVo.getPermission())) {
+						// Setting current user permission for bucket
+						bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
+					}
+					bucketsVO.add(bucketVo);
 				}
-				bucketCollectionVO.setData(bucketsResponseVO);
+				bucketCollectionVO.setData(bucketsVO);
 			}
 		} else {
 			LOGGER.info("Failure from list buckets minio client");
-			httpStatus = minioResponse!=null?minioResponse.getHttpStatus():HttpStatus.INTERNAL_SERVER_ERROR;
-			bucketCollectionVO.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
+			httpStatus = minioResponse != null ? minioResponse.getHttpStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+			bucketCollectionVO.setErrors(getMessages(minioResponse != null ? minioResponse.getErrors() : null));
 		}
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
@@ -550,8 +600,6 @@ public class BaseStorageService implements StorageService {
 				userRefreshWrapperVO.setData(userVO);
 				userRefreshWrapperVO.setStatus(ConstantsUtility.SUCCESS);
 				httpStatus = HttpStatus.OK;
-				
-
 			} else {
 				LOGGER.info("User:{} not present in Vault.", userId);
 				userRefreshWrapperVO
@@ -612,6 +660,7 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<GenericMessage> deleteBucket(String bucketName) {
 		GenericMessage genericMessage = new GenericMessage();
 		HttpStatus httpStatus;
@@ -623,6 +672,12 @@ public class BaseStorageService implements StorageService {
 		MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from minio remove bucket.");
+			//Fetching bucket info from database
+			StorageNsql entity = customRepo.findbyUniqueLiteral("bucketName", bucketName);
+			if(Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
+				LOGGER.info("Deleting bucket:{} info from database",bucketName);
+				jpaRepo.deleteById(entity.getId());
+			}
 			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
 			httpStatus = HttpStatus.OK;
 		} else {
@@ -668,11 +723,16 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
 					currentUser);
-
 			// To update collaborators list
 			errors = updateBucketCollaborator(bucketVo.getBucketName(), existingCollaborators,
 					bucketVo.getCollaborators());
 			if (ObjectUtils.isEmpty(errors)) {
+				//To update Bucket record in database
+				bucketVo.setLastModifiedDate(new Date());
+				bucketVo.setUpdatedBy(userStore.getVO());
+				BucketVo savedBucketVo =  this.saveBucket(bucketVo);
+				responseVO.setData(savedBucketVo);
+				
 				responseVO.setStatus(ConstantsUtility.SUCCESS);
 				httpStatus = HttpStatus.OK;
 			} else {
@@ -680,7 +740,6 @@ public class BaseStorageService implements StorageService {
 				responseVO.setErrors(errors);
 				httpStatus = HttpStatus.BAD_REQUEST;
 			}
-
 		}
 
 		responseVO.setData(bucketVo);
@@ -701,7 +760,6 @@ public class BaseStorageService implements StorageService {
 		set.addAll(list1);
 		// Adding list two to set
 		set.addAll(list2);
-
 		// fetching users
 		return set.stream().map(t -> t.getAccesskey()).collect(Collectors.toList());
 	}
@@ -808,9 +866,9 @@ public class BaseStorageService implements StorageService {
 	
 	
 	@Override
-	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName) {
+	public ResponseEntity<BucketVo> getByBucketName(String bucketName) {
 		HttpStatus httpStatus;
-		BucketResponseVO bucketResponseVO = new BucketResponseVO();
+		BucketVo bucketVo = new BucketVo();
 
 		LOGGER.debug("Check if bucket exists.");
 		boolean isBucketExists = dnaMinioClient.isBucketExists(bucketName);
@@ -818,16 +876,16 @@ public class BaseStorageService implements StorageService {
 			httpStatus = HttpStatus.NOT_FOUND;
 			LOGGER.info("Bucket not found.");
 		} else {
+			//Fetching bucket details from database
+			StorageNsql entity = customRepo.findbyUniqueLiteral("bucketName", bucketName);
+			bucketVo = storageAssembler.toBucketVo(entity);
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
-
 			// Setting bucket details
-			bucketResponseVO.setBucketName(bucketName);
-			bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucketName, currentUser));
-			bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
+			bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
 			httpStatus = HttpStatus.OK;
 		}
-		return new ResponseEntity<>(bucketResponseVO, httpStatus);
+		return new ResponseEntity<>(bucketVo, httpStatus);
 	}
 
 	/**
@@ -840,6 +898,100 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Calling avscan client to scan file:{}",multiPartFile.getOriginalFilename());
 		Optional<FileScanDetailsVO> aVScannerRes = malwareScannerClient.scan(multiPartFile);
 		return aVScannerRes.isPresent()?aVScannerRes.get():null;
+	}
+	
+	
+	@Override
+	public ResponseEntity<GenericMessage> bucketMigrate() {
+		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(null, true);
+		HttpStatus httpStatus;
+		GenericMessage genericMessage = new GenericMessage();
+
+		if (minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)
+				&& !ObjectUtils.isEmpty(minioResponse.getBuckets())) {
+			LOGGER.info("Success from list buckets minio client");
+			httpStatus = minioResponse.getHttpStatus();
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+
+			// getting users info from minio user cache
+			Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+
+			// Iterating over bucket list
+			for (Bucket bucket : minioResponse.getBuckets()) {
+				String bucketName = bucket.name();
+				// To check if record already exist for bucket
+				StorageNsql storage = customRepo.findbyUniqueLiteral("bucketName", bucketName);
+				if (Objects.isNull(storage)) {
+					BucketVo bucketVo = new BucketVo();
+					bucketVo.setBucketName(bucketName);
+					bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
+					bucketVo.setLastModifiedDate(Date.from(bucket.creationDate().toInstant()));
+					// Setting default values
+					bucketVo.setPiiData(false);
+					bucketVo.setClassificationType("Internal");
+					bucketVo.setTermsOfUse(false);
+
+					List<UserVO> collaborators = new ArrayList<>();
+					for (var entry : usersInfo.entrySet()) {
+						if (StringUtils.hasText(entry.getValue().policyName())) {
+							UserVO userVO = null;
+							PermissionVO permissionVO = new PermissionVO();
+							if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READ)) {
+								LOGGER.debug("User:{} has read access to bucket:{}", entry.getKey(), bucketName);
+								// Setting accesskey
+								userVO = new UserVO();
+								userVO.setAccesskey(entry.getKey());
+								// Setting permission
+								permissionVO.setRead(true);
+								permissionVO.setWrite(false);
+								userVO.setPermission(permissionVO);
+
+							}
+							if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READWRITE)) {
+								LOGGER.debug("User:{} has read/write access to bucket:{}", entry.getKey(), bucketName);
+								userVO = new UserVO();
+								// Setting accesskey
+								userVO.setAccesskey(entry.getKey());
+								// Setting permission
+								permissionVO.setRead(true);
+								permissionVO.setWrite(true);
+								userVO.setPermission(permissionVO);
+								if (Objects.isNull(bucketVo.getCreatedBy())) {
+									CreatedByVO createdByVO = new CreatedByVO();
+									createdByVO.setId(entry.getKey());
+									UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
+									if (Objects.nonNull(userInfoVO)) {
+										BeanUtils.copyProperties(userInfoVO, createdByVO);
+									}
+									bucketVo.setCreatedBy(createdByVO);
+								}
+							}
+
+							if (Objects.nonNull(userVO)) {
+								UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
+								if (Objects.nonNull(userInfoVO)) {
+									BeanUtils.copyProperties(userInfoVO, userVO);
+								}
+								userVO.setPermission(permissionVO);
+								collaborators.add(userVO);
+							}
+						}
+					}
+					// setting collaborators
+					bucketVo.setCollaborators(collaborators);
+					LOGGER.info("Saving bucket:{} to database.", bucketVo.getBucketName());
+					this.saveBucket(bucketVo);
+
+				} else {
+					LOGGER.info("Bucket:{} already exists in database", bucketName);
+				}
+			}
+		} else {
+			LOGGER.info("Failure from list buckets minio client");
+			httpStatus = minioResponse.getHttpStatus();
+			genericMessage.setErrors(getMessages(minioResponse.getErrors()));
+		}
+		return new ResponseEntity<>(genericMessage, httpStatus);
 	}
 	
 }
