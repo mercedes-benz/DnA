@@ -134,6 +134,7 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<BucketResponseWrapperVO> createBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
@@ -706,6 +707,7 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
