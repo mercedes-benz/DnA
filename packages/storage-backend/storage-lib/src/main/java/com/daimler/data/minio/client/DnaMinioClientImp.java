@@ -627,7 +627,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		LOGGER.debug("Creating {} Bucket policy", policyName);
 		String policy = PolicyUtility.policyGenerator(resource, version, action, sid, effect);
 		minioAdminClient.addCannedPolicy(policyName, policy);
-
 	}
 
 	@Override
@@ -695,7 +694,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	@Override
 	public MinioGenericResponse removeBucket(String userId, String bucketName) {
 		MinioGenericResponse minioGenericResponse = new MinioGenericResponse();
-
 		try {
 			LOGGER.info("Fetching secrets from vault for user:{}", userId);
 			String userSecretKey = vaultConfig.validateUserInVault(userId);
@@ -762,10 +760,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						if (!userPolicy.chars().allMatch(c -> c == ',')) {
 							// Unlink policy from user in minio
 							minioAdminClient.setPolicy(userId, false, userPolicy);
-
-							// Removing policy from minio
-							minioAdminClient.removeCannedPolicy(policy);
-
+							// Adding in try as policy will get removed from minio eventually once
+							// dependency removed from other users
+							try {
+								// Removing policy from minio
+								minioAdminClient.removeCannedPolicy(policy);
+							} catch (Exception e) {
+								LOGGER.error("Failed to remove policy:{}", e.getMessage());
+							}
 							// updating cache map for user
 							UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
 									userInfo.memberOf());
