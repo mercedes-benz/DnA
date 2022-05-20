@@ -79,6 +79,11 @@ paths:
       description:  "Get all users. This endpoints will be used to Get all valid available user maintenance records."
       operationId: "getAll"
       parameters:
+        - name: searchTerm
+          in: query
+          description: searchTerm to filter users. SearchTerm is a keywords which are used to search userId,name and email of users. Example "DEMOUSER, DEMO, demouser@email"
+          required: false
+          type: string      
         - name: limit
           in: query
           description: page size to limit the number of solutions, Example 15
@@ -99,6 +104,7 @@ paths:
           description: Sort users based on given order, example asc,desc
           required: false
           type: string
+          enum: [asc, desc]
       responses:
         201:
           description: "Returns message of success or failure"

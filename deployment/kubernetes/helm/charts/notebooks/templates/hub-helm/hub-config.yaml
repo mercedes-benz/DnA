@@ -92,7 +92,7 @@ data:
     c.JupyterHub.hub_ip = '0.0.0.0'
 
     #c.JupyterHub.redirect_to_server = False
-    c.JupyterHub.base_url = '/notebooks/'
+    c.JupyterHub.base_url = '/'
 
     c.JupyterHub.allow_named_servers = True
 
