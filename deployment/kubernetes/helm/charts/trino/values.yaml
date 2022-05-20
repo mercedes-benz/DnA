@@ -11,6 +11,16 @@ image:
   # Overrides the image tag whose default is the chart version.
   tag: latest
 
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+  
 server:
   host: ""
   workers: 2

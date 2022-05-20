@@ -40,7 +40,7 @@ module.exports = {
     // `app` is the instance of the express server running Styleguidist
     app.use(cors());
 
-    app.get('/storage/api/buckets', (req, res) => {
+    app.get(process.env.STORAGE_API_BASEURL + '/buckets', (req, res) => {
       res.status(200).send({
         data: [
           {
