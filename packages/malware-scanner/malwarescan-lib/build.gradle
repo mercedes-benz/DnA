@@ -44,8 +44,8 @@ repositories {
 group 'com.daimler.mbc.dna'
 version = releaseVersion
 
-sourceCompatibility = 1.17
-targetCompatibility = 1.17
+sourceCompatibility = 1.14
+targetCompatibility = 1.14
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 //__________________________________________________________//
