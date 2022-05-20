@@ -56,7 +56,6 @@
                             }
                         }
                         &:nth-child(4) {
-                            min-width: 180px;
                             word-break: break-all;
                         }
                         i {
@@ -206,11 +205,11 @@
 .expansionLabel {
     .bucketTile {
         .bucketTitleCol {
-            &:nth-child(2) {
+            &:nth-child(2),
+            &:nth-child(4) {
                 padding-left: 25px;
             }
             &:nth-child(3) {
-                min-width: 180px;
                 padding-left: 25px;
             }
         }
@@ -218,4 +217,8 @@
 }
 .noCollaborators {
     font-size: var(--font-size-smallest);
+}
+
+.expansionpanelFirstCol {
+    max-width: 150px;
 }
