@@ -25,31 +25,27 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.db.repo.storage;
 
-import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.StorageNsql;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public interface StorageRepository {
+	/**
+	 * To find a record based on unique identifier
+	 * 
+	 * @param uniqueliteralName
+	 * @param value
+	 * @return record {@code StorageNsql}
+	 */
+	StorageNsql findbyUniqueLiteral(String uniqueliteralName, String value);
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Storage {
-
-	private String bucketName;
-	private String description;
-	private boolean piiData;
-	private boolean termsOfUse;
-	private String classificationType;
-	private Date createdDate;
-	private UserInfo createdBy;
-	private Date lastModifiedDate;
-	private UserInfo updatedBy;
-	private List<UserInfo> collaborators;
+	/**
+	 * To find all the records based on user access
+	 * 
+	 * @param userId
+	 * @return records {@code List<StorageNsql>}
+	 */
+	List<StorageNsql> getAllWithFilters(String userId);
 }
