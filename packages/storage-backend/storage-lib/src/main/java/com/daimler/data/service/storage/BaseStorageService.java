@@ -250,7 +250,9 @@ public class BaseStorageService implements StorageService {
 			requestbucketVo.setCreatedDate(new Date());
 			requestbucketVo.setLastModifiedDate(new Date());
 		}
+		LOGGER.info("Converting to entity.");
 		StorageNsql storageNsql = storageAssembler.toEntity(requestbucketVo);
+		LOGGER.info("Saving entity.");
 		StorageNsql savedEntity = jpaRepo.save(storageNsql);
 		return storageAssembler.toBucketVo(savedEntity);
 	}
@@ -598,8 +600,6 @@ public class BaseStorageService implements StorageService {
 				userRefreshWrapperVO.setData(userVO);
 				userRefreshWrapperVO.setStatus(ConstantsUtility.SUCCESS);
 				httpStatus = HttpStatus.OK;
-				
-
 			} else {
 				LOGGER.info("User:{} not present in Vault.", userId);
 				userRefreshWrapperVO
@@ -660,6 +660,7 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<GenericMessage> deleteBucket(String bucketName) {
 		GenericMessage genericMessage = new GenericMessage();
 		HttpStatus httpStatus;

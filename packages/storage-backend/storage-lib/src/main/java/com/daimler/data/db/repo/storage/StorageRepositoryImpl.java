@@ -28,7 +28,7 @@ public class StorageRepositoryImpl implements StorageRepository {
 	@PersistenceContext
 	protected EntityManager em;
 	
-	private static final String storage_nsql = "storage_nsql";
+	private static final String STORAGE_NSQL = "storage_nsql";
 
 	@Override
 	public StorageNsql findbyUniqueLiteral(String uniqueliteralName, String value) {
@@ -72,7 +72,7 @@ public class StorageRepositoryImpl implements StorageRepository {
 	private Query getNativeQueryWithFilters(String selectFieldsString, String userId) {
 		String prefix = StringUtils.hasText(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
-		prefix = prefix + "from " + storage_nsql;
+		prefix = prefix + "from " + STORAGE_NSQL;
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(userId);
 		String query = prefix + basicpredicate + consolidatedPredicates;
