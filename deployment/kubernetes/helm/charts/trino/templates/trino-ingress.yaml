@@ -1,3 +1,4 @@
+{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -8,15 +9,13 @@ metadata:
     chart: {{ template "trino.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: {{ .Values.cert.certManager }}
+    {{- toYaml . | nindent 4 }}    
+  {{- end }}
 spec:
   rules:
-    - host: {{ .Values.server.host }}
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
           - backend:
@@ -28,5 +27,6 @@ spec:
             pathType: Prefix
   tls:
     - hosts:
-      - {{ .Values.server.host }}
+      - {{ .Values.ingress.host }}
       secretName: trino-tls-secret
+{{- end }}
