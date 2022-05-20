@@ -725,7 +725,6 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Override
 	@Transactional
 	public boolean deleteById(String id) {
-		LOGGER.trace("Entering deleteById.");
 		SolutionVO solutionVO = this.getById(id);
 		if (notebookAllowed) {
 			LOGGER.info("Updating Notebook linkage.");
@@ -735,6 +734,12 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			}
 		}
 
+		if (solutionVO != null && solutionVO.getId() != null && solutionVO.getPortfolio() != null
+				&& StringUtils.hasText(solutionVO.getPortfolio().getDnaSubscriptionAppId())) {
+			aVScannerClient.updateSolIdForSubscribedAppId(solutionVO.getPortfolio().getDnaSubscriptionAppId(), "",
+					null);
+		}
+
 		if (dataikuAllowed) {
 			LOGGER.info("Updating Dataiku linkage.");
 			DataikuNsql dataikuEntity = dataikuCustomRepo.findbyUniqueLiteral("solutionId", id);
@@ -742,8 +747,8 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				dataikuService.updateSolutionIdOfDataIkuProjectId(dataikuEntity.getData().getProjectKey(), null);
 			}
 		}
+
 		if (solutionVO != null && solutionVO.getId() != null) {
-			super.deleteById(id);
 			String eventType = "Solution_delete";
 			String solutionName = solutionVO.getProductName();
 			String solutionId = solutionVO.getId();
@@ -754,17 +759,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				teamMembersEmails.add(user.getEmail());
 			}
 			this.publishEventMessages(eventType, solutionId, null, solutionName, teamMembers, teamMembersEmails);
-
-			if (solutionVO.getPortfolio() != null
-					&& StringUtils.hasText(solutionVO.getPortfolio().getDnaSubscriptionAppId())) {
-				aVScannerClient.updateSolIdForSubscribedAppId(solutionVO.getPortfolio().getDnaSubscriptionAppId(), "",
-						null);
-			}
-
-			return true;
 		}
 
-		return false;
+		return super.deleteById(id);
 	}
 
 	private void publishEventMessages(String eventType, String solutionId, List<ChangeLogVO> changeLogs,
