@@ -24,3 +24,9 @@
     ALTER user storage WITH PASSWORD 'storage123';
     GRANT all privileges ON database storage TO storage;
     GRANT USAGE ON SCHEMA public to storage;
+
+    CREATE user malware;
+    CREATE database malware;
+    ALTER user malware WITH PASSWORD 'malware123';
+    GRANT all privileges ON database malware TO malware;
+    GRANT USAGE ON SCHEMA public to malware;
