@@ -31,6 +31,9 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
+
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -67,4 +70,6 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	 * @param updateObject
 	 */
 	void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject);
+	
+	ResponseEntity<GenericMessage> malwareScanUnsubscribe(String solutionId);
 }

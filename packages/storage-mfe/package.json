@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@babel/eslint-parser": "^7.17.0",
-    "@babel/eslint-plugin": "^7.16.5",
-    "@babel/preset-env": "^7.16.11",
-    "@babel/preset-react": "^7.16.7",
     "@babel/runtime": "^7.17.8",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
@@ -102,7 +98,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/eslint-plugin": "^7.17.7",
     "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.17.12",
+    "@babel/preset-react": "^7.17.12",
     "@module-federation/fmr": "^0.0.7",
     "buffer": "^6.0.3",
     "clean-webpack-plugin": "^4.0.0",
