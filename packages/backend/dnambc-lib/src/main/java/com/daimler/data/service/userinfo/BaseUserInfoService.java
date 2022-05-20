@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +41,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.assembler.UserInfoAssembler;
-import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserFavoriteUseCase;
 import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
-import com.daimler.data.db.repo.userinfo.UserInfoCustomRepositoryImpl;
 import com.daimler.data.db.repo.userinfo.UserInfoRepository;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
