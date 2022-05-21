@@ -8,7 +8,6 @@ Software Prerequisites:
 * Docker 20.10.13+
 * Docker Compose v2.3.3+
 * JWT token
-* Minio Username/Password
 
 Hardware Prerequisites :
 
@@ -21,15 +20,9 @@ Hardware Prerequisites :
 
 #### **JWT Token**
 
-JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml) and [values.yaml](../kubernetes/helm/values.yaml) 
+JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml).
 
 * [JWT TOKEN GENERATOR](https://www.javainuse.com/jwtgenerator)
-
-#### **Minio Username And Password**
-
-Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of your wish and update the value to the parameters `minioAccessKey`,`s3AccessKey` , `minioSecretKey`,`s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml).
-
-Password should be a min length of  8 or more characters with a mix of letters, numbers & symbols.
 
 #### **Git Cloning** 
 
@@ -73,17 +66,15 @@ Prerequisites :
 
 #### **JWT Token**
 
-JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and mention the same under `jwtKey/jwtSecretKey` in the [values.yaml](../kubernetes/helm/values.yaml).
+JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [values.yaml](../kubernetes/helm/values.yaml) 
 
-* [Refer here](https://www.javainuse.com/jwtgenerator)
+* [JWT TOKEN GENERATOR](https://www.javainuse.com/jwtgenerator)
 
 #### **Minio Username And Password**
 
-Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of you wish and mention the same under `minioAccessKey/s3AccessKey` , `minioSecretKey/s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml) as well.
+Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of your wish and update the value to the parameters `minioAccessKey`,`s3AccessKey` , `minioSecretKey`,`s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml).
 
-Password should be a combination of  8 or more characters with a mix of letters, numbers & symbols
-
-*Eg: Minio@123
+Password should be a min length of  8 or more characters with a mix of letters, numbers & symbols.
 
 #### **Git Cloning** 
 
