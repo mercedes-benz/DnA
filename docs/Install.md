@@ -7,6 +7,7 @@ Software Prerequisites:
 * Git 2.35.1+
 * Docker 20.10.13+
 * Docker Compose v2.3.3+
+* JWT token
 
 Hardware Prerequisites :
 
@@ -17,9 +18,15 @@ Hardware Prerequisites :
   * *For windows user, enable WSL engine in Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
   * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
 
+#### **JWT Token**
+
+JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml).
+
+* [JWT TOKEN GENERATOR](https://www.javainuse.com/jwtgenerator)
+
 #### **Git Cloning** 
 
-As a first step you need to clone the Git Repo in your local computer. (this can be done by executing the below command on terminal/command prompt/some visual git client(GithubDesktop)).
+Clone the Git Repo in your local computer. (this can be done by executing the below command on terminal/command prompt/some visual git client(GithubDesktop)).
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
@@ -54,10 +61,24 @@ Prerequisites :
 * kubectl 1.22+
 * Kafka [Refer here](https://github.com/apache/kafka)
 * Docker Image Regitsry
+* JWT token
+* Minio Username/Password
+
+#### **JWT Token**
+
+JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [values.yaml](../kubernetes/helm/values.yaml) 
+
+* [JWT TOKEN GENERATOR](https://www.javainuse.com/jwtgenerator)
+
+#### **Minio Username And Password**
+
+Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of your wish and update the value to the parameters `minioAccessKey`,`s3AccessKey` , `minioSecretKey`,`s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml).
+
+Password should be a min length of  8 or more characters with a mix of letters, numbers & symbols.
 
 #### **Git Cloning** 
 
-As a first step you need to clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some_visual_git_client(GithubDesktop)).
+Clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some_visual_git_client(GithubDesktop)).
 
 ```
 git clone https://github.com/mercedes-benz/DnA.git
