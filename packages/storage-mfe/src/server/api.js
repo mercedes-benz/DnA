@@ -1,10 +1,11 @@
 import axios from 'axios';
 import { SESSION_STORAGE_KEYS } from '../components/Utility/constants';
+import { Envs } from '../components/Utility/envs';
 
 const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
-export const baseURL = process.env.API_BASEURL
-  ? `storage/${process.env.API_BASEURL}`
+export const baseURL = Envs.STORAGE_API_BASEURL
+  ? Envs.STORAGE_API_BASEURL
   : `http://${window.location.hostname}:7175/storage/api`;
 
 const server = axios.create({
