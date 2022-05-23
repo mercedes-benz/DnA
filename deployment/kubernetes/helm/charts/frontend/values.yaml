@@ -76,6 +76,7 @@ appFrontend:
     notificationApiUrl: ""
     dashboardApiUrl: ""
     storageApiUrl: ""
+    malwarescanApiUrl: ""
 
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
