@@ -15,6 +15,7 @@ const duplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack
 const Dotenv = require('dotenv-webpack');
 const fs = require('fs');
 const copyWebpackPlugin = require('copy-webpack-plugin');
+const ExternalTemplateRemotesPlugin = require("./ExternalTemplateRemotesPlugin");
 
 const CONTAINER_APP_URL = process.env.CONTAINER_APP_URL ? process.env.CONTAINER_APP_URL : 'http://localhost:9090';
 
@@ -158,7 +159,7 @@ const base = {
         './Bucket': './src/App',
       },
       remotes: {
-        'dna-container': `dna_container@${CONTAINER_APP_URL}/remoteEntry.js`,
+        'dna-container': `dna_container@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CONTAINER_APP_URL || '${CONTAINER_APP_URL}')]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...deps,
@@ -175,6 +176,7 @@ const base = {
         },
       },
     }),
+    new ExternalTemplateRemotesPlugin(),
   ],
 
   optimization: {
