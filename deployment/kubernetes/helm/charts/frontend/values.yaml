@@ -23,6 +23,7 @@ configJs: |
     window["INJECTED_ENVIRONMENT"]={
       OIDC_DISABLED: "false",
       API_BASEURL: "api",
+      STORAGE_API_BASEURL: "http://localhost:7175/storage/api",
       DNA_COMPANY_NAME: "Company_Name",
       DNA_APPNAME_HEADER: "DnA App",
       DNA_APPNAME_HOME: "Data and Analytics",
