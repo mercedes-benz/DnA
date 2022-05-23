@@ -72,7 +72,9 @@ export default function PlatformSummary(props: ITeamProps) {
                             (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                           '.',
                         )}{' '}
-                        by {props.noteBookInfo.createdBy.firstName}
+                        by{' '}
+                        {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
+                          (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedBy.login)}
                       </label>
                       <div className={Styles.JuperterCardDesc}>
                         {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
