@@ -30,6 +30,7 @@ window["INJECTED_ENVIRONMENT"]={
     ENABLE_MALWARE_SCAN_ONEAPI_INFO: "false",
     ENABLE_DATA_PIPELINE_SERVICE: "true",
     ENABLE_STORAGE_SERVICE: "true",
+    CONTAINER_APP_URL: 'http://localhost:9090',
     STORAGE_MFE_APP_URL: "http://localhost:8083",
     ENABLE_REPORTS: "true",
     ENABLE_ML_PIPELINE_SERVICE: "true",
