@@ -103,15 +103,14 @@ const updateBucket = (data) => {
     });
     ProgressIndicator.show();
     try {
-      bucketsApi.updateBucket(data).then(() => {
-        dispatch({
-          type: 'BUCKET_LOADING',
-          payload: false,
-        });
-        ProgressIndicator.hide();
-        Notification.show(`Bucket ${data.bucketName} updated successfully.`);
-        history.push('/');
+      await bucketsApi.updateBucket(data);
+      dispatch({
+        type: 'BUCKET_LOADING',
+        payload: false,
       });
+      ProgressIndicator.hide();
+      Notification.show(`Bucket ${data.bucketName} updated successfully.`);
+      history.push('/');
     } catch (error) {
       dispatch({
         type: 'BUCKET_ERROR',

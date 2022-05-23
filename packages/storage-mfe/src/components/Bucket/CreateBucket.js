@@ -11,6 +11,8 @@ import { ConnectionModal } from '../ConnectionInfo/ConnectionModal';
 
 import Modal from 'dna-container/Modal';
 import InfoModal from 'dna-container/InfoModal';
+import SelectBox from 'dna-container/SelectBox';
+
 import { hideConnectionInfo } from '../ConnectionInfo/redux/connection.actions';
 import { bucketsApi } from '../../apis/buckets.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
@@ -36,6 +38,7 @@ const CreateBucket = () => {
 
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [dataClassification, setDataClassification] = useState('Internal');
+  const [dataClassificationError, setDataClassificationError] = useState('');
   const [PII, setPII] = useState(false);
   const [termsOfUse, setTermsOfUse] = useState(false);
   const [termsOfUseError, setTermsOfUseError] = useState(false);
@@ -48,13 +51,16 @@ const CreateBucket = () => {
       .getDataConnectionTypes()
       .then((res) => {
         setDataClassificationDropdown(res?.data?.data || []);
+        SelectBox.defaultSetup();
         ProgressIndicator.hide();
       })
       .catch(() => {
         ProgressIndicator.hide();
+        setDataClassificationDropdown([{ id: '', name: 'Choose' }]);
+        SelectBox.defaultSetup();
         Notification.show('Error while fetching Data Connection Type list', 'alert');
       });
-  }, []);
+  }, [isSecretEnabled]);
 
   useEffect(() => {
     if (id) {
@@ -71,6 +77,7 @@ const CreateBucket = () => {
             setBucketId(res?.data?.id);
             setCreatedBy(res?.data?.createdBy);
             setCreatedDate(res?.data?.createdDate);
+            SelectBox.defaultSetup();
           } else {
             // reset history to base page before accessing container app's public routes;
             history.replace('/');
@@ -107,6 +114,10 @@ const CreateBucket = () => {
     }
     if (bucketNameError) {
       formValid = false;
+    }
+    if (dataClassification === 'Choose') {
+      formValid = false;
+      setDataClassificationError(errorMissingEntry);
     }
     if (!termsOfUse) {
       setTermsOfUseError('Please agree to terms of use');
@@ -307,45 +318,39 @@ const CreateBucket = () => {
                       defaultValue={bucketName}
                       readOnly={id}
                     />
-                    <div style={{ width: '300px' }}>
-                      <span className={classNames('error-message', bucketNameError?.length ? '' : 'hide')}>
-                        {bucketNameError}
-                      </span>
-                    </div>
+                    <span className={classNames('error-message', bucketNameError?.length ? '' : 'hide')}>
+                      {bucketNameError}
+                    </span>
                   </div>
                 </div>
-                <div className={classNames('input-field-group include-error')}>
+                <div
+                  className={classNames(
+                    'input-field-group include-error',
+                    dataClassificationError?.length ? 'error' : '',
+                  )}
+                >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
                     Data Classification <sup>*</sup>
                   </label>
-                  <div className={Styles.dataClassificationField}>
-                    {dataClassificationDropdown?.length
-                      ? dataClassificationDropdown.map((item) => {
-                          return (
-                            <label
+                  <div className="custom-select">
+                    <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
+                      {dataClassificationDropdown?.length
+                        ? dataClassificationDropdown?.map((item) => (
+                            <option
+                              disabled={item.name === 'Secret' && !isSecretEnabled}
+                              id={item.id}
                               key={item.id}
-                              className={classNames(
-                                'radio',
-                                item.name === 'Secret' && !isSecretEnabled ? 'disabled' : '',
-                              )}
+                              value={item.name}
                             >
-                              <span className="wrapper">
-                                <input
-                                  type="radio"
-                                  className="ff-only"
-                                  value={item.name}
-                                  name="dataClassification"
-                                  onChange={handleDataClassification}
-                                  checked={dataClassification === item.name}
-                                  disabled={item.name === 'Secret' && !isSecretEnabled}
-                                />
-                              </span>
-                              <span className="label">{item.name}</span>
-                            </label>
-                          );
-                        })
-                      : null}
+                              {item.name}
+                            </option>
+                          ))
+                        : null}
+                    </select>
                   </div>
+                  <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
+                    {dataClassificationError}
+                  </span>
                 </div>
               </div>
               <div>
