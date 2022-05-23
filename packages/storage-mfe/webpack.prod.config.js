@@ -13,10 +13,12 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const terserPlugin = require('terser-webpack-plugin');
 const duplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
+const fs = require('fs');
+const copyWebpackPlugin = require('copy-webpack-plugin');
 
 const CONTAINER_APP_URL = process.env.CONTAINER_APP_URL ? process.env.CONTAINER_APP_URL : 'http://localhost:9090';
 
-module.exports = {
+const base = {
   mode: 'production',
   target: 'web',
   entry: './src/index.js',
@@ -191,3 +193,12 @@ module.exports = {
     },
   },
 };
+
+// copy config file part of build
+if (fs.existsSync(path.join(process.cwd(), 'public'))) {
+  base.plugins.push(
+    new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
+  );
+}
+
+module.exports = base;
