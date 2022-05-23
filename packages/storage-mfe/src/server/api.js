@@ -5,7 +5,7 @@ const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS
 
 export const baseURL = process.env.STORAGE_API_BASEURL
   ? process.env.STORAGE_API_BASEURL
-  : `http://${window.location.hostname}:7175/storage/api`;
+  : `http://${window.location.hostname}:7175/api`;
 
 const server = axios.create({
   baseURL,
