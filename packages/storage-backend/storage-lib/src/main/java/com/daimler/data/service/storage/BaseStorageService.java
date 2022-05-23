@@ -725,9 +725,11 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
 					currentUser);
-			// To update collaborators list
-			errors = updateBucketCollaborator(bucketVo.getBucketName(), existingCollaborators,
-					bucketVo.getCollaborators());
+			if(!(ObjectUtils.isEmpty(existingCollaborators) && ObjectUtils.isEmpty(bucketVo.getCollaborators()))) {
+				// To update collaborators list
+				errors = updateBucketCollaborator(bucketVo.getBucketName(), existingCollaborators,
+						bucketVo.getCollaborators());
+			}
 			if (ObjectUtils.isEmpty(errors)) {
 				//To update Bucket record in database
 				bucketVo.setLastModifiedDate(new Date());
