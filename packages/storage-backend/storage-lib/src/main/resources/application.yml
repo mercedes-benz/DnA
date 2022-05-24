@@ -2,23 +2,57 @@ spring:
   application:
     name: dna-storage-service
     
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}      
+    
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+       
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:3000MB}
       max-request-size: ${MAX_REQUEST_SIZE:3000MB}
     
   cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
     vault:
       host: ${VAULT_HOST:localhost}
       port: ${VAULT_PORT:8200}
       scheme: ${VAULT_SCHEME:http}
       authentication: ${VAULT_AUTHENTICATION:TOKEN}
       token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
-      mountpath: ${VAULT_MOUNTPATH:XXXXXX}
-      vaultpath: ${VAULT_PATH:XXXXXX}
+      mountpath: ${VAULT_MOUNTPATH:secret}
+      vaultpath: ${VAULT_PATH:dna}
       kv:
        enabled: true  
-      
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic      
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
@@ -34,8 +68,6 @@ jwt:
     key: ${JWT_SECRET_KEY:XXXXXX}
 server:
   port: 7175
-  servlet:
-    context-path: /storage
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
@@ -44,7 +76,7 @@ minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   accessKey: ${MINIO_ADMIN_ACCESS_KEY:XXXXXX} 
   secretKey: ${MINIO_ADMIN_SECRET_KEY:XXXXXX}
-  version: ${MINIO_POLICY_VERSION:XXXXXX}
+  version: ${MINIO_POLICY_VERSION:2012-10-17}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

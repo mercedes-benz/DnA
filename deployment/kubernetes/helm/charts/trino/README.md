@@ -1,0 +1,57 @@
+
+Trino
+===========
+
+Fast distributed SQL query engine for big data analytics that helps you explore your data universe
+This chart is based on open source Trino chart maintained by Trino community. 
+It adds some security context and allows to setup hive standalone metastore to read from object storages such as minio.
+It also give possibility to integrate with Immuta by specifying adequate values in the values.yaml file.
+
+## Configuration
+
+The following table lists the configurable parameters of the Trino chart and their default values.
+
+| Parameter                | Description             | Default        |
+| ------------------------ | ----------------------- | -------------- |
+| `image.repository` |  | `"trinodb/trino"` |
+| `image.pullPolicy` |  | `"IfNotPresent"` |
+| `image.tag` |  | `"latest"` |
+| `server.workers` |  | `2` |
+| `server.node.environment` |  | `"production"` |
+| `server.node.dataDir` |  | `"/data/trino"` |
+| `server.node.pluginDir` |  | `"/usr/lib/trino/plugin"` |
+| `server.log.trino.level` |  | `"INFO"` |
+| `server.config.path` |  | `"/etc/trino"` |
+| `server.config.http.port` |  | `8080` |
+| `server.config.query.maxMemory` |  | `"4GB"` |
+| `server.config.query.maxMemoryPerNode` |  | `"1GB"` |
+| `server.config.memory.heapHeadroomPerNode` |  | `"1GB"` |
+| `server.exchangeManager.name` |  | `"filesystem"` |
+| `server.exchangeManager.baseDir` |  | `"/tmp/trino-local-file-system-exchange-manager"` |
+| `server.jvm.maxHeapSize` |  | `"8G"` |
+| `server.jvm.gcMethod.type` |  | `"UseG1GC"` |
+| `server.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
+| `server.autoscaling.enabled` |  | `false` |
+| `server.autoscaling.maxReplicas` |  | `5` |
+| `server.autoscaling.targetCPUUtilizationPercentage` |  | `50` |
+| `additionalNodeProperties` |  | `{}` |
+| `additionalJVMConfig` |  | `{}` |
+| `additionalConfigProperties` |  | `{}` |
+| `additionalLogProperties` |  | `{}` |
+| `additionalExchangeManagerProperties` |  | `{}` |
+| `additionalCatalogs` |  | `{}` |
+| `env` |  | `[]` |
+| `initContainers` |  | `{}` |
+| `securityContext.runAsUser` |  | `1000` |
+| `securityContext.runAsGroup` |  | `1000` |
+| `service.type` |  | `"ClusterIP"` |
+| `service.port` |  | `8080` |
+| `resources` |  | `{}` |
+| `nodeSelector` |  | `{}` |
+| `tolerations` |  | `[]` |
+| `affinity` |  | `{}` |
+| `serviceAccount.create` |  | `false` |
+| `serviceAccount.name` |  | `""` |
+| `serviceAccount.annotations` |  | `{}` |
+
+

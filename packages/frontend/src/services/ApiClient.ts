@@ -32,8 +32,6 @@ import {
   IVisualization,
   IWidgetsResponse,
   INotebookInfo,
-  ISubsription,
-  ISubsriptionExpiryObjectData,
   INoticationModules,
   IManageDivision,
   IManageDivisionRequest,
@@ -414,40 +412,6 @@ export class ApiClient {
   public static createNewReport(data: ICreateNewReportRequest): Promise<ICreateNewReportResult> {
     return this.post('solutions', data);
   }
-  public static generateNewApiKey(data: ISubsription) {
-    return this.post('subscription', data);
-  }
-  public static getMalwarescanSubscriList() {
-    return this.get('subscription/');
-  }
-  public static getMalwarescanSubscriListWithPagination(limit: number, offset: number) {
-    return this.get('subscription?limit=' + limit + '&offset=' + offset);
-  }
-  public static getMalwarescanSubscriListAdmin(
-    limit: number,
-    offset: number,
-    sortBy: string,
-    sortOrder: string,
-    searchTerm: string,
-  ) {
-    let paramToPass =
-      'subscription?admin=true&limit=' + limit + '&offset=' + offset + '&sortBy=' + sortBy + '&sortOrder=' + sortOrder;
-    if (searchTerm == null) {
-      paramToPass += '&searchTerm=' + '';
-    } else {
-      paramToPass += '&searchTerm=' + searchTerm;
-    }
-    return this.get(paramToPass);
-  }
-  public static getRefreshApiKey(appId: String) {
-    return this.get('subscription/' + appId + '/refresh/');
-  }
-  public static deleteCurrentMalwareservice(id: String) {
-    return this.delete('subscription/' + id);
-  }
-  public static saveExpiry(data: ISubsriptionExpiryObjectData) {
-    return this.put('subscription', data);
-  }
 
   public static getDataikuProjectsList(live: boolean): Promise<any> {
     return this.get(`dataiku/projects?live=${live}`);
@@ -737,7 +701,7 @@ export class ApiClient {
     if (locations != '') reqQuery += `location=${locations}&`;
     if (phases != '') reqQuery += `phase=${phases}&`;
     if (divisions != '') reqQuery += `division=${encodeURIComponent(divisions)}&`;
-    if (status != '') reqQuery += `projectStatus=${status}&`;
+    if (status != '') reqQuery += `projectstatus=${status}&`;
     if (useCaseType != '') reqQuery += `useCaseType=${useCaseType}&`;
     if (tagSearch != '') reqQuery += `tags=${tagSearch}&`;
 

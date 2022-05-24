@@ -43,7 +43,7 @@ export const BucketList = () => {
           }
           return 0;
         });
-      } else if (columnName === 'creationDate') {
+      } else if (columnName === 'createdDate' || columnName === 'lastModifiedDate') {
         sortedArray = bucketList?.sort((a, b) => {
           const nameA = new Date(a[columnName]);
           const nameB = new Date(b[columnName]);
@@ -168,12 +168,23 @@ export const BucketList = () => {
                   <div className={Styles.bucketTitleCol}>
                     <label
                       className={
-                        'sortable-column-header ' + (currentColumnToSort === 'creationDate' ? currentSortOrder : '')
+                        'sortable-column-header ' + (currentColumnToSort === 'createdDate' ? currentSortOrder : '')
                       }
-                      onClick={sortByColumn('creationDate', nextSortOrder)}
+                      onClick={sortByColumn('createdDate', nextSortOrder)}
                     >
                       <i className="icon sort" />
                       Created On
+                    </label>
+                  </div>
+                  <div className={Styles.bucketTitleCol}>
+                    <label
+                      className={
+                        'sortable-column-header ' + (currentColumnToSort === 'lastModifiedDate' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('lastModifiedDate', nextSortOrder)}
+                    >
+                      <i className="icon sort" />
+                      Last Modified On
                     </label>
                   </div>
                   <div className={Styles.bucketTitleCol}>Action</div>
@@ -201,8 +212,9 @@ export const BucketList = () => {
                             </a>
                           </div>
                           <div className={Styles.bucketTitleCol}>{displayPermission(item?.permission)}</div>
+                          <div className={Styles.bucketTitleCol}>{getDateTimeFromTimestamp(item.createdDate, '.')}</div>
                           <div className={Styles.bucketTitleCol}>
-                            {getDateTimeFromTimestamp(item.creationDate, '.')}
+                            {getDateTimeFromTimestamp(item.lastModifiedDate, '.')}
                           </div>
                           <div className={Styles.bucketTitleCol}></div>
                         </div>
@@ -214,18 +226,22 @@ export const BucketList = () => {
                           {item.collaborators?.length ? (
                             <div className={Styles.projectList}>
                               <div className={Styles.bucketTile + ' ' + Styles.bucketTileCaption}>
-                                <div className={Styles.bucketTitleCol}>User Id</div>
-                                {/* <div className={Styles.bucketTitleCol}>Name</div> */}
+                                <div className={classNames(Styles.bucketTitleCol, Styles.expansionpanelFirstCol)}>
+                                  User Id
+                                </div>
+                                <div className={Styles.bucketTitleCol}>Name</div>
                                 <div className={Styles.bucketTitleCol}>Permission</div>
                                 <div className={Styles.bucketTitleCol}></div>
                               </div>
                               {item.collaborators?.map((bucketItem, bucketIndex) => {
                                 return (
                                   <div key={bucketIndex} className={Styles.bucketTile}>
-                                    <div className={Styles.bucketTitleCol}>{bucketItem.accesskey}</div>
-                                    {/* <div
+                                    <div className={classNames(Styles.bucketTitleCol, Styles.expansionpanelFirstCol)}>
+                                      {bucketItem.accesskey}
+                                    </div>
+                                    <div
                                       className={Styles.bucketTitleCol}
-                                    >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div> */}
+                                    >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div>
                                     <div className={Styles.bucketTitleCol}>
                                       {displayPermission(bucketItem?.permission)}
                                     </div>
