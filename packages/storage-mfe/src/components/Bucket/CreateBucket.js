@@ -71,7 +71,7 @@ const CreateBucket = () => {
           if (res?.data?.permission.write) {
             setBucketName(res?.data?.bucketName);
             setBucketPermission(res?.data?.permission);
-            setBucketCollaborators(res?.data?.collaborators);
+            setBucketCollaborators(res?.data?.collaborators || []);
             setDataClassification(res?.data?.classificationType);
             setPII(res?.data?.piiData);
             setBucketId(res?.data?.id);
