@@ -53,6 +53,11 @@ dna:
       internal-user-enabled: ${DRD_INTERNAL_USER_ENABLED:false}
   user:
     role: ${USER_ROLE:Admin}
+  #Access token to access datasource bulk create from external source
+  dataSource:
+     bulkCreate:
+        api:
+           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:***REMOVED***} 
       
 graphql:
   servlet:
@@ -66,10 +71,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-
-
-
-
 
 oidc:
   provider: ${OIDC_PROVIDER:OKTA}
@@ -88,7 +89,7 @@ oidc:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:xxxxxx}
-    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences}
+    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences;/api/datasources/bulk}
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
 
 drd:
