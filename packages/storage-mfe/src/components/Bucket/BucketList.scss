@@ -205,12 +205,7 @@
 .expansionLabel {
     .bucketTile {
         .bucketTitleCol {
-            &:nth-child(2),
-            &:nth-child(4) {
-                padding-left: 25px;
-            }
-            &:nth-child(3),
-            &:nth-child(5) {
+            &:not(:first-child):not(:last-child) {
                 padding-left: 25px;
             }
         }

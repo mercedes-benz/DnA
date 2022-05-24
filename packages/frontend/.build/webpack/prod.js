@@ -73,6 +73,7 @@ const prodConfig = {
         './NotFound': './src/router/NotFoundPage.tsx',
         './UnAuthorised': './src/router/UnAuthorised.tsx',
         './AddUser': './src/components/mbc/addUser/AddUser.tsx',
+        './SelectBox': './src/components/formElements/SelectBox/SelectBox.ts',
       },
       remotes: {
         'storage-mfe': `storage_mfe@${MFE_URL}/remoteEntry.js`,
