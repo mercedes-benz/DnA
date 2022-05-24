@@ -31,6 +31,9 @@
       .permissionField {
         display: flex;
         margin-left: -10px;
+        input[type="checkbox"]::after {
+          border: none;
+        }
       }
       .pIIField {
         margin-left: -12px;
