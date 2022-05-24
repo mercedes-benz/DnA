@@ -187,6 +187,18 @@ export const BucketList = () => {
                       Last Modified On
                     </label>
                   </div>
+                  <div className={Styles.bucketTitleCol}>
+                    <label
+                      className={
+                        'sortable-column-header ' +
+                        (currentColumnToSort === 'classificationType' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('classificationType', nextSortOrder)}
+                    >
+                      <i className="icon sort" />
+                      Data Classification
+                    </label>
+                  </div>
                   <div className={Styles.bucketTitleCol}>Action</div>
                 </div>
               </div>
@@ -216,6 +228,7 @@ export const BucketList = () => {
                           <div className={Styles.bucketTitleCol}>
                             {getDateTimeFromTimestamp(item.lastModifiedDate, '.')}
                           </div>
+                          <div className={Styles.bucketTitleCol}>{item.classificationType}</div>
                           <div className={Styles.bucketTitleCol}></div>
                         </div>
 
