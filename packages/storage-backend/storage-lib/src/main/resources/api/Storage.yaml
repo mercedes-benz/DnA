@@ -52,7 +52,7 @@ swagger: "2.0"
 info:
  version: "1.0.0"
  title: "core dna storage Service"
-host: "localhost:7171"
+host: "localhost:7175"
 basePath: "/api/1.0"
 consumes:
  - "application/json"
@@ -180,7 +180,7 @@ paths:
      200:
       description: "Returns message of succes or failure"
       schema:
-       $ref: "#/definitions/BucketResponseVO"
+       $ref: "#/definitions/BucketVo"
      204:
       description: "Fetch complete, no content found."
      400:
@@ -507,7 +507,37 @@ paths:
      405:
       description: "Method not allowed"
      500:
-      description: "Internal error"       
+      description: "Internal error"    
+      
+  # path to migrate existing bucket info of minio to storage database
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/migrate
+ /buckets/migrate:
+   get:
+    tags:
+     - "storage"
+    summary: "MIgrate buckets to storage db."
+    description:  "MIgrate buckets."
+    operationId: "bucketMigrate"
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"        
      
 definitions:
      
@@ -606,6 +636,9 @@ definitions:
  BucketVo:
     type: object
     properties:
+      id:
+        type: string
+        description: "Id of the Bucket."
       bucketName:
         type: string
         description: "Defines the Bucket name."
@@ -613,6 +646,31 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/UserVO"
+      description:
+        type: string
+        description: "Description for the Bucket."
+      piiData:
+        type: boolean
+        description: "If Bucket contains personally identifiable information."
+      termsOfUse:
+        type: boolean
+        description: "If user agreeing on terms of use agreement for Bucket."
+      classificationType:
+        type: string
+        description: Classification type for bucket.
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      updatedBy:
+        $ref: "#/definitions/CreatedByVO"
+      permission:
+        $ref: "#/definitions/PermissionVO"      
+            
     required:
       - bucketName
  
@@ -649,7 +707,7 @@ definitions:
       data:
         type: array
         items:
-          $ref: "#/definitions/BucketResponseVO"
+          $ref: "#/definitions/BucketVo"
       warnings:
         type: array
         items:
@@ -692,6 +750,21 @@ definitions:
         description: Host name followed by port for bucket location      
       permission:
         $ref: "#/definitions/PermissionVO"
+      firstName:
+        type: string
+        description: First name of the user
+      lastName:
+        type: string
+        description: Last name of the user
+      department:
+        type: string
+        description: Department of the user
+      email:
+        type: string
+        description: Email of the user
+      mobileNumber:  
+        type: string
+        description: Mobile number of the user  
  
  PermissionVO:
    type: object

@@ -27,25 +27,18 @@
 
 package com.daimler.data.controller;
 
-import com.daimler.data.api.solution.ChangelogsApi;
-import com.daimler.data.api.solution.SolutionsApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.assembler.SolutionAssembler;
-import com.daimler.data.controller.exceptions.*;
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.solution.*;
-import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
-import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.daimler.data.dto.userinfo.UserRoleVO;
-import com.daimler.data.service.notebook.NotebookService;
-import com.daimler.data.service.solution.SolutionService;
-import com.daimler.data.service.userinfo.UserInfoService;
-import com.daimler.data.util.ConstantsUtility;
-import com.google.gson.Gson;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,19 +46,52 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.daimler.data.api.solution.ChangelogsApi;
+import com.daimler.data.api.solution.MalwarescanApi;
+import com.daimler.data.api.solution.SolutionsApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.assembler.SolutionAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.SolutionChangeLogCollectionVO;
+import com.daimler.data.dto.solution.SolutionCollection;
+import com.daimler.data.dto.solution.SolutionDigitalValueVO;
+import com.daimler.data.dto.solution.SolutionLocationVO;
+import com.daimler.data.dto.solution.SolutionProjectStatusVO;
+import com.daimler.data.dto.solution.SolutionRequestVO;
+import com.daimler.data.dto.solution.SolutionResponseVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.solution.ValueCalculatorVO;
+import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
+import com.daimler.data.service.solution.SolutionService;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
+import com.google.gson.Gson;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Solution API", tags = { "solutions" })
 @RequestMapping("/api")
 @Slf4j
 @SuppressWarnings(value = "unused")
-public class SolutionController implements SolutionsApi, ChangelogsApi {
+public class SolutionController implements SolutionsApi, ChangelogsApi, MalwarescanApi {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SolutionController.class);
 
@@ -589,6 +615,24 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 			return new ResponseEntity<>(new SolutionChangeLogCollectionVO(), HttpStatus.NO_CONTENT);
 		}
 
+	}
+
+	@Override
+	@ApiOperation(value = "Unsubscribe Malware Scan for a given solutionId", nickname = "unsubscribeMalwareScan", notes = "Unsubscribe Malware Scan for a given solutionId", response = GenericMessage.class, tags = {
+			"solutions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/malwarescan/unsubscribe/{solutionId}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<GenericMessage> unsubscribeMalwareScan(
+			@ApiParam(value = "Solution ID", required = true) @PathVariable("solutionId") String solutionId) {
+		return solutionService.malwareScanUnsubscribe(solutionId);
 	}
 
 }

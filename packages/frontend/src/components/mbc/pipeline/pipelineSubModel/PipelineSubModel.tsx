@@ -5,7 +5,7 @@ const classNames = cn.bind(Styles);
 
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { ApiClient } from '../../../../services/ApiClient';
+import { MalwarescanApiClient } from '../../../../services/MalwarescanApiClient';
 
 export interface IPipelineSubModelProps {
   addAirflowSuccessFn: (action: String) => void;
@@ -55,7 +55,7 @@ export default function PipelineSubModel(props: IPipelineSubModelProps) {
     };
     if (validateDescriptionForm()) {
       ProgressIndicator.show();
-      ApiClient.generateNewApiKey(addAPIkeyData)
+      MalwarescanApiClient.generateNewApiKey(addAPIkeyData)
         .then((response) => {
           console.log(response);
           ProgressIndicator.hide();

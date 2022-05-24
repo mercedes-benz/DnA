@@ -28,6 +28,7 @@ app:
       naas_centraldelte_topic: dnaCentralDeleteTopic
       loggingPath: /tmp/naas/log
       loggingEnvironment: dev
+      corsOriginUrl: ""
   resources:
     requests:
       memory: "512Mi"
@@ -42,11 +43,11 @@ app:
     periodSeconds: 30
     failureThreshold: 3
     livenessProbe:
-      path: /naas/actuator/health/liveness
+      path: /actuator/health/liveness
       port: api
     
     readinessProbe:
-      path: /naas/actuator/health/readiness
+      path: /actuator/health/readiness
       port: api
       
 

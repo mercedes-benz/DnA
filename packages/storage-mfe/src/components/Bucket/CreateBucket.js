@@ -30,6 +30,32 @@ const CreateBucket = () => {
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
 
+  const [bucketId, setBucketId] = useState('');
+  const [createdBy, setCreatedBy] = useState({});
+  const [createdDate, setCreatedDate] = useState(new Date());
+
+  const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+  const [dataClassification, setDataClassification] = useState('Internal');
+  const [PII, setPII] = useState(false);
+  const [termsOfUse, setTermsOfUse] = useState(false);
+  const [termsOfUseError, setTermsOfUseError] = useState(false);
+
+  const isSecretEnabled = process.env.ENABLE_DATA_CLASSIFICATION_SECRET === 'true';
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    bucketsApi
+      .getDataConnectionTypes()
+      .then((res) => {
+        setDataClassificationDropdown(res?.data?.data || []);
+        ProgressIndicator.hide();
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while fetching Data Connection Type list', 'alert');
+      });
+  }, []);
+
   useEffect(() => {
     if (id) {
       ProgressIndicator.show();
@@ -40,6 +66,11 @@ const CreateBucket = () => {
             setBucketName(res?.data?.bucketName);
             setBucketPermission(res?.data?.permission);
             setBucketCollaborators(res?.data?.collaborators);
+            setDataClassification(res?.data?.classificationType);
+            setPII(res?.data?.piiData);
+            setBucketId(res?.data?.id);
+            setCreatedBy(res?.data?.createdBy);
+            setCreatedDate(res?.data?.createdDate);
           } else {
             // reset history to base page before accessing container app's public routes;
             history.replace('/');
@@ -75,6 +106,10 @@ const CreateBucket = () => {
       formValid = false;
     }
     if (bucketNameError) {
+      formValid = false;
+    }
+    if (!termsOfUse) {
+      setTermsOfUseError('Please agree to terms of use');
       formValid = false;
     }
     setTimeout(() => {
@@ -121,6 +156,9 @@ const CreateBucket = () => {
       const data = {
         bucketName: bucketName,
         collaborators: bucketCollaborators,
+        classificationType: dataClassification,
+        piiData: PII,
+        termsOfUse: termsOfUse,
       };
       dispatch(bucketActions.createBucket(data));
     }
@@ -135,7 +173,13 @@ const CreateBucket = () => {
 
       const data = {
         bucketName: bucketName,
+        id: bucketId,
+        createdBy,
+        createdDate,
         collaborators: bucketCollaborators,
+        classificationType: dataClassification,
+        piiData: PII,
+        termsOfUse: termsOfUse,
       };
       dispatch(bucketActions.updateBucket(data));
     }
@@ -146,6 +190,9 @@ const CreateBucket = () => {
       firstName: collaborators.firstName,
       lastName: collaborators.lastName,
       accesskey: collaborators.shortId,
+      department: collaborators.department,
+      email: collaborators.email,
+      mobileNumber: collaborators.mobileNumber,
       permission: { read: true, write: false },
     };
     bucketCollaborators.push(collabarationData);
@@ -192,6 +239,14 @@ const CreateBucket = () => {
     setInfoModal(true);
   };
 
+  const handleDataClassification = (e) => {
+    setDataClassification(e.target.value);
+  };
+
+  const handlePII = (e) => {
+    setPII(e.target.value === 'true' ? true : false);
+  };
+
   const bucketNameRulesContent = (
     <div>
       <ul>
@@ -204,6 +259,7 @@ const CreateBucket = () => {
   );
 
   const bucketNameErrorField = bucketNameError || '';
+  const termsOfUseErrorField = termsOfUseError || '';
 
   return (
     <>
@@ -218,74 +274,150 @@ const CreateBucket = () => {
         </div>
         <div className={Styles.content}>
           <div className={Styles.formGroup}>
-            <div
-              className={classNames(Styles.inputGrp, ' input-field-group', bucketNameErrorField?.length ? 'error' : '')}
-            >
-              <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Name of Bucket <sup>*</sup>
-              </label>
+            <div className={Styles.flexLayout}>
               <div>
-                <input
-                  type="text"
-                  className={classNames('input-field', Styles.bucketNameField)}
-                  required={true}
-                  id="bucketName"
-                  maxLength={63}
-                  placeholder="Type here"
-                  autoComplete="off"
-                  onChange={(e) => {
-                    setBucketName(e.target.value?.toLowerCase());
-                    handleBucketNameValidation(e.target.value);
-                  }}
-                  defaultValue={bucketName}
-                  readOnly={id}
-                />
-                <div style={{ width: '300px' }}>
-                  <span className={classNames('error-message', bucketNameError?.length ? '' : 'hide')}>
-                    {bucketNameError}
-                  </span>
+                <div
+                  className={classNames(
+                    Styles.bucketNameInputField,
+                    'input-field-group include-error',
+                    bucketNameErrorField?.length ? 'error' : '',
+                  )}
+                >
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Name of Bucket <sup>*</sup>
+                    {!id ? (
+                      <div className={Styles.infoIcon}>
+                        <i className="icon mbc-icon info" onClick={handleInfoModal} />
+                      </div>
+                    ) : null}
+                  </label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.bucketNameField)}
+                      required={true}
+                      id="bucketName"
+                      maxLength={63}
+                      placeholder="Type here"
+                      autoComplete="off"
+                      onChange={(e) => {
+                        setBucketName(e.target.value?.toLowerCase());
+                        handleBucketNameValidation(e.target.value);
+                      }}
+                      defaultValue={bucketName}
+                      readOnly={id}
+                    />
+                    <div style={{ width: '300px' }}>
+                      <span className={classNames('error-message', bucketNameError?.length ? '' : 'hide')}>
+                        {bucketNameError}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Data Classification <sup>*</sup>
+                  </label>
+                  <div className={Styles.dataClassificationField}>
+                    {dataClassificationDropdown?.length
+                      ? dataClassificationDropdown.map((item) => {
+                          return (
+                            <label
+                              key={item.id}
+                              className={classNames(
+                                'radio',
+                                item.name === 'Secret' && !isSecretEnabled ? 'disabled' : '',
+                              )}
+                            >
+                              <span className="wrapper">
+                                <input
+                                  type="radio"
+                                  className="ff-only"
+                                  value={item.name}
+                                  name="dataClassification"
+                                  onChange={handleDataClassification}
+                                  checked={dataClassification === item.name}
+                                  disabled={item.name === 'Secret' && !isSecretEnabled}
+                                />
+                              </span>
+                              <span className="label">{item.name}</span>
+                            </label>
+                          );
+                        })
+                      : null}
+                  </div>
                 </div>
               </div>
-              {!id ? (
-                <div className={Styles.infoIcon}>
-                  <i className="icon mbc-icon info" onClick={handleInfoModal} />
+              <div>
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Permission <sup>*</sup>
+                  </label>
+                  <div className={Styles.permissionField}>
+                    <div className={Styles.checkboxContainer}>
+                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                        <span className="wrapper">
+                          <input
+                            name="read"
+                            type="checkbox"
+                            className="ff-only"
+                            checked={!!bucketPermission?.read}
+                            onChange={handleCheckbox}
+                          />
+                        </span>
+                        <span className="label">Read</span>
+                      </label>
+                    </div>
+                    <div className={Styles.checkboxContainer}>
+                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                        <span className="wrapper">
+                          <input
+                            name="write"
+                            type="checkbox"
+                            className="ff-only"
+                            checked={!!bucketPermission?.write}
+                            onChange={handleCheckbox}
+                          />
+                        </span>
+                        <span className="label">Write</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
-              ) : null}
-            </div>
-            <br />
-            <div className={classNames(Styles.inputGrp, ' input-field-group')}>
-              <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Permission <sup>*</sup>
-              </label>
-              <div className={Styles.checkboxContainer}>
-                <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                  <span className="wrapper">
-                    <input
-                      name="read"
-                      type="checkbox"
-                      className="ff-only"
-                      checked={!!bucketPermission?.read}
-                      onChange={handleCheckbox}
-                    />
-                  </span>
-                  <span className="label">Read</span>
-                </label>
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    PII (Personally Identifiable Information) <sup>*</sup>
+                  </label>
+                  <div className={Styles.pIIField}>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={true}
+                          name="pii"
+                          onChange={handlePII}
+                          checked={PII === true}
+                        />
+                      </span>
+                      <span className="label">Yes</span>
+                    </label>
+                    <label className={classNames('radio')}>
+                      <span className="wrapper">
+                        <input
+                          type="radio"
+                          className="ff-only"
+                          value={false}
+                          name="pii"
+                          onChange={handlePII}
+                          checked={PII === false}
+                        />
+                      </span>
+                      <span className="label">No</span>
+                    </label>
+                  </div>
+                </div>
               </div>
-              <div className={Styles.checkboxContainer}>
-                <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                  <span className="wrapper">
-                    <input
-                      name="write"
-                      type="checkbox"
-                      className="ff-only"
-                      checked={!!bucketPermission?.write}
-                      onChange={handleCheckbox}
-                    />
-                  </span>
-                  <span className="label">Write</span>
-                </label>
-              </div>
-              <div></div>
             </div>
             <div className={classNames('input-field-group include-error')}>
               <div className={Styles.bucketColContent}>
@@ -298,7 +430,7 @@ const CreateBucket = () => {
                       <React.Fragment>
                         <div className={Styles.collUserTitle}>
                           <div className={Styles.collUserTitleCol}>User ID</div>
-                          {!id ? <div className={Styles.collUserTitleCol}>Name</div> : null}
+                          <div className={Styles.collUserTitleCol}>Name</div>
                           <div className={Styles.collUserTitleCol}>Permission</div>
                           <div className={Styles.collUserTitleCol}></div>
                         </div>
@@ -307,9 +439,7 @@ const CreateBucket = () => {
                             return (
                               <div key={collIndex} className={Styles.collUserContentRow}>
                                 <div className={Styles.collUserTitleCol}>{item.accesskey}</div>
-                                {!id ? (
-                                  <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
-                                ) : null}
+                                <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                                 <div className={Styles.collUserTitleCol}>
                                   <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
                                     <label className={classNames('checkbox', Styles.checkBoxDisable)}>
@@ -360,6 +490,43 @@ const CreateBucket = () => {
                   </div>
                 </div>
               </div>
+            </div>
+            <div className={classNames(Styles.termsOfUseContainer, termsOfUseErrorField?.length ? 'error' : '')}>
+              <div className={Styles.termsOfUseContent}>
+                <div>
+                  <label className={classNames('checkbox', termsOfUseErrorField?.length ? 'error' : '')}>
+                    <span className="wrapper">
+                      <input
+                        name="write"
+                        type="checkbox"
+                        className="ff-only"
+                        checked={termsOfUse}
+                        onChange={(e) => {
+                          setTermsOfUse(e.target.checked);
+                          e.target.checked
+                            ? setTermsOfUseError('')
+                            : setTermsOfUseError('Please agree to terms of use');
+                        }}
+                      />
+                    </span>
+                  </label>
+                </div>
+                <div
+                  className={classNames(Styles.termsOfUseText)}
+                  style={{
+                    ...(termsOfUseErrorField?.length ? { color: '#e84d47' } : ''),
+                  }}
+                >
+                  <div dangerouslySetInnerHTML={{ __html: process.env.TOU_HTML }}></div>
+                  <sup>*</sup>
+                </div>
+              </div>
+              <span
+                style={{ marginTop: 0 }}
+                className={classNames('error-message', termsOfUseError?.length ? '' : 'hide')}
+              >
+                {termsOfUseError}
+              </span>
             </div>
             <div className={Styles.createBtn}>
               <button className={'btn btn-tertiary'} type="button" onClick={id ? onUpdateBucket : onAddNewBucket}>
