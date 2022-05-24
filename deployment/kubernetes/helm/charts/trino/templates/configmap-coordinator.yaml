@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.coordinator" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: coordinator
+data:
+  node.properties: |
+    node.environment={{ .Values.server.node.environment }}
+    node.data-dir={{ .Values.server.node.dataDir }}
+    plugin.dir={{ .Values.server.node.pluginDir }}
+  {{- range $configValue := .Values.additionalNodeProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  jvm.config: |
+    -server
+    -Xmx{{ .Values.server.jvm.maxHeapSize }}
+    -XX:+{{ .Values.server.jvm.gcMethod.type }}
+    -XX:G1HeapRegionSize={{ .Values.server.jvm.gcMethod.g1.heapRegionSize }}
+    -XX:+UseGCOverheadLimit
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    -Djdk.attach.allowAttachSelf=true
+    -XX:-UseBiasedLocking
+    -XX:ReservedCodeCacheSize=512M
+    -XX:PerMethodRecompilationCutoff=10000
+    -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.nio.maxCachedBufferSize=2000000
+  {{- range $configValue := .Values.additionalJVMConfig }}
+    {{ $configValue }}
+  {{- end }}
+
+  config.properties: |
+    coordinator=true
+  {{- if gt (int .Values.server.workers) 0 }}
+    node-scheduler.include-coordinator=false
+  {{- else }}
+    node-scheduler.include-coordinator=true
+  {{- end }}
+    http-server.http.port={{ .Values.service.port }}
+    query.max-memory={{ .Values.server.config.query.maxMemory }}
+    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
+    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
+    discovery-server.enabled=true
+    discovery.uri=http://localhost:{{ .Values.service.port }}
+
+  {{- if .Values.authentication.oidc.enabled }}
+    http-server.authentication.type=oauth2,PASSWORD
+    web-ui.authentication.type=oauth2
+    http-server.process-forwarded=true
+
+    http-server.authentication.oauth2.issuer={{ .Values.authentication.oidc.issuer }}
+    http-server.authentication.oauth2.auth-url={{ .Values.authentication.oidc.authUrl }}
+    http-server.authentication.oauth2.token-url={{ .Values.authentication.oidc.tokenUrl }}
+    http-server.authentication.oauth2.jwks-url={{ .Values.authentication.oidc.jwksUrl }}
+    http-server.authentication.oauth2.client-id={{ .Values.authentication.oidc.clientId }}
+    http-server.authentication.oauth2.client-secret={{ .Values.authentication.oidc.clientSecret }}
+    http-server.authentication.oauth2.userinfo-url={{ .Values.authentication.oidc.userInfoUrl }}
+    http-server.authentication.oauth2.scopes={{ .Values.authentication.oidc.scopes }}
+    http-server.authentication.oauth2.principal-field={{ .Values.authentication.oidc.claim }}
+  {{- else }}
+    http-server.authentication.type=PASSWORD
+  {{- end }}
+
+  {{- range $configValue := .Values.additionalConfigProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  #exchange-manager.properties: |
+  #  exchange-manager.name={{ .Values.server.exchangeManager.name }}
+  #  exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+  #{{- range $configValue := .Values.additionalExchangeManagerProperties }}
+  #  {{ $configValue }}
+  #{{- end }}
+
+  log.properties: |
+    io.trino={{ .Values.server.log.trino.level }}
+  {{- range $configValue := .Values.additionalLogProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  {{- if .Values.immuta.enabled }}
+  event-listener.properties: |
+    event-listener.name={{ .Values.immuta.listenerName }}
+    immuta.endpoint={{ .Values.immuta.endpoint }}
+    immuta.apikey={{ .Values.immuta.apiKey }}
+    immuta.catalogs=immuta
+  {{- end }}
+
+  password-authenticator.properties: |
+    password-authenticator.name=file
+    file.password-file={{ .Values.server.config.path }}/password.db
+
+  password.db: |
+    {{ .Values.authentication.password.user }}:{{ .Values.authentication.password.bcryptPass }}
+
+  access-control.properties: |
+    access-control.name=file
+    security.config-file={{ .Values.server.config.path }}/access-rules.json
+    security.refresh-period=5s
+
+  access-rules.json: |
+    {
+
+            "catalogs": [
+
+                {
+
+                    "user": "immuta",
+
+                    "catalog": ".*",
+
+                    "allow": "all"
+
+                },
+
+                {
+
+                    "catalog": "immuta",
+
+                    "allow": "read-only"
+
+                },
+
+                {
+
+                    "catalog": "system",
+
+                    "allow": "read-only"
+
+                }
+
+            ]
+
+        }
+
+---

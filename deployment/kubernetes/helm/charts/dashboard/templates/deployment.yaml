@@ -53,6 +53,8 @@ spec:
               value: {{ .Values.flywayBaselineVersion | quote }}
             - name: FLYWAY_SCHEMA
               value: {{ .Values.flywaySchema | quote }}
+            - name: CORS_ORIGIN_URL
+              value: {{ .Values.corsOrigibUrl | quote }}              
           ports:
             - containerPort: {{ .Values.containerPort }}
               name: api

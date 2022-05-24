@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -277,7 +278,7 @@ public class StorageController implements StorageApi {
 	}
 
 	@Override
-    @ApiOperation(value = "Get bucket by name.", nickname = "getByBucketName", notes = "Get bucket identified by bucketName.", response = BucketResponseVO.class, tags={ "storage", })
+    @ApiOperation(value = "Get bucket by name.", nickname = "getByBucketName", notes = "Get bucket identified by bucketName.", response = BucketVo.class, tags={ "storage", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns message of succes or failure", response = BucketResponseVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -290,8 +291,25 @@ public class StorageController implements StorageApi {
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-	public ResponseEntity<BucketResponseVO> getByBucketName(@ApiParam(value = "Bucket name which need to be fetched.",required=true) @PathVariable("bucketName") String bucketName) {
+	public ResponseEntity<BucketVo> getByBucketName(@ApiParam(value = "Bucket name which need to be fetched.",required=true) @PathVariable("bucketName") String bucketName) {
 		return storageService.getByBucketName(bucketName);
+	}
+
+	@Override
+    @ApiOperation(value = "MIgrate buckets to storage db.", nickname = "bucketMigrate", notes = "MIgrate buckets.", response = GenericMessage.class, tags={ "storage", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of succes or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+	@GetMapping(path = "/buckets/migrate",
+        produces = { "application/json" }, 
+        consumes = { "application/json" })
+	public ResponseEntity<GenericMessage> bucketMigrate() {
+		return storageService.bucketMigrate();
 	}
 
 }
