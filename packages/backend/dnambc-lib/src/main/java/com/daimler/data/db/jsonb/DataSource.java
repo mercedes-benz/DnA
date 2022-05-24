@@ -32,31 +32,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DataSource implements Serializable {
 
 	private static final long serialVersionUID = -5328996450105156344L;
 
 	private String name;
-//
-//    public DataSource() {
-//        super();
-//    }
-//
-//    public DataSource(String name) {
-//        super();
-//        this.name = name;
-//    }
-//
-//    public String getName() {
-//        return name;
-//    }
-//
-//    public void setName(String name) {
-//        this.name = name;
-//    }
-
+	private String externalRefId;
+	private String dataType;
+	private String source;
+	private Date lastModifiedDate;
+	private String modifiedBy;
 }

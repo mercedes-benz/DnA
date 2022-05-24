@@ -163,6 +163,48 @@ paths:
       500:
        description: "Internal error"
      
+# path to push bulk datasources
+#
+#  supprorted http methods POST 
+#
+# path example ../datasources/bulk
+ /datasources/bulk:
+  post:
+   tags:
+    - "datasources"
+   summary: "Add datasources."
+   description: "Add datasources will add non-existing datasources."
+   operationId: "bulkCreate"
+   parameters:
+    - name: "accessToken"
+      in: "header"
+      description: "Api access token to access api." 
+      required: true
+      type: string
+    - name: "dataSourceBulkRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data required for adding new datasources" 
+      required: true
+      schema:
+       $ref: "#/definitions/DataSourceBulkRequestVO"
+   responses:
+    200: 
+     description: "Returns message of success or failure "
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"     
+     
 definitions:
  DataSourceVO:
   type: object
@@ -175,6 +217,21 @@ definitions:
      description: "Name of the datasource"
      minLength: 1
      pattern: '[a-zA-Z\s]+'
+    externalRefId:
+     type: string
+     description: "External reference ID of the datasource" 
+    dataType:
+     type: string
+     description: "Data type for example:'Asset','Source'"
+    source:
+     type: string
+     description: "Source of the request, example:DnA,External_Source..."  
+    lastModifiedDate:
+     type: string
+     format: date
+    modifiedBy:
+     type: string
+     description: "Modified by user." 
   required:
      - name
  DataSourceCollection:
@@ -188,6 +245,42 @@ definitions:
     data:
       description: "Request data containing datasource details to be created"
       $ref: "#/definitions/DataSourceVO"
+ 
+ DataSourceCreateVO:
+  type: object
+  properties: 
+    name:
+     type: string
+     description: "Name of the datasource"
+     minLength: 1
+     #pattern: '[a-zA-Z\s]+'
+    externalRefId:
+     type: string
+     description: "External reference ID of the datasource" 
+    dataType:
+     type: string
+     description: "Data type for example:'Asset','Source'"
+    source:
+     type: string
+     description: "Source of the request, example:DnA,External_Source..."
+    lastModifiedDate:
+     type: string
+     format: date
+    modifiedBy:
+     type: string
+     description: "Modified by user."    
+  required:
+     - name
+ 
+ DataSourceBulkRequestVO:
+  type: object
+  properties:
+    data:
+      description: "Request data containing datasources details to be created"
+      type: array
+      items:
+        $ref: "#/definitions/DataSourceCreateVO"
+      
  BindingResult:
   type: object
 
