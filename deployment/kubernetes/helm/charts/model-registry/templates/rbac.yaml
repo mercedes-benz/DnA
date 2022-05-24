@@ -6,7 +6,7 @@ metadata:
     component: {{ include "model-registry.fullname" . }}
 rules:
   - apiGroups: [""]       # "" indicates the core API group
-    resources: ["pods","nodes","endpoints"]
+    resources: ["pods","nodes","endpoints","secrets"]
     verbs: ["get", "watch", "list"]
 ---
 kind: ClusterRoleBinding
