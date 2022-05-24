@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
 
-import { FullFileBrowser, ChonkyActions, FileHelper } from 'chonky';
+import { FullFileBrowser, ChonkyActions, FileHelper, defineFileAction } from 'chonky';
 
 import { deleteFiles, downloadFoldersOrFiles, getFiles, setFiles } from './redux/fileExplorer.actions';
 import { useParams } from 'react-router-dom';
@@ -63,6 +63,17 @@ setChonkyDefaults({ iconComponent: ChonkyIconFA });
 //     icon: 'upload',
 //   },
 // });
+
+const PublishFolder = defineFileAction({
+  id: 'publish_folder',
+  button: {
+    name: 'Publish to Trino',
+    toolbar: true,
+    contextMenu: true,
+    tooltip: 'Publish to Trino',
+    icon: 'folder',
+  },
+});
 
 const FileExplorer = () => {
   const dispatch = useDispatch();
@@ -122,6 +133,7 @@ const FileExplorer = () => {
     ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
     ChonkyActions.DownloadFiles,
     ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
+    ...(bucketPermission.write ? [PublishFolder] : []),
   ];
 
   // localization
@@ -454,6 +466,8 @@ const FileExplorer = () => {
         // on opening files
         onOpenFile(data, fileToOpen);
       }
+    } else if (data.id === PublishFolder.id) {
+      // TBD
     }
   };
 
