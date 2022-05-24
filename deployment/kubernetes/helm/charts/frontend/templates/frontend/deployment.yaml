@@ -45,10 +45,10 @@ spec:
               path: {{ .Values.probes.readinessProbe.path }}
               port: {{ .Values.probes.readinessProbe.port }}  
           volumeMounts:
-            - name: {{ .Release.Name }}-frontend-configmap
+            - name: {{ .Release.Name }}-frontend-configmap-ngnix
               mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
-            - name: {{ .Release.Name }}-frontend-configmap
+            - name: {{ .Release.Name }}-frontend-configmap-configjs
               mountPath: /usr/share/nginx/html/config.js
               subPath: config.js                 
           resources: {}
@@ -57,6 +57,9 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret.name }}
       volumes:
-        - name: {{ .Release.Name }}-frontend-configmap
+        - name: {{ .Release.Name }}-frontend-configmap-ngnix
           configMap:
-            name: {{ .Release.Name }}-frontend-configmap
+            name: {{ .Release.Name }}-frontend-configmap        
+        - name: {{ .Release.Name }}-frontend-configmap-configjs
+          configMap:
+            name: {{ .Release.Name }}-frontend-configmap                     
