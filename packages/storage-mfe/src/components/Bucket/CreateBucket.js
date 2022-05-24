@@ -43,6 +43,8 @@ const CreateBucket = () => {
   const [termsOfUse, setTermsOfUse] = useState(false);
   const [termsOfUseError, setTermsOfUseError] = useState(false);
 
+  const [editAPIResponse, setEditAPIResponse] = useState({});
+
   const isSecretEnabled = process.env.ENABLE_DATA_CLASSIFICATION_SECRET === 'true';
 
   useEffect(() => {
@@ -77,6 +79,8 @@ const CreateBucket = () => {
             setBucketId(res?.data?.id);
             setCreatedBy(res?.data?.createdBy);
             setCreatedDate(res?.data?.createdDate);
+            setTermsOfUse(res?.data?.termsOfUse);
+            setEditAPIResponse(res?.data); // store to compare whether the values are changed
             SelectBox.defaultSetup();
           } else {
             // reset history to base page before accessing container app's public routes;
@@ -95,6 +99,20 @@ const CreateBucket = () => {
         });
     }
   }, [id]);
+
+  useEffect(() => {
+    // check whether values are changed while edit
+    // if changed ensure user again accepts terms of use
+    if (id) {
+      if (
+        dataClassification !== editAPIResponse.classificationType ||
+        PII !== editAPIResponse.piiData ||
+        bucketCollaborators?.length !== (editAPIResponse?.collaborators || 0)
+      ) {
+        setTermsOfUse(false);
+      }
+    }
+  }, [id, dataClassification, PII, bucketCollaborators, editAPIResponse]);
 
   const goBack = () => {
     history.replace('/');
