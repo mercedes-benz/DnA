@@ -22,6 +22,7 @@ flywayBaselineOnMigrate: ""
 flywayBaselineVersion: ""
 flywaySchema: ""
 containerPort: 7173
+corsOrigibUrl: ""
 ingress:
   enabled: true
   host: ""
@@ -46,10 +47,10 @@ probes:
   periodSeconds: 20
   failureThreshold: 3
   livenessProbe:
-    path: /dashboards/actuator/health/liveness
+    path: /actuator/health/liveness
     port: api
       
   readinessProbe:
-    path: /dashboards/actuator/health/readiness
+    path: /actuator/health/readiness
     port: api
 

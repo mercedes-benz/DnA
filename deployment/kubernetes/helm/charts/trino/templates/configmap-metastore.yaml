@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metastore-cfg
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  metastore-site.xml: |
+    <configuration>
+    <property>
+            <name>metastore.task.threads.always</name>
+            <value>org.apache.hadoop.hive.metastore.events.EventCleanerTask</value>
+    </property>
+    <property>
+            <name>metastore.expression.proxy</name>
+            <value>org.apache.hadoop.hive.metastore.DefaultPartitionExpressionProxy</value>
+    </property>
+    <property>
+            <name>javax.jdo.option.ConnectionDriverName</name>
+            <value>org.postgresql.Driver</value>
+    </property>
+    <property>
+            <name>javax.jdo.option.ConnectionURL</name>
+            <value>jdbc:postgresql://{{ .Values.hivemetastore.postgres.host }}/{{ .Values.hivemetastore.postgres.db }}</value>
+    </property>
+    <property>
+            <name>javax.jdo.option.ConnectionUserName</name>
+            <value>{{ .Values.hivemetastore.postgres.user }}</value>
+    </property>
+    <property>
+            <name>javax.jdo.option.ConnectionPassword</name>
+            <value>{{ .Values.hivemetastore.postgres.password }}</value>
+    </property>
+    <property>
+            <name>metastore.thrift.uris</name>
+            <value>thrift://metastore.{{ .Values.namespace }}.svc.cluster.local:9083</value>
+    </property>
+    <property>
+            <name>fs.s3a.impl</name>
+            <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+    </property>
+    <property>
+            <name>fs.s3a.access.key</name>
+            <value>{{ .Values.hivemetastore.minio.accessKey }}</value>
+    </property>
+    <property>
+            <name>fs.s3a.secret.key</name>
+            <value>{{ .Values.hivemetastore.minio.secretKey }}</value>
+    </property>
+    <property>
+            <name>fs.s3a.endpoint</name>
+            <value>http://{{ .Values.hivemetastore.minio.host }}</value>
+    </property>
+    <property>
+            <name>fs.s3a.path.style.access</name>
+            <value>true</value>
+    </property>
+    <property>
+            <name>metastore.warehouse.dir</name>
+            <value>s3a://{{ .Values.hivemetastore.minio.warehouseBucketName }}/</value>
+    </property>
+    </configuration>
