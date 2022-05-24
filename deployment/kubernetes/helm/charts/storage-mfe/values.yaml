@@ -4,9 +4,11 @@
 namespace: storage
 configJs: |
     window["INJECTED_ENVIRONMENT"]={
-      OIDC_DISABLED: false,
-      DNA_APPNAME_HEADER: 'Sathish AAP',
-      DNA_CONTACTUS_HTML: '<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>', 
+        CONTAINER_APP_URL: "",
+        API_BASEURL: "api",
+        STORAGE_API_BASEURL: "",
+        TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+        ENABLE_DATA_CLASSIFICATION_SECRET: "false"
       };
 conf:
   storageBackendUrl: http://storage-be.storage.svc.cluster.local:80

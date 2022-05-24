@@ -115,4 +115,4 @@ data:
           }
         }
   config.js: |
-    {{ .Values.configJs  }}
+    {{ .Values.configJs | nindent 8 }}
