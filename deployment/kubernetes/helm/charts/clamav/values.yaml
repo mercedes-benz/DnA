@@ -4,6 +4,8 @@
 
 appName: clamav
 namespace: clamav
+securityContext:
+  runasUser: 1000 
 app:
   backend:
     name: clamav-rest
@@ -12,6 +14,9 @@ app:
     secrets:
       name: oneapi-secrets
       onapiBasicAuthToken: ""
+      jwtSecretKey: ""
+      appDBUserName: malware
+      appDBPassword: ""
     config:
       clamav_backend_url: clamav-service
       clamav_backend_port: 3310
@@ -21,21 +26,38 @@ app:
       with_in: 2
       time_unit: seconds
       auth_api_host: ""
-      restricted_url_pattern: /avscan/api/v1/scan.*
+      restricted_url_pattern: /api/v1/scan.*
       loggingPath: /tmp/clamav/log
       loggingEnvironment: dev
       corsOriginUrl: ""
+      dbUri: ""
+      flywayEnabled: true
+      flywayBaselineOnMigrate: true
+      flywayBaselineVersion: 0
+      flywaySchema: public
+      vaultHost: ""
+      vaultPort: ""
+      appUrl: ""
+      enableAuth: ""
+      verifyLoginApi: /api/verifyLogin
+      unscribeMalwareScanApi: /api/malwarescan/unsubscribe/ 
+
+  vault:
+    secret:
+      rootToken: ""
+  
+
   probes:
     initialDelaySeconds: 60
     timeoutSeconds: 10
     periodSeconds: 10
     failureThreshold: 3
     livenessProbe:
-      path: /avscan/actuator/health/liveness
+      path: /actuator/health/liveness
       port: api
     
     readinessProbe:
-      path: /avscan/actuator/health/readiness
+      path: /actuator/health/readiness
       port: api
 
 image: 
@@ -69,3 +91,7 @@ resources:
   limits:
     memory: "3000Mi"
     cpu: "500m"
+
+vault:
+  secret:
+    rootToken: ""

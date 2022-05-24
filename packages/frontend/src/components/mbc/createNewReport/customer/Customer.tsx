@@ -429,16 +429,18 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           scrollableContent={false}
           onCancel={this.addCustomerModelClose}
         />
-        <AddTeamMemberModal
-          ref={this.addTeamMemberModalRef}
-          modalTitleText={'Process Owner'}
-          showOnlyInteral={true}
-          editMode={this.state.editTeamMember}
-          showAddTeamMemberModal={this.state.showAddTeamMemberModal}
-          teamMember={this.state.teamMemberObj}
-          onUpdateTeamMemberList={this.updateTeamMemberList}
-          onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
-        />
+        { this.state.showAddTeamMemberModal && (
+          <AddTeamMemberModal
+            ref={this.addTeamMemberModalRef}
+            modalTitleText={'Process Owner'}
+            showOnlyInteral={true}
+            editMode={this.state.editTeamMember}
+            showAddTeamMemberModal={this.state.showAddTeamMemberModal}
+            teamMember={this.state.teamMemberObj}
+            onUpdateTeamMemberList={this.updateTeamMemberList}
+            onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
+          />
+        )}
         <ConfirmModal
           title="Delete Customer"
           acceptButtonTitle="Delete"

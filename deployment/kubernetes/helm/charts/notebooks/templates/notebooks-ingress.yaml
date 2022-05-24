@@ -18,6 +18,10 @@ spec:
                 name: proxy-public
                 port:
                   name: http
-            path: /notebooks
+            path: /
             pathType: Prefix
+  tls:
+    - hosts:
+      - {{ .Values.ingress.host }}
+      secretName: notebook-tls         
 {{- end }}

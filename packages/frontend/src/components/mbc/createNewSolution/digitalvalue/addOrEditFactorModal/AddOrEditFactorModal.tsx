@@ -750,7 +750,7 @@ export default class AddOrEditFactorModal extends React.Component<
           this.setState({ costFactorItemError });
           formValid = false;
         }
-        if (rampUpData.value === null || !rampUpData.value) {
+        if (rampUpData.value === null || rampUpData.value === undefined || rampUpData.value === '') {
           costFactorItemError[index].value = errorMissingEntry;
           this.setState({ costFactorItemError });
           formValid = false;
@@ -768,12 +768,12 @@ export default class AddOrEditFactorModal extends React.Component<
           this.setState({ valueFactorItemErrors });
           formValid = false;
         }
-        if (rampUpData.percent === null || !rampUpData.percent) {
+        if (rampUpData.percent === null || rampUpData.percent === undefined || rampUpData.percent === '') {
           valueFactorItemErrors[index].percent = errorMissingEntry;
           this.setState({ valueFactorItemErrors });
           formValid = false;
         }
-        if (rampUpData.value === null || !rampUpData.value) {
+        if (rampUpData.value === null || rampUpData.value === undefined || rampUpData.value === '') {
           valueFactorItemErrors[index].value = errorMissingEntry;
           this.setState({ valueFactorItemErrors });
           formValid = false;

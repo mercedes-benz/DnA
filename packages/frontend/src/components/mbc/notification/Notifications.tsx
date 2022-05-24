@@ -413,6 +413,9 @@ const Notifications = (props: any) => {
                   {notificationDetails ? JSON.parse(notificationDetails).eventType === 'Solution Updated' ? 
                     <a className={Styles.goToSolution} onClick={()=>{history.push('/summary/' + JSON.parse(notificationDetails).resourceId)}}>Go To Solution</a> 
                     : '' : ''}
+                  {notificationDetails ? JSON.parse(notificationDetails).eventType === 'Storage - Bucket Creation' ? 
+                    <a className={Styles.goToSolution} onClick={()=>{history.push('/storage/explorer/' + JSON.parse(notificationDetails).resourceId)}}>Go To My Storage</a> 
+                    : '' : ''}  
                   <i className={classNames("icon mbc-icon close thin", Styles.closeDrawer)} onClick={toggleDrawer}/>
                   {/* {notificationRead ? (
                     <span className={Styles.detailsMarkAsRead} onClick={() => markAsRead()}>
@@ -431,20 +434,19 @@ const Notifications = (props: any) => {
                 </div>
                 <div className={Styles.notificationContent}>
                   {/* <p>Hey John Doe,</p> */}
-                  
-                  {notificationDetails?
-                    JSON.parse(notificationDetails)?.changeLogs?
-                    <ul>
-                      {JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {
-                        return (
-                          <li key={index}>{data.changeDescription} at {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, by {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
-                        )}
-                      )}
-                    </ul>  
-                  : <div className={Styles.noChangeLogs}>Change logs are not available!</div> : <div className={Styles.noChangeLogs}>Change logs are not available!</div>}
-                  
-                  
 
+                  {notificationDetails ? JSON.parse(notificationDetails).eventType === 'Solution Updated' ? 
+                    
+                    JSON.parse(notificationDetails)?.changeLogs?
+                      <ul>
+                        {JSON.parse(notificationDetails)?.changeLogs?.map((data: IChangeLogData, index: number) => {
+                          return (
+                            <li key={index}>{data.changeDescription} at {getParsedDate(data.changeDate)} / {getParsedTime(data.changeDate)}, by {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}</li>
+                          )}
+                        )}
+                      </ul>  
+                    : <div className={Styles.noChangeLogs}>Change logs are not available!</div>   
+                    : '' : ''}
 
                 </div>
                 {/* <div className={Styles.btnConatiner}>
