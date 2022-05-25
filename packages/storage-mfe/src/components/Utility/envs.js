@@ -18,4 +18,5 @@ const getInjectedEnv = (key) => {
 // we have to make sure that the string value of process.env is placed here.
 export const Envs = {
   STORAGE_API_BASEURL: getInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
+  API_BASEURL: getInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
 }
