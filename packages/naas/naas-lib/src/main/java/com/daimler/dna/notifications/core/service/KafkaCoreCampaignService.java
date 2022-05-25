@@ -84,6 +84,7 @@ public class KafkaCoreCampaignService {
 	private static String SOLUTION_NOTIFICATION_KEY = "Solution";
 	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
+	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -130,7 +131,7 @@ public class KafkaCoreCampaignService {
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
 					String emailBody = "<br/>"+ message.getMessage() + "<br/>";
-					String bucketURL = dnaBaseUri + message.getResourceId();
+					String bucketURL = dnaBaseUri + STORAGE_URI_PATH + message.getResourceId();
 					if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
 						for (ChangeLogVO changeLog : message.getChangeLogs()) {
 							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
@@ -138,7 +139,7 @@ public class KafkaCoreCampaignService {
 					}
 					if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
 							
-							emailBody += "<br/>" + "\u2022" + "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
+							emailBody += "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
 						
 					}
 					if(appNotificationPreferenceFlag) {
