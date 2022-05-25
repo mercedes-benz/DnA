@@ -7,6 +7,7 @@
         <meta<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>>
       <% } %>
     <% } %>
+    <script type="text/javascript" src="config.js"></script>
     <%= htmlWebpackPlugin.tags.headTags %>
     <style>
       .progress {
@@ -156,7 +157,6 @@
                       <!-- here to ensure a non-blocking load still occurs in IE and Edge, even if scripts follow loadCSS in head -->
                       <% } %>
                         <% } %>
-    <script type="text/javascript" src="config.js"></script>
   </head>
   <body>
     <% if (htmlWebpackPlugin.options.appMountId) { %>
