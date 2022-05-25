@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 
 import com.daimler.data.dto.MinioKeyDetails;
 import com.daimler.data.dto.MinioSecretMetadata;
-import com.daimler.data.dto.storage.ModelCollection;
+import com.daimler.data.dto.model.ModelCollection;
 import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
 

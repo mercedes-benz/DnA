@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-//import com.daimler.data.dto.storage.CreatedByVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -53,16 +52,6 @@ public class UserStore {
 		this.userInfo = null;
 	}
 
-//	public CreatedByVO getVO() {
-//		CreatedByVO vo = new CreatedByVO();
-//		vo.setId(this.userInfo.getId());
-//		vo.setFirstName(this.userInfo.getFirstName());
-//		vo.setLastName(this.userInfo.getLastName());
-//		vo.setDepartment(this.userInfo.getDepartment());
-//		vo.setEmail(this.userInfo.getEmail());
-//		vo.setMobileNumber(this.userInfo.getMobileNumber());
-//		return vo;
-//	}
 
 	@Data
 	@AllArgsConstructor

@@ -37,7 +37,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.daimler.data.dto.storage.ModelCollection;
+import com.daimler.data.dto.model.ModelCollection;
 
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
