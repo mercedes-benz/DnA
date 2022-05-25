@@ -3,6 +3,8 @@ spring:
     name: model-registry-service
 
 dna:
+  uri: ${DNA_URI:XXXXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   kube:
       config:
         namespace: ${KUBE_NAMESPACE:defaultNamespace}
@@ -12,10 +14,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-
-dna:
-  uri: ${DNA_URI:XXXXXX}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 jwt:
   secret:
