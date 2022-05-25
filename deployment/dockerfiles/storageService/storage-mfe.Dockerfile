@@ -13,7 +13,7 @@ FROM bitnami/nginx:latest
 
 WORKDIR /usr/share/nginx/html
 RUN rm -rf /usr/share/nginx/html/*
-COPY --from=base /usr/src/packages/storage-mfe/dist/app .
+COPY --from=base /usr/src/packages/storage-mfe/dist .
 COPY nginx.conf /opt/bitnami/nginx/conf/nginx.conf
 EXPOSE 3000
 USER 1001
