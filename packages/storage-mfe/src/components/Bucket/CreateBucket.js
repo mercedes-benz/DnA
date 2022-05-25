@@ -17,6 +17,7 @@ import { hideConnectionInfo } from '../ConnectionInfo/redux/connection.actions';
 import { bucketsApi } from '../../apis/buckets.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { Envs } from '../Utility/envs';
 
 const CreateBucket = () => {
   const { id } = useParams();
@@ -42,10 +43,9 @@ const CreateBucket = () => {
   const [PII, setPII] = useState(false);
   const [termsOfUse, setTermsOfUse] = useState(false);
   const [termsOfUseError, setTermsOfUseError] = useState(false);
-
   const [editAPIResponse, setEditAPIResponse] = useState({});
 
-  const isSecretEnabled = process.env.ENABLE_DATA_CLASSIFICATION_SECRET === 'true';
+  const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET === 'true';
 
   useEffect(() => {
     ProgressIndicator.show();
