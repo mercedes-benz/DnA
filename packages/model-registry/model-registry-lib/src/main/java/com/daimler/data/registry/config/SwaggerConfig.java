@@ -76,7 +76,7 @@ public class SwaggerConfig {
 	}
 
 	private ApiInfo apiEndPointsInfo() {
-		return new ApiInfoBuilder().title("Storage REST API Documentation").description(
+		return new ApiInfoBuilder().title("Model Registry REST API Documentation").description(
 				"REST API uri document management. Description of all the available APIs along with request and response formats. Also provides "
 						+ " options to try calling to execute running APIs and check")
 				.license("MIT License, Copyright (c) 2019 Daimler TSS GmbH")
