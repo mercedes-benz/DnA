@@ -35,10 +35,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.daimler.data.api.storage.ModelsApi;
+import com.daimler.data.api.model.ModelsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
-import com.daimler.data.dto.storage.ModelCollection;
+import com.daimler.data.dto.model.ModelCollection;
 import com.daimler.data.registry.models.service.RegistryService;
 
 import io.swagger.annotations.Api;
