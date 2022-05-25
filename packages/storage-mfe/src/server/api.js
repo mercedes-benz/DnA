@@ -19,7 +19,7 @@ const server = axios.create({
 
 server.interceptors.request.use((config) => {
   if (['/login', '/verifyLogin'].includes(config.url)) {
-    const appUrl = process.env.API_BASEURL ? process.env.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+    const appUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
     config.baseURL = appUrl;
     config.data = {};
     config.headers = {
