@@ -55,6 +55,45 @@ sourceCompatibility = 1.14
 targetCompatibility = 1.14
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
+//__________________________________________________________//
+//_____________________ SWAGGER CONFIGURATION ______________//
+swaggerSources {
+//model-registry-lib
+    model {
+        def modelyaml = "${rootDir}/model-registry-lib/src/main/resources/api/modelRegistry.yaml"
+        def modelJson = "${rootDir}/model-registry-lib/src/main/resources/api/modelRegistry.json"
+        inputFile = file(modelyaml)
+
+        def ignoreFile = "${rootDir}/model-registry-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(modelJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+        
+}
+
+compileJava {
+    dependsOn processResources
+    dependsOn swaggerSources.model.code
+    source "${swaggerSources.model.code.outputDir}/src/main/java"
+}
+
+sourceSets {
+    unitTest {
+        java { srcDir 'src/test/groovy' }
+        resources { srcDir 'src/test/resources' }
+        compileClasspath += sourceSets.main.runtimeClasspath
+    }
+    main {
+        java { srcDirs += "${swaggerSources.model.code.outputDir}/src/main/java" }
+    }
+}
+
+
 dependencies {
 
 
@@ -99,12 +138,19 @@ dependencies {
     implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.2'
 
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
-
+	
+	implementation('org.springframework.boot:spring-boot-starter-aop')
+	
     implementation 'org.projectlombok:lombok:1.18.22'
     implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
     
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.3'
+    
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.7'
+	implementation group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '3.0.2'
 	
 	// https://mvnrepository.com/artifact/net.minidev/json-smart
     implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
