@@ -349,11 +349,11 @@ public class LoginController {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			UserInfo userInfo = mapper.readValue(response.getBody(), UserInfo.class);
-			log.info("Fetching user from database.");
+			LOGGER.info("Fetching user:{} from database.",userId);
 			UserInfoVO userVO = userInfoService.getById(userInfo.getId());
 			if(Objects.isNull(userVO)){
-				log.info("User not found, adding the user:{}",userInfo.getId());
-				//Fetching default role as USER
+				LOGGER.info("User not found, adding the user:{}",userInfo.getId());
+				LOGGER.debug("Setting default role as 'User' for: {}",userInfo.getId());
 				UserRoleNsql roleEntity = userRoleService.getRoleUser();
 				UserInfoRole userRole = new UserInfoRole();
 				userRole.setId(roleEntity.getId());
@@ -363,6 +363,7 @@ public class LoginController {
 				//Setting entity to add new user
 				UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 				userEntity.setIsLoggedIn("Y");
+				LOGGER.debug("Onboarding new user:{}",userId);
 				userInfoService.addUser(userEntity);
 				userVO = userInfoAssembler.toVo(userEntity);
 			}
@@ -385,21 +386,22 @@ public class LoginController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers.set("Authorization", "Bearer " + accessToken);
-		HttpEntity<String> request = new HttpEntity<String>(headers);
-
+		HttpEntity<String> request = new HttpEntity<>(headers);
+		LOGGER.info("Fetching user:{} from database.",userId);
 		ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			UserInfo userInfo = mapper.readValue(response.getBody(), UserInfo.class);
 			UserInfoVO userVO = null;
-			try {
-				userVO = userInfoService.getById(userInfo.getEmail());
-			} catch (NoSuchElementException e) {
-				log.info("User not found, adding the user " + userInfo.getEmail());
+			LOGGER.info("Fetching user information from db.");
+			userVO = userInfoService.getById(userInfo.getEmail());
+			if(Objects.isNull(userVO)) {
+				LOGGER.info("User not found, adding the user:{} ", userInfo.getEmail());
 				UserRoleNsql roleEntity = userRoleService.getRoleUser();
 				UserInfoRole userRole = new UserInfoRole();
 				userRole.setId(roleEntity.getId());
 				userRole.setName(roleEntity.getData().getName());
+				LOGGER.debug("Setting default role as 'Admin' for: {}",userInfo.getId());
 				if ("Admin".equalsIgnoreCase(USER_ROLE)) {
 					userRole.setId("3");
 					userRole.setName("Admin");
@@ -409,6 +411,7 @@ public class LoginController {
 				UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 				userEntity.setId(userInfo.getEmail());
 				userEntity.setIsLoggedIn("Y");
+				LOGGER.debug("Onboarding new user:{}",userId);
 				userInfoService.addUser(userEntity);
 				userVO = userInfoAssembler.toVo(userEntity);
 			}
