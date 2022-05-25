@@ -76,6 +76,7 @@ app:
       dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
       avscanSubsProvisionAPI: /api/subscription/provision
       avscanUploadApi: /api/v1/scan/upload
+      dataSourceBulkCreateApiAccessToken: ""
 
   probes:
     initialDelaySeconds: 120

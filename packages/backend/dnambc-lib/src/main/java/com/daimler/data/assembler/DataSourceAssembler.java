@@ -30,6 +30,8 @@ package com.daimler.data.assembler;
 import com.daimler.data.db.entities.DataSourceNsql;
 import com.daimler.data.db.jsonb.DataSource;
 import com.daimler.data.dto.datasource.DataSourceVO;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -43,6 +45,7 @@ public class DataSourceAssembler implements GenericAssembler<DataSourceVO, DataS
 		if (Objects.nonNull(entity)) {
 			datasourceVO = new DataSourceVO();
 			datasourceVO.setId(entity.getId());
+			BeanUtils.copyProperties(entity.getData(), datasourceVO);
 			datasourceVO.setName(entity.getData().getName());
 		}
 		return datasourceVO;
@@ -54,6 +57,7 @@ public class DataSourceAssembler implements GenericAssembler<DataSourceVO, DataS
 		if (Objects.nonNull(vo)) {
 			datasourceNsql = new DataSourceNsql();
 			DataSource datasource = new DataSource();
+			BeanUtils.copyProperties(vo, datasource);
 			datasource.setName(vo.getName());
 			datasourceNsql.setData(datasource);
 			if (vo.getId() != null)
