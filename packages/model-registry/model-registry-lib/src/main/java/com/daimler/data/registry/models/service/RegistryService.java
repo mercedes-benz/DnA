@@ -27,7 +27,7 @@
 
 package com.daimler.data.registry.models.service;
 
-import com.daimler.data.dto.storage.ModelCollection;
+import com.daimler.data.dto.model.ModelCollection;
 
 public interface RegistryService {
 

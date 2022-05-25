@@ -84,40 +84,7 @@ public class KubernetesClient {
 		}
 		
 	}
-	
-//	public void getKubeflowMinioSpec() throws Exception{
-//		V1PodList items = api.listNamespacedPod("", null, null, null, null, null, null, null, null,
-//				10, false);
-//		V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio"))
-//				.findFirst().get();
-//		V1PodSpec minioPodSpec = minioPod.getSpec();
-//		V1Container minioContainer = minioPodSpec.getContainers().stream()
-//				.filter(container -> container.getName().contains("minio")).findFirst().get();
-//		List<V1ContainerPort> ports = minioContainer.getPorts();
-//		log.info(ports.get(0).getHostIP().toString());
-//		log.info(ports.get(0).getHostPort().toString());
-//		
-//		minioContainer.getEnv()
-//				.forEach(x -> log.info("Environment name: " + x.getName() + " , value: " + x.getValue()));
-//		String podIp = minioPod.getStatus().getPodIP();
-//		LOG.info(minioPod.toString());
-//		LOG.info(minioPodSpec.toString());
-//		LOG.info(minioContainer.get);
-//	}
-//	
 
-//	V1PodList items = api.listNamespacedPod(KUBEFLOW_NAMESPACE, null, null, null, null, null, null, null, null,
-//			10, false);
-//	V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio"))
-//			.findFirst().get();
-//	V1PodSpec minioPodSpec = minioPod.getSpec();
-//	V1Container minioContainer = minioPodSpec.getContainers().stream()
-//			.filter(container -> container.getName().contains("minio")).findFirst().get();
-//	minioContainer.getEnv()
-//			.forEach(x -> LOG.info("Environment name: " + x.getName() + " , value: " + x.getValue()));
-//	String podIp = minioPod.getStatus().getPodIP();
-	
-	
 	public V1PodSpec getPodSpec(V1Pod pod) {
 		try {
 			return pod.getSpec();
