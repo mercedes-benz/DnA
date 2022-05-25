@@ -167,6 +167,8 @@ spec:
               value: {{ .Values.app.backend.config.avscanSubsProvisionAPI }}
             - name: AVSCAN_UPLOAD_API
               value: {{ .Values.app.backend.config.avscanUploadApi }} 
+            - name: DATASOURCE_BULKCREATE_API_ACCESS_TOKEN
+              value: {{ .Values.app.backend.config.dataSourceBulkCreateApiAccessToken }}               
           image: {{ .Values.app.backend.image }}
           imagePullPolicy: Always
           name: backend
