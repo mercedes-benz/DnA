@@ -55,7 +55,6 @@ export default class TeamSummary extends React.Component<ITeamProps, any> {
                         return (
                           <div key={item.neededSkill + index} id={item.neededSkill + index}>
                             {item.neededSkill}:{' '}
-                            {/* {item.requestedFTECount ? item.requestedFTECount.toString().replace('.', ',') : 'N/A'} */}
                             <IntlProvider locale={navigator.language} defaultLocale="en">
                               {item.requestedFTECount ? <FormattedNumber value={Number(item.requestedFTECount)} /> : 'N/A'}
                             </IntlProvider>
