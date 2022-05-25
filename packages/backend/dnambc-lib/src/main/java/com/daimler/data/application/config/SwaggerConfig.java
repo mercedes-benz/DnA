@@ -29,6 +29,7 @@ package com.daimler.data.application.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -56,7 +57,7 @@ public class SwaggerConfig {
 	
 	
 	@Bean
-	public Docket api() {
+	public Docket apiWeb() {
 
 		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
 				.description("Authorization header")
@@ -72,11 +73,33 @@ public class SwaggerConfig {
 		globalRequestHeaderParms.add(authParamBuilder);
 		globalRequestHeaderParms.add(contentTypeParamBuilder);
 
-		return new Docket(DocumentationType.SWAGGER_2).select().apis(RequestHandlerSelectors.any())
-				.paths(PathSelectors.any()).build().pathMapping("/").apiInfo(apiEndPointsInfo())
+		return new Docket(DocumentationType.SWAGGER_2).groupName("1.DnA_web_api").select().apis(RequestHandlerSelectors.any())
+				.paths(Predicate.not(PathSelectors.regex("/api/datasources/bulk.*"))).build().pathMapping("/").apiInfo(apiEndPointsInfo())
 				.globalRequestParameters(globalRequestHeaderParms);
 	}
 
+	
+	@Bean
+	public Docket apiService() {
+		RequestParameter authParamBuilder = new RequestParameterBuilder().name("AccessToken")
+				.description("Authorization header")
+				.query(q -> q.defaultValue(
+						"XXXXXX"))
+				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
+				.build();
+		RequestParameter contentTypeParamBuilder = new RequestParameterBuilder().name("Content-Type")
+				.description("content type").query(q -> q.defaultValue("application/json"))
+				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
+				.build();
+		List<RequestParameter> globalRequestHeaderParms = new ArrayList<>();
+		globalRequestHeaderParms.add(authParamBuilder);
+		globalRequestHeaderParms.add(contentTypeParamBuilder);
+
+		return new Docket(DocumentationType.SWAGGER_2).groupName("2.DnA_service_api").select().apis(RequestHandlerSelectors.any())
+				.paths(PathSelectors.regex("/api/datasources/bulk.*")).build().pathMapping("/").apiInfo(apiEndPointsInfo())
+				.globalRequestParameters(globalRequestHeaderParms);
+	}
+	
 	private ApiInfo apiEndPointsInfo() {
 		return new ApiInfoBuilder().title("DNA REST API Documentation").description(
 				"REST API uri document management. Description of all the available APIs along with request and response formats. Also provides "
