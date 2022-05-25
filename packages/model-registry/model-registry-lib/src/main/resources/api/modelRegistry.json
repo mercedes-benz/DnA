@@ -3,9 +3,9 @@
 	"dateLibrary": "legacy",
 	"hideGenerationTimestamp": true,
 	"useTags": true,
-	"modelPackage": "com.daimler.data.dto.storage",
-	"apiPackage": "com.daimler.data.api.storage",
-	"invokerPackage": "com.daimler.data.service.storage",
+	"modelPackage": "com.daimler.data.dto.model",
+	"apiPackage": "com.daimler.data.api.model",
+	"invokerPackage": "com.daimler.data.service.model",
 	"importMappings": {
 		"BindingResult": "org.springframework.validation.BindingResult",
 		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
