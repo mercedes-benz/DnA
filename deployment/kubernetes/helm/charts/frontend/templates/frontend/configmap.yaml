@@ -33,10 +33,11 @@ data:
             tcp_nopush         on;
             tcp_nodelay        off;
             gzip               on;
-            gzip_http_version  1.0;
-            gzip_comp_level    2;
+            gzip_comp_level    5;
+            gzip_min_length    256;
+            gzip_vary          on;
             gzip_proxied       any;
-            gzip_types         text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+            gzip_types         application/atom+xml application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml font/opentype image/svg+xml image/x-icon text/x-component application/javascript application/json text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
             keepalive_timeout  65;
             ssl_protocols      TLSv1 TLSv1.1 TLSv1.2;
 
@@ -64,7 +65,12 @@ data:
               add_header Cache-Control "no-store, no-cache, must-revalidate";
               ssi on;
             }
-           location ~ .remoteEntry.js$ {
+            location ~ .remoteEntry.js$ {
+              expires -1;
+              add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            }
+
+            location ~ .config.js$ {
               expires -1;
               add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
             }
@@ -114,3 +120,5 @@ data:
             }
           }
         }
+  config.js: |
+    {{ .Values.configJs | nindent 8 }}
