@@ -12,7 +12,7 @@ import {
 
 const baseUrl = Envs.DASHBOARD_API_BASEURL
   ? Envs.DASHBOARD_API_BASEURL
-  : `http://${window.location.hostname}:7173/dashboards/api`;
+  : `http://${window.location.hostname}:7173/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };

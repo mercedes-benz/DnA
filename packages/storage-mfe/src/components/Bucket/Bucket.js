@@ -91,7 +91,7 @@ const AllBuckets = () => {
                       <Link to="createBucket">
                         <button className={bucketList === null ? Styles.btnHide : 'btn btn-primary'} type="button">
                           <i className="icon mbc-icon plus" />
-                          <span>Create New Bucket</span>
+                          <span>Add New Bucket</span>
                         </button>
                       </Link>
                     </React.Fragment>
@@ -102,12 +102,17 @@ const AllBuckets = () => {
             <div className={Styles.listContent}>
               {bucketList?.length === 0 ? (
                 <>
+                  <div className={Styles.emptyBuckets}>
+                    <span>
+                      You don&apos;t have any storage accounts at this time.
+                      <br /> Please create a new one.
+                    </span>
+                  </div>
                   <div className={Styles.subscriptionListEmpty}>
-                    <span>You dont have any storage accounts at this time, please create one</span>
                     <br />
                     <Link to="createBucket">
                       <button className={'btn btn-tertiary'} type="button">
-                        <span>Create New Bucket</span>
+                        <span>Create a Storage Bucket</span>
                       </button>
                     </Link>
                   </div>
