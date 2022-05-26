@@ -5,8 +5,6 @@
 namespace: dna
 #Add new env as array value with name/value field. Keep one tab indentation.
 envs:
-  - name: KUBE_NAMESPACE
-    value: dna
   - name: DNA_URI
     value: http://dna-service.dna.svc.cluster.local:80
   - name: DNA_AUTH_ENABLE
