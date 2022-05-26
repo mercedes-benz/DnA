@@ -49,7 +49,7 @@ public class RegistryServiceImpl implements RegistryService {
 	
 	@Override
 	public ModelCollection getAllModels(String userId) {
-		if(userId!=null && "".equalsIgnoreCase(userId)) {
+		if(userId!=null && !"".equalsIgnoreCase(userId)) {
 			MinioSecretMetadata minioDetails = kubeClient.getKubeflowMinioSpec();
 			String endpoint = "http://"+minioDetails.getHost()+":"+minioDetails.getPort();
 			if(minioDetails!=null) {
