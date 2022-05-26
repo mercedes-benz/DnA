@@ -88,7 +88,8 @@ public class MinioConfig {
 	
 	public ModelCollection getModels(MinioClient client, String userId) {
 		List<String> models = new ArrayList<>();
-		String patternMatch = minioModelsPatternPrefix + userId;
+		String patternMatch = minioModelsPatternPrefix + userId.toLowerCase();
+		log.info("Pattern used to identify user specific object is {} ", patternMatch);
 		try {
 			if(client!=null) {
 				Iterable<Result<Item>> results = client.listObjects(

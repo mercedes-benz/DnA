@@ -70,7 +70,9 @@ public class KubernetesClient {
 			client = Config.defaultClient();
 			Configuration.setDefaultApiClient(client);
 	        CoreV1Api api = new CoreV1Api();
+	        log.info("Got kubernetes java client and core api successfully");
 		} catch (Exception e) {
+			log.error("Error while getting kubernetes java client and core api successfully");
 			e.printStackTrace();
 		}
 	}
@@ -169,6 +171,7 @@ public class KubernetesClient {
 				V1ObjectMeta minioKubeflowSecretMetadata = this.getSecretMetaData(minioSecrets);
 				if(minioKubeflowSecretMetadata!=null) {
 					secretDetails = this.getJsonDataFromSecretMeta(minioKubeflowSecretMetadata);
+					log.info("Successfully fetched secretDetails");
 				}
 			}
 			V1PodList items = api.listNamespacedPod(kubeflowNamespace, null, null, null, null, null, null, null, null,
@@ -179,8 +182,11 @@ public class KubernetesClient {
 			V1Container minioContainer = minioPodSpec.getContainers().stream()
 					.filter(container -> container.getName().contains("minio")).findFirst().get();
 			List<V1ContainerPort> ports = minioContainer.getPorts();
-			secretDetails.setPort(ports.get(0).getContainerPort().toString());
-			secretDetails.setHost(minioPod.getStatus().getPodIP());
+			String port = ports.get(0).getContainerPort().toString();
+			secretDetails.setPort(port);
+			String host = minioPod.getStatus().getPodIP();
+			secretDetails.setHost(host);
+			log.info("Successfully fetched secretDetails of minio running at host {} and port {}",host,port);
 		}catch(Exception e) {
 			log.error("Exception occurred while getting kubeflow specific minio details. Exception is {} ", e.getMessage());
 		}
