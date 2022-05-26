@@ -540,7 +540,7 @@ const CreateBucket = () => {
                     ...(termsOfUseErrorField?.length ? { color: '#e84d47' } : ''),
                   }}
                 >
-                  <div dangerouslySetInnerHTML={{ __html: process.env.TOU_HTML }}></div>
+                  <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
                   <sup>*</sup>
                 </div>
               </div>
