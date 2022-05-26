@@ -19,90 +19,7 @@ spec:
         app: {{ .Release.Name }}-frontend
     spec:
       containers:
-        - env:
-          - name: PROJECTSMO_BACKEND_HOST
-            value: {{ .Values.appFrontend.config.backendHost }}
-          - name: PROJECTSMO_BACKEND_PORT
-            value: "80"
-          - name: PROJECTSMO_FRONTEND_OIDC_DISABLED
-            value: {{ .Values.appFrontend.config.oidcDisabled | quote }}
-          - name: OIDC_DISABLED
-            value: {{ .Values.appFrontend.config.oidcDisabled | quote }}
-          - name: OIDC_PROVIDER
-            value: {{ .Values.appFrontend.config.oidcProvider | squote }}
-          - name: PROJECTSMO_DEPLOY_VERSION
-            value: "0.91"
-          - name: PROJECTSMO_FRONTEND_API_BASEURL
-            value: {{ .Values.appFrontend.config.apiBaseUrl }}
-          - name: PROJECTSMO_FRONTEND_OAUTH2_TOKEN_URL
-            value: {{ .Values.appFrontend.config.oauth2TokenUrl }}
-          - name: PROJECTSMO_FRONTEND_OAUTH2_AUTH_URL
-            value: {{ .Values.appFrontend.config.oauth2AuthUrl }}
-          - name: PROJECTSMO_FRONTEND_OAUTH2_REVOKE_URL
-            value: {{ .Values.appFrontend.config.oauth2RevokeUrl }}
-          - name: PROJECTSMO_FRONTEND_OAUTH2_LOGOUT_URL
-            value: {{ .Values.appFrontend.config.oauth2LogoutUrl }}
-          - name: PROJECTSMO_FRONTEND_OAUTH2_INTROSPECTION_URL
-            value: {{ .Values.appFrontend.config.oauth2IntrospectionUrl }}
-          - name: PROJECTSMO_FRONTEND_OAUTH2_USERINFO_URL
-            value: {{ .Values.appFrontend.config.oauth2UserInfoUrl }}
-          - name: PROJECTSMO_FRONTEND_CLIENT_IDS
-            value: {{ .Values.appFrontend.config.frontendClientid }}
-          - name: PROJECTSMO_FRONTEND_REDIRECT_URLS
-            value: {{ .Values.appFrontend.config.redirectUrls }}
-          - name: PROJECTSMO_JUPYTER_NOTEBOOK_URL
-            value: {{ .Values.appFrontend.config.jupyterNotebookUrl }}
-          - name: PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_URL
-            value: {{ .Values.appFrontend.config.jupyterNotebookOidcPopUpUrl | quote }}
-          - name: PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME
-            value: "5000"
-          - name: PROJECTSMO_DATAIKU_LIVE_APP_URL
-            value: {{ .Values.appFrontend.config.dataikuLiveAppUrl }}
-          - name: PROJECTSMO_DATAIKU_TRAINING_APP_URL
-            value: {{ .Values.appFrontend.config.dataikuTrainingAppUrl }}
-          - name: PROJECTSMO_MALWARE_SCAN_SWAGGER_UI_URL
-            value: {{ .Values.appFrontend.config.swaggerUiUrl }}
-          - name: PROJECTSMO_DATAIKU_FERRET_URL
-            value: {{ .Values.appFrontend.config.dataikuFerretUrl }}
-          - name: 'PROJECTSMO_DNA_APPNAME_HEADER'
-            value: {{ .Values.appFrontend.config.appNameHeader | squote }}
-          - name: 'PROJECTSMO_DNA_APPNAME_HOME'
-            value: {{ .Values.appFrontend.config.appNameHome | squote }}
-          - name: 'PROJECTSMO_DNA_CONTACTUS_HTML'
-            value: {{ .Values.appFrontend.config.contactUsHtml | squote }}
-          - name: 'PROJECTSMO_DNA_BRAND_LOGO_URL'
-            value: {{ .Values.appFrontend.config.brandLogoUrl | squote }}
-          - name: 'PROJECTSMO_DNA_APP_LOGO_URL'
-            value: {{ .Values.appFrontend.config.appLogoUrl | squote }} 
-          - name: 'PROJECTSMO_ENABLE_INTERNAL_USER_INFO'
-            value: {{ .Values.appFrontend.config.enableInternalUserInfo | squote }}  
-          - name: 'PROJECTSMO_ENABLE_DATA_COMPLIANCE'
-            value: {{ .Values.appFrontend.config.enableDataCompliance | squote }}
-          - name: 'PROJECTSMO_ENABLE_REPORTS'
-            value: {{ .Values.appFrontend.config.enabledReports | squote }}   
-          - name: 'PROJECTSMO_ENABLE_JUPYTER_WORKSPACE'
-            value: {{ .Values.appFrontend.config.enableJupyterWorkspace | squote }} 
-          - name: 'PROJECTSMO_ENABLE_DATAIKU_WORKSPACE'
-            value: {{ .Values.appFrontend.config.enableDataikuWorkspace | squote }} 
-          - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE'
-            value: {{ .Values.appFrontend.config.enableMalwareService | squote }} 
-          - name: 'PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE'
-            value: {{ .Values.appFrontend.config.enableDataPipelineService | squote }}
-          - name: 'PROJECTSMO_ENABLE_STORAGE_SERVICE'
-            value: {{ .Values.appFrontend.config.enableStorageService | squote }}
-          - name: 'PROJECTSMO_STORAGE_MFE_APP_URL'
-            value: {{ .Values.appFrontend.config.storageMFEAppURL | squote }}  
-          - name: 'PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE'
-            value: {{ .Values.appFrontend.config.enabledMlPipelineService | squote }}
-          - name: 'PROJECTSMO_ML_PIPELINE_URL'
-            value: {{ .Values.appFrontend.config.mlPipelineUrl | squote }}  
-          - name: 'PROJECTSMO_ENABLE_MALWARE_SCAN_ONEAPI_INFO'
-            value: {{ .Values.appFrontend.config.enableMalwareApiInfo | squote }}  
-          - name: 'PROJECTSMO_DNA_COMPANY_NAME' 
-            value: {{ .Values.appFrontend.config.companyName | squote }} 
-          - name: 'PROJECTSMO_ENABLE_NOTIFICATION'
-            value: {{ .Values.appFrontend.config.enableNotification | squote }}
-          image: {{ .Values.appFrontend.image }}
+        - image: {{ .Values.appFrontend.image }}
           imagePullPolicy: Always
           name: frontend
           ports:
@@ -128,15 +45,21 @@ spec:
               path: {{ .Values.probes.readinessProbe.path }}
               port: {{ .Values.probes.readinessProbe.port }}  
           volumeMounts:
-            - name: {{ .Release.Name }}-frontend-configmap
-              mountPath: /etc/nginx/nginx.conf
+            - name: {{ .Release.Name }}-frontend-configmap-ngnix
+              mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
+            - name: {{ .Release.Name }}-frontend-configmap-configjs
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js                 
           resources: {}
       securityContext:
         runAsUser: 1001
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret.name }}
       volumes:
-        - name: {{ .Release.Name }}-frontend-configmap
+        - name: {{ .Release.Name }}-frontend-configmap-ngnix
           configMap:
-            name: {{ .Release.Name }}-frontend-configmap
+            name: {{ .Release.Name }}-frontend-configmap        
+        - name: {{ .Release.Name }}-frontend-configmap-configjs
+          configMap:
+            name: {{ .Release.Name }}-frontend-configmap                     

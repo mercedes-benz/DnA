@@ -4,31 +4,57 @@
   .content {
     .formGroup {
       padding: 25px 38px;
-      .inputGrp {
-        display: inline-flex;
+      .bucketNameInputField {
         input:read-only {
           border: none;
+          margin-left: -10px;
         }
-      }
-      .inputLabel {
-        min-width: 100px;
-        margin-right: 30px;
-        margin-bottom: auto;
-        margin-top: 15px;
-      }
-      .bucketNameField {
-        width: 300px;
       }
       .infoIcon {
         font-size: var(--font-size-icon-medium);
         margin-left: 5px;
         margin-top: -9px;
+        position: absolute;
+        right: 0;
         i {
           cursor: pointer;
           color: #697582;
 
           &:hover {
             color: #00adef;
+          }
+        }
+      }
+      .dataClassificationField {
+        margin-left: -12px;
+      }
+      .permissionField {
+        display: flex;
+        margin-left: -10px;
+        input[type="checkbox"]::after {
+          border: none;
+        }
+      }
+      .pIIField {
+        margin-left: -12px;
+      }
+      .termsOfUseContainer {
+        display: flex;
+        flex-direction: column;
+        margin-top: 20px;
+        min-height: 56px;
+        .termsOfUseContent {
+          display: flex;
+          margin-left: -10px;
+          .termsOfUseText {
+            margin-top: auto;
+            margin-bottom: auto;
+            color: #c0c8d0;
+            sup {
+              float: right;
+              top: -12px;
+              right: -8px;
+            }
           }
         }
       }
@@ -85,6 +111,9 @@
         padding-bottom: 15px;
         border-bottom: 1px solid #383f49;
         .collUserTitleCol {
+          &:first-child {
+            max-width: 150px;
+          }
           flex: 1;
           font-size: var(--font-size-smallest);
           padding-right: 12px;
@@ -105,6 +134,9 @@
           justify-content: space-between;
           width: 100%;
           .collUserTitleCol {
+            &:first-child {
+              max-width: 150px;
+            }
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -172,4 +204,11 @@
   position: relative;
   top: 75px;
   margin: 0 0 15px 114px;
+}
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 30px);
+  }
 }

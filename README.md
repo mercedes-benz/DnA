@@ -38,9 +38,11 @@ The list of future ideas is big and it is constantly being adjusted, so please i
 
 ## Installation
 
-Please follow the [installation guide](./docs/SETUP-DOCKER-COMPOSE.md), if you want to try the DnA Platform. The Docker installation has a limited feature set and may not be suitable for production environments. Since most of the other features require Kubernetes, only the Transparency feature of Data & Analytics initiatives/solutions is available from the feature list. Docker).
+if you want to try the DnA Platform ,please follow the [installation guide](./docs/Install.md). In the installation guide we are provding 2 ways to install this application(Docker-compose and Helm) . Use Docker-compose only for local testing .
 
-For a complete production installation, we recommend the Kubernetes installation. We are currently preparing a Kubernetes Helm chart (available in January/February 2022) where the entire system will be available - including Jupyter notebooks with Kale, Apache Airflow, Kubeflow Pipelines. Stay tuned on this frequency for this :). In the meantime, you can use the previously mentioned docker instruction to deploy images in Kubernetes.
+For a complete production installation, we recommend the installation using helm.Currently in our helm and docker-compose we are providing multiple service like DnA , Dashboard, Naas , Malware Scan,Vault service and storage-service.
+
+Very soon we are going to provide you the docker-compose and helm-chart for airflow,kubeflow-pipeline and Jupter notebooks. So stay tuned to our repo frequently .
 
 ## Architecture
 

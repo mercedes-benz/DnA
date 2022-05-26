@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +64,8 @@ import lombok.extern.slf4j.Slf4j;
 public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoNsql, String>
 		implements UserInfoService {
 
+	private static Logger logger = LoggerFactory.getLogger(BaseUserInfoService.class);
+	
 	@Autowired
 	private UserInfoCustomRepository customRepo;
 	@Autowired
@@ -261,6 +265,26 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	public boolean isLoggedIn(String id) {
 		UserInfoNsql userinfo = jpaRepo.findById(id).get();
 		return !ObjectUtils.isEmpty(userinfo) && userinfo.getIsLoggedIn().equalsIgnoreCase("Y");
+	}
+
+	@Override
+	public List<UserInfoVO> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy,
+			String sortOrder) {
+		logger.info("Fetching user information from table.");
+		List<UserInfoNsql> userInfoEntities = customRepo.getAllWithFilters(searchTerm, limit, offset, sortBy,
+				sortOrder);
+		logger.info("Success from get information from table.");
+		if (!ObjectUtils.isEmpty(userInfoEntities)) {
+			return userInfoEntities.stream().map(n -> userinfoAssembler.toVo(n)).toList();
+		} else {
+			return new ArrayList<>();
+		}
+	}
+
+	@Override
+	public Long getCountWithFilters(String searchTerm) {
+		logger.info("Fetching total count of user information.");
+		return customRepo.getCount(searchTerm);		
 	}
 
 }

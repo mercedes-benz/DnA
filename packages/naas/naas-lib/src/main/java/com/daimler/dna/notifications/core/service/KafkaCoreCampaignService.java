@@ -78,7 +78,13 @@ public class KafkaCoreCampaignService {
 	@Value("${kafka.centralTopic.name}")
 	private String dnaCentralTopicName;
 	
+	@Value("${dna.uri}")
+	private String dnaBaseUri;
 	
+	private static String SOLUTION_NOTIFICATION_KEY = "Solution";
+	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
+	private static String STORAGE_NOTIFICATION_KEY = "Storage";
+	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -103,13 +109,17 @@ public class KafkaCoreCampaignService {
 					UserNotificationPrefVO preferenceVO = userNotificationPreferencesClient.getUserNotificationPreferences(user);
 					boolean appNotificationPreferenceFlag = true;
 					boolean emailNotificationPreferenceFlag = false;
-					if(message.getEventType().contains("Solution")) {
+					if(message.getEventType().contains(SOLUTION_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getSolutionNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getSolutionNotificationPref().isEnableEmailNotifications();
 					}
-					if(message.getEventType().contains("Notebook")) {
+					if(message.getEventType().contains(NOTEBOOK_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getNotebookNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getNotebookNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getPersistenceNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getPersistenceNotificationPref().isEnableEmailNotifications();
 					}
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
@@ -121,10 +131,16 @@ public class KafkaCoreCampaignService {
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
 					String emailBody = "<br/>"+ message.getMessage() + "<br/>";
+					String bucketURL = dnaBaseUri + STORAGE_URI_PATH + message.getResourceId();
 					if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
 						for (ChangeLogVO changeLog : message.getChangeLogs()) {
 							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
 						}
+					}
+					if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+							
+							emailBody += "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
+						
 					}
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);
