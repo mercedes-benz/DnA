@@ -85,8 +85,8 @@ public class StorageRepositoryImpl implements StorageRepository {
 			String isCreator = " lower(jsonb_extract_path_text(data,'createdBy','id')) like " + "'%"
 					+ userId.toLowerCase() + "%'";
 
-			String isCollaborator = " lower(jsonb_extract_path_text(data,'collaborators')) similar to '"
-					+ userId.toLowerCase() + "'";
+			String isCollaborator = " lower(jsonb_extract_path_text(data,'collaborators')) similar to '%"
+					+ userId.toLowerCase() + "%'";
 
 			consolidatedQuery = " and " + isCreator + " or " + isCollaborator;
 		}
