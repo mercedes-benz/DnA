@@ -1,4 +1,4 @@
-window["INJECTED_ENVIRONMENT"]={
+window["STORAGE_INJECTED_ENVIRONMENT"]={
   CONTAINER_APP_URL: "http://localhost:9090",
   API_BASEURL: "http://localhost:7171/api",
   STORAGE_API_BASEURL: "http://localhost:7175/storage/api",
