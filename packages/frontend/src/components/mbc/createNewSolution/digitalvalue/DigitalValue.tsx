@@ -4,6 +4,8 @@ import InfoModal from '../../../../components/formElements/modal/infoModal/InfoM
 // @ts-ignore
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 // @ts-ignore
+import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
+// @ts-ignore
 import ImgCostDriver from '../../../../assets/images/cost-driver-info.png';
 // @ts-ignore
 import ImgMaturityLevel from '../../../../assets/images/maturity-level-info.png';
@@ -681,7 +683,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                 <div>
                   <div className={classNames('input-field-group')}>
                     <label id="benefitRelevanceSelectLabel" htmlFor="benefitRelevanceSelect" className="input-label">
-                      Benefit Relevance<sup>*</sup>
+                      Benefit Realization Risk<sup>*</sup>
                     </label>
                     <div id="benefitRelevance" className="custom-select">
                       <select
@@ -1414,6 +1416,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     }
     this.setState({ showAddOrEditFactorModal: true }, () => {
       this.addOrEditFactorModalRef.current.setFactorData(this.state.factorItem, isEditMode);
+      InputFields.defaultSetup();
     });
   };
 

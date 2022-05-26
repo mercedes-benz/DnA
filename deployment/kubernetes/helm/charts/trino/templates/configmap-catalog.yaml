@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.catalog" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: catalogs
+data:
+  tpch.properties: |
+    connector.name=tpch
+    tpch.splits-per-node=4
+  tpcds.properties: |
+    connector.name=tpcds
+    tpcds.splits-per-node=4
+  hive.properties: |
+    connector.name=hive
+    hive.metastore.uri=thrift://metastore.{{ .Values.namespace }}.svc.cluster.local:9083
+    hive.allow-drop-table=true
+    hive.max-partitions-per-scan=1000000
+    hive.s3.endpoint={{ .Values.hivemetastore.minio.host }}
+    hive.s3.path-style-access=true
+    hive.s3.aws-access-key={{ .Values.hivemetastore.minio.accessKey }}
+    hive.s3.aws-secret-key={{ .Values.hivemetastore.minio.secretKey }}
+    hive.s3.ssl.enabled=false
+    hive.s3.max-connections=100
+    hive.parquet.use-column-names=true
+  {{- if .Values.immuta.enabled }}
+  immuta.properties: |
+    connector.name={{ .Values.immuta.name }}
+    immuta.endpoint={{ .Values.immuta.endpoint }}
+    immuta.apikey={{ .Values.immuta.apiKey }}
+  {{- end }}
+
+{{- range $catalogName, $catalogProperties := .Values.additionalCatalogs }}
+  {{ $catalogName }}.properties: |
+    {{- $catalogProperties | nindent 4 }}
+{{- end }}

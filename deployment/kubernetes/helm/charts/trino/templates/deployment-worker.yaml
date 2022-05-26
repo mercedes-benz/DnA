@@ -1,0 +1,83 @@
+{{- if gt (int .Values.server.workers) 0 }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "trino.worker" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: worker
+spec:
+  replicas: {{ .Values.server.workers }}
+  selector:
+    matchLabels:
+      app: {{ template "trino.name" . }}
+      release: {{ .Release.Name }}
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: {{ template "trino.name" . }}
+        release: {{ .Release.Name }}
+        component: worker
+    spec:
+      serviceAccountName: {{ include "trino.serviceAccountName" . }}
+      {{- with .Values.securityContext }}
+      securityContext:
+        runAsUser: {{ .runAsUser }}
+        runAsGroup: {{ .runAsGroup }}
+      {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ template "trino.worker" . }}
+        - name: catalog-volume
+          configMap:
+            name: {{ template "trino.catalog" . }}
+      {{- if .Values.initContainers.worker }}
+      initContainers:
+      {{-  tpl (toYaml .Values.initContainers.worker) . | nindent 6 }}
+      {{- end }}
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - name: {{ .Chart.Name }}-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+          volumeMounts:
+            - mountPath: {{ .Values.server.config.path }}
+              name: config-volume
+            - mountPath: {{ .Values.server.config.path }}/catalog
+              name: catalog-volume
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

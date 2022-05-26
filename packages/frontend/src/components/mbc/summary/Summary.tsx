@@ -349,7 +349,6 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         dnaNotebookEnabled={this.state.dnaNotebookEnabled}
                         dnaDataIkuProjectEnabled={this.state.dnaDataIkuProjectEnabled}
                         notebookAndDataIkuNotEnabled={this.state.notebookAndDataIkuNotEnabled}
-                        user={this.props.user}
                       />
                     )}
                     {this.state.canShowTeams && (
