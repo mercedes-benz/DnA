@@ -8,8 +8,8 @@ import Styles from './Pipeline.scss';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { Link } from 'react-router-dom';
 const classNames = cn.bind(Styles);
-import Modal from '../../formElements/modal/Modal';
-import PipelineSubModel from './pipelineSubModel/PipelineSubModel';
+// import Modal from '../../formElements/modal/Modal';
+// import PipelineSubModel from './pipelineSubModel/PipelineSubModel';
 import PipelineSubList from './pipelineSubList/PipelineSubList';
 import Pagination from '../pagination/Pagination';
 import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
@@ -20,8 +20,8 @@ import { PipelineApiClient } from '../../../services/PipelineApiClient';
 import InfoModal from '../../formElements/modal/infoModal/InfoModal';
 
 const Pipeline = () => {
-  const [subscribePopup, setSubscribePopup] = useState(false);
-  const [airflowSuccess, setAirflowSuccess] = useState('');
+  // const [subscribePopup, setSubscribePopup] = useState(false);
+  // const [airflowSuccess, setAirflowSuccess] = useState('');
   const [pipelineProjectList, setPipelineProjectList] = useState([]);
   const [pipelineProjectListResponse, setPipelineProjectListResponse] = useState([]);
 
@@ -33,14 +33,14 @@ const Pipeline = () => {
 
   const [info, setInfo] = useState(false);
 
-  const subscriPopupClose = () => {
-    setSubscribePopup(false);
-  };
-  const addAirflowSuccessFn = (action: string) => {
-    setSubscribePopup(false);
-    setAirflowSuccess(action);
-    Notification.show('Subscription created Successfully!');
-  };
+  // const subscriPopupClose = () => {
+  //   setSubscribePopup(false);
+  // };
+  // const addAirflowSuccessFn = (action: string) => {
+  //   setSubscribePopup(false);
+  //   setAirflowSuccess(action);
+  //   Notification.show('Subscription created Successfully!');
+  // };
   const onInfoModalCancel = () => {
     setInfo(false);
   };
@@ -103,7 +103,7 @@ const Pipeline = () => {
       .catch((err) => {
         ProgressIndicator.hide();
       });
-  }, [airflowSuccess]);
+  });
 
   const contentForInfo = (
     <div className={Styles.infoPopup}>
@@ -204,7 +204,7 @@ const Pipeline = () => {
           </div>
         </div>
       </div>
-      {subscribePopup && (
+      {/* {subscribePopup && (
         <Modal
           title={'Create New Pipeline Project'}
           showAcceptButton={false}
@@ -216,7 +216,7 @@ const Pipeline = () => {
           scrollableContent={false}
           onCancel={subscriPopupClose}
         />
-      )}
+      )} */}
       {info && (
         <InfoModal
           title={'About Pipeline'}

@@ -4,13 +4,13 @@
 
 #Suchart properties for frontend
 frontend:
-  enabled: false
+  enabled: true
   namespace: dna
   imagePullSecret: 
-    name: harbor-pull-secrets
-    key: "docker-config"
+    name: dockerregistry
+    key: "docker-config" 
   ingress:
-    enabled: true
+    enabled: false
     namespace: ingress
     host: "localhost"
     lbIP: ""
@@ -23,7 +23,7 @@ frontend:
   appFrontend:
     replicaCount: 1
     #Specify the frontend image, after building the image from docker file
-    image: dna-frontend
+    image: ""
     config:
     #If you want to enable OIDC authentication then set oidcDisabled to "false"
       oidcDisabled: true
@@ -42,8 +42,10 @@ frontend:
       oauth2LogoutUrl: ""
       oauth2IntrospectionUrl: ""
       oauth2UserInfoUrl: ""
-      frontendClientid: ***REMOVED***
-      redirectUrls: http://localhost
+      frontendClientid: ""
+      redirectUrls: ""
+
+
     #Specify the swagger URL for malwarescan
       swaggerUiUrl: http://localhost/avscan/swagger-ui.html#/
       dataikuFerretUrl: ""
@@ -58,28 +60,28 @@ frontend:
       enableInternalUserInfo: true
       enableDataCompliance: true
     # Set enabledReports to "true" if you want to enable reports, by default value is "false"
-      enabledReports: false
+      enabledReports: true
     # Set enableJupyterWorkspace to "true", if you want to enable Jupyter Workspace
       enableJupyterWorkspace: false
     # Set enableDataikuWorkspace to "true", if you want to enable Dataiku Workspace, by default value is "false"
       enableDataikuWorkspace: false
-      enableMalwareService: false
+      enableMalwareService: true
       enableDataPipelineService: false
     # Set enableStorageService to "true" to enable Storage Service
-      enableStorageService: false
-      storageMFEAppURL: http://localhost:8083
+      enableStorageService: true
+      storageMFEAppURL: http://localhost:7175
       enablePipelineService: false
       enabledMlPipelineService: false
       enableMalwareApiInfo: false
     # If you want to enable notification, set enableNotification to "true", by default it is false
-      enableNotification: false
+      enableNotification: true
     # Specify the company name 
       companyName: XYZ
-      backendHost: dna-app-backend-service
+      backendHost: dna-service
 
   # Configure ngnix as per the 
     ngnix:
-      backend: http://dna-app-backend-service.dna.svc.cluster.local:80
+      backend: http://dna-service.dna.svc.cluster.local:80
       jupyServer: http://proxy-public:8000
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
       avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
@@ -91,13 +93,13 @@ frontend:
 
 #Suchart properties for backend
 backend:
-  enabled: false
+  enabled: true
   namespace: dna
   imagePullSecret: 
-    name: harbor-pull-secrets
+    name: dockerregistry
     key: "docker-config" 
   ingress:
-    enabled: true
+    enabled: false
     namespace: ingress
     host: "ingress-host"
     lbIP: ""
@@ -110,54 +112,55 @@ backend:
   app:
     backend:
       replicaCount: 1
-      #Specify the backend image, after building the image from docker file
-      image: backend:latest
+      
+      image: ""
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
         notebookSecretToken: ""
         oidcClientID: ""
-        oidcClientSecret: ""
+        oidcClientSecret: "" 
         drdCertPassword: ""
-        jwtSecretKey: ""
-        s3AccessKey: ""
-        s3SecretKey: ""
+        jwtSecretKey: 
+        s3AccessKey: 
+        s3SecretKey: 
         dataikuProdApiKey: ""
-        dataikuTrainingApiKey: ""
+        dataikuTrainingApiKey: "" 
         avscanApiKey: ""
-        appDBUserName: db
-        appDBPassword: admin
+        appDBUserName: postgres
+        appDBPassword: postgres
       config:
         enableItsmm: false
         enableJupyterNotebook: false
         enableDataiku: false
-        enableAttachmentScan: false
+        enableAttachmentScan: true
         enableInternalUser: false
         redirectUrl: ""
-        dbUri: jdbc:postgresql://postgresql:64000/db
-        oidcUserInfoUrl: ""
-        oidcTokenIntrospectionUrl: ""
+        dbUri: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+        oidcUserInfoUrl: "" 
+        oidcTokenIntrospectionUrl: "" 
         oidcProvider: INTERNAL
         oidcTokenRevocationUrl: ""
         internalUserRequestUrl: ""
         internalCertFile: ""
         oidcDisabled: true
+        #Create a bucket in the minio and mention the bucket name in the s3BuckerName
         s3BucketName: ""
-        s3Url: ""
+        s3Url: http://minio.storage.svc.cluster.local:9000
         corosOriginUrl: ""
-        jupyterNotebookUrl: ""
+        jupyterNotebookUrl: "" 
         vaultHost: vault.vault.svc.cluster.local
         vaultPort: 8200
         dataikuProdUri: ""
-        dataikuProdAdminGroup: ""
+        dataikuProdAdminGroup: "" 
         dataikutraininguri: ""
         avscanAppId: ""
-        naasBroker: broker01.kafka.svc.cluster.local:8001
+        naasBroker: ""
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
         dataikuTrainingAdminGroup: ""
-        avscanUri: ""
+        avscanUri: http://clamav-rest-service.clamav.svc.cluster.local:8181/avscan/api/v1
         flywayBaseline: "true"
         flywayBaselineOnMigrate: "true"
         flywayBaselineVersion: "0"
@@ -167,7 +170,7 @@ backend:
     vault:
       secret:
         name: vault-secrets
-        rootToken: ***REMOVED***
+        rootToken: ""
 
 #Suchart properties for i3postgressql database
 i3postgresql:
@@ -176,7 +179,7 @@ i3postgresql:
   app:
     db:
       replicaCount: 1
-      image: postgresql:10.3-2.1.0
+      image: ""
       pgssl: "NO"
       dbname: db
       secrets: 
@@ -188,6 +191,13 @@ i3postgresql:
         patroniUserPassword: ""
         appUserName: ""
         appPassword: ""
+      probes:
+        initialDelaySeconds: 30
+        timeoutSeconds: 10
+        periodSeconds: 10
+        failureThreshold: 3
+        readinessProbe:
+          port: "" 
       airflowDB:
         airflowUserName: ""
         airflowdbName: ""
@@ -199,24 +209,24 @@ i3postgresql:
 
 #Subchart properties for bitnami postgresql
 bitnamipostgresql:
-  enabled: false
-  namespace: bitnami
+  enabled: true
+  namespace: dna
   global:
     postgresql:
       postgresqlDatabase: db
-      postgresqlUsername: admin
-      postgresqlPassword: admin
-      servicePort: 64000
+      postgresqlUsername: postgres
+      postgresqlPassword: postgres
+      servicePort: 5432
 
 #Subchart properties for clamav
 clamav:
-  enabled: false
+  enabled: true
   appName: clamav
   namespace: clamav
   app:
     backend:
       name: clamav-rest
-      image: malwarescan-backend:latest
+      image: ""
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -224,22 +234,38 @@ clamav:
       config: 
         clamav_backend_url: clamav-service
         clamav_backend_port: 3310
-        max_file_size: 10MB
-        max_request_size: 11MB
+        max_file_size: 4000MB
+        max_request_size: 4000MB
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
-        auth_api_host: http://dna-app-backend-service.dna.svc.cluster.local:80/api/subscription/validate
+        auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription/validate
         restricted_url_pattern: /avscan/api/v1/scan.*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
         corsOriginUrl: ""
+
+  securityContext:
+    runasUser: 0 
+
+    probes:
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+      livenessProbe:
+        path: /avscan/actuator/health/liveness
+        port: api
+      
+      readinessProbe:
+        path: /avscan/actuator/health/readiness
+        port: api
   image:
-    repo: clamav:latest
+    repo: ""
     replicaCount: 1
     pullPolicy: Always
   ingress:
-    enabled: true
+    enabled: false 
     host: "" 
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -248,45 +274,46 @@ clamav:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: "" 
   imagePullSecret: 
-    name: harbor-pull-secrets
+    name: dockerregistry
+    key: "docker-config" 
 
   Storage:
-    storageClass: cinder
+    storageClass: ""
     accessModes: ReadWriteOnce
-    size: 5G
+    size: 2G
 
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1000Mi"
-      cpu: "500m"
+  # resources:
+  #   requests:
+  #     memory: "512Mi"
+  #     cpu: "250m"
+  #   limits:
+  #     memory: "1000Mi"
+  #     cpu: "500m"
       
 #Subchart properties for naas
 naas:
-  enabled: false
+  enabled: true
   appName: naas
   namespace: naas
   app:
     backend:
-      image: naas-backend
+      image: ""
       secrets:
         name: naas-app-secrets
         authApiToken: ""
-        jwtKey: ""
+        jwtKey: 
         db: 
-          appUserName: ""
-          appPassword: ""
+          appUserName: postgres
+          appPassword: postgres
       config:
-        api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
-        naas_broker: broker01.kafka.svc.cluster.local:8001
+        api_db_url: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
+        naas_broker: ""
         max_poll_records: 6000
-        dna_uri: http://dna-app-backend-service.dna.svc.cluster.local:80
-        dna_auth_enable: true
+        dna_uri: http://dna-service.dna.svc.cluster.local:80
+        dna_auth_enable: false
         mailServerHost: ""
         mailServerPort: ""
-        notificationSenderEmail: ""
+        notificationSenderEmail: "" 
         poll_time: 5000
         naas_central_topic: CentralEventTopic
         naas_centralread_topic: CentralReadTopic
@@ -300,12 +327,24 @@ naas:
       limits:
         memory: "1000Mi"
         cpu: "500m"
+    probes:
+      initialDelaySeconds: 180
+      timeoutSeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+      livenessProbe:
+        path: /naas/actuator/health/liveness
+        port: api
+      
+      readinessProbe:
+        path: /naas/actuator/health/readiness
+        port: api
   
   image:
   pullPolicy: Always
       
   ingress:
-    enabled: true
+    enabled: false
     host: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -314,7 +353,8 @@ naas:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
   imagePullSecret: 
-   name: harbor-pull-secrets
+   name: dockerregistry
+   key: "docker-config" 
   
 #Subchart properties for notebooks
 notebooks:
@@ -357,7 +397,7 @@ notebooks:
       userNameSpaceTemplate: kubeflow
 
   ingress:
-    enabled: true
+    enabled: false
     host: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -367,29 +407,31 @@ notebooks:
       cert-manager.io/cluster-issuer: ""
 
   Storage:
-    storageClass: cinder
+    storageClass: ""
     accessModes: ReadWriteOnce
     size: 1G
   
   resources:
     cpu: 1
-    memory: 4G
+    memory: 1G
 
 #Subchart properties for dashboard
 dashboard:
-  enabled: false
+  enabled: true
   namespace: dashboard
-  image: dashboard-backend
+  image: ""
   imagePullSecret: 
-    name: harbor-pull-secrets
-  dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
+    name: dockerregistry
+    key: "docker-config" 
+  dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
   secret:
     name: dashboard-secrets
-    appUserName: ""
-    appPassword: ""
-    jwtKey: ""
-  appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
-  enableAuth: true
+    appUserName: dashboard
+    appPassword: dashboard
+    jwtKey: 
+    
+  appUrl: http://dna-service.dna.svc.cluster.local:80
+  enableAuth: false
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
   flywayBaseline: "true"
@@ -398,7 +440,7 @@ dashboard:
   flywaySchema: "public"
   containerPort: 7173
   ingress:
-    enabled: true
+    enabled: false
     host: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -414,35 +456,49 @@ dashboard:
       memory: "1000Mi"
       cpu: "500m"
 
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 10
+    periodSeconds: 20
+    failureThreshold: 3
+    livenessProbe:
+      path: /dashboards/actuator/health/liveness
+      port: api
+        
+    readinessProbe:
+      path: /dashboards/actuator/health/readiness
+      port: api
+
 #Subchart properties for airflow
 airflow:
   enabled: false
   appName: airflow
   namespace: airflow
   imagePullSecret: 
-    name: harbor-pull-secrets
+    name: dockerregistry
+    key: "docker-config" 
   backend:
     image: ""
     imagePullPolicy: Always
-    dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
+    dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
       name: airflow-backend-secrets
-      dbPassword: ""
-      dbUsername: ""
-      gitToken: ""
-      jwtKey: ""
+      dbPassword: airflow
+      dbUsername: airflow
+      gitToken: "" 
+      jwtKey: 
       oidcClientID: ""
       oidcClientSecret: ""
     containerPort: 7171
     crossOriginUrl: ""
-    apiUrl: ""
+    apiUrl: http://dna-service.dna.svc.cluster.local:80
     oidcInfoUrl: "" 
     oidcIntrospectionUrl: "" 
     oidcRevocationUrl: "" 
-    oidcDisabled: false
-    gitUrl: "" 
+    oidcDisabled: true
+    gitUrl: ""
     gitMountPath: /git/airflow-user-dags
-    gitBranch: ""
+    gitBranch: main
     dag:
       path: dags
       ext: py
@@ -450,10 +506,10 @@ airflow:
       retry: 20
     loggingPath: /tmp/airflow/log
     loggingEnvironment: dev
-    flywayBaseline: ""
-    flywayBaselineOnMigrate: ""
-    flywayBaselineVersion: ""
-    flywaySchema: ""
+    flywayBaseline: "true"
+    flywayBaselineOnMigrate: "true"
+    flywayBaselineVersion: "0"
+    flywaySchema: "public"
 
   ingress:
     enabled: true
@@ -465,21 +521,21 @@ airflow:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
 
-  pullSecretData: ""
+  pullSecretData: 
   secret:
-    gitUserName: ""
-    gitPassword: ""
+    gitUserName: 
+    gitPassword: 
     #gitSshKey: ""
     knownHosts: ""
     postgresql:
-      sqlAlchemyConn: ""
-    clientSecret: ""
+      sqlAlchemyConn: postgresql+psycopg2://airflow:airflow@dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
+    #clientSecret: eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
 
   gitSync:
     image: ""
-    repo: ""
+    repo: https://github.com/airflow_dags.git
     dest: git-sync
-    branch: master
+    branch: main
     ssh: "false"
     root: /git
 
@@ -538,11 +594,11 @@ airflow:
       workerContainerImagePullPolicy: Always
       workerServiceAccountName: airflow
       deleteWorkerPods: True
-      dagsInImage: False
+      dagsInImage: false
       gitSubpath: dags
       inCluster: True
-      gitSyncContainerRepository: ""
-      gitSyncContainerTag: 3.3.0
+      gitSyncContainerRepository: airflow-git-sync
+      gitSyncContainerTag: latest
       gitSyncInitContainerName: git-sync-container
       gitSyncRunAsUser: 1000
       runAsUser: 1000
@@ -553,7 +609,7 @@ airflow:
   docker:
     image:
       name: ""
-      tag: ""
+      tag: latest
 
   service:
     port: 8080
@@ -601,19 +657,20 @@ airflow:
       resourcePolicy: keep
       accessMode: ReadWriteOnce
       storage:
-        className: cinder-retain
-        size: 50Gi
+        className: ""
+        size: 2Gi
 
   oidc:
     logout:
       uri: ""
 
   Storage:
-    storageClass: cinder-retain
+    storageClass: ""
     accessModes: ReadWriteOnce
-    size: 5Gi
+    size: 1Gi
   
 #Subchart properties for microgateway
+
 microgateway:
   enabled: false
   namespace: clamav
@@ -744,23 +801,30 @@ microgateway:
 
 #Subchart properties for vault
 vault:
-  enabled: false
+  enabled: true 
   namespace: vault
   global:
-  # enabled is the master enabled switch. Setting this to true or false
-  # will enable or disable all the components within this chart by default.
+    # enabled is the master enabled switch. Setting this to true or false
+    # will enable or disable all the components within this chart by default.
     enabled: true
-  # Image pull secret to use for registry authentication.
-    imagePullSecrets: [ ]
-  # imagePullSecrets:
-  #   - name: image-pull-secret
-  # TLS for end-to-end encrypted transport
-  tlsDisable: true
+    # Image pull secret to use for registry authentication.
+    imagePullSecrets:
+    # imagePullSecrets:
+       - name: dockerregistry
+    # TLS for end-to-end encrypted transport
+    tlsDisable: true
+
   server:
+    # Resource requests, limits, etc. for the server cluster placement. This
+    # should map directly to the value of the resources field for a PodSpec.
+    # By default no direct resource request is made.
+
     image:
-      repository: /docker.io_vault
-      tag: 1.3.0
+      repository: vault
+      tag: latest
+      # Overrides the default Image Pull Policy
       pullPolicy: IfNotPresent
+
     resources:
     # resources:
     #   requests:
@@ -844,7 +908,6 @@ vault:
                 app.kubernetes.io/instance: "{{ .Release.Name }}"
                 component: server
             topologyKey: kubernetes.io/hostname
-
     # Toleration Settings for server pods
     # This should be a multi-line string matching the Toleration array
     # in a PodSpec.
@@ -891,10 +954,10 @@ vault:
     dataStorage:
       enabled: true
       # Size of the PVC created
-      size: 10Gi
+      size: 1Gi
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: cinder-retain
+      storageClass: ""
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
 
@@ -906,12 +969,13 @@ vault:
     auditStorage:
       enabled: true
       # Size of the PVC created
-      size: 10Gi
+      size: 1Gi
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: cinder-retain
+      storageClass: ""
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
+
     # Run Vault in "dev" mode. This requires no further setup, no state management,
     # and no initialization. This is useful for experimenting with Vault without
     # needing to unseal, store keys, et. al. All data is lost on restart - do not
@@ -933,7 +997,6 @@ vault:
       # using a stateful set. This should be HCL.
       config: |
         ui = true
-
         listener "tcp" {
           tls_disable = 1
           address = "[::]:8200"
@@ -942,7 +1005,6 @@ vault:
         storage "file" {
           path = "/vault/data"
         }
-
         # Example configuration for using auto-unseal, using Google Cloud KMS. The
         # GKMS keys must already exist, and the cluster must have a service account
         # that is authorized to access GCP KMS.
@@ -952,7 +1014,6 @@ vault:
         #   key_ring    = "vault-helm-unseal-kr"
         #   crypto_key  = "vault-helm-unseal-key"
         #}
-
     # Run Vault in "HA" mode. There are no storage requirements unless audit log
     # persistence is required.  In HA mode Vault will configure itself to use Consul
     # for its storage backend.  The default configuration provided will work the Consul
@@ -967,7 +1028,6 @@ vault:
       # This should be HCL.
       config: |
         ui = true
-
         listener "tcp" {
           tls_disable = 1
           address = "[::]:8200"
@@ -977,7 +1037,6 @@ vault:
           path = "vault"
           address = "HOST_IP:8500"
         }
-
         # Example configuration for using auto-unseal, using Google Cloud KMS. The
         # GKMS keys must already exist, and the cluster must have a service account
         # that is authorized to access GCP KMS.
@@ -987,7 +1046,6 @@ vault:
         #   key_ring    = "vault-helm-unseal-kr"
         #   crypto_key  = "vault-helm-unseal-key"
         #}
-
       # A disruption budget limits the number of pods of a replicated application
       # that are down simultaneously from voluntary disruptions
       disruptionBudget:
@@ -1003,37 +1061,66 @@ vault:
 
   # Vault UI
   ui:
-  # True if you want to create a Service entry for the Vault UI.
-  #
-  # serviceType can be used to control the type of service created. For
-  # example, setting this to "LoadBalancer" will create an external load
-  # balancer (for supported K8S installations) to access the UI.
+    # True if you want to create a Service entry for the Vault UI.
+    #
+    # serviceType can be used to control the type of service created. For
+    # example, setting this to "LoadBalancer" will create an external load
+    # balancer (for supported K8S installations) to access the UI.
     enabled: false
     serviceType: "ClusterIP"
     serviceNodePort: null
     externalPort: 8200
 
+    # loadBalancerSourceRanges:
+    #   - 10.0.0.0/16
+    #   - 1.78.23.3/32
+
+    # loadBalancerIP:
+
+    # Extra annotations to attach to the ui service
+    # This should be a multi-line string mapping directly to the a map of
+    # the annotations to apply to the ui service
+    annotations: { }
+
 #subchart  value for  storageMfe
 storagemfe:
   enabled: true
-  namespace: storage-service
+  namespace: storage
   conf:
-    storageBackendUrl: ""
-    containerAppUrl: ""
-    apiBaseUrl: ""
+    storageBackendUrl: http://storage-be.storage.svc.cluster.local:80 
+
+
+  envs:
+  #Add new env as array value with name/value field. Keep one tab indentation.
+    - name: PROJECTSMO_CONTAINER_APP_URL
+      value: http://localhost:7179
+    - name: PROJECTSMO_FRONTEND_API_BASEURL
+      value: api
   replicaCount: 1
 
   image:
     repository: ""
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: ""
+    tag: latest
+
 
   imagePullSecrets:
-    - name: harbor-pull-secret
+    - name: dockerregistry
+
+  nameOverride: ""
+  fullnameOverride: "storage-mfe"
+
+  podSecurityContext:
+    runAsUser: 1001
+
+  containerPort: 3000
+  service:
+    type: ClusterIP
+    port: 80
   
   ingress:
-    enabled: true
+    enabled: false
     annotations:
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -1057,7 +1144,7 @@ storagemfe:
 
 storagebe:
   enabled: true
-  # Default values for storage-be.
+    # Default values for storage-be.
   # This is a YAML-formatted file.
   # Declare variables to be passed into your templates.
   namespace: storage
@@ -1070,7 +1157,7 @@ storagebe:
     - name: VAULT_HOST
       value: vault.vault.svc.cluster.local
     - name: VAULT_PORT
-      value: 8200         
+      value: "8200"         
     - name: VAULT_SCHEME
       value: http
     - name: VAULT_AUTHENTICATION
@@ -1085,9 +1172,9 @@ storagebe:
     - name: VAULT_PATH
       value: dna/minio  
     - name: DNA_URI
-      value: http://dna-app-backend-service.dna.svc.cluster.local:80
+      value: http://dna-service.dna.svc.cluster.local:80
     - name: DNA_AUTH_ENABLE
-      value: true  
+      value: "true"  
     - name: JWT_SECRET_KEY
       valueFrom:
         secretKeyRef:
@@ -1096,7 +1183,7 @@ storagebe:
     - name: CORS_ORIGIN_URL
       value: "" 
     - name: MINIO_ENDPOINT
-      value: http://my-release-minio.minio.svc.cluster.local:9000
+      value: http://minio.storage.svc.cluster.local:9000
     - name: MINIO_ADMIN_ACCESS_KEY
       valueFrom:
         secretKeyRef:
@@ -1108,21 +1195,21 @@ storagebe:
           key: minioSecretKey
           name: storage-be   
     - name: MINIO_POLICY_VERSION
-      value: 2012-10-17   
+      value: "2012-10-17"   
     - name: LOGGING_ENVIRONMENT
       value: DEV   
     - name: LOGGING_PATH
-      value: /var/log    
+      value: /tmp/log/   
 
   secret:
     - key: vaultToken
       value: ""
     - key: jwt.secret.key 
-      value: ""
+      value: 
     - key: minioAccessKey 
-      value: ""
+      value: 
     - key: minioSecretKey
-      value: ""
+      value: 
 
   replicaCount: 1
 
@@ -1130,15 +1217,17 @@ storagebe:
     repository: ""
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: ""
+    tag: latest
 
   imagePullSecrets:
-    - name: harbor-pull-secret
+    - name: dockerregistry
   nameOverride: ""
   fullnameOverride: "storage-be"
 
-  podSecurityContext: 
-    runAsUser: 1000
+  podSecurityContext:
+    #We are running this applicaton as root  
+    runAsUser: 1001
+    
 
   containerPort: 7175
   service:
@@ -1188,4 +1277,9 @@ storagebe:
     #   cpu: 100m
     #   memory: 128Mi
 minio:
+  enabled: true
+
+#Subchart properties for model-registry
+
+model-registry:
   enabled: true

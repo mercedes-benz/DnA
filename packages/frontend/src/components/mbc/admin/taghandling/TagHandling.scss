@@ -21,6 +21,10 @@
     h3 {
       padding: 0 38px;
     }
+    tr th:last-child {
+      padding-right: 38px !important;
+      text-align: right !important;
+    }
   }
 }
 
@@ -113,10 +117,6 @@
 .addBtn {
   display: flex;
   justify-content: flex-end;
-}
-tr th:last-child {
-  padding-right: 38px !important;
-  text-align: right !important;
 }
 
 .spinner {
