@@ -4,4 +4,4 @@ window["STORAGE_INJECTED_ENVIRONMENT"]={
   STORAGE_API_BASEURL: "http://localhost:7175/storage/api",
   TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
   ENABLE_DATA_CLASSIFICATION_SECRET: false
-}
+};
