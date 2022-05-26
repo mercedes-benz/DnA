@@ -152,12 +152,12 @@ const base = {
   ],
 };
 
-// copy config file part of build
-// if (fs.existsSync(path.join(process.cwd(), 'public'))) {
-//   base.plugins.push(
-//     new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
-//   );
-// }
+//copy config file part of build
+if (fs.existsSync(path.join(process.cwd(), 'public'))) {
+  base.plugins.push(
+    new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
+  );
+}
 
 
 module.exports = base;
