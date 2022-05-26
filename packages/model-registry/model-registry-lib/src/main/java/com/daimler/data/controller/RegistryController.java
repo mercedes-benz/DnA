@@ -81,8 +81,10 @@ public class RegistryController implements ModelsApi{
 			
 		final ModelCollection modelCollection = modelRegistryservice.getAllModels(userId);
 		if(modelCollection!= null && modelCollection.getData()!= null && !modelCollection.getData().isEmpty()) {
+			log.info("returning successfully with models");
 			return new ResponseEntity<>(modelCollection, HttpStatus.OK);
 		}else {
+			log.info("returning empty no models found");
 			return new ResponseEntity<>(modelCollection, HttpStatus.NO_CONTENT);
 		}
 	}
