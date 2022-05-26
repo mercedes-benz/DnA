@@ -1,7 +1,6 @@
 window["INJECTED_ENVIRONMENT"]={
     OIDC_DISABLED: true,
     API_BASEURL: "http://localhost:7171/api",
-    STORAGE_API_BASEURL: "http://localhost:7175/storage/api",
     DNA_COMPANY_NAME: "Company_Name",
     DNA_APPNAME_HEADER: "DnA App",
     DNA_APPNAME_HOME: "Data and Analytics",
@@ -30,12 +29,17 @@ window["INJECTED_ENVIRONMENT"]={
     ENABLE_MALWARE_SCAN_ONEAPI_INFO: false,
     ENABLE_DATA_PIPELINE_SERVICE: true,
     ENABLE_STORAGE_SERVICE: true,
-    CONTAINER_APP_URL: 'http://localhost:9090',
     STORAGE_MFE_APP_URL: "http://localhost:8083",
     ENABLE_REPORTS: true,
     ENABLE_ML_PIPELINE_SERVICE: true,
     ENABLE_NOTIFICATION: true,
-    ML_PIPELINE_URL: "YOUR_ML_PIPELINE_URL",
+    ML_PIPELINE_URL: "YOUR_ML_PIPELINE_URL"
+  };
+
+  window["STORAGE_INJECTED_ENVIRONMENT"]={
+    CONTAINER_APP_URL: "http://localhost:9090",
+    API_BASEURL: "http://localhost:7171/api",
+    STORAGE_API_BASEURL: "http://localhost:7175/storage/api",
     TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
-    ENABLE_DATA_CLASSIFICATION_SECRET: false,
+    ENABLE_DATA_CLASSIFICATION_SECRET: false
   };
