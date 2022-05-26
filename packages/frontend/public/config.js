@@ -36,4 +36,6 @@ window["INJECTED_ENVIRONMENT"]={
     ENABLE_ML_PIPELINE_SERVICE: true,
     ENABLE_NOTIFICATION: true,
     ML_PIPELINE_URL: "YOUR_ML_PIPELINE_URL",
+    TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+    ENABLE_DATA_CLASSIFICATION_SECRET: false,
   };
