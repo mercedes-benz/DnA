@@ -23,5 +23,5 @@ export const Envs = {
   ENABLE_DATA_CLASSIFICATION_SECRET:
     getInjectedEnv('ENABLE_DATA_CLASSIFICATION_SECRET') !== undefined
       ? getInjectedEnv('ENABLE_DATA_CLASSIFICATION_SECRET')
-      : EnvParser.parseBool(process.env.ENABLE_DATA_CLASSIFICATION_SECRET, true),
+      : parseBool(process.env.ENABLE_DATA_CLASSIFICATION_SECRET, true),
 };
