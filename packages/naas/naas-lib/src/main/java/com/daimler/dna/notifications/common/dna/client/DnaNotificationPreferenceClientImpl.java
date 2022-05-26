@@ -22,9 +22,6 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 
 	@Value("${dna.user.notificationPreferences.get.api}")
 	private String notificationPreferencesApiUri;
-	
-	//@Value("${dna.token}")
-	//private String authToken;
 
 	@Autowired
 	RestTemplate restTemplate;

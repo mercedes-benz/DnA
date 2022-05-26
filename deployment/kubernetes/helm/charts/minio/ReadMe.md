@@ -32,8 +32,8 @@
    ## Update the authentication
    ## Password length should be min 10 and strong. If a password is provided as empty, minio create a new password
    auth:
-     rootUser: admin
-     rootPassword: S6O!#uiOop
+     rootUser: 
+     rootPassword: 
    ```
 3. To enable distributed(high availability) mode of storing the data. For distributed mode require minimum 2 node cluster setup. Update the following properties in `values.yaml`
 
@@ -78,7 +78,7 @@
         --env MINIO_SERVER_ROOT_PASSWORD=$ROOT_PASSWORD \
         --env MINIO_SERVER_HOST=my-release-minio \
         --labels="my-release-minio-client=true" \
-        --image registry.app.corpintra.net/dna/minio/minio-client:2022.1.25-debian-10-r2 -- admin info minio
+        --image minio/minio-client:2022.1.25-debian-10-r2 -- admin info minio
    ```
    Once it shows the successful signature then minio server is working.
 8. Access the Minio Web View/API Console. Do a port forwarding to access it on local.
@@ -91,18 +91,15 @@
    kubectl port-forward --namespace minio svc/my-release-minio 9000:9000
 
    ```
-   Open the application on [http://127.0.0.1:9001]() use username as `admin `and for password run the below command.
-
-   ```
-   kubectl get secret --namespace minio my-release-minio -o jsonpath="{.data.root-password}" | base64 --decode
-   ```
+   Open the application on [http://127.0.0.1:9001]() use username as the value of `$ROOT_USER` and for password `$ROOT_PASSWORD`
+   
 9. If you're going to upgrade helm chart. Before that update the `password` property in `values.yaml`.
 
    ```
    ## Update the authentication
    auth:
-     rootUser: admin
-     rootPassword: S6O!#uiOop
+     rootUser: 
+     rootPassword: 
    ```
 10. To uninstall the minio server
 

@@ -22,9 +22,12 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: {{ include "storage-mfe.fullname" . }}
+        - name: {{ include "storage-mfe.fullname" . }}-ngnix
           configMap:
             name: {{ include "storage-mfe.fullname" . }}
+        - name: {{ include "storage-mfe.fullname" . }}-configjs
+          configMap:
+            name: {{ include "storage-mfe.fullname" . }}            
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -48,10 +51,9 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ include "storage-mfe.fullname" . }}
-              mountPath: /etc/nginx/nginx.conf
+            - name: {{ include "storage-mfe.fullname" . }}-ngnix
+              mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
-          {{- with .Values.envs }}
-          env:
-          {{- toYaml . | nindent 12 }}
-          {{- end }}      
+            - name: {{ include "storage-mfe.fullname" . }}-configjs
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js                

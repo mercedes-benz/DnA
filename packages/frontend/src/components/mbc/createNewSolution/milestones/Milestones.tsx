@@ -212,7 +212,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
   constructor(props: IMilestonesProps) {
     super(props);
     this.state = {
-      milestonesList: this.props.milestones,
+      milestonesList: JSON.parse(JSON.stringify(this.props.milestones)),
       showMilestonesModal: false,
       cancelChanges: false,
       years: [
@@ -1012,6 +1012,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
         showMilestonesModal: false,
         milestones,
         currentMilestoneIndex: -1,
+        milestonesList: JSON.parse(JSON.stringify(milestones)),
       });
       this.props.modifyMileStones(milestones, this.state.currentPhase);
     }
