@@ -19,4 +19,6 @@ const getInjectedEnv = (key) => {
 export const Envs = {
   STORAGE_API_BASEURL: getInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
   API_BASEURL: getInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
+  TOU_HTML: getInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
+  ENABLE_DATA_CLASSIFICATION_SECRET: getInjectedEnv('ENABLE_DATA_CLASSIFICATION_SECRET') || process.env.ENABLE_DATA_CLASSIFICATION_SECRET,
 }
