@@ -127,7 +127,7 @@ const base = {
         './Bucket': './src/App',
       },
       remotes: {
-        'dna-container': `dna_container@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CONTAINER_APP_URL || '${CONTAINER_APP_URL}')]/remoteEntry.js?[(new Date()).getTime()]`,
+        'dna-container': `dna_container@[(window.STORAGE_INJECTED_ENVIRONMENT && window.STORAGE_INJECTED_ENVIRONMENT.CONTAINER_APP_URL || '${CONTAINER_APP_URL}')]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...deps,
@@ -153,11 +153,11 @@ const base = {
 };
 
 // copy config file part of build
-if (fs.existsSync(path.join(process.cwd(), 'public'))) {
-  base.plugins.push(
-    new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
-  );
-}
+// if (fs.existsSync(path.join(process.cwd(), 'public'))) {
+//   base.plugins.push(
+//     new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
+//   );
+// }
 
 
 module.exports = base;
