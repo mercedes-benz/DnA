@@ -101,6 +101,43 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"
+     
+# path to create external uri to access model
+#  supported http methods POST
+#
+# path example ../model/externaluri
+
+ /model/externaluri:
+    post:
+      tags:
+        - "models"
+      summary: "create a external uri."
+      description: "create a external uri"
+      operationId: "create"
+      parameters:
+        - name: "modelRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a external uri"
+          required: true
+          schema:
+            $ref: "#/definitions/ModelRequestVO"    
+      responses:
+        200:
+          description: "Returns message of succes"
+          schema:
+            $ref: "#/definitions/ModelResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"      
 
 
 definitions:
@@ -113,6 +150,42 @@ definitions:
       type: array
       items:
         type: string
+        
+ ModelRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ModelVO"
+        
+ ModelVO:
+    type: object
+    properties:
+      modelName:
+        type: string
+        description: "Name of the model"
+        minLength: 1   
+    required:
+      - modelName 
+      
+ ModelExternalUriVO:
+    type: object
+    properties:
+      modelName:
+        type: string
+        description: "Name of the model"
+      externalUri:
+        type: string
+        description: "External Uri"              
+      
+ ModelResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ModelExternalUriVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"                      
  
  GenericMessage:
   type: object
