@@ -12,6 +12,7 @@ declare global {
   interface Window {
     INJECTED_ENVIRONMENT?: any;
     NOTIFICATION_POLL_ID?: any;
+    STORAGE_INJECTED_ENVIRONMENT?: any;
   }
 }
 
@@ -21,6 +22,13 @@ const getInjectedEnv = (key: string) => {
   }
   return undefined;
 };
+
+const getStorageInjectedEnv = (key: string) => {
+  if (window.STORAGE_INJECTED_ENVIRONMENT) {
+    return window.STORAGE_INJECTED_ENVIRONMENT[key];
+  }
+  return undefined;
+}
 
 // You have to go via this or directly use the process.env
 // BUT using in direct statements like === will result in direct expansion in builds this means the variable is lost
@@ -37,7 +45,7 @@ export const Envs = {
   NOTIFICATIONS_API_BASEURL: getInjectedEnv('NOTIFICATIONS_API_BASEURL') || process.env.NOTIFICATIONS_API_BASEURL,
   DASHBOARD_API_BASEURL: getInjectedEnv('DASHBOARD_API_BASEURL') || process.env.DASHBOARD_API_BASEURL,
   NOTEBOOK_API_BASEURL: getInjectedEnv('NOTEBOOK_API_BASEURL') || process.env.NOTEBOOK_API_BASEURL,
-  STORAGE_API_BASEURL: getInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
+  STORAGE_API_BASEURL: getStorageInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
   MALWARESCAN_API_BASEURL: getInjectedEnv('MALWARESCAN_API_BASEURL') || process.env.MALWARESCAN_API_BASEURL,
   NODE_ENV: getInjectedEnv('NODE_ENV') || process.env.NODE_ENV,
   CLIENT_IDS: getInjectedEnv('CLIENT_IDS') || process.env.CLIENT_IDS,
@@ -112,4 +120,5 @@ export const Envs = {
     getInjectedEnv('ENABLE_NOTIFICATION') !== undefined
       ? getInjectedEnv('ENABLE_NOTIFICATION')
       : EnvParser.parseBool(process.env.ENABLE_NOTIFICATION, false),
+  STORAGE_TOU_HTML: getStorageInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
 };
