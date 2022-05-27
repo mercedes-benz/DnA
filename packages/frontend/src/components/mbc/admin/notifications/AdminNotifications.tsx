@@ -34,6 +34,37 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
     return formValid;
   };
 
+  const onCustomMessageSubmit = () => {
+    if (validation()) {
+      setCustomNotification(true);
+    }
+  };
+
+  const onCustomNotificationAccept = () => {
+    NotificationApiClient.createNotification(notificationMsg, userId)
+      .then((res) => {
+        Notification.show('Notification published sucessfully.');
+        setNotificationMsg('');
+        setCustomNotification(false);
+      })
+      .catch(() => {
+        Notification.show('Error while publishing notification.', 'alert');
+        setCustomNotification(false);
+      });
+  };
+
+  const onTOUNotificationAccept = () => {
+    NotificationApiClient.createNotification(termsOfUseUpdateMsg, userId)
+      .then((res) => {
+        Notification.show('Notification published sucessfully.');
+        setNotifyTOU(false);
+      })
+      .catch(() => {
+        Notification.show('Error while publishing notification.', 'alert');
+        setNotifyTOU(false);
+      });
+  };
+
   return (
     <>
       <div className={Styles.mainPanel}>
@@ -59,15 +90,7 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
           </div>
         </div>
         <div className={Styles.submitBtn}>
-          <button
-            className={'btn btn-tertiary '}
-            type="button"
-            onClick={() => {
-              if (validation()) {
-                setCustomNotification(true);
-              }
-            }}
-          >
+          <button className={'btn btn-tertiary '} type="button" onClick={onCustomMessageSubmit}>
             Submit
           </button>
         </div>
@@ -95,17 +118,7 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
               <strong>terms of use</strong>{' '}
             </div>
           }
-          onAccept={() => {
-            NotificationApiClient.createNotification(termsOfUseUpdateMsg, userId)
-              .then((res) => {
-                Notification.show('Notification published sucessfully.');
-                setNotifyTOU(false);
-              })
-              .catch(() => {
-                Notification.show('Error while publishing notification.', 'alert');
-                setNotifyTOU(false);
-              });
-          }}
+          onAccept={onTOUNotificationAccept}
           onCancel={() => setNotifyTOU(false)}
         />
       )}
@@ -118,18 +131,7 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
           showAcceptButton={true}
           showCancelButton={true}
           content={<div>Are you sure you want to send notification to all users</div>}
-          onAccept={() => {
-            NotificationApiClient.createNotification(notificationMsg, userId)
-              .then((res) => {
-                Notification.show('Notification published sucessfully.');
-                setNotificationMsg('');
-                setCustomNotification(false);
-              })
-              .catch(() => {
-                Notification.show('Error while publishing notification.', 'alert');
-                setCustomNotification(false);
-              });
-          }}
+          onAccept={onCustomNotificationAccept}
           onCancel={() => setCustomNotification(false)}
         />
       )}
