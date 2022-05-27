@@ -9,7 +9,13 @@ import Modal from 'dna-container/Modal';
 
 import { FullFileBrowser, ChonkyActions, FileHelper, defineFileAction } from 'chonky';
 
-import { deleteFiles, downloadFoldersOrFiles, getFiles, setFiles } from './redux/fileExplorer.actions';
+import {
+  deleteFiles,
+  downloadFoldersOrFiles,
+  getFiles,
+  setActionButtons,
+  setFiles,
+} from './redux/fileExplorer.actions';
 import { useParams } from 'react-router-dom';
 
 import { setChonkyDefaults } from 'chonky';
@@ -54,16 +60,6 @@ import { v4 as uuidv4 } from 'uuid';
 // inform chonky on which iconComponent to use
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
-// const UploadFolder = defineFileAction({
-//   id: 'upload_folder',
-//   button: {
-//     name: 'Upload folder',
-//     toolbar: true,
-//     tooltip: 'Upload folder',
-//     icon: 'upload',
-//   },
-// });
-
 const PublishFolder = defineFileAction({
   id: 'publish_folder',
   button: {
@@ -81,7 +77,7 @@ const FileExplorer = () => {
 
   const { bucketName } = useParams();
 
-  const { files } = useSelector((state) => state.fileExplorer);
+  const { files, fileActions, bucketObjects } = useSelector((state) => state.fileExplorer);
 
   const [currentFolderId, setCurrentFolderId] = useState(bucketName);
   const [newFolderName, setNewFolderName] = useState('');
@@ -126,15 +122,6 @@ const FileExplorer = () => {
     isImage: false,
     blobURL: '',
   });
-
-  const myFileActions = [
-    ...(bucketPermission.write ? [ChonkyActions.UploadFiles] : []),
-    // ...(bucketPermission.write ? [UploadFolder] : []),
-    ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
-    ChonkyActions.DownloadFiles,
-    ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
-    ...(bucketPermission.write ? [PublishFolder] : []),
-  ];
 
   // localization
   const i18n = {
@@ -253,9 +240,10 @@ const FileExplorer = () => {
       }
 
       setNewFolderName('');
+      dispatch(setActionButtons(bucketPermission, bucketObjects, false));
       return newFileMap;
     },
-    [dispatch],
+    [dispatch, bucketObjects, bucketPermission],
   );
 
   const goBack = () => {
@@ -265,7 +253,7 @@ const FileExplorer = () => {
   const onDelete = (data) => {
     // Delete the files
     const newFileMap = { ...files.fileMap };
-
+    let setPublishBtn = false;
     const fileList = [];
     data.state.selectedFiles?.forEach((file) => {
       // Delete file from the file map.
@@ -294,6 +282,14 @@ const FileExplorer = () => {
               childrenIds: newChildrenIds,
               childrenCount: newChildrenIds?.length,
             };
+            //check whether are there any parquet files
+            const bucketObjects = [];
+            newFileMap[newFileMap[file.parentId].parentId]?.childrenIds.filter((item) => {
+              bucketObjects.push(newFileMap[item]);
+              return item;
+            });
+            dispatch(setActionButtons(bucketPermission, bucketObjects));
+            setPublishBtn = true;
             delete newFileMap[file.parentId];
           }
         }
@@ -301,7 +297,14 @@ const FileExplorer = () => {
       fileList.push(file.objectName);
     });
 
-    dispatch(deleteFiles(bucketName, fileList.join(','), newFileMap));
+    dispatch(deleteFiles(bucketName, fileList.join(','), newFileMap, bucketObjects));
+    !setPublishBtn &&
+      dispatch(
+        setActionButtons(
+          bucketPermission,
+          bucketObjects.filter((item) => item.objectName !== fileList.join(',')),
+        ),
+      );
   };
 
   const onOpenFolder = (fileToOpen, isEmptyFolder = false) => {
@@ -676,7 +679,7 @@ const FileExplorer = () => {
           <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
           <FullFileBrowser
             files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
-            fileActions={myFileActions}
+            fileActions={fileActions}
             onFileAction={handleAction}
             folderChain={folderChain}
             darkMode={true}
