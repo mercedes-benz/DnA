@@ -28,11 +28,14 @@
 package com.daimler.data.registry.models.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.daimler.data.dto.MinioKeyDetails;
 import com.daimler.data.dto.MinioSecretMetadata;
 import com.daimler.data.dto.model.ModelCollection;
+import com.daimler.data.dto.model.ModelRequestVO;
+import com.daimler.data.dto.model.ModelResponseVO;
 import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
 
@@ -54,10 +57,16 @@ public class RegistryServiceImpl implements RegistryService {
 			String endpoint = "http://"+minioDetails.getHost()+":"+minioDetails.getPort();
 			if(minioDetails!=null) {
 				MinioKeyDetails keyDetails = minioDetails.getStringData();
-				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccessKey(), keyDetails.getSecretKey());
+				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccesskey(), keyDetails.getSecretkey());
 				return minioConfig.getModels(minioClient, userId);
 			}
 		}
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO) {
+		kubeClient.abc();
 		return null;
 	}
 
