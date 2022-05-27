@@ -27,10 +27,16 @@
 
 package com.daimler.data.registry.models.service;
 
+import org.springframework.http.ResponseEntity;
+
 import com.daimler.data.dto.model.ModelCollection;
+import com.daimler.data.dto.model.ModelRequestVO;
+import com.daimler.data.dto.model.ModelResponseVO;
 
 public interface RegistryService {
 
 	ModelCollection getAllModels(String userId);
+
+	ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO);
 
 }
