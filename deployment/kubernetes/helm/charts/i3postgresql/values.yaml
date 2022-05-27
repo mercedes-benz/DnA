@@ -30,6 +30,18 @@ app:
       airflowdbName: ""
       airflowdbPwd: ""
     dashboardDB:
-      dashboardUserName: "subchart"
+      dashboardUserName: ""
       dashboarddbName: ""
       dashboarddbPwd: ""
+    storageDB:
+      storageUserName: ""
+      storagedbName: ""
+      storagedbPwd: ""
+    hiveDB:
+      hiveUserName: ""
+      hivedbName: ""
+      hivedbPwd: ""
+    malwareDB:
+      malwareUserName: ""
+      malwaredbName: ""
+      malwaredbPwd: ""

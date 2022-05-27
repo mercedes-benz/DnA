@@ -38,6 +38,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.model.ModelsApi;
 import com.daimler.data.dto.model.ModelCollection;
+import com.daimler.data.dto.model.ModelRequestVO;
+import com.daimler.data.dto.model.ModelResponseVO;
 import com.daimler.data.registry.models.service.RegistryService;
 
 import io.swagger.annotations.Api;
@@ -52,37 +54,40 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api")
 @Validated
 @Slf4j
-public class RegistryController implements ModelsApi{
-	
+public class RegistryController implements ModelsApi {
+
 	@Autowired
 	private RegistryService modelRegistryservice;
-	
-	@Override
-	@ApiOperation(value = "Get all available models.", nickname = "getAll", notes = "Get all models for requested user.", response = ModelCollection.class, tags={ "models", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of succes or failure", response = ModelCollection.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/models/{id}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-	public ResponseEntity<ModelCollection> getAll(@ApiParam(value = "Id of the user",required=true) @PathVariable("id") String id) {
 
-		
-			
+	@Override
+	@ApiOperation(value = "Get all available models.", nickname = "getAll", notes = "Get all models for requested user.", response = ModelCollection.class, tags = {
+			"models", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = ModelCollection.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/models/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<ModelCollection> getAll(
+			@ApiParam(value = "Id of the user", required = true) @PathVariable("id") String id) {
+
 		final ModelCollection modelCollection = modelRegistryservice.getAllModels(id);
-		if(modelCollection!= null && modelCollection.getData()!= null && !modelCollection.getData().isEmpty()) {
+		if (modelCollection != null && modelCollection.getData() != null && !modelCollection.getData().isEmpty()) {
 			log.info("returning successfully with models");
 			return new ResponseEntity<>(modelCollection, HttpStatus.OK);
-		}else {
+		} else {
 			log.info("returning empty no models found");
 			return new ResponseEntity<>(modelCollection, HttpStatus.NO_CONTENT);
 		}
+	}
+
+	@Override
+	public ResponseEntity<ModelResponseVO> create(ModelRequestVO modelRequestVO) {
+		return modelRegistryservice.generateExternalUri(modelRequestVO);
 	}
 
 }
