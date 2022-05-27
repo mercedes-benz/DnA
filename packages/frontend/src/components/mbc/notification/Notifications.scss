@@ -19,7 +19,7 @@
     background-color: #252a33;
     padding: 25px 0;
     position: relative;
-    .notificationListWrapper {         
+    .notificationListWrapper {
       .notificationList {
         position: relative;
         border-bottom: 0px solid #383f49;
@@ -28,11 +28,11 @@
           font-size: var(--font-size-small);
           line-height: 14px;
         }
-        .notificationDate{
+        .notificationDate {
           min-width: 322px;
           font-size: var(--font-size-small);
           line-height: 14px;
-          div{
+          div {
             display: inline-block;
           }
         }
@@ -54,7 +54,7 @@
         thead {
           th {
             padding-left: 15px;
-            
+
             &:first-child {
               padding-left: 38px;
               min-width: 400px;
@@ -93,7 +93,7 @@
           .showMenu {
             z-index: 9;
           }
-        }          
+        }
       }
       tr {
         position: relative;
@@ -142,44 +142,41 @@ i {
   }
 }
 
-.checkboxLabel{
+.checkboxLabel {
   font-weight: 400;
   font-family: "Roboto-Medium";
   font-size: var(--font-size-smallest) !important;
-  color: #99a5b3!important;
+  color: #99a5b3 !important;
 }
 
-.checkboxItem{
+.checkboxItem {
   margin-left: -10px;
 }
 
-.checkboxItemLabel{
+.checkboxItemLabel {
   font-size: var(--font-size-default) !important;
-  &:hover 
-  {
-    cursor: pointer;    
-    color: #00adef;    
+  &:hover {
+    cursor: pointer;
+    color: #00adef;
   }
 }
 
-.notificationRow{
-  &:hover 
-  {
+.notificationRow {
+  &:hover {
     cursor: pointer;
-    .notificationMessage{
-      color: #00adef;    
+    .notificationMessage {
+      color: #00adef;
     }
   }
 }
 
-.unreadMessage{
+.unreadMessage {
   font-weight: bold;
 }
 
-.columnMarkAsRead{
+.columnMarkAsRead {
   min-width: 45px;
-  &:hover 
-  {
+  &:hover {
     cursor: pointer;
     i {
       color: #00adef;
@@ -267,7 +264,7 @@ i {
   display: flex;
   justify-content: space-between;
   margin: 40px;
-  margin-top: 0px;  /*this will be removed once search and filter is enabled*/
+  margin-top: 0px; /*this will be removed once search and filter is enabled*/
   margin-bottom: 10px; /*this will be removed once search and filter is enabled*/
   > div {
     width: calc(50% - 7px);
@@ -284,74 +281,75 @@ i {
   }
 }
 
-.notificationTypeSelect{
+.notificationTypeSelect {
   width: 90%;
 }
 
-.notificationMessage{
+.notificationMessage {
   display: flex;
   align-items: center;
+  margin-bottom: 0;
+  white-space: pre-wrap;
+  a {
+    display: contents;
+  }
 }
 
-
-.removeBlock{
-  /*margin-top: 10px;*/ 
+.removeBlock {
+  /*margin-top: 10px;*/
   color: #c0c8d0;
   display: inline-block;
-  &:hover 
-  {
+  &:hover {
     cursor: pointer;
     i {
       color: #00adef;
     }
   }
-  
 }
 
-.settingsBlock{
+.settingsBlock {
   color: #c0c8d0;
   position: absolute;
   top: 27px;
   right: 38px;
-  &:hover{
+  &:hover {
     cursor: pointer;
     i {
       color: #00adef;
     }
-  } 
+  }
 }
-
 
 .slider {
   position: fixed;
   text-align: left;
   height: 45%;
   bottom: 0;
-  overflow: hidden; 
-  color: #FFF;
+  overflow: hidden;
+  color: #fff;
   background-color: #252a33;
   transition: all 1s;
   right: 184px;
   left: 190px;
-  .contentWrapper{
+  .contentWrapper {
     padding: 38px;
     font-size: var(--font-size-default);
     color: #c0c8d0;
-    .contentHeader{
+    .contentHeader {
       margin-bottom: 10px;
-      .detailsNotificationType{
+      .detailsNotificationType {
         font-family: "Roboto-Medium";
         color: #99a5b3;
         display: inline-block;
         width: 50%;
       }
-    
-      .detailsMarkAsRead{
+
+      .detailsMarkAsRead {
         color: #c0c8d0;
         display: inline-block;
         width: 50%;
         text-align: right;
-        &:hover{
+        &:hover {
           cursor: pointer;
           i {
             color: #00adef;
@@ -359,31 +357,31 @@ i {
         }
       }
     }
-    .notificationTitle{
+    .notificationTitle {
       font-size: var(--font-size-sub-headline);
       margin-bottom: 20px;
       color: #dee3e8;
     }
-    .notificationContent{
+    .notificationContent {
       height: 150px;
       overflow: auto;
     }
   }
-  .panelBorder{
+  .panelBorder {
     background-color: #1c2026;
     height: 15px;
     text-align: center;
     padding-top: 5px;
-    div{
+    div {
       height: 4px;
       margin: auto;
       background-color: #252a33;
       width: 25px;
       border-radius: 25px;
     }
-    &:hover{
+    &:hover {
       cursor: pointer;
-    }  
+    }
   }
 }
 
@@ -396,22 +394,22 @@ i {
   min-height: 40px;
   margin-top: 20px;
   text-align: left;
-  button{
-    &:hover{
+  button {
+    &:hover {
       background-color: #00adef;
     }
-  }    
+  }
 }
 
-.showMarkAsRead{
+.showMarkAsRead {
   position: relative;
-  .elementToMove{
+  .elementToMove {
     position: absolute;
     left: -140px;
   }
-  .markAsRead{
+  .markAsRead {
     margin-left: 4px;
-    &:hover{
+    &:hover {
       i {
         color: #00adef;
       }
@@ -419,30 +417,35 @@ i {
   }
 }
 
-.notificationMessage{
-  &:hover{
-    cursor: pointer;   
+.notificationMessage {
+  &:hover {
+    cursor: pointer;
   }
 }
 
-.goToSolution{
-  float: right;  
-  &:hover{
-    cursor: pointer;    
-    color: #00adef!important;  
+.goToSolution {
+  float: right;
+  &:hover {
+    cursor: pointer;
+    color: #00adef !important;
   }
 }
 
-.noChangeLogs{
+.noChangeLogs {
   text-align: center;
   margin-top: 50px;
 }
 
-.closeDrawer{
+.closeDrawer {
   position: absolute;
   right: 5px;
   top: 20px;
-  &:hover{
-    cursor: pointer; 
-  }  
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.deleteNotification {
+  margin: 35px 0;
+  text-align: center;
 }
