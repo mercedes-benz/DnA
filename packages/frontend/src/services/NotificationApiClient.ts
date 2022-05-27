@@ -48,4 +48,15 @@ export class NotificationApiClient {
   public static deleteNotifications(notificationIds: string[], userId: string) {
     return this.delete(`notifications`, { messageIds: notificationIds, userId });
   }
+
+  public static createNotification(message: string, publishingUser: string) {
+    return this.post(`notifications`, {
+      data: {
+        eventType: 'Announcement',
+        message,
+        publishingUser,
+        subscribedUsers:[]
+      }
+    })
+  }
 }
