@@ -67,9 +67,9 @@ public class KubernetesClient {
 	
 	public KubernetesClient() {
 		try {
-			client = Config.defaultClient();
+			this.client = Config.defaultClient();
 			Configuration.setDefaultApiClient(client);
-	        CoreV1Api api = new CoreV1Api();
+			this.api = new CoreV1Api();
 	        log.info("Got kubernetes java client and core api successfully");
 		} catch (Exception e) {
 			log.error("Error while getting kubernetes java client and core api successfully");
