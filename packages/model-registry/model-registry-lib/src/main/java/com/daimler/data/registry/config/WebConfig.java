@@ -38,18 +38,12 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
-import org.springframework.aop.framework.ProxyFactoryBean;
-import org.springframework.aop.target.ThreadLocalTargetSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -57,8 +51,6 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.application.filter.JWTAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
@@ -66,9 +58,6 @@ public class WebConfig implements WebMvcConfigurer {
 	
 	@Value("${allowedCorsOriginPatternUrl}")
 	private String corsOriginUrl;
-
-	@Autowired
-	private JWTAuthenticationFilter filter;
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
@@ -118,35 +107,5 @@ public class WebConfig implements WebMvcConfigurer {
 		return restTemplate;
 	}
 
-	@Bean
-	public FilterRegistrationBean<JWTAuthenticationFilter> authtenticatonFilter() {
-		FilterRegistrationBean<JWTAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
-
-		registrationBean.setFilter(filter);
-		registrationBean.addUrlPatterns("/api/*");
-
-		return registrationBean;
-	}
-
-	@Bean(destroyMethod = "destroy")
-	public ThreadLocalTargetSource threadLocalTenantStore() {
-		ThreadLocalTargetSource result = new ThreadLocalTargetSource();
-		result.setTargetBeanName("userStore");
-		return result;
-	}
-
-	@Primary
-	@Bean(name = "proxiedThreadLocalTargetSource")
-	public ProxyFactoryBean proxiedThreadLocalTargetSource(ThreadLocalTargetSource threadLocalTargetSource) {
-		ProxyFactoryBean result = new ProxyFactoryBean();
-		result.setTargetSource(threadLocalTargetSource);
-		return result;
-	}
-
-	@Bean(name = "userStore")
-	@Scope(scopeName = "prototype")
-	public UserStore userStore() {
-		return new UserStore();
-	}
 
 }
