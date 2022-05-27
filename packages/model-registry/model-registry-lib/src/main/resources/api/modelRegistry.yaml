@@ -71,13 +71,19 @@ paths:
 #
 # path example ../models
 
- /models:
+ /models/{id}:
   get:
    tags:
     - "models"
    summary: "Get all available models."
    description:  "Get all models for requested user."
    operationId: "getAll"
+   parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the user"
+        required: true
+        type: "string"
    responses:
     201:
      description: "Returns message of succes or failure"
