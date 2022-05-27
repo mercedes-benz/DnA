@@ -45,7 +45,7 @@ const CreateBucket = () => {
   const [termsOfUseError, setTermsOfUseError] = useState(false);
   const [editAPIResponse, setEditAPIResponse] = useState({});
 
-  const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET === 'true';
+  const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
 
   useEffect(() => {
     ProgressIndicator.show();
