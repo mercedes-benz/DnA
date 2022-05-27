@@ -27,6 +27,8 @@
 
 package com.daimler.data.registry.config;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -49,42 +51,44 @@ import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
+import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.Config;
+import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
 public class KubernetesClient {
-	
+
 	@Value("${kubeflow.namespace}")
 	private String kubeflowNamespace;
-	
+
 	@Value("${kubeflow.secret.name}")
 	private String kubeflowSecret;
-	
+
 	private CoreV1Api api;
 	private ApiClient client;
-	
+
 	public KubernetesClient() {
 		try {
 			this.client = Config.defaultClient();
 			Configuration.setDefaultApiClient(client);
 			this.api = new CoreV1Api();
-	        log.info("Got kubernetes java client and core api successfully");
+			log.info("Got kubernetes java client and core api successfully");
 		} catch (Exception e) {
 			log.error("Error while getting kubernetes java client and core api successfully");
 			e.printStackTrace();
 		}
 	}
-	
+
 	public V1PodList getPods(String namespace) {
 		try {
-			return api.listNamespacedPod(namespace,null, null, null, null, null, null, null, null, 10, false);
+			return api.listNamespacedPod(namespace, null, null, null, null, null, null, null, null, 10, false);
 		} catch (Exception e) {
 			log.error("Error occured while getting pods list using namespace. Exception is :  {}", e.getMessage());
 			return null;
 		}
-		
+
 	}
 
 	public V1PodSpec getPodSpec(V1Pod pod) {
@@ -96,34 +100,36 @@ public class KubernetesClient {
 		}
 	}
 
-	public List<V1Container> getContainers(V1PodSpec podSpec){
+	public List<V1Container> getContainers(V1PodSpec podSpec) {
 		try {
 			return podSpec.getContainers();
 		} catch (Exception e) {
-			log.error("Error occured while getting containers list for given podspec. Exception is :  {}", e.getMessage());
+			log.error("Error occured while getting containers list for given podspec. Exception is :  {}",
+					e.getMessage());
 			return null;
 		}
 	}
-	
-	public List<V1EnvVar> getEnviromnetVariables(V1Container container){
-    	try {
+
+	public List<V1EnvVar> getEnviromnetVariables(V1Container container) {
+		try {
 			return container.getEnv();
 		} catch (Exception e) {
 			log.error("Error occured while getting environment variables. Exception is :  {}", e.getMessage());
 			return null;
 		}
-    }
-	
-	public List<V1EnvFromSource> getEnvironmentVariablesFromSource(V1Container container){
+	}
+
+	public List<V1EnvFromSource> getEnvironmentVariablesFromSource(V1Container container) {
 		try {
 			return container.getEnvFrom();
 		} catch (Exception e) {
-			log.error("Error occured while getting environment variables from source. Exception is :  {}", e.getMessage());
+			log.error("Error occured while getting environment variables from source. Exception is :  {}",
+					e.getMessage());
 			return null;
 		}
 	}
-	
-	public V1SecretList getSecretList(String namespace){
+
+	public V1SecretList getSecretList(String namespace) {
 		try {
 			return api.listNamespacedSecret(namespace, "true", null, null, null, null, null, null, null, null, false);
 		} catch (Exception e) {
@@ -131,16 +137,16 @@ public class KubernetesClient {
 			return null;
 		}
 	}
-	
-	public V1Secret getSecret(String secretName, String namespace){
+
+	public V1Secret getSecret(String secretName, String namespace) {
 		try {
-			return api.readNamespacedSecret(secretName, namespace, "true" );
+			return api.readNamespacedSecret(secretName, namespace, "true");
 		} catch (Exception e) {
 			log.error("Error occured while getting secret list. Exception is :  {}", e.getMessage());
 			return null;
 		}
 	}
-	
+
 	public V1ObjectMeta getSecretMetaData(V1Secret secret) {
 		try {
 			return secret.getMetadata();
@@ -149,28 +155,30 @@ public class KubernetesClient {
 			return null;
 		}
 	}
-	
+
 	public MinioSecretMetadata getJsonDataFromSecretMeta(V1ObjectMeta meta) {
 		ObjectMapper mapper = new ObjectMapper();
-		Map<String,String> annotations = meta.getAnnotations();
-		String jsonData = annotations.getOrDefault("kubectl.kubernetes.io/last-applied-configuration", "no value found").toString();
+		Map<String, String> annotations = meta.getAnnotations();
+		String jsonData = annotations.getOrDefault("kubectl.kubernetes.io/last-applied-configuration", "no value found")
+				.toString();
 		MinioSecretMetadata jsonMetadata = new MinioSecretMetadata();
-		try{
+		try {
 			log.info(jsonData);
 			jsonMetadata = mapper.readValue(jsonData, MinioSecretMetadata.class);
-		}catch(Exception e) {
-			log.error("Got error while fetching or parsing json data from secret meta. Exception is {} ",e.getMessage());
+		} catch (Exception e) {
+			log.error("Got error while fetching or parsing json data from secret meta. Exception is {} ",
+					e.getMessage());
 		}
 		return jsonMetadata;
 	}
-	
+
 	public MinioSecretMetadata getKubeflowMinioSpec() {
 		V1Secret minioSecrets = this.getSecret(kubeflowSecret, kubeflowNamespace);
 		MinioSecretMetadata secretDetails = new MinioSecretMetadata();
 		try {
-			if(minioSecrets!=null) {
+			if (minioSecrets != null) {
 				V1ObjectMeta minioKubeflowSecretMetadata = this.getSecretMetaData(minioSecrets);
-				if(minioKubeflowSecretMetadata!=null) {
+				if (minioKubeflowSecretMetadata != null) {
 					secretDetails = this.getJsonDataFromSecretMeta(minioKubeflowSecretMetadata);
 					log.info("Successfully fetched secretDetails");
 				}
@@ -187,11 +195,28 @@ public class KubernetesClient {
 			secretDetails.setPort(port);
 			String host = minioPod.getStatus().getPodIP();
 			secretDetails.setHost(host);
-			log.info("Successfully fetched secretDetails of minio running at host {} and port {}",host,port);
-		}catch(Exception e) {
-			log.error("Exception occurred while getting kubeflow specific minio details. Exception is {} ", e.getMessage());
+			log.info("Successfully fetched secretDetails of minio running at host {} and port {}", host, port);
+		} catch (Exception e) {
+			log.error("Exception occurred while getting kubeflow specific minio details. Exception is {} ",
+					e.getMessage());
 		}
 		return secretDetails;
 	}
-	
+
+	public void abc() {
+
+		File file = new File("service.yaml");
+		try {
+			V1Service yamlSvc = (V1Service) Yaml.load(file);
+			V1Service createResult = api.createNamespacedService(kubeflowNamespace, yamlSvc, null, null, null, null);
+			System.out.println(createResult);
+		} catch (IOException e) {
+			log.error("Yaml error");
+			e.printStackTrace();
+		} catch (Exception ex) {
+			log.error("Yaml error");
+			ex.printStackTrace();
+		}
+	}
+
 }
