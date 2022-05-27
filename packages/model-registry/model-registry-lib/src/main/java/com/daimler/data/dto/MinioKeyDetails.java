@@ -39,7 +39,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MinioKeyDetails {
 
-	private String accessKey;
-	private String secretKey;
+	private String accesskey;
+	private String secretkey;
 
 }
