@@ -5,6 +5,7 @@ import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal'
 import { NotificationApiClient } from '../../../../services/NotificationApiClient';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import { Envs } from '../../../../globals/Envs';
+import Modal from '../../../../components/formElements/modal/Modal';
 
 interface IAdminNotificationProps {
   userId: string;
@@ -18,6 +19,7 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
   const [showCustomNotification, setCustomNotification] = useState(false);
 
   const [notificationError, setNotificationError] = useState('');
+  const [showInfoModal, setInfoModal] = useState(false);
 
   const StorageTOU = Envs.STORAGE_TOU_HTML;
   const termsOfUseUpdateMsg = `Storage terms of use has been updated to newer version. Please view [here](${
@@ -65,6 +67,64 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
       });
   };
 
+  const infoModalContent = (
+    <div>
+      <table className={Styles.markdownTable}>
+        <thead>
+          <tr>
+            <th>Markdown</th>
+            <th>HTML</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <code>This is a **Bold Text**</code>{' '}
+            </td>
+            <td>
+              <code>This is a &lt;strong&gt;Bold Text&lt;/strong&gt;</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>This is a __Bold Text__</code>{' '}
+            </td>
+            <td>
+              <code>This is a &lt;strong&gt;Bold Text&lt;/strong&gt;</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>This is a *Italics Text*</code>{' '}
+            </td>
+            <td>
+              <code>This is a &lt;em&gt;Italics Text&lt;/em&gt;</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>This is a _Italics Text_</code>{' '}
+            </td>
+            <td>
+              <code>This is a &lt;em&gt;Italics Text&lt;/em&gt;</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>Please [Click here](https://www.example.com)</code>{' '}
+            </td>
+            <td>
+              <code>
+                Please &lt;a href="https://www.example.com" target="_blank" rel="noopener noreferrer"&gt; Click here
+                &lt;/a&gt;
+              </code>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+
   return (
     <>
       <div className={Styles.mainPanel}>
@@ -74,6 +134,9 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
             className={classNames('input-field-group include-error', notificationError?.length ? 'error' : '')}
             style={{ minHeight: '160px' }}
           >
+            <div className={Styles.infoIcon}>
+              <i className="icon mbc-icon info" onClick={() => setInfoModal(true)} />
+            </div>
             <textarea
               className="input-field-area"
               placeholder="Type here... eg: Please click [here](https://www.example.com)"
@@ -133,6 +196,17 @@ export const AdminNotifications = ({ userId }: IAdminNotificationProps) => {
           content={<div>Are you sure you want to send notification to all users</div>}
           onAccept={onCustomNotificationAccept}
           onCancel={() => setCustomNotification(false)}
+        />
+      )}
+      {showInfoModal && (
+        <Modal
+          title="Markdown formatter"
+          show={showInfoModal}
+          showAcceptButton={false}
+          showCancelButton={false}
+          content={infoModalContent}
+          buttonAlignment="center"
+          onCancel={() => setInfoModal(false)}
         />
       )}
     </>
