@@ -156,6 +156,7 @@ public class KubernetesClient {
 		String jsonData = annotations.getOrDefault("kubectl.kubernetes.io/last-applied-configuration", "no value found").toString();
 		MinioSecretMetadata jsonMetadata = new MinioSecretMetadata();
 		try{
+			log.info(jsonData);
 			jsonMetadata = mapper.readValue(jsonData, MinioSecretMetadata.class);
 		}catch(Exception e) {
 			log.error("Got error while fetching or parsing json data from secret meta. Exception is {} ",e.getMessage());
