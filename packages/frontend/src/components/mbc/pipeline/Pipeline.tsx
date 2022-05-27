@@ -21,7 +21,7 @@ import InfoModal from '../../formElements/modal/infoModal/InfoModal';
 
 const Pipeline = () => {
   // const [subscribePopup, setSubscribePopup] = useState(false);
-  // const [airflowSuccess, setAirflowSuccess] = useState('');
+  const [airflowSuccess] = useState(true);
   const [pipelineProjectList, setPipelineProjectList] = useState([]);
   const [pipelineProjectListResponse, setPipelineProjectListResponse] = useState([]);
 
@@ -103,7 +103,7 @@ const Pipeline = () => {
       .catch((err) => {
         ProgressIndicator.hide();
       });
-  });
+  },[airflowSuccess]);
 
   const contentForInfo = (
     <div className={Styles.infoPopup}>
