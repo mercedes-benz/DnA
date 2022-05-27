@@ -54,7 +54,7 @@ public class RegistryServiceImpl implements RegistryService {
 			String endpoint = "http://"+minioDetails.getHost()+":"+minioDetails.getPort();
 			if(minioDetails!=null) {
 				MinioKeyDetails keyDetails = minioDetails.getStringData();
-				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccessKey(), keyDetails.getSecretKey());
+				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccesskey(), keyDetails.getSecretkey());
 				return minioConfig.getModels(minioClient, userId);
 			}
 		}
