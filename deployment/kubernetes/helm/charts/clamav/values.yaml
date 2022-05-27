@@ -40,7 +40,8 @@ app:
       appUrl: ""
       enableAuth: ""
       verifyLoginApi: /api/verifyLogin
-      unscribeMalwareScanApi: /api/malwarescan/unsubscribe/ 
+      unscribeMalwareScanApi: /api/malwarescan/unsubscribe/
+      naas_broker: ""
 
   vault:
     secret:

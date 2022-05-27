@@ -94,7 +94,9 @@ spec:
               valueFrom:
                 secretKeyRef:
                  key: jwt.secret.key
-                 name: {{ .Values.app.backend.secrets.name }}          
+                 name: {{ .Values.app.backend.secrets.name }}
+            - name: NAAS_BROKER
+              value: {{ .Values.app.backend.config.naas_broker }}        
           ports:
             - containerPort: 8181
               name: api
