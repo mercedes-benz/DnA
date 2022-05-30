@@ -203,7 +203,7 @@ public class NotificationsController implements NotificationsApi {
 		}
 	}
 
-	@ApiOperation(value = "service to pbulish a message to central events topic", nickname = "publishToCentralTopic", notes = "service to pbulish a message to central events topic", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class, tags = {
+	@ApiOperation(value = "service to publish a message to central events topic", nickname = "publishToCentralTopic", notes = "service to publish a message to central events topic", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class, tags = {
 			"notifications", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Published successfully.", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class),
