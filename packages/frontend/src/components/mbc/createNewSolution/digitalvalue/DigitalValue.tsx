@@ -62,6 +62,7 @@ export interface IDigitalValueState {
   editTeamMember: boolean;
   editTeamMemberIndex: number;
   contollerTeamMembers: ITeams[];
+  isControllerMember: boolean;
   sharingTeamMembers: ITeams[];
   teamMemberObj: ITeams;
   addTeamMemberInController: boolean;
@@ -117,6 +118,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
       commentValueError: '',
       commentValue: '',
       showAddTeamMemberModal: false,
+      isControllerMember: false,
       editTeamMember: false,
       editTeamMemberIndex: -1,
       contollerTeamMembers: [],
@@ -382,7 +384,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                   </p>
                   <div className={Styles.addIconButtonWrapper}>
                     <IconAvatarNew className={Styles.buttonIcon} />
-                    <button id="AddControllerBtn" onClick={this.addControllerMember}>
+                    <button id="AddControllerBtn" onClick={() => { this.setState({ isControllerMember: true }); this.addControllerMember(); }}>
                       <i className="icon mbc-icon plus" />
                       <span>Add controller (optional)</span>
                     </button>
@@ -770,7 +772,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
               <div>
                 <div className={Styles.addIconButtonWrapper}>
                   <IconAvatarNew className={Styles.buttonIcon} />
-                  <button onClick={this.addTeamMember}>
+                  <button onClick={() => { this.setState({ isControllerMember: false }); this.addTeamMember(); }}>
                     <i className="icon mbc-icon plus" />
                     <span>Add share / permission to team member</span>
                   </button>
@@ -812,6 +814,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
+            validateMemebersList={this.validateMembersList}
           />
         )}
         {this.state.showAddOrEditFactorModal && (
@@ -940,6 +943,18 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     this.setState({ addTeamMemberInController: false }, () => {
       this.showAddTeamMemberModalView();
     });
+  };
+
+  protected validateMembersList = (teamMemberObj: ITeams) => {
+    if(this.state.isControllerMember) {
+      let duplicateMember = false;
+      duplicateMember = this.state.contollerTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+      return duplicateMember;
+    } else {
+      let duplicateMember = false;
+      duplicateMember = this.state.sharingTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+      return duplicateMember;
+    }
   };
 
   protected getCommentButtonContent(commentValue: string) {
