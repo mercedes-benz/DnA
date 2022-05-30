@@ -2,7 +2,7 @@ import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
 
-const baseUrl = Envs.NOTIFICATIONS_API_BASEURL ? Envs.NOTIFICATIONS_API_BASEURL : `http://${window.location.hostname}:7272/naas/api`;
+const baseUrl = Envs.NOTIFICATIONS_API_BASEURL ? Envs.NOTIFICATIONS_API_BASEURL : `https://naas.***REMOVED***/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
@@ -28,7 +28,7 @@ export class NotificationApiClient {
   }
 
   public static getNotifications(userId: string, limit?: number, offset?: number, readType?: string) {
-    let reqParams = `userId=${userId}&`;
+    let reqParams = `userId=VIMADAN&`;
     if(readType && readType !== ''){
       reqParams += `readType=${readType}&`;
     }
@@ -49,13 +49,14 @@ export class NotificationApiClient {
     return this.delete(`notifications`, { messageIds: notificationIds, userId });
   }
 
-  public static createNotification(message: string, publishingUser: string) {
+  public static createNotification(message: string, publishingUser: string, serviceUsersType = 'All') {
     return this.post(`notifications`, {
       data: {
         eventType: 'Announcement',
         message,
         publishingUser,
-        subscribedUsers:[]
+        serviceUsersType,
+        subscribedUsers:['']
       }
     })
   }
