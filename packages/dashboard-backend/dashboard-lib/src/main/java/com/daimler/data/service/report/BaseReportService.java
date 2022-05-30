@@ -65,6 +65,7 @@ import com.daimler.data.dto.datawarehouse.DataWarehouseInUseVO;
 import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.dto.divisions.DivisionReportVO;
 import com.daimler.data.dto.report.CreatedByVO;
+import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
 import com.daimler.data.dto.report.ProductOwnerCollection;
 import com.daimler.data.dto.report.ReportResponseVO;
@@ -75,6 +76,7 @@ import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.department.DepartmentService;
 import com.daimler.data.service.tag.TagService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.jsonwebtoken.lang.Strings;
 
@@ -92,6 +94,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	private ReportAssembler reportAssembler;
 
@@ -736,6 +741,44 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						response.setData(mergedReportVO);
 						response.setErrors(null);
 						LOGGER.debug("Report with id {} updated successfully", id);
+						
+						try {
+							if(mergedReportVO.isPublish()) {
+								CreatedByVO modifyingUser = this.userStore.getVO();
+								String eventType = "Dashboard-Report Update";
+								String resourceID = mergedReportVO.getId();
+								String reportName = mergedReportVO.getProductName();
+								String publishingUserId = "dna_system";
+								String publishingUserName = "";
+								if(modifyingUser!=null) {
+									publishingUserId = modifyingUser.getId();
+									publishingUserName = modifyingUser.getFirstName() + " " + modifyingUser.getLastName();
+									if(publishingUserName==null || "".equalsIgnoreCase(publishingUserName))
+										publishingUserName = publishingUserId;
+								}
+								List<String> membersId = new ArrayList<>();
+								List<String> membersEmail = new ArrayList<>();
+								MemberVO memberVO = mergedReportVO.getMembers();
+								List<TeamMemberVO> members = new ArrayList<>();
+								members.addAll(memberVO.getAdmin());
+								members.addAll(memberVO.getDevelopers());
+								members.addAll(memberVO.getProductOwners());
+								for(TeamMemberVO member : members) {
+									if(member!=null) {
+										String memberId = member.getShortId()!= null ? member.getShortId() : "";
+										membersId.add(memberId);
+										String emailId = member.getEmail()!= null ? member.getEmail() : "";
+										membersEmail.add(emailId);
+									}
+								}
+								String eventMessage = "Dashboard report " + reportName + " has been updated by " + publishingUserName;
+								kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true, membersId,membersEmail,null);
+								LOGGER.info("Published successfully event {} for report {} with message {}",eventType, resourceID, eventMessage);
+							}
+						}catch(Exception e) {
+							LOGGER.trace("Failed while publishing dashboard report update event msg. Exception is {} ", e.getMessage());
+						}
+						
 						return new ResponseEntity<>(response, HttpStatus.OK);
 					} else {
 						List<MessageDescription> messages = new ArrayList<>();
