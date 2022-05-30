@@ -609,7 +609,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Register support of additional resources</Text>
-            <Text>{props.solution.description.additionalResource ? props.solution.description.additionalResource : 'N/A'}</Text>
+            <Text>
+              {props.solution.description.additionalResource ? props.solution.description.additionalResource : 'N/A'}
+            </Text>
           </View>
         </View>
         <View style={styles.flexLayout} wrap={false}>
@@ -730,7 +732,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                                   (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                                 '.',
                               )}{' '}
-                              by {props.user.firstName}
+                              by{' '}
+                              {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
+                                (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedBy.login)}
                             </Text>
                             <Text>
                               {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
