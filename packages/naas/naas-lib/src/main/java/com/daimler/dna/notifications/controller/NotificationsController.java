@@ -53,7 +53,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.daimler.data.dto.userinfo.UsersCollection;
 import com.daimler.dna.notifications.api.NotificationsApi;
+import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
 import com.daimler.dna.notifications.controller.exceptions.GenericMessage;
 import com.daimler.dna.notifications.controller.exceptions.MessageDescription;
@@ -63,6 +65,7 @@ import com.daimler.dna.notifications.dto.MarkedSelection;
 import com.daimler.dna.notifications.dto.NotificationCollectionVO;
 import com.daimler.dna.notifications.dto.NotificationRequestVO;
 import com.daimler.dna.notifications.dto.NotificationRequestVOData;
+import com.daimler.dna.notifications.dto.NotificationRequestVOData.ServiceUsersTypeEnum;
 import com.daimler.dna.notifications.dto.NotificationVO;
 
 import io.swagger.annotations.Api;
@@ -81,6 +84,9 @@ public class NotificationsController implements NotificationsApi {
 
 	@Autowired
 	private NotificationsService notificationService;
+	
+	@Autowired
+	private DnaNotificationPreferenceClient dnaClient;
 
 	@ApiOperation(value = "Get all notifications with filters.", nickname = "getAll", notes = "Get all notifications based on filter values", response = NotificationCollectionVO.class, tags = {
 			"notifications", })
@@ -227,7 +233,17 @@ public class NotificationsController implements NotificationsApi {
 					record.setMessage(data.getMessage());
 					record.setPublishingAppName(data.getPublishingUser());
 					record.setPublishingUser(data.getPublishingUser());
-					record.setSubscribedUsers(data.getSubscribedUsers());
+					ServiceUsersTypeEnum serviceType = data.getServiceUsersType();
+					if("All".equalsIgnoreCase(serviceType.name())){
+						UsersCollection usersCollection = dnaClient.getAllUsers();
+						if(usersCollection!=null && usersCollection.getRecords()!= null && !usersCollection.getRecords().isEmpty()) {
+							List<String> allUsers = new ArrayList<>();
+							allUsers = usersCollection.getRecords().stream().map(n -> n.getId()).collect(Collectors.toList());
+							record.setSubscribedUsers(allUsers);
+						}
+					}else {
+						record.setSubscribedUsers(data.getSubscribedUsers());
+					}
 					SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 					record.setTime(dateFormatter.format(new Date()));
 					record.setUuid(UUID.randomUUID().toString());
