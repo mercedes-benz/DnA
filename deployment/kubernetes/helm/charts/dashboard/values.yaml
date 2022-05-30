@@ -23,6 +23,7 @@ flywayBaselineVersion: ""
 flywaySchema: ""
 containerPort: 7173
 corsOrigibUrl: ""
+naasBroker: ""
 ingress:
   enabled: true
   host: ""
