@@ -30,9 +30,12 @@ export default class AddUser extends React.Component<IAddUserProps> {
 
   public render() {
     return (
-      <TeamSearch 
-        label={<>Find Collaborator<sup>*</sup></>}
-        // label={<>Find Collaborator<sup>*</sup> <span dangerouslySetInnerHTML={{ __html: Envs.INTERNAL_USER_TEAMS_INFO }}></span></>}
+      <TeamSearch
+        label={
+          <>
+            Find Collaborator<sup>*</sup>
+          </>
+        }
         onAddTeamMember={this.addMemberFromTeamSearch}
         btnText="Add User"
       />
