@@ -432,6 +432,10 @@ export class ApiClient {
     return this.get(`userinfo/${adId}`);
   }
 
+  public static getUsersBySearchTerm(searchTerm: string): Promise<any> {	
+    return this.get(`users?searchTerm=${searchTerm}&offset=0&limit=0`);	
+  }
+
   public static getAllSolutions(queryUrl?: string): Promise<ICreateNewSolution[]> {
     return queryUrl ? this.get(`solutions?${queryUrl}`) : this.get('solutions');
   }
