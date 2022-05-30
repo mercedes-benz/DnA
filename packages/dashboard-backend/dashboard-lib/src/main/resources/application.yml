@@ -18,13 +18,24 @@ spring:
     hibernate:
       ddl-auto: none
 
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
+          
   datasource:
     platform: postgres
     url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dashboard}
     username: ${API_DB_USER:admin}
     password: ${API_DB_PASS:admin}
     driverClassName: org.postgresql.Driver
-      
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
+          
 dna:
   uri: ${DNA_URI:xxxx}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}        
