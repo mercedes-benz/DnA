@@ -224,8 +224,16 @@ const CreateBucket = () => {
       mobileNumber: collaborators.mobileNumber,
       permission: { read: true, write: false },
     };
-    bucketCollaborators.push(collabarationData);
-    setBucketCollaborators([...bucketCollaborators]);
+
+    let duplicateMember = false;	
+    duplicateMember = bucketCollaborators.filter((member) => member.accesskey === collaborators.shortId)?.length ? true : false;
+
+    if (duplicateMember) {
+      Notification.show('Collaborator Already Exist.', 'warning');
+    } else {
+      bucketCollaborators.push(collabarationData);
+      setBucketCollaborators([...bucketCollaborators]);
+    }
   };
 
   const onCollaboratorPermission = (e, userName) => {

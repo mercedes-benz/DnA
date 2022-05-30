@@ -298,6 +298,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
+            validateMemebersList={this.validateMembersList}
           />
         )}
         {this.state.showAddNeededRoleModal && (
@@ -439,6 +440,12 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
         this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
       },
     );
+  };
+
+  protected validateMembersList = (teamMemberObj: ITeams) => {
+    let duplicateMember = false;
+    duplicateMember = this.state.teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    return duplicateMember;
   };
 
   protected onTeamsSubmit = () => {
