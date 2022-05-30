@@ -68,6 +68,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
       addTeamMemberInController: true,
       showAddTeamMemberModal: false,
       editTeamMember: false,
+      sharingTeamMembers: [],
       teamMemberObj: {
         shortId: '',
         company: '',
@@ -351,6 +352,7 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
+            validateMemebersList={this.validateMembersList}
           />
         )}
         {this.state.showInfoModal && (
@@ -530,6 +532,12 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
       this.resetAddTeamMemberState();
       // this.props.modifyTeam(this.state.teamMembers);
     });
+  };
+
+  protected validateMembersList = (teamMemberObj: ITeams) => {
+    let duplicateMember = false;
+    duplicateMember = this.state.datacompliance.complianceOfficers?.filter((member:any) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    return duplicateMember;
   };
 
   protected onTeamMemberMoveUp = (index: number) => {
