@@ -2,7 +2,7 @@ import { Envs } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
 
-const baseUrl = Envs.NOTIFICATIONS_API_BASEURL ? Envs.NOTIFICATIONS_API_BASEURL : `***REMOVED***`;
+const baseUrl = Envs.NOTIFICATIONS_API_BASEURL ? Envs.NOTIFICATIONS_API_BASEURL : `http://${window.location.hostname}:7272/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
@@ -28,7 +28,7 @@ export class NotificationApiClient {
   }
 
   public static getNotifications(userId: string, limit?: number, offset?: number, readType?: string) {
-    let reqParams = `userId=***REMOVED***&`;
+    let reqParams = `userId=${userId}&`;
     if(readType && readType !== ''){
       reqParams += `readType=${readType}&`;
     }
