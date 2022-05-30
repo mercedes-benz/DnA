@@ -240,9 +240,11 @@ public class NotificationsController implements NotificationsApi {
 							List<String> allUsers = new ArrayList<>();
 							allUsers = usersCollection.getRecords().stream().map(n -> n.getId()).collect(Collectors.toList());
 							record.setSubscribedUsers(allUsers);
+							LOG.info("Broadcasting message to all users");
 						}
 					}else {
 						record.setSubscribedUsers(data.getSubscribedUsers());
+						LOG.info("Sending custom notification to users {}", data.getSubscribedUsers());
 					}
 					SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 					record.setTime(dateFormatter.format(new Date()));
@@ -250,8 +252,8 @@ public class NotificationsController implements NotificationsApi {
 					notificationService.publishMessage(record);
 					GenericMessage successMsg = new GenericMessage();
 					successMsg.setSuccess("Published successfully");
-					LOG.debug("Published successfully by user {} of type {} to users {} ", data.getPublishingUser(),
-							data.getEventType(), data.getSubscribedUsers());
+					LOG.info("Published successfully by user {} of type {} ", data.getPublishingUser(),
+							data.getEventType());
 					return new ResponseEntity<>(successMsg, HttpStatus.OK);
 				}
 			}
