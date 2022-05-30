@@ -1,5 +1,6 @@
 package com.daimler.dna.notifications.common.dna.client;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 	
 	@Autowired
 	HttpServletRequest httpRequest;
+	
+	@Autowired
+	ServletRequest servletRequest;
 
 	@Value("${dna.user.notificationPreferences.get.api}")
 	private String notificationPreferencesApiUri;
@@ -45,7 +49,7 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", jwt);
 
-			String getUsersUri = dnaBaseUri + usersUri;
+			String getUsersUri = dnaBaseUri + usersUri + "?limit=0";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<UsersCollection> response = restTemplate.exchange(getUsersUri, HttpMethod.GET, entity, UsersCollection.class);
 			if (response != null && response.hasBody()) {
@@ -63,11 +67,9 @@ public class DnaNotificationPreferenceClientImpl implements DnaNotificationPrefe
 		
 		UserNotificationPrefVO res = new UserNotificationPrefVO();
 		try {
-			String jwt = httpRequest.getHeader("Authorization");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", jwt);
 			
 			String getUserNotificationPrefUri = dnaBaseUri + notificationPreferencesApiUri + "?userId=" + userId;
 			HttpEntity entity = new HttpEntity<>(headers);
