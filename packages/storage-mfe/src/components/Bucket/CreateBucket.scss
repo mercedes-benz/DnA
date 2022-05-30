@@ -80,17 +80,11 @@
     font-size: var(--font-size-smallest);
     border: 1px solid #383f49;
     margin-top: 12px;
-    padding: 0 12px;
+    padding: 20px 12px 0;
     .bucketColContentListAdd {
       margin: 13px auto;
       width: 90%;
-      input {
-        opacity: unset !important;
-        position: absolute !important;
-        z-index: unset !important;
-        width: 98%;
-        margin-top: 2px;
-      }
+    
       .userExistedError {
         color: #e84d47;
         padding: 4px 0;
