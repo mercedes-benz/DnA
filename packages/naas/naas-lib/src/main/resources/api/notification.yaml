@@ -347,6 +347,15 @@ definitions:
 #          mailRequired: 
 #            type: boolean
 #            description: "boolean whether mail is required as part of notification"
+          serviceUsersType:
+            type: string
+            enum:
+              [
+                "All",
+                "Storage",
+                "Dashboard",
+                "Notebook"
+              ]
           subscribedUsers:
             type: array
             description: "list of subscribed users shortIds" 
