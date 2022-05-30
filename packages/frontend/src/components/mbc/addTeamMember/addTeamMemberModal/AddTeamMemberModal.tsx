@@ -7,7 +7,7 @@ import { ITeams } from '../../../../globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 // @ts-ignore
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
-import  Modal from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
 import { Envs } from '../../../../globals/Envs';
 import * as Validation from '../../../../utils/Validation';
@@ -94,7 +94,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       teamPosition: '',
       teamPositionError: null,
       isEmailValid: true,
-      showUserAlreadyExistsError: false
+      showUserAlreadyExistsError: false,
     };
     this.validateMobile = this.validateMobile.bind(this);
     this.validateEmailID = this.validateEmailID.bind(this);
@@ -131,7 +131,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       department,
       shortID,
       teamPosition,
-      showUserAlreadyExistsError
+      showUserAlreadyExistsError,
     } = this.state;
 
     const addTeamMemberModalContent: React.ReactNode = (
@@ -177,9 +177,12 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
             </div>
           )}
           <div className={belongingInternal ? Styles.internalWrapper : 'hide'}>
-            {!this.props.hideTeamPosition ?
+            {!this.props.hideTeamPosition ? (
               <div
-                className={classNames('input-field-group include-error', teamPositionInternalError.length ? 'error' : '')}
+                className={classNames(
+                  'input-field-group include-error',
+                  teamPositionInternalError.length ? 'error' : '',
+                )}
               >
                 <label htmlFor="teamPositionInternal" className="input-label">
                   Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
@@ -201,15 +204,23 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                   {teamPositionInternalError}
                 </span>
               </div>
-            : ''}
+            ) : (
+              ''
+            )}
             <TeamSearch
-              label={<>Find User<sup>*</sup> <span dangerouslySetInnerHTML={{ __html: Envs.INTERNAL_USER_TEAMS_INFO }}></span></>}
+              label={
+                <>
+                  Find User<sup>*</sup>{' '}
+                  <span dangerouslySetInnerHTML={{ __html: Envs.ENABLE_INTERNAL_USER_INFO }}></span>
+                </>
+              }
               editMode={this.props.editMode}
               teamMemberObj={this.props.teamMember}
               onAddTeamMember={this.addMemberFromTeamSearch}
               userAlreadyExists={showUserAlreadyExistsError}
               resetUserAlreadyExists={this.resetUserAlreadyExists}
-              btnText="Save" />
+              btnText="Save"
+            />
           </div>
           <div className={!belongingInternal ? Styles.externalWrapper : 'hide'}>
             <div className={Styles.flexLayout}>
@@ -430,7 +441,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
           </div>
 
           <div className={Styles.flexLayout}>
-            {!this.props.hideTeamPosition ? 
+            {!this.props.hideTeamPosition ? (
               <div className={classNames('input-field-group include-error', teamPositionError.length ? 'error' : '')}>
                 <label htmlFor="teamPosition" className="input-label">
                   Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
@@ -452,7 +463,9 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                   {teamPositionError}
                 </span>
               </div>
-            :''}
+            ) : (
+              ''
+            )}
             <div className={classNames('input-field-group include-error', mobileNumberError.length ? 'error' : '')}>
               <label htmlFor="mobileNumber" className="input-label">
                 Mobile No.<sup>*</sup>
@@ -657,7 +670,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
     if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
       const isDuplicate = this.props.validateMemebersList(teamMemberObj);
-      if(isDuplicate) {
+      if (isDuplicate) {
         this.setState({ showUserAlreadyExistsError: true });
         formValid = false;
       }
@@ -668,7 +681,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
   protected resetUserAlreadyExists = () => {
     this.setState({ showUserAlreadyExistsError: false });
-  }
+  };
 
   protected addTeamMemberForFoss = () => {
     const teamMember: ITeams = this.state.teamMemberObj;
@@ -730,7 +743,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
   protected validateInternalTeamMemberForm = () => {
     let formValid = true;
-    const errorMissingEntry = '*Missing entry'; 
+    const errorMissingEntry = '*Missing entry';
 
     if (this.state.teamPositionInternal === '' && !this.props.hideTeamPosition && !this.props.teamPositionNotRequired) {
       this.setState({ teamPositionInternalError: errorMissingEntry });
