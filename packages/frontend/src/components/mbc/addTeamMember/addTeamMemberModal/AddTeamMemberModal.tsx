@@ -11,6 +11,7 @@ import  Modal from '../../../formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
 import { Envs } from '../../../../globals/Envs';
 import * as Validation from '../../../../utils/Validation';
+import TeamSearch from '../../teamSearch/TeamSearch';
 
 const classNames = cn.bind(Styles);
 
@@ -57,10 +58,11 @@ export interface IAddTeamMemberModalState {
   teamPosition: string;
   teamPositionError: string;
   isEmailValid: boolean;
+  showUserAlreadyExistsError: boolean;
 }
 
 export default class AddTeamMemberModal extends React.Component<IAddTeamMemberModalProps, IAddTeamMemberModalState> {
-  constructor(props: any) {
+  constructor(props: IAddTeamMemberModalProps) {
     super(props);
     this.state = {
       belongingInternal: true,
@@ -92,6 +94,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       teamPosition: '',
       teamPositionError: null,
       isEmailValid: true,
+      showUserAlreadyExistsError: false
     };
     this.validateMobile = this.validateMobile.bind(this);
     this.validateEmailID = this.validateEmailID.bind(this);
@@ -100,7 +103,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   public render() {
     const requiredError = '*Missing entry';
     const teamPositionInternalError = this.state.teamPositionInternalError || '';
-    const userIdInternalError = this.state.userIdInternalError || '';
+    // const userIdInternalError = this.state.userIdInternalError || '';
     const companyExternalError = this.state.companyExternalError || '';
     const teamPositionExternalError = this.state.teamPositionExternalError || '';
 
@@ -115,11 +118,11 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
     const {
       belongingInternal,
-      userIdInternal,
+      // userIdInternal,
       teamPositionInternal,
       teamPositionExternal,
       companyExternal,
-      teamMemberObj,
+      // teamMemberObj,
       firstName,
       lastName,
       mobileNumber,
@@ -128,6 +131,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       department,
       shortID,
       teamPosition,
+      showUserAlreadyExistsError
     } = this.state;
 
     const addTeamMemberModalContent: React.ReactNode = (
@@ -198,72 +202,14 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                 </span>
               </div>
             : ''}
-            <div>
-              <div className={classNames(Styles.flexLayout, Styles.searchWrapper)}>
-                <div
-                  className={classNames('input-field-group include-error', userIdInternalError.length ? 'error' : '')}
-                >
-                  <label htmlFor="userIdInternal" className="input-label">
-                    User-ID<sup>*</sup>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    id="userIdInternal"
-                    name="userIdInternal"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    value={userIdInternal}
-                    maxLength={100}
-                    onKeyDown={this.onSearchKeyDown}
-                    onChange={this.textInputOnChange}
-                  />
-                  <span className={Styles.clearSearch} onClick={this.onSearchClearIconClick}>
-                    <i className={classNames('icon mbc-icon close circle', userIdInternal.length ? '' : 'hide')} />
-                  </span>
-                  <span className={classNames('error-message', userIdInternalError.length ? '' : 'hide')}>
-                    {userIdInternalError}
-                  </span>
-                </div>
-                <div>
-                  <button
-                    className="btn btn-primary"
-                    type="button"
-                    disabled={userIdInternal.length ? false : true}
-                    onClick={this.onSearchClick}
-                  >
-                    Search
-                  </button>
-                </div>
-              </div>
-              <span className={classNames('error-message', this.state.showNotFoundError ? '' : 'hide')}>
-                User details not found. Please provide valid User-ID.
-              </span>
-              {typeof this.props.validateMemebersList === 'function' &&
-              this.props.validateMemebersList(this.state.teamMemberObj) &&
-              !this.props.editMode ? (
-                <span className={classNames('error-message')}>User already added.</span>
-              ) : null}
-            </div>
-            <div className={classNames(Styles.flexLayout, Styles.actionWrapper, teamMemberObj.shortId ? '' : 'hide')}>
-              <div className={classNames(Styles.userInfoWrapper)}>
-                <div>
-                  <i className="icon mbc-icon check circle inline" />
-                </div>
-                <div>
-                  <p className={classNames(Styles.userDetails)}>
-                    {teamMemberObj.firstName} {teamMemberObj.lastName} <br />
-                    AD ID: {teamMemberObj.shortId} | Email: {teamMemberObj.email} <br />
-                    Department: {teamMemberObj.department} | Mobile Number: {teamMemberObj.mobileNumber}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <button className="btn btn-primary" onClick={this.addTeamMember} type="button">
-                  Save
-                </button>
-              </div>
-            </div>
+            <TeamSearch
+              label={<>Find User<sup>*</sup> <span dangerouslySetInnerHTML={{ __html: Envs.INTERNAL_USER_TEAMS_INFO }}></span></>}
+              editMode={this.props.editMode}
+              teamMemberObj={this.props.teamMember}
+              onAddTeamMember={this.addMemberFromTeamSearch}
+              userAlreadyExists={showUserAlreadyExistsError}
+              resetUserAlreadyExists={this.resetUserAlreadyExists}
+              btnText="Save" />
           </div>
           <div className={!belongingInternal ? Styles.externalWrapper : 'hide'}>
             <div className={Styles.flexLayout}>
@@ -685,6 +631,44 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       this.props.onUpdateTeamMemberList(teamMember);
     }
   };
+
+  protected addMemberFromTeamSearch = (teamMemberObj: ITeams) => {
+    const teamMember: ITeams = teamMemberObj;
+    const belongingInternal = teamMember.userType === TeamMemberType.INTERNAL;
+    if (belongingInternal && this.validateInternalTeamMemberFormTeamSearch(teamMemberObj)) {
+      teamMember.teamMemberPosition = this.state.teamPositionInternal;
+      this.props.onUpdateTeamMemberList(teamMember);
+    }
+  };
+
+  protected validateInternalTeamMemberFormTeamSearch = (teamMemberObj: ITeams) => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+
+    if (this.state.teamPositionInternal === '' && !this.props.hideTeamPosition && !this.props.teamPositionNotRequired) {
+      this.setState({ teamPositionInternalError: errorMissingEntry });
+      formValid = false;
+    }
+
+    if (teamMemberObj.shortId === '') {
+      this.setState({ userIdInternalError: errorMissingEntry });
+      formValid = false;
+    }
+
+    if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
+      const isDuplicate = this.props.validateMemebersList(teamMemberObj);
+      if(isDuplicate) {
+        this.setState({ showUserAlreadyExistsError: true });
+        formValid = false;
+      }
+    }
+
+    return formValid;
+  };
+
+  protected resetUserAlreadyExists = () => {
+    this.setState({ showUserAlreadyExistsError: false });
+  }
 
   protected addTeamMemberForFoss = () => {
     const teamMember: ITeams = this.state.teamMemberObj;
