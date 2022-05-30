@@ -15,7 +15,7 @@ const duplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack
 const Dotenv = require('dotenv-webpack');
 const fs = require('fs');
 const copyWebpackPlugin = require('copy-webpack-plugin');
-const ExternalTemplateRemotesPlugin = require("./ExternalTemplateRemotesPlugin");
+const ExternalTemplateRemotesPlugin = require('./ExternalTemplateRemotesPlugin');
 
 const CONTAINER_APP_URL = process.env.CONTAINER_APP_URL ? process.env.CONTAINER_APP_URL : 'http://localhost:9090';
 
@@ -30,7 +30,7 @@ const base = {
     clean: true,
     publicPath: 'auto',
   },
-  devtool: 'source-map',
+  devtool: false,
   module: {
     rules: [
       {
@@ -198,9 +198,7 @@ const base = {
 
 // copy config file part of build
 if (fs.existsSync(path.join(process.cwd(), 'public'))) {
-  base.plugins.push(
-    new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
-  );
+  base.plugins.push(new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }));
 }
 
 module.exports = base;
