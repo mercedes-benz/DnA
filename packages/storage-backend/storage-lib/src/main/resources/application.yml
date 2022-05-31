@@ -72,6 +72,9 @@ server:
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
+storage:
+  termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://xxxxx}
+ 
 minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   accessKey: ${MINIO_ADMIN_ACCESS_KEY:XXXXXX} 
