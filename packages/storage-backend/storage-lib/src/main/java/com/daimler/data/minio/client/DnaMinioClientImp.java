@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -752,13 +753,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			if (StringUtils.hasText(userPolicy)) {
 				// Iterating over policies
 				for (String policy : policies) {
-					// Checking whether user has policy
-					if (userPolicy.contains(policy)) {
+					// Checking whether user has policy					
+					if(Pattern.compile("\\b"+policy+"\\b",Pattern.CASE_INSENSITIVE).matcher(userPolicy).find()) {
 						// Removing policy
-						userPolicy = userPolicy.replace(policy, "");
+						userPolicy = userPolicy.replaceAll("\\b"+policy+"\\b", "");
 						// To check if policy contains only commas ','
 						if (!userPolicy.chars().allMatch(c -> c == ',')) {
 							// Unlink policy from user in minio
+							LOGGER.info("Unlinking policy from user:{}",userId);
 							minioAdminClient.setPolicy(userId, false, userPolicy);
 							// Adding in try as policy will get removed from minio eventually once
 							// dependency removed from other users
@@ -766,7 +768,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 								// Removing policy from minio
 								minioAdminClient.removeCannedPolicy(policy);
 							} catch (Exception e) {
-								LOGGER.error("Failed to remove policy:{}", e.getMessage());
+								LOGGER.warn("Failed to remove policy:{}", e.getMessage());
 							}
 							// updating cache map for user
 							UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
