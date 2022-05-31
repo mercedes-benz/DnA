@@ -35,6 +35,7 @@ window['INJECTED_ENVIRONMENT'] = {
   ENABLE_ML_PIPELINE_SERVICE: true,
   ENABLE_NOTIFICATION: true,
   ML_PIPELINE_URL: 'YOUR_ML_PIPELINE_URL',
+  INTERNAL_USER_TEAMS_INFO: '(Recommended to use Short ID. To find Short ID use <a href="https://teams.app.corpintra.net/teams/" target="_blank" rel="noreferrer noopener">Teams</a>)',
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {

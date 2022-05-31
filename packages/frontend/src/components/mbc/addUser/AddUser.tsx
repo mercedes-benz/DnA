@@ -7,6 +7,7 @@ import { IUserDetails } from '../../../globals/types';
 // @ts-ignore
 import InputFieldsUtils from '../../formElements/InputFields/InputFieldsUtils';
 import TeamSearch from '../teamSearch/TeamSearch';
+import { Envs } from '../../../globals/Envs';
 
 export interface IAddUserProps {
   /** function used to set collaborators information */
@@ -33,7 +34,8 @@ export default class AddUser extends React.Component<IAddUserProps> {
       <TeamSearch
         label={
           <>
-            Find Collaborator<sup>*</sup>
+            Find Collaborator<sup>*</sup>{' '}
+            <span dangerouslySetInnerHTML={{ __html: Envs.INTERNAL_USER_TEAMS_INFO }}></span>
           </>
         }
         onAddTeamMember={this.addMemberFromTeamSearch}
