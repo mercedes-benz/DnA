@@ -470,7 +470,7 @@ const Notifications = (props: any) => {
                 <div className={Styles.notificationContent}>
                   {/* <p>Hey John Doe,</p> */}
 
-                  <p>{notificationDetails ? JSON.parse(notificationDetails).messageDetails : ''}</p>
+                  <p>{notificationDetails ? markdownParser(JSON.parse(notificationDetails)?.messageDetails) : ''}</p>
 
                   {notificationDetails ? (
                     JSON.parse(notificationDetails).eventType === 'Solution Updated' ? (

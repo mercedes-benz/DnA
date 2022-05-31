@@ -107,7 +107,7 @@ const CreateBucket = () => {
       if (
         dataClassification !== editAPIResponse.classificationType ||
         PII !== editAPIResponse.piiData ||
-        bucketCollaborators?.length !== (editAPIResponse?.collaborators || 0)
+        bucketCollaborators?.length !== (editAPIResponse?.collaborators?.length || 0)
       ) {
         setTermsOfUse(false);
       }
@@ -225,8 +225,10 @@ const CreateBucket = () => {
       permission: { read: true, write: false },
     };
 
-    let duplicateMember = false;	
-    duplicateMember = bucketCollaborators.filter((member) => member.accesskey === collaborators.shortId)?.length ? true : false;
+    let duplicateMember = false;
+    duplicateMember = bucketCollaborators.filter((member) => member.accesskey === collaborators.shortId)?.length
+      ? true
+      : false;
 
     if (duplicateMember) {
       Notification.show('Collaborator Already Exist.', 'warning');
