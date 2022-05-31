@@ -67,7 +67,9 @@ envs:
     valueFrom:
       secretKeyRef:
         key: malwareApiKey
-        name: storage-be                       
+        name: storage-be
+  - name: STORAGE_TERMS_OF_USE_URL
+    value: ""                  
 
 secret:
   - key: vaultToken
