@@ -290,7 +290,7 @@ public class BaseStorageService implements StorageService {
 				LOGGER.info("Publishing message on bucket creation for bucketname {} by userId {}", bucketName, userId);
 			}
 			if (eventType != null && eventType != "") {
-					kafkaProducer.send(eventType, bucketUri, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,changeLogs);
+					kafkaProducer.send(eventType, bucketUri, messageDetails, userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,changeLogs);
 					LOGGER.info("Published event bucket-creation for bucketname {} by userId {}, for all collaborators {}", bucketName, userId,Arrays.toString(subscribedUsers.toArray()));
 			}
 		} catch (Exception e) {
