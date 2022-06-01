@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { SESSION_STORAGE_KEYS } from '../components/Utility/constants';
+import { Envs } from '../components/Utility/envs';
 
 const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT) : null;
 
-export const baseURL = process.env.STORAGE_API_BASEURL
-  ? process.env.STORAGE_API_BASEURL
-  : `http://${window.location.hostname}:7175/storage/api`;
+export const baseURL = Envs.STORAGE_API_BASEURL
+  ? Envs.STORAGE_API_BASEURL
+  : `http://${window.location.hostname}:7175/api`;
 
 const server = axios.create({
   baseURL,
@@ -18,7 +19,7 @@ const server = axios.create({
 
 server.interceptors.request.use((config) => {
   if (['/login', '/verifyLogin'].includes(config.url)) {
-    const appUrl = process.env.API_BASEURL ? process.env.API_BASEURL : `http://${window.location.hostname}:7171/api`;
+    const appUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
     config.baseURL = appUrl;
     config.data = {};
     config.headers = {

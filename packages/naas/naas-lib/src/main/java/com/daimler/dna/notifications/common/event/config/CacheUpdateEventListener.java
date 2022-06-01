@@ -94,7 +94,8 @@ public class CacheUpdateEventListener {
 	private static String SOLUTION_NOTIFICATION_KEY = "Solution";
 	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
-
+	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
+	
 	@PostConstruct
 	public void init() {
 
@@ -168,6 +169,10 @@ public class CacheUpdateEventListener {
 								if(record.value().getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getPersistenceNotificationPref().isEnableAppNotifications();
 									emailNotificationPreferenceFlag =  preferenceVO.getPersistenceNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
 								}
 								NotificationVO vo = new NotificationVO();
 								vo.setDateTime(record.value().getTime());
