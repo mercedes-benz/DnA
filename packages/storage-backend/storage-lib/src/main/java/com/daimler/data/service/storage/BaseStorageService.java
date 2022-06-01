@@ -94,6 +94,9 @@ public class BaseStorageService implements StorageService {
 	@Value("${minio.endpoint}")
 	private String minioBaseUri;
 	
+	@Value("${storage.termsOfUse.uri}")
+	private String storageTermsOfUseUri;
+	
 	@Autowired
 	private CacheUtil cacheUtil;
 	
@@ -263,6 +266,7 @@ public class BaseStorageService implements StorageService {
 			List<String> subscribedUsers, List<String> subscribedUsersEmail) {
 		try {
 			String message = "";
+			String messageDetails = "";
 			Boolean mailRequired = true;
 			com.daimler.data.application.auth.UserStore.UserInfo currentUser = userStore.getUserInfo();
 			String userId = currentUser.getId() != null ? currentUser.getId() : "dna_system";
@@ -282,10 +286,11 @@ public class BaseStorageService implements StorageService {
 
 			if (bucketCreationEvent.equalsIgnoreCase(eventType)) {
 				message = "Storage bucket:  " + bucketName + ", is created by user " + userName;
+				messageDetails = "Please refer the link for [Terms of Use](" + storageTermsOfUseUri + ")";
 				LOGGER.info("Publishing message on bucket creation for bucketname {} by userId {}", bucketName, userId);
 			}
 			if (eventType != null && eventType != "") {
-					kafkaProducer.send(eventType, bucketUri, "", userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,changeLogs);
+					kafkaProducer.send(eventType, bucketUri, messageDetails, userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,changeLogs);
 					LOGGER.info("Published event bucket-creation for bucketname {} by userId {}, for all collaborators {}", bucketName, userId,Arrays.toString(subscribedUsers.toArray()));
 			}
 		} catch (Exception e) {

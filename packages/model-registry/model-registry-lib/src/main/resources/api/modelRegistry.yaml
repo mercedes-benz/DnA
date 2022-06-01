@@ -1,0 +1,206 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : modelRegistry.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core model registry service"
+host: "localhost:7373"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "models"
+   description: "This service is used to fetch and expose models."
+
+schemes:
+- "https"
+
+paths:
+
+# path to fetch models
+#
+#  supprorted http methods GET
+#
+# path example ../models
+
+ /models/{id}:
+  get:
+   tags:
+    - "models"
+   summary: "Get all available models."
+   description:  "Get all models for requested user."
+   operationId: "getAll"
+   parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the user"
+        required: true
+        type: "string"
+   responses:
+    201:
+     description: "Returns message of succes or failure"
+     schema:
+       $ref: "#/definitions/ModelCollection"
+    204:
+      description: "Fetch complete, no content found."
+    400:
+     description: "Bad request."
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+# path to create external uri to access model
+#  supported http methods POST
+#
+# path example ../model/externaluri
+
+ /model/externaluri:
+    post:
+      tags:
+        - "models"
+      summary: "create a external uri."
+      description: "create a external uri"
+      operationId: "create"
+      parameters:
+        - name: "modelRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a external uri"
+          required: true
+          schema:
+            $ref: "#/definitions/ModelRequestVO"    
+      responses:
+        200:
+          description: "Returns message of succes"
+          schema:
+            $ref: "#/definitions/ModelResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"      
+
+
+definitions:
+
+ ModelCollection:
+  type: object 
+  properties:
+    data:
+      description: "Collection of Models."
+      type: array
+      items:
+        type: string
+        
+ ModelRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ModelVO"
+        
+ ModelVO:
+    type: object
+    properties:
+      modelName:
+        type: string
+        description: "Name of the model"
+        minLength: 1   
+    required:
+      - modelName 
+      
+ ModelExternalUriVO:
+    type: object
+    properties:
+      modelName:
+        type: string
+        description: "Name of the model"
+      externalUri:
+        type: string
+        description: "External Uri"              
+      
+ ModelResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ModelExternalUriVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"                      
+ 
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"
+ 

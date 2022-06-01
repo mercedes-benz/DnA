@@ -118,7 +118,7 @@ export default class Administration extends React.Component<IAdministrationProps
               )}
               {isAdmin && (
                 <div id="tab-content-5" className={'tab-content ' + Styles.contentTab}>
-                  <AdminNotifications />
+                  <AdminNotifications userId={this.props.user.id} />
                 </div>
               )}
             </div>
