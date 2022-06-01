@@ -27,11 +27,33 @@
 
 package com.daimler.data.service.datasource;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataSourceNsql;
+import com.daimler.data.dto.datasource.DataSourceCreateVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface DataSourceService extends CommonService<DataSourceVO, DataSourceNsql, String> {
 
 	boolean deleteDataSource(final String id);
+	
+	/**
+	 * To create bulk Data-sources
+	 * 
+	 * @param dataSourcesCreateVO {@code List<DataSourceCreateVO>}
+	 * @return response {@code ResponseEntity<GenericMessage>}
+	 */
+	ResponseEntity<GenericMessage> bulkCreate(List<DataSourceCreateVO> dataSourcesCreateVO);
+	
+	/**
+	 * To check if access token is valid
+	 * 
+	 * @param token
+	 * @return isValidAccessToken
+	 */
+	boolean accessTokenIntrospection(String token);
 }
