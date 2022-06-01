@@ -13,6 +13,8 @@ export interface IAddUserProps {
   getCollabarators: (teamMemberObj: IUserDetails, dagId: string) => void;
   /** string to be passed as a parameter to getCollaborator function */
   dagId: string;
+  /** displays (*) next to label */
+  isRequired: boolean;
 }
 
 /**
@@ -31,11 +33,7 @@ export default class AddUser extends React.Component<IAddUserProps> {
   public render() {
     return (
       <TeamSearch
-        label={
-          <>
-            Find Collaborator<sup>*</sup>
-          </>
-        }
+        label={<>Find Collaborator {this.props.isRequired ? <sup>*</sup> : null}</>}
         onAddTeamMember={this.addMemberFromTeamSearch}
         btnText="Add User"
       />
@@ -52,4 +50,5 @@ export default class AddUser extends React.Component<IAddUserProps> {
     };
     this.props.getCollabarators(teamMemberObj, this.props.dagId);
   };
+  static defaultProps = { isRequired: true };
 }
