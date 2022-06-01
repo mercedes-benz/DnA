@@ -84,6 +84,8 @@ public class KafkaCoreCampaignService {
 	private static String SOLUTION_NOTIFICATION_KEY = "Solution";
 	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
+	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
+	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -98,6 +100,7 @@ public class KafkaCoreCampaignService {
 		if (message != null) {
 			List<String> users = message.getSubscribedUsers();
 			List<String> usersEmails = message.getSubscribedUsersEmail();
+			String publishingUser = message.getPublishingUser();
 			int userListPivot = 0;
 			for (String user : users) {
 				if (StringUtils.hasText(user) && user != "null") {
@@ -120,6 +123,10 @@ public class KafkaCoreCampaignService {
 						appNotificationPreferenceFlag = preferenceVO.getPersistenceNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getPersistenceNotificationPref().isEnableEmailNotifications();
 					}
+					if(message.getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
+					}
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
 					vo.setEventType(message.getEventType());
@@ -130,7 +137,7 @@ public class KafkaCoreCampaignService {
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
 					String emailBody = "<br/>"+ message.getMessage() + "<br/>";
-					String bucketURL = dnaBaseUri + message.getResourceId();
+					String bucketURL = dnaBaseUri + STORAGE_URI_PATH + message.getResourceId();
 					if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
 						for (ChangeLogVO changeLog : message.getChangeLogs()) {
 							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
@@ -138,7 +145,10 @@ public class KafkaCoreCampaignService {
 					}
 					if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
 							
-							emailBody += "<br/>" + "\u2022" + "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
+							emailBody += "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
+							if(!user.equalsIgnoreCase(publishingUser)) {
+								emailBody +=  message.getMessageDetails() + "<br/>";
+							}
 						
 					}
 					if(appNotificationPreferenceFlag) {
@@ -153,6 +163,7 @@ public class KafkaCoreCampaignService {
 						String userEmail = usersEmails.get(userListPivot);
 						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
 							String emailSubject = message.getEventType()+" Email Notification";
+							
 							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , emailBody);
 							LOGGER.info("Sent email as per user preference, Details: user {}, eventType {}, uuid {}", user,
 									message.getEventType(), message.getUuid());
