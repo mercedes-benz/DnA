@@ -3,6 +3,7 @@ import { history } from '../../../store/storeRoot';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { bucketsObjectApi } from '../../../apis/fileExplorer.api';
 import { serializeAllObjects, serializeObjects } from '../Utils';
+import { ChonkyActions, defineFileAction } from 'chonky';
 
 export const setFiles = (bucketName, historyPush = true) => {
   return async (dispatch) => {
@@ -55,11 +56,16 @@ export const setFiles = (bucketName, historyPush = true) => {
           },
         });
         dispatch({
+          type: 'SET_BUCKET_OBJECTS',
+          payload: res?.data?.data?.bucketObjects || [],
+        });
+        dispatch({
           type: 'FILE_LOADING',
           payload: false,
         });
         ProgressIndicator.hide();
       }
+      dispatch(setActionButtons(res?.data?.data?.bucketPermission, res?.data?.data?.bucketObjects));
       historyPush && history.push(`explorer/${bucketName}`);
     } catch (e) {
       dispatch({
@@ -107,6 +113,11 @@ export const getFiles = (files, bucketName, fileToOpen) => {
           type: 'FILE_LOADING',
           payload: false,
         });
+        dispatch({
+          type: 'SET_BUCKET_OBJECTS',
+          payload: res?.data?.data?.bucketObjects || [],
+        });
+        dispatch(setActionButtons(res?.data?.data?.bucketPermission, res?.data?.data?.bucketObjects));
         ProgressIndicator.hide();
       } else {
         dispatch({
@@ -150,7 +161,7 @@ export const downloadFoldersOrFiles = (bucketName, fileOrFolder) => {
   };
 };
 
-export const deleteFiles = (bucketName, filesPath, files) => {
+export const deleteFiles = (bucketName, filesPath, files, bucketObjects) => {
   return async (dispatch) => {
     dispatch({
       type: 'FILE_LOADING',
@@ -166,6 +177,10 @@ export const deleteFiles = (bucketName, filesPath, files) => {
         dispatch({
           type: 'FILE_LOADING',
           payload: false,
+        });
+        dispatch({
+          type: 'SET_BUCKET_OBJECTS',
+          payload: bucketObjects.filter((item) => item.objectName !== filesPath) || [],
         });
         ProgressIndicator.hide();
         const pathList = filesPath?.split(',');
@@ -185,7 +200,48 @@ export const deleteFiles = (bucketName, filesPath, files) => {
       ProgressIndicator.hide();
       Notification.show(
         e?.response?.data?.message ? e.response.data.message : 'Error while deleting an object. Please try again.',
+        'alert',
       );
     }
+  };
+};
+
+export const setActionButtons = (bucketPermission, bucketObjects, showPublish = true) => {
+  return async (dispatch) => {
+    // const UploadFolder = defineFileAction({
+    //   id: 'upload_folder',
+    //   button: {
+    //     name: 'Upload folder',
+    //     toolbar: true,
+    //     tooltip: 'Upload folder',
+    //     icon: 'upload',
+    //   },
+    // });
+
+    const PublishFolder = defineFileAction({
+      id: 'publish_folder',
+      button: {
+        name: 'Publish to Trino',
+        toolbar: true,
+        contextMenu: true,
+        tooltip: 'Publish to Trino',
+        icon: 'folder',
+      },
+    });
+
+    const hasParquetFile =
+      bucketObjects.filter((item) => item.objectName.toLowerCase()?.split('.')?.[1] === 'parquet')?.length > 0;
+
+    dispatch({
+      type: 'SET_ACTION_BUTTONS',
+      payload: [
+        ...(bucketPermission.write ? [ChonkyActions.UploadFiles] : []),
+        // ...(bucketPermission.write ? [UploadFolder] : []),
+        ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
+        ChonkyActions.DownloadFiles,
+        ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
+        ...(bucketPermission.write && showPublish && hasParquetFile ? [PublishFolder] : []),
+      ],
+    });
   };
 };
