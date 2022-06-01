@@ -55,9 +55,6 @@
                                 font-size: 9px;
                             }
                         }
-                        &:nth-child(4) {
-                            word-break: break-all;
-                        }
                         i {
                             right: 0;
                         }
@@ -95,9 +92,6 @@
                         i {
                             font-size: var(--font-size-icon-small);
                             right: 0;
-                        }
-                        &:nth-child(4) {
-                            word-break: break-all;
                         }
                         .actionBtn {
                             background-color: transparent;
