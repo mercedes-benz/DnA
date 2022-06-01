@@ -1,0 +1,75 @@
+/* LICENSE START
+ * 
+ * MIT License
+ * 
+ * Copyright (c) 2019 Daimler TSS GmbH
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * LICENSE END 
+ */
+
+package com.daimler.data.registry.models.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.daimler.data.dto.MinioKeyDetails;
+import com.daimler.data.dto.MinioSecretMetadata;
+import com.daimler.data.dto.model.ModelCollection;
+import com.daimler.data.dto.model.ModelRequestVO;
+import com.daimler.data.dto.model.ModelResponseVO;
+import com.daimler.data.registry.config.KubernetesClient;
+import com.daimler.data.registry.config.MinioConfig;
+
+import io.minio.MinioClient;
+
+@Service
+public class RegistryServiceImpl implements RegistryService {
+	
+	@Autowired
+	private KubernetesClient kubeClient;
+	
+	@Autowired
+	private MinioConfig minioConfig;
+	
+	@Override
+	public ModelCollection getAllModels(String userId) {
+		if(userId!=null && !"".equalsIgnoreCase(userId)) {
+			MinioSecretMetadata minioDetails = kubeClient.getKubeflowMinioSpec();
+			String endpoint = "http://"+minioDetails.getHost()+":"+minioDetails.getPort();
+			if(minioDetails!=null) {
+				MinioKeyDetails keyDetails = minioDetails.getStringData();
+				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccesskey(), keyDetails.getSecretkey());
+				return minioConfig.getModels(minioClient, userId);
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO) {
+		kubeClient.abc();
+		return null;
+	}
+
+	
+	
+}
