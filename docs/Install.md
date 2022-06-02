@@ -139,8 +139,8 @@ After installing the kafka, update the `naasBroker` parameter value in [Values.y
 
 Execute the below commands to deploy application on the kubernetes cluster using helm.
 ```
-cd <<Clonned Folder Path>>\deployment\kubernetes\helm
-helm install dna . -f ./charts/values.yaml
+cd <<Clonned Folder Path>>\deployment\kubernetes
+helm install dna helm/
 ```
 Execute the below command to list out the helm releases.
 ```
@@ -193,7 +193,7 @@ For reference:
 
 Do Helm Upgrade, if you made changes on helm files.
 ```
-helm upgrade dna . -f ./charts/values.yaml
+helm upgrade dna helm/
 ```
 
 **Accessing the application with localhost**
