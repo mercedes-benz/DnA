@@ -1,3 +1,4 @@
+{{- if .Values.hiveinitschema.enabled -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -18,3 +19,4 @@ spec:
         args: ["--verbose" ,"-initSchema" , "-dbType", "postgres" , "-userName", "{{ .Values.hivemetastore.postgres.user }}", "-passWord", "{{ .Values.hivemetastore.postgres.password }}" , "-url", "jdbc:postgresql://{{ .Values.hivemetastore.postgres.host }}/{{ .Values.hivemetastore.postgres.db }}"]
       restartPolicy: Never
   backoffLimit: 1
+{{- end }}

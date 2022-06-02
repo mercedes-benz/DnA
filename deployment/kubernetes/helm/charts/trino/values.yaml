@@ -20,7 +20,10 @@ ingress:
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: ""
-  
+    
+hiveinitschema:
+  enabled: false
+
 server:
   host: ""
   workers: 2
