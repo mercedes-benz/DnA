@@ -418,7 +418,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 				// Adding new policies to existing one
 				for (String policy : policies) {
-					existingPolicy = !existingPolicy.contains(policy) ? existingPolicy + "," + policy : existingPolicy;
+					if(!Pattern.compile("\\b"+policy+"\\b",Pattern.CASE_INSENSITIVE).matcher(existingPolicy).find()) {
+						existingPolicy = existingPolicy + "," + policy;
+					}
 				}
 
 				// Setting new policy set to user
