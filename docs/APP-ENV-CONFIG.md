@@ -34,6 +34,7 @@
 | PROJECTSMO_FRONTEND_OIDC_PROVIDER<br />`string`               | `OKTA`                                                                                                       | OKTA/INTERNAL | Name of ODIC provider                                                                                                                                                                                           |
 | PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME<br/>`number` | `"5000"`                                                                                                     | NA            | OIDC popup wait time.                                                                                                                                                                                           |
 | PROJECTSMO_STORAGE_MFE_APP_URL<br />`url`                     | `<<http://localhost:8083>>`                                                                                  | NA            | Storage Micro Frontend Application URL, needed for Enabling Storage Service.                                                                                                                                    |
+| PROJECTSMO_INTERNAL_USER_TEAMS_INFO<br/>`string`            | `(Recommended to use Short ID. To find Short ID use <a href="YOUR_TEAMS_INFO_URL" target="_blank" rel="noreferrer noopener">Teams</a>)` | NA            | Content that comes on user search label
 
 ##### Backend Environment Variables
 
