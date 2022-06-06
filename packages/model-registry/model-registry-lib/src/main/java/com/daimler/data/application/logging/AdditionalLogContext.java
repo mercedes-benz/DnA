@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.stereotype.Component;
 
-
 public class AdditionalLogContext extends FilterRegistrationBean {
 
 	public AdditionalLogContext() {

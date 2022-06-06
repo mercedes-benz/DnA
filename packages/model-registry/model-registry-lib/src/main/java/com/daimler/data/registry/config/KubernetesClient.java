@@ -27,8 +27,8 @@
 
 package com.daimler.data.registry.config;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,21 +39,26 @@ import com.daimler.data.dto.MinioSecretMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1ContainerPort;
-import io.kubernetes.client.openapi.models.V1EnvFromSource;
-import io.kubernetes.client.openapi.models.V1EnvVar;
+import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
+import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
+import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1IngressBackend;
+import io.kubernetes.client.openapi.models.V1IngressRule;
+import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
+import io.kubernetes.client.openapi.models.V1IngressSpec;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.openapi.models.V1SecretList;
-import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import io.kubernetes.client.util.Config;
-import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -66,14 +71,23 @@ public class KubernetesClient {
 	@Value("${kubeflow.secret.name}")
 	private String kubeflowSecret;
 
+	@Value("${model.host}")
+	private String host;
+
+	@Value("${model.certManager}")
+	private String certManager;
+
 	private CoreV1Api api;
 	private ApiClient client;
+
+	private NetworkingV1Api networkingV1beta1Api;
 
 	public KubernetesClient() {
 		try {
 			this.client = Config.defaultClient();
 			Configuration.setDefaultApiClient(client);
 			this.api = new CoreV1Api();
+			this.networkingV1beta1Api = new NetworkingV1Api();
 			log.info("Got kubernetes java client and core api successfully");
 		} catch (Exception e) {
 			log.error("Error while getting kubernetes java client and core api successfully");
@@ -81,66 +95,12 @@ public class KubernetesClient {
 		}
 	}
 
-	public V1PodList getPods(String namespace) {
-		try {
-			return api.listNamespacedPod(namespace, null, null, null, null, null, null, null, null, 10, false);
-		} catch (Exception e) {
-			log.error("Error occured while getting pods list using namespace. Exception is :  {}", e.getMessage());
-			return null;
-		}
-
-	}
-
-	public V1PodSpec getPodSpec(V1Pod pod) {
-		try {
-			return pod.getSpec();
-		} catch (Exception e) {
-			log.error("Error occured while getting spec for given pod. Exception is :  {}", e.getMessage());
-			return null;
-		}
-	}
-
-	public List<V1Container> getContainers(V1PodSpec podSpec) {
-		try {
-			return podSpec.getContainers();
-		} catch (Exception e) {
-			log.error("Error occured while getting containers list for given podspec. Exception is :  {}",
-					e.getMessage());
-			return null;
-		}
-	}
-
-	public List<V1EnvVar> getEnviromnetVariables(V1Container container) {
-		try {
-			return container.getEnv();
-		} catch (Exception e) {
-			log.error("Error occured while getting environment variables. Exception is :  {}", e.getMessage());
-			return null;
-		}
-	}
-
-	public List<V1EnvFromSource> getEnvironmentVariablesFromSource(V1Container container) {
-		try {
-			return container.getEnvFrom();
-		} catch (Exception e) {
-			log.error("Error occured while getting environment variables from source. Exception is :  {}",
-					e.getMessage());
-			return null;
-		}
-	}
-
-	public V1SecretList getSecretList(String namespace) {
-		try {
-			return api.listNamespacedSecret(namespace, "true", null, null, null, null, null, null, null, null, false);
-		} catch (Exception e) {
-			log.error("Error occured while getting secret list. Exception is :  {}", e.getMessage());
-			return null;
-		}
-	}
-
 	public V1Secret getSecret(String secretName, String namespace) {
 		try {
 			return api.readNamespacedSecret(secretName, namespace, "true");
+		} catch (ApiException ex) {
+			log.error("Exception occurred while getting secret list. Exception is {} ", ex.getResponseBody());
+			return null;
 		} catch (Exception e) {
 			log.error("Error occured while getting secret list. Exception is :  {}", e.getMessage());
 			return null;
@@ -183,6 +143,7 @@ public class KubernetesClient {
 					log.info("Successfully fetched secretDetails");
 				}
 			}
+
 			V1PodList items = api.listNamespacedPod(kubeflowNamespace, null, null, null, null, null, null, null, null,
 					10, false);
 			V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio"))
@@ -203,20 +164,53 @@ public class KubernetesClient {
 		return secretDetails;
 	}
 
-	public void abc() {
+	public void getUri(String metaDataNamespace, String metaDataName, String backendServiceName, String path)
+			throws ApiException {
+		V1Ingress ingress = new V1Ingress();
+		V1ObjectMeta metaData = new V1ObjectMeta();
+		Map<String, String> annotations = new HashMap<>();
+		annotations.put("traefik.frontend.rule.type", "PathPrefix");
+		annotations.put("kubernetes.io/ingress.class", "traefik");
+		annotations.put("traefik.ingress.kubernetes.io/router.tls", "true");
+		annotations.put("traefik.ingress.kubernetes.io/router.entrypoints", "websecure");
+		annotations.put("cert-manager.io/cluster-issuer", certManager);
+		metaData.setAnnotations(annotations);
+		metaData.setName(metaDataName);
+		metaData.setNamespace(metaDataNamespace);
 
-		File file = new File("service.yaml");
-		try {
-			V1Service yamlSvc = (V1Service) Yaml.load(file);
-			V1Service createResult = api.createNamespacedService(kubeflowNamespace, yamlSvc, null, null, null, null);
-			System.out.println(createResult);
-		} catch (IOException e) {
-			log.error("Yaml error");
-			e.printStackTrace();
-		} catch (Exception ex) {
-			log.error("Yaml error");
-			ex.printStackTrace();
-		}
+		V1ServiceBackendPort port = new V1ServiceBackendPort();
+		port.setNumber(80);
+		V1IngressServiceBackend v1IngressServiceBackend = new V1IngressServiceBackend();
+		v1IngressServiceBackend.setName(backendServiceName);
+		v1IngressServiceBackend.setPort(port);
+		V1IngressBackend v1IngressBackend = new V1IngressBackend();
+		v1IngressBackend.setService(v1IngressServiceBackend);
+
+		V1HTTPIngressPath v1HTTPIngressPath = new V1HTTPIngressPath();
+		v1HTTPIngressPath.setPath(path);
+		v1HTTPIngressPath.setPathType("Prefix");
+		v1HTTPIngressPath.setBackend(v1IngressBackend);
+
+		List<V1HTTPIngressPath> paths = new ArrayList<>();
+		paths.add(v1HTTPIngressPath);
+		V1HTTPIngressRuleValue v1HTTPIngressRuleValue = new V1HTTPIngressRuleValue();
+		v1HTTPIngressRuleValue.setPaths(paths);
+
+		V1IngressRule ingressRule = new V1IngressRule();
+		ingressRule.setHost(host);
+		ingressRule.setHttp(v1HTTPIngressRuleValue);
+
+		List<V1IngressRule> rules = new ArrayList<>();
+		rules.add(ingressRule);
+		V1IngressSpec ingressSpec = new V1IngressSpec();
+		ingressSpec.setRules(rules);
+
+		ingress.setApiVersion("networking.k8s.io/v1");
+		ingress.setKind("Ingress");
+		ingress.setMetadata(metaData);
+		ingress.setSpec(ingressSpec);
+		log.info("Ingress yaml created: {} ", ingress.toString());
+		networkingV1beta1Api.createNamespacedIngress(metaDataNamespace, ingress, null, null, null, null);
 	}
 
 }
