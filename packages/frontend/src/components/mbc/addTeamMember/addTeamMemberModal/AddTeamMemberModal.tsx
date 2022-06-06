@@ -211,7 +211,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
               label={
                 <>
                   Find User<sup>*</sup>{' '}
-                  <span dangerouslySetInnerHTML={{ __html: Envs.ENABLE_INTERNAL_USER_INFO }}></span>
+                  <span dangerouslySetInnerHTML={{__html: Envs.INTERNAL_USER_TEAMS_INFO}}></span>
                 </>
               }
               editMode={this.props.editMode}
