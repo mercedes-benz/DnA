@@ -45,14 +45,14 @@ public class ApplicationLoggingAspect {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Pointcut("within(@org.springframework.stereotype.Service *)"
-			+ " || within(@org.springframework.web.bind.annotation.RestController *)" 
+			+ " || within(@org.springframework.web.bind.annotation.RestController *)"
 			+ " || within(@org.springframework.stereotype.Component *)")
 	public void springBeanPointcut() {
 	}
 
 	@Pointcut(
-			//"within(com.daimler.data.service.persistence..*)" + " || 
-			"within(com.daimler.data..*)")
+	// "within(com.daimler.data.service.persistence..*)" + " ||
+	"within(com.daimler.data..*)")
 	public void applicationPackagePointcut() {
 	}
 
