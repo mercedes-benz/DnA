@@ -103,25 +103,27 @@ export const trackEvent = (category: string, action: string, name: string, value
 
 export const getDateFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
-  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
-  const sep = seperator || '-';
-  return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
+  return regionalDateAndTimeConversionSolution(d);
+  // const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
+  // const sep = seperator || '-';
+  // return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
 };
 
 export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
-  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
-  const time = td.getUTCHours();
-  const mins = td.getUTCMinutes();
-  return (
-    getDateFromTimestamp(givenDate, seperator) +
-    ' at ' +
-    (time < 10 ? '0' : '') +
-    time +
-    ':' +
-    (mins < 10 ? '0' : '') +
-    mins
-  );
+  return regionalDateAndTimeConversionSolution(d);
+  // const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
+  // const time = td.getUTCHours();
+  // const mins = td.getUTCMinutes();
+  // return (
+  //   getDateFromTimestamp(givenDate, seperator) +
+  //   ' at ' +
+  //   (time < 10 ? '0' : '') +
+  //   time +
+  //   ':' +
+  //   (mins < 10 ? '0' : '') +
+  //   mins
+  // );
 };
 
 export const getDateDifferenceFromToday = (dateFrom: string) => {
@@ -147,13 +149,13 @@ export const getDateDifferenceFromTodayUsingGetDate = (dateFrom: string) => {
 export const getDateAfterSomeDays = (noOfDays: number) => {
   const someDate = new Date();
   const numberOfDaysToAdd = noOfDays;
-  someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
-  const dd = someDate.getDate();
-  const mm = someDate.getMonth() + 1;
-  const y = someDate.getFullYear();
+  return regionalDateAndTimeConversionSolution(someDate.setDate(someDate.getDate() + numberOfDaysToAdd));
+  // const dd = someDate.getDate();
+  // const mm = someDate.getMonth() + 1;
+  // const y = someDate.getFullYear();
 
-  const someFormattedDate = dd + '-' + mm + '-' + y;
-  return someFormattedDate;
+  // const someFormattedDate = dd + '-' + mm + '-' + y;
+  // return someFormattedDate;
 };
 
 export const convertTextToLink = (text: string, env: string) => {
@@ -235,4 +237,28 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
     divisionIds = '';
   }
   return divisionIds;
+};
+
+export const regionalDateAndTimeConversion = (dateString: any) => { 
+  const newDateString = dateString.split(/-| /);   
+  const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
+  
+  const date = new Date(dateUTC);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false,
+  }).format(date);
+};
+
+export const regionalDateAndTimeConversionSolution = (dateString: any) => { 
+  // const newDateString = dateString.split(/-| /);   
+  // const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
+  
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false,
+  }).format(date);
 };
