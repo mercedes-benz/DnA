@@ -52,22 +52,15 @@ public class SwaggerConfig {
 
 	@Value("${swagger.headers.authorization.token}")
 	private String defaultAuthToken;
-	
+
 	@Bean
 	public Docket api() {
 
-		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
-				.description("Authorization header")
-				.query(q -> q.defaultValue(
-						defaultAuthToken))
-				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
-				.build();
 		RequestParameter contentTypeParamBuilder = new RequestParameterBuilder().name("Content-Type")
 				.description("content type").query(q -> q.defaultValue("application/json"))
 				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
 				.build();
 		List<RequestParameter> globalRequestHeaderParms = new ArrayList<>();
-		globalRequestHeaderParms.add(authParamBuilder);
 		globalRequestHeaderParms.add(contentTypeParamBuilder);
 
 		return new Docket(DocumentationType.SWAGGER_2).select()
