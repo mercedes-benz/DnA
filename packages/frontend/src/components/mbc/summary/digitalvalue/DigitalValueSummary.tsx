@@ -11,6 +11,7 @@ import InfoModal from '../../../../components/formElements/modal/infoModal/InfoM
 import { ApiClient } from '../../../../services/ApiClient';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import DigitalValuePopupContent from './DigitalValuePopupContent';
+import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 
 import {
   IAttachment,
@@ -207,7 +208,8 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                 return (
                   <tr key={index} className="data-row">
                     <td className="wrap-text">
-                      {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)}
+                      {regionalDateAndTimeConversionSolution(data.changeDate)}
+                      {/* {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)} */}
                     </td>
                     <td className="wrap-text">
                       {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
