@@ -55,7 +55,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-	
+
 	@Value("${allowedCorsOriginPatternUrl}")
 	private String corsOriginUrl;
 
@@ -106,6 +106,5 @@ public class WebConfig implements WebMvcConfigurer {
 		restTemplate.getMessageConverters().add(converter);
 		return restTemplate;
 	}
-
 
 }
