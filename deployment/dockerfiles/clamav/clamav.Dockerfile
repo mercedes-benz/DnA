@@ -34,7 +34,7 @@ RUN echo "deb http://http.debian.net/debian/ $DEBIAN_VERSION main contrib non-fr
 
 # Copy from runner
 COPY --chown=clamav:clamav ./runner-db/*.cvd /var/lib/clamav/
-COPY --chown=clamav:clamav ./runner-db/daily.cld /var/lib/clamav/
+# COPY --chown=clamav:clamav ./runner-db/daily.cld /var/lib/clamav/
 
 # av configuration update
 RUN sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/clamd.conf && \
