@@ -27,37 +27,57 @@
 
 package com.daimler.data.registry.models.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.MinioKeyDetails;
 import com.daimler.data.dto.MinioSecretMetadata;
 import com.daimler.data.dto.model.ModelCollection;
+import com.daimler.data.dto.model.ModelExternalUriVO;
 import com.daimler.data.dto.model.ModelRequestVO;
 import com.daimler.data.dto.model.ModelResponseVO;
 import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.minio.MinioClient;
 
 @Service
 public class RegistryServiceImpl implements RegistryService {
-	
+
+	private static Logger LOGGER = LoggerFactory.getLogger(RegistryServiceImpl.class);
+
 	@Autowired
 	private KubernetesClient kubeClient;
-	
+
 	@Autowired
 	private MinioConfig minioConfig;
+
+	@Value("${model.host}")
+	private String host;
 	
+	@Value("${model.backendServiceSuffix}")
+	private String backendServiceSuffix;
+
 	@Override
 	public ModelCollection getAllModels(String userId) {
-		if(userId!=null && !"".equalsIgnoreCase(userId)) {
+		if (userId != null && !"".equalsIgnoreCase(userId)) {
 			MinioSecretMetadata minioDetails = kubeClient.getKubeflowMinioSpec();
-			String endpoint = "http://"+minioDetails.getHost()+":"+minioDetails.getPort();
-			if(minioDetails!=null) {
+			String endpoint = "http://" + minioDetails.getHost() + ":" + minioDetails.getPort();
+			if (minioDetails != null) {
 				MinioKeyDetails keyDetails = minioDetails.getStringData();
-				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccesskey(), keyDetails.getSecretkey());
+				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccesskey(),
+						keyDetails.getSecretkey());
 				return minioConfig.getModels(minioClient, userId);
 			}
 		}
@@ -66,10 +86,84 @@ public class RegistryServiceImpl implements RegistryService {
 
 	@Override
 	public ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO) {
-		kubeClient.abc();
-		return null;
+		ModelResponseVO modelResponseVO = new ModelResponseVO();
+		ModelExternalUriVO modelExternalUriVO = new ModelExternalUriVO();
+		String modelName = modelRequestVO.getData().getModelName();
+		modelExternalUriVO.setModelName(modelName);
+		String uri = "";
+		try {
+			String[] modelPath = modelName.split("/");
+			String[] userId = modelPath[0].split("-");
+			if (modelPath.length < 2 || userId.length != 2) {
+				LOGGER.debug("ModelName :  {} is invalid ", modelName);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Given modelName is invalid");
+				messages.add(message);
+				modelResponseVO.setData(modelExternalUriVO);
+				modelResponseVO.setErrors(messages);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.BAD_REQUEST);
+			}
+			String metaDataNamespace = modelPath[0];
+			String metaDataName = userId[1];
+			String backendServiceName = "";
+			for (int i = 1; i < modelPath.length - 1; i++) {
+				metaDataName += "-" + modelPath[i];
+				backendServiceName += modelPath[i] + "-";
+			}
+			if (StringUtils.hasText(backendServiceName)) {
+				backendServiceName = backendServiceName.substring(0, backendServiceName.length() - 1);
+			}
+
+			String path = "/v1/models/" + backendServiceName + ":predict";
+
+			backendServiceName += "-" + backendServiceSuffix;
+
+			uri = "https://" + host + path;
+			kubeClient.getUri(metaDataNamespace, metaDataName, backendServiceName, path);
+			modelExternalUriVO.setExternalUri(uri);
+			modelResponseVO.setData(modelExternalUriVO);
+			LOGGER.info("Model {} exposed successfully", modelName);
+			return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
+		} catch (ApiException ex) {
+			LOGGER.error("ApiException occurred while exposing model. Exception is {} ", ex.getResponseBody());
+			if (ex.getCode() == HttpStatus.CONFLICT.value()) {
+				modelExternalUriVO.setExternalUri(uri);
+				modelResponseVO.setData(modelExternalUriVO);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage(ex.getResponseBody());
+				messages.add(message);
+				modelResponseVO.setErrors(messages);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.CONFLICT);
+			} else if (ex.getCode() == HttpStatus.FORBIDDEN.value()) {
+				modelResponseVO.setData(modelExternalUriVO);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage(ex.getResponseBody());
+				messages.add(message);
+				modelResponseVO.setErrors(messages);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.FORBIDDEN);
+			} else {
+				modelResponseVO.setData(modelExternalUriVO);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage(ex.getMessage());
+				messages.add(message);
+				modelResponseVO.setErrors(messages);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred:{} while exposing model {} ", e.getMessage(), modelName);
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage(e.getMessage());
+			messages.add(message);
+			modelResponseVO.setData(modelExternalUriVO);
+			modelResponseVO.setErrors(messages);
+			return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
-	
-	
 }
