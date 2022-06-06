@@ -55,7 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class MinioConfig {
-	
+
 	@Value("${minio.models.bucketname}")
 	private String minioModelsBucketName;
 
@@ -64,18 +64,18 @@ public class MinioConfig {
 
 	public MinioClient getMinioClient(String endpointuri, String accessKey, String secretKey) {
 		try {
-			MinioClient minioClient = MinioClient.builder().endpoint(endpointuri)
-			        .credentials(accessKey, secretKey)
-			        .build();
+			MinioClient minioClient = MinioClient.builder().endpoint(endpointuri).credentials(accessKey, secretKey)
+					.build();
 			log.info("Successfully got minioclient for minio running at endpoint : {}", endpointuri);
 			return minioClient;
-		}catch(Exception e) {
-			log.error("Failed to get minioclient for given config endpoint {}, exception occured is : {}", endpointuri, e.getMessage());
+		} catch (Exception e) {
+			log.error("Failed to get minioclient for given config endpoint {}, exception occured is : {}", endpointuri,
+					e.getMessage());
 			return null;
 		}
 	}
-	
-	public List<Bucket> getBuckets(MinioClient client){
+
+	public List<Bucket> getBuckets(MinioClient client) {
 		try {
 			return client.listBuckets();
 		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
@@ -85,31 +85,31 @@ public class MinioConfig {
 			return null;
 		}
 	}
-	
+
 	public ModelCollection getModels(MinioClient client, String userId) {
 		List<String> models = new ArrayList<>();
 		String patternMatch = minioModelsPatternPrefix + userId.toLowerCase();
 		log.info("Pattern used to identify user specific object is {} ", patternMatch);
 		try {
-			if(client!=null) {
-				Iterable<Result<Item>> results = client.listObjects(
-					    ListObjectsArgs.builder().bucket(minioModelsBucketName).recursive(true).build());
+			if (client != null) {
+				Iterable<Result<Item>> results = client
+						.listObjects(ListObjectsArgs.builder().bucket(minioModelsBucketName).recursive(true).build());
 				Iterator<Result<Item>> iterator = results.iterator();
-			      while (iterator.hasNext()) {
-			        Result<Item> el = iterator.next();
-			        String objectName = el.get().objectName();
-			        if(objectName!= null && objectName.length()>minioModelsPatternPrefix.length() && objectName.contains(patternMatch)) {
-			        	models.add(objectName);
-			        }
-			      }    
+				while (iterator.hasNext()) {
+					Result<Item> el = iterator.next();
+					String objectName = el.get().objectName();
+					if (objectName != null && objectName.length() > minioModelsPatternPrefix.length()
+							&& objectName.contains(patternMatch)) {
+						models.add(objectName);
+					}
+				}
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			log.error("Failed to get buckets objects for given user, exception occured is : {}", e.getMessage());
 		}
 		ModelCollection collection = new ModelCollection();
 		collection.setData(models);
 		return collection;
 	}
-	
-	
+
 }

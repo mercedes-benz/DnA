@@ -25,7 +25,6 @@
  * LICENSE END 
  */
 
-
 package com.daimler.data.registry.main;
 
 import org.slf4j.Logger;
@@ -40,8 +39,9 @@ import org.springframework.web.WebApplicationInitializer;
 
 @SpringBootApplication
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-@ComponentScan({ "com.daimler.data.application.filter", "com.daimler.data.application.logging", "com.daimler.data.auth.client",
-	"com.daimler.data.controller", "com.daimler.data.registry.config", "com.daimler.data.registry.models.service" }) 
+@ComponentScan({ "com.daimler.data.application.filter", "com.daimler.data.application.logging",
+		"com.daimler.data.auth.client", "com.daimler.data.controller", "com.daimler.data.registry.config",
+		"com.daimler.data.registry.models.service" })
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
@@ -50,7 +50,7 @@ public class Application extends SpringBootServletInitializer implements WebAppl
 		LOG.info("Starting up the model-registry {} application");
 		SpringApplication.run(Application.class, args);
 	}
-	
+
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
 		return builder.sources(Application.class);
