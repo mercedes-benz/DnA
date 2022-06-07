@@ -15,6 +15,7 @@ import InputFieldsUtils from '../../../../formElements/InputFields/InputFieldsUt
 import  Modal from '../../../../formElements/modal/Modal';
 import Styles from './AddOrEditFactorModal.scss';
 import NumberFormat from 'react-number-format';
+import {thousandSeparator, decimalSeparator} from '../../../../../services/utils'
 
 const classNames = cn.bind(Styles);
 
@@ -255,9 +256,9 @@ export default class AddOrEditFactorModal extends React.Component<
                         value={                                              
                           costFactor.value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(costFactor.value))
                         }
-                        thousandSeparator={false}
                         decimalScale={2}
-                        decimalSeparator={navigator.language == 'de-DE' || navigator.language == 'de' || navigator.language == 'DE' ? "," : "."}
+                        thousandSeparator={thousandSeparator(navigator.language)}                  
+                        decimalSeparator={decimalSeparator(navigator.language)}
                         onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
                     />
                     <span
@@ -401,9 +402,9 @@ export default class AddOrEditFactorModal extends React.Component<
                         value={                                              
                           valueFactor.percent === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(valueFactor.percent))
                         }
-                        thousandSeparator={false}
                         decimalScale={2}
-                        decimalSeparator={navigator.language == 'de-DE' || navigator.language == 'de' || navigator.language == 'DE' ? "," : "."}
+                        thousandSeparator={thousandSeparator(navigator.language)}                  
+                        decimalSeparator={decimalSeparator(navigator.language)}
                         onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
                     />
                     <span
@@ -462,9 +463,9 @@ export default class AddOrEditFactorModal extends React.Component<
                         value={                                              
                           valueFactor.value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(valueFactor.value))
                         }
-                        thousandSeparator={false}
                         decimalScale={2}
-                        decimalSeparator={navigator.language == 'de-DE' || navigator.language == 'de' || navigator.language == 'DE' ? "," : "."}
+                        thousandSeparator={thousandSeparator(navigator.language)}                  
+                        decimalSeparator={decimalSeparator(navigator.language)}
                         onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
                     />
                     <span
@@ -572,10 +573,12 @@ export default class AddOrEditFactorModal extends React.Component<
                   required-error={requiredError}
                   name="value"
                   placeholder="Type here"
-                  value={ value }
-                  thousandSeparator={false}
+                  value={ 
+                    new Intl.NumberFormat(navigator.language).format(Number(value))
+                   }
+                  thousandSeparator={thousandSeparator(navigator.language)}                  
+                  decimalSeparator={decimalSeparator(navigator.language)}
                   decimalScale={2}
-                  decimalSeparator={navigator.language == 'de-DE' || navigator.language == 'de' || navigator.language == 'DE' ? "," : "."}
                   onValueChange={(values , sourceInfo) => this.textInputOnChangeValueField(values,sourceInfo)}
                 />
                 <span className={classNames('error-message', valueError.length ? '' : 'hide')}>{valueError}</span>

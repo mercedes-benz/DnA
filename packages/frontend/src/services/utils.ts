@@ -262,3 +262,21 @@ export const regionalDateAndTimeConversionSolution = (dateString: any) => {
     hour12: false,
   }).format(date);
 };
+
+export const thousandSeparator = (region: string) => {
+  switch(region){
+    case 'de-DE': case 'de': case 'DE':
+      return  "."
+    default:
+      return ","  
+  }
+}
+
+export const decimalSeparator = (region: string) => {
+  switch(region){
+    case 'de-DE': case 'de': case 'DE':
+      return ","
+    default:
+      return "."  
+  }
+}
