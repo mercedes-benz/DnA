@@ -264,19 +264,19 @@ export const regionalDateAndTimeConversionSolution = (dateString: any) => {
 };
 
 export const thousandSeparator = (region: string) => {
-  switch(region){
-    case 'de-DE': case 'de': case 'DE':
-      return  "."
-    default:
-      return ","  
-  }
+  if(region.includes('de') || region.includes('it') || region.includes('es'))
+    return  "."
+  else if(region.includes('fr') || region.includes('fi') || region.includes('da') || region.includes('sv')) 
+    return " " 
+  else  
+    return ","
 }
 
 export const decimalSeparator = (region: string) => {
-  switch(region){
-    case 'de-DE': case 'de': case 'DE':
-      return ","
-    default:
-      return "."  
-  }
+  if(region.includes('de') || region.includes('it') || region.includes('es'))
+    return  ","
+  else if(region.includes('fr') || region.includes('fi') || region.includes('da') || region.includes('sv')) 
+    return "," 
+  else  
+    return "."
 }
