@@ -21,6 +21,10 @@ envs:
     value: kubeflow-
   - name: SWAGGER_HEADER_AUTH
     value: ""
+  - name: HOST
+    value: ""
+  - name: CERT_MANAGER
+    value: ""
   - name: JWT_SECRET_KEY
     valueFrom:
       secretKeyRef:
