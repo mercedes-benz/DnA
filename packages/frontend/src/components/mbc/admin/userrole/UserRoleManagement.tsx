@@ -4,7 +4,7 @@ import * as React from 'react';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 
-import { IRole, IUserInfo, IUserRequestVO } from '../../../../globals/types';
+import { IRole, ISubDivision, IUserInfo, IUserRequestVO } from '../../../../globals/types';
 
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -39,6 +39,8 @@ export interface IUserRoleManagementState {
   currentUserToEdit: IUserInfo;
   currentRoleCategory: IRole;
   isLoading: boolean;
+  divisionList: any[];
+  selectedDivisions: any[];
 }
 
 export class UserRoleManagement extends React.Component<any, IUserRoleManagementState> {
@@ -64,6 +66,8 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       },
       showEditUsersModal: false,
       isLoading: false,
+      divisionList: [],
+      selectedDivisions: []
     };
   }
   public getUsers() {
@@ -171,6 +175,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       });
 
     this.getUsers();
+    this.getDivisions();
   }
 
   public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
@@ -193,7 +198,33 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       });
     }
   };
-  public render() {
+  public getDivisions = () => {
+    return ApiClient.getDivisions()
+      .then((res1) => {
+        if (res1) {
+          const tempDivisionList:any = [];
+          res1.forEach((divsion) => {
+            tempDivisionList.push({
+              id: divsion.id + '',
+              name: divsion.name,
+              subdivisions: divsion.subdivisions.filter((item: ISubDivision) => item.id !== 'EMPTY'),
+            });
+          });
+          this.setState({divisionList: tempDivisionList})
+        }
+      })
+      .catch((error) => {
+        this.setState(
+          {
+            divisionList: [],
+          },
+          () => {
+            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          },
+        );
+      });
+  };
+  public render() {console.log(this.state.updatedRole,'-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=');
     const userData = this.state.users.map((user) => {
       return <UserInfoRowItem key={user.id} user={user} roles={this.state.roles} showEditModal={this.showEditModal} />;
     });
@@ -203,7 +234,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         {this.state.currentUserToEdit ? this.state.currentUserToEdit.lastName : ''} and Press &laquo;Save&raquo; to
         confirm.
         <div className={Styles.roleContent}>
-          <div>
+          <div className={classNames(Styles.flexLayout)}>
             <div id="roleContainer" className="input-field-group include-error">
               <label id="roleLabel" className="input-label" htmlFor="roleSelect">
                 User Role
@@ -224,6 +255,28 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
               </div>
               {/* <span className={classNames('error-message', locationError.length ? '' : 'hide')}>{locationError}</span> */}
             </div>
+            {this.state.updatedRole && this.state.updatedRole?.name == 'ReportAdmin' ?
+              <div id="divisionContainer" className="input-field-group include-error">
+                <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
+                  Division
+                </label>
+                <div id="division" className="custom-select">
+                  <select
+                    id="divisionSelect"
+                    multiple={true}
+                    onChange={this.onDivisionChange}
+                    value={this.state.selectedDivisions.map((item)=>item.name)}
+                  >
+                    {this.state.divisionList.map((obj) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {/* <span className={classNames('error-message', locationError.length ? '' : 'hide')}>{locationError}</span> */}
+              </div>
+            : ''}
           </div>
         </div>
       </div>
@@ -386,6 +439,21 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       });
     }
   };
+
+  public onDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues: any[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        const location: any = { id: null, name: null };
+        location.id = option.value;
+        location.name = option.label;
+        selectedValues.push(location);
+      });
+      this.setState({ selectedDivisions: selectedValues });
+    }
+  };
+
   protected onAcceptRoleChanges = () => {
     if (this.state.currentUserToEdit && this.state.updatedRole) {
       const roleChanged = this.state.currentUserToEdit.roles.filter((userCurrentRole: IRole) => {

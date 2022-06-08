@@ -61,12 +61,20 @@
   }
 }
 
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 7px);
+  }
+}
+
 .modalContent {
   margin-top: 60px;
   font-size: var(--font-size-sub-headline);
   .roleContent {
     margin-top: 30px;
-    width: 25%;
+    margin-bottom: 30px;
   }
 }
 
