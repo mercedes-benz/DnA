@@ -476,7 +476,6 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                                     <IntlProvider locale={navigator.language} defaultLocale="en">
                                                       {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
                                                     </IntlProvider>%
-                                            &euro;
                                                   </div>
                                                   <div>
                                                     <IntlProvider locale={navigator.language} defaultLocale="en">
