@@ -52,4 +52,5 @@ public class Storage {
 	private Date lastModifiedDate;
 	private UserInfo updatedBy;
 	private List<UserInfo> collaborators;
+	private List<String> dataikuProjects;
 }
