@@ -56,6 +56,7 @@ kafka:
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  storageEndpoint: ${STORAGE_ENDPOINT:XXXXXX}
   feature:
      attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
   malwareScan:
@@ -83,20 +84,15 @@ minio:
 
 # For dataiku connection  
 dataiku:
-  apacCorpdir: ${APAC_CORPDIR:xxxxx}
-  emeaCorpdir: ${EMEA_CORPDIR:xxxxx}
-  projectsUriPath: ${DATAIKU_PROJECTS_URI_PATH:xxxxx}
-  userRoleUriPath: ${DATAIKU_USER_ROLE_URI_PATH:xxxxx}
-  projectPermissionUriPath: ${DATAIKU_PERMISSION_URI_PATH:xxxxx}
+  connectionsUriPath: ${DATAIKU_CONNECTION_URI_PATH:/admin/connections}
+  projectsUriPath: ${DATAIKU_PROJECTS_URI_PATH:/projects/}
+  projectPermissionUriPath: ${DATAIKU_PERMISSION_URI_PATH:/permissions}
   production:
-    uri: ${DATAIKU_PROD_URI:xxxxx}
-    apiKey: ${DATAIKU_PROD_API_KEY:xxxxx}
-    adminGroup: ${DATAIKU_PROD_ADMIN_GROUP:xxxxx}
+    uri: ${DATAIKU_PROD_URI:XXXXXX}
+    apiKey: ${DATAIKU_PROD_API_KEY:XXXXXX}
   training:
-    uri: ${DATAIKU_TRAINING_URI:xxxxx}
-    apiKey: ${DATAIKU_TRAINING_API_KEY:xxxxx}
-    adminGroup: ${DATAIKU_TRAINING_ADMIN_GROUP:xxxxx}  
-  
+    uri: ${DATAIKU_TRAINING_URI:XXXXXX}
+    apiKey: ${DATAIKU_TRAINING_API_KEY:XXXXXX}  
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
