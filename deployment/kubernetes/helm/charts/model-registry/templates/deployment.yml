@@ -4,16 +4,16 @@ metadata:
   name: {{ include "model-registry.fullname" . }}
   namespace: {{ .Values.namespace }}
   labels:
-    name: {{ include "model-registry.name" . }}
+    {{- include "model-registry.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      name: {{ include "model-registry.name" . }}
+      {{- include "model-registry.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        name: {{ include "model-registry.name" . }}
+        {{- include "model-registry.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}
       securityContext:
