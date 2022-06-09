@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "model-registry.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: {{ .Values.containerPort }}        
+  podSelector:
+    matchLabels:
+      {{- include "model-registry.selectorLabels" . | nindent 8 }}
+  policyTypes:
+    - Ingress
