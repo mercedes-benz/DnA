@@ -36,12 +36,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.dto.DataikuConnectionRequestDTO;
+import com.daimler.data.dto.DataikuGenericResponseDTO;
 import com.daimler.data.dto.DataikuPermission;
-import com.daimler.data.dto.DataikuUserRole;
+import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -51,7 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 public class DataikuClientImp implements DataikuClient {
 
-	private Logger LOGGER = LoggerFactory.getLogger(DataikuClientImp.class);
+	private Logger logger = LoggerFactory.getLogger(DataikuClientImp.class);
 
 	@Value("${dataiku.production.uri}")
 	private String productionUri;
@@ -68,69 +71,15 @@ public class DataikuClientImp implements DataikuClient {
 	@Autowired
 	RestTemplate restTemplate;
 
-	@Value("${dataiku.apacCorpdir}")
-	private String apacCorpdir;
-	
-	@Value("${dataiku.emeaCorpdir}")
-	private String emeaCorpdir;
+	@Value("${dataiku.connectionsUriPath}")
+	private String connectionsUriPath;
 	
 	@Value("${dataiku.projectsUriPath}")
 	private String projectsUriPath;
-	
-	@Value("${dataiku.userRoleUriPath}")
-	private String userRoleUriPath;
-	
+		
 	@Value("${dataiku.projectPermissionUriPath}")
 	private String projectPermissionUriPath;
 	
-
-	/**
-	 * <p>
-	 * To get user role
-	 * </p>
-	 * 
-	 * @param userId
-	 * @return DataikuUserRole
-	 */
-	@Override
-	@SuppressWarnings({ "rawtypes" })
-	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live) {
-		DataikuUserRole userRole = null;
-		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			String dataikuUri = setDataikuUri(live, headers, userRoleUriPath);
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = null;
-			try {
-				LOGGER.debug("Fetching details of user {} from emea", userId);
-				response = restTemplate.exchange(dataikuUri + userId.toLowerCase() +"@"+ emeaCorpdir, HttpMethod.GET,
-						entity, String.class);
-			} catch (Exception e) {
-				LOGGER.error("Error occuried while fetching dataiku user role error:{}", e.getMessage());
-				LOGGER.debug("Fetching details of user {} from apac", userId);
-				response = restTemplate.exchange(dataikuUri + userId.toLowerCase() +"@"+ apacCorpdir, HttpMethod.GET,
-						entity, String.class);
-			}
-			if (response != null && response.hasBody()) {
-				LOGGER.debug("Successfully fetched user details");
-				userRole = new DataikuUserRole();
-				ObjectMapper mapper = new ObjectMapper();
-				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-				userRole = mapper.readValue(response.getBody(), new TypeReference<DataikuUserRole>() {
-				});
-			}
-
-		} catch (JsonParseException e) {
-			LOGGER.error("JsonParseException occured:{}", e.getMessage());
-		} catch (JsonMappingException e) {
-			LOGGER.error("JsonMappingException occured:{}", e.getMessage());
-		} catch (Exception e) {
-			LOGGER.error("Error occured while calling dataiku user role service:{}", e.getMessage());
-		}
-		return Optional.ofNullable(userRole);
-	}
 
 	/**
 	 * <p>
@@ -146,14 +95,14 @@ public class DataikuClientImp implements DataikuClient {
 		DataikuPermission permission = null;
 		try {
 			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
+			headers.set(ConstantsUtility.ACCEPT, MediaType.APPLICATION_JSON.toString());
+			headers.set(ConstantsUtility.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
 			String dataikuUri = setDataikuUri(live, headers, projectsUriPath);
 			dataikuUri = dataikuUri + projectKey + projectPermissionUriPath;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
 			if (response.hasBody()) {
-				LOGGER.debug("In getDataikuProjectPermission,  Success from dataiku");
+				logger.debug("In getDataikuProjectPermission,  Success from dataiku");
 				permission = new DataikuPermission();
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -162,45 +111,15 @@ public class DataikuClientImp implements DataikuClient {
 			}
 
 		} catch (JsonParseException e) {
-			LOGGER.error("In getDataikuProjectPermission, JsonParseException occured:{}", e.getMessage());
+			logger.error("In getDataikuProjectPermission, JsonParseException occured:{}", e.getMessage());
 		} catch (JsonMappingException e) {
-			LOGGER.error("In getDataikuProjectPermission, JsonMappingException occured:{}", e.getMessage());
+			logger.error("In getDataikuProjectPermission, JsonMappingException occured:{}", e.getMessage());
 		} catch (Exception e) {
-			LOGGER.error("In getDataikuProjectPermission, Error occured while calling dataiku user role service:{}",
+			logger.error("In getDataikuProjectPermission, Error occured while calling dataiku user role service:{}",
 					e.getMessage());
 		}
 		return Optional.ofNullable(permission);
 	}
-
-//	@Override
-//	public Optional<DataikuProjectVO> getDataikuProject(String projectKey, Boolean live) {
-//		DataikuProjectVO project = null;
-//		try {
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("Accept", "application/json");
-//			headers.set("Content-Type", "application/json");
-//			String dataikuUri = setDataikuUri(live, headers, projectsUriPath + projectKey);
-//			HttpEntity entity = new HttpEntity<>(headers);
-//			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.GET, entity, String.class);
-//			if (response != null && response.hasBody()) {
-//				LOGGER.debug("In getDataikuProject, Success from dataiku");
-//				project = new DataikuProjectVO();
-//				ObjectMapper mapper = new ObjectMapper();
-//				mapper.enable(SerializationFeature.INDENT_OUTPUT);
-//				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//				project = mapper.readValue(response.getBody(), new TypeReference<DataikuProjectVO>() {
-//				});
-//			}
-//		} catch (JsonParseException e) {
-//			LOGGER.error("In getDataikuProject, JsonParseException occured:{}", e.getMessage());
-//		} catch (JsonMappingException e) {
-//			LOGGER.error("In getDataikuProject, JsonMappingException occured:{}", e.getMessage());
-//		} catch (Exception e) {
-//			LOGGER.error("In getDataikuProject, Error occured while calling dataiku service:{}", e.getMessage());
-//		}
-//		return Optional.ofNullable(project);
-//
-//	}
 
 	/**
 	 * Setting dataiku uri and basic auth
@@ -212,17 +131,54 @@ public class DataikuClientImp implements DataikuClient {
 	 */
 	private String setDataikuUri(Boolean live, HttpHeaders headers, String uriExtension) {
 		String dataikuUri = "";
-		if (live) {
-			LOGGER.debug("Forming uri for production environment");
+		if (Boolean.TRUE.equals(live)) {
+			logger.debug("Forming uri for production environment");
 			headers.setBasicAuth(productionApiKey, "");
 			dataikuUri = productionUri + uriExtension;
 		} else {
-			LOGGER.debug("Forming uri for training environment");
+			logger.debug("Forming uri for training environment");
 			headers.setBasicAuth(trainingApiKey, "");
 			dataikuUri = trainingUri + uriExtension;
 		}
-		LOGGER.debug("Returning from setDataikuUri.");
+		logger.debug("Returning from setDataikuUri.");
 		return dataikuUri;
+	}
+
+	@Override
+	public DataikuGenericResponseDTO createDataikuConnection(DataikuConnectionRequestDTO requestDTO, Boolean live) {
+		DataikuGenericResponseDTO createConnectionResponse = new DataikuGenericResponseDTO();
+		createConnectionResponse.setStatus(ConstantsUtility.FAILURE);
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(ConstantsUtility.ACCEPT, MediaType.APPLICATION_JSON.toString());
+		headers.set(ConstantsUtility.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
+		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath);
+		HttpEntity<DataikuConnectionRequestDTO> entity = new HttpEntity<>(requestDTO, headers);
+		ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.POST, entity, String.class);
+		createConnectionResponse.setHttpStatus(response.getStatusCode());
+		if (response.hasBody()) {
+			logger.info("In createDataikuConnection, Success from dataiku");
+			createConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
+		}		
+		return createConnectionResponse;
+	}
+
+	@Override
+	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live) {
+		DataikuGenericResponseDTO deleteConnectionResponse = new DataikuGenericResponseDTO();
+		deleteConnectionResponse.setStatus(ConstantsUtility.FAILURE);
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(ConstantsUtility.ACCEPT, MediaType.APPLICATION_JSON.toString());
+		headers.set(ConstantsUtility.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
+		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath);
+		dataikuUri = dataikuUri+"/"+connectionName;
+		HttpEntity<Object> entity = new HttpEntity<>(headers);
+		ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.DELETE, entity, String.class);
+		deleteConnectionResponse.setHttpStatus(response.getStatusCode());
+		if(response.hasBody()) {
+			logger.info("In deleteDataikuConnection, Success from dataiku");
+			deleteConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
+		}
+		return deleteConnectionResponse;
 	}
 
 }
