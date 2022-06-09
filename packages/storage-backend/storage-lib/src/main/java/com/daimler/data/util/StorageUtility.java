@@ -27,26 +27,44 @@
 
 package com.daimler.data.util;
 
-public class ConstantsUtility {
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-	public static final String SUCCESS = "SUCCESS";
-	public static final String FAILURE = "FAILURE";
+import org.springframework.util.ObjectUtils;
+
+public class StorageUtility {
+
 	
-	public static final String READWRITE = "RW";
-	public static final String READ = "READ";
-	public static final String DELETE = "DEL";
-	public static final String URI = "uri";
-	public static final String HOSTNAME = "hostName";
-	public static final String BUCKET_NAME = "bucketName";
 	
-	//Variables for cache
-	public static final String MINIO_USERS_CACHE = "minioUsersCache";
+	private StorageUtility() {
+		super();
+	}
+
+	/*
+	 * To get Union of list return list of user by making unison of 2 userVO list
+	 */
+	public static List<String> getUnion(List<String> list1, List<String> list2) {
+		Set<String> set = new TreeSet<>(new Comparator<String>() {
+			@Override
+			public int compare(String s1, String s2) {
+				return s1.compareTo(s2);
+			}
+		});
+		// Adding list1 to set
+		if(!ObjectUtils.isEmpty(list1)) {
+			set.addAll(list1);
+		}
+		// Adding list2 to set
+		if(!ObjectUtils.isEmpty(list2)) {
+			set.addAll(list2);
+		}
+		return new ArrayList<>(set);
+	}
 	
-	//Variables To make minio policy
-	public static final String POLICY_LIST_BUCKET = "s3:ListBucket";
-	public static final String POLICY_PUT_OBJECT = "s3:PutObject";
-	public static final String POLICY_GET_OBJECT = "s3:GetObject";
-	public static final String POLICY_DELETE_OBJECT = "s3:DeleteObject";
-	public static final String POLICY_BUCKET_LOCATION = "s3:GetBucketLocation";
-	public static final String POLICY_RESOURCE = "arn:aws:s3:::";
+	
+	
+	
 }
