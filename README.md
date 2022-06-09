@@ -24,8 +24,8 @@ The idea of the DnA Platform originated from the common challenge every big comp
 | [Malware Scan As A Service Feature](./docs/DnAMalwareScanAsAService.md)  |  Feature that provides a simple REST API to check all kinds of attachments for malicious code, abstracting the [ClamAV](https://github.com/Cisco-Talos/clamav) scanner usage and making it ready for web world.  | February 2022   | 
 |  [Data Pipeline Feature](./docs/DnADataPipeline.md)  | This feature integrates [Apache Airflow](https://github.com/apache/airflow) as major component in DnA Platform, enabling processing and transforming of data  | February 2022  | 
 |  [Jupyter Notebook Workspace Feature](./docs/DnAJupyterNotebookWorkspace.md)  | Feature based on [JupyterHub](https://github.com/jupyterhub/jupyterhub) enables users to start working on their models without any additional software installation.   | February 2022   |  
-| [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | Is only feature that does not follow open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still even for Dataiku license product we are offering integration into DnA Platform in case you are operating it also (if not simply disable it in configuration).  | February 2022  |
-| [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the  [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | March 2022 | 
+| [Dataiku integration feature](./docs/DnADataikuWorkspace.md)   | This is the only feature that does not follow the open source principle completely as [Dataiku](https://doc.dataiku.com/dss/latest/concepts/index.html) is a licensed product. Still, even for Dataiku we are offering integration into the DnA Platform in case you are operating it also (if not, simply disable it in configuration).  | February 2022  |
+| [MLOps Pipeline](https://github.com/mercedes-benz/DnA/blob/docs/kfserving-tutorial/docs/DnAMLOPsArchitecture.md) | A holistic Kubernetes native MLOps pipeline based on [Kubeflow](github.com/kubeflow) components and optimized for secure enterprise environments. For more info, you can read the [DnA - Kubeflow Pipelines](./docs/DnAKFPTutorial.md) & [DnA - Kserve](./docs/DnAKServeTutorial.md) tutorials. | March 2022 | 
 
 
  
@@ -38,23 +38,23 @@ The list of future ideas is big and it is constantly being adjusted, so please i
 
 ## Installation
 
-if you want to try the DnA Platform ,please follow the [installation guide](./docs/Install.md). In the installation guide we are provding 2 ways to install this application(Docker-compose and Helm) . Use Docker-compose only for local testing .
+If you want to try the DnA Platform, please follow the [installation guide](./docs/Install.md). In the installation guide we are providing two ways to install this application (Docker-compose and Helm). Use Docker-compose only for local testing.
 
-For a complete production installation, we recommend the installation using helm.Currently in our helm and docker-compose we are providing multiple service like DnA , Dashboard, Naas , Malware Scan,Vault service and storage-service.
+For a complete production installation, we recommend the installation using helm. Currently in our helm and docker-compose we are providing multiple service like DnA, Dashboard, Naas, Malware Scan, Vault service and storage-service.
 
-Very soon we are going to provide you the docker-compose and helm-chart for airflow,kubeflow-pipeline and Jupter notebooks. So stay tuned to our repo frequently .
+Very soon we are going to provide the docker-compose and helm-chart for airflow, kubeflow-pipeline and Jupyter notebooks. So stay tuned and visit our repo frequently.
 
 ## Architecture
 
-If you are interested to get a glimpse on how is this all tied up all together have a look at [this short overview](./docs/DnAArchitecture.md).
+If you are interested in getting a glimpse of how is this all tied up all together have a look at [this short overview](./docs/DnAArchitecture.md).
 
 ## Security
 
-If you are interested to find out what we are doing to enasure security on the platform have a look at [this short overview](./docs/DnASecurity.md).
+If you are interested in finding out what we are doing to ensure security on the platform have a look at [this short overview](./docs/DnASecurity.md).
 
 ## Contributing
 
-We welcome any contributions. As we are a freshly created open source community, we may need a few weeks to settle and be able to accept your ideas or contributions efficiently. During January 2022, we will bring other features on the platform, and then this repository will become our primary repo and place to collaborate with you. Until then, we will still work on our private enterprise repo and syncing code manually. If you want to contribute to the project please read the [contributing guide](CONTRIBUTING.md).
+We welcome any contributions. As we are a freshly created open source community, we may need a few weeks to settle and be able to accept your ideas or contributions efficiently. During January 2022, we will bring other features on the platform, and then this repository will become our primary repo and place to collaborate with you. Until then, we will still work on our private enterprise repo and sync code manually. If you want to contribute to the project please read the [contributing guide](CONTRIBUTING.md).
 
 ## Code of Conduct
 
