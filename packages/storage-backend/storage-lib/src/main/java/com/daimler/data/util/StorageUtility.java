@@ -64,7 +64,12 @@ public class StorageUtility {
 		return new ArrayList<>(set);
 	}
 	
-	
-	
+	/*
+	 * To get connection name for dataiku
+	 * eg: projectname_bucketName
+	 */
+	public static String getDataikuConnectionName(String projectKey, String bucketName) {
+		return projectKey+"_"+bucketName;
+	}
 	
 }

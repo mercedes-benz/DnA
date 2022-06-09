@@ -65,9 +65,16 @@ import com.daimler.data.db.entities.StorageNsql;
 import com.daimler.data.db.jsonb.Storage;
 import com.daimler.data.db.repo.storage.IStorageRepository;
 import com.daimler.data.db.repo.storage.StorageRepository;
+import com.daimler.data.dto.DataikuConnectionRequestDTO;
+import com.daimler.data.dto.DataikuGenericResponseDTO;
+import com.daimler.data.dto.DataikuIndexDTO;
+import com.daimler.data.dto.DataikuParameterDTO;
+import com.daimler.data.dto.DataikuPermission;
+import com.daimler.data.dto.DataikuReadabilityDTO;
 import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.FileScanDetailsVO;
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.Permission;
 import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.storage.BucketCollectionVO;
@@ -101,6 +108,9 @@ public class BaseStorageService implements StorageService {
 	
 	@Value("${storage.termsOfUse.uri}")
 	private String storageTermsOfUseUri;
+	
+	@Value("${dna.storageEndpoint}")
+	private String storageEndpoint;
 	
 	@Autowired
 	private CacheUtil cacheUtil;
@@ -580,7 +590,6 @@ public class BaseStorageService implements StorageService {
 		responseWrapperVO.setStatus(ConstantsUtility.FAILURE);
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-
 		// Setting current user as user Id if userId is null
 		userId = StringUtils.hasText(userId) ? userId.toUpperCase() : currentUser;
 		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
@@ -1020,7 +1029,8 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
-	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO) {
+	@Transactional
+	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO, Boolean live) {
 		LOGGER.debug("Fetching Current user.");
 		GenericMessage genericMessage = new GenericMessage();
 		HttpStatus httpStatus;
@@ -1037,25 +1047,22 @@ public class BaseStorageService implements StorageService {
 			// Union of existing and new projects
 			List<String> projectsUnion = StorageUtility.getUnion(storage.getDataikuProjects(),
 					connectionVO.getDataikuProjects());
-			if (!ObjectUtils.isEmpty(projectsUnion)) {
-				for (String project : projectsUnion) {
-					// To check if project available in new list
-					boolean isNewProject = !ObjectUtils.isEmpty(connectionVO.getDataikuProjects())
-							&& connectionVO.getDataikuProjects().contains(project);
-					boolean isExistingProject = !ObjectUtils.isEmpty(storage.getDataikuProjects())
-							&& storage.getDataikuProjects().contains(project);
-					if (isNewProject && !isExistingProject) {
-						LOGGER.info("Removing connection for project:{}", project);
-						// delete;
 
-					} else if (!isNewProject && isExistingProject) {
-						// Add
-						LOGGER.info("Creating new connection for project:{}", project);
-					}
+			Optional.ofNullable(projectsUnion).ifPresent(l -> l.forEach(project -> {
+				// To check if project available in new list
+				boolean isNewProject = !ObjectUtils.isEmpty(connectionVO.getDataikuProjects())
+						&& connectionVO.getDataikuProjects().contains(project);
+				boolean isExistingProject = !ObjectUtils.isEmpty(storage.getDataikuProjects())
+						&& storage.getDataikuProjects().contains(project);
+				if (isNewProject && !isExistingProject) {
+					LOGGER.info("Creating new connection for project:{}", project);
+					this.createDataikuConnection(connectionVO.getBucketName(), project, live);
+				} else if (!isNewProject && isExistingProject) {
+					LOGGER.info("Removing connection for project:{}", project);
+					dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, connectionVO.getBucketName()),
+							live);
 				}
-			} else {
-				LOGGER.info("No Project available to add or remove connection");
-			}
+			}));
 
 			// Saving connection details in db
 			storage.setDataikuProjects(connectionVO.getDataikuProjects());
@@ -1080,6 +1087,67 @@ public class BaseStorageService implements StorageService {
 			errors.add(new MessageDescription("Bucket information not available in database."));
 		}
 		return errors;
+	}
+	
+	/*
+	 * To setup data and create dataiku connection
+	 */
+	private DataikuGenericResponseDTO createDataikuConnection(String bucketName, String projectKey, Boolean live) {
+		DataikuConnectionRequestDTO requestDTO = new DataikuConnectionRequestDTO();
+		String currentUser = userStore.getUserInfo().getId();
+		String secretKey = vaultConfig.validateUserInVault(currentUser);
+		LOGGER.debug("Fetching permission..");
+		Optional<DataikuPermission> projectPermission = dataikuClient
+				.getDataikuProjectPermission(projectKey, live);
+		
+		List<String> projectGroups = new ArrayList<>();
+		if (projectPermission.isPresent()
+				&& !ObjectUtils.isEmpty(projectPermission.get().getPermissions())) {
+			projectGroups = projectPermission.get().getPermissions().stream()
+					.map(Permission::getGroup).toList();
+		}
+		//Setting RequestDTO
+		requestDTO.setName(StorageUtility.getDataikuConnectionName(projectKey, bucketName));
+		requestDTO.setType("EC2");
+		
+		//Setting params
+		DataikuParameterDTO params = new DataikuParameterDTO();
+		params.setCredentialsMode("KEYPAIR");
+		params.setAccessKey(currentUser);
+		params.setSecretKey(secretKey);
+		params.setDefaultManagedBucket("/"+bucketName);
+		params.setDefaultManagedPath("/");
+		params.setRegionOrEndpoint(storageEndpoint);
+		params.setHdfsInterface("S3A");
+		params.setEncryptionMode("NONE");
+		params.setEncryptionMode("/"+bucketName);
+		params.setChroot("/");
+		params.setSwitchToRegionFromBucket(false);
+		params.setUsePathMode(false);
+		params.setMetastoreSynchronizationMode("NO_SYNC");
+		
+		requestDTO.setParams(params);
+		requestDTO.setAllowWrite(true);
+		requestDTO.setAllowManagedDatasets(true);
+		requestDTO.setAllowManagedFolders(true);
+		requestDTO.setUseGlobalProxy(false);
+		requestDTO.setMaxActivities(0);
+		requestDTO.setCredentialsMode("GLOBAL");
+		requestDTO.setUsableBy("ALLOWED");
+		requestDTO.setAllowedGroups(projectGroups);
+		
+		DataikuReadabilityDTO detailsReadability = new DataikuReadabilityDTO();
+		detailsReadability.setReadableBy("ALLOWED");
+		detailsReadability.setAllowedGroups(projectGroups);
+		requestDTO.setDetailsReadability(detailsReadability);
+		
+		DataikuIndexDTO indexingSettings = new DataikuIndexDTO();
+		indexingSettings.setIndexForeignKeys(false);
+		indexingSettings.setIndexIndices(false);
+		indexingSettings.setIndexSystemTables(false);
+		requestDTO.setIndexingSettings(indexingSettings);
+		
+		return dataikuClient.createDataikuConnection(requestDTO, live);
 	}
 	
 }
