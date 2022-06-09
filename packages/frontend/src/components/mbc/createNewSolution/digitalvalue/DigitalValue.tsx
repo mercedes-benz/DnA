@@ -34,6 +34,7 @@ import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMembe
 import AddOrEditFactorModal from './addOrEditFactorModal/AddOrEditFactorModal';
 import Styles from './DigitalValue.scss';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import {IntlProvider, FormattedNumber} from 'react-intl';
 
 const classNames = cn.bind(Styles);
 
@@ -436,7 +437,12 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                   </div>
                                   <div>
                                     <label>Value</label>
-                                    <div>{item.value}&euro;</div>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                      </IntlProvider>
+                                      &euro;
+                                    </div>
                                   </div>
                                   <div>
                                     <label>Source</label>
@@ -456,7 +462,12 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                         return (
                                           <div className={Styles.rampUpItem} key={indexVal}>
                                             <strong>{cost.year}</strong>
-                                            <div>{cost.value}&euro;</div>
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {cost.value ? <FormattedNumber value={Number(cost.value)} /> : ''}
+                                              </IntlProvider>
+                                              &euro;
+                                            </div>
                                           </div>
                                         );
                                       })}
@@ -551,7 +562,12 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                   </div>
                                   <div>
                                     <label>Value</label>
-                                    <div>{item.value}&euro;</div>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                      </IntlProvider>
+                                      &euro;
+                                    </div>
                                   </div>
                                   <div>
                                     <label>Source</label>
@@ -571,8 +587,18 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                         return (
                                           <div className={Styles.rampUpItem} key={indexVal}>
                                             <strong>{valueDriver.year}</strong>
-                                            <div>{valueDriver.percent}%</div>
-                                            <div>{valueDriver.value}&euro;</div>
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
+                                              </IntlProvider>
+                                              %
+                                            </div>
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                              </IntlProvider>
+                                              &euro;
+                                            </div>
                                           </div>
                                         );
                                       })}
