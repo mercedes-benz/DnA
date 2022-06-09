@@ -328,8 +328,9 @@ public class StorageController implements StorageApi {
 	@PostMapping(path = "/buckets/dataiku/connect", produces = { "application/json" }, consumes = {
 			"application/json" })
 	public ResponseEntity<GenericMessage> createDataikuConnection(
-			@ApiParam(value = "Request Body that contains data to create connection for bucket with dataiku projects.", required = true) @Valid @RequestBody ConnectionRequestVO connectionRequestVO) {
-		return storageService.createDataikuConnection(connectionRequestVO.getData());
+			@ApiParam(value = "Request Body that contains data to create connection for bucket with dataiku projects.", required = true) @Valid @RequestBody ConnectionRequestVO connectionRequestVO,
+			@ApiParam(value = "If requested data from live(Production) or training environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue="true") Boolean live) {
+		return storageService.createDataikuConnection(connectionRequestVO.getData(), live);
 	}
 
 }

@@ -25,43 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.dataiku.client;
+package com.daimler.data.dto;
 
-import java.util.Optional;
+import org.springframework.http.HttpStatus;
 
-import com.daimler.data.dto.DataikuConnectionRequestDTO;
-import com.daimler.data.dto.DataikuGenericResponseDTO;
-import com.daimler.data.dto.DataikuPermission;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface DataikuClient {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataikuGenericResponseDTO {
 
-	/**
-	 * <p>
-	 * To get dataiku project permission
-	 * </p>
-	 * 
-	 * @param projectKey
-	 * @param live
-	 * @return DataikuPermission
-	 */
-	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live);
-
-	/**
-	 * To create dataiku connection
-	 * 
-	 * @param requestDTO {@code DataikuConnectionRequestDTO}
-	 * @param live
-	 * @return response {@code DataikuGenericResponseDTO}
-	 */
-	public DataikuGenericResponseDTO createDataikuConnection(DataikuConnectionRequestDTO requestDTO, Boolean live);
-
-	/**
-	 * To delete dataiku connection
-	 * 
-	 * @param connectionName
-	 * @param live
-	 * @return response {@code DataikuGenericResponseDTO}
-	 */
-	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live);
-
+	private HttpStatus httpStatus;
+	private String status;
+	private String error;
 }
