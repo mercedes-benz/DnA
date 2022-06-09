@@ -9,7 +9,7 @@
 buildscript {
     ext {
         springBootVersion = "2.4.4"
-        releaseVersion = "2.0.0"
+        releaseVersion = "1.0.0"
     }
     repositories {
         mavenLocal()
@@ -51,8 +51,8 @@ repositories {
 group 'com.daimler.data'
 version = releaseVersion
 
-sourceCompatibility = 1.14
-targetCompatibility = 1.14
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 //__________________________________________________________//
@@ -96,9 +96,9 @@ sourceSets {
 
 dependencies {
 
-
+	
 	implementation group: 'io.kubernetes', name: 'client-java', version: '15.0.1'
-	implementation group: 'io.kubernetes', name: 'client-java-spring-integration', version: '15.0.1'
+	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
 	
     
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'

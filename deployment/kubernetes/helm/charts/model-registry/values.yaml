@@ -21,6 +21,10 @@ envs:
     value: kubeflow-
   - name: SWAGGER_HEADER_AUTH
     value: ""
+  - name: HOST
+    value: ""
+  - name: CERT_MANAGER
+    value: ""
   - name: JWT_SECRET_KEY
     valueFrom:
       secretKeyRef:
@@ -99,16 +103,3 @@ resources:
   limits:
     memory: "1000Mi"
     cpu: "500m"
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
