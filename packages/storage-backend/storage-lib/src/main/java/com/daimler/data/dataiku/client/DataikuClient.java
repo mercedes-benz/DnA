@@ -25,28 +25,54 @@
  * LICENSE END 
  */
 
-package com.daimler.data.util;
+package com.daimler.data.dataiku.client;
 
-public class ConstantsUtility {
+import java.util.Optional;
 
-	public static final String SUCCESS = "SUCCESS";
-	public static final String FAILURE = "FAILURE";
-	
-	public static final String READWRITE = "RW";
-	public static final String READ = "READ";
-	public static final String DELETE = "DEL";
-	public static final String URI = "uri";
-	public static final String HOSTNAME = "hostName";
-	public static final String BUCKET_NAME = "bucketName";
-	
-	//Variables for cache
-	public static final String MINIO_USERS_CACHE = "minioUsersCache";
-	
-	//Variables To make minio policy
-	public static final String POLICY_LIST_BUCKET = "s3:ListBucket";
-	public static final String POLICY_PUT_OBJECT = "s3:PutObject";
-	public static final String POLICY_GET_OBJECT = "s3:GetObject";
-	public static final String POLICY_DELETE_OBJECT = "s3:DeleteObject";
-	public static final String POLICY_BUCKET_LOCATION = "s3:GetBucketLocation";
-	public static final String POLICY_RESOURCE = "arn:aws:s3:::";
+import com.daimler.data.dto.DataikuPermission;
+import com.daimler.data.dto.DataikuUserRole;
+
+public interface DataikuClient {
+
+	/**
+	 * <p>
+	 * To get all projects of dataiku PRODUCTION/TRAINING
+	 * </p>
+	 * 
+	 * @param live
+	 * @return DataikuProjectVOCollection
+	 * @throws JsonProcessingException
+	 * @throws Exception
+	 */
+	//public Optional<List<DataikuProjectVO>> getAllDataikuProjects(Boolean live);
+
+	/**
+	 * <p>
+	 * To get user role
+	 * </p>
+	 * 
+	 * @param userId
+	 * @return DataikuUserRole
+	 */
+	public Optional<DataikuUserRole> getDataikuUserRole(String userId, Boolean live);
+
+	/**
+	 * <p>
+	 * To get dataiku project permission
+	 * </p>
+	 * 
+	 * @param projectKey
+	 * @param live
+	 * @return DataikuPermission
+	 */
+	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live);
+
+	/**
+	 * To get Dataiku project by given project key
+	 * 
+	 * @param projectKey
+	 * @param live
+	 * @return Optional<DataikuProjectVO>
+	 */
+	//public Optional<DataikuProjectVO> getDataikuProject(String projectKey, Boolean live);
 }
