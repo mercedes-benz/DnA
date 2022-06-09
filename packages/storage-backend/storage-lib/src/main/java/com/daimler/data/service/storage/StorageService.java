@@ -36,6 +36,8 @@ import com.daimler.data.dto.storage.BucketCollectionVO;
 import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketVo;
+import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
+import com.daimler.data.dto.storage.ConnectionVO;
 import com.daimler.data.dto.storage.UserRefreshWrapperVO;
 
 public interface StorageService {
@@ -98,9 +100,9 @@ public interface StorageService {
 	 * @param bucketName
 	 * @param userId
 	 * @param prefix
-	 * @return ResponseEntity<UserRefreshWrapperVO>
+	 * @return ResponseEntity<ConnectionResponseWrapperVO>
 	 */
-	public ResponseEntity<UserRefreshWrapperVO> getConnection(String bucketName, String userId, String prefix);
+	public ResponseEntity<ConnectionResponseWrapperVO> getConnection(String bucketName, String userId, String prefix);
 
 	/**
 	 * To refresh ehcache
@@ -145,9 +147,17 @@ public interface StorageService {
 	/**
 	 * To migrate storage buckets
 	 * 
-	 * @param 
+	 * @param void
 	 * @return ResponseEntity<GenericMessage>
 	 */
 	public ResponseEntity<GenericMessage> bucketMigrate();
+	
+	/**
+	 * To create bucket connection in dataiku for given project role groups  
+	 * 
+	 * @param connectionVO {@code ConnectionVO}
+	 * @return response {@code ResponseEntity<GenericMessage>}
+	 */
+	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO);
 	
 }

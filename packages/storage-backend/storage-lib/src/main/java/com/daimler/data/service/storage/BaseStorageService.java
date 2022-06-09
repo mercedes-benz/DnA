@@ -37,7 +37,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +60,9 @@ import com.daimler.data.assembler.StorageAssembler;
 import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dataiku.client.DataikuClient;
 import com.daimler.data.db.entities.StorageNsql;
+import com.daimler.data.db.jsonb.Storage;
 import com.daimler.data.db.repo.storage.IStorageRepository;
 import com.daimler.data.db.repo.storage.StorageRepository;
 import com.daimler.data.dto.ErrorDTO;
@@ -74,6 +75,9 @@ import com.daimler.data.dto.storage.BucketObjectResponseVO;
 import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketVo;
+import com.daimler.data.dto.storage.ConnectionResponseVO;
+import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
+import com.daimler.data.dto.storage.ConnectionVO;
 import com.daimler.data.dto.storage.CreatedByVO;
 import com.daimler.data.dto.storage.PermissionVO;
 import com.daimler.data.dto.storage.UserRefreshWrapperVO;
@@ -81,6 +85,7 @@ import com.daimler.data.dto.storage.UserVO;
 import com.daimler.data.minio.client.DnaMinioClient;
 import com.daimler.data.util.CacheUtil;
 import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.util.StorageUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.minio.admin.UserInfo;
@@ -131,6 +136,9 @@ public class BaseStorageService implements StorageService {
 	
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
+	
+	@Autowired
+	private DataikuClient dataikuClient;
 	
 	public BaseStorageService() {
 		super();
@@ -566,11 +574,10 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
-	public ResponseEntity<UserRefreshWrapperVO> getConnection(String bucketName, String userId, String prefix) {
+	public ResponseEntity<ConnectionResponseWrapperVO> getConnection(String bucketName, String userId, String prefix) {
 		HttpStatus httpStatus;
-		UserRefreshWrapperVO userRefreshWrapperVO = new UserRefreshWrapperVO();
-		userRefreshWrapperVO.setStatus(ConstantsUtility.FAILURE);
-
+		ConnectionResponseWrapperVO responseWrapperVO = new ConnectionResponseWrapperVO();
+		responseWrapperVO.setStatus(ConstantsUtility.FAILURE);
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 
@@ -580,41 +587,50 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info(
 					"No permission to get Connection details for user:{}, only owner or admin can get connection details.",
 					userId);
-			userRefreshWrapperVO
+			responseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription("No permission to get Connection details for user:"
 							+ userId + ", only owner or admin can get connection details.")));
 			httpStatus = HttpStatus.FORBIDDEN;
 		} else if (Boolean.FALSE.equals(dnaMinioClient.validateUserInMinio(userId))) {
 			LOGGER.info("User:{} not present in Minio.", userId);
-			userRefreshWrapperVO
+			responseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Minio.")));
 			httpStatus = HttpStatus.NO_CONTENT;
 		} else {
 			String secretKey = vaultConfig.validateUserInVault(userId);
 			if (StringUtils.hasText(secretKey)) {
+				ConnectionResponseVO responseVO = new ConnectionResponseVO();
+
 				UserVO userVO = new UserVO();
-				//setting credentials
+				// setting credentials
 				userVO.setAccesskey(userId);
 				userVO.setSecretKey(secretKey);
-				//Setting permission
+				// Setting permission
 				userVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, userId));
-				Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
-						bucketName, null);
+				Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser, bucketName, null);
 				userVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
 				userVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
-				
-				userRefreshWrapperVO.setData(userVO);
-				userRefreshWrapperVO.setStatus(ConstantsUtility.SUCCESS);
+				responseVO.setUserVO(userVO);
+
+				// To get connected dataiku projects from database
+				StorageNsql storageEntity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+				if (Objects.nonNull(storageEntity) && Objects.nonNull(storageEntity.getData())) {
+					// setting dataiku projects
+					responseVO.setDataikuProjects(storageEntity.getData().getDataikuProjects());
+				}
+
+				responseWrapperVO.setData(responseVO);
+				responseWrapperVO.setStatus(ConstantsUtility.SUCCESS);
 				httpStatus = HttpStatus.OK;
 			} else {
 				LOGGER.info("User:{} not present in Vault.", userId);
-				userRefreshWrapperVO
+				responseWrapperVO
 						.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Vault.")));
 				httpStatus = HttpStatus.NO_CONTENT;
 			}
 		}
 
-		return new ResponseEntity<>(userRefreshWrapperVO, httpStatus);
+		return new ResponseEntity<>(responseWrapperVO, httpStatus);
 	}
 
 	@Override
@@ -679,7 +695,7 @@ public class BaseStorageService implements StorageService {
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from minio remove bucket.");
 			//Fetching bucket info from database
-			StorageNsql entity = customRepo.findbyUniqueLiteral("bucketName", bucketName);
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
 			if(Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
 				LOGGER.info("Deleting bucket:{} info from database",bucketName);
 				jpaRepo.deleteById(entity.getId());
@@ -770,7 +786,7 @@ public class BaseStorageService implements StorageService {
 		// Adding list two to set
 		set.addAll(list2);
 		// fetching users
-		return set.stream().map(t -> t.getAccesskey()).collect(Collectors.toList());
+		return set.stream().map(t -> t.getAccesskey()).toList();
 	}
 	
 	/*
@@ -886,7 +902,7 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Bucket not found.");
 		} else {
 			//Fetching bucket details from database
-			StorageNsql entity = customRepo.findbyUniqueLiteral("bucketName", bucketName);
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
 			bucketVo = storageAssembler.toBucketVo(entity);
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
@@ -929,7 +945,7 @@ public class BaseStorageService implements StorageService {
 			for (Bucket bucket : minioResponse.getBuckets()) {
 				String bucketName = bucket.name();
 				// To check if record already exist for bucket
-				StorageNsql storage = customRepo.findbyUniqueLiteral("bucketName", bucketName);
+				StorageNsql storage = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
 				if (Objects.isNull(storage)) {
 					BucketVo bucketVo = new BucketVo();
 					bucketVo.setBucketName(bucketName);
@@ -1001,6 +1017,69 @@ public class BaseStorageService implements StorageService {
 			genericMessage.setErrors(getMessages(minioResponse.getErrors()));
 		}
 		return new ResponseEntity<>(genericMessage, httpStatus);
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO) {
+		LOGGER.debug("Fetching Current user.");
+		GenericMessage genericMessage = new GenericMessage();
+		HttpStatus httpStatus;
+		// To fetch bucket details
+		StorageNsql storageEntity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME,
+				connectionVO.getBucketName());
+		// To validate before connection creation
+		List<MessageDescription> validationErrors = this.validateCreateConnection(storageEntity, connectionVO);
+		if (!ObjectUtils.isEmpty(validationErrors)) {
+			httpStatus = HttpStatus.BAD_REQUEST;
+			genericMessage.setErrors(validationErrors);
+		} else {
+			Storage storage = storageEntity.getData();
+			// Union of existing and new projects
+			List<String> projectsUnion = StorageUtility.getUnion(storage.getDataikuProjects(),
+					connectionVO.getDataikuProjects());
+			if (!ObjectUtils.isEmpty(projectsUnion)) {
+				for (String project : projectsUnion) {
+					// To check if project available in new list
+					boolean isNewProject = !ObjectUtils.isEmpty(connectionVO.getDataikuProjects())
+							&& connectionVO.getDataikuProjects().contains(project);
+					boolean isExistingProject = !ObjectUtils.isEmpty(storage.getDataikuProjects())
+							&& storage.getDataikuProjects().contains(project);
+					if (isNewProject && !isExistingProject) {
+						LOGGER.info("Removing connection for project:{}", project);
+						// delete;
+
+					} else if (!isNewProject && isExistingProject) {
+						// Add
+						LOGGER.info("Creating new connection for project:{}", project);
+					}
+				}
+			} else {
+				LOGGER.info("No Project available to add or remove connection");
+			}
+
+			// Saving connection details in db
+			storage.setDataikuProjects(connectionVO.getDataikuProjects());
+			storage.setLastModifiedDate(new Date());
+			storage.setUpdatedBy(storageAssembler.setUpdatedBy(userStore));
+			storageEntity.setData(storage);
+			jpaRepo.save(storageEntity);
+
+			httpStatus = HttpStatus.OK;
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+		}
+		return new ResponseEntity<>(genericMessage, httpStatus);
+	}
+
+	/*
+	 * To validate create dataiku connection
+	 */
+	private List<MessageDescription> validateCreateConnection(StorageNsql storageEntity, ConnectionVO connectionVO) {
+		List<MessageDescription> errors = new ArrayList<>();
+		if (Objects.isNull(storageEntity) || Objects.isNull(storageEntity.getData())) {
+			LOGGER.info("Bucket:{} info not available in database, migrate data first.", connectionVO.getBucketName());
+			errors.add(new MessageDescription("Bucket information not available in database."));
+		}
+		return errors;
 	}
 	
 }
