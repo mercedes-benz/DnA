@@ -552,6 +552,12 @@ paths:
    description: "Connection for bucket with dataiku projects will get created by this api"
    operationId: "createDataikuConnection"
    parameters:
+    - name: live
+      in: query
+      description: "If requested data from live(Production) or training environment" 
+      required: false
+      type: boolean
+      default: true 
     - name: "connectionRequestVO" 
       in: "body" 
       description: "Request Body that contains data to create connection for bucket with dataiku projects." 

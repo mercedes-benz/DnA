@@ -158,6 +158,6 @@ public interface StorageService {
 	 * @param connectionVO {@code ConnectionVO}
 	 * @return response {@code ResponseEntity<GenericMessage>}
 	 */
-	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO);
+	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO, Boolean live);
 	
 }
