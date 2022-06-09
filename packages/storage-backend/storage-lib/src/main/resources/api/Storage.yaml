@@ -465,7 +465,7 @@ paths:
      200:
       description: "Returns message of succes or failure"
       schema:
-       $ref: "#/definitions/UserRefreshWrapperVO"
+       $ref: "#/definitions/ConnectionResponseWrapperVO"
      204:
       description: "Fetch complete, no content found."
      400:
@@ -538,6 +538,43 @@ paths:
       description: "Method not allowed"
      500:
       description: "Internal error"        
+      
+  # path to post bucket connection details to dataiku
+  #
+  #  supprorted http methods POST
+  #
+  # path example ../buckets/dataiku/connect
+ /buckets/dataiku/connect:
+  post:
+   tags:
+    - "storage"
+   summary: "Create dataiku connection for bucket"
+   description: "Connection for bucket with dataiku projects will get created by this api"
+   operationId: "createDataikuConnection"
+   parameters:
+    - name: "connectionRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data to create connection for bucket with dataiku projects." 
+      required: true
+      schema:
+       $ref: "#/definitions/ConnectionRequestVO"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"        
      
 definitions:
      
@@ -858,4 +895,61 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user" 
+        
+ ConnectionVO:
+    type: object
+    properties:
+      bucketName:
+        type: string
+        description: "Name of bucket"
+      dataikuProjects:
+        type: array
+        items:
+          type: string 
+        #items: 
+        #  $ref: "#/definitions/ProjectVO"
+        
+ ConnectionRequestVO:
+   type: object
+   description: "Connection creation request model definition"
+   properties:
+     data:
+       $ref: "#/definitions/ConnectionVO"       
+        
+ ProjectVO:
+    type: object
+    properties:
+      projectKey:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"        
+ 
+ ConnectionResponseWrapperVO:
+   type: object
+   properties:
+      status:
+        type: string
+        description: Overrall status      
+      data:
+        $ref: "#/definitions/ConnectionResponseVO"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+ 
+ ConnectionResponseVO:
+   type: object
+   properties:
+      dataikuProjects:
+        type: array
+        items:
+          type: string       
+      userVO:
+        $ref: "#/definitions/UserVO" 
  
