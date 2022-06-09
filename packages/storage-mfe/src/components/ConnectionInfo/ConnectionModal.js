@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import Notification from '../../common/modules/uilab/js/src/notification';
@@ -8,6 +9,11 @@ import Styles from './ConnectionModal.scss';
 import { omit } from 'lodash';
 import { hideConnectionInfo } from './redux/connection.actions';
 import { history } from '../../store/storeRoot';
+
+import Tags from 'dna-container/Tags';
+
+import { bucketsApi } from '../../apis/buckets.api';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 const copyToClipboard = (content) => {
   navigator.clipboard.writeText('');
@@ -23,6 +29,9 @@ export const ConnectionModal = () => {
     accessInfo: [],
   });
   const [showSecretKey, setShowSecretKey] = useState(false);
+  const [dataikuProjectList, setDataikuProjectList] = useState([]);
+  const [dataikuNotificationPortal, setDataikuNotificationPortal] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { pathname } = useLocation();
   const isCreatePage = pathname === '/createBucket';
@@ -51,11 +60,77 @@ export const ConnectionModal = () => {
     });
   }, [connect?.bucketName, connect?.accessInfo]);
 
+  useEffect(() => {
+    if (connect.modal) {
+      setIsLoading(true);
+      bucketsApi
+        .getDataikuProjects(true)
+        .then((res) => {
+          res.data?.data?.map((item) => {
+            item['id'] = item.projectKey; // add 'id' for each of the object item
+            return item;
+          });
+          setDataikuProjectList(res.data);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          Notification.show('Error while fetching dataiku projects.', 'alert');
+          setIsLoading(false);
+        });
+    }
+  }, [connect.modal]);
+
+  // dataiku tag container
+  const dataikuTagContainer = document?.querySelectorAll(
+    '#tab-content-2[class*="ConnectionModal"] .input-field-group',
+  )[0];
+
+  const notificationMsg = {
+    success: `Selected project(s) ${
+      connect.dataikuProjects?.length ? 'connected to' : 'connection removed from'
+    } the bucket successfully!`,
+    error: 'Error while connecting to dataiku project(s)',
+  };
+
+  const dataikuConnectionNotification = (portal) => {
+    return portal;
+  };
+
   const handleOK = () => {
     if (isCreatePage) {
       history.replace('/');
     }
     dispatch(hideConnectionInfo());
+    setDataikuNotificationPortal(null);
+  };
+
+  const handleMakeConnection = () => {
+    let portal;
+    let msg;
+    ProgressIndicator.show();
+    const data = {
+      bucketName: bucketInfo.bucketName,
+      dataikuProjects: connect.dataikuProjects,
+    };
+    bucketsApi
+      .connectToDataikuProjects(data)
+      .then(() => {
+        msg = notificationMsg['success'];
+        portal = ReactDOM.createPortal(<span className={Styles.portal}>{msg}</span>, dataikuTagContainer);
+        setDataikuNotificationPortal(portal);
+        Notification.show(msg);
+        ProgressIndicator.hide();
+      })
+      .catch(() => {
+        msg = notificationMsg['error'];
+        portal = ReactDOM.createPortal(
+          <span className={classNames('error-message', Styles.portal)}>{msg}</span>,
+          dataikuTagContainer,
+        );
+        setDataikuNotificationPortal(portal);
+        Notification.show(msg, 'alert');
+        ProgressIndicator.hide();
+      });
   };
 
   const connectToJupyter = (
@@ -69,18 +144,41 @@ y = pd.read_csv(y_file_obj)`}
   );
 
   const connectToDataiku = (
-    <code>
-      {`1. Go to Administration.
-2. Select 'Connection' tab and click on '+ NEW CONNECTION'.
-3. Select 'Amazon S3' connection.
-4. Provide the below-required information:
- - New connection name: <<Name of the connection>>
- - Access Key: ${bucketInfo.accessInfo.accesskey}
- - Secret Key: YOUR_BUCKET_SECRET_KEY
- - Region / Endpoint: ${bucketInfo.accessInfo.uri}
-5. Click on 'Create' and use the connection in project.
-        `}
-    </code>
+    <>
+      <Tags
+        title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
+        max={100}
+        chips={dataikuProjectList?.data
+          ?.filter((item) => connect?.dataikuProjects?.includes(item.projectKey))
+          .map((i) => i.name)}
+        tags={dataikuProjectList?.data?.filter((i) => i.name)}
+        setTags={(tag) => {
+          const data = dataikuProjectList?.data?.filter((item) => tag.includes(item.name)).map((i) => i.projectKey);
+          dispatch({
+            type: 'SELECTED_DATAIKU_PROJECTS',
+            payload: data,
+          });
+          setDataikuNotificationPortal(null);
+        }}
+        suggestionRender={(item) => (
+          <div className={Styles.optionContainer}>
+            <span className={Styles.optionTitle}>{item.name}</span>
+            <span className={Styles.optionText}>{item.shortDesc}</span>
+          </div>
+        )}
+        isMandatory={false}
+        showMissingEntryError={false}
+        enableCustomValue={false}
+        suggestionPopupHeight={120}
+      />
+      {dataikuTagContainer && dataikuConnectionNotification(dataikuNotificationPortal)}
+      <div className={Styles.dataikuConnectionBtn}>
+        {' '}
+        <button className="btn btn-tertiary" onClick={handleMakeConnection}>
+          Make Connection
+        </button>
+      </div>
+    </>
   );
 
   return (
@@ -154,9 +252,9 @@ y = pd.read_csv(y_file_obj)`}
                     <strong>How to Connect from DNA Jupyter NoteBook</strong>
                   </a>
                 </li>
-                <li className={'tab disable'}>
+                <li className={'tab'}>
                   <a href="#tab-content-2" id="dataiku">
-                    <strong style={{ color: '#99a5b3' }}>How to Connect from Dataiku (Coming soon)</strong>
+                    <strong>Connect to Dataiku project(s)</strong>
                   </a>
                 </li>
               </ul>
@@ -176,7 +274,15 @@ y = pd.read_csv(y_file_obj)`}
               <div className={Styles.connectionCode}>{connectToJupyter}</div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
-              <div className={classNames(Styles.connectionCode)}>{connectToDataiku}</div>
+              <div className={classNames(Styles.connectionCode)}>
+                {isLoading ? (
+                  <div className={classNames('text-center', Styles.spinner)}>
+                    <div className="progress infinite" />
+                  </div>
+                ) : (
+                  connectToDataiku
+                )}
+              </div>
             </div>
           </div>
         </div>
