@@ -58,6 +58,7 @@ import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
 import { Envs } from '../../../../globals/Envs';
 import { getDateTimeFromTimestamp } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
+import {IntlProvider, FormattedNumber} from 'react-intl';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -371,7 +372,13 @@ const costDrivers = (costFactors: ICostFactor[]) => {
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Value</Text>
-            <Text>{costFactor.value}&euro;</Text>
+            <Text>
+              {costFactor.value ?
+                <IntlProvider locale={navigator.language} defaultLocale="en">
+                  <FormattedNumber value={Number(costFactor.value)} />
+                </IntlProvider>
+              : '' }&euro;
+            </Text>
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Source</Text>
@@ -383,7 +390,13 @@ const costDrivers = (costFactors: ICostFactor[]) => {
           {costFactor.rampUp.map((item: any, rampIndex: number) => (
             <View key={rampIndex} style={styles.rampUpContainer}>
               <Text>{item.year}</Text>
-              <Text>{item.value}&euro;</Text>
+              <Text>
+                {item.value ?
+                  <IntlProvider locale={navigator.language} defaultLocale="en">
+                    <FormattedNumber value={Number(item.value)} />
+                  </IntlProvider>
+                : '' }&euro;
+              </Text>
             </View>
           ))}
         </View>
@@ -409,7 +422,13 @@ const valueDrivers = (valueFactors: IValueFactor[]) => {
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Value</Text>
-            <Text>{valueFactor.value}&euro;</Text>
+            <Text>
+              {valueFactor.value ?
+                <IntlProvider locale={navigator.language} defaultLocale="en">
+                  <FormattedNumber value={Number(valueFactor.value)} />
+                </IntlProvider>
+              : '' }&euro;
+            </Text>
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Source</Text>
@@ -421,8 +440,20 @@ const valueDrivers = (valueFactors: IValueFactor[]) => {
           {valueFactor.rampUp.map((item: any, rampIndex: number) => (
             <View key={rampIndex} style={styles.rampUpContainer}>
               <Text>{item.year}</Text>
-              <Text>{item.percent}%</Text>
-              <Text>{item.value}&euro;</Text>
+              <Text>
+                {item.percent ?
+                  <IntlProvider locale={navigator.language} defaultLocale="en">
+                    <FormattedNumber value={Number(item.percent)} />
+                  </IntlProvider>
+                : '' }%
+              </Text>
+              <Text>
+                {item.value ?
+                  <IntlProvider locale={navigator.language} defaultLocale="en">
+                    <FormattedNumber value={Number(item.value)} />
+                  </IntlProvider>
+                : '' }&euro;
+              </Text>
             </View>
           ))}
         </View>
@@ -437,8 +468,20 @@ const digitalValue = (items: IValueRampUp[]) => {
     return (
       <View key={index} style={styles.rampUpContainer}>
         <Text>{item.year}</Text>
-        <Text>{item.percent}%</Text>
-        <Text>{item.value}&euro;</Text>
+        <Text>
+          {item.percent ?
+            <IntlProvider locale={navigator.language} defaultLocale="en">
+              <FormattedNumber value={Number(item.percent)} />
+            </IntlProvider>
+          : '' }%
+        </Text>
+        <Text>
+          {item.value ?
+            <IntlProvider locale={navigator.language} defaultLocale="en">
+              <FormattedNumber value={Number(item.value)} />
+            </IntlProvider>
+          : '' }&euro;
+        </Text>
       </View>
     );
   });
@@ -531,7 +574,11 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
     return (
       <View key={index} style={styles.rampUpContainer}>
         <Text>{neededRole.neededSkill}</Text>
-        <Text>{neededRole.requestedFTECount ? neededRole.requestedFTECount.toString().replace('.', ',') : 'N/A'}</Text>
+        <Text>
+          <IntlProvider locale={navigator.language} defaultLocale="en">
+            {neededRole.requestedFTECount ? <FormattedNumber value={Number(neededRole.requestedFTECount)} /> : 'N/A'}
+          </IntlProvider>
+        </Text>
       </View>
     );
   });
@@ -734,7 +781,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                               )}{' '}
                               by{' '}
                               {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
-                                (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedBy.login)}
+                                (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.ownerDisplayName)}
                             </Text>
                             <Text>
                               {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
@@ -1053,7 +1100,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
                       props.solution.digitalValue.valueCalculator.calculatedDigitalValue.year +
                       ' (' +
-                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value +
+                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ?
+                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                         <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value)} />
+                      </IntlProvider>
+                      : ''
+                       +
                       '€' +
                       ')'
                     ) : (
@@ -1077,7 +1129,14 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {props.solution.digitalValue.valueCalculator &&
                     props.solution.digitalValue.valueCalculator.costFactorSummary &&
                     props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
-                      <Text> {props.solution.digitalValue.valueCalculator.costFactorSummary.value}&euro; </Text>
+                      <Text> {
+                        props.solution.digitalValue.valueCalculator.costFactorSummary.value ?
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.costFactorSummary.value)} />
+                          </IntlProvider>
+                        : ''                        
+                        }&euro; 
+                      </Text>
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -1099,7 +1158,15 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {props.solution.digitalValue.valueCalculator &&
                     props.solution.digitalValue.valueCalculator.valueFactorSummary &&
                     props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
-                      <Text> {props.solution.digitalValue.valueCalculator.valueFactorSummary.value}&euro; </Text>
+                      <Text> 
+                        { 
+                        props.solution.digitalValue.valueCalculator.valueFactorSummary.value ?
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.valueFactorSummary.value)} />
+                          </IntlProvider>
+                        : ''                        
+                        }&euro;
+                      </Text>
                     ) : (
                       <Text>NA</Text>
                     )}
