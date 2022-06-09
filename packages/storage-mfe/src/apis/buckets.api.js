@@ -1,4 +1,4 @@
-import server from '../server/api';
+import { hostServer, server } from '../server/api';
 
 const getAllBuckets = () => {
   return server.get('/buckets', {
@@ -38,6 +38,14 @@ const getDataConnectionTypes = () => {
   return server.get('/classifications', { data: {} });
 };
 
+const getDataikuProjects = (live) => {
+  return hostServer.get(`/dataiku/projects?live=${live}`, { data: {} });
+};
+
+const connectToDataikuProjects = (data) => {
+  return server.post('/buckets/dataiku/connect', data);
+};
+
 export const bucketsApi = {
   getAllBuckets,
   getBucketByName,
@@ -46,4 +54,6 @@ export const bucketsApi = {
   deleteBucket,
   getConnectionInfo,
   getDataConnectionTypes,
+  getDataikuProjects,
+  connectToDataikuProjects,
 };
