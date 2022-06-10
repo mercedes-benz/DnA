@@ -11,6 +11,8 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { markdownParser } from '../../../../utils/MarkdownParser';
 // import { getDateFromTimestamp, getDateDifferenceFromTodayUsingGetDate } from '../../../../services/utils';
+import { regionalDateAndTimeConversion } from '../../../../services/utils';
+
 const classNames = cn.bind(Styles);
 
 export interface INotificationDetailsProps {
@@ -171,7 +173,7 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
           <div className={Styles.elementToMove}>{item.eventType}</div>
         </td>
         <td className={classNames(Styles.notificationDate)}>
-          <div className={Styles.elementToMove}>{item.dateTime}</div>
+          <div className={Styles.elementToMove}>{regionalDateAndTimeConversion(item.dateTime)}</div>
         </td>
         <td className={classNames(Styles.columnMarkAsRead)}>
           {item.isRead === 'false' ? (

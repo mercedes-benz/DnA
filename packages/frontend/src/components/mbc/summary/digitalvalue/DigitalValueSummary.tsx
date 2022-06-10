@@ -11,6 +11,7 @@ import InfoModal from '../../../../components/formElements/modal/infoModal/InfoM
 import { ApiClient } from '../../../../services/ApiClient';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import DigitalValuePopupContent from './DigitalValuePopupContent';
+import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 
 import {
   IAttachment,
@@ -23,6 +24,8 @@ import {
   IValueRampUp,
 } from '../../../../globals/types';
 import Styles from './DigitalValueSummary.scss';
+import {IntlProvider, FormattedNumber} from 'react-intl';
+
 const classNames = cn.bind(Styles);
 
 export interface IDigitalValueProps {
@@ -207,7 +210,8 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                 return (
                   <tr key={index} className="data-row">
                     <td className="wrap-text">
-                      {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)}
+                      {regionalDateAndTimeConversionSolution(data.changeDate)}
+                      {/* {this.getParsedDate(data.changeDate)} / {this.getParsedTime(data.changeDate)} */}
                     </td>
                     <td className="wrap-text">
                       {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
@@ -345,7 +349,12 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                         </div>
                                         <div>
                                           <label>Value</label>
-                                          <div>{item.value}&euro;</div>
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                              </IntlProvider>
+                                              &euro;
+                                            </div>
                                         </div>
                                         <div>
                                           <label>Source</label>
@@ -365,7 +374,12 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                               return (
                                                 <div className={Styles.rampUpItem} key={indexVal}>
                                                   <strong>{costDriver.year}</strong>
-                                                  <div>{costDriver.value}&euro;</div>
+                                                  <div>
+                                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                      {costDriver.value ? <FormattedNumber value={Number(costDriver.value)} /> : ''}
+                                                    </IntlProvider>
+                                                    &euro;
+                                                  </div>
                                                 </div>
                                               );
                                             })}
@@ -433,7 +447,12 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                         </div>
                                         <div>
                                           <label>Value</label>
-                                          <div>{item.value}&euro;</div>
+                                          <div>
+                                            <IntlProvider locale={navigator.language} defaultLocale="en">
+                                              {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                            </IntlProvider>
+                                            &euro;
+                                          </div>
                                         </div>
                                         <div>
                                           <label>Source</label>
@@ -453,8 +472,17 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                               return (
                                                 <div className={Styles.rampUpItem} key={indexVal}>
                                                   <strong>{valueDriver.year}</strong>
-                                                  <div>{valueDriver.percent}%</div>
-                                                  <div>{valueDriver.value}&euro;</div>
+                                                  <div>
+                                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                      {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
+                                                    </IntlProvider>%
+                                                  </div>
+                                                  <div>
+                                                    <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                      {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                                    </IntlProvider>
+                                                    &euro;
+                                                  </div>
                                                 </div>
                                               );
                                             })}
@@ -511,8 +539,17 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                 return (
                                   <div id={'valueRampUp_' + indexVal} className={Styles.rampUpItem} key={indexVal}>
                                     <strong>{valueDriver.year}</strong>
-                                    <div>{valueDriver.percent}%</div>
-                                    <div>{valueDriver.value}&euro;</div>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
+                                      </IntlProvider>%
+                                    </div>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                      </IntlProvider>
+                                      &euro;                                    
+                                    </div>
                                   </div>
                                 );
                               },
@@ -530,19 +567,34 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                         <label>Digital Value at {calculatedDigitalValue ? calculatedDigitalValue.valueAt : ''}%</label>
                         <div>
                           {calculatedDigitalValue && calculatedDigitalValue.value
-                            ? `${calculatedDigitalValue.year}(${calculatedDigitalValue.value}€)`
+                            ? `${calculatedDigitalValue.year}
+                            (<IntlProvider locale=${navigator.language} defaultLocale="en">
+                              ${calculatedDigitalValue.value} ? <FormattedNumber value=${Number(calculatedDigitalValue.value)} /> : ''}
+                            </IntlProvider>
+                            &euro;)
+                            €)`
                             : 'N/A'}
                         </div>
                       </div>
 
                       <div id="totalCostDriver">
                         <label>Cost Drivers ({costFactorSummary ? costFactorSummary.year : ''})</label>
-                        <div>{costFactorSummary ? costFactorSummary.value : ''}&euro;</div>
+                        <div>
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            {costFactorSummary ? <FormattedNumber value={Number(costFactorSummary.value)} /> : ''}
+                          </IntlProvider>
+                          &euro; 
+                        </div>
                       </div>
 
                       <div id="totalValueDriver">
                         <label>Value Drivers ({valueFactorSummary ? valueFactorSummary.year : ''})</label>
-                        <div>{valueFactorSummary ? valueFactorSummary.value : ''}&euro;</div>
+                        <div>
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            {valueFactorSummary ? <FormattedNumber value={Number(valueFactorSummary.value)} /> : ''}
+                          </IntlProvider>
+                          &euro;
+                        </div>
                       </div>
 
                       <div id="breakEvenPoint">
