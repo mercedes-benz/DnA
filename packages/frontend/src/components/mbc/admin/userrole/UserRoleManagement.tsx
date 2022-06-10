@@ -435,7 +435,9 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         } else if (label === 'USER') {
           label = 'User';
         }
-        this.setState({ updatedRole: { id: option.value, name: label } });
+        this.setState({ updatedRole: { id: option.value, name: label } },()=>{
+          SelectBox.defaultSetup(true);
+        });
       });
     }
   };
