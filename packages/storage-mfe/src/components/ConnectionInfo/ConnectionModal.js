@@ -143,7 +143,7 @@ export const ConnectionModal = () => {
    * @param {string} key to be matched
    */
   const filterDataikuProjectList = (arr, key) => {
-    return dataikuProjectList.filter((item) => arr.includes(item[key]));
+    return dataikuProjectList?.filter((item) => arr.includes(item[key]));
   };
 
   const connectToJupyter = (
