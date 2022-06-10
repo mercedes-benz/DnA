@@ -7,7 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
 
-import { FullFileBrowser, ChonkyActions, FileHelper, defineFileAction } from 'chonky';
+import { FullFileBrowser, ChonkyActions, FileHelper } from 'chonky';
+import { CustomActions } from './CustomFileActions';
 
 import {
   deleteFiles,
@@ -59,17 +60,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 // inform chonky on which iconComponent to use
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
-
-const PublishFolder = defineFileAction({
-  id: 'publish_folder',
-  button: {
-    name: 'Publish to Trino',
-    toolbar: true,
-    contextMenu: true,
-    tooltip: 'Publish to Trino',
-    icon: 'folder',
-  },
-});
 
 const FileExplorer = () => {
   const dispatch = useDispatch();
@@ -469,7 +459,7 @@ const FileExplorer = () => {
         // on opening files
         onOpenFile(data, fileToOpen);
       }
-    } else if (data.id === PublishFolder.id) {
+    } else if (data.id === CustomActions.PublishFolder.id) {
       // TBD
     }
   };
