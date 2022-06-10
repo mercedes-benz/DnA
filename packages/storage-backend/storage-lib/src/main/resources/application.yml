@@ -56,7 +56,6 @@ kafka:
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
-  storageEndpoint: ${STORAGE_ENDPOINT:XXXXXX}
   feature:
      attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
   malwareScan:
