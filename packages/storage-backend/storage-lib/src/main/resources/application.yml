@@ -56,6 +56,7 @@ kafka:
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  storageEndpoint: ${STORAGE_ENDPOINT:XXXXXX}
   feature:
      attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
   malwareScan:
@@ -80,6 +81,18 @@ minio:
   accessKey: ${MINIO_ADMIN_ACCESS_KEY:XXXXXX} 
   secretKey: ${MINIO_ADMIN_SECRET_KEY:XXXXXX}
   version: ${MINIO_POLICY_VERSION:2012-10-17}
+
+# For dataiku connection  
+dataiku:
+  connectionsUriPath: ${DATAIKU_CONNECTION_URI_PATH:/admin/connections}
+  projectsUriPath: ${DATAIKU_PROJECTS_URI_PATH:/projects/}
+  projectPermissionUriPath: ${DATAIKU_PERMISSION_URI_PATH:/permissions}
+  production:
+    uri: ${DATAIKU_PROD_URI:XXXXXX}
+    apiKey: ${DATAIKU_PROD_API_KEY:XXXXXX}
+  training:
+    uri: ${DATAIKU_TRAINING_URI:XXXXXX}
+    apiKey: ${DATAIKU_TRAINING_API_KEY:XXXXXX}  
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

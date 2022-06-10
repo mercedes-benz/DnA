@@ -25,32 +25,51 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.util;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.util.ObjectUtils;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public class StorageUtility {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Storage {
+	
+	
+	private StorageUtility() {
+		super();
+	}
 
-	private String bucketName;
-	private String description;
-	private boolean piiData;
-	private boolean termsOfUse;
-	private String classificationType;
-	private Date createdDate;
-	private UserInfo createdBy;
-	private Date lastModifiedDate;
-	private UserInfo updatedBy;
-	private List<UserInfo> collaborators;
-	private List<String> dataikuProjects;
+	/*
+	 * To get Union of list return list of user by making unison of 2 userVO list
+	 */
+	public static List<String> getUnion(List<String> list1, List<String> list2) {
+		Set<String> set = new TreeSet<>(new Comparator<String>() {
+			@Override
+			public int compare(String s1, String s2) {
+				return s1.compareTo(s2);
+			}
+		});
+		// Adding list1 to set
+		if(!ObjectUtils.isEmpty(list1)) {
+			set.addAll(list1);
+		}
+		// Adding list2 to set
+		if(!ObjectUtils.isEmpty(list2)) {
+			set.addAll(list2);
+		}
+		return new ArrayList<>(set);
+	}
+	
+	/*
+	 * To get connection name for dataiku
+	 * eg: projectname_bucketName
+	 */
+	public static String getDataikuConnectionName(String projectKey, String bucketName) {
+		return projectKey+"_"+bucketName;
+	}
+	
 }
