@@ -27,16 +27,21 @@
 
 package com.daimler.data.controller;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.model.ModelsApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.auth.UserStore.UserInfo;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.model.ModelCollection;
 import com.daimler.data.dto.model.ModelRequestVO;
 import com.daimler.data.dto.model.ModelResponseVO;
@@ -59,8 +64,11 @@ public class RegistryController implements ModelsApi {
 	@Autowired
 	private RegistryService modelRegistryservice;
 
+	@Autowired
+	private UserStore userStore;
+
 	@Override
-	@ApiOperation(value = "Get all available models.", nickname = "getAll", notes = "Get all models for requested user.", response = ModelCollection.class, tags = {
+	@ApiOperation(value = "Get all available models for requested user", nickname = "getAll", notes = "Get all models for requested user.", response = ModelCollection.class, tags = {
 			"models", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = ModelCollection.class),
@@ -70,12 +78,12 @@ public class RegistryController implements ModelsApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/models/{id}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/models", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<ModelCollection> getAll(
-			@ApiParam(value = "Id of the user", required = true) @PathVariable("id") String id) {
-
-		final ModelCollection modelCollection = modelRegistryservice.getAllModels(id);
+	public ResponseEntity<ModelCollection> getAll() {
+		UserInfo currentUser = this.userStore.getUserInfo();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		final ModelCollection modelCollection = modelRegistryservice.getAllModels(userId);
 		if (modelCollection != null && modelCollection.getData() != null && !modelCollection.getData().isEmpty()) {
 			log.info("returning successfully with models");
 			return new ResponseEntity<>(modelCollection, HttpStatus.OK);
@@ -86,7 +94,20 @@ public class RegistryController implements ModelsApi {
 	}
 
 	@Override
-	public ResponseEntity<ModelResponseVO> create(ModelRequestVO modelRequestVO) {
+	@ApiOperation(value = "create a external uri.", nickname = "create", notes = "create a external uri", response = ModelResponseVO.class, tags = {
+			"models", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of succes", response = ModelResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 409, message = "Conflict", response = ModelResponseVO.class),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/model/externaluri", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<ModelResponseVO> create(
+			@ApiParam(value = "Request Body that contains data required for creating a external uri", required = true) @Valid @RequestBody ModelRequestVO modelRequestVO) {
 		return modelRegistryservice.generateExternalUri(modelRequestVO);
 	}
 
