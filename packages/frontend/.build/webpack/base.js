@@ -22,7 +22,7 @@ const path = require('path'),
   title = packageJson.config.title || packageName,
   ESLintPlugin = require('eslint-webpack-plugin');
 (ExternalTemplateRemotesPlugin = require('./ExternalTemplateRemotesPlugin')),
-  (MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083');
+  (MFE_URL = process.env.ENV_FILE ? '${STORAGE_MFE_APP_URL}' : 'http://localhost:8083');
 
 const { ModuleFederationPlugin } = webpack.container;
 
