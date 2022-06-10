@@ -25,12 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.dto;
 
-import java.util.Date;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,18 +36,20 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Storage {
+public class DataikuConnectionRequestDTO {
 
-	private String bucketName;
-	private String description;
-	private boolean piiData;
-	private boolean termsOfUse;
-	private String classificationType;
-	private Date createdDate;
-	private UserInfo createdBy;
-	private Date lastModifiedDate;
-	private UserInfo updatedBy;
-	private List<UserInfo> collaborators;
-	private List<String> dataikuProjects;
+	private String name;
+	private String type;
+	private boolean allowWrite;
+	private boolean allowManagedDatasets;
+	private boolean allowManagedFolders;
+	private boolean useGlobalProxy;
+	private int maxActivities;
+	private String credentialsMode;
+	private String usableBy;
+	private DataikuParameterDTO params;
+	private List<String> allowedGroups;
+	private DataikuReadabilityDTO detailsReadability;
+	private DataikuIndexDTO indexingSettings;
+	
 }

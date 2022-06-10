@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.db.entities.StorageNsql;
 import com.daimler.data.db.jsonb.Permission;
 import com.daimler.data.db.jsonb.Storage;
@@ -188,4 +189,13 @@ public class StorageAssembler {
 		return userInfo;
 	}
 
+	public UserInfo setUpdatedBy(UserStore userStore) {
+		UserInfo userInfo = null;
+		if (Objects.nonNull(userStore.getUserInfo())) {
+			userInfo = new UserInfo();
+			BeanUtils.copyProperties(userStore.getUserInfo(), userInfo);
+		}
+		return userInfo;
+	}
+	
 }
