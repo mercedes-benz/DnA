@@ -15,6 +15,9 @@ export interface ITagsFieldProps {
   showMissingEntryError: boolean;
   fixedChips?: string[];
   enableUppercase?: boolean;
+  suggestionRender?: (tag: any) => React.ReactNode;
+  enableCustomValue?: boolean;
+  suggestionPopupHeight?: number;
 }
 
 export interface ITagsFiledState {
@@ -79,8 +82,14 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         className += ' ' + classNames(Styles.active);
       }
       return (
-        <div id={filteredTag.id} key={filteredTag.id} onMouseDown={this.onSuggestionMouseDown} className={className}>
-          {filteredTag.name}
+        <div
+          id={filteredTag.id}
+          key={filteredTag.id}
+          onMouseDown={this.onSuggestionMouseDown}
+          className={className}
+          data-value={filteredTag.name}
+        >
+          {this.props.suggestionRender ? this.props.suggestionRender(filteredTag) : filteredTag.name}
         </div>
       );
     });
@@ -95,6 +104,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           'input-field-group' + (this.props.showMissingEntryError ? ' include-error' : ''),
           this.state.isFocused ? 'focused' : '',
           this.props.showMissingEntryError ? Styles.validationError + ' error' : '',
+          this.state.filteredTags?.length ? 'open-suggestion' : '',
         )}
       >
         <label htmlFor="tag" className="input-label">
@@ -123,7 +133,19 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           />
         </div>
         {suggestions?.length ? (
-          suggestions
+          this.props.suggestionRender ? (
+            <div
+              className="mbc-scroll"
+              style={{
+                overflowY: 'auto',
+                ...(this.props.suggestionPopupHeight && { height: this.props.suggestionPopupHeight }),
+              }}
+            >
+              {suggestions}
+            </div>
+          ) : (
+            suggestions
+          )
         ) : (
           <span className={classNames('error-message', this.props.showMissingEntryError ? '' : 'hide')}>
             {missingEntryMessage}
@@ -139,15 +161,20 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
-    if (target.value) {
-      this.updateChips(target.value);
+    if (this.props.enableCustomValue) {
+      if (target.value) {
+        this.updateChips(target.value);
+      }
+    } else {
+      this.setState({ userInput: '', filteredTags: [] });
     }
+
     this.setState({ isFocused: false });
   };
 
   protected onSuggestionMouseDown = (event: React.MouseEvent) => {
     const target = event.currentTarget as HTMLElement;
-    const userInput = target.innerText;
+    const userInput = target.getAttribute('data-value');
     if (target.id && target.id !== '0') {
       this.setState({
         userInput,
@@ -240,7 +267,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         return;
       }
 
-      if(this.props.enableUppercase) {
+      if (this.props.enableUppercase) {
         value = value.toUpperCase();
       }
 

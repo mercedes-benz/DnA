@@ -182,6 +182,7 @@ export default class AddOrEditFactorModal extends React.Component<
                       onChange={(e) => this.textOnChangeRampup({value: e.currentTarget.value},e)}
                       onBlur={this.validateYearLength}
                     /> */}
+                    {/* @ts-ignore */}
                     <NumberFormat
                         className={classNames('input-field', Styles.fteField)}
                         id={'factorYear-' + index}
@@ -197,7 +198,7 @@ export default class AddOrEditFactorModal extends React.Component<
                         maxLength={4}
                         minLength={4}
                         // decimalSeparator={''}
-                        onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
+                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
                         onBlur={this.validateYearLength}
                     />
                     <span
@@ -246,6 +247,7 @@ export default class AddOrEditFactorModal extends React.Component<
                       maxLength={10}
                       onChange={(e) => this.textOnChangeRampup({value: e.currentTarget.value},e)}
                     />*/}
+                    {/* @ts-ignore */}
                     <NumberFormat
                         className={classNames('input-field', Styles.fteField)}
                         id={'factorValue-' + index}
@@ -259,7 +261,7 @@ export default class AddOrEditFactorModal extends React.Component<
                         decimalScale={2}
                         thousandSeparator={thousandSeparator(navigator.language)}                  
                         decimalSeparator={decimalSeparator(navigator.language)}
-                        onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
+                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
                     />
                     <span
                       className={classNames(
@@ -328,6 +330,7 @@ export default class AddOrEditFactorModal extends React.Component<
                       onChange={(e) => this.textOnChangeRampup({value: e.currentTarget.value},e)}
                       onBlur={this.validateYearLength}
                     /> */}
+                    {/* @ts-ignore */}
                     <NumberFormat
                         className={classNames('input-field', Styles.fteField)}
                         id={'factorYear-' + index}
@@ -343,7 +346,7 @@ export default class AddOrEditFactorModal extends React.Component<
                         maxLength={4}
                         minLength={4}
                         // decimalSeparator={''}
-                        onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
+                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
                         onBlur={this.validateYearLength}
                     />
                     <span
@@ -392,6 +395,7 @@ export default class AddOrEditFactorModal extends React.Component<
                       maxLength={5}
                       onChange={(e) => this.textOnChangeRampup({value: e.currentTarget.value},e)}
                     /> */}
+                    {/* @ts-ignore */}
                     <NumberFormat
                         className={classNames('input-field', Styles.fteField)}
                         id={'factorPercent-' + index}
@@ -405,7 +409,7 @@ export default class AddOrEditFactorModal extends React.Component<
                         decimalScale={2}
                         thousandSeparator={thousandSeparator(navigator.language)}                  
                         decimalSeparator={decimalSeparator(navigator.language)}
-                        onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
+                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
                     />
                     <span
                       className={classNames(
@@ -453,6 +457,7 @@ export default class AddOrEditFactorModal extends React.Component<
                       maxLength={10}
                       onChange={(e) => this.textOnChangeRampup({value: e.currentTarget.value},e)}
                     /> */}
+                    {/* @ts-ignore */}
                     <NumberFormat
                         className={classNames('input-field', Styles.fteField)}
                         id={'factorValue-' + index}
@@ -466,7 +471,7 @@ export default class AddOrEditFactorModal extends React.Component<
                         decimalScale={2}
                         thousandSeparator={thousandSeparator(navigator.language)}                  
                         decimalSeparator={decimalSeparator(navigator.language)}
-                        onValueChange={(values , sourceInfo) => this.textOnChangeRampup(values,sourceInfo)}
+                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
                     />
                     <span
                       className={classNames(
@@ -565,7 +570,8 @@ export default class AddOrEditFactorModal extends React.Component<
                   value={value}
                   maxLength={10}
                   onChange={this.textInputOnChange}
-                /> */}
+                /> */},
+                {/* @ts-ignore */}
                 <NumberFormat
                   className={classNames('input-field', Styles.fteField)}
                   id={'factorValue'}
@@ -579,7 +585,7 @@ export default class AddOrEditFactorModal extends React.Component<
                   thousandSeparator={thousandSeparator(navigator.language)}                  
                   decimalSeparator={decimalSeparator(navigator.language)}
                   decimalScale={2}
-                  onValueChange={(values , sourceInfo) => this.textInputOnChangeValueField(values,sourceInfo)}
+                  onValueChange={(values: any , sourceInfo: any) => this.textInputOnChangeValueField(values,sourceInfo)}
                 />
                 <span className={classNames('error-message', valueError.length ? '' : 'hide')}>{valueError}</span>
               </div>
