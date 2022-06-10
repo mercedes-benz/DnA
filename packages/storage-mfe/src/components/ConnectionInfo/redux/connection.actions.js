@@ -17,7 +17,8 @@ export const getConnectionInfo = (bucketName) => {
           payload: {
             bucketName,
             modal: true,
-            accessInfo: response.data.data,
+            accessInfo: response.data.data.userVO,
+            dataikuProjects: response.data.data.dataikuProjects,
           },
         });
         dispatch({

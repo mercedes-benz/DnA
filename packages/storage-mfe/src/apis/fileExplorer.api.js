@@ -1,5 +1,5 @@
 import { IMAGE_EXTNS } from '../components/Utility/constants';
-import server from '../server/api';
+import { server } from '../server/api';
 import { encodeParams } from '../server/utils';
 
 const getAllBucketObjects = (bucketName) => {
