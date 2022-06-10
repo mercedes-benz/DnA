@@ -37,6 +37,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -54,6 +55,8 @@ import com.daimler.data.dto.storage.BucketRequestVO;
 import com.daimler.data.dto.storage.BucketResponseVO;
 import com.daimler.data.dto.storage.BucketResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketVo;
+import com.daimler.data.dto.storage.ConnectionRequestVO;
+import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
 import com.daimler.data.dto.storage.UserRefreshWrapperVO;
 import com.daimler.data.service.storage.StorageService;
 
@@ -196,9 +199,9 @@ public class StorageController implements StorageApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/buckets/{bucketName}/connect", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<UserRefreshWrapperVO> getConnection(
+	@GetMapping(path = "/buckets/{bucketName}/connect", produces = { "application/json" }, consumes = {
+			"application/json" })
+	public ResponseEntity<ConnectionResponseWrapperVO> getConnection(
 			@ApiParam(value = "Bucket name for which details to be fetch.", required = true) @PathVariable("bucketName") String bucketName,
 			@ApiParam(value = "UserId for which credentials to be fetched.") @Valid @RequestParam(value = "userId", required = false) String userId,
 			@ApiParam(value = "Bucket Path for which connection uri be fetch.") @Valid @RequestParam(value = "prefix", required = false) String prefix) {
@@ -310,6 +313,24 @@ public class StorageController implements StorageApi {
         consumes = { "application/json" })
 	public ResponseEntity<GenericMessage> bucketMigrate() {
 		return storageService.bucketMigrate();
+	}
+
+	@Override
+	@ApiOperation(value = "Create dataiku connection for bucket", nickname = "createDataikuConnection", notes = "Connection for bucket with dataiku projects will get created by this api", response = GenericMessage.class, tags = {
+			"storage", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of succes or failure ", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = BucketResponseWrapperVO.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@PostMapping(path = "/buckets/dataiku/connect", produces = { "application/json" }, consumes = {
+			"application/json" })
+	public ResponseEntity<GenericMessage> createDataikuConnection(
+			@ApiParam(value = "Request Body that contains data to create connection for bucket with dataiku projects.", required = true) @Valid @RequestBody ConnectionRequestVO connectionRequestVO,
+			@ApiParam(value = "If requested data from live(Production) or training environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue="true") Boolean live) {
+		return storageService.createDataikuConnection(connectionRequestVO.getData(), live);
 	}
 
 }

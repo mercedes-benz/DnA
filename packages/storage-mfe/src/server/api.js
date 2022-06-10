@@ -8,27 +8,18 @@ export const baseURL = Envs.STORAGE_API_BASEURL
   ? Envs.STORAGE_API_BASEURL
   : `http://${window.location.hostname}:7175/api`;
 
-const server = axios.create({
+const headers = {
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+  Authorization: jwt,
+};
+
+export const server = axios.create({
   baseURL,
-  headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    Authorization: jwt,
-  },
+  headers,
 });
 
-server.interceptors.request.use((config) => {
-  if (['/login', '/verifyLogin'].includes(config.url)) {
-    const appUrl = Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`;
-    config.baseURL = appUrl;
-    config.data = {};
-    config.headers = {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      Authorization: jwt,
-    };
-  }
-  return config;
+export const hostServer = axios.create({
+  baseURL: Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`,
+  headers,
 });
-
-export default server;
