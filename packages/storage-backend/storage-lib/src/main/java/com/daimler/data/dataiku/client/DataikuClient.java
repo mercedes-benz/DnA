@@ -25,32 +25,43 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.dataiku.client;
 
-import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.dto.DataikuConnectionRequestDTO;
+import com.daimler.data.dto.DataikuGenericResponseDTO;
+import com.daimler.data.dto.DataikuPermission;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public interface DataikuClient {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Storage {
+	/**
+	 * <p>
+	 * To get dataiku project permission
+	 * </p>
+	 * 
+	 * @param projectKey
+	 * @param live
+	 * @return DataikuPermission
+	 */
+	public Optional<DataikuPermission> getDataikuProjectPermission(String projectKey, Boolean live);
 
-	private String bucketName;
-	private String description;
-	private boolean piiData;
-	private boolean termsOfUse;
-	private String classificationType;
-	private Date createdDate;
-	private UserInfo createdBy;
-	private Date lastModifiedDate;
-	private UserInfo updatedBy;
-	private List<UserInfo> collaborators;
-	private List<String> dataikuProjects;
+	/**
+	 * To create dataiku connection
+	 * 
+	 * @param requestDTO {@code DataikuConnectionRequestDTO}
+	 * @param live
+	 * @return response {@code DataikuGenericResponseDTO}
+	 */
+	public DataikuGenericResponseDTO createDataikuConnection(DataikuConnectionRequestDTO requestDTO, Boolean live);
+
+	/**
+	 * To delete dataiku connection
+	 * 
+	 * @param connectionName
+	 * @param live
+	 * @return response {@code DataikuGenericResponseDTO}
+	 */
+	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live);
+
 }
