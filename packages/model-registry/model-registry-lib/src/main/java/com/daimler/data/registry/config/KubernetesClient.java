@@ -88,6 +88,7 @@ public class KubernetesClient {
 	public KubernetesClient() {
 		try {
 			this.client = Config.defaultClient();
+
 			Configuration.setDefaultApiClient(client);
 			this.api = new CoreV1Api();
 			this.networkingV1beta1Api = new NetworkingV1Api();
@@ -145,7 +146,6 @@ public class KubernetesClient {
 					log.info("Successfully fetched secretDetails");
 				}
 			}
-
 			V1PodList items = api.listNamespacedPod(kubeflowNamespace, null, null, null, null, null, null, null, null,
 					10, false);
 			V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio"))
@@ -170,12 +170,10 @@ public class KubernetesClient {
 		V1Service service = null;
 		V1ServiceList serviceList = api.listNamespacedService(metaDataNamespace, "true", null, null, null, null, null,
 				null, null, 10, false);
-		log.info(serviceList.toString());
 		if (serviceList != null && ObjectUtils.isEmpty(serviceList.getItems())) {
 			service = serviceList.getItems().stream()
 					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst().get();
 		}
-		log.info(service.toString());
 		return service;
 	}
 
@@ -227,5 +225,4 @@ public class KubernetesClient {
 		log.info("Ingress yaml created: {} ", ingress.toString());
 		networkingV1beta1Api.createNamespacedIngress(metaDataNamespace, ingress, null, null, null, null);
 	}
-
 }
