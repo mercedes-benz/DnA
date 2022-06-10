@@ -244,6 +244,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
                                     <td>{item.neededSkill}</td>
                                     <td>
                                       <div>
+                                        {/* @ts-ignore */}
                                         <NumberFormat
                                             className={classNames('input-field', Styles.fteField)}
                                             id={'numberOfRequestedFTE-' + index}
