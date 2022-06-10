@@ -50,6 +50,7 @@ import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
 
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1Service;
 import io.minio.MinioClient;
 
 @Service
@@ -65,7 +66,7 @@ public class RegistryServiceImpl implements RegistryService {
 
 	@Value("${model.host}")
 	private String host;
-	
+
 	@Value("${model.backendServiceSuffix}")
 	private String backendServiceSuffix;
 
@@ -120,6 +121,16 @@ public class RegistryServiceImpl implements RegistryService {
 			backendServiceName += "-" + backendServiceSuffix;
 
 			uri = "https://" + host + path;
+			V1Service service = kubeClient.getModelService(metaDataNamespace, backendServiceName);
+			if (service == null) {
+				modelResponseVO.setData(modelExternalUriVO);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Error while getting service details for given model");
+				messages.add(message);
+				modelResponseVO.setErrors(messages);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.BAD_REQUEST);
+			}
 			kubeClient.getUri(metaDataNamespace, metaDataName, backendServiceName, path);
 			modelExternalUriVO.setExternalUri(uri);
 			modelResponseVO.setData(modelExternalUriVO);
