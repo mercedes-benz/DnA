@@ -84,6 +84,13 @@
     }
     .chonky-toolbarWrapper {
       padding-bottom: 7px;
+      button[title="Publish to Trino"]:disabled > span:after {
+        content: "( Select parquet file )";
+        position: absolute;
+        top: 15px;
+        left: 31px;
+        font-size: var(--font-size-tiny);
+      }
     }
     .chonky-activeButton {
       color: #00adef !important;
@@ -208,11 +215,13 @@
       }
     }
   }
-  .MuiPaper-root.MuiPopover-paper {
-    .chonky-dropdownList {
-      // show hidden files options
-      li.MuiListItem-gutters:nth-child(4) {
-        display: none;
+  .MuiPopover-root:nth-last-child(1) {
+    .MuiPaper-root.MuiPopover-paper {
+      .chonky-dropdownList {
+        // show hidden files options
+        li.MuiListItem-gutters:nth-child(4) {
+          display: none;
+        }
       }
     }
   }
