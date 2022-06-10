@@ -25,12 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.dto;
 
-import java.util.Date;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,18 +36,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Storage {
+public class DataikuReadabilityDTO {
 
-	private String bucketName;
-	private String description;
-	private boolean piiData;
-	private boolean termsOfUse;
-	private String classificationType;
-	private Date createdDate;
-	private UserInfo createdBy;
-	private Date lastModifiedDate;
-	private UserInfo updatedBy;
-	private List<UserInfo> collaborators;
-	private List<String> dataikuProjects;
+	private String readableBy;
+	private List<String> allowedGroups;
+	
 }

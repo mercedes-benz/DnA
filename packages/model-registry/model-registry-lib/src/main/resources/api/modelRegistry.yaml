@@ -71,19 +71,13 @@ paths:
 #
 # path example ../models
 
- /models/{id}:
+ /models:
   get:
    tags:
     - "models"
-   summary: "Get all available models."
+   summary: "Get all available models for requested user"
    description:  "Get all models for requested user."
    operationId: "getAll"
-   parameters:
-      - name: "id"
-        in: "path"
-        description: "Id of the user"
-        required: true
-        type: "string"
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -126,6 +120,10 @@ paths:
           description: "Returns message of succes"
           schema:
             $ref: "#/definitions/ModelResponseVO"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/ModelResponseVO"            
         400:
           description: "Bad Request"
           schema:

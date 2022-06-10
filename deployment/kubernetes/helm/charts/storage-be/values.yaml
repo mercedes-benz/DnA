@@ -69,7 +69,21 @@ envs:
         key: malwareApiKey
         name: storage-be
   - name: STORAGE_TERMS_OF_USE_URL
-    value: ""                  
+    value: ""          
+  - name: DATAIKU_PROD_URI
+    value: "https://***REMOVED***/public/api"    
+  - name: DATAIKU_PROD_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: dataikuProdApiKey
+        name: storage-be
+  - name: DATAIKU_TRAINING_URI
+    value: "https://***REMOVED***/public/api"
+  - name: DATAIKU_TRAINING_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: dataikuTrainingApiKey
+        name: storage-be              
 
 secret:
   - key: vaultToken
@@ -83,7 +97,11 @@ secret:
   - key: malwareApiId 
     value: ""
   - key: malwareApiKey
-    value: ""    
+    value: ""   
+  - key: dataikuProdApiKey
+    value: ""
+  - key: dataikuTrainingApiKey
+    value: ""       
 
 replicaCount: 1
 

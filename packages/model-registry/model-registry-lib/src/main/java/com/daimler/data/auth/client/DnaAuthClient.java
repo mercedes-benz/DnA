@@ -25,32 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.auth.client;
 
-import java.util.Date;
-import java.util.List;
+import org.json.JSONObject;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+public interface DnaAuthClient {
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Storage {
-
-	private String bucketName;
-	private String description;
-	private boolean piiData;
-	private boolean termsOfUse;
-	private String classificationType;
-	private Date createdDate;
-	private UserInfo createdBy;
-	private Date lastModifiedDate;
-	private UserInfo updatedBy;
-	private List<UserInfo> collaborators;
-	private List<String> dataikuProjects;
+	public JSONObject verifyLogin(String jwt);
 }
