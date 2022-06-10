@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -57,7 +58,9 @@ import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
 
@@ -123,7 +126,6 @@ public class KubernetesClient {
 				.toString();
 		MinioSecretMetadata jsonMetadata = new MinioSecretMetadata();
 		try {
-			log.info(jsonData);
 			jsonMetadata = mapper.readValue(jsonData, MinioSecretMetadata.class);
 		} catch (Exception e) {
 			log.error("Got error while fetching or parsing json data from secret meta. Exception is {} ",
@@ -162,6 +164,19 @@ public class KubernetesClient {
 					e.getMessage());
 		}
 		return secretDetails;
+	}
+
+	public V1Service getModelService(String metaDataNamespace, String backendServiceName) throws ApiException {
+		V1Service service = null;
+		V1ServiceList serviceList = api.listNamespacedService(metaDataNamespace, "true", null, null, null, null, null,
+				null, null, 10, false);
+		log.info(serviceList.toString());
+		if (serviceList != null && ObjectUtils.isEmpty(serviceList.getItems())) {
+			service = serviceList.getItems().stream()
+					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst().get();
+		}
+		log.info(service.toString());
+		return service;
 	}
 
 	public void getUri(String metaDataNamespace, String metaDataName, String backendServiceName, String path)
