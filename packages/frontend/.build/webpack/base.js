@@ -20,12 +20,11 @@ const path = require('path'),
   version = packageJson.version.toLowerCase().trim(),
   NodePolyfillPlugin = require('node-polyfill-webpack-plugin'),
   title = packageJson.config.title || packageName,
-  ESLintPlugin = require('eslint-webpack-plugin')
-  ExternalTemplateRemotesPlugin = require("./ExternalTemplateRemotesPlugin"),
-  MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083';
+  ESLintPlugin = require('eslint-webpack-plugin');
+(ExternalTemplateRemotesPlugin = require('./ExternalTemplateRemotesPlugin')),
+  (MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083');
 
 const { ModuleFederationPlugin } = webpack.container;
-
 
 const base = {
   name: 'devConfig',
@@ -161,6 +160,7 @@ const base = {
         './UnAuthorised': './src/router/UnAuthorised.tsx',
         './AddUser': './src/components/mbc/addUser/AddUser.tsx',
         './SelectBox': './src/components/formElements/SelectBox/SelectBox.ts',
+        './Tags': './src/components/formElements/tags/Tags',
       },
       remotes: {
         // object key is used to import
