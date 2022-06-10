@@ -180,7 +180,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
 
   public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
-    const searchText = input.value;
+    const searchText = input.value.toLowerCase();
     this.setState({ searchText }, () => {
       this.getUsers();
     });
