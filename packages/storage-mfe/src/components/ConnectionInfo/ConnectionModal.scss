@@ -48,18 +48,58 @@
     margin-left: 15px !important;
     margin-bottom: 15px !important;
     color: #d9dfe4 !important;
-    font-family: monospace;
     text-align: left;
-    width: 500px;
-    height: 180px;
+    width: 580px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 250px;
+
+    .dataikuConnectionBtn {
+      align-self: flex-end;
+      button:disabled {
+        background-color: #697582;
+        border-color: transparent;
+      }
+    }
+    .optionContainer {
+      display: flex;
+      flex-direction: column;
+      .optionTitle {
+        color: #d9dfe4;
+      }
+      .optionText {
+        color: #c0c8d0;
+        font-size: var(--font-size-small);
+      }
+    }
   }
   .tabContentContainer {
     border: 1px solid #383f49;
     padding: 10px 0px;
     overflow: auto;
+    min-width: 615px;
   }
 }
+
 .OkBtn {
   margin-top: 15px;
   float: right;
+}
+.portal {
+  margin-top: 5px;
+  display: inline-block;
+  color: #acb8c4;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  right: 50%;
+}
+
+:global {
+  [class*="ConnectionModal"] #tab-content-2 .open-suggestion [class*="portal"] {
+    display: none;
+  }
 }
