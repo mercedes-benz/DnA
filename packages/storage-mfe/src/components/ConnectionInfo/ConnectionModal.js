@@ -70,7 +70,7 @@ export const ConnectionModal = () => {
             item['id'] = item.projectKey; // add 'id' for each of the object item
             return item;
           });
-          setDataikuProjectList(res.data);
+          setDataikuProjectList(res.data?.data);
           setIsLoading(false);
         })
         .catch(() => {
@@ -85,11 +85,25 @@ export const ConnectionModal = () => {
     '#tab-content-2[class*="ConnectionModal"] .input-field-group',
   )[0];
 
-  const notificationMsg = {
-    success: `Selected project(s) ${
+  // Dataiku project connection notification msg
+  const NotificationMsg = (success = true) => {
+    let portal;
+    const successMsg = `Selected project(s) ${
       connect.dataikuProjects?.length ? 'connected to' : 'connection removed from'
-    } the bucket successfully!`,
-    error: 'Error while connecting to dataiku project(s)',
+    } the bucket successfully!`;
+    const errorMsg = 'Error while connecting to dataiku project(s)';
+    if (success) {
+      portal = ReactDOM.createPortal(<span className={Styles.portal}>{successMsg}</span>, dataikuTagContainer);
+      setDataikuNotificationPortal(portal);
+      Notification.show(successMsg);
+    } else {
+      portal = ReactDOM.createPortal(
+        <span className={classNames('error-message', Styles.portal)}>{errorMsg}</span>,
+        dataikuTagContainer,
+      );
+      setDataikuNotificationPortal(portal);
+      Notification.show(errorMsg, 'alert');
+    }
   };
 
   const dataikuConnectionNotification = (portal) => {
@@ -105,32 +119,31 @@ export const ConnectionModal = () => {
   };
 
   const handleMakeConnection = () => {
-    let portal;
-    let msg;
     ProgressIndicator.show();
     const data = {
-      bucketName: bucketInfo.bucketName,
-      dataikuProjects: connect.dataikuProjects,
+      data: {
+        bucketName: bucketInfo.bucketName,
+        dataikuProjects: connect.dataikuProjects,
+      },
     };
     bucketsApi
       .connectToDataikuProjects(data)
       .then(() => {
-        msg = notificationMsg['success'];
-        portal = ReactDOM.createPortal(<span className={Styles.portal}>{msg}</span>, dataikuTagContainer);
-        setDataikuNotificationPortal(portal);
-        Notification.show(msg);
+        NotificationMsg();
         ProgressIndicator.hide();
       })
       .catch(() => {
-        msg = notificationMsg['error'];
-        portal = ReactDOM.createPortal(
-          <span className={classNames('error-message', Styles.portal)}>{msg}</span>,
-          dataikuTagContainer,
-        );
-        setDataikuNotificationPortal(portal);
-        Notification.show(msg, 'alert');
+        NotificationMsg(false);
         ProgressIndicator.hide();
       });
+  };
+
+  /**
+   * @param {array} arr selected array list
+   * @param {string} key to be matched
+   */
+  const filterDataikuProjectList = (arr, key) => {
+    return dataikuProjectList.filter((item) => arr.includes(item[key]));
   };
 
   const connectToJupyter = (
@@ -148,12 +161,10 @@ y = pd.read_csv(y_file_obj)`}
       <Tags
         title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
         max={100}
-        chips={dataikuProjectList?.data
-          ?.filter((item) => connect?.dataikuProjects?.includes(item.projectKey))
-          .map((i) => i.name)}
-        tags={dataikuProjectList?.data?.filter((i) => i.name)}
-        setTags={(tag) => {
-          const data = dataikuProjectList?.data?.filter((item) => tag.includes(item.name)).map((i) => i.projectKey);
+        chips={filterDataikuProjectList(connect?.dataikuProjects, 'projectKey').map((item) => item.name)}
+        tags={dataikuProjectList?.filter((item) => item.name)}
+        setTags={(selectedTags) => {
+          const data = filterDataikuProjectList(selectedTags, 'name').map((item) => item.projectKey);
           dispatch({
             type: 'SELECTED_DATAIKU_PROJECTS',
             payload: data,
