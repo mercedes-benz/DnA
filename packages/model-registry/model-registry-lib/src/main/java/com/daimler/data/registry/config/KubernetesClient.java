@@ -170,7 +170,7 @@ public class KubernetesClient {
 		V1Service service = null;
 		V1ServiceList serviceList = api.listNamespacedService(metaDataNamespace, "true", null, null, null, null, null,
 				null, null, 10, false);
-		if (serviceList != null && ObjectUtils.isEmpty(serviceList.getItems())) {
+		if (serviceList != null && !ObjectUtils.isEmpty(serviceList.getItems())) {
 			service = serviceList.getItems().stream()
 					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst().get();
 		}
