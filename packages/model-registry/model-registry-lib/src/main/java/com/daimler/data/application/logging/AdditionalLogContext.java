@@ -41,6 +41,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.stereotype.Component;
 
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.auth.UserStore.UserInfo;
+
 public class AdditionalLogContext extends FilterRegistrationBean {
 
 	public AdditionalLogContext() {
@@ -55,6 +58,9 @@ public class AdditionalLogContext extends FilterRegistrationBean {
 		@Autowired
 		private ApplicationLoggingProperties loggingProperties;
 
+		@Autowired
+		private UserStore userStore;
+
 		@Override
 		public void init(FilterConfig filterconfig) throws ServletException {
 		}
@@ -68,10 +74,13 @@ public class AdditionalLogContext extends FilterRegistrationBean {
 				throws IOException, ServletException {
 			String userId = "";
 			try {
+				UserInfo currentUser = this.userStore.getUserInfo();
+				userId = currentUser != null ? currentUser.getId() : null;
 			} catch (Exception e) {
 				userId = null;
 			}
 			MDC.put("env", loggingProperties.getEnvironment());
+			MDC.put("user", userId);
 			chain.doFilter(request, response);
 		}
 
