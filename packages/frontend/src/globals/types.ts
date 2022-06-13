@@ -293,6 +293,7 @@ export interface IUserInfo {
   department: string;
   favoriteUsecases?: IUserFavoriteUseCase[];
   roles?: IRole[];
+  divisionAdmins?: string[];
 }
 export interface IUserRequestVO {
   data: IUserInfo;
