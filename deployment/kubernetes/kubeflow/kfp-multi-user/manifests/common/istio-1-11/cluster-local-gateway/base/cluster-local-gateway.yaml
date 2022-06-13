@@ -9,7 +9,7 @@ metadata:
     release: istio
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
-    operator.istio.io/component: "IngressGateways"
+    operator.istio.io/component: IngressGateways
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,9 +36,9 @@ spec:
     metadata:
       annotations:
         prometheus.io/path: /stats/prometheus
-        prometheus.io/port: "15020"
-        prometheus.io/scrape: "true"
-        sidecar.istio.io/inject: "false"
+        prometheus.io/port: '15020'
+        prometheus.io/scrape: 'true'
+        sidecar.istio.io/inject: 'false'
       labels:
         app: cluster-local-gateway
         chart: gateways
@@ -50,7 +50,7 @@ spec:
         release: istio
         service.istio.io/canonical-name: cluster-local-gateway
         service.istio.io/canonical-revision: latest
-        sidecar.istio.io/inject: "false"
+        sidecar.istio.io/inject: 'false'
     spec:
       affinity:
         nodeAffinity:
@@ -94,8 +94,6 @@ spec:
         - --proxyLogLevel=warning
         - --proxyComponentLogLevel=misc:error
         - --log_output_level=default:info
-        - --serviceCluster
-        - cluster-local-gateway
         env:
         - name: JWT_POLICY
           value: third-party-jwt
@@ -132,25 +130,21 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.serviceAccountName
-        - name: CANONICAL_SERVICE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.labels['service.istio.io/canonical-name']
-        - name: CANONICAL_REVISION
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.labels['service.istio.io/canonical-revision']
         - name: ISTIO_META_WORKLOAD_NAME
           value: cluster-local-gateway
         - name: ISTIO_META_OWNER
           value: kubernetes://apis/apps/v1/namespaces/istio-system/deployments/cluster-local-gateway
+        - name: ISTIO_META_MESH_ID
+          value: cluster.local
+        - name: TRUST_DOMAIN
+          value: cluster.local
         - name: ISTIO_META_UNPRIVILEGED_POD
-          value: "true"
+          value: 'true'
         - name: ISTIO_META_ROUTER_MODE
           value: sni-dnat
         - name: ISTIO_META_CLUSTER_ID
           value: Kubernetes
-        image:  docker.io/istio/proxyv2:1.9.6
+        image:  docker.io/istio/proxyv2:1.11.4
         name: istio-proxy
         ports:
         - containerPort: 15020
@@ -222,16 +216,6 @@ spec:
           - fieldRef:
               fieldPath: metadata.annotations
             path: annotations
-          - path: cpu-limit
-            resourceFieldRef:
-              containerName: istio-proxy
-              divisor: 1m
-              resource: limits.cpu
-          - path: cpu-request
-            resourceFieldRef:
-              containerName: istio-proxy
-              divisor: 1m
-              resource: requests.cpu
         name: podinfo
       - emptyDir: {}
         name: istio-envoy
@@ -257,7 +241,7 @@ spec:
           optional: true
           secretName: istio-ingressgateway-ca-certs
 ---
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: cluster-local-gateway
@@ -268,7 +252,7 @@ metadata:
     release: istio
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
-    operator.istio.io/component: "IngressGateways"
+    operator.istio.io/component: IngressGateways
 spec:
   minAvailable: 1
   selector:
@@ -285,11 +269,11 @@ metadata:
     release: istio
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
-    operator.istio.io/component: "IngressGateways"
+    operator.istio.io/component: IngressGateways
 rules:
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "watch", "list"]
+- apiGroups: ['']
+  resources: [secrets]
+  verbs: [get, watch, list]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -300,7 +284,7 @@ metadata:
     release: istio
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
-    operator.istio.io/component: "IngressGateways"
+    operator.istio.io/component: IngressGateways
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

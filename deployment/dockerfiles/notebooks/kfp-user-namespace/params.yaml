@@ -37,4 +37,7 @@ varReference:
   name: s3creds
 - path: metadata/namespace
   kind: ServiceAccount
-  name: minio-models   
+  name: minio-models
+- path: metadata/namespace
+  kind: Secret
+  name: mlpipeline-minio-artifact

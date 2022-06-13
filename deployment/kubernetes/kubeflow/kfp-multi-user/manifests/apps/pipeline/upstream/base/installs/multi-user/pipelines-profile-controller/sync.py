@@ -76,11 +76,11 @@ def get_settings_from_env(controller_port=None,
 
     settings["minio_access_key"] = \
         minio_access_key or \
-        base64.b64encode(bytes(os.environ.get("MINIO_ACCESS_KEY"), 'utf-8')).decode('utf-8')
+        base64.b64encode(bytes(os.environ.get("MINIO_ROOT_USER"), 'utf-8')).decode('utf-8')
 
     settings["minio_secret_key"] = \
         minio_secret_key or \
-        base64.b64encode(bytes(os.environ.get("MINIO_SECRET_KEY"), 'utf-8')).decode('utf-8')
+        base64.b64encode(bytes(os.environ.get("MINIO_ROOT_PASSWORD"), 'utf-8')).decode('utf-8')
 
     # KFP_DEFAULT_PIPELINE_ROOT is optional
     settings["kfp_default_pipeline_root"] = \
@@ -309,6 +309,26 @@ def server_factory(visualization_server_image,
                                     "ports": [{
                                         "containerPort": 3000
                                     }],
+                                    "env": [
+                                        {
+                                            "name": "MINIO_ROOT_USER",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "key": "accesskey",
+                                                    "name": "mlpipeline-minio-artifact"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": " MINIO_ROOT_PASSWORD",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "key": "secretkey",
+                                                    "name": "mlpipeline-minio-artifact"
+                                                }
+                                            }
+                                        }
+                                    ],
                                     "resources": {
                                         "requests": {
                                             "cpu": "10m",

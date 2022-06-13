@@ -1,4 +1,4 @@
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -15,27 +15,28 @@ spec:
       - isvc
     singular: inferenceservice
   scope: Namespaced
-  subresources:
-    status: {}
-  version: v1alpha2
   versions:
     - additionalPrinterColumns:
-        - JSONPath: .status.url
+        - jsonPath: .status.url
           name: URL
           type: string
-        - JSONPath: .status.conditions[?(@.type=='Ready')].status
+        - jsonPath: .status.conditions[?(@.type=='Ready')].status
           name: Ready
           type: string
-        - JSONPath: .status.traffic
+        - jsonPath: .status.traffic
           name: Default Traffic
           type: integer
-        - JSONPath: .status.canaryTraffic
+        - jsonPath: .status.canaryTraffic
           name: Canary Traffic
           type: integer
-        - JSONPath: .metadata.creationTimestamp
+        - jsonPath: .metadata.creationTimestamp
           name: Age
           type: date
       name: v1alpha2
+      subresources:
+        status: {}
+      served: false
+      storage: false
       schema:
         openAPIV3Schema:
           properties:
@@ -4168,31 +4169,31 @@ spec:
                   type: string
               type: object
           type: object
-      served: true
-      storage: false
     - additionalPrinterColumns:
-        - JSONPath: .status.url
+        - jsonPath: .status.url
           name: URL
           type: string
-        - JSONPath: .status.conditions[?(@.type=='Ready')].status
+        - jsonPath: .status.conditions[?(@.type=='Ready')].status
           name: Ready
           type: string
-        - JSONPath: .status.components.predictor.traffic[?(@.tag=='prev')].percent
+        - jsonPath: .status.components.predictor.traffic[?(@.tag=='prev')].percent
           name: Prev
           type: integer
-        - JSONPath: .status.components.predictor.traffic[?(@.latestRevision==true)].percent
+        - jsonPath: .status.components.predictor.traffic[?(@.latestRevision==true)].percent
           name: Latest
           type: integer
-        - JSONPath: .status.components.predictor.traffic[?(@.tag=='prev')].revisionName
+        - jsonPath: .status.components.predictor.traffic[?(@.tag=='prev')].revisionName
           name: PrevRolledoutRevision
           type: string
-        - JSONPath: .status.components.predictor.traffic[?(@.latestRevision==true)].revisionName
+        - jsonPath: .status.components.predictor.traffic[?(@.latestRevision==true)].revisionName
           name: LatestReadyRevision
           type: string
-        - JSONPath: .metadata.creationTimestamp
+        - jsonPath: .metadata.creationTimestamp
           name: Age
           type: date
       name: v1beta1
+      subresources:
+        status: {}
       schema:
         openAPIV3Schema:
           properties:

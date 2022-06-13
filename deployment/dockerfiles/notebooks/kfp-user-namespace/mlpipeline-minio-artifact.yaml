@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mlpipeline-minio-artifact
+  namespace: $(profile-name)
+type: Opaque
+stringData:
+  accesskey: ""
+  secretkey: ""

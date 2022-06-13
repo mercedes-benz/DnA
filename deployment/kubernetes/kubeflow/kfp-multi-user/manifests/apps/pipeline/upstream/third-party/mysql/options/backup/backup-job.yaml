@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-backup
+  namespace: kubeflow
+  labels:
+    app: mysql-backup
+spec:
+  template:
+    metadata:
+      labels:
+        app: mysql-backup
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: backup
+        image: registry.app.corpintra.net/dna/mysql_backup:0.4
+        command:
+        - sh
+        - -c
+        - | 
+          until curl -fsI http://localhost:15021/healthz/ready; do echo \"Waiting for Sidecar...\"; sleep 3; done;
+          echo \"Sidecar available. Running the command...\";
+          bash /srv/jobs/backup_script.sh;
+          x=$(echo $?); curl -fsI -X POST http://localhost:15020/quitquitquit && exit $x
+        imagePullPolicy: Always
+        env:
+          - name: BACKUPDIR
+            value: "/var/backup/mysql"
+          - name: HOST
+            value: "mysql.kubeflow"
+          - name: USER
+            value: "root"
+          - name: PASS
+            valueFrom:
+              secretKeyRef:
+                name: mysql
+                key: mysql-root-password
+        volumeMounts:
+          - name: mysql-backup
+            mountPath: "/var/backup/mysql"
+      serviceAccountName: ml-pipeline
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      volumes:
+        - name: mysql-backup
+          persistentVolumeClaim:
+            claimName: mysql-backup

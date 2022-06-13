@@ -9,6 +9,7 @@ bases:
   # Disabled due to migration to the Bitnami MySQL
   # - ../../third-party/mysql/base 
   - ../../third-party/mysql/options/istio
+  - ../../third-party/mysql/options/backup
   - ../../third-party/minio/base
   - ../../third-party/minio/options/istio
   - ../../third-party/metacontroller/base

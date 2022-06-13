@@ -16,7 +16,7 @@ spec:
       securityContext:
         fsGroup: 65534
         runAsGroup: 65534
-        runAsUser: 65534    
+        runAsUser: 65534  
       containers:
       - image: dna/kfserving/models-web-app:v0.7.0
         imagePullPolicy: Always

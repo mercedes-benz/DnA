@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysqldataaccess
+  namespace: kubeflow
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  containers:
+    - name: mysqlaccess
+      image: registry.app.corpintra.net/dna/mysql_backup:0.4
+      imagePullPolicy: Always
+      command: ["sleep", "2000"]
+      volumeMounts:
+        - name: mysql-backup
+          mountPath: "/var/backup/mysql"
+      env:
+        - name: BACKUPDIR
+          value: "/var/backup/mysql"
+        - name: HOST
+          value: "mysql.kubeflow"
+        - name: USER
+          value: "root"
+        - name: PASS
+          valueFrom:
+            secretKeyRef:
+              name: mysql
+              key: mysql-root-password
+  serviceAccountName: ml-pipeline
+  securityContext:
+    runAsUser: 1001
+    fsGroup: 1001
+    runAsGroup: 1001
+  volumes:
+    - name: mysql-backup
+      persistentVolumeClaim:
+        claimName: mysql-backup

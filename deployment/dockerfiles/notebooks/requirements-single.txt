@@ -13,3 +13,6 @@ apache-beam
 ipywidgets
 seaborn
 minio
+imblearn
+graphviz
+xgboost
