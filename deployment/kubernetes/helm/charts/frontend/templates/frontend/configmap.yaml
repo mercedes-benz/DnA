@@ -55,7 +55,7 @@ data:
             set $grafana_server {{ .Values.appFrontend.ngnix.grafanaServer | quote }};
 
             set $avscan_mgw_server {{ .Values.appFrontend.ngnix.avscanMgwServer | quote }};
-
+            set $airflow_backend_server {{ .Values.appFrontend.ngnix.airflowBackendServer | quote }}; 
             root /usr/share/nginx/html;
             index index.htm index.html;
             try_files $uri $uri/ /index.html;
@@ -109,6 +109,15 @@ data:
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header X-NginX-Proxy true;
               proxy_pass $backend;
+              proxy_ssl_session_reuse off;
+              proxy_set_header Host $http_host;
+              proxy_redirect off;
+            }
+            location ^~ /airflow {
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-NginX-Proxy true;
+              proxy_pass $airflow_backend_server;
               proxy_ssl_session_reuse off;
               proxy_set_header Host $http_host;
               proxy_redirect off;
