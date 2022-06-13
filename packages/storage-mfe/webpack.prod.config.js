@@ -159,7 +159,7 @@ const base = {
         './Bucket': './src/App',
       },
       remotes: {
-        'dna-container': `dna_container@[(window.STORAGE_INJECTED_ENVIRONMENT && window.STORAGE_INJECTED_ENVIRONMENT.CONTAINER_APP_URL || '${CONTAINER_APP_URL}')]/remoteEntry.js?[(new Date()).getTime()]`,
+        'dna-container': `dna_container@[(window.STORAGE_INJECTED_ENVIRONMENT && window.STORAGE_INJECTED_ENVIRONMENT.CONTAINER_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...deps,
