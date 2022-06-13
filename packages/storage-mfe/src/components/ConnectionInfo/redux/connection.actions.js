@@ -18,7 +18,7 @@ export const getConnectionInfo = (bucketName) => {
             bucketName,
             modal: true,
             accessInfo: response.data.data.userVO,
-            dataikuProjects: response.data.data.dataikuProjects,
+            dataikuProjects: response.data.data.dataikuProjects || [],
           },
         });
         dispatch({
