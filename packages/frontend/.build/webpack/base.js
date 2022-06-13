@@ -164,7 +164,7 @@ const base = {
       },
       remotes: {
         // object key is used to import
-        'storage-mfe': `storage_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.STORAGE_MFE_APP_URL || '${MFE_URL}')]/remoteEntry.js?[(new Date()).getTime()]`,
+        'storage-mfe': `storage_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.STORAGE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...packageJson.dependencies,
