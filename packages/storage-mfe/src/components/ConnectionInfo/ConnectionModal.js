@@ -32,6 +32,13 @@ export const ConnectionModal = () => {
   const [dataikuProjectList, setDataikuProjectList] = useState([]);
   const [dataikuNotificationPortal, setDataikuNotificationPortal] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDataikuProjects, setSelectedDataikuProjects] = useState([]);
+
+  const disableMakeConnectionBtn =
+    connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
+    (selectedDataikuProjects?.length
+      ? selectedDataikuProjects?.map((i) => connect?.dataikuProjects?.indexOf(i) > -1)?.filter((x) => x)?.length > 0
+      : true);
 
   const { pathname } = useLocation();
   const isCreatePage = pathname === '/createBucket';
@@ -78,6 +85,11 @@ export const ConnectionModal = () => {
           setIsLoading(false);
         });
     }
+  }, [connect.modal]);
+
+  useEffect(() => {
+    connect?.modal && setSelectedDataikuProjects(connect?.dataikuProjects);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connect.modal]);
 
   // dataiku tag container
@@ -129,6 +141,7 @@ export const ConnectionModal = () => {
     bucketsApi
       .connectToDataikuProjects(data)
       .then(() => {
+        setSelectedDataikuProjects(connect?.dataikuProjects);
         NotificationMsg();
         ProgressIndicator.hide();
       })
@@ -143,7 +156,7 @@ export const ConnectionModal = () => {
    * @param {string} key to be matched
    */
   const filterDataikuProjectList = (arr, key) => {
-    return dataikuProjectList?.filter((item) => arr.includes(item[key]));
+    return dataikuProjectList?.filter((item) => arr?.includes(item[key]));
   };
 
   const connectToJupyter = (
@@ -158,34 +171,38 @@ y = pd.read_csv(y_file_obj)`}
 
   const connectToDataiku = (
     <>
-      <Tags
-        title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
-        max={100}
-        chips={filterDataikuProjectList(connect?.dataikuProjects, 'projectKey')?.map((item) => item.name)}
-        tags={dataikuProjectList?.filter((item) => item.name)}
-        setTags={(selectedTags) => {
-          const data = filterDataikuProjectList(selectedTags, 'name')?.map((item) => item.projectKey);
-          dispatch({
-            type: 'SELECTED_DATAIKU_PROJECTS',
-            payload: data,
-          });
-          setDataikuNotificationPortal(null);
-        }}
-        suggestionRender={(item) => (
-          <div className={Styles.optionContainer}>
-            <span className={Styles.optionTitle}>{item.name}</span>
-            <span className={Styles.optionText}>{item.shortDesc}</span>
-          </div>
-        )}
-        isMandatory={false}
-        showMissingEntryError={false}
-        enableCustomValue={false}
-        suggestionPopupHeight={120}
-      />
+      {dataikuProjectList?.length ? (
+        <Tags
+          title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
+          max={100}
+          chips={filterDataikuProjectList(connect?.dataikuProjects, 'projectKey')?.map((item) => item.name)}
+          tags={dataikuProjectList?.filter((item) => item.name)}
+          setTags={(selectedTags) => {
+            const data = filterDataikuProjectList(selectedTags, 'name')?.map((item) => item.projectKey);
+            dispatch({
+              type: 'SELECTED_DATAIKU_PROJECTS',
+              payload: data,
+            });
+            setDataikuNotificationPortal(null);
+          }}
+          suggestionRender={(item) => (
+            <div className={Styles.optionContainer}>
+              <span className={Styles.optionTitle}>{item.name}</span>
+              <span className={Styles.optionText}>{item.shortDesc}</span>
+            </div>
+          )}
+          isMandatory={false}
+          showMissingEntryError={false}
+          enableCustomValue={false}
+          suggestionPopupHeight={120}
+        />
+      ) : (
+        <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
+      )}
       {dataikuTagContainer && dataikuConnectionNotification(dataikuNotificationPortal)}
       <div className={Styles.dataikuConnectionBtn}>
         {' '}
-        <button className="btn btn-tertiary" onClick={handleMakeConnection}>
+        <button className="btn btn-tertiary" onClick={handleMakeConnection} disabled={disableMakeConnectionBtn}>
           Make Connection
         </button>
       </div>

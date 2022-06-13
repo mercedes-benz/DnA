@@ -98,6 +98,12 @@
   right: 50%;
 }
 
+.emptyDataikuProjectsList {
+  text-align: center;
+  margin-top: 50px;
+  color: #c0c8d0;
+}
+
 :global {
   [class*="ConnectionModal"] #tab-content-2 .open-suggestion [class*="portal"] {
     display: none;
