@@ -96,7 +96,6 @@ export default class Administration extends React.Component<IAdministrationProps
               {isAdmin && (
                 <>
                   <div id="tab-content-1" className={'tab-content ' + Styles.contentTab}>
-                    {this.state.currentUserRole}
                     <UserRoleManagement />
                   </div>
                   <div id="tab-content-2" className={'tab-content ' + Styles.contentTab}>
