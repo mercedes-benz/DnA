@@ -295,6 +295,11 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/UserRoleVO"
+      divisionAdmins:
+        description: "List of divisions for which user has access as part of DivisionAdmin role."
+        type: array
+        items:
+          type: string    
       #  required:
       #     - firstName
 
