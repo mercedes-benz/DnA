@@ -76,6 +76,7 @@ storage:
   termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://xxxxx}
  
 minio:
+  clientApi: ${MINIO_CLIENT_API:http://localhost:9000}
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   accessKey: ${MINIO_ADMIN_ACCESS_KEY:XXXXXX} 
   secretKey: ${MINIO_ADMIN_SECRET_KEY:XXXXXX}
