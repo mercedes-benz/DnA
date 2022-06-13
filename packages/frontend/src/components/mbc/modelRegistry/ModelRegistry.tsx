@@ -101,7 +101,7 @@ const MyModelRegistry = (props: any) => {
                     <p className={Styles.textCenter}>
                       You don't have any ML Pipeline Models to get external url.
                     </p>
-                    <a className={'btn btn-tertiary ' + Styles.addNewBtn} href={`${Envs.ML_PIPELINE_URL}_/models/?ns=kubeflow-${props.user.id}`} target="_blank" rel="noreferrer noopener">
+                    <a className={'btn btn-tertiary ' + Styles.addNewBtn} href={`${Envs.ML_PIPELINE_URL}/_/models/?ns=kubeflow-${props.user.id}`} target="_blank" rel="noreferrer noopener">
                       Manage Models on ML Pipeline
                     </a>
                   </React.Fragment>
