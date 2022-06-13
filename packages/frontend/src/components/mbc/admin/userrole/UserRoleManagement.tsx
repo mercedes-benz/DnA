@@ -224,7 +224,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         );
       });
   };
-  public render() {console.log(this.state.updatedRole,'-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=');
+  public render() {
     const userData = this.state.users.map((user) => {
       return <UserInfoRowItem key={user.id} user={user} roles={this.state.roles} showEditModal={this.showEditModal} />;
     });
@@ -244,7 +244,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
                   id="roleSelect"
                   multiple={false}
                   onChange={this.onRoleChange}
-                  value={this.state.currentUserRole}
+                  value={this.state.updatedRole?.id}
                 >
                   {this.state.roles.map((obj) => (
                     <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
@@ -255,7 +255,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
               </div>
               {/* <span className={classNames('error-message', locationError.length ? '' : 'hide')}>{locationError}</span> */}
             </div>
-            {this.state.updatedRole && this.state.updatedRole?.name == 'ReportAdmin' ?
+            {this.state.updatedRole && this.state.updatedRole?.name == 'DivisionAdmin' ?
               <div id="divisionContainer" className="input-field-group include-error">
                 <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
                   Division
@@ -265,10 +265,10 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
                     id="divisionSelect"
                     multiple={true}
                     onChange={this.onDivisionChange}
-                    value={this.state.selectedDivisions.map((item)=>item.name)}
+                    value={this.state.selectedDivisions}
                   >
                     {this.state.divisionList.map((obj) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                         {obj.name}
                       </option>
                     ))}
@@ -416,9 +416,9 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
   }
   public showEditModal = (user: IUserInfo) => {
     const roleValue = user.roles.map((userRole: IRole) => {
-      return userRole.id;
+      return userRole;
     });
-    this.setState({ showEditUsersModal: true, currentUserToEdit: user, currentUserRole: roleValue[0] }, () => {
+    this.setState({ showEditUsersModal: true, currentUserToEdit: user, updatedRole: roleValue[0], selectedDivisions: user.divisionAdmins }, () => {
       SelectBox.defaultSetup(true);
     });
   };
@@ -447,10 +447,10 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
     const selectedValues: any[] = [];
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const location: any = { id: null, name: null };
-        location.id = option.value;
-        location.name = option.label;
-        selectedValues.push(location);
+        // const location: any = { id: null, name: null };
+        // location.id = option.value;
+        // location.name = option.label;
+        selectedValues.push(option.label);
       });
       this.setState({ selectedDivisions: selectedValues });
     }
@@ -461,7 +461,8 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       const roleChanged = this.state.currentUserToEdit.roles.filter((userCurrentRole: IRole) => {
         return userCurrentRole.id !== this.state.updatedRole.id;
       });
-      if (roleChanged && roleChanged.length > 0) {
+      const isDivisionChanged = JSON.stringify(this.state.currentUserToEdit.divisionAdmins) !== JSON.stringify(this.state.selectedDivisions);
+      if ((roleChanged && roleChanged.length > 0) || isDivisionChanged) {
         const userToEdit = this.state.currentUserToEdit;
         const putData: IUserRequestVO = {
           data: {
@@ -473,6 +474,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
             mobileNumber: userToEdit.mobileNumber,
             favoriteUsecases: userToEdit.favoriteUsecases,
             roles: [this.state.updatedRole], // TODO may need to change for multi role scenario
+            divisionAdmins: this.state.updatedRole.name === 'DivisionAdmin' ? this.state.selectedDivisions : []
           },
         };
         ProgressIndicator.show();
@@ -482,6 +484,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
               const users = this.state.users.map((user) => {
                 if (user.id === userToEdit.id) {
                   user.roles = [this.state.updatedRole];
+                  user.divisionAdmins = response.divisionAdmins;
                 }
                 return user;
               });
