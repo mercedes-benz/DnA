@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: backup
-        image: registry.app.corpintra.net/dna/mysql_backup:0.4
+        image: docker.io/mysql_backup:0.4
         command:
         - sh
         - -c

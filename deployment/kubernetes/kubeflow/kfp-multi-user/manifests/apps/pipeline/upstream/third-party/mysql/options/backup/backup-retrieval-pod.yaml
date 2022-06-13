@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
     - name: mysqlaccess
-      image: registry.app.corpintra.net/dna/mysql_backup:0.4
+      image: docker.io/mysql_backup:0.4
       imagePullPolicy: Always
       command: ["sleep", "2000"]
       volumeMounts:
