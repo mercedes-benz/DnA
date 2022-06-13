@@ -18,6 +18,9 @@ const Services = () => {
       history.push('/comingsoon');
     }
   };
+  const modelRegistryNav = () => {
+    history.push('/modelregistry');
+  };
   const pipelineNav = () => {
     if (enableDataPipelineService) {
       history.push('/pipeline');
@@ -90,6 +93,17 @@ const Services = () => {
                 </span>
               </div>
             </div>
+            <div className={Styles.WorkspacesNavigation} onClick={modelRegistryNav}>
+              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={Styles.WorkspacesNavigationTitle}>
+                <span> My Model Registry </span>
+                <span>
+                  {' '}
+                  <i className="icon mbc-icon arrow small right"></i>
+                </span>
+              </div>
+            </div>
+            <div className={Styles.EmptyCard}>&nbsp;</div>
           </div>
         </div>
       </div>
