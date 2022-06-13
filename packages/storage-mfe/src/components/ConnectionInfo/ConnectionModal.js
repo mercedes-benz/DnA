@@ -161,10 +161,10 @@ y = pd.read_csv(y_file_obj)`}
       <Tags
         title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
         max={100}
-        chips={filterDataikuProjectList(connect?.dataikuProjects, 'projectKey').map((item) => item.name)}
+        chips={filterDataikuProjectList(connect?.dataikuProjects, 'projectKey')?.map((item) => item.name)}
         tags={dataikuProjectList?.filter((item) => item.name)}
         setTags={(selectedTags) => {
-          const data = filterDataikuProjectList(selectedTags, 'name').map((item) => item.projectKey);
+          const data = filterDataikuProjectList(selectedTags, 'name')?.map((item) => item.projectKey);
           dispatch({
             type: 'SELECTED_DATAIKU_PROJECTS',
             payload: data,
