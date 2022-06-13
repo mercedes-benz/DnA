@@ -150,7 +150,9 @@
         <script></script><!-- here to ensure a non-blocking load still occurs in IE and Edge, even if scripts follow loadCSS in head -->       
       <% } %>
     <% } %>
-    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript">
+      document.write('<script type="text/javascript" src="config.js?'+ (new Date()).getTime()+'"><\/script>');
+    </script>
     <!-- <script type="text/javascript">
       (function() {
         var u="config.js?" + (new Date()).getTime();
