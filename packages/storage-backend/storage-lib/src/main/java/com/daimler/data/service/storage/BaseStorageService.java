@@ -109,8 +109,8 @@ public class BaseStorageService implements StorageService {
 	@Value("${storage.termsOfUse.uri}")
 	private String storageTermsOfUseUri;
 	
-	@Value("${minio.endpoint}")
-	private String minioEndpoint;
+	@Value("${minio.clientApi}")
+	private String minioClientApi;
 	
 	@Autowired
 	private CacheUtil cacheUtil;
@@ -1117,7 +1117,7 @@ public class BaseStorageService implements StorageService {
 		params.setSecretKey(secretKey);
 		params.setDefaultManagedBucket("/"+bucketName);
 		params.setDefaultManagedPath("/");
-		params.setRegionOrEndpoint(minioEndpoint);
+		params.setRegionOrEndpoint(minioClientApi);
 		params.setHdfsInterface("S3A");
 		params.setEncryptionMode("NONE");
 		params.setEncryptionMode("/"+bucketName);

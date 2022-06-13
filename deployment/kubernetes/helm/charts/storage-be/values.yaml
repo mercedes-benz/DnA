@@ -38,6 +38,8 @@ envs:
     value: "" 
   - name: MINIO_ENDPOINT
     value: http://my-release-minio.minio.svc.cluster.local:9000
+  - name: MINIO_CLIENT_API
+    value: ""
   - name: MINIO_ADMIN_ACCESS_KEY
     valueFrom:
       secretKeyRef:
