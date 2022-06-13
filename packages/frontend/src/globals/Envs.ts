@@ -47,6 +47,7 @@ export const Envs = {
   NOTEBOOK_API_BASEURL: getInjectedEnv('NOTEBOOK_API_BASEURL') || process.env.NOTEBOOK_API_BASEURL,
   STORAGE_API_BASEURL: getStorageInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
   MALWARESCAN_API_BASEURL: getInjectedEnv('MALWARESCAN_API_BASEURL') || process.env.MALWARESCAN_API_BASEURL,
+  MODEL_REGISTRY_API_BASEURL: getInjectedEnv('MODEL_REGISTRY_API_BASEURL') || process.env.MODEL_REGISTRY_API_BASEURL,
   NODE_ENV: getInjectedEnv('NODE_ENV') || process.env.NODE_ENV,
   CLIENT_IDS: getInjectedEnv('CLIENT_IDS') || process.env.CLIENT_IDS,
   OIDC_PROVIDER: getInjectedEnv('OIDC_PROVIDER') || process.env.OIDC_PROVIDER || 'INTERNAL',
