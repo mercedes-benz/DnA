@@ -129,7 +129,7 @@ public class RegistryServiceImpl implements RegistryService {
 				message.setMessage("Error while getting service details for given model");
 				messages.add(message);
 				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.NOT_FOUND);
 			}
 			kubeClient.getUri(metaDataNamespace, metaDataName, backendServiceName, path);
 			modelExternalUriVO.setExternalUri(uri);
