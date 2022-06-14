@@ -56,15 +56,16 @@ export const removeURLParameter = (url: string, paramKey: string) => {
 export const DataFormater = (value: number) => {
   const sign = Math.sign(Number(value));
   // Nine Zeroes for Billions
+  
   let formatedValue = (
     Math.abs(Number(value)) >= 1.0e9
-      ? (sign * (Math.abs(Number(value)) / 1.0e9)).toFixed(2) + 'B'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e9)).toFixed(2))) + 'B'
       : // Six Zeroes for Millions
       Math.abs(Number(value)) >= 1.0e6
-      ? (sign * (Math.abs(Number(value)) / 1.0e6)).toFixed(2) + 'M'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e6)).toFixed(2))) + 'M'
       : // Three Zeroes for Thousands
       Math.abs(Number(value)) >= 1.0e3
-      ? (sign * (Math.abs(Number(value)) / 1.0e3)).toFixed(2) + 'K'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e3)).toFixed(2))) + 'K'
       : Math.abs(Number(value)).toFixed(2)
   ).replace('.00', '');
 
