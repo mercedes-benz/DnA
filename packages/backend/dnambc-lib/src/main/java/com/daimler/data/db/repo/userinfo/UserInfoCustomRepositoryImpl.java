@@ -135,7 +135,8 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 			String querySearchTerm = " (lower(id) like '%" + searchTerm.toLowerCase() + "%' or "
 					+ "lower(jsonb_extract_path_text(data,'firstName')) like '%" + searchTerm.toLowerCase() + "%' or "
 					+ "lower(jsonb_extract_path_text(data,'lastName')) like '%" + searchTerm.toLowerCase() + "%' or "
-					+ "lower(jsonb_extract_path_text(data,'email')) like '%" + searchTerm.toLowerCase() + "%')";
+					+ "lower(jsonb_extract_path_text(data,'email')) like '%" + searchTerm.toLowerCase() + "%' or "
+					+ "lower(jsonb_extract_path_text(data,'divisionAdmins')) like '%" + searchTerm.toLowerCase() + "%')";
 			predicate = predicate + " and " + querySearchTerm;
 		}
 		return predicate;
