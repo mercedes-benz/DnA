@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -451,10 +452,15 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 					if (userInfoVO != null) {
 						List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
 						if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+							boolean isDivisionAdmin = userRoleVOs.stream()
+									.anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
+									&& !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins()) && userInfoVO
+											.getDivisionAdmins().contains(existingSolutionVO.getDivision().getName());
 							boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
 							boolean isTeamMember = existingSolutionVO.getTeam().stream()
 									.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-							if (userId == null || (!userId.equalsIgnoreCase(creatorId) && !isAdmin) && !isTeamMember) {
+							if (userId == null || (!userId.equalsIgnoreCase(creatorId) && !isAdmin && !isDivisionAdmin)
+									&& !isTeamMember) {
 								List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 								MessageDescription notAuthorizedMsg = new MessageDescription();
 								notAuthorizedMsg.setMessage(
@@ -551,7 +557,6 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Solution ID to be deleted", required = true) @PathVariable("id") String id) {
-
 		try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
@@ -561,12 +566,16 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
 					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isDivisionAdmin = userRoleVOs.stream()
+								.anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
+								&& !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins())
+								&& userInfoVO.getDivisionAdmins().contains(solution.getDivision().getName());
 						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
 						String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
 						boolean isOwner = (createdBy != null && createdBy.equals(userId));
 						boolean isTeamMember = solution.getTeam().stream()
 								.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-						if (!isAdmin && !isOwner && !isTeamMember) {
+						if (!isAdmin && !isOwner && !isTeamMember && !isDivisionAdmin) {
 							MessageDescription notAuthorizedMsg = new MessageDescription();
 							notAuthorizedMsg.setMessage(
 									"Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
