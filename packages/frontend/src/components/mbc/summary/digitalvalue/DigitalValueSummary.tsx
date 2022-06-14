@@ -565,15 +565,14 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                     <div className={classNames(Styles.flexLayout, Styles.calculatedValue)}>
                       <div id="valueAt100Percent">
                         <label>Digital Value at {calculatedDigitalValue ? calculatedDigitalValue.valueAt : ''}%</label>
-                        <div>
-                          {calculatedDigitalValue && calculatedDigitalValue.value
-                            ? `${calculatedDigitalValue.year}
-                            (<IntlProvider locale=${navigator.language} defaultLocale="en">
-                              ${calculatedDigitalValue.value} ? <FormattedNumber value=${Number(calculatedDigitalValue.value)} /> : ''}
-                            </IntlProvider>
-                            &euro;)
-                            €)`
-                            : 'N/A'}
+                        <div>  
+                        {calculatedDigitalValue.year} {calculatedDigitalValue ? '(' : ''}                           
+                          {calculatedDigitalValue ?                             
+                            <IntlProvider locale={navigator.language} defaultLocale="en">
+                              <FormattedNumber value={Number(calculatedDigitalValue.value)} /> &euro;
+                            </IntlProvider>                             
+                          : 'N/A'}  
+                          {calculatedDigitalValue ? ')' : ''}                   
                         </div>
                       </div>
 
