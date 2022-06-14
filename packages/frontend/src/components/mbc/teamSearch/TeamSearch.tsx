@@ -1,5 +1,6 @@
 import cn from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { debounce } from 'lodash';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { ITeams } from '../../../globals/types';
 import { TeamMemberType } from '../../../globals/Enums';
@@ -76,13 +77,17 @@ const TeamSearch = (props: TeamSearchProps) => {
 
   useEffect(() => {
     if(searchTerm.length > 1) {
-      getTeamMembersInfoBySearchTerm();
+      debouncedFetchUser(searchTerm);
     } else {
       setResults([]);
     }
   }, [searchTerm]);
 
-  const getTeamMembersInfoBySearchTerm = () => {
+  const debouncedFetchUser = useCallback(debounce((searchTerm) => {
+    getTeamMembersInfoBySearchTerm(searchTerm);
+   }, 500), []);
+
+  const getTeamMembersInfoBySearchTerm = (searchTerm: string) => {
     ApiClient.getUsersBySearchTerm(searchTerm)
       .then((response) => {
         if (response) {
@@ -252,7 +257,7 @@ const TeamSearch = (props: TeamSearchProps) => {
               {showUserAlreadyExistsError && 
                 <p className={Styles.searchError}>User already exists.</p>
               }
-              {!hideSuggestion ? (
+              {!hideSuggestion && searchTerm.length > 0 ? (
                 <ul
                   ref={suggestionContainer}
                   className={Styles.suggestionList}
