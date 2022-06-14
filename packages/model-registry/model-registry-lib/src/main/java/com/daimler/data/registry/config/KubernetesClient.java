@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -167,14 +168,18 @@ public class KubernetesClient {
 	}
 
 	public V1Service getModelService(String metaDataNamespace, String backendServiceName) throws ApiException {
-		V1Service service = null;
+		Optional<V1Service> service = null;
 		V1ServiceList serviceList = api.listNamespacedService(metaDataNamespace, "true", null, null, null, null, null,
 				null, null, 10, false);
 		if (serviceList != null && !ObjectUtils.isEmpty(serviceList.getItems())) {
 			service = serviceList.getItems().stream()
-					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst().get();
+					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst();
 		}
-		return service;
+		if (service != null && service.isPresent()) {
+			log.info(service.get().toString());
+			return service.get();
+		}
+		return null;
 	}
 
 	public void getUri(String metaDataNamespace, String metaDataName, String backendServiceName, String path)
