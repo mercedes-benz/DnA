@@ -42,22 +42,31 @@ const ModelRegistryList = (props: IModelRegistryProps) => {
         Notification.show("Error while getting service details for given model", 'alert');
       });
   }
+
+  const copyExternalURL = () => {
+    navigator.clipboard.writeText(externalUri).then(() => {
+      Notification.show('Copied to Clipboard');
+    });
+  };
+
   const contentForInfo = (
     <div className={Styles.infoPopup}>
       <div className={Styles.modalContent}>
         <p>
-          Your external url to consume ML models is: 
-          <a className={Styles.externalURI} href={externalUri} target="_blank" rel="noreferrer noopener">
-            <i
-              className={'icon mbc-icon link'}
-              tooltip-data="Visit"
-            />
+          Your External API URL to consume ML models is: 
+          <span className={Styles.externalURI}>
             {externalUri} 
-          </a>
+            <i
+              className={'icon mbc-icon copy'}
+              onClick={() => copyExternalURL()}
+              tooltip-data="Copy"
+            />
+          </span>
         </p>
       </div>
     </div>
   );
+
   return (
     <React.Fragment>
       <tr className="data-row">
@@ -135,7 +144,7 @@ const ModelRegistryList = (props: IModelRegistryProps) => {
             type="button"
             >
             <i className="icon mbc-icon link" />
-            <span>Get External URL</span>
+            <span>Get External API URL</span>
           </button>
         </td>
       </tr>
