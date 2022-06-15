@@ -110,6 +110,11 @@ export const getDateFromTimestamp = (givenDate: string, seperator?: string) => {
   // return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
 };
 
+export const getDateFromTimestampForDifference = (givenDate: string, seperator?: string) => {
+  const d = (new Date(givenDate)).toUTCString();
+  return d;
+};
+
 export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
   return regionalDateAndTimeConversionSolution(d);
@@ -128,13 +133,9 @@ export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) 
 };
 
 export const getDateDifferenceFromToday = (dateFrom: string) => {
-  const dateSplitted = dateFrom.split('-');
-  // Making format in MM-DD-YYYY;
-  const tempDate = dateSplitted[1] + '-' + dateSplitted[0] + '-' + dateSplitted[2];
-  const date1 = new Date(tempDate);
+  const date1 = new Date(dateFrom);
   const date2 = new Date();
   const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  // const diffTime = Math.abs(date2.getDate() - date1.getDate());
   const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
   return diffDays;
 };
