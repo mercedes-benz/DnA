@@ -16,7 +16,7 @@ import { bucketsApi } from '../../apis/buckets.api';
 import { bucketActions } from './redux/bucket.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import { getDateTimeFromTimestamp } from '../Utility/utils';
+import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 
 export const BucketList = () => {
   const dispatch = useDispatch();
@@ -224,9 +224,9 @@ export const BucketList = () => {
                             </a>
                           </div>
                           <div className={Styles.bucketTitleCol}>{displayPermission(item?.permission)}</div>
-                          <div className={Styles.bucketTitleCol}>{getDateTimeFromTimestamp(item.createdDate, '.')}</div>
+                          <div className={Styles.bucketTitleCol}>{regionalDateAndTimeConversionSolution(item.createdDate)}</div>
                           <div className={Styles.bucketTitleCol}>
-                            {getDateTimeFromTimestamp(item.lastModifiedDate, '.')}
+                            {regionalDateAndTimeConversionSolution(item.lastModifiedDate)}
                           </div>
                           <div className={Styles.bucketTitleCol}>{item.classificationType}</div>
                           <div className={Styles.bucketTitleCol}></div>
