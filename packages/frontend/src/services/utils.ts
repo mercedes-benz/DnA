@@ -242,10 +242,10 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
 };
 
 export const regionalDateAndTimeConversion = (dateString: any) => { 
-  const newDateString = dateString.split(/-| /);   
-  const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
+  // const newDateString = dateString.split(/-| /);   
+  // const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
   
-  const date = new Date(dateUTC);
+  const date = new Date(dateString);
   return new Intl.DateTimeFormat(navigator.language,{
     year: 'numeric', month: 'numeric', day: 'numeric',
     hour: 'numeric', minute: 'numeric', second: 'numeric',
