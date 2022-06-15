@@ -179,7 +179,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       );
     });
 
-    const contentForDetails = (
+    const contentForDetails =  this.state.showDetailsModal && (
       <React.Fragment>
         <h4>{this.state.projectData.name}</h4>
         <p className={Styles.projectDescription}>{this.state.projectData.shortDesc}</p>
