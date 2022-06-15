@@ -146,7 +146,7 @@ public class RegistryServiceImpl implements RegistryService {
 				message.setMessage(ex.getResponseBody());
 				messages.add(message);
 				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.CONFLICT);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
 			} else if (ex.getCode() == HttpStatus.FORBIDDEN.value()) {
 				modelResponseVO.setData(modelExternalUriVO);
 				List<MessageDescription> messages = new ArrayList<>();
