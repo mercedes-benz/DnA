@@ -171,7 +171,7 @@ const BarChartTooltip = ({ active, payload, label }: any) => {
       <div className="chart-tooltip">
         <span className="label">{label}</span>
         <br />
-        <span className="value">{payload[0].value}</span>
+        <span className="value">{new Intl.NumberFormat(navigator.language).format(Number(payload[0].value))}</span>
       </div>
     );
   }
@@ -532,7 +532,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   <h5> Solutions Count </h5>
                   <span>
                     {solutionsDataKPI !== '-' ? (
-                      solutionsDataKPI
+                      new Intl.NumberFormat(navigator.language).format(Number(solutionsDataKPI))
                     ) : (
                       <div>
                         {solutionsDataKPILoader ? (
@@ -560,7 +560,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   <h5>Solutions using DnA Notebook</h5>
                   <span>
                     {dnaNotebooksDataKPI !== '-' ? (
-                      dnaNotebooksDataKPI
+                      new Intl.NumberFormat(navigator.language).format(Number(dnaNotebooksDataKPI))
                     ) : (
                       <div>
                         {dnaNotebooksDataKPILoader ? (
