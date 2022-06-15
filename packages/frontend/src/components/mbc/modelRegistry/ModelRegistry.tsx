@@ -47,11 +47,7 @@ const MyModelRegistry = (props: any) => {
     <div className={Styles.infoPopup}>
       <div className={Styles.modalContent}>
         <p>
-          Model Registry displays your ML Pipeline Models and provides external url to consume ML models through Secured API on your applications.
-        </p>
-        <br />
-        <p>
-          Model Registry displays your ML Pipeline Models and provides external url to consume ML models through Secured API on your applications.
+          Model Registry displays your ML Pipeline Models and provides External API URL to consume ML models through Secured API on your applications.
         </p>
       </div>
     </div>
@@ -82,7 +78,7 @@ const MyModelRegistry = (props: any) => {
               {modelsList === null || modelsList === undefined || modelsList.length === 0 ? (
                 <React.Fragment>
                   <p>
-                    Model Registry displays your ML Pipeline Models and provides external url to consume ML models through Secured API on your applications.
+                    Model Registry displays your ML Pipeline Models and provides External API URL to consume ML models through Secured API on your applications.
                   </p>
                   <i
                     tooltip-data="Info"
@@ -99,7 +95,7 @@ const MyModelRegistry = (props: any) => {
                 <div className={Styles.modelsListEmpty}>
                   <React.Fragment>
                     <p className={Styles.textCenter}>
-                      You don't have any ML Pipeline Models to get external url.
+                      You don't have any ML Pipeline Models to get External API URL.
                     </p>
                     <a className={'btn btn-tertiary ' + Styles.addNewBtn} href={`${Envs.ML_PIPELINE_URL}/_/models/?ns=kubeflow-${props.user.id}`} target="_blank" rel="noreferrer noopener">
                       Manage Models on ML Pipeline
