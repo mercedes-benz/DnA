@@ -139,7 +139,7 @@ public class NotificationsController implements NotificationsApi {
 			List<NotificationVO> result = new ArrayList<NotificationVO>();
 			result.addAll(unreadlist);
 			result.addAll(readlist);
-			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:SSS+00:00");
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			SimpleDateFormat existingDateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 			List<NotificationVO> isoDateFormattedResult = result.stream().map(n -> {
 				String notificationTime = n.getDateTime();
