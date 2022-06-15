@@ -190,7 +190,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
                 Created On
               </label>
               <br />
-              {this.state.projectData.creationTag
+              {this.state.projectData?.creationTag?.lastModifiedOn
                 ? getDateFromTimestamp(this.state.projectData.creationTag.lastModifiedOn)
                 : '-NA-'}
             </div>
