@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import React from 'react';
 import { Envs } from '../../../../globals/Envs';
-import { getDateFromTimestamp, getDateDifferenceFromToday } from '../../../../services/utils';
+import { getDateFromTimestampForDifference, getDateDifferenceFromToday } from '../../../../services/utils';
 import { IDataiku } from '../../../../globals/types';
 import { history } from '../../../../router/History';
 import Styles from './ProjectListRowItem.scss';
@@ -55,7 +55,7 @@ const ProjectListRowItem = (props: ISolutionListRowItemProps) => {
           ''
         )}
         <td className="wrap-text">
-          {getDateDifferenceFromToday(getDateFromTimestamp(props.project.versionTag.lastModifiedOn))} days ago
+          {getDateDifferenceFromToday(getDateFromTimestampForDifference(props?.project?.versionTag?.lastModifiedOn))} days ago
         </td>
         <td className={Styles.iconAction}>
           {props.isProduction ? (
