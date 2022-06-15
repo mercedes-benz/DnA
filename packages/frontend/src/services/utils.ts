@@ -265,6 +265,13 @@ export const regionalDateAndTimeConversionSolution = (dateString: any) => {
   }).format(date);
 };
 
+export const regionalForMonthAndYear = (dateString: any) => { 
+   const date = new Date(dateString);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric'
+  }).format(date);
+};
+
 export const thousandSeparator = (region: string) => {
   if(region.includes('de') || region.includes('it') || region.includes('es'))
     return  "."
