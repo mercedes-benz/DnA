@@ -463,14 +463,14 @@ const Notifications = (props: any) => {
                 <div className={Styles.notificationTitle}>
                   <p
                     dangerouslySetInnerHTML={{
-                      __html: notificationDetails ? markdownParser(JSON.parse(notificationDetails).message) : '',
+                      __html: notificationDetails ? JSON.parse(notificationDetails).message ? markdownParser(JSON.parse(notificationDetails).message) : '' : '',
                     }}
                   />
                 </div>
                 <div className={Styles.notificationContent}>
                   {/* <p>Hey John Doe,</p> */}
 
-                  <p>{notificationDetails ? markdownParser(JSON.parse(notificationDetails)?.messageDetails) : ''}</p>
+                  <p>{notificationDetails? JSON.parse(notificationDetails)?.messageDetails ? markdownParser(JSON.parse(notificationDetails)?.messageDetails) : '' : ''}</p>
 
                   {notificationDetails ? (
                     JSON.parse(notificationDetails).eventType === 'Solution Updated' ? (
