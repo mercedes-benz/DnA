@@ -39,7 +39,7 @@ const ModelRegistryList = (props: IModelRegistryProps) => {
       })
       .catch((err: any) => {
         ProgressIndicator.hide();
-        Notification.show("Can't get the External URL. Please try again.", 'alert');
+        Notification.show("Error while getting service details for given model", 'alert');
       });
   }
   const contentForInfo = (
