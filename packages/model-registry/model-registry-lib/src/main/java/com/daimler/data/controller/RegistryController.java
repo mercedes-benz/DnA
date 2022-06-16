@@ -30,7 +30,6 @@ package com.daimler.data.controller;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,8 +38,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.model.ModelsApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.model.ModelCollection;
 import com.daimler.data.dto.model.ModelRequestVO;
@@ -52,20 +49,15 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Models API", tags = { "models" })
 @RequestMapping("/api")
 @Validated
-@Slf4j
 public class RegistryController implements ModelsApi {
 
 	@Autowired
 	private RegistryService modelRegistryservice;
-
-	@Autowired
-	private UserStore userStore;
 
 	@Override
 	@ApiOperation(value = "Get all available models for requested user", nickname = "getAll", notes = "Get all models for requested user.", response = ModelCollection.class, tags = {
@@ -81,16 +73,7 @@ public class RegistryController implements ModelsApi {
 	@RequestMapping(value = "/models", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<ModelCollection> getAll() {
-		UserInfo currentUser = this.userStore.getUserInfo();
-		String userId = currentUser != null ? currentUser.getId() : "";
-		final ModelCollection modelCollection = modelRegistryservice.getAllModels(userId);
-		if (modelCollection != null && modelCollection.getData() != null && !modelCollection.getData().isEmpty()) {
-			log.info("returning successfully with models");
-			return new ResponseEntity<>(modelCollection, HttpStatus.OK);
-		} else {
-			log.info("returning empty no models found");
-			return new ResponseEntity<>(modelCollection, HttpStatus.NO_CONTENT);
-		}
+		return modelRegistryservice.getAllModels();
 	}
 
 	@Override
