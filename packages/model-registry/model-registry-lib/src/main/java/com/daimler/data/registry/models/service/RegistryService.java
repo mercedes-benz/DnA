@@ -35,7 +35,7 @@ import com.daimler.data.dto.model.ModelResponseVO;
 
 public interface RegistryService {
 
-	ModelCollection getAllModels(String userId);
+	ResponseEntity<ModelCollection> getAllModels();
 
 	ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO);
 
