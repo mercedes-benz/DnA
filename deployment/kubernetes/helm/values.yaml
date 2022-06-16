@@ -87,7 +87,6 @@ frontend:
       avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
       avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
       airflowServer: http://airflow.airflow.svc.cluster.local:8080
-      airflowBackendServer: http://airflow-backend-service.airflow.svc.cluster.local:7171
       naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
       dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
       storage: http://storage-be.storage.svc.cluster.local:80      
