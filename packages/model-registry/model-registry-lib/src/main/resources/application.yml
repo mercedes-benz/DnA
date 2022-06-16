@@ -21,14 +21,13 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:XXXXXX}
-
-kubeflow:
-  namespace: ${KUBEFLOW_NAMESPACE:kubeflow}
-  secret.name: ${KUBEFLOW_SECRET_NAME:XXXXX}
-      
+    
 minio:
   models.bucketname: ${MINIO_MODELS_BUCKETNAME:XXXXX}
   models.pattern.prefix: ${MINIO_MODELS_PATTERN_PREFIX:XXXXX}
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  accessKey: ${MINIO_ACCESS_KEY:XXXXXX} 
+  secretKey: ${MINIO_SECRET_KEY:XXXXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
