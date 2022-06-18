@@ -5,92 +5,93 @@
 #Suchart properties for frontend
 frontend:
   enabled: true
-namespace: dna
-imagePullSecret:
-  name: vddockerhub
-  key: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoiZG9ja2VycmVnaXN0cnlAMDEiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNlpHOWphMlZ5Y21WbmFYTjBjbmxBTURFPSJ9fX0=
-ingress:
-  enabled: false
-  namespace: ingress
-  host: ""
-  lbIP: ""
-  
-  annotations:
-    traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: ""
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: ""
-configJs: |
-    window["INJECTED_ENVIRONMENT"]={
-      OIDC_DISABLED: false,
-      OIDC_PROVIDER: "OKTA",
-      API_BASEURL: "api",
-      CLIENT_IDS: "0oa54lsiggM54gE4b5d7",
-      REDIRECT_URLS: "http://localhost:8080",
-      OAUTH2_AUTH_URL: "https://dev-36980595.okta.com/oauth2/v1/authorize",
-      OAUTH2_LOGOUT_URL: "https://dev-36980595.okta.com/oauth2/v1/logout",
-      OAUTH2_REVOKE_URL: "https://dev-36980595.okta.com/oauth2/v1/revoke",
-      OAUTH2_TOKEN_URL: "https://dev-36980595.okta.com/oauth2/v1/token",
-      DNA_COMPANY_NAME: "DNA_AVD",
-      DNA_APPNAME_HEADER: "DnA-MBC App",
-      DNA_APPNAME_HOME: "Data and Analytics @MBC",
-      DNA_CONTACTUS_HTML: "<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please post your question(s) in our communication channels mentioned below.</p><p>Mattermost:&nbsp;<a href=\"https://matter.i.mercedes-benz.com/mercedes-benz/channels/dna-platform\" target=\"_blank\" rel=\"noreferrer\">https://matter.i.mercedes-benz.com/mercedes-benz/channels/dna-platform</a></p><p>Email:&nbsp;<a href=\"mailto:dna@daimler.com\">dna@daimler.com</a></p></div>",
-      DNA_BRAND_LOGO_URL: "/images/branding/logo-brand.png",
-      DNA_APP_LOGO_URL: "/images/branding/logo-app.png",
-      ENABLE_INTERNAL_USER_INFO: true,
-      ENABLE_DATA_COMPLIANCE: true,
-      ENABLE_JUPYTER_WORKSPACE: true,
-      JUPYTER_NOTEBOOK_URL: "http://localhost:9001",
-      JUPYTER_NOTEBOOK_OIDC_POPUP_URL: "http://localhost:9001/hub/oauth_login?next=",
-      JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME: 5000,
-      ENABLE_DATAIKU_WORKSPACE: true,
-      DATAIKU_LIVE_APP_URL: "",
-      DATAIKU_TRAINING_APP_URL: "",
-      DATAIKU_FERRET_URL: "",
-      ENABLE_MALWARE_SCAN_SERVICE: true,
-      MALWARE_SCAN_SWAGGER_UI_URL: "http://localhost:9002/swagger-ui.html",
-      ENABLE_MALWARE_SCAN_ONEAPI_INFO: true,
-      ENABLE_DATA_PIPELINE_SERVICE: true,
-      ENABLE_STORAGE_SERVICE: true,
-      STORAGE_MFE_APP_URL: "http://localhost:7175",
-      ENABLE_REPORTS: true,
-      ENABLE_ML_PIPELINE_SERVICE: true,
-      ENABLE_NOTIFICATION: true,
-      DATA_PIPELINES_APP_BASEURL: "http://localhost:9003",
-      DATA_PIPELINES_API_BASEURL: "http://localhost:9003/airflow/api",
-      NOTIFICATIONS_API_BASEURL: "http://localhost:9004/api",
-      DASHBOARD_API_BASEURL: "http://localhost:9005/api",
-      MALWARESCAN_API_BASEURL: "http://localhost:9002/api",
-      ML_PIPELINE_URL: "",
-      MODEL_REGISTRY_API_BASEURL: "",
-      
-    };
-
-    window["STORAGE_INJECTED_ENVIRONMENT"]={
-      CONTAINER_APP_URL: "http://localhost:8080",
-      STORAGE_API_BASEURL: "http://localhost:7175/api",
-      ENABLE_DATA_CLASSIFICATION_SECRET: false,
-      API_BASEURL: "http://localhost:8080/api"
-    };
- 
-probes:
-  initialDelaySeconds: 30
-  timeoutSeconds: 10
-  periodSeconds: 10
-  failureThreshold: 3
-
-  readinessProbe:
-    path: /
-    port: 3000
+  namespace: dna
+  imagePullSecret:
+    name: vddockerhub
+    key: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoiZG9ja2VycmVnaXN0cnlAMDEiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNlpHOWphMlZ5Y21WbmFYTjBjbmxBTURFPSJ9fX0=
+  ingress:
+    enabled: false
+    namespace: ingress
+    host: ""
+    lbIP: ""
     
-appFrontend:
-  replicaCount: 1
-  image: vardhandevalla/okta-devapp-frontend:latest 
-  ngnix:
-    backend: http://dna-service.dna.svc.cluster.local:80
-    grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
-    avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: ""
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
+  configJs: |
+      window["INJECTED_ENVIRONMENT"]={
+        OIDC_DISABLED: false,
+        OIDC_PROVIDER: "OKTA",
+        API_BASEURL: "api",
+        CLIENT_IDS: "0oa54lsiggM54gE4b5d7",
+        REDIRECT_URLS: "http://localhost:8080",
+        OAUTH2_AUTH_URL: "https://dev-36980595.okta.com/oauth2/v1/authorize",
+        OAUTH2_LOGOUT_URL: "https://dev-36980595.okta.com/oauth2/v1/logout",
+        OAUTH2_REVOKE_URL: "https://dev-36980595.okta.com/oauth2/v1/revoke",
+        OAUTH2_TOKEN_URL: "https://dev-36980595.okta.com/oauth2/v1/token",
+        DNA_COMPANY_NAME: "DNA_AVD",
+        DNA_APPNAME_HEADER: "DnA-MBC App",
+        DNA_APPNAME_HOME: "Data and Analytics @MBC",
+        DNA_CONTACTUS_HTML: "<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please post your question(s) in our communication channels mentioned below.</p><p>Mattermost:&nbsp;<a href=\"https://matter.i.mercedes-benz.com/mercedes-benz/channels/dna-platform\" target=\"_blank\" rel=\"noreferrer\">https://matter.i.mercedes-benz.com/mercedes-benz/channels/dna-platform</a></p><p>Email:&nbsp;<a href=\"mailto:dna@daimler.com\">dna@daimler.com</a></p></div>",
+        DNA_BRAND_LOGO_URL: "/images/branding/logo-brand.png",
+        DNA_APP_LOGO_URL: "/images/branding/logo-app.png",
+        ENABLE_INTERNAL_USER_INFO: true,
+        ENABLE_DATA_COMPLIANCE: true,
+        ENABLE_JUPYTER_WORKSPACE: true,
+        JUPYTER_NOTEBOOK_URL: "http://localhost:9001",
+        JUPYTER_NOTEBOOK_OIDC_POPUP_URL: "http://localhost:9001/hub/oauth_login?next=",
+        JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME: 5000,
+        ENABLE_DATAIKU_WORKSPACE: true,
+        DATAIKU_LIVE_APP_URL: "",
+        DATAIKU_TRAINING_APP_URL: "",
+        DATAIKU_FERRET_URL: "",
+        ENABLE_MALWARE_SCAN_SERVICE: true,
+        MALWARE_SCAN_SWAGGER_UI_URL: "http://localhost:9002/swagger-ui.html",
+        ENABLE_MALWARE_SCAN_ONEAPI_INFO: true,
+        ENABLE_DATA_PIPELINE_SERVICE: true,
+        ENABLE_STORAGE_SERVICE: true,
+        STORAGE_MFE_APP_URL: "http://localhost:7175",
+        ENABLE_REPORTS: true,
+        ENABLE_ML_PIPELINE_SERVICE: true,
+        ENABLE_NOTIFICATION: true,
+        DATA_PIPELINES_APP_BASEURL: "http://localhost:9003",
+        DATA_PIPELINES_API_BASEURL: "http://localhost:9003/airflow/api",
+        NOTIFICATIONS_API_BASEURL: "http://localhost:9004/api",
+        DASHBOARD_API_BASEURL: "http://localhost:9005/api",
+        MALWARESCAN_API_BASEURL: "http://localhost:9002/api",
+        ML_PIPELINE_URL: "",
+        MODEL_REGISTRY_API_BASEURL: "",
+        INTERNAL_USER_TEAMS_INFO: '(Recommended to use Short ID. To find Short ID use <a href="" target="_blank" rel="noreferrer noopener">Teams</a>)'
+      };
+
+      window["STORAGE_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL: "http://localhost:8080",
+        STORAGE_API_BASEURL: "http://localhost:7175/api",
+        TOU_HTML: "<div>I agree to <a href=\"https://social.net/docs/DOC-467646\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>",
+        ENABLE_DATA_CLASSIFICATION_SECRET: false,
+        API_BASEURL: "http://localhost:8080/api"
+      };
+  
+  probes:
+    initialDelaySeconds: 30
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+
+    readinessProbe:
+      path: /
+      port: 3000
+      
+  appFrontend:
+    replicaCount: 1
+    image: vardhandevalla/okta-devapp-frontend:latest 
+    ngnix:
+      backend: http://dna-service.dna.svc.cluster.local:80
+      grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
+      avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
 
 #Suchart properties for backend
 backend:
