@@ -23,7 +23,7 @@ frontend:
   appFrontend:
     replicaCount: 1
     #Specify the frontend image, after building the image from docker file
-    image: vardhandevalla/okta-frontend:okta2
+    image: vardhandevalla/okta-devapp-frontend:latest
     config:
     #If you want to enable OIDC authentication then set oidcDisabled to "false"
       oidcDisabled: false
@@ -47,7 +47,7 @@ frontend:
 
 
     #Specify the swagger URL for malwarescan
-      swaggerUiUrl: http://localhost/avscan/swagger-ui.html#/
+      swaggerUiUrl: http://localhost:9002/avscan/swagger-ui.html#/
       dataikuFerretUrl: ""
     #Specify the ML pipeline URL
       mlPipelineUrl: ""
@@ -109,7 +109,7 @@ backend:
     backend:
       replicaCount: 1
       
-      image: vardhandevalla/okta-backend:okta
+      image: vardhandevalla/okta-devapp-backend:latest
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
@@ -221,7 +221,7 @@ clamav:
   app:
     backend:
       name: clamav-rest
-      image: vardhandevalla/okta-malware:okta
+      image: vardhandevalla/okta-devmalware-backend:latest
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -291,7 +291,7 @@ naas:
   namespace: naas
   app:
     backend:
-      image: vardhandevalla/okta-naas:okta
+      image: vardhandevalla/okta-devnaas-backend:latest
       secrets:
         name: naas-app-secrets
         authApiToken: ""
@@ -335,7 +335,7 @@ naas:
         port: api
   
   image:
-  pullPolicy: Always
+    pullPolicy: Always
       
   ingress:
     enabled: false
@@ -351,7 +351,7 @@ naas:
   
 #Subchart properties for notebooks
 notebooks:
-  enabled: true 
+  enabled: false 
   namespace: notebooks
   app:
     jupyter:
@@ -417,7 +417,7 @@ notebooks:
 dashboard:
   enabled: true
   namespace: dashboard
-  image: vardhandevalla/okta-dashboard:okta
+  image: vardhandevalla/okta-devdashboard-backend:latest
   imagePullSecret: 
     name: vddockerhub
   dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
@@ -1104,10 +1104,10 @@ storagemfe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/okta-storage-fe
+    repository: docker.io/vardhandevalla/okta-devstorage-frontend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: okta
+    tag: latest
 
 
   imagePullSecrets:
@@ -1219,10 +1219,10 @@ storagebe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/okta-storage-be 
+    repository: docker.io/vardhandevalla/okta-devstorage-backend 
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: okta
+    tag: latest
 
   imagePullSecrets:
     - name: vddockerhub
@@ -1242,8 +1242,8 @@ storagebe:
   ingress:
     enabled: false
     annotations:
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
