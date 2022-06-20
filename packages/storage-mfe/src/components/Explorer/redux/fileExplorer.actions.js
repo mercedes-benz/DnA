@@ -3,7 +3,8 @@ import { history } from '../../../store/storeRoot';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { bucketsObjectApi } from '../../../apis/fileExplorer.api';
 import { serializeAllObjects, serializeObjects } from '../Utils';
-import { ChonkyActions, defineFileAction } from 'chonky';
+import { ChonkyActions } from 'chonky';
+import { CustomActions } from '../CustomFileActions';
 
 export const setFiles = (bucketName, historyPush = true) => {
   return async (dispatch) => {
@@ -208,27 +209,6 @@ export const deleteFiles = (bucketName, filesPath, files, bucketObjects) => {
 
 export const setActionButtons = (bucketPermission, bucketObjects, showPublish = true) => {
   return async (dispatch) => {
-    // const UploadFolder = defineFileAction({
-    //   id: 'upload_folder',
-    //   button: {
-    //     name: 'Upload folder',
-    //     toolbar: true,
-    //     tooltip: 'Upload folder',
-    //     icon: 'upload',
-    //   },
-    // });
-
-    const PublishFolder = defineFileAction({
-      id: 'publish_folder',
-      button: {
-        name: 'Publish to Trino',
-        toolbar: true,
-        contextMenu: true,
-        tooltip: 'Publish to Trino',
-        icon: 'folder',
-      },
-    });
-
     const hasParquetFile =
       bucketObjects.filter((item) => item.objectName.toLowerCase()?.split('.')?.[1] === 'parquet')?.length > 0;
 
@@ -240,7 +220,7 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
         ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
         ChonkyActions.DownloadFiles,
         ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
-        ...(bucketPermission.write && showPublish && hasParquetFile ? [PublishFolder] : []),
+        ...(bucketPermission.write && showPublish && hasParquetFile ? [CustomActions.PublishFolder] : []),
       ],
     });
   };

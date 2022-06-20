@@ -109,8 +109,8 @@ public class BaseStorageService implements StorageService {
 	@Value("${storage.termsOfUse.uri}")
 	private String storageTermsOfUseUri;
 	
-	@Value("${minio.endpoint}")
-	private String minioEndpoint;
+	@Value("${minio.clientApi}")
+	private String minioClientApi;
 	
 	@Autowired
 	private CacheUtil cacheUtil;
@@ -1101,10 +1101,14 @@ public class BaseStorageService implements StorageService {
 				.getDataikuProjectPermission(projectKey, live);
 		
 		List<String> projectGroups = new ArrayList<>();
-		if (projectPermission.isPresent()
-				&& !ObjectUtils.isEmpty(projectPermission.get().getPermissions())) {
-			projectGroups = projectPermission.get().getPermissions().stream()
-					.map(Permission::getGroup).toList();
+		List<String> allowedProjectGroups = new ArrayList<>();
+		if (projectPermission.isPresent() && !ObjectUtils.isEmpty(projectPermission.get().getPermissions())) {
+			projectGroups = projectPermission.get().getPermissions().stream().map(Permission::getGroup).toList();
+			if (!ObjectUtils.isEmpty(projectGroups)) {
+				//Removing READ-ONLY group from allowed groups
+				allowedProjectGroups = projectGroups.stream()
+						.filter(group -> !group.contains(ConstantsUtility.DATAIKU_READ_ONLY)).toList();
+			}
 		}
 		//Setting RequestDTO
 		requestDTO.setName(StorageUtility.getDataikuConnectionName(projectKey, bucketName));
@@ -1117,10 +1121,10 @@ public class BaseStorageService implements StorageService {
 		params.setSecretKey(secretKey);
 		params.setDefaultManagedBucket("/"+bucketName);
 		params.setDefaultManagedPath("/");
-		params.setRegionOrEndpoint(minioEndpoint);
+		params.setRegionOrEndpoint(minioClientApi);
 		params.setHdfsInterface("S3A");
 		params.setEncryptionMode("NONE");
-		params.setEncryptionMode("/"+bucketName);
+		params.setChbucket("/"+bucketName);
 		params.setChroot("/");
 		params.setSwitchToRegionFromBucket(false);
 		params.setUsePathMode(false);
@@ -1134,7 +1138,8 @@ public class BaseStorageService implements StorageService {
 		requestDTO.setMaxActivities(0);
 		requestDTO.setCredentialsMode("GLOBAL");
 		requestDTO.setUsableBy("ALLOWED");
-		requestDTO.setAllowedGroups(projectGroups);
+		//Setting allowed groups by removing READ-ONLY group
+		requestDTO.setAllowedGroups(allowedProjectGroups);
 		
 		DataikuReadabilityDTO detailsReadability = new DataikuReadabilityDTO();
 		detailsReadability.setReadableBy("ALLOWED");
