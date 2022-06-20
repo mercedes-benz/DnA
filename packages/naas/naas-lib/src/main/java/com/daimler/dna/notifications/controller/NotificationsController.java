@@ -139,7 +139,18 @@ public class NotificationsController implements NotificationsApi {
 			List<NotificationVO> result = new ArrayList<NotificationVO>();
 			result.addAll(unreadlist);
 			result.addAll(readlist);
-			collectResult.setRecords(result);
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			SimpleDateFormat existingDateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+			List<NotificationVO> isoDateFormattedResult = result.stream().map(n -> {
+				String notificationTime = n.getDateTime();
+				try {
+					n.setDateTime(isoFormat.format(existingDateFormatter.parse(notificationTime)));
+				} catch (Exception e) {
+					LOG.error("Failed in parsing date for record {} of date {} for user {}", n.getId(),n.getDateTime(),userId);
+				}
+				return n;
+			}).collect(Collectors.toList());
+			collectResult.setRecords(isoDateFormattedResult);
 			return new ResponseEntity<>(collectResult, HttpStatus.OK);
 		} catch (Exception e) {
 			MessageDescription exceptionMsg = new MessageDescription(

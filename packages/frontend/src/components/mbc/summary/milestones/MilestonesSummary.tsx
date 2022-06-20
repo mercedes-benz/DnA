@@ -11,6 +11,7 @@ import { IconOperations } from '../../../../components/icons/IconOperations';
 import { IconPilot } from '../../../../components/icons/IconPilot';
 import { IconProfessionalization } from '../../../../components/icons/IconProfessionalization';
 import { IMilestonesList, IPhase, IPhasesItem } from '../../../../globals/types';
+import { regionalForMonthAndYear } from '../../../../services/utils';
 
 import Styles from './MilestonesSummary.scss';
 const classNames = cn.bind(Styles);
@@ -253,7 +254,8 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
                         <div>{this.mileStoneIcons[index]}</div>
                         <div className={classNames(Styles.phase, '')}>{milestone.phase.name}</div>
                         <div className={Styles.monthYear}>
-                          {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year}
+                          {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
+                          {milestone.month > 0 && milestone.year > 0 ? regionalForMonthAndYear(milestone.month+'/'+'01'+'/'+milestone.year):''}
                         </div>
                       </div>
 

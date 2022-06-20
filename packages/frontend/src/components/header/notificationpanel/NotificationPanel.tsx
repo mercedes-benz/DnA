@@ -3,6 +3,7 @@ import * as React from 'react';
 import { markdownParser } from '../../../utils/MarkdownParser';
 import { history } from '../../../router/History';
 import Styles from './NotificationPanel.scss';
+import { regionalDateAndTimeConversionSolution } from '../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -71,7 +72,7 @@ export class NotificationPanel extends React.Component<IHeaderNotificationPanelP
                           {/* <i className="icon mbc-icon home" /> */}
                           <div className={Styles.notificationDetails}>
                             {/* <span>16.08.2021 / 16:33 </span> */}
-                            <span>{item.dateTime} </span>
+                            <span>{regionalDateAndTimeConversionSolution(item.dateTime)} </span>
                             <label
                               dangerouslySetInnerHTML={{
                                 __html: markdownParser(item.message),

@@ -22,7 +22,7 @@ const path = require('path'),
   title = packageJson.config.title || packageName,
   ESLintPlugin = require('eslint-webpack-plugin');
 (ExternalTemplateRemotesPlugin = require('./ExternalTemplateRemotesPlugin')),
-  (MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083');
+  (MFE_URL = process.env.ENV_FILE ? '${STORAGE_MFE_APP_URL}' : 'http://localhost:8083');
 
 const { ModuleFederationPlugin } = webpack.container;
 
@@ -164,7 +164,7 @@ const base = {
       },
       remotes: {
         // object key is used to import
-        'storage-mfe': `storage_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.STORAGE_MFE_APP_URL || '${MFE_URL}')]/remoteEntry.js?[(new Date()).getTime()]`,
+        'storage-mfe': `storage_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.STORAGE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...packageJson.dependencies,
