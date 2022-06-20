@@ -65,6 +65,7 @@ import com.daimler.data.dto.datawarehouse.DataWarehouseInUseVO;
 import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.dto.divisions.DivisionReportVO;
 import com.daimler.data.dto.report.CreatedByVO;
+import com.daimler.data.dto.report.CustomerVO;
 import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
 import com.daimler.data.dto.report.ProductOwnerCollection;
@@ -759,16 +760,22 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								List<String> membersId = new ArrayList<>();
 								List<String> membersEmail = new ArrayList<>();
 								MemberVO memberVO = mergedReportVO.getMembers();
+								
 								List<TeamMemberVO> members = new ArrayList<>();
 								members.addAll(memberVO.getAdmin());
 								members.addAll(memberVO.getDevelopers());
 								members.addAll(memberVO.getProductOwners());
+								CustomerVO customerVO = mergedReportVO.getCustomer();
+								if(customerVO!=null)
+									members.addAll(customerVO.getProcessOwners());
 								for(TeamMemberVO member : members) {
 									if(member!=null) {
 										String memberId = member.getShortId()!= null ? member.getShortId() : "";
-										membersId.add(memberId);
-										String emailId = member.getEmail()!= null ? member.getEmail() : "";
-										membersEmail.add(emailId);
+										if(!membersId.contains(memberId)) {
+											membersId.add(memberId);
+											String emailId = member.getEmail()!= null ? member.getEmail() : "";
+											membersEmail.add(emailId);
+										}
 									}
 								}
 								String eventMessage = "Dashboard report " + reportName + " has been updated by " + publishingUserName;

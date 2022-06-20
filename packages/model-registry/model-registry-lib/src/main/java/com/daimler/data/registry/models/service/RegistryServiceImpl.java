@@ -39,9 +39,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.MinioKeyDetails;
-import com.daimler.data.dto.MinioSecretMetadata;
 import com.daimler.data.dto.model.ModelCollection;
 import com.daimler.data.dto.model.ModelExternalUriVO;
 import com.daimler.data.dto.model.ModelRequestVO;
@@ -64,25 +64,59 @@ public class RegistryServiceImpl implements RegistryService {
 	@Autowired
 	private MinioConfig minioConfig;
 
+	@Autowired
+	private UserStore userStore;
+
 	@Value("${model.host}")
 	private String host;
 
 	@Value("${model.backendServiceSuffix}")
 	private String backendServiceSuffix;
 
+	@Value("${minio.endpoint}")
+	private String endpoint;
+
+	@Value("${minio.accessKey}")
+	private String accessKey;
+
+	@Value("${minio.secretKey}")
+	private String secretKey;
+
 	@Override
-	public ModelCollection getAllModels(String userId) {
-		if (userId != null && !"".equalsIgnoreCase(userId)) {
-			MinioSecretMetadata minioDetails = kubeClient.getKubeflowMinioSpec();
-			String endpoint = "http://" + minioDetails.getHost() + ":" + minioDetails.getPort();
-			if (minioDetails != null) {
-				MinioKeyDetails keyDetails = minioDetails.getStringData();
-				MinioClient minioClient = minioConfig.getMinioClient(endpoint, keyDetails.getAccesskey(),
-						keyDetails.getSecretkey());
-				return minioConfig.getModels(minioClient, userId);
+	public ResponseEntity<ModelCollection> getAllModels() {
+		ModelCollection modelCollection = new ModelCollection();
+		try {
+			UserInfo currentUser = this.userStore.getUserInfo();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (StringUtils.hasText(userId)) {
+				MinioClient minioClient = minioConfig.getMinioClient(endpoint, accessKey, secretKey);
+				modelCollection = minioConfig.getModels(minioClient, userId);
+				if (modelCollection != null && modelCollection.getData() != null
+						&& !modelCollection.getData().isEmpty()) {
+					LOGGER.info("returning successfully with models");
+					return new ResponseEntity<>(modelCollection, HttpStatus.OK);
+				} else {
+					LOGGER.info("returning empty no models found");
+					return new ResponseEntity<>(modelCollection, HttpStatus.NO_CONTENT);
+				}
+			} else {
+				LOGGER.error("UserId  is null or empty");
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("UserId is null or empty");
+				messages.add(message);
+				modelCollection.setErrors(messages);
+				return new ResponseEntity<>(modelCollection, HttpStatus.BAD_REQUEST);
 			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to get buckets objects for given user, exception occured is : {}", e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage(e.getMessage());
+			messages.add(message);
+			modelCollection.setErrors(messages);
+			return new ResponseEntity<>(modelCollection, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return null;
 	}
 
 	@Override
@@ -129,7 +163,7 @@ public class RegistryServiceImpl implements RegistryService {
 				message.setMessage("Error while getting service details for given model");
 				messages.add(message);
 				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.NOT_FOUND);
 			}
 			kubeClient.getUri(metaDataNamespace, metaDataName, backendServiceName, path);
 			modelExternalUriVO.setExternalUri(uri);
@@ -146,7 +180,7 @@ public class RegistryServiceImpl implements RegistryService {
 				message.setMessage(ex.getResponseBody());
 				messages.add(message);
 				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.CONFLICT);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
 			} else if (ex.getCode() == HttpStatus.FORBIDDEN.value()) {
 				modelResponseVO.setData(modelExternalUriVO);
 				List<MessageDescription> messages = new ArrayList<>();

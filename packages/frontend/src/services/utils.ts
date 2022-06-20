@@ -56,15 +56,16 @@ export const removeURLParameter = (url: string, paramKey: string) => {
 export const DataFormater = (value: number) => {
   const sign = Math.sign(Number(value));
   // Nine Zeroes for Billions
+  
   let formatedValue = (
     Math.abs(Number(value)) >= 1.0e9
-      ? (sign * (Math.abs(Number(value)) / 1.0e9)).toFixed(2) + 'B'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e9)).toFixed(2))) + 'B'
       : // Six Zeroes for Millions
       Math.abs(Number(value)) >= 1.0e6
-      ? (sign * (Math.abs(Number(value)) / 1.0e6)).toFixed(2) + 'M'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e6)).toFixed(2))) + 'M'
       : // Three Zeroes for Thousands
       Math.abs(Number(value)) >= 1.0e3
-      ? (sign * (Math.abs(Number(value)) / 1.0e3)).toFixed(2) + 'K'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e3)).toFixed(2))) + 'K'
       : Math.abs(Number(value)).toFixed(2)
   ).replace('.00', '');
 
@@ -109,6 +110,11 @@ export const getDateFromTimestamp = (givenDate: string, seperator?: string) => {
   // return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
 };
 
+export const getDateFromTimestampForDifference = (givenDate: string, seperator?: string) => {
+  const d = (new Date(givenDate)).toUTCString();
+  return d;
+};
+
 export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
   return regionalDateAndTimeConversionSolution(d);
@@ -127,13 +133,9 @@ export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) 
 };
 
 export const getDateDifferenceFromToday = (dateFrom: string) => {
-  const dateSplitted = dateFrom.split('-');
-  // Making format in MM-DD-YYYY;
-  const tempDate = dateSplitted[1] + '-' + dateSplitted[0] + '-' + dateSplitted[2];
-  const date1 = new Date(tempDate);
+  const date1 = new Date(dateFrom);
   const date2 = new Date();
   const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  // const diffTime = Math.abs(date2.getDate() - date1.getDate());
   const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
   return diffDays;
 };
@@ -240,10 +242,10 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
 };
 
 export const regionalDateAndTimeConversion = (dateString: any) => { 
-  const newDateString = dateString.split(/-| /);   
-  const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
+  // const newDateString = dateString.split(/-| /);   
+  // const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
   
-  const date = new Date(dateUTC);
+  const date = new Date(dateString);
   return new Intl.DateTimeFormat(navigator.language,{
     year: 'numeric', month: 'numeric', day: 'numeric',
     hour: 'numeric', minute: 'numeric', second: 'numeric',
@@ -260,6 +262,13 @@ export const regionalDateAndTimeConversionSolution = (dateString: any) => {
     year: 'numeric', month: 'numeric', day: 'numeric',
     hour: 'numeric', minute: 'numeric', second: 'numeric',
     hour12: false,
+  }).format(date);
+};
+
+export const regionalForMonthAndYear = (dateString: any) => { 
+   const date = new Date(dateString);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric'
   }).format(date);
 };
 

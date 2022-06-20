@@ -31,21 +31,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import com.daimler.data.dto.MinioSecretMetadata;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
-import io.kubernetes.client.openapi.models.V1Container;
-import io.kubernetes.client.openapi.models.V1ContainerPort;
 import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
 import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -54,10 +50,6 @@ import io.kubernetes.client.openapi.models.V1IngressRule;
 import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
 import io.kubernetes.client.openapi.models.V1IngressSpec;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.openapi.models.V1PodSpec;
-import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import io.kubernetes.client.openapi.models.V1ServiceList;
@@ -67,12 +59,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class KubernetesClient {
-
-	@Value("${kubeflow.namespace}")
-	private String kubeflowNamespace;
-
-	@Value("${kubeflow.secret.name}")
-	private String kubeflowSecret;
 
 	@Value("${model.host}")
 	private String host;
@@ -88,7 +74,6 @@ public class KubernetesClient {
 	public KubernetesClient() {
 		try {
 			this.client = Config.defaultClient();
-
 			Configuration.setDefaultApiClient(client);
 			this.api = new CoreV1Api();
 			this.networkingV1beta1Api = new NetworkingV1Api();
@@ -99,82 +84,18 @@ public class KubernetesClient {
 		}
 	}
 
-	public V1Secret getSecret(String secretName, String namespace) {
-		try {
-			return api.readNamespacedSecret(secretName, namespace, "true");
-		} catch (ApiException ex) {
-			log.error("Exception occurred while getting secret list. Exception is {} ", ex.getResponseBody());
-			return null;
-		} catch (Exception e) {
-			log.error("Error occured while getting secret list. Exception is :  {}", e.getMessage());
-			return null;
-		}
-	}
-
-	public V1ObjectMeta getSecretMetaData(V1Secret secret) {
-		try {
-			return secret.getMetadata();
-		} catch (Exception e) {
-			log.error("Error occured while getting secret metadata V1ObjectMeta. Exception is :  {}", e.getMessage());
-			return null;
-		}
-	}
-
-	public MinioSecretMetadata getJsonDataFromSecretMeta(V1ObjectMeta meta) {
-		ObjectMapper mapper = new ObjectMapper();
-		Map<String, String> annotations = meta.getAnnotations();
-		String jsonData = annotations.getOrDefault("kubectl.kubernetes.io/last-applied-configuration", "no value found")
-				.toString();
-		MinioSecretMetadata jsonMetadata = new MinioSecretMetadata();
-		try {
-			jsonMetadata = mapper.readValue(jsonData, MinioSecretMetadata.class);
-		} catch (Exception e) {
-			log.error("Got error while fetching or parsing json data from secret meta. Exception is {} ",
-					e.getMessage());
-		}
-		return jsonMetadata;
-	}
-
-	public MinioSecretMetadata getKubeflowMinioSpec() {
-		V1Secret minioSecrets = this.getSecret(kubeflowSecret, kubeflowNamespace);
-		MinioSecretMetadata secretDetails = new MinioSecretMetadata();
-		try {
-			if (minioSecrets != null) {
-				V1ObjectMeta minioKubeflowSecretMetadata = this.getSecretMetaData(minioSecrets);
-				if (minioKubeflowSecretMetadata != null) {
-					secretDetails = this.getJsonDataFromSecretMeta(minioKubeflowSecretMetadata);
-					log.info("Successfully fetched secretDetails");
-				}
-			}
-			V1PodList items = api.listNamespacedPod(kubeflowNamespace, null, null, null, null, null, null, null, null,
-					10, false);
-			V1Pod minioPod = items.getItems().stream().filter(pod -> pod.getMetadata().getName().contains("minio"))
-					.findFirst().get();
-			V1PodSpec minioPodSpec = minioPod.getSpec();
-			V1Container minioContainer = minioPodSpec.getContainers().stream()
-					.filter(container -> container.getName().contains("minio")).findFirst().get();
-			List<V1ContainerPort> ports = minioContainer.getPorts();
-			String port = ports.get(0).getContainerPort().toString();
-			secretDetails.setPort(port);
-			String host = minioPod.getStatus().getPodIP();
-			secretDetails.setHost(host);
-			log.info("Successfully fetched secretDetails of minio running at host {} and port {}", host, port);
-		} catch (Exception e) {
-			log.error("Exception occurred while getting kubeflow specific minio details. Exception is {} ",
-					e.getMessage());
-		}
-		return secretDetails;
-	}
-
 	public V1Service getModelService(String metaDataNamespace, String backendServiceName) throws ApiException {
-		V1Service service = null;
+		Optional<V1Service> service = null;
 		V1ServiceList serviceList = api.listNamespacedService(metaDataNamespace, "true", null, null, null, null, null,
 				null, null, 10, false);
 		if (serviceList != null && !ObjectUtils.isEmpty(serviceList.getItems())) {
 			service = serviceList.getItems().stream()
-					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst().get();
+					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst();
 		}
-		return service;
+		if (service != null && service.isPresent()) {
+			return service.get();
+		}
+		return null;
 	}
 
 	public void getUri(String metaDataNamespace, String metaDataName, String backendServiceName, String path)
