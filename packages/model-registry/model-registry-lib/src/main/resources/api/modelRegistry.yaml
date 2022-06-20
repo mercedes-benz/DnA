@@ -148,6 +148,10 @@ definitions:
       type: array
       items:
         type: string
+    errors:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"         
         
  ModelRequestVO:
     type: object
@@ -184,16 +188,6 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"                      
- 
- GenericMessage:
-  type: object
-  properties:
-    success:
-      type: string
-    errors:
-      type: array
-      items: 
-        $ref: "#/definitions/MessageDescription"
   
  MessageDescription:
   type: object
