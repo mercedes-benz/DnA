@@ -58,6 +58,7 @@ configJs: |
       ENABLE_ML_PIPELINE_SERVICE: "true",
       ENABLE_NOTIFICATION: "true",
       ML_PIPELINE_URL: "YOUR_ML_PIPELINE_URL",
+      MODEL_REGISTRY_API_BASEURL = "YOUR_MODEL_REGISTRY_API_BASEURL",
       INTERNAL_USER_TEAMS_INFO='(Recommended to use Short ID. To find Short ID use <a href="YOUR_TEAMS_INFO_URL" target="_blank" rel="noreferrer noopener">Teams</a>)'
     };
 

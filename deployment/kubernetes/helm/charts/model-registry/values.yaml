@@ -6,15 +6,11 @@ namespace: dna
 #Add new env as array value with name/value field. Keep one tab indentation.
 envs:
   - name: DNA_URI
-    value: http://dna-service.dna.svc.cluster.local:80
+    value: "http://dna-service.dna.svc.cluster.local:80"
   - name: DNA_AUTH_ENABLE
     value: false
-  - name: KUBE_NAMESPACE
-    value: kubeflow
   - name: CORS_ORIGIN_URL
     value: http://*
-  - name: KUBEFLOW_NAMESPACE
-    value: kubeflow
   - name: MINIO_MODELS_BUCKETNAME
     value: models
   - name: MINIO_MODELS_PATTERN_PREFIX
@@ -25,18 +21,32 @@ envs:
     value: ""
   - name: CERT_MANAGER
     value: ""
+  - name: MINIO_ENDPOINT
+    value: "http://my-release-minio.minio.svc.cluster.local:9000"
+  - name: MINIO_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        key: root-user
+        name: my-release-minio  
+  - name: MINIO_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        key: root-password
+        name: my-release-minio   
   - name: JWT_SECRET_KEY
     valueFrom:
       secretKeyRef:
         key: jwt.secret.key 
-        name: mlpipeline-minio-artifact
-#for testing purpose hard coding the value of secret
-  - name: KUBEFLOW_SECRET_NAME
-    value: mlpipeline-minio-artifact       
+        name: my-release-minio    
 
 secret:
   - key: jwt.secret.key 
     value: ""
+  - key: root-user
+    value: ""
+  - key: root-password
+    value: ""
+   
 
 replicaCount: 1
 
