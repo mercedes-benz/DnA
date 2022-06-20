@@ -18,6 +18,7 @@ import {
   IRollout,
   IRolloutDetail,
 } from '../../../../globals/types';
+import { regionalForMonthAndYear } from '../../../../services/utils';
 // import { ApiClient } from '../../../../services/ApiClient';
 import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
@@ -860,7 +861,8 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                       <div>{this.mileStoneIcons[index]}</div>
                       <div className={classNames(Styles.phase, showPhase ? '' : 'hide')}>{milestone.phase.name}</div>
                       <div className={Styles.monthYear}>
-                        {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year}
+                        {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
+                        {milestone.month > 0 && milestone.year > 0 ? regionalForMonthAndYear(milestone.month+'/'+'01'+'/'+milestone.year):''}
                       </div>
                     </div>
                     <div

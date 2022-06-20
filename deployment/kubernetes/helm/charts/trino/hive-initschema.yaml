@@ -12,9 +12,9 @@ spec:
         fsGroup: 1000
       containers:
       - name: hivemeta
-        image:  {{ .Values.hivemetastore.image }}
+        image: hivemetastore:0.5
         command: ["/opt/hive-metastore/bin/schematool"]
         # to be run only once - adjust the values manually
-        args: ["--verbose" ,"-initSchema" , "-dbType", "postgres" , "-userName", "{{ .Values.hivemetastore.postgres.user }}", "-passWord", "{{ .Values.hivemetastore.postgres.password }}" , "-url", "jdbc:postgresql://{{ .Values.hivemetastore.postgres.host }}/{{ .Values.hivemetastore.postgres.db }}"]
+        args: ["--verbose" ,"-initSchema" , "-dbType", "postgres" , "-userName", "DBNAME", "-passWord", "PASSWORD" , "-url", "CONNECTION_TO_DB"]
       restartPolicy: Never
   backoffLimit: 1
