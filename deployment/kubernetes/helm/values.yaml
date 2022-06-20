@@ -150,8 +150,6 @@ backend:
         s3Url: http://minio.storage.svc.cluster.local:9000
         corosOriginUrl: http://localhost:8080
         jupyterNotebookUrl: http://proxy-public.notebooks.svc.cluster.local:8000/notebooks/hub/api/users
-        vaultHost: vault.vault.svc.cluster.local
-        vaultPort: 8200
         dataikuProdUri: ""
         dataikuProdAdminGroup: "" 
         dataikutraininguri: ""
@@ -160,6 +158,10 @@ backend:
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
+        apacCorpDir: ""
+        emeaCorpDir: ""
+        dataikuUserRoleUriPath:
+        dataikuPermissionUriPath:
         dataikuTrainingAdminGroup: ""
         avscanUri: http://clamav-rest-service.clamav.svc.cluster.local:8181/avscan/api/v1
         flywayBaseline: "true"
@@ -168,10 +170,17 @@ backend:
         flywaySchema: "public"
         dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173/dashboards
 
-    vault:
-      secret:
-        name: vault-secrets
-        rootToken: hvs.toxSVlejR9h1q3tIVufXJxOs
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: 7171
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: 7171 
 
 #Suchart properties for i3postgressql database
 i3postgresql:
@@ -224,6 +233,9 @@ clamav:
   enabled: true
   appName: clamav
   namespace: clamav
+    
+  securityContext:
+    runasUser: 0 
   app:
     backend:
       name: clamav-rest
@@ -232,6 +244,9 @@ clamav:
       secrets:
         name: oneapi-secrets
         onapiBasicAuthToken: ""
+        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+        appDBUserName: malware
+        appDBPassword: malware123
       config: 
         clamav_backend_url: clamav-service
         clamav_backend_port: 3310
@@ -241,13 +256,26 @@ clamav:
         with_in: 2
         time_unit: seconds
         auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription/validate
-        restricted_url_pattern: /avscan/api/v1/scan.*
+        restricted_url_pattern: /api/v1/scan.*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
         corsOriginUrl: ""
+        dbUri: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
+        flywayEnabled: true
+        flywayBaselineOnMigrate: true
+        flywayBaselineVersion: 0
+        flywaySchema: public
+        vaultHost: vault.vault.svc.cluster.local
+        vaultPort: 8200
+        appUrl: http://dna-service.dna.svc.cluster.local:80
+        enableAuth: true
+        verifyLoginApi: /api/verifyLogin
+        unscribeMalwareScanApi: /api/malwarescan/unsubscribe/
+        naas_broker: my-release-kafka-headless.kafka.svc.cluster.local:9092
 
-  securityContext:
-    runasUser: 0 
+    vault:
+      secret:
+        rootToken: s.eCq15kV0JMi2xrcVaxDKMpZ7
 
     probes:
       initialDelaySeconds: 60
@@ -255,12 +283,13 @@ clamav:
       periodSeconds: 10
       failureThreshold: 3
       livenessProbe:
-        path: /avscan/actuator/health/liveness
+        path: /actuator/health/liveness
         port: api
       
       readinessProbe:
-        path: /avscan/actuator/health/readiness
+        path: /actuator/health/readiness
         port: api
+
   image:
     repo: vardhandevalla/clamav:latest
     replicaCount: 1
@@ -282,13 +311,13 @@ clamav:
     accessModes: ReadWriteOnce
     size: 2G
 
-  # resources:
-  #   requests:
-  #     memory: "512Mi"
-  #     cpu: "250m"
-  #   limits:
-  #     memory: "1000Mi"
-  #     cpu: "500m"
+  resources:
+    requests:
+      memory: "5000Mi"
+      cpu: "500m"
+    limits:
+      memory: "8000Mi"
+      cpu: "700m"
       
 #Subchart properties for naas
 naas:
@@ -309,7 +338,7 @@ naas:
         api_db_url: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
         naas_broker: my-release-kafka-headless.kafka.svc.cluster.local:9092
         max_poll_records: 6000
-        dna_uri: http://dna-service.dna.svc.cluster.local:80
+        dna_uri: http://localhost:8080
         dna_auth_enable: false
         mailServerHost: ""
         mailServerPort: ""
@@ -333,11 +362,11 @@ naas:
       periodSeconds: 30
       failureThreshold: 3
       livenessProbe:
-        path: /naas/actuator/health/liveness
+        path: /actuator/health/liveness
         port: api
       
       readinessProbe:
-        path: /naas/actuator/health/readiness
+        path: /actuator/health/readiness
         port: api
   
   image:
@@ -434,7 +463,7 @@ dashboard:
   
     jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
   appUrl: http://dna-service.dna.svc.cluster.local:80
-  enableAuth: false
+  enableAuth: true
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
   flywayBaseline: "true"
@@ -442,6 +471,8 @@ dashboard:
   flywayBaselineVersion: "0"
   flywaySchema: "public"
   containerPort: 7173
+  corsOrigibUrl: ""
+  naasBroker: my-release-kafka.kafka.svc.cluster.local:9092
   ingress:
     enabled: false
     host: ""
@@ -465,11 +496,11 @@ dashboard:
     periodSeconds: 20
     failureThreshold: 3
     livenessProbe:
-      path: /dashboards/actuator/health/liveness
+      path: /actuator/health/liveness
       port: api
         
     readinessProbe:
-      path: /dashboards/actuator/health/readiness
+      path: /actuator/health/readiness
       port: api
 
 #Subchart properties for airflow
@@ -514,7 +545,17 @@ airflow:
     flywayBaselineOnMigrate: "true"
     flywayBaselineVersion: "0"
     flywaySchema: "public"
-
+  ##Ingress for airflow backend service
+  ingress:
+    enabled: false
+    host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
+  ##Ingress for the airflow Application
   ingress:
     enabled: false
     host: ""
@@ -672,6 +713,18 @@ airflow:
     storageClass: ""
     accessModes: ReadWriteOnce
     size: 1Gi
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /airflow/actuator/health/liveness
+      port: api-http
+      
+    readinessProbe:
+      path: /airflow/actuator/health/readiness
+      port: api-http
   
 #Subchart properties for microgateway
 
@@ -1097,16 +1150,19 @@ vault:
 storagemfe:
   enabled: true 
   namespace: storage
+  configJs: |
+    window["STORAGE_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL: "http:localhost:8080",
+        STORAGE_API_BASEURL: "http:localhost:7175/api",
+        TOU_HTML: "<div>I agree to <a href=\"https://social/docs/DOC-467646\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+        ENABLE_DATA_CLASSIFICATION_SECRET: false,
+        API_BASEURL: "http://localhost:8080/api"
+      }; 
   conf:
     storageBackendUrl: http://storage-be.storage.svc.cluster.local:80 
 
 
-  envs:
-  #Add new env as array value with name/value field. Keep one tab indentation.
-    - name: PROJECTSMO_CONTAINER_APP_URL
-      value: http://localhost:8080
-    - name: PROJECTSMO_FRONTEND_API_BASEURL
-      value: api
+
   replicaCount: 1
 
   image:
@@ -1195,6 +1251,8 @@ storagebe:
       value: "" 
     - name: MINIO_ENDPOINT
       value: http://minio.storage.svc.cluster.local:9000
+    - name: MINIO_CLIENT_API
+      value: ""
     - name: MINIO_ADMIN_ACCESS_KEY
       valueFrom:
         secretKeyRef:
@@ -1210,7 +1268,51 @@ storagebe:
     - name: LOGGING_ENVIRONMENT
       value: DEV   
     - name: LOGGING_PATH
-      value: /tmp/log/   
+      value: /tmp/storage/log/
+    - name: ATTACHMENT_MALWARE_SCAN
+      value: "true"  
+    - name: MALWARE_SCANNER_URI
+      value: http://localhost:9002/api/v1
+    - name: MALWARE_SCANNER_APP_ID
+      valueFrom:
+        secretKeyRef:
+          key: malwareApiId
+          name: storage-be  
+    - name: MALWARE_SCANNER_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: malwareApiKey
+          name: storage-be
+    - name: API_DB_USER
+      valueFrom:
+        secretKeyRef:
+          key: dbUser
+          name: storage-be
+    - name: API_DB_PASS
+      valueFrom:
+        secretKeyRef:
+          key: dbPassword
+          name: storage-be
+    - name: API_DB_URL
+      value: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+    - name: NAAS_BROKER
+      value: my-release-kafka-headless.kafka.svc.cluster.local:9092
+    - name: STORAGE_TERMS_OF_USE_URL
+      value: ""
+    - name: DATAIKU_PROD_URI
+      value: ""    
+    - name: DATAIKU_PROD_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: dataikuProdApiKey
+          name: storage-be
+    - name: DATAIKU_TRAINING_URI
+      value: ""
+    - name: DATAIKU_TRAINING_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: dataikuTrainingApiKey
+          name: storage-be  
 
   secret:
     - key: vaultToken
@@ -1221,6 +1323,18 @@ storagebe:
       value: admin
     - key: minioSecretKey
       value: S6O!#uiOop
+    - key: malwareApiId 
+      value: cb86d44a-6886-46bd-a9a8-77a25d7da5f7
+    - key: malwareApiKey
+      value: 99759fb6-f7d0-4e97-94fb-21e61d5ec2cf
+    - key: dbUser
+      value: storage
+    - key: dbPassword
+      value: storage123
+    - key: dataikuProdApiKey
+      value: ""
+    - key: dataikuTrainingApiKey
+      value: ""  
 
   replicaCount: 1
 
