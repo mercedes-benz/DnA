@@ -123,7 +123,7 @@ backend:
         oidcClientID: 0oa55doiaeNNjCciu5d7
         oidcClientSecret: G_vUbDjcPvHbPODZ0PLjDvbl8Fb1GHATRqfIlmr5
         drdCertPassword: ""
-        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+        jwtSecretKey: ""
         s3AccessKey: admin
         s3SecretKey: S6O!#uiOop
         dataikuProdApiKey: ""
@@ -148,7 +148,7 @@ backend:
         oidcDisabled: false
         s3BucketName: dna
         s3Url: http://minio.storage.svc.cluster.local:9000
-        corosOriginUrl: http://localhost:8080
+        corosOriginUrl: http://*
         jupyterNotebookUrl: http://proxy-public.notebooks.svc.cluster.local:8000/notebooks/hub/api/users
         dataikuProdUri: ""
         dataikuProdAdminGroup: "" 
@@ -244,7 +244,7 @@ clamav:
       secrets:
         name: oneapi-secrets
         onapiBasicAuthToken: ""
-        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+        jwtSecretKey: ""
         appDBUserName: malware
         appDBPassword: malware123
       config: 
@@ -260,7 +260,7 @@ clamav:
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
         corsOriginUrl: ""
-        dbUri: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
+        dbUri: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/malware
         flywayEnabled: true
         flywayBaselineOnMigrate: true
         flywayBaselineVersion: 0
@@ -330,7 +330,7 @@ naas:
       secrets:
         name: naas-app-secrets
         authApiToken: ""
-        jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+        jwtKey: ""
         db: 
           appUserName: postgres
           appPassword: postgres
@@ -339,7 +339,7 @@ naas:
         naas_broker: my-release-kafka-headless.kafka.svc.cluster.local:9092
         max_poll_records: 6000
         dna_uri: http://localhost:8080
-        dna_auth_enable: false
+        dna_auth_enable: true
         mailServerHost: ""
         mailServerPort: ""
         notificationSenderEmail: "" 
@@ -460,8 +460,7 @@ dashboard:
     name: dashboard-secrets
     appUserName: dashboard
     appPassword: dashboard
-  
-    jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+    jwtKey: ""
   appUrl: http://dna-service.dna.svc.cluster.local:80
   enableAuth: true
   loggingPath: /tmp/dashboard/log
@@ -471,7 +470,7 @@ dashboard:
   flywayBaselineVersion: "0"
   flywaySchema: "public"
   containerPort: 7173
-  corsOrigibUrl: ""
+  corsOriginUrl: http://*
   naasBroker: my-release-kafka.kafka.svc.cluster.local:9092
   ingress:
     enabled: false
@@ -520,7 +519,7 @@ airflow:
       dbPassword: airflow
       dbUsername: airflow
       gitToken: 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 
-      jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+      jwtKey: ""
       oidcClientID: 0oa5b1yg9kGa4sIvl5d7
       oidcClientSecret: 7VtOFzfl8WSwBuFMn_9I1eyAa68QHLpDhHD1p8IR
     containerPort: 7171
@@ -1318,7 +1317,7 @@ storagebe:
     - key: vaultToken
       value: hvs.toxSVlejR9h1q3tIVufXJxOs
     - key: jwt.secret.key 
-      value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
+      value: ""
     - key: minioAccessKey 
       value: admin
     - key: minioSecretKey
