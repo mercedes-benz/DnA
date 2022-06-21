@@ -18,10 +18,7 @@ spec:
                 name: {{ .Chart.Name }}-backend-service
                 port: 
                   name: api-http
-            path: /
+            path: /api
             pathType: Prefix
-  tls:
-    - hosts:
-      - {{ .Values.ingress.host }}
-      secretName: trinoBackend-tls       
+ 
  {{- end }}
