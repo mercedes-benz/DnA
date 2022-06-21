@@ -18,6 +18,7 @@ export interface ITagsFieldProps {
   suggestionRender?: (tag: any) => React.ReactNode;
   enableCustomValue?: boolean;
   suggestionPopupHeight?: number;
+  isDisabled?: boolean;
 }
 
 export interface ITagsFiledState {
@@ -68,7 +69,10 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         <div className="chips" key={index}>
           <label className="name">{chip}</label>
           {canDelete ? (
-            <span className="close-btn" onClick={this.deleteChip.bind(null, chip)}>
+            <span
+              className={`close-btn ${this.props.isDisabled ? 'disable' : ''}`}
+              onClick={this.deleteChip.bind(null, chip)}
+            >
               <i className="icon close" />
             </span>
           ) : null}
@@ -102,7 +106,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         id={'tagcontainer_' + this.props.title.replace(' ', '_')}
         className={classNames(
           'input-field-group' + (this.props.showMissingEntryError ? ' include-error' : ''),
-          this.state.isFocused ? 'focused' : '',
+          !this.props.isDisabled && this.state.isFocused ? 'focused' : '',
           this.props.showMissingEntryError ? Styles.validationError + ' error' : '',
           this.state.filteredTags?.length ? 'open-suggestion' : '',
         )}
@@ -114,6 +118,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         <div
           className={classNames(
             'input-field ' + Styles.tagParent + ' ' + (this.state.chips.length !== 0 ? Styles.haveChips : ''),
+            this.props.isDisabled
+              ? this.state.chips?.length
+                ? Styles.tagParentDisabled
+                : Styles.tagParentDisabledFocus
+              : '',
           )}
           onClick={this.focusInput}
         >
@@ -122,14 +131,14 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             className={classNames(Styles.tagInputField)}
             type="text"
             id="tag"
-            placeholder={!isMaxReached ? 'Type here' : ''}
+            placeholder={!isMaxReached && !this.props.isDisabled ? 'Type here' : ''}
             onKeyDown={this.onKeyDown}
             onChange={this.onTextInputChange}
             autoComplete="off"
             value={this.state.userInput}
             onFocus={this.onTagFieldFocus}
             onBlur={this.onTagFieldBlur}
-            readOnly={isMaxReached}
+            readOnly={isMaxReached || this.props.isDisabled}
           />
         </div>
         {suggestions?.length ? (

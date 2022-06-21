@@ -795,6 +795,9 @@
       &:hover {
         background-color: #1c2026 !important;
       }
+      &.disable {
+        background-color: transparent !important;
+      }
     }
 
     &:hover {
