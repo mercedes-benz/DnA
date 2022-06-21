@@ -1,0 +1,59 @@
+# Default values for i3postgresql.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: trino
+image: ""
+imagePullPolicy: Always
+imagePullSecret: 
+  name: harbor-pull-secrets
+
+secret:
+  name: dashboard-secrets
+  minioSecretKey: ""
+  trinoPassword: ""
+  jwtKey: ""
+dnaAppUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+enableAuth: true
+minioBaseurl: ""
+minioAccessKey: ""
+trinoBaseUrl: ""
+trinoUser: ""
+trinoCatalog: ""
+swaggerHeaderAuth: ""
+corsOriginUrl: ""
+loggingPath: /tmp/dashboard/log
+loggingEnvironment: ""
+containerPort: 7174
+
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1000Mi"
+    cpu: "500m"
+
+probes:
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  periodSeconds: 20
+  failureThreshold: 3
+  livenessProbe:
+    path: /actuator/health/liveness
+    port: api
+      
+  readinessProbe:
+    path: /actuator/health/readiness
+    port: api
+
