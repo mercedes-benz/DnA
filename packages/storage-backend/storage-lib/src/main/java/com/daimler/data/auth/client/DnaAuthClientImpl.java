@@ -110,7 +110,6 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 		} catch (Exception e) {
 			LOGGER.error("Error occured while calling DnA verifyLogin:{}", e.getMessage());
 		}
-		
 		return userInfoVO;
 	}
 
