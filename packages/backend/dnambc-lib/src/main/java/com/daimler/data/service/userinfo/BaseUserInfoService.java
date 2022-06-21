@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -287,4 +288,25 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		return customRepo.getCount(searchTerm);		
 	}
 
+	@Override
+	@Transactional
+	public void updateDivisionForUserRole(String divisionOldValue, String divisionNewValue) {
+		List<UserInfoNsql> userInfoEntities = customRepo.getAllWithFilters(divisionOldValue, 0, 0, null, null);
+		Optional.ofNullable(userInfoEntities).ifPresent(l -> l.forEach(userInfoNsql -> {
+			if (!ObjectUtils.isEmpty(userInfoNsql.getData().getDivisionAdmins())
+					&& userInfoNsql.getData().getDivisionAdmins().contains(divisionOldValue)) {
+				int index = userInfoNsql.getData().getDivisionAdmins().indexOf(divisionOldValue);
+				if (StringUtils.hasText(divisionNewValue)) {
+					logger.info("Setting new division value:{} for division:{}", divisionNewValue, divisionOldValue);
+					userInfoNsql.getData().getDivisionAdmins().set(index, divisionNewValue);
+				} else {
+					logger.info("Removing division:{}", divisionOldValue);
+					userInfoNsql.getData().getDivisionAdmins().remove(index);
+				}
+				logger.debug("Saving pdtaed userInfo in database");
+				jpaRepo.save(userInfoNsql);
+			}
+		}));
+	}
+	
 }
