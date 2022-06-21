@@ -13,18 +13,19 @@ secret:
   minioSecretKey: ""
   trinoPassword: ""
   jwtKey: ""
-dnaAppUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
-enableAuth: true
-minioBaseurl: ""
-minioAccessKey: ""
-trinoBaseUrl: ""
-trinoUser: ""
-trinoCatalog: ""
-swaggerHeaderAuth: ""
-corsOriginUrl: ""
-loggingPath: /tmp/log
-loggingEnvironment: ""
-containerPort: 7174
+envs:
+  dnaAppUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+  enableAuth: true
+  minioBaseurl: ""
+  minioAccessKey: ""
+  trinoBaseUrl: ""
+  trinoUser: ""
+  trinoCatalog: ""
+  swaggerHeaderAuth: ""
+  corsOriginUrl: ""
+  loggingPath: /tmp/log
+  loggingEnvironment: ""
+  containerPort: 7174
 
 ingress:
   enabled: true
