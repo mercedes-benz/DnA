@@ -21,7 +21,7 @@ import { useParams } from 'react-router-dom';
 
 import { setChonkyDefaults } from 'chonky';
 import { ChonkyIconFA } from 'chonky-icon-fontawesome';
-import { getDateTimeFromTimestamp } from '../Utility/utils';
+import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 
 import FileUpload from './Upload';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -120,7 +120,7 @@ const FileExplorer = () => {
       formatFileModDate: (intl, file) => {
         const safeModDate = FileHelper.getModDate(file);
         if (safeModDate) {
-          return `${getDateTimeFromTimestamp(safeModDate, '.')}`;
+          return `${regionalDateAndTimeConversionSolution(safeModDate)}`;
         } else {
           return null;
         }
