@@ -76,6 +76,11 @@ dependencies:
   repository: file://charts/model-registry
   version: 0.1.0
   condition: model-registry.enabled
+
+- name: trino-backend
+  repository: file://charts/trinoBackend
+  version: 0.1.0
+  condition: trinoBackend.enabled
   
 # A chart can be either an 'application' or a 'library' chart.
 #

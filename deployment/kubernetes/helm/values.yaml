@@ -1283,3 +1283,7 @@ minio:
 
 model-registry:
   enabled: true
+
+#subChart properties for trinoBackend
+trinoBackend:
+  enabled: true
