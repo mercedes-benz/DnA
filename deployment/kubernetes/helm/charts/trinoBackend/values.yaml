@@ -9,7 +9,7 @@ imagePullSecret:
   name: harbor-pull-secrets
 
 secret:
-  name: dashboard-secrets
+  name: trinoBackend-secrets
   minioSecretKey: ""
   trinoPassword: ""
   jwtKey: ""
@@ -22,7 +22,7 @@ trinoUser: ""
 trinoCatalog: ""
 swaggerHeaderAuth: ""
 corsOriginUrl: ""
-loggingPath: /tmp/dashboard/log
+loggingPath: /tmp/log
 loggingEnvironment: ""
 containerPort: 7174
 
