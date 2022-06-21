@@ -85,6 +85,9 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 					}).collect(Collectors.toList());
 					userInfoVO.setRoles(rolesVO);
 				}
+				
+				//To set divisionAdmins
+				userInfoVO.setDivisionAdmins(userData.getDivisionAdmins());
 			}
 		}
 		return userInfoVO;

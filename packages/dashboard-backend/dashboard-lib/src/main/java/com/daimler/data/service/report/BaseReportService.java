@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.ReportAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ReportNsql;
@@ -73,10 +74,12 @@ import com.daimler.data.dto.report.ReportResponseVO;
 import com.daimler.data.dto.report.ReportVO;
 import com.daimler.data.dto.report.SubdivisionVO;
 import com.daimler.data.dto.report.TeamMemberVO;
+import com.daimler.data.dto.solution.UserInfoVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.department.DepartmentService;
 import com.daimler.data.service.tag.TagService;
+import com.daimler.data.util.ConstantsUtility;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.jsonwebtoken.lang.Strings;
@@ -105,6 +108,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	private ReportRepository reportRepository;
 
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
+	
 	public BaseReportService() {
 		super();
 	}
@@ -837,7 +843,15 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	private boolean canProceedToEdit(ReportVO existingReportVO) {
 		boolean canProceed = false;
 		boolean hasAdminAccess = this.userStore.getUserInfo().hasAdminAccess();
+		// To fetch user info from dna-backend by id
+		UserInfoVO userInfoVO = dnaAuthClient.userInfoById(this.userStore.getUserInfo().getId());
+		// To check if user having DivisionAdmin role and division is same as Report
+		boolean isDivisionAdmin = userInfoVO.getRoles().stream()
+				.anyMatch(n -> ConstantsUtility.DIVISION_ADMIN.equals(n.getName()))
+				&& userInfoVO.getDivisionAdmins().contains(existingReportVO.getDescription().getDivision().getName());
 		if (hasAdminAccess) {
+			canProceed = true;
+		} else if (isDivisionAdmin) {
 			canProceed = true;
 		} else {
 			CreatedByVO currentUser = this.userStore.getVO();
