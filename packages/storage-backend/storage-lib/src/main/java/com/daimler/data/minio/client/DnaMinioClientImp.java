@@ -827,4 +827,5 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		bucketConnectionUri.put(ConstantsUtility.HOSTNAME, hostName);
 		return bucketConnectionUri;
 	}
+	
 }
