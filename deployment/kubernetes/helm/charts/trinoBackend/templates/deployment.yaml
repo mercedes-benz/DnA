@@ -19,44 +19,10 @@ spec:
         - name: {{ .Chart.Name }}-service
           image: {{ .Values.image }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- with .Values.envs }}            
           env:
-            - name: MINIO_SECRETKEY
-              valueFrom:
-                secretKeyRef:
-                  key: postgres.app.username
-                  name: {{ .Values.secret.name }}
-            - name: TRINO_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: postgres.app.password
-                  name: {{ .Values.secret.name }}
-            - name: JWT_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                 key: jwt.secret.key
-                 name: {{ .Values.secret.name }} 
-            - name: DNA_URI
-              value: {{ .Values.dnaAppUrl }}
-            - name: DNA_AUTH_ENABLE
-              value: {{ .Values.enableAuth | quote}}
-            - name: MINIO_BASEURI
-              value: {{ .Values.minioBaseurl | quote }}
-            - name: MINIO_ACCESSKEY
-              value: {{ .Values.minioAccessKey | quote }}
-            - name: TRINO_BASEURI
-              value: {{ .Values.trinoBaseUrl | quote }}
-            - name: TRINO_USER
-              value: {{ .Values.trinoUser | quote }}
-            - name: TRINO_CATALOG
-              value: {{ .Values.trinoCatalog | quote }}
-            - name: SWAGGER_HEADER_AUTH
-              value: {{ .Values.swaggerHeaderAuth | quote }}
-            - name: CORS_ORIGIN_URL
-              value: {{ .Values.corsOriginUrl | quote }}
-            - name: LOGGING_ENVIRONMENT
-              value: {{ .Values.loggingEnvironment | quote }}
-            - name: LOGGING_PATH
-              value: {{ .Values.loggingPath | quote }}                
+          {{- toYaml . | nindent 12 }}
+          {{- end }}               
           ports:
             - containerPort: {{ .Values.containerPort }}
               name: api
