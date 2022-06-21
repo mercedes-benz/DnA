@@ -81,4 +81,13 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 	 * @return count {@code Long}
 	 */
 	Long getCountWithFilters(String searchTerm);
+	
+	/**
+	 * To update/remove divisions from a user having role DivisionAdmin
+	 * if division value got updated/deleted then associated user should also get updated accordingly
+	 * 
+	 * @param divisionOldValue
+	 * @param divisionNewValue
+	 */
+	public void updateDivisionForUserRole(String divisionOldValue, String divisionNewValue);
 }
