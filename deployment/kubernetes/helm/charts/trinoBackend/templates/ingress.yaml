@@ -23,5 +23,5 @@ spec:
   tls:
     - hosts:
       - {{ .Values.ingress.host }}
-      secretName: dashboard-tls       
+      secretName: trinoBackend-tls       
  {{- end }}
