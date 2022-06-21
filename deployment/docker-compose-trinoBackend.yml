@@ -1,0 +1,8 @@
+version: "2.1"
+services:
+    
+  dashboard-backend:
+    image: ${trino_BACKEND:-trino_backend}
+    build:
+      context: ../packages/trino-backend/
+      dockerfile: $PWD/dockerfiles/trinoBackend/trinoBackend.Dockerfile
