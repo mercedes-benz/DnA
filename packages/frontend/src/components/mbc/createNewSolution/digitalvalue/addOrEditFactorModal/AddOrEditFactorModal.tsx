@@ -570,7 +570,7 @@ export default class AddOrEditFactorModal extends React.Component<
                   value={value}
                   maxLength={10}
                   onChange={this.textInputOnChange}
-                /> */},
+                /> */}
                 {/* @ts-ignore */}
                 <NumberFormat
                   className={classNames('input-field', Styles.fteField)}
@@ -580,7 +580,7 @@ export default class AddOrEditFactorModal extends React.Component<
                   name="value"
                   placeholder="Type here"
                   value={ 
-                    new Intl.NumberFormat(navigator.language).format(Number(value))
+                    value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(value))
                    }
                   thousandSeparator={thousandSeparator(navigator.language)}                  
                   decimalSeparator={decimalSeparator(navigator.language)}
