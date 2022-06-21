@@ -4,7 +4,7 @@ import * as React from 'react';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 
-import { IRole, IUserInfo, IUserRequestVO } from '../../../../globals/types';
+import { IRole, ISubDivision, IUserInfo, IUserRequestVO } from '../../../../globals/types';
 
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -39,6 +39,9 @@ export interface IUserRoleManagementState {
   currentUserToEdit: IUserInfo;
   currentRoleCategory: IRole;
   isLoading: boolean;
+  divisionList: any[];
+  selectedDivisions: any[];
+  divisionError: string;
 }
 
 export class UserRoleManagement extends React.Component<any, IUserRoleManagementState> {
@@ -64,6 +67,9 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       },
       showEditUsersModal: false,
       isLoading: false,
+      divisionList: [],
+      selectedDivisions: [],
+      divisionError: null,
     };
   }
   public getUsers() {
@@ -171,6 +177,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       });
 
     this.getUsers();
+    this.getDivisions();
   }
 
   public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
@@ -193,7 +200,34 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       });
     }
   };
+  public getDivisions = () => {
+    return ApiClient.getDivisions()
+      .then((res1) => {
+        if (res1) {
+          const tempDivisionList:any = [];
+          res1.forEach((divsion) => {
+            tempDivisionList.push({
+              id: divsion.id + '',
+              name: divsion.name,
+              subdivisions: divsion.subdivisions.filter((item: ISubDivision) => item.id !== 'EMPTY'),
+            });
+          });
+          this.setState({divisionList: tempDivisionList})
+        }
+      })
+      .catch((error) => {
+        this.setState(
+          {
+            divisionList: [],
+          },
+          () => {
+            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          },
+        );
+      });
+  };
   public render() {
+    const divisionError = this.state.divisionError || '';
     const userData = this.state.users.map((user) => {
       return <UserInfoRowItem key={user.id} user={user} roles={this.state.roles} showEditModal={this.showEditModal} />;
     });
@@ -203,7 +237,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         {this.state.currentUserToEdit ? this.state.currentUserToEdit.lastName : ''} and Press &laquo;Save&raquo; to
         confirm.
         <div className={Styles.roleContent}>
-          <div>
+          <div className={classNames(Styles.flexLayout)}>
             <div id="roleContainer" className="input-field-group include-error">
               <label id="roleLabel" className="input-label" htmlFor="roleSelect">
                 User Role
@@ -213,7 +247,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
                   id="roleSelect"
                   multiple={false}
                   onChange={this.onRoleChange}
-                  value={this.state.currentUserRole}
+                  value={this.state.updatedRole?.id}
                 >
                   {this.state.roles.map((obj) => (
                     <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
@@ -222,8 +256,33 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
                   ))}
                 </select>
               </div>
-              {/* <span className={classNames('error-message', locationError.length ? '' : 'hide')}>{locationError}</span> */}
+              {/* <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>{divisionError}</span> */}
             </div>
+            {this.state.updatedRole && this.state.updatedRole?.name == 'DivisionAdmin' ?
+              <div id="divisionContainer"
+              className={classNames('input-field-group include-error', divisionError.length ? 'error' : '')}
+              >
+                <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
+                  Division<sup>*</sup>
+                </label>
+                <div id="division" className="custom-select">
+                  <select
+                    id="divisionSelect"
+                    required={true}
+                    multiple={true}
+                    onChange={this.onDivisionChange}
+                    value={this.state.selectedDivisions}
+                  >
+                    {this.state.divisionList.map((obj) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>{divisionError}</span>
+              </div>
+            : ''}
           </div>
         </div>
       </div>
@@ -363,9 +422,9 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
   }
   public showEditModal = (user: IUserInfo) => {
     const roleValue = user.roles.map((userRole: IRole) => {
-      return userRole.id;
+      return userRole;
     });
-    this.setState({ showEditUsersModal: true, currentUserToEdit: user, currentUserRole: roleValue[0] }, () => {
+    this.setState({ showEditUsersModal: true, currentUserToEdit: user, updatedRole: roleValue[0], selectedDivisions: user.divisionAdmins }, () => {
       SelectBox.defaultSetup(true);
     });
   };
@@ -382,17 +441,54 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
         } else if (label === 'USER') {
           label = 'User';
         }
-        this.setState({ updatedRole: { id: option.value, name: label } });
+        this.setState({ updatedRole: { id: option.value, name: label } },()=>{
+          SelectBox.defaultSetup(true);
+        });
       });
     }
   };
+
+  public onDivisionChange = (e: React.FormEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues: any[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        // const location: any = { id: null, name: null };
+        // location.id = option.value;
+        // location.name = option.label;
+        selectedValues.push(option.label);
+      });
+      this.setState({ selectedDivisions: selectedValues });
+    }
+  };
+
   protected onAcceptRoleChanges = () => {
     if (this.state.currentUserToEdit && this.state.updatedRole) {
       const roleChanged = this.state.currentUserToEdit.roles.filter((userCurrentRole: IRole) => {
         return userCurrentRole.id !== this.state.updatedRole.id;
       });
-      if (roleChanged && roleChanged.length > 0) {
-        const userToEdit = this.state.currentUserToEdit;
+      const isDivisionChanged = JSON.stringify(this.state.currentUserToEdit.divisionAdmins) !== JSON.stringify(this.state.selectedDivisions);
+      
+        if(this.state.updatedRole.name === 'DivisionAdmin'){
+          if(this.validateUserRoleForm()) {
+            this.callApiToUpdateUser();
+          }
+        } else {
+          if ((roleChanged && roleChanged.length > 0) || isDivisionChanged) {
+            this.callApiToUpdateUser();
+          } else {
+            this.setState({ showEditUsersModal: false }, () => {
+              this.showErrorNotification('User is not updated!');
+            });
+          }
+        }
+        
+      
+    }
+  };
+
+  protected callApiToUpdateUser = () => {
+    const userToEdit = this.state.currentUserToEdit;
         const putData: IUserRequestVO = {
           data: {
             id: userToEdit.id,
@@ -403,6 +499,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
             mobileNumber: userToEdit.mobileNumber,
             favoriteUsecases: userToEdit.favoriteUsecases,
             roles: [this.state.updatedRole], // TODO may need to change for multi role scenario
+            divisionAdmins: this.state.updatedRole.name === 'DivisionAdmin' ? this.state.selectedDivisions : []
           },
         };
         ProgressIndicator.show();
@@ -412,6 +509,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
               const users = this.state.users.map((user) => {
                 if (user.id === userToEdit.id) {
                   user.roles = [this.state.updatedRole];
+                  user.divisionAdmins = response.divisionAdmins;
                 }
                 return user;
               });
@@ -424,13 +522,8 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
             ProgressIndicator.hide();
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
           });
-      } else {
-        this.setState({ showEditUsersModal: false }, () => {
-          this.showErrorNotification('User is not updated!');
-        });
-      }
-    }
-  };
+  }
+
   protected onCancelRoleChanges = () => {
     this.setState({ showEditUsersModal: false });
   };
@@ -466,4 +559,14 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
       this.getUsers();
     });
   };
+
+  protected validateUserRoleForm = () => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+    if (!this.state.selectedDivisions || !this.state.selectedDivisions.length) {
+      this.setState({ divisionError: errorMissingEntry });
+      formValid = false;
+    }
+    return formValid;
+  }
 }
