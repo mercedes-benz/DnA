@@ -27,6 +27,8 @@
 
 package com.daimler.data.auth.client;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -40,6 +42,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.dto.solution.UserInfoVO;
+
 @Component
 public class DnaAuthClientImpl implements DnaAuthClient {
 
@@ -49,9 +53,13 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	private String dnaBaseUri;
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
+	private static final String GET_USERINFO = "/api/users/";
 
 	@Autowired
 	RestTemplate restTemplate;
+	
+	@Autowired
+	HttpServletRequest httpRequest;
 
 	@Override
 	public JSONObject verifyLogin(String jwt) {
@@ -77,6 +85,31 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 			throw e;
 		}
 		return res;
+	}
+
+	@Override
+	public UserInfoVO userInfoById(String userId) {
+		UserInfoVO userInfoVO = null;
+		try {
+			String jwt = httpRequest.getHeader("Authorization");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", jwt);
+			String dnaUri = dnaBaseUri + GET_USERINFO + userId;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<UserInfoVO> response = restTemplate.exchange(dnaUri, HttpMethod.GET, entity,
+					UserInfoVO.class);
+			if (response.hasBody()) {
+				LOGGER.info("Success from dna get userinfo for user:{}", userId);
+				userInfoVO = response.getBody();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occured while calling DnA backend to get user:{} info {}", userId, e.getMessage());
+			throw e;
+		}
+
+		return userInfoVO;
 	}
 
 }

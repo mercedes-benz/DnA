@@ -68,6 +68,8 @@ import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.PolicyUtility;
 
 import io.minio.BucketExistsArgs;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
@@ -826,5 +828,18 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		String hostName = minioBaseUri.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","");
 		bucketConnectionUri.put(ConstantsUtility.HOSTNAME, hostName);
 		return bucketConnectionUri;
+	}
+	
+	public void copyObject(String userId, String bucketName, String object) {
+		MinioClient minioClient = minioConfig.getMinioClient();
+		try {
+			minioClient.copyObject(CopyObjectArgs.builder().bucket("my-bucketname").object("my-objectname")
+					.source(CopySource.builder().bucket("my-source-bucketname").object("my-source-objectname").build())
+					.build());
+		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+				| IllegalArgumentException | IOException e) {
+			LOGGER.error("Error occured while copy object: {}", e.getMessage());
+		}
 	}
 }
