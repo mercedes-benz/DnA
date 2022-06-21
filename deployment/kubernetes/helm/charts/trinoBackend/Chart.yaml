@@ -1,6 +1,6 @@
 apiVersion: v2
-name: dashboard
-description: Dashboard Service
+name: trino
+description: Trino Backend Service
 
 # A chart can be either an 'application' or a 'library' chart.
 #
