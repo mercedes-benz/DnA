@@ -1410,6 +1410,3 @@ model-registry:
 
 trino:
   enabled: false
-
-trino-hive:
-  enabled: false

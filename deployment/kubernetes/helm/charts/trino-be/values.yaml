@@ -9,7 +9,7 @@ imagePullSecret:
   name: harbor-pull-secrets
 
 secret:
-  name: trinoBackend-secrets
+  name: trinobackend-secrets
   minioSecretKey: ""
   trinoPassword: ""
   jwtKey: ""
