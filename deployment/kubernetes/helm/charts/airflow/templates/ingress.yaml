@@ -1,3 +1,4 @@
+{{- if .Values.airflowIngressRoute.enabled -}}
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -15,8 +16,9 @@ spec:
           port: {{ .Values.service.port }}
       middlewares:
         - name: airflow-traefik-middleware-x-forwarded-headers
+{{- end }}
 ---
-
+{{- if .Values.airflowMiddleware.enabled -}}
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
@@ -26,3 +28,4 @@ spec:
     customRequestHeaders:
       X-Forwarded-Proto: "https"
       X-Forwarded-Port: "443"
+{{- end }}
