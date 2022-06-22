@@ -92,6 +92,7 @@ export const BucketList = () => {
     <div>
       <h3>Are you sure you want to delete {selectedItem.bucketName} ? </h3>
       <h5>A bucket can only be deleted if its empty.</h5>
+      <h6>Dataiku project(s) connection if any, will be removed.</h6>
     </div>
   );
 
@@ -224,7 +225,9 @@ export const BucketList = () => {
                             </a>
                           </div>
                           <div className={Styles.bucketTitleCol}>{displayPermission(item?.permission)}</div>
-                          <div className={Styles.bucketTitleCol}>{regionalDateAndTimeConversionSolution(item.createdDate)}</div>
+                          <div className={Styles.bucketTitleCol}>
+                            {regionalDateAndTimeConversionSolution(item.createdDate)}
+                          </div>
                           <div className={Styles.bucketTitleCol}>
                             {regionalDateAndTimeConversionSolution(item.lastModifiedDate)}
                           </div>

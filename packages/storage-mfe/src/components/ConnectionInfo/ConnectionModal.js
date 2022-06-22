@@ -6,7 +6,6 @@ import { useLocation } from 'react-router-dom';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import Styles from './ConnectionModal.scss';
-import { omit } from 'lodash';
 import { hideConnectionInfo } from './redux/connection.actions';
 import { history } from '../../store/storeRoot';
 
@@ -37,7 +36,7 @@ export const ConnectionModal = () => {
   const disableMakeConnectionBtn =
     connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
     (selectedDataikuProjects?.length
-      ? selectedDataikuProjects?.map((i) => connect?.dataikuProjects?.indexOf(i) > -1)?.filter((x) => x)?.length > 0
+      ? selectedDataikuProjects?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
       : true);
 
   const { pathname } = useLocation();
@@ -63,7 +62,7 @@ export const ConnectionModal = () => {
   useEffect(() => {
     setBucketInfo({
       bucketName: connect?.bucketName,
-      accessInfo: omit(connect?.accessInfo, ['permission']),
+      accessInfo: connect?.accessInfo,
     });
   }, [connect?.bucketName, connect?.accessInfo]);
 
@@ -75,6 +74,7 @@ export const ConnectionModal = () => {
         .then((res) => {
           res.data?.data?.map((item) => {
             item['id'] = item.projectKey; // add 'id' for each of the object item
+            item['name'] = `${item.name} (${item.projectKey})`;
             return item;
           });
           setDataikuProjectList(res.data?.data);
@@ -135,7 +135,7 @@ export const ConnectionModal = () => {
     const data = {
       data: {
         bucketName: bucketInfo.bucketName,
-        dataikuProjects: connect.dataikuProjects,
+        dataikuProjects: connect.dataikuProjects?.map((item) => item.match(/\((.*?)\)/)[1]), // pick projectKey within paranthesis
       },
     };
     bucketsApi
@@ -155,8 +155,8 @@ export const ConnectionModal = () => {
    * @param {array} arr selected array list
    * @param {string} key to be matched
    */
-  const filterDataikuProjectList = (arr, key) => {
-    return dataikuProjectList?.filter((item) => arr?.includes(item[key]));
+  const filterDataikuProjectList = (arr) => {
+    return dataikuProjectList?.filter((item) => arr?.includes(item['name']))?.map((item) => item.name);
   };
 
   const connectToJupyter = (
@@ -175,10 +175,10 @@ y = pd.read_csv(y_file_obj)`}
         <Tags
           title={'Please select the Dataiku project(s) that you want to link to the bucket.'}
           max={100}
-          chips={filterDataikuProjectList(connect?.dataikuProjects, 'projectKey')?.map((item) => item.name)}
-          tags={dataikuProjectList?.filter((item) => item.name)}
+          chips={filterDataikuProjectList(connect?.dataikuProjects)}
+          tags={dataikuProjectList?.filter((item) => item.projectKey)}
           setTags={(selectedTags) => {
-            const data = filterDataikuProjectList(selectedTags, 'name')?.map((item) => item.projectKey);
+            const data = filterDataikuProjectList(selectedTags);
             dispatch({
               type: 'SELECTED_DATAIKU_PROJECTS',
               payload: data,
@@ -187,14 +187,15 @@ y = pd.read_csv(y_file_obj)`}
           }}
           suggestionRender={(item) => (
             <div className={Styles.optionContainer}>
-              <span className={Styles.optionTitle}>{item.name}</span>
-              <span className={Styles.optionText}>{item.shortDesc}</span>
+              <span className={Styles.optionTitle}>{item?.name}</span>
+              <span className={Styles.optionText}>{item?.shortDesc}</span>
             </div>
           )}
           isMandatory={false}
           showMissingEntryError={false}
           enableCustomValue={false}
           suggestionPopupHeight={120}
+          isDisabled={!bucketInfo.accessInfo.permission?.write}
         />
       ) : (
         <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
