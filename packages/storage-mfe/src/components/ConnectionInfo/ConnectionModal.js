@@ -95,7 +95,7 @@ export const ConnectionModal = () => {
   useEffect(() => {
     // deserialize the response to show value in dropdown
     const data = dataikuProjectList
-      .filter((item) => connect?.dataikuProjects.includes(item.projectKey))
+      ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
       ?.map((item) => item.name);
     dispatch({
       type: 'CONNECTION_INFO',
