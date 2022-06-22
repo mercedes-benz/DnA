@@ -92,6 +92,20 @@ export const ConnectionModal = () => {
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connect.modal]);
 
+  useEffect(() => {
+    // deserialize the response to show value in dropdown
+    const data = dataikuProjectList
+      ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
+      ?.map((item) => item.name);
+    dispatch({
+      type: 'CONNECTION_INFO',
+      payload: {
+        dataikuProjects: data,
+      },
+    });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, dataikuProjectList]);
+
   // dataiku tag container
   const dataikuTagContainer = document?.querySelectorAll(
     '#tab-content-2[class*="ConnectionModal"] .input-field-group',
