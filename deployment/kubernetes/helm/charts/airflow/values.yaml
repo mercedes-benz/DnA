@@ -6,6 +6,10 @@ appName: airflow
 namespace: airflow
 imagePullSecret: 
   name: harbor-pull-secrets
+airflowIngressRoute:
+  enabled: false
+airflowMiddleware:
+  enabled: false 
 backend:
   image: ""
   imagePullPolicy: Always
