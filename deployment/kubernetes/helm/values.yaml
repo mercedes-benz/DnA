@@ -477,6 +477,10 @@ airflow:
   imagePullSecret: 
     name: dockerregistry
     key: "docker-config" 
+  airflowIngressRoute:
+    enabled: false
+  airflowMiddleware:
+    enabled: false 
   backend:
     image: ""
     imagePullPolicy: Always
