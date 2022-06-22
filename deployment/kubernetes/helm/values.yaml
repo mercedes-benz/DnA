@@ -123,7 +123,7 @@ backend:
         oidcClientID: 0oa55doiaeNNjCciu5d7
         oidcClientSecret: G_vUbDjcPvHbPODZ0PLjDvbl8Fb1GHATRqfIlmr5
         drdCertPassword: ""
-        jwtSecretKey: ""
+        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
         s3AccessKey: admin
         s3SecretKey: S6O!#uiOop
         dataikuProdApiKey: ""
@@ -244,7 +244,7 @@ clamav:
       secrets:
         name: oneapi-secrets
         onapiBasicAuthToken: ""
-        jwtSecretKey: ""
+        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
         appDBUserName: malware
         appDBPassword: malware123
       config: 
@@ -330,7 +330,7 @@ naas:
       secrets:
         name: naas-app-secrets
         authApiToken: ""
-        jwtKey: ""
+        jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
         db: 
           appUserName: postgres
           appPassword: postgres
@@ -460,7 +460,7 @@ dashboard:
     name: dashboard-secrets
     appUserName: dashboard
     appPassword: dashboard
-    jwtKey: ""
+    jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
   appUrl: http://dna-service.dna.svc.cluster.local:80
   enableAuth: true
   loggingPath: /tmp/dashboard/log
@@ -519,7 +519,7 @@ airflow:
       dbPassword: airflow
       dbUsername: airflow
       gitToken: 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 
-      jwtKey: ""
+      jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
       oidcClientID: 0oa5b1yg9kGa4sIvl5d7
       oidcClientSecret: 7VtOFzfl8WSwBuFMn_9I1eyAa68QHLpDhHD1p8IR
     containerPort: 7171
@@ -1317,7 +1317,7 @@ storagebe:
     - key: vaultToken
       value: hvs.toxSVlejR9h1q3tIVufXJxOs
     - key: jwt.secret.key 
-      value: ""
+      value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
     - key: minioAccessKey 
       value: admin
     - key: minioSecretKey
@@ -1406,4 +1406,10 @@ minio:
 #Subchart properties for model-registry
 
 model-registry:
+  enabled: false
+
+trino:
+  enabled: false
+
+trino-hive:
   enabled: false
