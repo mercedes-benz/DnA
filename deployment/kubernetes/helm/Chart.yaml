@@ -78,9 +78,9 @@ dependencies:
   condition: model-registry.enabled
 
 - name: trino-be
-  repository: file://charts/trinobackend
+  repository: file://charts/trino-be
   version: 0.1.0
-  condition: trinoBackend.enabled
+  condition: trino-be.enabled
 
 
   

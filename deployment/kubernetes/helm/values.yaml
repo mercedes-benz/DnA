@@ -1408,5 +1408,5 @@ minio:
 model-registry:
   enabled: false
 
-trino:
+trino-be:
   enabled: false
