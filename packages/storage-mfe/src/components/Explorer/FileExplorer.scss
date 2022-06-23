@@ -61,6 +61,14 @@
   color: #acb8c4 !important;
 }
 
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 30px);
+  }
+}
+
 :global {
   #storagePreview {
     margin-top: 20px;
