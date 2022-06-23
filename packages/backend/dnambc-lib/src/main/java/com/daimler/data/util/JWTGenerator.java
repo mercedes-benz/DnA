@@ -79,6 +79,7 @@ public class JWTGenerator {
 		tokenData.put("mobileNumber", userInfo.getMobileNumber());
 		tokenData.put("department", userInfo.getDepartment());
 		tokenData.put("digiRole", userInfo.getDigiRole());
+		tokenData.put("divisionAdmins", userInfo.getDivisionAdmins());
 
 		final JwtBuilder jwtBuilder = Jwts.builder();
 		jwtBuilder.setClaims(tokenData);
@@ -117,6 +118,7 @@ public class JWTGenerator {
 		tokenData.put("mobileNumber", (String) claims.get("mobileNumber"));
 		tokenData.put("department", (String) claims.get("department"));
 		tokenData.put("digiRole", (List) claims.get("digiRole"));
+		tokenData.put("divisionAdmins", (List) claims.get("divisionAdmins"));
 		tokenData.put("authToken", authToken);
 		final JwtBuilder jwtBuilder = Jwts.builder();
 		jwtBuilder.setClaims(tokenData);
