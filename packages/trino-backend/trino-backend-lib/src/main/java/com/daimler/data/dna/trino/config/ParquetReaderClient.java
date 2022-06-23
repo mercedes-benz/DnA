@@ -65,7 +65,7 @@ public class ParquetReaderClient {
 	@Value("${minio.secretKey}")
 	private String minioSecretKey;
 	
-	public Parquet getParquetData(String filePath) throws IOException {
+	public Parquet getParquetData(String filePath) throws Exception {
 	      List<SimpleGroup> simpleGroups = new ArrayList<>();
 	      Path path = new Path(filePath);
 	      Configuration conf = new Configuration();

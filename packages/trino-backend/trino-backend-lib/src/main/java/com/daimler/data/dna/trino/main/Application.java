@@ -40,7 +40,7 @@ import org.springframework.web.WebApplicationInitializer;
 @SpringBootApplication
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan({ "com.daimler.data.application.filter", "com.daimler.data.application.logging",
-		"com.daimler.data.auth.client", "com.daimler.data.controller", "com.daimler.data.dna.trino.config" })
+		"com.daimler.data.auth.client", "com.daimler.data.controller", "com.daimler.data.dna.trino" })
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
