@@ -29,16 +29,18 @@ package com.daimler.data.controller.trino;
 
 import javax.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.daimler.data.api.model.TrinoApi;
-import com.daimler.data.dto.model.GenericMessage;
-import com.daimler.data.dto.model.ParquetUploadRequestVO;
-import com.daimler.data.dto.model.ParquetUploadResponseVO;
+import com.daimler.data.api.trino.TrinoApi;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dna.trino.service.TrinioService;
+import com.daimler.data.dto.trino.ParquetUploadRequestVO;
+import com.daimler.data.dto.trino.ParquetUploadResponseVO;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,6 +54,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api")
 @Slf4j
 public class TrinoController implements TrinoApi{
+	
+	@Autowired 
+	private TrinioService service;
 	
 	@Override
 	@ApiOperation(value = "Parquet upload to process and execute statements in trino", nickname = "upload", notes = "Parquet upload to process and execute statements in trino", response = ParquetUploadResponseVO.class, tags={ "trino", })
@@ -68,9 +73,7 @@ public class TrinoController implements TrinoApi{
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<ParquetUploadResponseVO> upload(@ApiParam(value = "Request Body that contains location of parquet file in s3 minio buckets" ,required=true )  @Valid @RequestBody ParquetUploadRequestVO parquetUploadRequestVO){
-		
-		
-		return null;
+		return service.uploadParquet(parquetUploadRequestVO.getSourceBucket(), parquetUploadRequestVO.getSourceParquetPath(), parquetUploadRequestVO.getSchemaName(), parquetUploadRequestVO.getTableName());
 	}
 
 }
