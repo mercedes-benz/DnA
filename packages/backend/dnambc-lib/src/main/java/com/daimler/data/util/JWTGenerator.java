@@ -97,6 +97,7 @@ public class JWTGenerator {
 		tokenData.put("mobileNumber", userInfo.getMobileNumber());
 		tokenData.put("department", userInfo.getDepartment());
 		tokenData.put("digiRole", userInfo.getDigiRole());
+		tokenData.put("divisionAdmins", userInfo.getDivisionAdmins());
 		tokenData.put("authToken", authToken);
 		final JwtBuilder jwtBuilder = Jwts.builder();
 		jwtBuilder.setClaims(tokenData);
