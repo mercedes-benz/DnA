@@ -27,22 +27,14 @@
 
 package com.daimler.data.dna.trino.config;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.minio.BucketExistsArgs;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
+import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
-import io.minio.messages.Bucket;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -70,20 +62,16 @@ public class MinioConfig {
 			return null;
 		}
 	}
-	
-//	public void copyObjects(String source,String destination, String newFileName) {
-//		
-//	}
-	
-	public List<Bucket> getBuckets(MinioClient client) {
-		try {
-			return client.listBuckets();
-		} catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-				| InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-				| IOException e) {
-			log.error("Failed to get buckets list, exception occured is : {}", e.getMessage());
-			return null;
-		}
+
+	public void copyObject(String sourceBucket, String objectPath, String destinationBucket, String newFilePath) throws Exception
+	{
+		MinioClient minioClient = this.getMinioClient(minioBaseUri, minioAccessKey, minioSecretKey);
+		 if(!minioClient.bucketExists(BucketExistsArgs.builder().bucket(destinationBucket).build())) {
+			    minioClient.makeBucket(MakeBucketArgs.builder().bucket(destinationBucket).build());
+			  }
+		 CopySource source = CopySource.builder().bucket(sourceBucket).object(objectPath).build();
+		 CopyObjectArgs copyArgs = CopyObjectArgs.builder().source(source).bucket(destinationBucket).object(newFilePath).build();
+		minioClient.copyObject(copyArgs);
 	}
 
 
