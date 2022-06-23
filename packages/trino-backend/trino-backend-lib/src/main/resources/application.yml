@@ -22,6 +22,7 @@ minio:
   baseUri: ${MINIO_BASEURI:http://xxxxx}
   accessKey: ${MINIO_ACCESSKEY:XXXXX}
   secretKey: ${MINIO_SECRETKEY:XXXXX}
+  trino.bucketName: ${MINIO_TRINO_BUCKETNAME:parquet}
 
 trino:
   uri: ${TRINO_BASEURI:http://xxxxx}
