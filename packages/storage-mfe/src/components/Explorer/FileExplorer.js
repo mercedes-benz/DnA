@@ -52,7 +52,7 @@ import 'ace-builds/src-noconflict/mode-kotlin';
 import 'ace-builds/src-noconflict/mode-golang';
 
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
-import { serializeFolderChain } from './Utils';
+import { getFilePath, serializeFolderChain } from './Utils';
 import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
 import { history } from '../../store/storeRoot';
 
@@ -100,6 +100,15 @@ const FileExplorer = () => {
     modal: false,
     data: {},
   });
+
+  const [publishModal, setPublishModal] = useState({
+    modal: false,
+    schemaName: '',
+    tableName: '',
+    data: {},
+  });
+  const [publishSchemaError, setPublishSchemaError] = useState('');
+  const [publishTableError, setPublishTableError] = useState('');
 
   const currentFolderIdRef = useRef(currentFolderId);
   const uploadRef = useRef(null);
@@ -390,7 +399,7 @@ const FileExplorer = () => {
   const onOpenFile = (data, fileToOpen) => {
     if (data.state.selectedFiles.length) {
       if (data.state.selectedFiles.length === 1) {
-        const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
+        const extension = fileToOpen.name.toLowerCase()?.replace(/^.*?\.([a-zA-Z0-9]+)$/, '$1');
         const isImage = IMAGE_EXTNS.includes(extension);
         const allowedExt = PREVIEW_ALLOWED_EXTNS.includes(extension);
         const isPDF = extension === 'pdf';
@@ -460,7 +469,11 @@ const FileExplorer = () => {
         onOpenFile(data, fileToOpen);
       }
     } else if (data.id === CustomActions.PublishFolder.id) {
-      // TBD
+      setPublishModal({
+        ...publishModal,
+        modal: true,
+        data,
+      });
     }
   };
 
@@ -587,6 +600,119 @@ const FileExplorer = () => {
   const deleteAccept = () => {
     onDelete(showDeleteModal.data);
     setShowDeleteModal({ modal: false });
+  };
+
+  const handlePublishFields = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setPublishModal({
+      ...publishModal,
+      [name]: value,
+    });
+  };
+
+  const publishContent = (
+    <div className={Styles.flexLayout}>
+      <div className={classNames('input-field-group', publishSchemaError?.length ? 'error' : '')}>
+        <label className={classNames('input-label', Styles.pwdLabel)}>
+          Schema Name <sup>*</sup>
+        </label>
+        <div className={Styles.pdfPwdContainer}>
+          <input
+            className="input-field"
+            type={'text'}
+            value={publishModal.schemaName || ''}
+            name="schemaName"
+            onChange={(e) => {
+              handlePublishFields(e);
+              setPublishSchemaError('');
+            }}
+          />
+        </div>
+        <span className={classNames('error-message', publishSchemaError?.length ? '' : 'hide')}>
+          {publishSchemaError}
+        </span>
+      </div>
+      <div className={classNames('input-field-group', publishTableError?.length ? 'error' : '')}>
+        <label className={classNames('input-label', Styles.pwdLabel)}>
+          Table Name<sup>*</sup>
+        </label>
+        <div className={Styles.pdfPwdContainer}>
+          <input
+            className="input-field"
+            type={'text'}
+            name="tableName"
+            value={publishModal.tableName || ''}
+            onChange={(e) => {
+              handlePublishFields(e);
+              setPublishTableError('');
+            }}
+          />
+        </div>
+        <span className={classNames('error-message', publishTableError?.length ? '' : 'hide')}>
+          {publishTableError}
+        </span>
+      </div>
+    </div>
+  );
+
+  const publishClose = () => {
+    setPublishModal({ modal: false, data: {}, schemaName: '', tableName: '' });
+    setPublishSchemaError('');
+    setPublishTableError('');
+  };
+
+  const publishAccept = () => {
+    if (publishFieldValidation()) {
+      const objectPath = getFilePath(folderChain);
+
+      const selectedFiles = publishModal.data.state.selectedFiles[0];
+      const selectedFileName = selectedFiles?.name;
+      const filePath = objectPath + selectedFileName;
+
+      ProgressIndicator.show();
+      bucketsObjectApi
+        .publishToTrino(bucketName, filePath, publishModal.schemaName, publishModal.tableName)
+        .then(() => {
+          Notification.show(`${selectedFileName} published successfully.`);
+          dispatch(getFiles(files.fileMap, bucketName, selectedFiles));
+        })
+        .catch((e) => {
+          const errorMsg = e.response.data.message.errors?.map((item) => `${item.message}`).join(';');
+          Notification.show(`Error while publishing ${selectedFileName}. \n ${errorMsg}`, 'alert');
+          ProgressIndicator.hide();
+        });
+      setPublishModal({
+        modal: false,
+        schemaName: '',
+        tableName: '',
+        data: {},
+      });
+      setPublishSchemaError('');
+      setPublishTableError('');
+    }
+  };
+
+  const publishFieldValidation = () => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+    const { schemaName, tableName } = publishModal;
+
+    if (schemaName === '') {
+      setPublishSchemaError(errorMissingEntry);
+      formValid = false;
+    }
+    if (tableName === '') {
+      setPublishTableError(errorMissingEntry);
+      formValid = false;
+    }
+
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+
+    return formValid;
   };
 
   const serializedFileName = showPreview.fileName?.split('.')?.filter((x) => x);
@@ -772,6 +898,18 @@ const FileExplorer = () => {
         content={deleteFileOrFolderContent}
         onCancel={deleteClose}
         onAccept={deleteAccept}
+      />
+      <Modal
+        title={'Publish to Trino'}
+        ahiddenTitle={true}
+        acceptButtonTitle="Confirm"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={publishModal.modal}
+        content={publishContent}
+        onCancel={publishClose}
+        onAccept={publishAccept}
       />
       <ConfirmModal
         title={''}
