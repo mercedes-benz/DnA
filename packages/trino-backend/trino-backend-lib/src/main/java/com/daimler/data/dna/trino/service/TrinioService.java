@@ -27,7 +27,13 @@
 
 package com.daimler.data.dna.trino.service;
 
+import org.springframework.http.ResponseEntity;
+
+import com.daimler.data.dto.trino.ParquetUploadResponseVO;
+
 public interface TrinioService {
 
+	ResponseEntity<ParquetUploadResponseVO> uploadParquet(String sourceBucketName, String parquetObjectPath,
+			String schemaName, String tableName);
 
 }
