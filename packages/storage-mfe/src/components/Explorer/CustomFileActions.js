@@ -19,10 +19,11 @@ const PublishFolder = defineFileAction({
     toolbar: true,
     contextMenu: true,
     tooltip: 'Publish to Trino',
-    icon: 'folder',
+    icon: 'upload',
   },
   requiresSelection: true,
-  fileFilter: (file) => file && file.name.toLowerCase()?.split('.')?.[1] === 'parquet',
+  fileFilter: (file, index, selectedList) =>
+    selectedList?.length === 1 && file && file.name.toLowerCase()?.split('.')?.[1] === 'parquet',
 });
 
 export const CustomActions = {
