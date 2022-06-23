@@ -24,4 +24,5 @@ export const Envs = {
     getInjectedEnv('ENABLE_DATA_CLASSIFICATION_SECRET') !== undefined
       ? getInjectedEnv('ENABLE_DATA_CLASSIFICATION_SECRET')
       : parseBool(process.env.ENABLE_DATA_CLASSIFICATION_SECRET, true),
+  TRINO_API_BASEURL: getInjectedEnv('TRINO_API_BASEURL') || process.env.TRINO_API_BASEURL,
 };

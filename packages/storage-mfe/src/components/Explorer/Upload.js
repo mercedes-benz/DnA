@@ -6,26 +6,14 @@ import { baseURL } from '../../server/api';
 import { getFiles } from './redux/fileExplorer.actions';
 import { useDispatch, useSelector } from 'react-redux';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import { serializeFolderChain, setObjectKey } from './Utils';
+import { getFilePath, setObjectKey } from './Utils';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
 const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = false }) => {
   const dispatch = useDispatch();
   const { files } = useSelector((state) => state.fileExplorer);
 
-  const prefix = serializeFolderChain(folderChain);
-
-  let objectPath;
-  const existingFolder = folderChain.filter((item) => item?.childrenCount && item.objectName);
-
-  if (existingFolder?.length && existingFolder.length !== 1) {
-    const existingFolderIndex = prefix.indexOf(existingFolder[existingFolder.length - 1]?.objectName);
-    const newFolderPath = prefix.slice(existingFolderIndex).join('');
-    objectPath = newFolderPath;
-  } else {
-    objectPath = prefix.join('');
-  }
-  // const objectPath = [...new Set(prefix.join('').split('/'))].join('/');
+  const objectPath = getFilePath(folderChain);
 
   const onSuccess = (response, uploadFile) => {
     const currentFolder = folderChain?.[folderChain?.length - 1];
