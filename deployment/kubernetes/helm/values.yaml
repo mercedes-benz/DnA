@@ -38,8 +38,8 @@ frontend:
         DNA_CONTACTUS_HTML: "<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please post your question(s) in our communication channels mentioned below.</p><p>Mattermost:&nbsp;<a href=\"https://matter.i.mercedes-benz.com/mercedes-benz/channels/dna-platform\" target=\"_blank\" rel=\"noreferrer\">https://matter.i.mercedes-benz.com/mercedes-benz/channels/dna-platform</a></p><p>Email:&nbsp;<a href=\"mailto:dna@daimler.com\">dna@daimler.com</a></p></div>",
         DNA_BRAND_LOGO_URL: "/images/branding/logo-brand.png",
         DNA_APP_LOGO_URL: "/images/branding/logo-app.png",
-        ENABLE_INTERNAL_USER_INFO: true,
-        ENABLE_DATA_COMPLIANCE: true,
+        ENABLE_INTERNAL_USER_INFO: false,
+        ENABLE_DATA_COMPLIANCE: false,
         ENABLE_JUPYTER_WORKSPACE: true,
         JUPYTER_NOTEBOOK_URL: "http://localhost:9001",
         JUPYTER_NOTEBOOK_OIDC_POPUP_URL: "http://localhost:9001/hub/oauth_login?next=",
@@ -275,7 +275,7 @@ clamav:
 
     vault:
       secret:
-        rootToken: s.eCq15kV0JMi2xrcVaxDKMpZ7
+        rootToken: hvs.3FpK0LNiEULFPuuyAOKlWJiv
 
     probes:
       initialDelaySeconds: 60
@@ -1251,7 +1251,7 @@ storagebe:
           key: jwt.secret.key
           name: storage-be
     - name: CORS_ORIGIN_URL
-      value: "" 
+      value: http://* 
     - name: MINIO_ENDPOINT
       value: http://minio.storage.svc.cluster.local:9000
     - name: MINIO_CLIENT_API
@@ -1319,9 +1319,9 @@ storagebe:
 
   secret:
     - key: vaultToken
-      value: hvs.toxSVlejR9h1q3tIVufXJxOs
+      value: hvs.3FpK0LNiEULFPuuyAOKlWJiv
     - key: jwt.secret.key 
-      value: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
+      value: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
     - key: minioAccessKey 
       value: admin
     - key: minioSecretKey

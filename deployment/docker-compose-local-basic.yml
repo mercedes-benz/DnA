@@ -1,7 +1,7 @@
 version: "3.5"
 services:
   app-frontend:
-    image: vardhandevalla/okta-devapp-frontend
+    image: vardhandevalla/okta-app-frontend-pi2 
     container_name: app-frontend
     build:
       context: ../packages/frontend/
@@ -60,7 +60,7 @@ services:
       - 5432:5432
 
   app-backend:
-    image: vardhandevalla/okta-devapp-backend
+    image: vardhandevalla/okta-devapp-backend-pi2
     container_name: app-backend
     build:
       context: ../packages/backend/
@@ -111,7 +111,7 @@ services:
         max_attempts: 3
 
   dashboard-backend:
-    image: vardhandevalla/okta-devdashboard-backend
+    image: vardhandevalla/okta-devdashboard-backend-pi2
     container_name: dashboard-backend
     build:
       context: ../packages/dashboard-backend/
@@ -135,7 +135,7 @@ services:
         max_attempts: 3
 
   malware-backend:
-    image: vardhandevalla/okta-devmalware-backend
+    image: vardhandevalla/okta-devmalware-backend-pi2
     container_name: malware-backend
     build:
       context: ../packages/malware-scanner/
@@ -182,7 +182,7 @@ services:
       - 3310:3310
 
   naas-backend:
-    image: vardhandevalla/okta-devnaas-backend
+    image: vardhandevalla/okta-devnaas-backend-pi2
     container_name: naas-backend
     build:
       context: ../packages/naas/
@@ -239,7 +239,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
   
   storage-frontend:
-    image: vardhandevalla/okta-devstorage-frontend
+    image: vardhandevalla/okta-devstorage-frontend-pi2
     container_name: storage-frontend
     build:
       context: ../packages/storage-mfe/
@@ -262,7 +262,7 @@ services:
         max_attempts: 3
 
   storage-backend:
-    image: vardhandevalla/okta-devstorage-backend
+    image: vardhandevalla/okta-devstorage-backend-pi2
     container_name: storage-backend
     build:
       context: ../packages/storage-backend/

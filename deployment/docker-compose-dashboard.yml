@@ -2,7 +2,7 @@ version: "2.1"
 services:
     
   dashboard-backend:
-    image: ${DASHBOARD_BACKEND:-dashboard_backend}
+    image: ${DASHBOARD_BACKEND:-vardhandevalla/okta-devdashboard-backend-pi2:v2.0}
     build:
       context: ../packages/dashboard-backend/
       dockerfile: $PWD/dockerfiles/dashboard/dashboard-backend.Dockerfile
