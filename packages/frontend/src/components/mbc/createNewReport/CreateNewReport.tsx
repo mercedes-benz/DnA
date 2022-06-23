@@ -62,7 +62,6 @@ import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import { serializeReportRequestBody } from './utility/Utility';
 import { USER_ROLE } from '../../../globals/constants';
 import { TeamMemberType } from '../../../globals/Enums';
-import { Envs } from '../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewReportState {
@@ -198,7 +197,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     InputFields.defaultSetup();
     ProgressIndicator.show();
 
-    ReportsApiClient.getCreateNewReportData(Envs.OIDC_DISABLED, this.props.user.id).then((response) => {
+    ReportsApiClient.getCreateNewReportData().then((response) => {
       if (response) {
         const dataSources = response[0].data;
         const departments = response[1].data;
@@ -218,10 +217,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const subSystems: ISubSystems[] = response[15].data;
         const divisions: IDivision[] = response[16];
         const departmentTags: IDepartment[] = response[17].data;
-        const creatorInfo = Envs.OIDC_DISABLED ? this.props.user : response[18];
+        const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
-          email: creatorInfo.email || creatorInfo.eMail,
+          email: creatorInfo.eMail,
           firstName: creatorInfo.firstName,
           shortId: creatorInfo.id,
           lastName: creatorInfo.lastName,
