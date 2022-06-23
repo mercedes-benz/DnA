@@ -23,3 +23,8 @@ export const hostServer = axios.create({
   baseURL: Envs.API_BASEURL ? Envs.API_BASEURL : `http://${window.location.hostname}:7171/api`,
   headers,
 });
+
+export const trinoServer = axios.create({
+  baseURL: Envs.TRINO_API_BASEURL ? Envs.TRINO_API_BASEURL : `http://${window.location.hostname}:7575/api`,
+  headers,
+});
