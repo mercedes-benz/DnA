@@ -111,11 +111,23 @@ definitions:
  ParquetUploadRequestVO:
     type: object
     properties:
-      parquetPath:
+      sourceBucket:
         type: string
-        description: "Path location of parquet file in s3 minio buckets Ex: /bucket1/folder1/file.parquet"
+        description: "Name of source bucket in which parquet file is present Ex: bucket1"
+      sourceParquetPath:
+        type: string
+        description: "Path location of parquet file in given bucket Ex: /folder1/file.parquet"
+      schemaName:
+        type: string
+        description: "Name of new schema to be created"
+      tableName:
+        type: string
+        description: "Name of new table to be created"
     required:
-      - parquetPath 
+      - sourceBucket
+      - sourceParquetPath
+      - schemaName
+      - tableName
       
  ParquetUploadResponseVO:
     type: object
