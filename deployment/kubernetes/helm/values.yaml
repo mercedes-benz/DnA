@@ -87,7 +87,7 @@ frontend:
       
   appFrontend:
     replicaCount: 1
-    image: vardhandevalla/okta-app-frontend-pi2
+    image: vardhandevalla/okta-app-frontend-pi2:v2.0
     ngnix:
       backend: http://dna-service.dna.svc.cluster.local:80
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
@@ -451,7 +451,7 @@ notebooks:
 dashboard:
   enabled: true
   namespace: dashboard
-  image: vardhandevalla/okta-devdashboard-backend-pi2:latest
+  image: vardhandevalla/okta-devdashboard-backend-pi2:v3.0
   imagePullSecret: 
     name: vddockerhub
   dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
@@ -510,7 +510,7 @@ airflow:
     name: vddockerhub
     key: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoiZG9ja2VycmVnaXN0cnlAMDEiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNlpHOWphMlZ5Y21WbmFYTjBjbmxBTURFPSJ9fX0= 
   backend:
-    image: vardhandevalla/okta-airflow-be:okta4
+    image: vardhandevalla/airflow_backend-pi2:latest
     imagePullPolicy: Always
     dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
@@ -518,7 +518,7 @@ airflow:
       dbPassword: airflow
       dbUsername: airflow
       gitToken: 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 
-      jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
+      jwtKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
       oidcClientID: 0oa5b1yg9kGa4sIvl5d7
       oidcClientSecret: 7VtOFzfl8WSwBuFMn_9I1eyAa68QHLpDhHD1p8IR
     containerPort: 7171
@@ -656,8 +656,8 @@ airflow:
 
   docker:
     image:
-      name: vardhandevalla/airflow-fr-ser-withoutflask
-      tag: okta
+      name: vardhandevalla/airflow-service-pi2
+      tag: latest
 
   service:
     port: 8080

@@ -1,7 +1,7 @@
 version: "2.1"
 services:
   result-frontend:
-    image: ${IMAGE_RESULT_FRONTEND:-dna_frontend}
+    image: ${IMAGE_RESULT_FRONTEND:-vardhandevalla/okta-app-frontend-pi2:v2.0}
     build:
       context: ../packages/frontend/
       dockerfile: $PWD/dockerfiles/app/result-frontend.Dockerfile

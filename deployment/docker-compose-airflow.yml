@@ -2,7 +2,7 @@ version: "2.1"
 services:
     
   airflow-backend:
-    image: ${AIRFLOW_BACKEND:-vardhandevalla/airflow_backend-pi2:latest}
+    image: ${AIRFLOW_BACKEND:-vardhandevalla/airflow_backend-pi2:v2.0}
     build:
       context: ../packages/airflow-backend/
       dockerfile: $PWD/dockerfiles/airflow/airflow-backend.Dockerfile
