@@ -1,5 +1,5 @@
 import { IMAGE_EXTNS } from '../components/Utility/constants';
-import { server } from '../server/api';
+import { server, trinoServer } from '../server/api';
 import { encodeParams } from '../server/utils';
 
 const getAllBucketObjects = (bucketName) => {
@@ -52,10 +52,20 @@ const previewFiles = (bucketName, prefix, fileExtension) => {
   });
 };
 
+const publishToTrino = (bucketName, filePath, schemaName, tableName) => {
+  return trinoServer.post(`/parquet`, {
+    sourceBucket: bucketName,
+    sourceParquetPath: filePath,
+    schemaName,
+    tableName,
+  });
+};
+
 export const bucketsObjectApi = {
   getAllBucketObjects,
   getObjects,
   downloadObjects,
   deleteObjects,
   previewFiles,
+  publishToTrino,
 };
