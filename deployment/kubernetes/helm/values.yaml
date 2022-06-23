@@ -87,7 +87,7 @@ frontend:
       
   appFrontend:
     replicaCount: 1
-    image: vardhandevalla/okta-devapp-frontend:latest 
+    image: vardhandevalla/okta-app-frontend-pi2
     ngnix:
       backend: http://dna-service.dna.svc.cluster.local:80
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
@@ -103,7 +103,7 @@ backend:
   ingress:
     enabled: false
     namespace: ingress
-    host: "ingress-host"
+    host: ""
     lbIP: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -115,15 +115,15 @@ backend:
     backend:
       replicaCount: 1
       
-      image: vardhandevalla/okta-devapp-backend:latest
+      image: vardhandevalla/okta-devapp-backend-pi2:latest
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
         notebookSecretToken: b9cfc64284c1c5950812a0745da0bc274033b7ef538a07950a17e9c69ee9e388
         oidcClientID: 0oa55doiaeNNjCciu5d7
         oidcClientSecret: G_vUbDjcPvHbPODZ0PLjDvbl8Fb1GHATRqfIlmr5
-        drdCertPassword: ""
-        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
+        drdCertPassword: a7PQw01Tzx4X9Lso8A6M
+        jwtSecretKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
         s3AccessKey: admin
         s3SecretKey: S6O!#uiOop
         dataikuProdApiKey: ""
@@ -160,7 +160,7 @@ backend:
         dataikuProjectUri: /projects/
         apacCorpDir: ""
         emeaCorpDir: ""
-        dataikuUserRoleUriPath:
+        dataikuUserRoleUriPath: ""
         dataikuPermissionUriPath:
         dataikuTrainingAdminGroup: ""
         avscanUri: http://clamav-rest-service.clamav.svc.cluster.local:8181/avscan/api/v1
@@ -239,12 +239,12 @@ clamav:
   app:
     backend:
       name: clamav-rest
-      image: vardhandevalla/okta-devmalware-backend:latest
+      image: vardhandevalla/okta-devmalware-backend-pi2:latest
       replicaCount: 1
       secrets:
         name: oneapi-secrets
         onapiBasicAuthToken: ""
-        jwtSecretKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
+        jwtSecretKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
         appDBUserName: malware
         appDBPassword: malware123
       config: 
@@ -256,10 +256,10 @@ clamav:
         with_in: 2
         time_unit: seconds
         auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription/validate
-        restricted_url_pattern: /api/v1/scan.*
+        restricted_url_pattern: ""
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
-        corsOriginUrl: ""
+        corsOriginUrl: http://*
         dbUri: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/malware
         flywayEnabled: true
         flywayBaselineOnMigrate: true
@@ -326,11 +326,10 @@ naas:
   namespace: naas
   app:
     backend:
-      image: vardhandevalla/okta-devnaas-backend:latest
+      image: vardhandevalla/okta-devnaas-backend-pi2:latest
       secrets:
         name: naas-app-secrets
-        authApiToken: ""
-        jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
+        jwtKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
         db: 
           appUserName: postgres
           appPassword: postgres
@@ -338,7 +337,7 @@ naas:
         api_db_url: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
         naas_broker: my-release-kafka-headless.kafka.svc.cluster.local:9092
         max_poll_records: 6000
-        dna_uri: http://localhost:8080
+        dna_uri: http://dna-service.dna.svc.cluster.local:80
         dna_auth_enable: true
         mailServerHost: ""
         mailServerPort: ""
@@ -452,7 +451,7 @@ notebooks:
 dashboard:
   enabled: true
   namespace: dashboard
-  image: vardhandevalla/okta-devdashboard-backend:latest
+  image: vardhandevalla/okta-devdashboard-backend-pi2:latest
   imagePullSecret: 
     name: vddockerhub
   dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
@@ -460,7 +459,7 @@ dashboard:
     name: dashboard-secrets
     appUserName: dashboard
     appPassword: dashboard
-    jwtKey: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY2NjQwODU3MiwiaWF0IjoxNjU1ODY3NzcyfQ.TD4CROLRD11VksTeKzxQkeeKLjwkozEo1Gm4r_h_6aI
+    jwtKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
   appUrl: http://dna-service.dna.svc.cluster.local:80
   enableAuth: true
   loggingPath: /tmp/dashboard/log
@@ -504,7 +503,7 @@ dashboard:
 
 #Subchart properties for airflow
 airflow:
-  enabled: false
+  enabled: true
   appName: airflow
   namespace: airflow
   imagePullSecret: 
@@ -555,15 +554,16 @@ airflow:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
   ##Ingress for the airflow Application
-  ingress:
-    enabled: false
-    host: ""
-    annotations:
-      traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
-      traefik.ingress.kubernetes.io/router.tls: "true"
-      traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: ""
+  airflow:
+    ingress:
+      enabled: false
+      host: ""
+      annotations:
+        traefik.frontend.rule.type: PathPrefix
+        kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.tls: "true"
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        cert-manager.io/cluster-issuer: ""
   #dockeraccount key value which is encoded value of docker.configjson
   pullSecretData: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoiZG9ja2VycmVnaXN0cnlAMDEiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNlpHOWphMlZ5Y21WbmFYTjBjbmxBTURFPSJ9fX0=
   secret:
@@ -583,6 +583,10 @@ airflow:
     ssh: "false"
     root: /git
 
+  airflowIngressRoute:
+    enabled: false 
+  airflowMiddleware: 
+    enabled: false
   # editor:
   #   gitEnabled: false
   #   gitCMD: /usr/bin/git
@@ -652,7 +656,7 @@ airflow:
 
   docker:
     image:
-      name: vardhandevalla/airflow-fr-ser-withoutfalsk
+      name: vardhandevalla/airflow-fr-ser-withoutflask
       tag: okta
 
   service:
@@ -1165,7 +1169,7 @@ storagemfe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/okta-devstorage-frontend
+    repository: docker.io/vardhandevalla/okta-devstorage-frontend-pi2
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
@@ -1293,7 +1297,7 @@ storagebe:
           key: dbPassword
           name: storage-be
     - name: API_DB_URL
-      value: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+      value: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/storage
     - name: NAAS_BROKER
       value: my-release-kafka-headless.kafka.svc.cluster.local:9092
     - name: STORAGE_TERMS_OF_USE_URL
@@ -1338,7 +1342,7 @@ storagebe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/okta-devstorage-backend 
+    repository: docker.io/vardhandevalla/okta-devstorage-backend-pi2
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
