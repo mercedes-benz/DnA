@@ -176,6 +176,7 @@ export const ConnectionModal = () => {
   const connectToJupyter = (
     <code>
       {`from minio import Minio
+import pandas as pd
 MINIO_BUCKET = "${bucketInfo.bucketName}"
 minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=False)
 y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
