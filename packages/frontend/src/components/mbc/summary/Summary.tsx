@@ -237,7 +237,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const canShowDigitalValue =
       canShowDescription &&
       (isAdmin !== undefined || userInfo.id === this.checkUserCanViewDigitalValue(userInfo)) &&
-      this.state.solution.digitalValue.maturityLevel;
+      this.state.solution?.digitalValue?.maturityLevel;
 
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
@@ -581,8 +581,10 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     let userId = '';
     if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-    } else if (this.state.solution.createdBy) {
+    } else if (this.state.solution?.createdBy?.id === userInfo.id) {
       userId = this.state.solution.createdBy.id;
+    } else if (userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)) {
+      userId = userInfo.id;  
     } else {
       userId = '';
     }
@@ -607,6 +609,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       } else if (this.state.solution.createdBy) {
         userId = this.state.solution.createdBy.id;
       }
+    } else if (userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)) {
+      userId = userInfo.id;  
     } else {
       userId = '';
     }
