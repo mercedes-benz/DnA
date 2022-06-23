@@ -11,6 +11,22 @@ export const serializeFolderChain = (list) => {
     ?.filter((x) => x); //filter falsy value
 };
 
+export const getFilePath = (folderChain) => {
+  const prefix = serializeFolderChain(folderChain);
+
+  let objectPath;
+  const existingFolder = folderChain.filter((item) => item?.childrenCount && item.objectName);
+
+  if (existingFolder?.length && existingFolder.length !== 1) {
+    const existingFolderIndex = prefix.indexOf(existingFolder[existingFolder.length - 1]?.objectName);
+    const newFolderPath = prefix.slice(existingFolderIndex).join('');
+    objectPath = newFolderPath;
+  } else {
+    objectPath = prefix.join('');
+  }
+  return objectPath;
+};
+
 // serialize characters to ensure valid object key
 export const setObjectKey = (item) => item.replaceAll(/(\.|\/)/g, '').replaceAll(' ', '');
 
