@@ -334,24 +334,6 @@ export class ApiClient {
       this.get('lov/strategicrelevances'),
     ]);
   }
-  public static getCreateNewReportData(): Promise<any[]> {
-    return Promise.all([
-      this.get('locations'),
-      this.get('divisions'),
-      this.get('project-statuses'),
-      this.get('phases'),
-      this.get('tags'),
-      this.get('languages'),
-      this.get('results'),
-      this.get('algorithms'),
-      this.get('visualizations'),
-      this.get('datasources'),
-      this.get('datavolumes'),
-      this.get('platforms'),
-      this.get('relatedproducts'),
-      this.get('project-statuses'),
-    ]);
-  }
 
   public static getFiltersMasterData(): Promise<any[]> {
     return Promise.all([
