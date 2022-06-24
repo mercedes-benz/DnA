@@ -83,9 +83,24 @@ public class TrinioServiceImpl implements TrinioService {
 		Parquet tempParquet = new Parquet();
 		
 		String newRandFolder = UUID.randomUUID().toString();
-		String newParquetObjectPath = newRandFolder + "/" + schemaName + "/" + tableName +".parquet";
+		String newPathPrefix = "";
+		String fileName = "";
+		if(parquetObjectPath !=null && !"".equalsIgnoreCase(parquetObjectPath)) {
+			String[] paths = parquetObjectPath.split("/");
+			int i = 0;
+			fileName = paths[paths.length-1];
+	          while(i<paths.length-1){
+	        	  newPathPrefix = newPathPrefix  + paths[i] + "/";
+	              i++;
+	          }
+		}
+		String newParquetObjectPath = "";
+		if(newPathPrefix!=null && !"".equalsIgnoreCase(newPathPrefix) && newPathPrefix.contains("/"))
+			newParquetObjectPath = "/" + newPathPrefix +  "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
+		else
+			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
 		try {
-			minioConfig.copyObject(sourceBucketName, parquetObjectPath, minioTrinoBucketName, newParquetObjectPath);
+			minioConfig.moveObject(sourceBucketName, parquetObjectPath, sourceBucketName, newParquetObjectPath);
 			log.info("Parquet file copied from {} to {} successfully",sourceBucketName+"/"+parquetObjectPath, minioTrinoBucketName + "/" + newParquetObjectPath );
 		}catch(Exception e) {
 			MessageDescription copyException = new MessageDescription();
@@ -101,7 +116,7 @@ public class TrinioServiceImpl implements TrinioService {
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
-		String s3aFormatParquetPath = "s3a://"+minioTrinoBucketName+"/"+newParquetObjectPath;
+		String s3aFormatParquetPath = "s3a://"+sourceBucketName+newParquetObjectPath;
 		try {
 			tempParquet = parquetReader.getParquetData(s3aFormatParquetPath);
 		}catch(Exception e) {

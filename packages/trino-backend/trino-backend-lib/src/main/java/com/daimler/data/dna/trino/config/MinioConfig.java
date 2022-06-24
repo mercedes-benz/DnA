@@ -35,6 +35,9 @@ import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
+import io.minio.Result;
+import io.minio.messages.DeleteError;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -63,7 +66,7 @@ public class MinioConfig {
 		}
 	}
 
-	public void copyObject(String sourceBucket, String objectPath, String destinationBucket, String newFilePath) throws Exception
+	public void moveObject(String sourceBucket, String objectPath, String destinationBucket, String newFilePath) throws Exception
 	{
 		MinioClient minioClient = this.getMinioClient(minioBaseUri, minioAccessKey, minioSecretKey);
 		 if(!minioClient.bucketExists(BucketExistsArgs.builder().bucket(destinationBucket).build())) {
@@ -72,6 +75,8 @@ public class MinioConfig {
 		 CopySource source = CopySource.builder().bucket(sourceBucket).object(objectPath).build();
 		 CopyObjectArgs copyArgs = CopyObjectArgs.builder().source(source).bucket(destinationBucket).object(newFilePath).build();
 		minioClient.copyObject(copyArgs);
+		minioClient.removeObject(RemoveObjectArgs.builder().bucket(sourceBucket).object(objectPath).build());
+
 	}
 
 
