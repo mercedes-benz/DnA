@@ -54,9 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class TrinioServiceImpl implements TrinioService {
-
-	@Value("${minio.trino.bucketName}")
-	private String minioTrinoBucketName;
 	
 	@Autowired
 	private MinioConfig minioConfig;
@@ -101,7 +98,7 @@ public class TrinioServiceImpl implements TrinioService {
 			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
 		try {
 			minioConfig.moveObject(sourceBucketName, parquetObjectPath, sourceBucketName, newParquetObjectPath);
-			log.info("Parquet file copied from {} to {} successfully",sourceBucketName+"/"+parquetObjectPath, minioTrinoBucketName + "/" + newParquetObjectPath );
+			log.info("Parquet file copied from {} to {} successfully",sourceBucketName+"/"+parquetObjectPath, newParquetObjectPath );
 		}catch(Exception e) {
 			MessageDescription copyException = new MessageDescription();
 			String copyExceptionMessage = e.getMessage();
