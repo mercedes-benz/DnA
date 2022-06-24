@@ -431,7 +431,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             if (
               isAdmin !== undefined ||
               user.id === (res.createdBy ? res.createdBy.id : '') ||
-              res.team.find((teamMember) => teamMember.shortId === user.id) !== undefined
+              res.team.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
+              user?.divisionAdmins.includes(res?.division?.name)
             ) {
               const response = this.state.response;
               response.data = res;
