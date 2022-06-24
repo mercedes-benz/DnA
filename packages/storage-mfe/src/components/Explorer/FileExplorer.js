@@ -443,10 +443,15 @@ const FileExplorer = () => {
     } else if (data.id === ChonkyActions.UploadFiles.id) {
       uploadRef.current.click();
     } else if (data.id === ChonkyActions.DeleteFiles.id) {
-      setShowDeleteModal({
-        modal: true,
-        data,
-      });
+      const isPublishedParquetFolder = /(PublishedParquet)/i.test(currentFolderId);
+      if (isPublishedParquetFolder) {
+        Notification.show('Deleting files under Published folder not yet implemented!', 'alert');
+      } else {
+        setShowDeleteModal({
+          modal: true,
+          data,
+        });
+      }
     } else if (data.id === ChonkyActions.DownloadFiles.id) {
       data.state.selectedFiles?.forEach((item) => {
         // if selected multiple items, download each file
@@ -518,6 +523,11 @@ const FileExplorer = () => {
       formValid = false;
     }
 
+    if (/(PublishedParquet|Published Parquet)/gi.test(folderName)) {
+      setFolderNameError(`Folder name containing "Published Parquet" text is not allowed.`);
+      formValid = false;
+    }
+
     return formValid;
   };
 
@@ -532,7 +542,7 @@ const FileExplorer = () => {
             className={classNames('input-label', Styles.inputLabel, Styles.folderPathLabel)}
           >{`${bucketName}/${currentFolderPath}`}</label>
         </div>
-        <div style={{ maxHeight: 40 }}>
+        <div style={{ maxHeight: 40, minWidth: '24vw' }}>
           <input
             type="text"
             className="input-field"
@@ -675,7 +685,22 @@ const FileExplorer = () => {
         .publishToTrino(bucketName, filePath, publishModal.schemaName, publishModal.tableName)
         .then(() => {
           Notification.show(`${selectedFileName} published successfully.`);
-          dispatch(getFiles(files.fileMap, bucketName, selectedFiles));
+          const copyselectedFiles = { ...selectedFiles };
+          const lastIndexOfSlash = copyselectedFiles.objectName.lastIndexOf('/');
+          const isRootFolder = lastIndexOfSlash === -1;
+          if (isRootFolder) {
+            copyselectedFiles.objectName = '';
+            copyselectedFiles.id = copyselectedFiles.parentId;
+            copyselectedFiles.name = copyselectedFiles.parentId;
+            copyselectedFiles.parentId = undefined;
+          } else {
+            copyselectedFiles.objectName = copyselectedFiles.objectName.substring(0, lastIndexOfSlash + 1);
+            copyselectedFiles.id = copyselectedFiles.parentId;
+            copyselectedFiles.name = files.fileMap[currentFolderId].name;
+            copyselectedFiles.parentId = files.fileMap[currentFolderId].parentId;
+            copyselectedFiles.isDir = true;
+          }
+          dispatch(getFiles(files.fileMap, bucketName, copyselectedFiles));
         })
         .catch((e) => {
           const errorMsg = e.response.data.message.errors?.map((item) => `${item.message}`).join(';');
