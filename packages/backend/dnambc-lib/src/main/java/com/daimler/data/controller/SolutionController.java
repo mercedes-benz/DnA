@@ -384,20 +384,31 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 	@Override
 	public ResponseEntity<SolutionVO> getById(String id) {
 		Boolean isAdmin = false;
+		Boolean isDivisionAdmin = false;
+		List<String> divisionAdmins = new ArrayList<>();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		if (userId != null && !"".equalsIgnoreCase(userId)) {
 			UserInfoVO userInfoVO = userInfoService.getById(userId);
 			if (userInfoVO != null) {
+				divisionAdmins = userInfoVO.getDivisionAdmins();
 				List<UserRoleVO> userRoles = userInfoVO.getRoles();
-				if (userRoles != null && !userRoles.isEmpty())
+				if (userRoles != null && !userRoles.isEmpty()) {
+					// To check for Admin
 					isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+					// To check for divisionAdmin
+					isDivisionAdmin = userRoles.stream().anyMatch(n -> "DivisionAdmin".equals(n.getName()));
+				}
 			}
 		}
 		SolutionVO solutionVO = solutionService.getById(id);
 		if (solutionVO != null) {
-			if (!isAdmin)
+			// To check if divisionAdmin has access of solution division
+			isDivisionAdmin = isDivisionAdmin && !ObjectUtils.isEmpty(divisionAdmins)
+					&& divisionAdmins.contains(solutionVO.getDivision().getName());
+			if (Boolean.FALSE.equals(isAdmin) && Boolean.FALSE.equals(isDivisionAdmin)) {
 				solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false);
+			}
 			LOGGER.debug("Solution {} fetched successfully", id);
 			return new ResponseEntity<>(solutionVO, HttpStatus.OK);
 		} else {
