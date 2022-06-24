@@ -57,7 +57,7 @@ frontend:
         ENABLE_REPORTS: true,
         ENABLE_ML_PIPELINE_SERVICE: true,
         ENABLE_NOTIFICATION: true,
-        DATA_PIPELINES_APP_BASEURL: "http://localhost:9003",
+        DATA_PIPELINES_APP_BASEURL: "http://localhost:9010",
         DATA_PIPELINES_API_BASEURL: "http://localhost:9003/airflow/api",
         NOTIFICATIONS_API_BASEURL: "http://localhost:9004/api",
         DASHBOARD_API_BASEURL: "http://localhost:9005/api",
@@ -149,7 +149,7 @@ backend:
         s3BucketName: dna
         s3Url: http://minio.storage.svc.cluster.local:9000
         corosOriginUrl: http://*
-        jupyterNotebookUrl: http://proxy-public.notebooks.svc.cluster.local:8000/notebooks/hub/api/users
+        jupyterNotebookUrl: http://proxy-public.notebooks.svc.cluster.local:8000/hub/api/users
         dataikuProdUri: ""
         dataikuProdAdminGroup: "" 
         dataikutraininguri: ""
@@ -255,8 +255,8 @@ clamav:
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
-        auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription/validate
-        restricted_url_pattern: ""
+        auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription
+        restricted_url_pattern: api/v1/*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
         corsOriginUrl: http://*
@@ -385,7 +385,7 @@ naas:
   
 #Subchart properties for notebooks
 notebooks:
-  enabled: false 
+  enabled: true 
   namespace: notebooks
   app:
     jupyter:
@@ -409,12 +409,12 @@ notebooks:
       name: hub-config
       KubeSpawnerimage: vardhandevalla/pyspark-notebook-default-okta:okta1
       serviceAccount: hub 
-      #securitycontext: http://localhost:8080/notebooks https://dev-36980595.okta.com
+      securitycontext: http://localhost:8080 http://localhost:9001 https://dev-36980595.okta.com
       #BY default jupyter notebook will not have the okta authentication , we need to configure the generic oAuth authenticator
       oauthAuthenticator: GenericOAuthenticator
-      oauthClientId: 0oa55doiaeNNjCciu5d7
-      oauthClientSecret: G_vUbDjcPvHbPODZ0PLjDvbl8Fb1GHATRqfIlmr5
-      oauthCallback: http://localhost:8080/notebooks/hub/oauth_callback
+      oauthClientId: 0oa5em9fqg92V7Xyf5d7
+      oauthClientSecret: fTjokQtY1wrY2CRyczw2fdGyohlz-YyJNhVpqxkE
+      oauthCallback: http://localhost:9001/hub/oauth_callback
       oauthAuthorizeUrl: https://dev-36980595.okta.com/oauth2/v1/authorize
       oauthTokenUrl: https://dev-36980595.okta.com/oauth2/v1/token
       oauthUserDataUrl: https://dev-36980595.okta.com/oauth2/v1/userinfo
@@ -510,7 +510,7 @@ airflow:
     name: vddockerhub
     key: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoiZG9ja2VycmVnaXN0cnlAMDEiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNlpHOWphMlZ5Y21WbmFYTjBjbmxBTURFPSJ9fX0= 
   backend:
-    image: vardhandevalla/airflow_backend-pi2:latest
+    image: vardhandevalla/airflow_backend-pi2:v4.0
     imagePullPolicy: Always
     dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
@@ -522,7 +522,7 @@ airflow:
       oidcClientID: 0oa5b1yg9kGa4sIvl5d7
       oidcClientSecret: 7VtOFzfl8WSwBuFMn_9I1eyAa68QHLpDhHD1p8IR
     containerPort: 7171
-    crossOriginUrl: ""
+    crossOriginUrl: http://*
     apiUrl: http://dna-service.dna.svc.cluster.local:80
     oidcInfoUrl: https://dev-36980595.okta.com/oauth2/v1/userinfo 
     oidcIntrospectionUrl: https://dev-36980595.okta.com/oauth2/v1/introspect 
@@ -573,8 +573,19 @@ airflow:
     knownHosts: ""
     postgresql:
       sqlAlchemyConn: postgresql+psycopg2://airflow:airflow@dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
-    clientSecret: ewogICAgIndlYiI6IHsKICAgICAgICAiY2xpZW50X2lkIjogIjBvYTViMXlnOWtHYTRzSXZsNWQ3IiwKICAgICAgICAiY2xpZW50X3NlY3JldCI6ICI3VnRPRnpmbDhXU3dCdUZNbl85STFleUFhNjhRSExwRGhIRDFwOElSIiwKICAgICAgICAiYXV0aF91cmkiOiAiaHR0cHM6Ly9kZXYtMzY5ODA1OTUub2t0YS5jb20vb2F1dGgyL3YxL2F1dGhvcml6ZSIsCiAgICAgICAgInRva2VuX3VyaSI6ICJodHRwczovL2Rldi0zNjk4MDU5NS5va3RhLmNvbS9vYXV0aDIvdjEvdG9rZW4iLAogICAgICAgICJ1c2VyaW5mb191cmkiOiAiaHR0cHM6Ly9kZXYtMzY5ODA1OTUub2t0YS5jb20vb2F1dGgyL3YxL3VzZXJpbmZvIiwKICAgICAgICAiaXNzdWVyIjogImh0dHBzOi8vZGV2LTM2OTgwNTk1Lm9rdGEuY29tIiwKICAgICAgICAicmVkaXJlY3RfdXJpcyI6IFsiaHR0cDovL2xvY2FsaG9zdDo3NTU1L3BpcGVsaW5lcy8qIl0KICAgIH0KfQ==
+    clientSecret: CSAgewogICAgIndlYiI6IHsKICAgICAgICAiY2xpZW50X2lkIjogIjBvYTVoczQxNXRqeDNveW9LNWQ3IiwKICAgICAgICAiY2xpZW50X3NlY3JldCI6ICJpVEVXVll2WXpwOXYxRkVHa3hKOTFOanR4ZmFZTDZlRUMteDZOT0Y5IiwKICAgICAgICAiYXV0aF91cmkiOiAiaHR0cHM6Ly9kZXYtMzY5ODA1OTUub2t0YS5jb20vb2F1dGgyL3YxL2F1dGhvcml6ZSIsCiAgICAgICAgInRva2VuX3VyaSI6ICJodHRwczovL2Rldi0zNjk4MDU5NS5va3RhLmNvbS9vYXV0aDIvdjEvdG9rZW4iLAogICAgICAgICJ1c2VyaW5mb191cmkiOiAiaHR0cHM6Ly9kZXYtMzY5ODA1OTUub2t0YS5jb20vb2F1dGgyL3YxL3VzZXJpbmZvIiwKICAgICAgICAiaXNzdWVyIjogImh0dHBzOi8vZGV2LTM2OTgwNTk1Lm9rdGEuY29tIiwKICAgICAgICAicmVkaXJlY3RfdXJpcyI6IFsiaHR0cDovL2xvY2FsaG9zdDo5MDEwLyoiXQogICAgfQp9
     #clientsecret is a json value of all our client credentials
+    # {
+    # "web": {
+    #     "client_id": "0oa5hs415tjx3oyoK5d7",
+    #     "client_secret": "iTEWVYvYzp9v1FEGkxJ91NjtxfaYL6eEC-x6NOF9",
+    #     "auth_uri": "https://dev-36980595.okta.com/oauth2/v1/authorize",
+    #     "token_uri": "https://dev-36980595.okta.com/oauth2/v1/token",
+    #     "userinfo_uri": "https://dev-36980595.okta.com/oauth2/v1/userinfo",
+    #     "issuer": "https://dev-36980595.okta.com",
+    #     "redirect_uris": ["http://localhost:9010/*"]
+    # }
+    #   }
   gitSync:
     image: vardhandevalla/gitsync-air-se:test2
     repo: https://github.com/Vardhandevalla/airflow_dags.git
@@ -619,8 +630,8 @@ airflow:
       authenticate: False
       catchupByDefault: True
     webserver:
-      baseUrl: ""
-      path: /pipelines
+      baseUrl: http://localhost:9010
+      path: /
       rbac: True
       host: 0.0.0.0
       port: 8080
