@@ -38,6 +38,8 @@ RUN useradd -ms /bin/bash 1000
 RUN usermod -a -G sudo 1000
 
 COPY airflow-env-init.sh /tmp/airflow-env-init.sh
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 RUN chmod 777 /tmp/airflow-env-init.sh
 
