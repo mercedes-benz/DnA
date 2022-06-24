@@ -30,6 +30,8 @@ export const getFilePath = (folderChain) => {
 // serialize characters to ensure valid object key
 export const setObjectKey = (item) => item.replaceAll(/(\.|\/)/g, '').replaceAll(' ', '');
 
+const isPublishedParquetFolder = (name) => /(PublishedParquet)/i.test(name);
+
 export const serializeAllObjects = (data, bucketName) => {
   let result = {};
   let children = [];
@@ -53,6 +55,7 @@ export const serializeAllObjects = (data, bucketName) => {
       childrenCount: data.bucketObjects?.length,
       childrenIds,
       objectName: `${bucketName}/`,
+      color: '#697582',
     };
     return item;
   });
@@ -64,6 +67,12 @@ export const serializeAllObjects = (data, bucketName) => {
       name: child.name,
       parentId: child.parentId,
       modDate: child.lastModified,
+      ...(child.isDir
+        ? isPublishedParquetFolder(child.name)
+          ? { color: '#6f42c1' }
+          : { color: '#697582' }
+        : { color: '#acb8c4' }),
+
       ...child,
     };
     return child;
@@ -98,6 +107,7 @@ export const serializeObjects = (data, fileToOpen) => {
       childrenIds,
       parentId: fileToOpen?.parentId,
       objectName: fileToOpen.objectName,
+      color: '#697582',
     };
     return item;
   });
@@ -109,6 +119,11 @@ export const serializeObjects = (data, fileToOpen) => {
       parentId: child.parentId,
       modDate: child.lastModified,
       isDir: child.isDir,
+      ...(child.isDir
+        ? isPublishedParquetFolder(child.name)
+          ? { color: '#6f42c1' }
+          : { color: '#697582' }
+        : { color: '#acb8c4' }),
       ...child,
     };
     return child;
