@@ -409,7 +409,7 @@ notebooks:
       name: hub-config
       KubeSpawnerimage: vardhandevalla/pyspark-notebook-default-okta:okta1
       serviceAccount: hub 
-      securitycontext: http://localhost:8080 http://localhost:9001 https://dev-36980595.okta.com
+      securitycontext: HOST http://localhost:8080/* http://localhost:9001 https://dev-36980595.okta.com
       #BY default jupyter notebook will not have the okta authentication , we need to configure the generic oAuth authenticator
       oauthAuthenticator: GenericOAuthenticator
       oauthClientId: 0oa5em9fqg92V7Xyf5d7
