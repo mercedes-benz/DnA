@@ -28,7 +28,14 @@
 
 package com.daimler.data.dna.trino.config;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
+import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +46,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.dto.TrinoQueryResponse;
 import com.daimler.data.dto.TrinoResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,11 +63,45 @@ public class TrinoClient {
 	
 	@Value("${trino.password}")
 	private String trinoPassword;
+	
+	@Value("${trino.ssl}")
+	private String trinoSSL;
+	
+	@Value("${trino.sslverification}")
+	private String trinoSSLVerification;
 
 	@Autowired
 	RestTemplate restTemplate;
 	
+	private static String queryUri = "/v1/query";
+	
 	private static String statementUri = "/v1/statement";
+	
+	public List<TrinoQueryResponse> queryIds() throws Exception{
+		List<TrinoQueryResponse> queryList = new ArrayList<>();
+		try {
+			String authStr = trinoUser+":"+trinoPassword;
+		    String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
+		    
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Basic " + base64Creds);
+
+			HttpEntity entity = new HttpEntity<>(headers);
+			String trinoQueryAllIdsURL = trinoBaseUri+queryUri;
+			ResponseEntity<TrinoQueryResponse[]> response = restTemplate.exchange(trinoQueryAllIdsURL, HttpMethod.GET, entity, TrinoQueryResponse[].class);
+			if (response != null && response.hasBody()) {
+				TrinoQueryResponse[] results = response.getBody();
+				queryList = Arrays.asList(results); 
+				log.info("Successfully fetched all query ids using REST API from trino running at {}", trinoBaseUri);
+			}
+			return queryList;
+		} catch (Exception e) {
+			log.error("Failed while fetching all query ids using trino REST API with exception {}",e.getMessage());
+			throw e;
+		}
+	}
 	
 	public TrinoResponse executeStatements(String statementString) throws Exception{
 		TrinoResponse result = new TrinoResponse();
@@ -84,10 +126,29 @@ public class TrinoClient {
 			}
 			return result;
 		} catch (Exception e) {
+			log.error("Failed while executing statement using trino REST API with exception {}",e.getMessage());
 			throw e;
 		}
 	}
 	
 	
+	public void executeStatments(String statementString) throws Exception{
+		String url = "jdbc:trino://"+ trinoBaseUri.split("//")[1] + ":443";
+		Properties properties = new Properties();
+		properties.setProperty("user", trinoUser);
+		properties.setProperty("password", trinoPassword);
+		properties.setProperty("SSL", trinoSSL);
+		properties.setProperty("SSLVerification", trinoSSLVerification);
+		try {
+			Connection connection = DriverManager.getConnection(url, properties);
+			Statement statement = connection.createStatement();
+		    String sql = statementString; 
+		    statement.executeUpdate(sql);
+		}catch(Exception e) {
+			log.error("Failed while executing statement using trino jdbc with exception {}",e.getMessage());
+			throw e;
+		}
+		
+	}
 	
 }
