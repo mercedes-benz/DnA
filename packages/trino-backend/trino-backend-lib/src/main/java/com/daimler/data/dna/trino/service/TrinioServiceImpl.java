@@ -29,6 +29,7 @@ package com.daimler.data.dna.trino.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +44,7 @@ import com.daimler.data.dna.trino.config.MinioConfig;
 import com.daimler.data.dna.trino.config.ParquetReaderClient;
 import com.daimler.data.dna.trino.config.TrinoClient;
 import com.daimler.data.dto.Parquet;
-import com.daimler.data.dto.TrinoResponse;
-import com.daimler.data.dto.TrinoResponseStats;
+import com.daimler.data.dto.TrinoQueryResponse;
 import com.daimler.data.dto.trino.ExecuteStatementResponseVO;
 import com.daimler.data.dto.trino.ParquetUploadResponseVO;
 import com.daimler.data.dto.trino.TrinoCreateResponseVO;
@@ -58,6 +58,9 @@ public class TrinioServiceImpl implements TrinioService {
 	@Autowired
 	private MinioConfig minioConfig;
 
+	@Value("${trino.uri}")
+	private String trinoBaseUri;
+	
 	@Autowired
 	private TrinoClient trinoClient;
 	
@@ -68,6 +71,8 @@ public class TrinioServiceImpl implements TrinioService {
 	private ParquetReaderClient parquetReader;
 	
 	private static String createSchema = "CREATE SCHEMA IF NOT EXISTS ";
+	private static String dropSchema = "DROP SCHEMA IF NOT EXISTS ";
+	private static String createTable = "CREATE TABLE IF NOT EXISTS ";
 	
 	@Override
 	public ResponseEntity<ParquetUploadResponseVO> uploadParquet(String sourceBucketName, String parquetObjectPath, String schemaName, String tableName) {
@@ -114,8 +119,11 @@ public class TrinioServiceImpl implements TrinioService {
 		}
 		
 		String s3aFormatParquetPath = "s3a://"+sourceBucketName+newParquetObjectPath;
+		String createTableStatement = createTable + trinoCatalog + "." + schemaName + "." + tableName + " (";
 		try {
 			tempParquet = parquetReader.getParquetData(s3aFormatParquetPath);
+			createTableStatement = parquetReader.getCreateTableStatement(tempParquet, createTableStatement);
+			log.info("Successfully read parquet file at location {}",s3aFormatParquetPath);
 		}catch(Exception e) {
 			MessageDescription readException = new MessageDescription();
 			String readExceptionMessage = e.getMessage();
@@ -129,24 +137,11 @@ public class TrinioServiceImpl implements TrinioService {
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
-		String createSchemaStatement = createSchema + schemaName;
+		String createSchemaStatement = createSchema + trinoCatalog + "." + schemaName;
+		String dropSchemaStatement = dropSchema + trinoCatalog + "." + schemaName;
 		try {
-			TrinoResponse trinoSchemaCreateResponse = trinoClient.executeStatements(createSchemaStatement);
-			if(trinoSchemaCreateResponse!=null) {
-				ExecuteStatementResponseVO schemaCreateResponse = new ExecuteStatementResponseVO();
-				schemaCreateResponse.setId(trinoSchemaCreateResponse.getId());
-				schemaCreateResponse.setInfoUrl(trinoSchemaCreateResponse.getInfoUri());
-				TrinoResponseStats createSchemaResponseStats = trinoSchemaCreateResponse.getStats();
-				if(createSchemaResponseStats!= null)
-					schemaCreateResponse.setState(createSchemaResponseStats.getState());
-				dataVO.setCreateSchemaResult(schemaCreateResponse);
-				responseVO.setData(dataVO);
-				message.setSuccess("Successfully copied parquet file, read the metadata and created schema and tables");
-				message.setErrors(null);
-				message.setWarnings(null);
-				responseVO.setMessage(message);
-				return new ResponseEntity<>(responseVO, HttpStatus.OK);
-			}
+			trinoClient.executeStatments(createSchemaStatement);
+			log.info("Successfully created Schema named {} at catalog {}", schemaName, trinoCatalog);
 		}catch(Exception e) {
 			MessageDescription readException = new MessageDescription();
 			String readExceptionMessage = e.getMessage();
@@ -160,7 +155,87 @@ public class TrinioServiceImpl implements TrinioService {
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
-		return null;
+		try {
+			if(createTableStatement!= null && !createTableStatement.isBlank() && !createTableStatement.isEmpty()) {
+				trinoClient.executeStatments(createTableStatement);
+				log.info("Successfully executed create table statement:  {}", createTableStatement);
+			}else {
+				log.info("Unable to generate create table statement for {}. Hence, didnt execute any create table statement.", trinoCatalog + "." + schemaName + "." + tableName);
+			}
+		}catch(Exception e) {
+			try {
+				trinoClient.executeStatments(dropSchemaStatement);
+			} catch (Exception ex) {
+				MessageDescription readException = new MessageDescription();
+				String readExceptionMessage = e.getMessage();
+				readException.setMessage(readExceptionMessage);
+				errors.add(readException);
+				message.setSuccess("Failed while executing create table statement at trino, after schema creation. Revert created schema failed");
+				log.error("Failed while executing create table statement {} at trino. Revert created schema failed with exception {}", createSchemaStatement, ex.getMessage());
+				message.setErrors(errors);
+				responseVO.setData(dataVO);
+				responseVO.setMessage(message);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			MessageDescription readException = new MessageDescription();
+			String readExceptionMessage = e.getMessage();
+			readException.setMessage(readExceptionMessage);
+			errors.add(readException);
+			message.setSuccess("Failed while executing create table statement at trino, after schema creation");
+			log.error("Failed while executing create schema statement {} at trino, with exception {}", createSchemaStatement, e.getMessage());
+			message.setErrors(errors);
+			responseVO.setData(dataVO);
+			responseVO.setMessage(message);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		try {
+			List<TrinoQueryResponse> queries = trinoClient.queryIds();
+			if(queries !=null && !queries.isEmpty()) {
+				Optional<TrinoQueryResponse> createSchemaResponseOptional = queries.stream().filter(n->createSchemaStatement.equalsIgnoreCase(n.getQuery())).findFirst();
+				if(createSchemaResponseOptional!=null && createSchemaResponseOptional.get()!= null && createSchemaResponseOptional.get().getQueryId()!=null) {
+					TrinoQueryResponse createSchemaResponse = createSchemaResponseOptional.get();
+					String createSchemaId = createSchemaResponse.getQueryId();
+					String createSchemaQueryInfoUrl = trinoBaseUri + "/ui/query.html?" + createSchemaId;
+					ExecuteStatementResponseVO schemaCreateSchemaResponse = new ExecuteStatementResponseVO();
+					schemaCreateSchemaResponse.setId(createSchemaId);
+					schemaCreateSchemaResponse.setInfoUrl(createSchemaQueryInfoUrl);
+					schemaCreateSchemaResponse.setState(createSchemaResponse.getState());
+					dataVO.setCreateSchemaResult(schemaCreateSchemaResponse);
+				}
+				final String createTableStatementFinal = createTableStatement;
+				Optional<TrinoQueryResponse> createTableResponseOptional = queries.stream().filter(n->createTableStatementFinal.equalsIgnoreCase(n.getQuery())).findFirst();
+				if(createTableResponseOptional!=null && createTableResponseOptional.get()!=null && createTableResponseOptional.get().getQueryId()!=null) {
+					TrinoQueryResponse createTableResponse = createTableResponseOptional.get();
+					String createTableId = createTableResponse.getQueryId();
+					String createTableQueryInfoUrl = trinoBaseUri + "/ui/query.html?" + createTableId;
+					ExecuteStatementResponseVO schemaCreateTableResponse = new ExecuteStatementResponseVO();
+					schemaCreateTableResponse.setId(createTableId);
+					schemaCreateTableResponse.setInfoUrl(createTableQueryInfoUrl);
+					schemaCreateTableResponse.setState(createTableResponse.getState());
+					dataVO.setCreateTableResult(schemaCreateTableResponse);
+				}
+			}
+		}catch(Exception e) {
+			MessageDescription queryWarning = new MessageDescription();
+			String readExceptionMessage = e.getMessage();
+			queryWarning.setMessage("Failed to fetch queryId for create schema and table statements with exception");
+			warnings.add(queryWarning);
+			message.setSuccess("Successfully copied parquet file, read the metadata and created schema and tables");
+			log.warn("Failed to fetch queryId for create schema {} statement with exception {}", schemaName, readExceptionMessage);
+			message.setErrors(null);
+			message.setWarnings(warnings);
+			responseVO.setData(dataVO);
+			responseVO.setMessage(message);
+			return new ResponseEntity<>(responseVO, HttpStatus.OK);
+		}
+		
+		message.setSuccess("Successfully copied parquet file, read the metadata and created schema and tables");
+		message.setErrors(null);
+		message.setWarnings(null);
+		responseVO.setData(dataVO); 
+		responseVO.setMessage(message);
+		return new ResponseEntity<>(responseVO, HttpStatus.OK);
 	}
 
 }

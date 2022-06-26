@@ -105,9 +105,39 @@ paths:
         500:
           description: "Internal error"      
 
+ # Path to delete parquet file and associated trino schema and table
+ # path example ../parquet/bucket1/folder1/file1.parquet
+# /parquet/{filepath}:
+#     delete:
+#      tags:
+#        - "trino"
+#      summary: "Delete parquet at given filepath and delete associated trino schema and table."
+#      description: "Delete parquet and associated trino for a given identifier."
+#      operationId: "delete"
+#      parameters:
+#        - name: "filepath"
+#          in: "path"
+#          description: "Solution ID to be deleted"
+#          required: true
+#          type: "string"
+#      responses:
+#        201:
+#          description: "Returns message of success or failure"
+#          schema:
+#            $ref: "#/definitions/GenericMessage"
+#        400:
+#          description: "Bad request."
+#        401:
+#          description: "Request does not have sufficient credentials."
+#        403:
+#          description: "Request is not authorized."
+#        405:
+#          description: "Method not allowed"
+#        500:
+#          description: "Internal error"     
 
 definitions:
-
+ 
  ParquetUploadRequestVO:
     type: object
     properties:
