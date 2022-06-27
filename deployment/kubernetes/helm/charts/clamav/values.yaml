@@ -103,7 +103,7 @@ vaultInjector:
   enable: false
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'Malware'
+    vault.hashicorp.com/role: 'malware'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/KubernetesSecret/MalwareBackend'
     vault.hashicorp.com/agent-inject-template-envvar: | 
