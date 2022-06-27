@@ -72,10 +72,12 @@ public class MinioConfig {
 		 if(!minioClient.bucketExists(BucketExistsArgs.builder().bucket(destinationBucket).build())) {
 			    minioClient.makeBucket(MakeBucketArgs.builder().bucket(destinationBucket).build());
 			  }
-		 CopySource source = CopySource.builder().bucket(sourceBucket).object(objectPath).build();
-		 CopyObjectArgs copyArgs = CopyObjectArgs.builder().source(source).bucket(destinationBucket).object(newFilePath).build();
+		CopySource source = CopySource.builder().bucket(sourceBucket).object(objectPath).build();
+		CopyObjectArgs copyArgs = CopyObjectArgs.builder().source(source).bucket(destinationBucket).object(newFilePath).build();
 		minioClient.copyObject(copyArgs);
+		log.info("Successfully copied object to {} from {}", destinationBucket+"/"+newFilePath , sourceBucket+"/"+objectPath);
 		minioClient.removeObject(RemoveObjectArgs.builder().bucket(sourceBucket).object(objectPath).build());
+		log.info("Successfully removed object from {}, after copy", sourceBucket+"/"+objectPath);
 
 	}
 
