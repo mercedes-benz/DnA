@@ -144,6 +144,7 @@ public class TrinoClient {
 			Statement statement = connection.createStatement();
 		    String sql = statementString; 
 		    statement.executeUpdate(sql);
+		    log.info("Executed statement: {} successfully",sql);
 		}catch(Exception e) {
 			log.error("Failed while executing statement using trino jdbc with exception {}",e.getMessage());
 			throw e;
