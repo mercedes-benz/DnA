@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.page.PageReadStore;
 import org.apache.parquet.example.data.simple.SimpleGroup;
@@ -64,6 +65,9 @@ public class ParquetReaderClient {
 	
 	@Value("${minio.secretKey}")
 	private String minioSecretKey;
+	
+	@Value("${trino.hadoop.remoteUser}")
+	private String hadoopRemoteUser;
 	
 	public String getTrinoType(String parquetDataType) {
 		if(parquetDataType!=null) {
@@ -123,6 +127,7 @@ public class ParquetReaderClient {
 	public Parquet getParquetData(String filePath) throws Exception {
 	      List<SimpleGroup> simpleGroups = new ArrayList<>();
 	      Path path = new Path(filePath);
+	      UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser(hadoopRemoteUser));
 	      Configuration conf = new Configuration();
 	      conf.set("fs.s3a.access.key", minioAccessKey);
 	      conf.set("fs.s3a.secret.key", minioSecretKey);
