@@ -202,7 +202,7 @@ public class TrinioServiceImpl implements TrinioService {
 					schemaCreateSchemaResponse.setInfoUrl(createSchemaQueryInfoUrl);
 					schemaCreateSchemaResponse.setState(createSchemaResponse.getState());
 					dataVO.setCreateSchemaResult(schemaCreateSchemaResponse);
-					log.info("Found query id for create schema, id set to response");)
+					log.info("Found query id for create schema, id set to response");
 				}
 				final String createTableStatementFinal = createTableStatement;
 				Optional<TrinoQueryResponse> createTableResponseOptional = queries.stream().filter(n->createTableStatementFinal.equalsIgnoreCase(n.getQuery())).findFirst();
