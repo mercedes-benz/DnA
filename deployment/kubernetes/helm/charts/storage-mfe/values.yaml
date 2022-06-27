@@ -68,3 +68,23 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'storage'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/KubernetesSecret/StorageSPA'
+    vault.hashicorp.com/agent-inject-file-configjs: "config.js"
+    vault.hashicorp.com/agent-inject-template-configjs: | 
+      {{- with secret "kv/dna/KubernetesSecret/StorageSPA" -}}
+          window["STORAGE_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+                  {{ $k }}:"{{ $v }}",
+          {{- end }}
+              };
+      {{- end }}   
+  saName: "default"
