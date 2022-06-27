@@ -94,7 +94,7 @@ public class ParquetReaderClient {
 			default : return "VARCHAR";
 			}
 		}
-		return null;
+		return "VARCHAR";
 	}
 	
 	public String getCreateTableStatement(Parquet parquetData, String createTablePrefix) {
@@ -116,6 +116,7 @@ public class ParquetReaderClient {
 			      }
 			}
 		}
+		log.info("Generated create table statement, returning");
 		return createTable;
 	}
 	
