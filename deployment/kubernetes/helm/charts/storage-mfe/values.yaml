@@ -83,7 +83,11 @@ vaultInjector:
       {{- with secret "kv/dna/KubernetesSecret/StorageSPA" -}}
           window["STORAGE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
-                  {{ $k }}:"{{ $v }}",
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
           {{- end }}
               };
       {{- end }}   
