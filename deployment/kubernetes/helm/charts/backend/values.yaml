@@ -3,9 +3,10 @@
 # Declare variables to be passed into your templates.
 
 namespace: dna
-imagePullSecret: 
-  name: harbor-pull-secrets
-  key: "docker-config"
+# Image pull secret to use for registry authentication.
+imagePullSecrets:
+# imagePullSecrets:
+  # - name: image-pull-secret
 ingress:
   enabled: true
   namespace: ingress
