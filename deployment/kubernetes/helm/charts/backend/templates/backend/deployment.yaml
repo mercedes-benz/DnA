@@ -209,5 +209,7 @@ spec:
               port: {{ .Values.app.probes.readinessProbe.port }} 
       securityContext:
         runAsUser: 1000
+      {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecret.name }}
+      {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
