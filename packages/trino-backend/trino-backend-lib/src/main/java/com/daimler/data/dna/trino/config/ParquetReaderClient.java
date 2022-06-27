@@ -27,7 +27,6 @@
 
 package com.daimler.data.dna.trino.config;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +43,7 @@ import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.MessageColumnIO;
 import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -65,6 +65,61 @@ public class ParquetReaderClient {
 	@Value("${minio.secretKey}")
 	private String minioSecretKey;
 	
+	public String getTrinoType(String parquetDataType) {
+		if(parquetDataType!=null) {
+			String primitiveType = parquetDataType.toUpperCase();
+			switch(primitiveType) {
+			case "MAP" : return "MAP";
+			case "LIST" : return "ARRAY";
+			case "STRING" : return "VARCHAR";
+			case "MAPKEYVALUE" : return "MAP";
+			case "ENUM" : return "VARCHAR";
+			case "DECIMAL" : return "DECIMAL";
+			case "DATE" : return "DATE";
+			case "TIME" : return "TIME";
+			case "TIMESTAMP" : return "TIMESTAMP";
+			case "INTEGER" : return "INTEGER";
+			case "JSON" : return "JSON";
+			case "BSON" : return "VARBINARY";
+			case "UUID" : return "VARCHAR";
+			case "INTERVAL" : return "VARCHAR";
+			case "INT64" : return "BIGINT";
+			case "INT32" : return "INTEGER";
+			case "BOOLEAN" : return "BOOLEAN";
+			case "BINARY" : return "VARBINARY";
+			case "FLOAT" : return "REAL";
+			case "DOUBLE" : return "DOUBLE";
+			case "INT96" : return "BIGINT";
+			case "FIXED_LEN_BYTE_ARRAY" : return "ARRAY";
+			default : return "VARCHAR";
+			}
+		}
+		return "VARCHAR";
+	}
+	
+	public String getCreateTableStatement(Parquet parquetData, String createTablePrefix) {
+		String createTable = "";
+		if(parquetData!=null) {
+			createTable = createTablePrefix;
+			List<Type> fields = parquetData.getSchema();
+			if(fields!=null && !fields.isEmpty()) {
+				for(int i=0; i<fields.size(); i++) {
+					PrimitiveType primitiveColumnInfo = fields.get(i).asPrimitiveType();
+					String primitiveDataType = primitiveColumnInfo.getLogicalTypeAnnotation()!=null ? 
+							primitiveColumnInfo.getLogicalTypeAnnotation().toString() : primitiveColumnInfo.getPrimitiveTypeName().name(); 
+					String columnType = this.getTrinoType(primitiveDataType);
+					createTable += " " + primitiveColumnInfo.getName() + " " + columnType;
+					if(i< (fields.size()-1))
+						createTable += ",";
+					else
+						createTable += ")";
+			      }
+			}
+		}
+		log.info("Generated create table statement, returning");
+		return createTable;
+	}
+	
 	public Parquet getParquetData(String filePath) throws Exception {
 	      List<SimpleGroup> simpleGroups = new ArrayList<>();
 	      Path path = new Path(filePath);
@@ -74,7 +129,6 @@ public class ParquetReaderClient {
 	      conf.set("fs.s3a.endpoint", minioBaseUri);
 	      conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem");
 	      conf.setBoolean("fs.s3a.path.style.access", true);
-//	      conf.setBoolean(org.apache.parquet.avro.AvroReadSupport.READ_INT96_AS_FIXED, true);
 	      InputFile file = HadoopInputFile.fromPath(path, conf);
 	      log.info("Hadoop inputstream has successfully connected to minio and read file at path {}", filePath);
 	      ParquetFileReader reader = ParquetFileReader.open(file);
