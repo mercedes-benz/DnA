@@ -81,9 +81,7 @@ public class TrinioServiceImpl implements TrinioService {
 		GenericMessage message = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		
 		Parquet tempParquet = new Parquet();
-		
 		String newRandFolder = UUID.randomUUID().toString();
 		String newPathPrefix = "";
 		String fileName = "";
@@ -103,14 +101,14 @@ public class TrinioServiceImpl implements TrinioService {
 			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
 		try {
 			minioConfig.moveObject(sourceBucketName, parquetObjectPath, sourceBucketName, newParquetObjectPath);
-			log.info("Parquet file copied from {} to {} successfully",sourceBucketName+"/"+parquetObjectPath, newParquetObjectPath );
+			log.info("Parquet file moved from {} to {} successfully",sourceBucketName+"/"+parquetObjectPath, newParquetObjectPath );
 		}catch(Exception e) {
 			MessageDescription copyException = new MessageDescription();
 			String copyExceptionMessage = e.getMessage();
 			copyException.setMessage(copyExceptionMessage);
 			errors.add(copyException);
-			message.setSuccess("Failed while copying parquet file to new location");
-			log.error("Failed while copying parquet file to new location, for given file at bucket {} and path {} . Exception is {}", 
+			message.setSuccess("Failed while moving parquet file to new location");
+			log.error("Failed while moving parquet file to new location, for given file at bucket {} and path {} . Exception is {}", 
 					sourceBucketName, parquetObjectPath, e.getMessage());
 			message.setErrors(errors);
 			responseVO.setData(dataVO);
@@ -158,9 +156,10 @@ public class TrinioServiceImpl implements TrinioService {
 		try {
 			if(createTableStatement!= null && !createTableStatement.isBlank() && !createTableStatement.isEmpty()) {
 				trinoClient.executeStatments(createTableStatement);
-				log.info("Successfully executed create table statement:  {}", createTableStatement);
+				log.info("Successfully executed create table statement");
 			}else {
 				log.info("Unable to generate create table statement for {}. Hence, didnt execute any create table statement.", trinoCatalog + "." + schemaName + "." + tableName);
+				throw new Exception("Failed to generate create table statement");
 			}
 		}catch(Exception e) {
 			try {
@@ -181,8 +180,8 @@ public class TrinioServiceImpl implements TrinioService {
 			String readExceptionMessage = e.getMessage();
 			readException.setMessage(readExceptionMessage);
 			errors.add(readException);
-			message.setSuccess("Failed while executing create table statement at trino, after schema creation");
-			log.error("Failed while executing create schema statement {} at trino, with exception {}", createSchemaStatement, e.getMessage());
+			message.setSuccess("Failed while executing create table statement at trino, after schema creation. Schema creation rolledback.");
+			log.error("Create schema rolledback. Failed while executing create schema statement {} at trino, with exception {}", createSchemaStatement, e.getMessage());
 			message.setErrors(errors);
 			responseVO.setData(dataVO);
 			responseVO.setMessage(message);
@@ -191,6 +190,7 @@ public class TrinioServiceImpl implements TrinioService {
 		
 		try {
 			List<TrinoQueryResponse> queries = trinoClient.queryIds();
+			log.info("Fetched all query ids from trino");
 			if(queries !=null && !queries.isEmpty()) {
 				Optional<TrinoQueryResponse> createSchemaResponseOptional = queries.stream().filter(n->createSchemaStatement.equalsIgnoreCase(n.getQuery())).findFirst();
 				if(createSchemaResponseOptional!=null && createSchemaResponseOptional.get()!= null && createSchemaResponseOptional.get().getQueryId()!=null) {
@@ -202,6 +202,7 @@ public class TrinioServiceImpl implements TrinioService {
 					schemaCreateSchemaResponse.setInfoUrl(createSchemaQueryInfoUrl);
 					schemaCreateSchemaResponse.setState(createSchemaResponse.getState());
 					dataVO.setCreateSchemaResult(schemaCreateSchemaResponse);
+					log.info("Found query id for create schema, id set to response");)
 				}
 				final String createTableStatementFinal = createTableStatement;
 				Optional<TrinoQueryResponse> createTableResponseOptional = queries.stream().filter(n->createTableStatementFinal.equalsIgnoreCase(n.getQuery())).findFirst();
@@ -214,6 +215,7 @@ public class TrinioServiceImpl implements TrinioService {
 					schemaCreateTableResponse.setInfoUrl(createTableQueryInfoUrl);
 					schemaCreateTableResponse.setState(createTableResponse.getState());
 					dataVO.setCreateTableResult(schemaCreateTableResponse);
+					log.info("Found query id for create table, id set to response");
 				}
 			}
 		}catch(Exception e) {
