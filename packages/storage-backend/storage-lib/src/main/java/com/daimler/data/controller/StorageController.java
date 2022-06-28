@@ -259,8 +259,9 @@ public class StorageController implements StorageApi {
 	@RequestMapping(value = "/buckets/{bucketName}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteBucket(
-			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName) {
-		return storageService.deleteBucket(bucketName);
+			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName,
+			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue="true") Boolean live) {
+		return storageService.deleteBucket(bucketName, live);
 	}
 
 	@Override
