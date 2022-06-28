@@ -168,7 +168,7 @@ const ReportsFilter = ({
               });
               queryParams.division = filterPreferences.divisions?.map((division: IDivisionFilterPreference) => {
                 division.subdivisions.forEach((subdivision: ISubDivisionSolution) => {
-                  subdivision.id = subdivision.id + '$-$' + division.id;
+                  subdivision.id = subdivision.id + '@-@' + division.id;
                   subdivision.division = division.id;
                   savedSubDivisionsList.push(subdivision);
                 });
@@ -317,7 +317,7 @@ const ReportsFilter = ({
         const subdivision: ISubDivisionSolution = { id: '0', name: null, division: null };
         subdivision.id = option.value;
         subdivision.name = option.textContent;
-        subdivision.division = option.value.split('$-$')[1];
+        subdivision.division = option.value.split('@-@')[1];
         selectedValues.push(subdivision);
         ids.push(option.value);
       });
@@ -418,10 +418,10 @@ const ReportsFilter = ({
       const tempArr: any[] = [];
       divisionFilterValues.forEach((item) => {
         const tempSubdiv = subDivisionFilterValues?.map((value: any) => {
-          const tempSubDivId = value.id.split('-')[1];
+          const tempSubDivId = value.id.split('@-@')[1];
           if (item.id === tempSubDivId) {
             const tempSubDivObj: IDivision = { id: '', name: '' };
-            tempSubDivObj.id = value.id.split('-')[0];
+            tempSubDivObj.id = value.id.split('@-@')[0];
             tempSubDivObj.name = value.name;
             return tempSubDivObj;
           }
