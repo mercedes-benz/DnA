@@ -518,7 +518,7 @@ airflow:
       name: airflow-backend-secrets
       dbPassword: airflow
       dbUsername: airflow
-      gitToken: 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 
+      gitToken: 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 
       jwtKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
       oidcClientID: 0oa5b1yg9kGa4sIvl5d7
       oidcClientSecret: 7VtOFzfl8WSwBuFMn_9I1eyAa68QHLpDhHD1p8IR
@@ -529,7 +529,7 @@ airflow:
     oidcIntrospectionUrl: https://dev-36980595.okta.com/oauth2/v1/introspect 
     oidcRevocationUrl: https://dev-36980595.okta.com/oauth2/v1/revoke 
     oidcDisabled: false
-    gitUrl: https://vardhandevalla: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@github.com/Vardhandevalla/airflow_dags.git
+    gitUrl: https://vardhandevalla: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@github.com/Vardhandevalla/airflow_dags.git
     gitMountPath: /git/airflow_dags
     #i deleted the airflow-user-dags to airflow_dags
     gitBranch: main
@@ -569,7 +569,7 @@ airflow:
   pullSecretData: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoiZG9ja2VycmVnaXN0cnlAMDEiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNlpHOWphMlZ5Y21WbmFYTjBjbmxBTURFPSJ9fX0=
   secret:
     gitUserName: vardhandevalla
-    gitPassword: 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
+    gitPassword: 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
     #gitSshKey: ""
     knownHosts: ""
     postgresql:
