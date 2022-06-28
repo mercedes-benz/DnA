@@ -242,7 +242,7 @@ const SolutionsFilter = ({
               });
               queryParams.division = filterPreferences.divisions.map((division: IDivisionFilterPreference) => {
                 division.subdivisions.forEach((subdivision: ISubDivisionSolution) => {
-                  subdivision.id = subdivision.id + '-' + division.id;
+                  subdivision.id = subdivision.id + '$-$' + division.id;
                   subdivision.division = division.id;
                   savedSubDivisionsList.push(subdivision);
                 });
@@ -423,7 +423,7 @@ const SolutionsFilter = ({
         const subdivision: ISubDivisionSolution = { id: '0', name: null, division: null };
         subdivision.id = option.value;
         subdivision.name = option.label;
-        subdivision.division = option.value.split('-')[1];
+        subdivision.division = option.value.split('$-$')[1];
         selectedValues.push(subdivision);
         ids.push(option.value);
       });
