@@ -704,8 +704,12 @@ export default class AllReports extends React.Component<
     let userId = '';
     if (report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-    } else if (userInfo?.divisionAdmins.includes(report?.description?.division?.name)) {
-      userId = userInfo.id;  
+    } else if (userInfo?.divisionAdmins) {
+      if(userInfo?.divisionAdmins.includes(report?.description?.division?.name)){
+        userId = userInfo.id;
+      } else {
+        userId = '';
+      }          
     }
     // else if (report.createdBy) {
     //   userId = report.createdBy.id;
