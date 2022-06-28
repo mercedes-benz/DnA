@@ -34,7 +34,7 @@ export const ConnectionModal = () => {
   const [selectedDataikuProjects, setSelectedDataikuProjects] = useState([]);
 
   const disableMakeConnectionBtn =
-    dataikuProjectList?.length > 0
+    !bucketInfo.accessInfo.permission?.write || dataikuProjectList?.length > 0
       ? connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
         (selectedDataikuProjects?.length
           ? dataikuProjectList
