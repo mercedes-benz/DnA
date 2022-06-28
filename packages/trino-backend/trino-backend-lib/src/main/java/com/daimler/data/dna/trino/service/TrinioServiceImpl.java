@@ -137,7 +137,7 @@ public class TrinioServiceImpl implements TrinioService {
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
-		String createSchemaStatement = createSchema + trinoCatalog + "." + schemaName;
+		String createSchemaStatement = createSchema + trinoCatalog + "." + schemaName + " WITH (location = '" + externalLocation + "')";
 		String dropSchemaStatement = dropSchema + trinoCatalog + "." + schemaName;
 		try {
 			trinoClient.executeStatments(createSchemaStatement);
