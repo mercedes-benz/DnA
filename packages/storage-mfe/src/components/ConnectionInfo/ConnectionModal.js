@@ -99,9 +99,11 @@ export const ConnectionModal = () => {
 
   useEffect(() => {
     // deserialize the response to show value in dropdown
-    const data = dataikuProjectList
-      ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
-      ?.map((item) => item.name);
+    const data = dataikuProjectList?.length
+      ? dataikuProjectList
+          ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
+          ?.map((item) => item.name)
+      : connect?.dataikuProjects;
     dispatch({
       type: 'CONNECTION_INFO',
       payload: {
@@ -216,6 +218,12 @@ y = pd.read_csv(y_file_obj)`}
           enableCustomValue={false}
           suggestionPopupHeight={120}
           isDisabled={!bucketInfo.accessInfo.permission?.write}
+        />
+      ) : connect?.dataikuProjects?.length ? (
+        <Tags
+          title={`Dataiku project(s) linked to the bucket. You don't have projects to make new connection.`}
+          chips={connect?.dataikuProjects}
+          isDisabled={true}
         />
       ) : (
         <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
