@@ -994,7 +994,7 @@ const FileExplorer = () => {
       <Modal
         title={publishRes.modal ? 'Published Details' : 'Publish to Trino'}
         ahiddenTitle={true}
-        acceptButtonTitle={publishRes.modal ? 'Ok' : 'Confirm'}
+        acceptButtonTitle={publishRes.modal ? 'OK' : 'Confirm'}
         cancelButtonTitle="Cancel"
         showAcceptButton={true}
         showCancelButton={publishRes.modal ? false : true}
