@@ -109,6 +109,12 @@ const FileExplorer = () => {
   });
   const [publishSchemaError, setPublishSchemaError] = useState('');
   const [publishTableError, setPublishTableError] = useState('');
+  const [publishRes, setPublishRes] = useState({
+    modal: false,
+    data: {},
+    schemaName: '',
+    tableName: '',
+  });
 
   const currentFolderIdRef = useRef(currentFolderId);
   const uploadRef = useRef(null);
@@ -621,7 +627,58 @@ const FileExplorer = () => {
     });
   };
 
-  const publishContent = (
+  const publishContent = publishRes?.modal ? (
+    <div className={Styles.publishDetails}>
+      <div>
+        <label>Schema - {publishRes.schemaName}</label>
+        <table>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>{publishRes?.data?.createSchemaResult?.id}</td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td>
+                <a href={publishRes?.data.createSchemaResult?.infoUrl} target="_blank" rel="noopener noreferrer">
+                  {`${publishRes?.data.createSchemaResult?.infoUrl} `}
+                  <i className={'icon mbc-icon new-tab'} />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>State</td>
+              <td>{publishRes?.data.createSchemaResult?.state}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <label>Table - {publishRes.tableName}</label>
+        <table>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>{publishRes?.data?.createTableResult?.id}</td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td>
+                <a href={publishRes?.data?.createTableResult?.infoUrl} target="_blank" rel="noopener noreferrer">
+                  {`${publishRes?.data?.createTableResult?.infoUrl} `}
+                  <i className={'icon mbc-icon new-tab'} />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>State</td>
+              <td>{publishRes?.data?.createTableResult?.state}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ) : (
     <div className={Styles.flexLayout}>
       <div className={classNames('input-field-group', publishSchemaError?.length ? 'error' : '')}>
         <label className={classNames('input-label', Styles.pwdLabel)}>
@@ -670,10 +727,14 @@ const FileExplorer = () => {
     setPublishModal({ modal: false, data: {}, schemaName: '', tableName: '' });
     setPublishSchemaError('');
     setPublishTableError('');
+    setPublishRes({ modal: false, data: {} });
   };
 
   const publishAccept = () => {
-    if (publishFieldValidation()) {
+    const publishDetailsModal = publishRes.modal;
+    if (publishDetailsModal) {
+      setPublishRes({ modal: false, data: {} });
+    } else if (publishFieldValidation()) {
       const objectPath = getFilePath(folderChain);
 
       const selectedFiles = publishModal.data.state.selectedFiles[0];
@@ -683,7 +744,7 @@ const FileExplorer = () => {
       ProgressIndicator.show();
       bucketsObjectApi
         .publishToTrino(bucketName, filePath, publishModal.schemaName, publishModal.tableName)
-        .then(() => {
+        .then((res) => {
           Notification.show(`${selectedFileName} published successfully.`);
           const copyselectedFiles = { ...selectedFiles };
           const lastIndexOfSlash = copyselectedFiles.objectName.lastIndexOf('/');
@@ -700,6 +761,12 @@ const FileExplorer = () => {
             copyselectedFiles.parentId = files.fileMap[currentFolderId].parentId;
             copyselectedFiles.isDir = true;
           }
+          setPublishRes({
+            modal: true,
+            data: res?.data?.data,
+            schemaName: publishModal.schemaName,
+            tableName: publishModal.tableName,
+          });
           dispatch(getFiles(files.fileMap, bucketName, copyselectedFiles));
         })
         .catch((e) => {
@@ -925,13 +992,13 @@ const FileExplorer = () => {
         onAccept={deleteAccept}
       />
       <Modal
-        title={'Publish to Trino'}
+        title={publishRes.modal ? 'Published Details' : 'Publish to Trino'}
         ahiddenTitle={true}
-        acceptButtonTitle="Confirm"
+        acceptButtonTitle={publishRes.modal ? 'Ok' : 'Confirm'}
         cancelButtonTitle="Cancel"
         showAcceptButton={true}
-        showCancelButton={true}
-        show={publishModal.modal}
+        showCancelButton={publishRes.modal ? false : true}
+        show={publishModal.modal || publishRes.modal}
         content={publishContent}
         onCancel={publishClose}
         onAccept={publishAccept}
