@@ -71,7 +71,7 @@ public class TrinioServiceImpl implements TrinioService {
 	private ParquetReaderClient parquetReader;
 	
 	private static String createSchema = "CREATE SCHEMA IF NOT EXISTS ";
-	private static String dropSchema = "DROP SCHEMA IF NOT EXISTS ";
+	private static String dropSchema = "DROP SCHEMA IF EXISTS ";
 	private static String createTable = "CREATE TABLE IF NOT EXISTS ";
 	
 	@Override
@@ -96,9 +96,11 @@ public class TrinioServiceImpl implements TrinioService {
 		}
 		String newParquetObjectPath = "";
 		if(newPathPrefix!=null && !"".equalsIgnoreCase(newPathPrefix) && newPathPrefix.contains("/"))
-			newParquetObjectPath = "/" + newPathPrefix +  "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
+			newParquetObjectPath = "/" + newPathPrefix +  "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName;
 		else
-			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
+			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName;
+		final String externalLocation = "s3a://"+sourceBucketName+newParquetObjectPath;
+		newParquetObjectPath = newParquetObjectPath +"/" + fileName;
 		try {
 			minioConfig.moveObject(sourceBucketName, parquetObjectPath, sourceBucketName, newParquetObjectPath);
 			log.info("Parquet file moved from {} to {} successfully",sourceBucketName+"/"+parquetObjectPath, newParquetObjectPath );
@@ -135,7 +137,7 @@ public class TrinioServiceImpl implements TrinioService {
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
-		String createSchemaStatement = createSchema + trinoCatalog + "." + schemaName;
+		String createSchemaStatement = createSchema + trinoCatalog + "." + schemaName + " WITH (location = '" + externalLocation + "')";
 		String dropSchemaStatement = dropSchema + trinoCatalog + "." + schemaName;
 		try {
 			trinoClient.executeStatments(createSchemaStatement);
@@ -155,6 +157,7 @@ public class TrinioServiceImpl implements TrinioService {
 		
 		try {
 			if(createTableStatement!= null && !createTableStatement.isBlank() && !createTableStatement.isEmpty()) {
+				createTableStatement += " WITH ( format='PARQUET', external_location = '" +  externalLocation + "')";
 				trinoClient.executeStatments(createTableStatement);
 				log.info("Successfully executed create table statement");
 			}else {
@@ -170,7 +173,7 @@ public class TrinioServiceImpl implements TrinioService {
 				readException.setMessage(readExceptionMessage);
 				errors.add(readException);
 				message.setSuccess("Failed while executing create table statement at trino, after schema creation. Revert created schema failed");
-				log.error("Failed while executing create table statement {} at trino. Revert created schema failed with exception {}", createSchemaStatement, ex.getMessage());
+				log.error("Failed while executing drop schema statement {} at trino. Revert created schema failed with exception {}", dropSchemaStatement, ex.getMessage());
 				message.setErrors(errors);
 				responseVO.setData(dataVO);
 				responseVO.setMessage(message);
@@ -181,7 +184,7 @@ public class TrinioServiceImpl implements TrinioService {
 			readException.setMessage(readExceptionMessage);
 			errors.add(readException);
 			message.setSuccess("Failed while executing create table statement at trino, after schema creation. Schema creation rolledback.");
-			log.error("Create schema rolledback. Failed while executing create schema statement {} at trino, with exception {}", createSchemaStatement, e.getMessage());
+			log.error("Failed while executing create table statement {} at trino, with exception {}. Create schema rolledback. ", createTableStatement, e.getMessage());
 			message.setErrors(errors);
 			responseVO.setData(dataVO);
 			responseVO.setMessage(message);
