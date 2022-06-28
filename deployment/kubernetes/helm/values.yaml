@@ -348,6 +348,7 @@ naas:
         naas_centraldelte_topic: CentralDeleteTopic
         loggingPath: /tmp/naas/log
         loggingEnvironment: dev
+        corsOriginUrl: http://*
     # resources:
     #   requests:
     #     memory: "512Mi"
