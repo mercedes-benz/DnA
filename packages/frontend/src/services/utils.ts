@@ -209,7 +209,7 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
     const emptySubDivId = 'EMPTY';
     distinctSelectedDivisions.forEach((item) => {
       const tempSubdiv = subDivisions.map((value) => {
-        const tempArray = value.split('-');
+        const tempArray = value.split('$-$');
         const subDivId = tempArray[0];
         if (subDivId === emptySubDivId) {
           hasEmpty = true;
