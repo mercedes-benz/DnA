@@ -126,7 +126,7 @@ public interface StorageService {
 	 * @param bucketName
 	 * @return ResponseEntity<GenericMessage>
 	 */
-	public ResponseEntity<GenericMessage> deleteBucket(String bucketName);
+	public ResponseEntity<GenericMessage> deleteBucket(String bucketName, Boolean live);
 	
 	/**
 	 * To update bucket along with collaborator
