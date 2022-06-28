@@ -970,12 +970,8 @@ export default class AllSolutions extends React.Component<
       userId = solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (solution?.createdBy?.id === userInfo.id) {
       userId = solution.createdBy.id;
-    } else if (userInfo?.divisionAdmins) {
-      if(userInfo?.divisionAdmins.includes(solution?.division?.name)){
-      userId = userInfo.id;
-      } else {
-        userId = '';
-      }       
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(solution?.division?.name)) {
+      userId = userInfo.id;    
     } else {
       userId = '';
     }
