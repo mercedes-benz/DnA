@@ -69,7 +69,7 @@ export const serializeAllObjects = (data, bucketName) => {
       modDate: child.lastModified,
       ...(child.isDir
         ? isPublishedParquetFolder(child.name)
-          ? { color: '#6f42c1' }
+          ? { color: '#135592' }
           : { color: '#697582' }
         : { color: '#acb8c4' }),
 
@@ -121,7 +121,7 @@ export const serializeObjects = (data, fileToOpen) => {
       isDir: child.isDir,
       ...(child.isDir
         ? isPublishedParquetFolder(child.name)
-          ? { color: '#6f42c1' }
+          ? { color: '#135592' }
           : { color: '#697582' }
         : { color: '#acb8c4' }),
       ...child,

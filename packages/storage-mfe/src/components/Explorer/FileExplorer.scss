@@ -69,6 +69,25 @@
   }
 }
 
+.publishDetails {
+  color: #acb8c4;
+  margin: 35px 35px 0;
+  overflow-y: auto;
+  label {
+    font-weight: bold;
+  }
+  tr > td {
+    padding-right: 15px;
+    &:last-child::before {
+      content: ":";
+      margin-right: 5px;
+    }
+  }
+  i {
+    font-size: var(--font-size-icon-small);
+  }
+}
+
 :global {
   #storagePreview {
     margin-top: 20px;

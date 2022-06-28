@@ -34,10 +34,15 @@ export const ConnectionModal = () => {
   const [selectedDataikuProjects, setSelectedDataikuProjects] = useState([]);
 
   const disableMakeConnectionBtn =
-    connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
-    (selectedDataikuProjects?.length
-      ? selectedDataikuProjects?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
-      : true);
+    dataikuProjectList?.length > 0
+      ? connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
+        (selectedDataikuProjects?.length
+          ? dataikuProjectList
+              ?.filter((item) => selectedDataikuProjects.indexOf(item.projectKey) > -1)
+              ?.map((item) => item.name)
+              ?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
+          : true)
+      : true;
 
   const { pathname } = useLocation();
   const isCreatePage = pathname === '/createBucket';
