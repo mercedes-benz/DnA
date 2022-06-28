@@ -1291,3 +1291,7 @@ model-registry:
 #subChart properties for trinoBackend
 trinoBackend:
   enabled: true
+
+#Redis Sub Chart
+redis:
+  enabled: true
