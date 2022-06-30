@@ -118,6 +118,7 @@ const FileExplorer = () => {
 
   const currentFolderIdRef = useRef(currentFolderId);
   const uploadRef = useRef(null);
+  const folderUploadRef = useRef(null);
   const inputRef = useRef(null);
   const pwdInputRef = useRef(null);
 
@@ -448,6 +449,8 @@ const FileExplorer = () => {
       setShowCreateNewFolderModal(true);
     } else if (data.id === ChonkyActions.UploadFiles.id) {
       uploadRef.current.click();
+    } else if (data.id === CustomActions.UploadFolder.id) {
+      folderUploadRef.current.click();
     } else if (data.id === ChonkyActions.DeleteFiles.id) {
       const isPublishedParquetFolder = /(PublishedParquet)/i.test(currentFolderId);
       if (isPublishedParquetFolder) {
@@ -885,6 +888,12 @@ const FileExplorer = () => {
         </div>
         <div className={'explorer-content'}>
           <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
+          <FileUpload
+            uploadRef={folderUploadRef}
+            bucketName={bucketName}
+            folderChain={folderChain}
+            enableFolderUpload={true}
+          />
           <FullFileBrowser
             files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
             fileActions={fileActions}
