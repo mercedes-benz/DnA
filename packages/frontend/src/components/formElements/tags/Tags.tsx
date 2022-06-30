@@ -19,6 +19,7 @@ export interface ITagsFieldProps {
   enableCustomValue?: boolean;
   suggestionPopupHeight?: number;
   isDisabled?: boolean;
+  removeTag?: (index: number) => void;
 }
 
 export interface ITagsFiledState {
@@ -309,7 +310,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const chips = this.state.chips;
     if (index >= 0) {
       chips.splice(index, 1);
-      this.props.setTags(chips);
+      if (this.props.removeTag !== undefined) {
+        this.props.removeTag(index);
+      } else {
+        this.props.setTags(chips);
+      }
       this.setState({
         chips,
         filteredTags: [],
