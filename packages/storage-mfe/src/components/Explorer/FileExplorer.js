@@ -52,7 +52,7 @@ import 'ace-builds/src-noconflict/mode-kotlin';
 import 'ace-builds/src-noconflict/mode-golang';
 
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
-import { getFilePath, serializeFolderChain } from './Utils';
+import { getFilePath, serializeFolderChain, setObjectKey } from './Utils';
 import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
 import { history } from '../../store/storeRoot';
 
@@ -770,7 +770,11 @@ const FileExplorer = () => {
             schemaName: publishModal.schemaName,
             tableName: publishModal.tableName,
           });
-          dispatch(getFiles(files.fileMap, bucketName, copyselectedFiles));
+          // remove selected parquet file as it will be moved to published parquet folder
+          const newFileMap = { ...files.fileMap };
+          delete newFileMap[setObjectKey(filePath)];
+
+          dispatch(getFiles(newFileMap, bucketName, copyselectedFiles));
         })
         .catch((e) => {
           const errorMsg = e.response.data.message.errors?.map((item) => `${item.message}`).join(';');
