@@ -2,15 +2,15 @@ import { defineFileAction } from 'chonky';
 
 // Define custom file actions for the explorer
 
-// export const UploadFolder = defineFileAction({
-//   id: 'upload_folder',
-//   button: {
-//     name: 'Upload folder',
-//     toolbar: true,
-//     tooltip: 'Upload folder',
-//     icon: 'upload',
-//   },
-// });
+const UploadFolder = defineFileAction({
+  id: 'upload_folder',
+  button: {
+    name: 'Upload folder',
+    toolbar: true,
+    tooltip: 'Upload folder',
+    icon: 'upload',
+  },
+});
 
 const PublishFolder = defineFileAction({
   id: 'publish_folder',
@@ -28,4 +28,5 @@ const PublishFolder = defineFileAction({
 
 export const CustomActions = {
   PublishFolder,
+  UploadFolder,
 };
