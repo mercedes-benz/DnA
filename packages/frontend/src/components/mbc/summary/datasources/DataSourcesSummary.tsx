@@ -59,7 +59,7 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
             const lastIndex: boolean = index === this.props.datasources.dataSources.length - 1;
             return (
               <React.Fragment key={index}>
-                {chip}&nbsp;{!lastIndex && `\u002F\xa0`}
+                {chip.dataSource} ({chip.weightage}%) &nbsp;{!lastIndex && `\u002F\xa0`}
               </React.Fragment>
             );
           })
