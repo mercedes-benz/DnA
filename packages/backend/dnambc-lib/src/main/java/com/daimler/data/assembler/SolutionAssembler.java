@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -101,6 +102,7 @@ import com.daimler.data.dto.solution.CostFactorSummaryVO;
 import com.daimler.data.dto.solution.CostFactorVO;
 import com.daimler.data.dto.solution.CostRampUpYearVO;
 import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.DataSourceSummaryVO;
 import com.daimler.data.dto.solution.LinkVO;
 import com.daimler.data.dto.solution.LogoDetailsVO;
 import com.daimler.data.dto.solution.MilestoneVO;
@@ -276,8 +278,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			SolutionDataSourceVO datasourcesVO = new SolutionDataSourceVO();
 			List<SolutionDatasource> datasources = solution.getDataSources();
 			if (datasources != null && !datasources.isEmpty()) {
-				List<String> datasourceNames = datasources.stream().map(n -> n.getName()).collect(Collectors.toList());
-				datasourcesVO.setDataSources(datasourceNames);
+				List<DataSourceSummaryVO> datasourcesSummary = datasources.stream().map(n -> toDataSourceSummaryVO(n))
+						.toList();
+				datasourcesVO.setDataSources(datasourcesSummary);
 			}
 			SolutionDataVolume dataVolume = solution.getTotalDataVolume();
 			DataVolumeVO dataVolumeVO = new DataVolumeVO();
@@ -594,6 +597,20 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	}
 
 	/*
+	 * To convert SolutionDatasource to DataSourceSummaryVO
+	 */
+	private DataSourceSummaryVO toDataSourceSummaryVO(SolutionDatasource solutionDatasource) {
+		DataSourceSummaryVO dataSourceSummaryVO = null;
+		if (solutionDatasource != null) {
+			dataSourceSummaryVO = new DataSourceSummaryVO();
+			dataSourceSummaryVO.setDataSource(solutionDatasource.getName());
+			dataSourceSummaryVO.setWeightage(
+					solutionDatasource.getWeightage() != null ? solutionDatasource.getWeightage() : BigDecimal.ZERO);
+		}
+		return dataSourceSummaryVO;
+	}
+	
+	/*
 	 * To convert SkillSummary to SkillSummaryVO
 	 * 
 	 */
@@ -896,14 +913,12 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			List<SolutionDatasource> datasources = new ArrayList<>();
 			SolutionDataVolume totalDataVolume = new SolutionDataVolume();
 			if (dataSourcesVO != null) {
-				List<String> datasourcesNames = dataSourcesVO.getDataSources();
-				if (datasourcesNames != null && !datasourcesNames.isEmpty()) {
-					datasources = datasourcesNames.stream().map(n -> {
-						SolutionDatasource dataSource = new SolutionDatasource();
-						dataSource.setName(n);
-						return dataSource;
-					}).collect(Collectors.toList());
-				}
+				List<DataSourceSummaryVO > datasourcesNames = dataSourcesVO.getDataSources();
+				Optional.ofNullable(datasourcesNames).ifPresent(l -> l.forEach(dataSourceSummaryVO -> {
+					SolutionDatasource solutionDatasource = new SolutionDatasource();
+					solutionDatasource = this.toSolutionDatasource(dataSourceSummaryVO);
+					datasources.add(solutionDatasource);
+				}));
 				DataVolumeVO dataVolumeVO = dataSourcesVO.getDataVolume();
 				if (dataVolumeVO != null)
 					BeanUtils.copyProperties(dataVolumeVO, totalDataVolume);
@@ -1152,6 +1167,19 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 		return entity;
 	}
 
+	/*
+	 * To convert 
+	 */
+	private SolutionDatasource toSolutionDatasource(DataSourceSummaryVO vo) {
+		SolutionDatasource solutionDatasource = null;
+		if (vo != null) {
+			solutionDatasource = new SolutionDatasource();
+			solutionDatasource.setName(vo.getDataSource());
+			solutionDatasource.setWeightage(vo.getWeightage());
+		}
+		return solutionDatasource;
+	}
+	
 	/*
 	 * Converting SkillSummaryVO to SkillSummary (vo to entity)
 	 */
