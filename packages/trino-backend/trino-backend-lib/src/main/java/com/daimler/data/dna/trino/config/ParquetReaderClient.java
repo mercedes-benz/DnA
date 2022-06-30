@@ -140,16 +140,6 @@ public class ParquetReaderClient {
 	      MessageType schema = reader.getFooter().getFileMetaData().getSchema();
 	      List<ColumnDescriptor> columns = schema.getColumns();
 	      List<Type> fields = schema.getFields();
-	      PageReadStore pages;
-	      while ((pages = reader.readNextRowGroup()) != null) {
-	          long rows = pages.getRowCount();
-	          MessageColumnIO columnIO = new ColumnIOFactory().getColumnIO(schema);
-	          RecordReader recordReader = columnIO.getRecordReader(pages, new GroupRecordConverter(schema));
-	          for (int i = 0; i < rows; i++) {
-	              SimpleGroup simpleGroup = (SimpleGroup) recordReader.read();
-	              simpleGroups.add(simpleGroup);
-	          }
-	      }
 	      reader.close();
 	      log.info("returning parquet object with fields and columns info after reading {}",filePath);
 	      return new Parquet(simpleGroups, fields, columns);
