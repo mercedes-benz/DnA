@@ -40,8 +40,15 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
       Authorization: sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT),
     },
     action: `${baseURL}/buckets/${bucketName}/upload`,
-    data: {
-      prefix: folderChain.length === 1 ? '/' : objectPath,
+    data: (file) => {
+      const relativeFilePath = file.webkitRelativePath;
+      const relativeFilePathIndex = relativeFilePath.lastIndexOf('/');
+      const folderPath = relativeFilePath.substring(0, relativeFilePathIndex);
+      return {
+        ...(!enableFolderUpload
+          ? { prefix: folderChain.length === 1 ? '/' : objectPath }
+          : { prefix: folderChain.length === 1 ? folderPath : objectPath + folderPath }),
+      };
     },
     method: 'POST',
     onStart: () => {
@@ -54,26 +61,36 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
     },
     beforeUpload: (file) => {
       let isValid = true;
-
-      // nested folder
-      if (objectPath) {
-        const objectName = objectPath.replaceAll('/', '');
-        const key = objectName + setObjectKey(file.name);
-        // check whether the file already exists
-        if (Object.prototype.hasOwnProperty.call(files.fileMap, key)) {
-          Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
+      // Folder upload
+      if (enableFolderUpload) {
+        if (file.name === '.DS_Store') {
           isValid = false;
+        } else if (/(publishedparquet|published parquet)/gi.test(file.webkitRelativePath)) {
+          isValid = false;
+          Notification.show('Folder name containing "Published Parquet" text is not allowed.', 'alert');
         }
       } else {
-        // root folder
-        Object.entries(files.fileMap).find(([, objVal]) => {
-          // check whether the file name already exists in root
-          if (objVal.name === file.name) {
+        // file Upload
+        // nested folder
+        if (objectPath) {
+          const objectName = objectPath.replaceAll('/', '');
+          const key = objectName + setObjectKey(file.name);
+          // check whether the file already exists
+          if (Object.prototype.hasOwnProperty.call(files.fileMap, key)) {
             Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
             isValid = false;
-            return false;
           }
-        });
+        } else {
+          // root folder
+          Object.entries(files.fileMap).find(([, objVal]) => {
+            // check whether the file name already exists in root
+            if (objVal.name === file.name) {
+              Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
+              isValid = false;
+              return false;
+            }
+          });
+        }
       }
       return isValid;
     },
