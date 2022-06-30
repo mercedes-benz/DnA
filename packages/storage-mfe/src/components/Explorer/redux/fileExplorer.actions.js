@@ -218,7 +218,7 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
       type: 'SET_ACTION_BUTTONS',
       payload: [
         ...(bucketPermission.write && !publishedParquetFolder ? [ChonkyActions.UploadFiles] : []),
-        // ...(bucketPermission.write ? [UploadFolder] : []),
+        ...(bucketPermission.write && !publishedParquetFolder ? [CustomActions.UploadFolder] : []),
         ...(bucketPermission.write && !publishedParquetFolder ? [ChonkyActions.CreateFolder] : []),
         ChonkyActions.DownloadFiles,
         ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
