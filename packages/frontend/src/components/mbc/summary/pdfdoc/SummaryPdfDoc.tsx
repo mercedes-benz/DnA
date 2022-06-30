@@ -282,6 +282,11 @@ const processDataValues = (values: any[]) => {
   return <Text>{dataValues}</Text>;
 };
 
+const processDataSourceValues = (values: any[]) => {
+  const stringValsArr = values.map((item: any) => item.dataSource + ' (' + item.weightage + '%)');
+  return processDataValues(stringValsArr);
+};
+
 const processDataValuesFromObj = (values: any[]) => {
   const stringValsArr = values.map((item: any) => item.name);
   return processDataValues(stringValsArr);
@@ -859,7 +864,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Data Sources</Text>
                     {props.solution.dataSources.dataSources && props.solution.dataSources.dataSources.length > 0 ? (
-                      processDataValues(props.solution.dataSources.dataSources)
+                      processDataSourceValues(props.solution.dataSources.dataSources)
                     ) : (
                       <Text>NA</Text>
                     )}
