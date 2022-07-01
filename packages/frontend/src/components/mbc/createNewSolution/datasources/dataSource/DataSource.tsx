@@ -44,7 +44,7 @@ const DataSource = (props: IDataSourceProps) => {
               className={Styles.horizontalSlider}
               thumbClassName="thumb"
               trackClassName="track"
-              value={sliderValue}
+              value={isNaN(sliderValue) ? 0 : sliderValue}
               onChange={(val:any) => handleSliderValueChange(val)}
               renderThumb={(props: any, state:any) => <div {...props}><div className={Styles.thumbContainer}><div className={Styles.thumb}></div> <div className={Styles.thumbValue}>{state.valueNow}%</div></div></div>}
             />
