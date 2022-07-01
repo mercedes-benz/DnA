@@ -155,5 +155,24 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 		}
 		return userRoles;
 	}
+	
+	/*
+	 * To set existing data if key user data is missing in new request payload
+	 */
+	public void setCurrentUserData(UserInfoVO currentUserData, UserInfoVO newUserData) {
+		if (currentUserData != null) {
+			newUserData.setDepartment(StringUtils.hasText(newUserData.getDepartment()) ? newUserData.getDepartment()
+					: currentUserData.getDepartment());
+			newUserData.setEmail(
+					StringUtils.hasText(newUserData.getEmail()) ? newUserData.getEmail() : currentUserData.getEmail());
+			newUserData
+					.setMobileNumber(StringUtils.hasText(newUserData.getMobileNumber()) ? newUserData.getMobileNumber()
+							: currentUserData.getMobileNumber());
+			newUserData.setFirstName(StringUtils.hasText(newUserData.getFirstName()) ? newUserData.getFirstName()
+					: currentUserData.getFirstName());
+			newUserData.setLastName(StringUtils.hasText(newUserData.getLastName()) ? newUserData.getLastName()
+					: currentUserData.getLastName());
+		}
+	}
 
 }
