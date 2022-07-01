@@ -175,7 +175,11 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
 
   public handleWeightageChange = (index:number) => (val:number) => {
     const dataSources = [...this.state.dataSources];
-    dataSources[index].weightage = val;
+    if(isNaN(val)) {
+      dataSources[index].weightage = 0;
+    } else {
+      dataSources[index].weightage = val;
+    }
     const total = dataSources.map(ds => ds.weightage).reduce((current, next) => current + next);
     this.setState({
       dataSources,
