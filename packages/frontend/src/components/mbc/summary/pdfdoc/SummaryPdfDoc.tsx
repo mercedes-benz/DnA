@@ -283,7 +283,7 @@ const processDataValues = (values: any[]) => {
 };
 
 const processDataSourceValues = (values: any[]) => {
-  const stringValsArr = values.map((item: any) => item.dataSource + ' (' + item.weightage + '%)');
+  const stringValsArr = values.map((item: any) => item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
   return processDataValues(stringValsArr);
 };
 
