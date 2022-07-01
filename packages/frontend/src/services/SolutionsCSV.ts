@@ -373,7 +373,7 @@ export const sanitize = (text: string) => {
 };
 
 export const setDataSources = (dataSources: IDataSources[]) => {
-  const stringValsArr = dataSources.map((item: any) => item.dataSource + ' (' + item.weightage + '%)');
+  const stringValsArr = dataSources.map((item: any) => item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
   const dataValues = stringValsArr.join(', ');
   return dataValues;
 };
