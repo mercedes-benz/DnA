@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "dna-mbc",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "main": "index.js",
   "workspaces": [
     "packages/*"
@@ -16,6 +16,7 @@
     "start:web+backend": "concurrently \"yarn start:backend\" \"yarn start:airflow_backend\" \"yarn start:dashboard_backend\" \"yarn start:web\" ",
 	  "start:airflow_backend": "cd packages/airflow-backend && ./gradlew bootRun",
     "start:web": "cd packages/frontend && yarn start",
+    "start:storage-mfe": "cd packages/storage-mfe && yarn start",
     "start:legacy": "cd packages/frontend && yarn start:legacy",
     "start:backend": "cd packages/backend && ./gradlew bootRun",
     "start:db+swagger": "cd deployment && docker-compose -f docker-compose-local-db+swagger.yml up -d",
