@@ -19,7 +19,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { Envs } from '../Utility/envs';
 
-const CreateBucket = () => {
+const CreateBucket = ({ user }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { connect } = useSelector((state) => state.connectionInfo);
@@ -229,9 +229,15 @@ const CreateBucket = () => {
     duplicateMember = bucketCollaborators.filter((member) => member.accesskey === collaborators.shortId)?.length
       ? true
       : false;
+    const isCreator = id ? createdBy.id === collaborators.shortId : user.id === collaborators.shortId;
 
     if (duplicateMember) {
       Notification.show('Collaborator Already Exist.', 'warning');
+    } else if (isCreator) {
+      Notification.show(
+        `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
+        'warning',
+      );
     } else {
       bucketCollaborators.push(collabarationData);
       setBucketCollaborators([...bucketCollaborators]);
