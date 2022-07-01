@@ -22,6 +22,12 @@ const DataSource = (props: IDataSourceProps) => {
     setSliderValue(parseInt(e.target.value));
   }
 
+  const handleKeyDown = (e: any) => {
+    if (e.key === "." || e.key === ",") {
+      e.preventDefault();
+    }
+  };
+
   useEffect(() => {
     props.onWeightageChange(sliderValue);
   }, [sliderValue]);
@@ -49,6 +55,7 @@ const DataSource = (props: IDataSourceProps) => {
                 placeholder="%"
                 value={sliderValue}
                 onChange={(e:any) => handleInputChange(e)}
+                onKeyDown={handleKeyDown}
               />
           </div>
         </div>
