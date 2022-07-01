@@ -271,7 +271,7 @@ const SolutionsFilter = ({
             }
             userPreferenceDataId = userPreference.id;
           }
-
+          sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           Button.defaultSetup();
