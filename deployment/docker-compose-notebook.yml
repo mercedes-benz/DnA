@@ -1,13 +1,13 @@
 version: "3.5"
 services:
   pyspark-notebook-base:
-    image: pyspark-notebook-base:latest
+    image: vardhandevalla/pyspark-notebook-base:vokta.dev
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-base.Dockerfile
 
   pyspark-notebook-default:
-    image: ${IMAGE_DEFAULT_NOTEBOOK:-pyspark-notebook-default}
+    image: ${IMAGE_DEFAULT_NOTEBOOK:-vardhandevalla/pyspark-notebook-default:vokta.dev}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-default.Dockerfile
@@ -15,23 +15,23 @@ services:
       - pyspark-notebook-base
    
   pyspark-notebook-tensorflow:
-    image: ${IMAGE_TENSORFLOW_NOTEBOOK:-pyspark-notebook-tensorflow}
+    image: ${IMAGE_TENSORFLOW_NOTEBOOK:-vardhandevalla/pyspark-notebook-tensorflow:vokta.dev}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-tensorflow.Dockerfile
       args:
-        defaultimage: ${IMAGE_DEFAULT_NOTEBOOK:-pyspark-notebook-default}
+        defaultimage: ${IMAGE_DEFAULT_NOTEBOOK:-vardhandevalla/pyspark-notebook-default:vokta.dev}
     depends_on:
       - pyspark-notebook-default
   
   result-configurable-httpproxy:
-    image: ${IMAGE_RESULT_CONFIGPROXY:-configurable-http-proxy}
+    image: ${IMAGE_RESULT_CONFIGPROXY:-vardhandevalla/configurable-http-proxy:vokta.dev}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/configurableHttpProxy.Dockerfile
 
   result-hub:
-    image: ${IMAGE_RESULT_HUB:-jupyterhub}
+    image: ${IMAGE_RESULT_HUB:-vardhandevalla/jupyterhub:vokta.dev}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/jupyterhub.Dockerfile
