@@ -206,6 +206,12 @@ paths:
        description: "Bucket name which need to be deleted." 
        required: true
        type: string
+     - name: live
+       in: query
+       description: "If requested data from live(Production) or training dataiku environment" 
+       required: false
+       type: boolean
+       default: true       
     responses:
      200:
       description: "Returns message of succes or failure"
@@ -554,7 +560,7 @@ paths:
    parameters:
     - name: live
       in: query
-      description: "If requested data from live(Production) or training environment" 
+      description: "If requested data from live(Production) or training dataiku environment" 
       required: false
       type: boolean
       default: true 

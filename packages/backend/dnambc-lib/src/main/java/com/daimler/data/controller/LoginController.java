@@ -254,8 +254,12 @@ public class LoginController {
 					ObjectMapper mapper = new ObjectMapper();
 					List roles = (List) claims.get("digiRole");
 					String role = null;
+					List<String> divisions = (List<String>) claims.get("divisionAdmins");
+					String divisionAdmins = null;
 					try {
 						role = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(roles.toArray())
+								.replaceAll("\n", "");
+						divisionAdmins = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(divisions)
 								.replaceAll("\n", "");
 					} catch (JsonProcessingException e) {
 						return new ResponseEntity<String>("{\"errmsg\": \"Error Parsing JWT!\"}",
@@ -265,8 +269,8 @@ public class LoginController {
 							+ "\",\"loggedIn\":\"Y\",\"data\":{\"roles\":" + role + ",\"department\":\""
 							+ claims.get("department") + "\",\"eMail\":\"" + claims.get("email") + "\",\"firstName\":\""
 							+ claims.get("firstName") + "\",\"lastName\":\"" + claims.get("lastName") + "\",\"id\":\""
-							+ claims.get("id") + "\",\"mobileNumber\":\"" + claims.get("mobileNumber") + "\"}}",
-							HttpStatus.OK);
+							+ claims.get("id") + "\",\"mobileNumber\":\"" + claims.get("mobileNumber")
+							+ "\",\"divisionAdmins\":" + divisionAdmins + "}}", HttpStatus.OK);
 				} else {
 					return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
 				}
@@ -375,6 +379,7 @@ public class LoginController {
 				existingRoles.addAll(userRoles);
 				userInfo.setDigiRole(existingRoles);
 			}
+			userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
 			return userInfo;
 		} catch (IOException e) {
 			log.error(e.getMessage());
@@ -422,6 +427,7 @@ public class LoginController {
 				existingRoles.addAll(userRoles);
 				userInfo.setDigiRole(existingRoles);
 			}
+			userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
 			return userInfo;
 		} catch (IOException e) {
 			log.error(e.getMessage());
@@ -521,6 +527,7 @@ public class LoginController {
 		private String mobileNumber;
 		private String department;
 		private List<UserRole> digiRole;
+		private List<String> divisionAdmins;
 
 		private String sub;
 		private boolean email_verified;

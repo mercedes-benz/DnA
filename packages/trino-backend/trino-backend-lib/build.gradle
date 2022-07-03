@@ -95,7 +95,7 @@ sourceSets {
 
 dependencies {
 	
-	implementation group: 'io.trino', name: 'trino-jdbc', version: '386'
+	implementation group: 'io.trino', name: 'trino-jdbc', version: '387'
 	
 	implementation group: 'org.apache.parquet', name: 'parquet-avro', version: '1.12.2'
 	implementation group: 'org.apache.hadoop', name: 'hadoop-common', version: '3.3.1'

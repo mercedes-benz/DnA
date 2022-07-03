@@ -34,10 +34,15 @@ export const ConnectionModal = () => {
   const [selectedDataikuProjects, setSelectedDataikuProjects] = useState([]);
 
   const disableMakeConnectionBtn =
-    connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
-    (selectedDataikuProjects?.length
-      ? selectedDataikuProjects?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
-      : true);
+    !bucketInfo.accessInfo.permission?.write || dataikuProjectList?.length > 0
+      ? connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
+        (selectedDataikuProjects?.length
+          ? dataikuProjectList
+              ?.filter((item) => selectedDataikuProjects.indexOf(item.projectKey) > -1)
+              ?.map((item) => item.name)
+              ?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
+          : true)
+      : true;
 
   const { pathname } = useLocation();
   const isCreatePage = pathname === '/createBucket';
@@ -94,9 +99,11 @@ export const ConnectionModal = () => {
 
   useEffect(() => {
     // deserialize the response to show value in dropdown
-    const data = dataikuProjectList
-      ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
-      ?.map((item) => item.name);
+    const data = dataikuProjectList?.length
+      ? dataikuProjectList
+          ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
+          ?.map((item) => item.name)
+      : connect?.dataikuProjects;
     dispatch({
       type: 'CONNECTION_INFO',
       payload: {
@@ -176,6 +183,7 @@ export const ConnectionModal = () => {
   const connectToJupyter = (
     <code>
       {`from minio import Minio
+import pandas as pd
 MINIO_BUCKET = "${bucketInfo.bucketName}"
 minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=False)
 y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
@@ -210,6 +218,12 @@ y = pd.read_csv(y_file_obj)`}
           enableCustomValue={false}
           suggestionPopupHeight={120}
           isDisabled={!bucketInfo.accessInfo.permission?.write}
+        />
+      ) : connect?.dataikuProjects?.length ? (
+        <Tags
+          title={`Dataiku project(s) linked to the bucket. You don't have projects to make new connection.`}
+          chips={connect?.dataikuProjects}
+          isDisabled={true}
         />
       ) : (
         <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>

@@ -35,6 +35,9 @@ import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
+import io.minio.Result;
+import io.minio.messages.DeleteError;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -63,15 +66,19 @@ public class MinioConfig {
 		}
 	}
 
-	public void copyObject(String sourceBucket, String objectPath, String destinationBucket, String newFilePath) throws Exception
+	public void moveObject(String sourceBucket, String objectPath, String destinationBucket, String newFilePath) throws Exception
 	{
 		MinioClient minioClient = this.getMinioClient(minioBaseUri, minioAccessKey, minioSecretKey);
 		 if(!minioClient.bucketExists(BucketExistsArgs.builder().bucket(destinationBucket).build())) {
 			    minioClient.makeBucket(MakeBucketArgs.builder().bucket(destinationBucket).build());
 			  }
-		 CopySource source = CopySource.builder().bucket(sourceBucket).object(objectPath).build();
-		 CopyObjectArgs copyArgs = CopyObjectArgs.builder().source(source).bucket(destinationBucket).object(newFilePath).build();
+		CopySource source = CopySource.builder().bucket(sourceBucket).object(objectPath).build();
+		CopyObjectArgs copyArgs = CopyObjectArgs.builder().source(source).bucket(destinationBucket).object(newFilePath).build();
 		minioClient.copyObject(copyArgs);
+		log.info("Successfully copied object to {} from {}", destinationBucket+"/"+newFilePath , sourceBucket+"/"+objectPath);
+		minioClient.removeObject(RemoveObjectArgs.builder().bucket(sourceBucket).object(objectPath).build());
+		log.info("Successfully removed object from {}, after copy", sourceBucket+"/"+objectPath);
+
 	}
 
 

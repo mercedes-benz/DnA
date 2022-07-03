@@ -211,13 +211,15 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
   return async (dispatch) => {
     const hasParquetFile =
       bucketObjects.filter((item) => item.objectName.toLowerCase()?.split('.')?.[1] === 'parquet')?.length > 0;
+    const publishedParquetFolder =
+      bucketObjects?.filter((item) => !item.isDir && /(PublishedParquet)/i.test(item.objectName))?.length > 0;
 
     dispatch({
       type: 'SET_ACTION_BUTTONS',
       payload: [
-        ...(bucketPermission.write ? [ChonkyActions.UploadFiles] : []),
-        // ...(bucketPermission.write ? [UploadFolder] : []),
-        ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
+        ...(bucketPermission.write && !publishedParquetFolder ? [ChonkyActions.UploadFiles] : []),
+        ...(bucketPermission.write && !publishedParquetFolder ? [CustomActions.UploadFolder] : []),
+        ...(bucketPermission.write && !publishedParquetFolder ? [ChonkyActions.CreateFolder] : []),
         ChonkyActions.DownloadFiles,
         ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
         ...(bucketPermission.write && showPublish && hasParquetFile ? [CustomActions.PublishFolder] : []),

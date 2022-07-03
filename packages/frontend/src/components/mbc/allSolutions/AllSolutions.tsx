@@ -968,8 +968,10 @@ export default class AllSolutions extends React.Component<
     let userId = '';
     if (solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-    } else if (solution.createdBy) {
+    } else if (solution?.createdBy?.id === userInfo.id) {
       userId = solution.createdBy.id;
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(solution?.division?.name)) {
+      userId = userInfo.id;    
     } else {
       userId = '';
     }
