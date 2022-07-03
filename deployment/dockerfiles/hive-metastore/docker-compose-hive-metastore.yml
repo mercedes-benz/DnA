@@ -1,7 +1,7 @@
 version: "2.1"
 services:
   hive-metastore:
-    image: ${HIVE_METASTORE_IMAGE:-hive_metastore}
+    image: ${HIVE_METASTORE_IMAGE:-vardhadevalla/hive_metastore:vokta.dev}
     container_name: hive-metastore
     build:
       #context: ./dockerfiles/hive-metastore/Dockerfile

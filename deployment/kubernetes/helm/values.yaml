@@ -87,7 +87,7 @@ frontend:
       
   appFrontend:
     replicaCount: 1
-    image: vardhandevalla/okta-app-frontend-pi2:v2.0
+    image: vardhandevalla/dna-app-frontend:vokta.dev
     ngnix:
       backend: http://dna-service.dna.svc.cluster.local:80
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
@@ -115,7 +115,7 @@ backend:
     backend:
       replicaCount: 1
       
-      image: vardhandevalla/okta-devapp-backend-pi2:latest
+      image: vardhandevalla/dna-app-backend:vokta.dev
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
@@ -239,7 +239,7 @@ clamav:
   app:
     backend:
       name: clamav-rest
-      image: vardhandevalla/okta-devmalware-backend-pi2:latest
+      image: vardhandevalla/malware-backend:vokta.dev
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -326,7 +326,7 @@ naas:
   namespace: naas
   app:
     backend:
-      image: vardhandevalla/okta-devnaas-backend-pi2:latest
+      image: vardhandevalla/naas-backend:vokta.dev
       secrets:
         name: naas-app-secrets
         jwtKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
@@ -395,20 +395,20 @@ notebooks:
         kf_pipelines_endpoint: ""
 
     image:
-      name: vardhandevalla/jupyterhub-okta:okta1
+      name: vardhandevalla/jupyterhub:vokta.dev
       pullPolicy: Always
 
     profileListImages:
-      default: vardhandevalla/pyspark-notebook-default-okta:okta1
-      tensorflow: vardhandevalla/pyspark-notebook-tensorflow-okta:okta1
+      default: vardhandevalla/pyspark-notebook-default:vokta.dev
+      tensorflow: vardhandevalla/pyspark-notebook-tensorflow:vokta.dev
       chronos: ""
 
     proxy:
-      image: vardhandevalla/configurable-http-proxy-okta:okta1
+      image: vardhandevalla/configurable-http-proxy:vokta.dev
 
     hubConfig:
       name: hub-config
-      KubeSpawnerimage: vardhandevalla/pyspark-notebook-default-okta:okta1
+      KubeSpawnerimage: vardhandevalla/pyspark-notebook-default:vokta.dev
       serviceAccount: hub 
       securitycontext: HOST http://localhost:8080/* http://localhost:9001 https://dev-36980595.okta.com
       #BY default jupyter notebook will not have the okta authentication , we need to configure the generic oAuth authenticator
@@ -452,7 +452,7 @@ notebooks:
 dashboard:
   enabled: true
   namespace: dashboard
-  image: vardhandevalla/okta-devdashboard-backend-pi2:v3.0
+  image: vardhandevalla/dashboard-backend:vokta.dev
   imagePullSecret: 
     name: vddockerhub
   dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
@@ -511,7 +511,7 @@ airflow:
     name: vddockerhub
     key: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJ2YXJkaGFuZGV2YWxsYSIsInBhc3N3b3JkIjoiZG9ja2VycmVnaXN0cnlAMDEiLCJlbWFpbCI6InZhcmRoYW5kZXZhbGxhQGdtYWlsLmNvbSIsImF1dGgiOiJkbUZ5WkdoaGJtUmxkbUZzYkdFNlpHOWphMlZ5Y21WbmFYTjBjbmxBTURFPSJ9fX0= 
   backend:
-    image: vardhandevalla/airflow_backend-pi2:v4.0
+    image: vardhandevalla/airflow_backend:v1okta.dev
     imagePullPolicy: Always
     dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
@@ -668,8 +668,8 @@ airflow:
 
   docker:
     image:
-      name: vardhandevalla/airflow-service-pi2
-      tag: latest
+      name: vardhandevalla/airflow-frontend
+      tag: vokta.dev
 
   service:
     port: 8080
@@ -1181,10 +1181,10 @@ storagemfe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/okta-devstorage-frontend-pi2
+    repository: docker.io/vardhandevalla/storage-frontend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: latest
+    tag: vokta.dev
 
 
   imagePullSecrets:
@@ -1354,10 +1354,10 @@ storagebe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/okta-devstorage-backend-pi2
+    repository: docker.io/vardhandevalla/storage-backend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: latest
+    tag: vokta.dev
 
   imagePullSecrets:
     - name: vddockerhub

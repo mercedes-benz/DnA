@@ -1,7 +1,7 @@
 version: "2.1"
 services:
   trino:
-    image: ${TRINO_IMAGE:-trino_immuta}
+    image: ${TRINO_IMAGE:-vardhandevalla/trino:vokta.dev}
     container_name: trino
     build:
       #context: ./dockerfiles/trino/Dockerfile
