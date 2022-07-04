@@ -1,0 +1,516 @@
+##
+image:
+  repository: postgresql
+  tag: latest
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent
+
+## PostgreSQL replica count
+##
+replicaCount: 3
+
+printEnv: false
+
+## PostgreSQL connection settings - max connections
+## ref: https://www.postgresql.org/docs/current/runtime-config-connection.html#GUC-MAX-CONNECTIONS
+##
+pgconnectionconfig:
+  enabled: false
+  maxconnections: 100
+
+## PostgreSQL memory resource limits - shared buffers
+## ref: https://www.postgresql.org/docs/current/runtime-config-resource.html#GUC-SHARED-BUFFERS
+##
+pgmemoryresources:
+  enabled: false
+  sharedbuffers: 128MB
+
+## PostgreSQL parameter wal_level. Default wal_level is 'replica'. Use wal_level 'logical' with Debezium and Kafka.
+## ref: https://www.postgresql.org/docs/12/runtime-config-wal.html
+##
+pg_wal_level: replica
+#pg_wal_level: logical
+
+## Set to true to enable the pgAudit extension before initializing the DB
+## By default the pgAudit extension is inactive. Each application owner needs to make sure to be compliant with GDPR (DSGVO) before enabling the PGAudit feature.
+## Configure the pgAudit extension with 'parameters' below. ref: https://github.com/pgaudit/pgaudit#settings
+##
+pgaudit:
+  enabled: false
+
+## PostgreSQL config parameter map.
+## ref: https://www.postgresql.org/docs/current/config-setting.html
+##
+parameters:
+  max_wal_senders: 10
+  work_mem: 4MB
+#  pgaudit.log: 'write,ddl'
+
+## Set to true if you would enable SSL
+##
+SSL:
+  enabled: true
+  ## uncomment and set values when you bring yor own SSL certificate and key
+  # tlscrt: <Base64 encoded certificate>
+  # tlskey: <Base64 encoded key>
+
+## uncomment when your database client cannot authenticate with "SCRAM-SHA-256" by default
+# PGPWENCRYPT: "MD5"
+
+## more optional PostgreSQL configuration parameters. See docs/configuration/configuration-database.md for details.
+#
+# PGDBCREATEPARAMS: "ENCODING 'LATIN1'"
+# PGNETWORK: "0.0.0.0/0"
+# PGBACKUPHOST: "0.0.0.0/0"
+# PGHARDPROP: ""
+# PATRONIADDRESS: "0.0.0.0/0"
+# PGENABLECSVLOG: "on"
+# PGSYNCCOMMIT: "on"
+# PGSYNCSTANDBYNAMES: "*"
+# RECOVERY_TIMEOUT: "300"
+
+## Specify PGDATABASE
+##
+DBName: db
+
+## Configure S3 properties if S3 storage will be used
+##
+s3:
+  ## provided by s3 provider
+  accesskey: ""
+  ## provided by s3 provider
+  secretkey: ""
+  ## internally used
+  hostAlias: s3
+  ## url of the S3 endpoint
+  host: ""
+  ## use rclone client in insecure mode
+  ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
+  insecure: false
+  ## rclone client option for debug output to console
+  debug: false
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  enabled: false
+  ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
+  limits:
+    enabled: false
+    # cpu: 1.5
+    # memory: 1Gi
+  request:
+    enabled: false
+    # cpu: 1.2
+    # memory: 1Gi
+
+## Configure additional env variables
+env:
+#- name: USERPW
+#  valueFrom:
+#    secretKeyRef:
+#      name: my-postgres-postgresql-helm
+#      key: postgres.user.password
+
+## Configure WAL archiving
+## for point-in-time recovery WAL archiving must be enabled
+## for details on WAL archiving see https://www.postgresql.org/docs/10/continuous-archiving.html
+walArchiving:
+  enabled: false
+  # you have to choose the type of storage where the WAL files will be archived
+  # fs | s3
+  storage: fs
+  fs:
+    ## Configuration for FS
+    targetdir: /tmp/wal_archiving
+    volume:
+      ## if volume.enabled is true, a PersistentVolumeClaim will be created
+      ## if it is false, the WAL files will be archived to an emptyDir (makes only sense for testing)
+      enabled: false
+      accessModes:
+      - ReadWriteMany
+      size: 1Gi
+      storageClass: dhc-backup-nfs
+  s3:
+    ## Configuration for S3 storage
+    subfolder: postgresql-cluster
+    ## fill in the bucket name you have ordered!
+    bucketName: emeas3
+
+## Configure extra options for liveness and readiness probes
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 1
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+
+## Security context for mounted volumes and containers
+##
+## Pod Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
+## Use setgid: true and setuid: true on DHC CaaS and Kubernetes platform
+## Use setgid: false and setuid: false on OpenShift platforms
+securityContext:
+  setgid: true
+  setuid: true
+  runAsUser: 987
+  fsGroup: 987
+  runAsGroup: 987
+  fsGroupChangePolicy: "OnRootMismatch"
+
+## Set to false if you want to deploy credentials not within secret files
+##
+secrets:
+  enabled: true
+  # Set this to the name of the secret holding sensitive data. It must be created before PODs and must
+  # contain all configured key/value pairs. If not set, and enabled is set to true, a secret will be
+  # created from the data specified down below.
+  #externalSecretName: mySecret
+  # Set this to the name of the secret holding the decryption private key and its passphrase. It must
+  # be created before restore-job is ran. If not set, and enabled is set to true, a secret will be
+  # created from the data specified in the 'encryptBackupWal' snippet down below.
+  #externalGpgSecretName: mySecret-gpg-private
+
+## PostgreSQL database users
+## It is recommended to change the dbusers values to your own!
+##
+dbusers:
+  ## backup user, will be used for synchronizing between the cluster nodes and for backup
+  backup:
+    username: ""
+    password: ""
+  ## the database (not the instance) owner
+  dbadm:
+    username: ""
+    password: ""
+    createSchema:
+      # Usually this is required if you use an ORM and do not create the table via the initdb script
+      enabled: false
+      # name: customschema
+  ## technical user for postgresql monitoring
+  pgmon:
+    username: ""
+    password: ""
+  ## if a technical user for Debezium is needed, then set a password
+  ## otherwise no user for Debezium is created
+  debezium:
+    username: ""
+    password:
+  ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
+  ## otherwise no user for CORPORATE DATA CATALOG is created
+  dataCatalog:
+    password:
+
+## Enable PostgreSQL service
+##
+service:
+  enabled: true
+  ## Attention!
+  ## The service name has to be unique inside a namespace!
+  ## Otherwise there will be a clash of endpoint and the service will not work!
+  # name: postgres
+  port: 64000
+
+## PostgreSQL persistence layer
+## storageClassName: <storageClass>
+##
+persistence:
+  enabled: true
+  size: 1Gi
+  # storageClass: cinder
+  # PVCName: name
+  wal:
+    enabled: false
+    size: 1Gi
+    # storageClass: cinder
+    # PVCName: name
+
+## Network Policy to be applied
+## By default an ingress rule which allows the communication between all pods of this application, is already defined in templates/networkpolicies.yaml.
+## Additionally a namespaceSelector can be added
+##
+networkPolicy:
+  enabled: true
+  ## here you can define additional rules, e.g.:
+  #ingress:
+  #- from:
+  #  - podSelector:
+  #      matchLabels:
+  #        app: db
+
+## encryption of backup and WAL files
+##
+encryptBackupWal:
+  enabled: false
+  publicKey: # <Base64 encoded key>
+  keyId: # keyId or fingerprint
+
+## decryption of backup and WAL files
+##
+decryptBackupWal:
+  enabled: false
+  passphrase: # passphrase
+  privateKey: # <Base64 encoded key>
+
+## PostgreSQL backup configuration
+##
+backup:
+  enabled: false
+
+  ## the storage type, either fs or s3.
+  ## This is the target storage where the compressed backup archive file will be stored.
+  storage: fs
+  ## Configuration for FS
+  fs:
+    volume:
+      ## if true, an PersistentVolumeClaim will be created
+      ## else the backup will be written to an `emptyDir`
+      enabled: false
+      accessModes:
+      - ReadWriteMany
+      size: 1Gi
+      storageClass: dhc-backup-nfs
+  s3:
+    ## Configuration for S3 storage
+    # subfolder: postgresql-cluster
+    ## fill in the bucket name you have ordered!
+    bucketName: emeas3
+  ## general configuration for backup
+  schedule: "0 0 * * *"
+  retention: 5
+  ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
+  cleanupWalArchives: false
+  image:
+    repository: postgresql-backup
+    tag: 13.6-5.1.1-2022.6.15
+    pullPolicy: IfNotPresent
+  resources:
+    enabled: false
+    limits:
+      enabled: false
+      # cpu: 500m
+      # memory: 512Mi
+    request:
+      enabled: false
+      # cpu: 250m
+      # memory: 256Mi
+
+  ## this volume is a temporary used volume where the backup container stores the copy of the master.
+  ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
+  tempPgdataVolume:
+    ## recommended
+    enabled: true
+    size: 1Gi
+    # storageClass: cinder
+  file:
+    name: postgresql-backup
+    # label: test
+
+## PostgreSQL restore configuration
+##
+restore:
+  ## whether to create the restore job or not
+  createRestoreJob: false
+  ## whether to create the list backup job or not
+  createListBackupJob: false
+  ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
+  ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
+  #targetTime: 2020-12-31 23:59:59
+  # "latest" recovers to the latest timeline (poss. over different timelines) found in the WAL archive
+  targetTimeline: latest
+  ## "true" means that given recovery target time is inclusive, applies when recovery_target_time is set
+  targetInclusive: true
+  ## the kind of storage where the backups are stored
+  ## fs | s3
+  storage: fs
+  fs:
+    volume:
+      ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
+      enabled: true
+  s3:
+    # subfolder: postgresql-cluster
+    ## fill in the bucket name you have ordered!
+    bucketName: emeas3
+
+  ## Complete (including label) file name of backup file that has to be restored.
+  recoveryFile: postgresql-backup*.tar.gz
+  image:
+    repository: postgresql-backup
+    tag: 13.6-5.1.1-2022.6.15
+    pullPolicy: IfNotPresent
+  resources:
+    enabled: false
+    limits:
+      enabled: false
+      # cpu: 500m
+      # memory: 512Mi
+    request:
+      enabled: false
+      # cpu: 250m
+      # memory: 256Mi
+
+  ## false for dry-run
+  targetVolume:
+    enabled: true
+
+## initdb scripts
+## Specify a script to be run at first boot
+##
+initdbScripts:
+  enabled: false
+  name: init_db.sh
+  script: |-
+    ##!/bin/bash
+
+    # PREREQUISITE: EXISTING ENV variable 'USERPW' with your required db user password. For more information please refer to our documentation.
+
+    #psql <<INITSQL
+    #    CREATE ROLE i3user LOGIN ENCRYPTED PASSWORD '${USERPW}';
+    #    GRANT dai_db_connect to i3user;
+    #    GRANT dai_public_compat to i3user;
+    #    CREATE SCHEMA IF NOT EXISTS i3 AUTHORIZATION i3user;
+    #    ALTER ROLE i3user SET search_path to i3;
+    #INITSQL
+
+    #psql -U i3user <<INITSQL
+    #    CREATE TABLE person(
+    #      id serial PRIMARY KEY,
+    #      username VARCHAR (50) UNIQUE NOT NULL,
+    #      email VARCHAR (50)  UNIQUE NOT NULL
+    #    );
+    #INITSQL
+
+test:
+  enabled: true
+
+serviceAccount:
+  enabled: true
+
+endpoints:
+  enabled: true
+
+bypassApiService:
+  enabled: false
+
+createGlobalResources: false
+
+statefulSet:
+  enabled: true
+
+pgmonitoring:
+  enabled: true
+  image:
+    repository: postgres-exporter
+    tag: v0.10.1
+    pullPolicy: IfNotPresent
+  resources:
+    enabled: false
+    limits:
+      enabled: false
+      # cpu: 500m
+      # memory: 512Mi
+    request:
+      enabled: false
+      # cpu: 250m
+      # memory: 256Mi
+  queryMonitoring:
+    enabled: true
+  customQueries: {}
+  #  pg_replication:
+  #    query: "SELECT CASE WHEN pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() THEN 0 ELSE EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp()) END as lag"
+  #    metrics:
+  #      - lag:
+  #          usage: "GAUGE"
+  #          description: "Replication lag behind master in seconds"
+
+  dashboard:
+    # If you have a i3-monitoring installation running, you can enable here the deployment of a grafana dashboard
+    # to i3-monitoring via configmap
+    deploy: false
+    file:
+    - files/i3-postgres-exporter-dashboard.json
+    - files/i3-postgres-query-exporter-dashboard.json
+    i3-monitoring-namespace: i3-monitoring
+
+## Manually specify POD affinity. Overrides antiAffinity set down below.
+affinity: {}
+  #  # schedule all instances from the same release on a different node.
+  #  podAntiAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #      - labelSelector:
+  #          matchExpressions:
+  #            - key: app.kubernetes.io/component
+  #              operator: In
+  #              values:
+  #                - "postgresql-node"
+  #            - key: app.kubernetes.io/name
+  #              operator: In
+  #              values:
+  #                - postgresql-helm
+  #            - key: app.kubernetes.io/instance
+  #              operator: In
+  #              values:
+  #                - mypg-instance
+  #        topologyKey: "kubernetes.io/hostname"
+
+antiAffinity:
+  enabled: true
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+terminationGracePeriodSeconds: 300
+
+mountPGLibs:
+  enabled: false
+  pgVersion: "13.6"
+  image:
+    repository: postgresql
+    tag: 13.6-5.1.1-2022.6.15
+    pullPolicy: IfNotPresent
+  resources:
+    enabled: false
+    limits:
+      enabled: false
+      # cpu: 500m
+      # memory: 512Mi
+    request:
+      enabled: false
+      # cpu: 250m
+      # memory: 256Mi
+
+## Start master and slave(s) pod(s) without limitations on shm memory.
+## By default docker and containerd (and possibly other container runtimes)
+## limit `/dev/shm` to `64M` (see e.g. the
+## [docker issue](https://github.com/docker-library/postgres/issues/416) and the
+## [containerd issue](https://github.com/containerd/containerd/issues/3654),
+## which could be not enough if PostgreSQL uses parallel workers heavily.
+##
+shmVolume:
+  enabled: false
+
+## Load balancer config for CORPORATE DATA CATALOG
+## for details on CORPORATE DATA CATALOG integration see our [documentation](../../docs/operations/operations.md#corporate-data-catalog-integration)
+lb:
+  enabled: false
+  # ip:
+  port: 4400
+
+## define permanent replication slots. These slots will be preserved during switchover/failover
+slots:
