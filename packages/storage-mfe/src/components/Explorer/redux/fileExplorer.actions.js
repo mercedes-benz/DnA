@@ -214,6 +214,10 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
     const publishedParquetFolder =
       bucketObjects?.filter((item) => !item.isDir && /(PublishedParquet)/i.test(item.objectName))?.length > 0;
 
+    // disable download and delete options for Folders
+    ChonkyActions.DownloadFiles.fileFilter = (file) => file && !file.isDir;
+    ChonkyActions.DeleteFiles.fileFilter = (file) => file && !file.isDir;
+
     dispatch({
       type: 'SET_ACTION_BUTTONS',
       payload: [
