@@ -7,6 +7,7 @@ import { Envs } from '../../../globals/Envs';
 const Services = () => {
   const ENABLE_MALWARE_SCAN_SERVICE = Envs.ENABLE_MALWARE_SCAN_SERVICE;
   const enableDataPipelineService = Envs.ENABLE_DATA_PIPELINE_SERVICE;
+  const enableMyModelRegistryService = Envs.ENABLE_MY_MODEL_REGISTRY_SERVICE;
   const enableMLPipelineService = Envs.ENABLE_ML_PIPELINE_SERVICE;
   const enableStorageService = Envs.ENABLE_STORAGE_SERVICE;
   const MLPipelineUrl = enableMLPipelineService ? Envs.ML_PIPELINE_URL : '#/comingsoon';
@@ -19,7 +20,11 @@ const Services = () => {
     }
   };
   const modelRegistryNav = () => {
-    history.push('/modelregistry');
+    if (enableMyModelRegistryService) {
+      history.push('/modelregistry');
+    } else {
+      history.push('/comingsoon');
+    }
   };
   const pipelineNav = () => {
     if (enableDataPipelineService) {
@@ -96,7 +101,7 @@ const Services = () => {
             <div className={Styles.WorkspacesNavigation} onClick={modelRegistryNav}>
               <div className={Styles.WorkspacesNavigationVisual}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
-                <span> My Model Registry </span>
+                <span> My Model Registry {!enableMyModelRegistryService && <label> ( Coming Soon ) </label>} </span>
                 <span>
                   {' '}
                   <i className="icon mbc-icon arrow small right"></i>
