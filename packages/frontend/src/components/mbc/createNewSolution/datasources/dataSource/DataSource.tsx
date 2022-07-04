@@ -50,6 +50,7 @@ const DataSource = (props: IDataSourceProps) => {
             />
           </div>
           <div className={'input-field-group ' + Styles.inputContainer}>
+              {/* @ts-ignore */}
               <NumberFormat
                 className="input-field"
                 placeholder="%"
