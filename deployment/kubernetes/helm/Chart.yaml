@@ -12,10 +12,10 @@ dependencies:
   version: 0.1.0
   condition: backend.enabled
 
-- name: i3postgresql
-  repository: file://charts/i3postgresql
+- name: postgresql-helm
+  repository: file://charts/postgresql-helm
   version: 0.1.0
-  condition: i3postgresql.enabled
+  condition: postgresql-helm.enabled
 
 - name: bitnamipostgresql
   repository: file://charts/bitnami-postgresql
