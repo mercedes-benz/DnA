@@ -87,3 +87,4 @@ appFrontend:
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
     avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
+    clamav: http://clamav-rest-service.clamav.svc.cluster.local:8181
