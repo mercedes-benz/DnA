@@ -119,7 +119,9 @@ const Notifications = (props: any) => {
   };
 
   const markNotificationAsRead = (notificationIds: any, showMessage = true) => {
-    ProgressIndicator.show();
+    if (showMessage) {
+      ProgressIndicator.show();
+    }
     NotificationApiClient.markAsReadNotifications(notificationIds, props.user.id)
       .then((response) => {
         setMessage('UPDATE_NOTIFICATIONS');
@@ -129,8 +131,10 @@ const Notifications = (props: any) => {
         }
       })
       .catch((err) => {
-        showErrorNotification('Something went wrong');
-        ProgressIndicator.hide();
+        if (showMessage) {
+          showErrorNotification('Something went wrong');
+          ProgressIndicator.hide();
+        }
       });
   };
 
