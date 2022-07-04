@@ -26,7 +26,37 @@ const PublishFolder = defineFileAction({
     selectedList?.length === 1 && file && file.name.toLowerCase()?.split('.')?.[1] === 'parquet',
 });
 
+// disable download and delete options for Folders
+const DownloadFiles = defineFileAction({
+  id: 'download_files',
+  requiresSelection: true,
+  button: {
+    name: 'Download files',
+    toolbar: true,
+    contextMenu: true,
+    group: 'Actions',
+    icon: 'download',
+  },
+  fileFilter: (file) => file && !file.isDir,
+});
+
+const DeleteFiles = defineFileAction({
+  id: 'delete_files',
+  requiresSelection: true,
+  hotkeys: ['delete'],
+  button: {
+    name: 'Delete files',
+    toolbar: true,
+    contextMenu: true,
+    group: 'Actions',
+    icon: 'trash',
+  },
+  fileFilter: (file) => file && !file.isDir,
+});
+
 export const CustomActions = {
   PublishFolder,
   UploadFolder,
+  DownloadFiles,
+  DeleteFiles,
 };
