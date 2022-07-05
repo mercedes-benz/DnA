@@ -248,15 +248,17 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
 
   protected onDataSourcesSubmit = () => {
     let isZero = false;
-    this.state.dataSources.map(dataSource => {
-      if(dataSource.weightage === 0) {
-        isZero = true;
-      }
-    });
+    if(this.state.dataSources.length > 0) {
+      this.state.dataSources.map(dataSource => {
+        if(dataSource.weightage === 0) {
+          isZero = true;
+        }
+      });
+    }
 
     if(isZero) {
       Notification.show("Data source weightage can't be 0. Please remove it or set the weightage.", 'alert');
-    } else if(this.state.totalWeightage === 100) {
+    } else if(this.state.totalWeightage === 100 || this.state.dataSources.length === 0) {
       const dataSourcesInSolution = this.props.dataSource.dataSources;
       this.props.modifyDataSources({
         dataSources: dataSourcesInSolution ? dataSourcesInSolution : this.state.dataSources,
