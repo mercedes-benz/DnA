@@ -19,11 +19,15 @@ const DataSource = (props: IDataSourceProps) => {
   }
 
   const handleInputChange = (e: any) => {
-    setSliderValue(parseInt(e.target.value));
+    if(parseInt(e.target.value) > 100) {
+      setSliderValue(100);
+    } else {
+      setSliderValue(parseInt(e.target.value));
+    }
   }
 
   const handleKeyDown = (e: any) => {
-    if (e.key === "." || e.key === ",") {
+    if (e.key === "." || e.key === "," || e.key === "-") {
       e.preventDefault();
     }
   };
@@ -52,8 +56,9 @@ const DataSource = (props: IDataSourceProps) => {
           <div className={'input-field-group ' + Styles.inputContainer}>
               {/* @ts-ignore */}
               <NumberFormat
-                className="input-field"
+                className={'input-field'}
                 placeholder="%"
+                maxLength={3}
                 value={sliderValue}
                 onChange={(e:any) => handleInputChange(e)}
                 onKeyDown={handleKeyDown}
