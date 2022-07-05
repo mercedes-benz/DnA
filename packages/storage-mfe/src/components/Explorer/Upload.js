@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Upload from 'rc-upload';
 
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -13,6 +13,8 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
   const dispatch = useDispatch();
   const { files } = useSelector((state) => state.fileExplorer);
 
+  const [fileListInFolder, setFolderFiles] = useState([]);
+
   const objectPath = getFilePath(folderChain);
 
   const onSuccess = (response, uploadFile) => {
@@ -24,7 +26,15 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
       parentId: currentFolder?.parentId,
     };
 
-    Notification.show(`${uploadFile.name} uploaded successfully.`);
+    if (enableFolderUpload) {
+      const finalFile = fileListInFolder[fileListInFolder.length - 1]?.webkitRelativePath; // last file uploaded
+      const folderName = uploadFile.webkitRelativePath?.split('/')[0];
+      if (finalFile === uploadFile.webkitRelativePath) {
+        Notification.show(`${folderName} uploaded successfully.`);
+      }
+    } else {
+      Notification.show(`${uploadFile.name} uploaded successfully.`);
+    }
 
     dispatch(getFiles(files.fileMap, bucketName, folderId));
   };
@@ -59,22 +69,52 @@ const FileUpload = ({ uploadRef, bucketName, folderChain, enableFolderUpload = f
     onProgress(step) {
       ProgressIndicator.show(Math.round(step.percent));
     },
-    beforeUpload: (file) => {
+    beforeUpload: (file, fileList) => {
       let isValid = true;
+      setFolderFiles(fileList);
       // Folder upload
       if (enableFolderUpload) {
+        let nestedFolder = false;
+        const folderName = file.webkitRelativePath?.split('/')[0];
+        const finalFilePath = fileList[fileList.length - 1].webkitRelativePath; // last file uploaded
+        const isLastFileUploaded = finalFilePath === file.webkitRelativePath;
+
+        if (objectPath) {
+          const objectName = objectPath.replaceAll('/', '');
+          const key = setObjectKey(objectName + folderName);
+
+          // check whether the file already exists
+          if (Object.prototype.hasOwnProperty.call(files.fileMap, key)) {
+            if (isLastFileUploaded) Notification.show(`Folder not uploaded. ${folderName} already exists`, 'alert');
+            nestedFolder = true;
+            isValid = false;
+          }
+        } else {
+          Object.keys(files.fileMap).find((item) => {
+            const key = setObjectKey(folderName);
+            if (item === key) {
+              if (isLastFileUploaded) Notification.show(`Folder not uploaded. ${folderName} already exists`, 'alert');
+              nestedFolder = true;
+              isValid = false;
+              return false;
+            }
+          });
+        }
         if (file.name === '.DS_Store') {
           isValid = false;
-        } else if (/(publishedparquet|published parquet)/gi.test(file.webkitRelativePath)) {
+        } else if (!nestedFolder && /(publishedparquet|published parquet)/gi.test(file.webkitRelativePath)) {
           isValid = false;
-          Notification.show('Folder name containing "Published Parquet" text is not allowed.', 'alert');
+          Notification.show(
+            `Folder name containing "Published Parquet" text is not allowed.\n${file.webkitRelativePath}`,
+            'alert',
+          );
         }
       } else {
         // file Upload
         // nested folder
         if (objectPath) {
           const objectName = objectPath.replaceAll('/', '');
-          const key = objectName + setObjectKey(file.name);
+          const key = setObjectKey(objectName + file.name);
           // check whether the file already exists
           if (Object.prototype.hasOwnProperty.call(files.fileMap, key)) {
             Notification.show(`File not uploaded. ${file.name} already exists`, 'alert');
