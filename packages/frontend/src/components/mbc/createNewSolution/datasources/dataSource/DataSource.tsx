@@ -27,7 +27,7 @@ const DataSource = (props: IDataSourceProps) => {
   }
 
   const handleKeyDown = (e: any) => {
-    if (e.key === "." || e.key === ",") {
+    if (e.key === "." || e.key === "," || e.key === "-") {
       e.preventDefault();
     }
   };
