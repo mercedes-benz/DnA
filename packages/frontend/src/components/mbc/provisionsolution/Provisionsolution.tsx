@@ -378,8 +378,8 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
             strategicRelevancesList,
           },
           () => {
-            ProgressIndicator.hide();
             SelectBox.defaultSetup();
+            ProgressIndicator.hide();
           },
         );
       }
