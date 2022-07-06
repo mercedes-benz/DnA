@@ -93,7 +93,7 @@ public class ParquetReaderClient {
 			case "BINARY" : return "VARBINARY";
 			case "FLOAT" : return "REAL";
 			case "DOUBLE" : return "DOUBLE";
-			case "INT96" : return "BIGINT";
+			case "INT96" : return "TIMESTAMP";
 			case "FIXED_LEN_BYTE_ARRAY" : return "ARRAY";
 			default : return "VARCHAR";
 			}
