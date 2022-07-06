@@ -33,8 +33,10 @@ spec:
           image: {{ .Values.backend.image }}
           imagePullPolicy: Always
           env:
-            - name: AUTH_SERVER_URI
+            - name: DNA_URI
               value: {{ .Values.backend.apiUrl }}
+            - name: DNA_AUTH_ENABLE
+              value: {{ .Values.backend.dnaAuthEnable | quote }}              
             - name: OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
