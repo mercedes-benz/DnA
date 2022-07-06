@@ -25,6 +25,7 @@ backend:
   containerPort: 7171
   crossOriginUrl: ""
   apiUrl: ""
+  dnaAuthEnable: true
   oidcInfoUrl: "" 
   oidcIntrospectionUrl: "" 
   oidcRevocationUrl: "" 
