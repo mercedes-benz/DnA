@@ -848,7 +848,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 			if ("Solution_delete".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Deleted";
-				message = "Solution " + solutionName + " is delete by user " + userName;
+				message = "Solution " + solutionName + " is deleted by user " + userName;
 				LOGGER.info("Publishing message on solution delete for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_update".equalsIgnoreCase(eventType)) {
