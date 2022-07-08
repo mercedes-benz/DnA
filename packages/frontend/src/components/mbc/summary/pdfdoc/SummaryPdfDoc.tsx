@@ -786,7 +786,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                               )}{' '}
                               by{' '}
                               {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
-                                (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.ownerDisplayName)}
+                                (props.dnaDataIkuProjectEnabled && (props.dataIkuInfo.ownerDisplayName || props.dataIkuInfo.ownerLogin))}
                             </Text>
                             <Text>
                               {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
