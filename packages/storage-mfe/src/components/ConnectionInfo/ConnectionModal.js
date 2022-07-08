@@ -215,7 +215,7 @@ y = pd.read_csv(y_file_obj)`}
           )}
           isMandatory={false}
           showMissingEntryError={false}
-          enableCustomValue={false}
+          disableOnBlurAdd={true}
           suggestionPopupHeight={120}
           isDisabled={!bucketInfo.accessInfo.permission?.write}
         />
