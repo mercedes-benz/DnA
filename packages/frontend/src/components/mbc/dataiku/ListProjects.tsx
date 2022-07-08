@@ -219,7 +219,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
                 Owner Name
               </label>
               <br />
-              {this.state.projectData.ownerDisplayName ? this.state.projectData.ownerDisplayName : '-NA-'}
+              {this.state.projectData.ownerDisplayName ? this.state.projectData.ownerDisplayName : (this.state.projectData.ownerLogin || '-NA-')}
             </div>
             <br />
             <br />
