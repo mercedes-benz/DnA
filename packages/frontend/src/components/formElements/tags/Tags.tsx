@@ -16,7 +16,7 @@ export interface ITagsFieldProps {
   fixedChips?: string[];
   enableUppercase?: boolean;
   suggestionRender?: (tag: any) => React.ReactNode;
-  enableCustomValue?: boolean;
+  disableOnBlurAdd?: boolean;
   suggestionPopupHeight?: number;
   isDisabled?: boolean;
   removeTag?: (index: number) => void;
@@ -171,7 +171,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
-    if (this.props.enableCustomValue) {
+    if (!this.props.disableOnBlurAdd) {
       if (target.value) {
         this.updateChips(target.value);
       }
