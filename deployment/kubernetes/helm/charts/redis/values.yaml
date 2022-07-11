@@ -32,7 +32,7 @@ kubeVersion: ""
 nameOverride: ""
 ## @param fullnameOverride String to fully override common.names.fullname
 ##
-fullnameOverride: ""
+fullnameOverride: "redis"
 ## @param commonLabels Labels to add to all deployed objects
 ##
 commonLabels: {}
