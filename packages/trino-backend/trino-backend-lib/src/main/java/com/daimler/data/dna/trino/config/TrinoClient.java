@@ -139,14 +139,15 @@ public class TrinoClient {
 		properties.setProperty("password", trinoPassword);
 		properties.setProperty("SSL", trinoSSL);
 		properties.setProperty("SSLVerification", trinoSSLVerification);
+		String sql = "";
 		try {
 			Connection connection = DriverManager.getConnection(url, properties);
 			Statement statement = connection.createStatement();
-		    String sql = statementString; 
+		    sql = statementString; 
 		    statement.executeUpdate(sql);
 		    log.info("Executed statement: {} successfully",sql);
 		}catch(Exception e) {
-			log.error("Failed while executing statement using trino jdbc with exception {}",e.getMessage());
+			log.error("Failed while executing statement {} using trino jdbc with exception {}",sql, e.getMessage());
 			throw e;
 		}
 		
