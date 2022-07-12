@@ -40,6 +40,7 @@ type SolutionsFilterType = {
   getValuesFromFilter?: Function;
   solutionsDataLoaded: boolean;
   setSolutionsDataLoaded: Function;
+  showSolutionsFilter?: boolean;
 };
 
 /**
@@ -49,6 +50,7 @@ type SolutionsFilterType = {
  * @param {Function} getValuesFromFilter callback function to get access to all the filter values, that can be used in the main page
  * @param {boolean} solutionsDataLoaded solutions data loaded
  * @param {Function} setSolutionsDataLoaded setter for solutions data loaded
+ * @param {boolean} showSolutionsFilter filter should be visible or not
  * @returns
  */
 
@@ -59,6 +61,7 @@ const SolutionsFilter = ({
   getValuesFromFilter,
   solutionsDataLoaded,
   setSolutionsDataLoaded,
+  showSolutionsFilter,
 }: SolutionsFilterType) => {
   const { pathname } = useLocation();
   const [openFilterPanel, setFilterPanel] = useState(false);
@@ -806,7 +809,7 @@ const SolutionsFilter = ({
           </div>
         </div>
       </div>
-      <div className={`${Styles.triggerWrapper} triggerWrapper`}>
+      <div className={classNames(`${Styles.triggerWrapper} triggerWrapper`, showSolutionsFilter ? '' : 'hidden')}>
         <span
           className={classNames(Styles.iconTrigger, openFilterPanel ? Styles.active : '')}
           onClick={onFilterIconClick}
