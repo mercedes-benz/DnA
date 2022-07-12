@@ -71,7 +71,7 @@ public class TrinioServiceImpl implements TrinioService {
 	private ParquetReaderClient parquetReader;
 	
 	private static String createSchema = "CREATE SCHEMA IF NOT EXISTS ";
-	private static String dropSchema = "DROP SCHEMA IF NOT EXISTS ";
+	private static String dropSchema = "DROP SCHEMA IF EXISTS ";
 	private static String createTable = "CREATE TABLE IF NOT EXISTS ";
 	
 	@Override
@@ -96,15 +96,38 @@ public class TrinioServiceImpl implements TrinioService {
 		}
 		String newParquetObjectPath = "";
 		if(newPathPrefix!=null && !"".equalsIgnoreCase(newPathPrefix) && newPathPrefix.contains("/"))
-			newParquetObjectPath = "/" + newPathPrefix +  "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
+			newParquetObjectPath = "/" + newPathPrefix +  "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName;
 		else
-			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName +"/" + fileName;
+			newParquetObjectPath = "/" + "PublishedParquet-" + newRandFolder + "-" + schemaName + "." + tableName;
+		final String externalLocation = "s3a://"+sourceBucketName+newParquetObjectPath;
+		newParquetObjectPath = newParquetObjectPath +"/" + fileName;
+		String s3aFormatParquetPath = "s3a://"+sourceBucketName+newParquetObjectPath;
+		String createTableStatement = createTable + trinoCatalog + "." + schemaName + "." + tableName + " (";	
+		try {
+			tempParquet = parquetReader.getParquetData("s3a://"+sourceBucketName+"/"+parquetObjectPath);
+			createTableStatement = parquetReader.getCreateTableStatement(tempParquet, createTableStatement);
+			log.info("Successfully read parquet file at location {}",s3aFormatParquetPath);
+		}catch(Exception e) {
+			MessageDescription readParquetException = new MessageDescription();
+			String readParquetExceptionMessage = "Error while reading parquet file, Please upload a valid parquet file with proper schema";
+					//e.getMessage();
+			readParquetException.setMessage(readParquetExceptionMessage);
+			errors.add(readParquetException);
+			message.setSuccess("Failed while reading parquet file.");
+			log.error("Failed while reading parquet file at location {} with exception {}", s3aFormatParquetPath, e.getMessage());
+			message.setErrors(errors);
+			responseVO.setData(dataVO);
+			responseVO.setMessage(message);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
 		try {
 			minioConfig.moveObject(sourceBucketName, parquetObjectPath, sourceBucketName, newParquetObjectPath);
 			log.info("Parquet file moved from {} to {} successfully",sourceBucketName+"/"+parquetObjectPath, newParquetObjectPath );
 		}catch(Exception e) {
 			MessageDescription copyException = new MessageDescription();
-			String copyExceptionMessage = e.getMessage();
+			String copyExceptionMessage = "Error while moving parquet file to new auto generated folder";
+					//e.getMessage();
 			copyException.setMessage(copyExceptionMessage);
 			errors.add(copyException);
 			message.setSuccess("Failed while moving parquet file to new location");
@@ -115,36 +138,18 @@ public class TrinioServiceImpl implements TrinioService {
 			responseVO.setMessage(message);
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
-		String s3aFormatParquetPath = "s3a://"+sourceBucketName+newParquetObjectPath;
-		String createTableStatement = createTable + trinoCatalog + "." + schemaName + "." + tableName + " (";
-		try {
-			tempParquet = parquetReader.getParquetData(s3aFormatParquetPath);
-			createTableStatement = parquetReader.getCreateTableStatement(tempParquet, createTableStatement);
-			log.info("Successfully read parquet file at location {}",s3aFormatParquetPath);
-		}catch(Exception e) {
-			MessageDescription readException = new MessageDescription();
-			String readExceptionMessage = e.getMessage();
-			readException.setMessage(readExceptionMessage);
-			errors.add(readException);
-			message.setSuccess("Failed while reading parquet file.");
-			log.error("Failed while reading parquet file at location {} with exception {}", s3aFormatParquetPath, e.getMessage());
-			message.setErrors(errors);
-			responseVO.setData(dataVO);
-			responseVO.setMessage(message);
-			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		
-		String createSchemaStatement = createSchema + trinoCatalog + "." + schemaName;
+
+		String createSchemaStatement = createSchema + trinoCatalog + "." + schemaName + " WITH (location = '" + externalLocation + "')";
 		String dropSchemaStatement = dropSchema + trinoCatalog + "." + schemaName;
 		try {
 			trinoClient.executeStatments(createSchemaStatement);
 			log.info("Successfully created Schema named {} at catalog {}", schemaName, trinoCatalog);
 		}catch(Exception e) {
-			MessageDescription readException = new MessageDescription();
-			String readExceptionMessage = e.getMessage();
-			readException.setMessage(readExceptionMessage);
-			errors.add(readException);
+			MessageDescription createSchemaException = new MessageDescription();
+			String createSchemaExceptionMessage = "Error while executing create schema statement";
+					//e.getMessage();
+			createSchemaException.setMessage(createSchemaExceptionMessage);
+			errors.add(createSchemaException);
 			message.setSuccess("Failed while executing create schema statement at trino");
 			log.error("Failed while executing create schema statement {} at trino, with exception {}", createSchemaStatement, e.getMessage());
 			message.setErrors(errors);
@@ -155,6 +160,7 @@ public class TrinioServiceImpl implements TrinioService {
 		
 		try {
 			if(createTableStatement!= null && !createTableStatement.isBlank() && !createTableStatement.isEmpty()) {
+				createTableStatement += " WITH ( format='PARQUET', external_location = '" +  externalLocation + "')";
 				trinoClient.executeStatments(createTableStatement);
 				log.info("Successfully executed create table statement");
 			}else {
@@ -165,23 +171,25 @@ public class TrinioServiceImpl implements TrinioService {
 			try {
 				trinoClient.executeStatments(dropSchemaStatement);
 			} catch (Exception ex) {
-				MessageDescription readException = new MessageDescription();
-				String readExceptionMessage = e.getMessage();
-				readException.setMessage(readExceptionMessage);
-				errors.add(readException);
+				MessageDescription dropSchemaException = new MessageDescription();
+				String dropSchemaExceptionMessage = "Error executing Drop schema statement to rollback.";
+						//ex.getMessage();
+				dropSchemaException.setMessage(dropSchemaExceptionMessage);
+				errors.add(dropSchemaException);
 				message.setSuccess("Failed while executing create table statement at trino, after schema creation. Revert created schema failed");
-				log.error("Failed while executing create table statement {} at trino. Revert created schema failed with exception {}", createSchemaStatement, ex.getMessage());
+				log.error("Failed while executing drop schema statement {} at trino. Revert created schema failed with exception {}", dropSchemaStatement, ex.getMessage());
 				message.setErrors(errors);
 				responseVO.setData(dataVO);
 				responseVO.setMessage(message);
 				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-			MessageDescription readException = new MessageDescription();
-			String readExceptionMessage = e.getMessage();
-			readException.setMessage(readExceptionMessage);
-			errors.add(readException);
+			MessageDescription createTableException = new MessageDescription();
+			String createTableExceptionMessage = "Error executing create table statement at trino.";
+					//e.getMessage();
+			createTableException.setMessage(createTableExceptionMessage);
+			errors.add(createTableException);
 			message.setSuccess("Failed while executing create table statement at trino, after schema creation. Schema creation rolledback.");
-			log.error("Create schema rolledback. Failed while executing create schema statement {} at trino, with exception {}", createSchemaStatement, e.getMessage());
+			log.error("Failed while executing create table statement {} at trino, with exception {}. Create schema rolledback. ", createTableStatement, e.getMessage());
 			message.setErrors(errors);
 			responseVO.setData(dataVO);
 			responseVO.setMessage(message);
@@ -220,11 +228,11 @@ public class TrinioServiceImpl implements TrinioService {
 			}
 		}catch(Exception e) {
 			MessageDescription queryWarning = new MessageDescription();
-			String readExceptionMessage = e.getMessage();
+			String queryIdsExceptionMessage = e.getMessage();
 			queryWarning.setMessage("Failed to fetch queryId for create schema and table statements with exception");
 			warnings.add(queryWarning);
 			message.setSuccess("Successfully copied parquet file, read the metadata and created schema and tables");
-			log.warn("Failed to fetch queryId for create schema {} statement with exception {}", schemaName, readExceptionMessage);
+			log.warn("Failed to fetch queryId for create schema {} statement with exception {}", schemaName, queryIdsExceptionMessage);
 			message.setErrors(null);
 			message.setWarnings(warnings);
 			responseVO.setData(dataVO);

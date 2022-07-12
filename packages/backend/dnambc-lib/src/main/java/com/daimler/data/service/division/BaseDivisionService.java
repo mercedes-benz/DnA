@@ -175,9 +175,9 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 		}
 		DivisionVO existingVO = super.getById(id);
-		LOGGER.debug("Calling solutionService to delete cascading refences to division {}", id);
-		solutionService.deleteTagForEachSolution(id, null, SolutionService.TAG_CATEGORY.DIVISION);
 		String divisionName = existingVO != null ? existingVO.getName() : "";
+		LOGGER.debug("Calling solutionService to delete cascading refences to division {}", id);
+		solutionService.deleteTagForEachSolution(divisionName, null, SolutionService.TAG_CATEGORY.DIVISION);
 		//To remove division from users role division lists
 		userInfoService.updateDivisionForUserRole(divisionName, null);
 		deleteById(id);

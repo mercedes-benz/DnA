@@ -5,6 +5,7 @@ import { bucketsObjectApi } from '../../../apis/fileExplorer.api';
 import { serializeAllObjects, serializeObjects } from '../Utils';
 import { ChonkyActions } from 'chonky';
 import { CustomActions } from '../CustomFileActions';
+import { Envs } from '../../Utility/envs';
 
 export const setFiles = (bucketName, historyPush = true) => {
   return async (dispatch) => {
@@ -97,7 +98,6 @@ export const getFiles = (files, bucketName, fileToOpen) => {
       if (res?.data) {
         const { data } = res.data;
         const result = serializeObjects(data, fileToOpen);
-
         if (Object.keys(result)?.length) {
           dispatch({
             type: 'SET_FILES',
@@ -218,11 +218,13 @@ export const setActionButtons = (bucketPermission, bucketObjects, showPublish = 
       type: 'SET_ACTION_BUTTONS',
       payload: [
         ...(bucketPermission.write && !publishedParquetFolder ? [ChonkyActions.UploadFiles] : []),
-        // ...(bucketPermission.write ? [UploadFolder] : []),
+        ...(bucketPermission.write && !publishedParquetFolder ? [CustomActions.UploadFolder] : []),
         ...(bucketPermission.write && !publishedParquetFolder ? [ChonkyActions.CreateFolder] : []),
-        ChonkyActions.DownloadFiles,
-        ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
-        ...(bucketPermission.write && showPublish && hasParquetFile ? [CustomActions.PublishFolder] : []),
+        CustomActions.DownloadFiles,
+        ...(bucketPermission.write ? [CustomActions.DeleteFiles] : []),
+        ...(bucketPermission.write && Envs.ENABLE_TRINO_PUBLISH && showPublish && hasParquetFile
+          ? [CustomActions.PublishFolder]
+          : []),
       ],
     });
   };

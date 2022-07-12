@@ -51,6 +51,7 @@ configJs: |
       MALWARE_SCAN_SWAGGER_UI_URL: "YOUR_MALWARE_SCAN_SWAGGER_UI_URL",
       ENABLE_MALWARE_SCAN_ONEAPI_INFO: "false",
       ENABLE_DATA_PIPELINE_SERVICE: "true",
+      ENABLE_MY_MODEL_REGISTRY_SERVICE: "false",
       ENABLE_STORAGE_SERVICE: "true",
       CONTAINER_APP_URL: 'http://localhost:9090',
       STORAGE_MFE_APP_URL: "http://localhost:8083",
@@ -86,3 +87,4 @@ appFrontend:
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
     avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
+    clamav: http://clamav-rest-service.clamav.svc.cluster.local:8181

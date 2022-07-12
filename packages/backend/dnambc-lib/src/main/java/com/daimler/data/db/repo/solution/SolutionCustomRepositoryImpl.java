@@ -181,7 +181,8 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	private String getTagsPredicateString(List<String> tags) {
 		if (tags != null && !tags.isEmpty()) {
 			String delimiterSeparatedTags = tags.stream().map(String::toLowerCase)
-					.collect(Collectors.joining("|", "%", "%"));
+			        .collect(Collectors.joining("%|%", "%", "%"));
+			
 			delimiterSeparatedTags = "'" + delimiterSeparatedTags + "'";
 			return "  and (lower(jsonb_extract_path_text(data,'tags')) similar to " + delimiterSeparatedTags + " ) ";
 		}
@@ -707,8 +708,8 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			Predicate anySearchTagConsolidate = null;
 			for (String tag : tags) {
 				Predicate tempTagCondition = cb.like(
-						cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("tags")),
-						"%" + tag + "%");
+						cb.lower(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("tags"))),
+						"%" + tag.toLowerCase() + "%");
 				Predicate consolidateTempKeyCondition = cb.or(tempTagCondition);
 				if (anySearchTagConsolidate == null)
 					anySearchTagConsolidate = consolidateTempKeyCondition;
