@@ -128,7 +128,7 @@ export const getDataForCSV = (
   const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
   let status = queryParams.status.join(',');
   let useCaseType = queryParams.useCaseType.join(',');
-  const dataVolumes = enablePortfolioSolutionsView ? queryParams.dataVolume.join(',') : '';
+  const dataVolumes = enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
   const tags = queryParams.tag.join(',');
   if (queryParams.location.length === numberOfSelectedLocations) {
     locationIds = '';
