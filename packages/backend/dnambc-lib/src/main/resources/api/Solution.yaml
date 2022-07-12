@@ -536,11 +536,21 @@ definitions:
       dataSources:
         type: array
         items:
-          type: string
+          $ref: "#/definitions/DataSourceSummaryVO"
       #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
       dataVolume:
         $ref: "#/definitions/DataVolumeVO"
         description: "DataVolume size for this DataSource"
+         
+  DataSourceSummaryVO:
+    type: object
+    properties:      
+      dataSource:
+        type: string
+        description: "Data source name"
+      weightage:
+        type: number
+        description: "Weightage of data source in %"
 
   MilestoneVO:
     type: object

@@ -52,7 +52,7 @@ import 'ace-builds/src-noconflict/mode-kotlin';
 import 'ace-builds/src-noconflict/mode-golang';
 
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
-import { getFilePath, serializeFolderChain } from './Utils';
+import { getFilePath, serializeFolderChain, setObjectKey } from './Utils';
 import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
 import { history } from '../../store/storeRoot';
 
@@ -109,9 +109,16 @@ const FileExplorer = () => {
   });
   const [publishSchemaError, setPublishSchemaError] = useState('');
   const [publishTableError, setPublishTableError] = useState('');
+  const [publishRes, setPublishRes] = useState({
+    modal: false,
+    data: {},
+    schemaName: '',
+    tableName: '',
+  });
 
   const currentFolderIdRef = useRef(currentFolderId);
   const uploadRef = useRef(null);
+  const folderUploadRef = useRef(null);
   const inputRef = useRef(null);
   const pwdInputRef = useRef(null);
 
@@ -442,7 +449,9 @@ const FileExplorer = () => {
       setShowCreateNewFolderModal(true);
     } else if (data.id === ChonkyActions.UploadFiles.id) {
       uploadRef.current.click();
-    } else if (data.id === ChonkyActions.DeleteFiles.id) {
+    } else if (data.id === CustomActions.UploadFolder.id) {
+      folderUploadRef.current.click();
+    } else if (data.id === CustomActions.DeleteFiles.id) {
       const isPublishedParquetFolder = /(PublishedParquet)/i.test(currentFolderId);
       if (isPublishedParquetFolder) {
         Notification.show('Deleting files under Published folder not yet implemented!', 'alert');
@@ -452,7 +461,7 @@ const FileExplorer = () => {
           data,
         });
       }
-    } else if (data.id === ChonkyActions.DownloadFiles.id) {
+    } else if (data.id === CustomActions.DownloadFiles.id) {
       data.state.selectedFiles?.forEach((item) => {
         // if selected multiple items, download each file
         dispatch(downloadFoldersOrFiles(bucketName, item));
@@ -621,7 +630,58 @@ const FileExplorer = () => {
     });
   };
 
-  const publishContent = (
+  const publishContent = publishRes?.modal ? (
+    <div className={Styles.publishDetails}>
+      <div>
+        <label>Schema - {publishRes.schemaName}</label>
+        <table>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>{publishRes?.data?.createSchemaResult?.id}</td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td>
+                <a href={publishRes?.data.createSchemaResult?.infoUrl} target="_blank" rel="noopener noreferrer">
+                  {`${publishRes?.data.createSchemaResult?.infoUrl} `}
+                  <i className={'icon mbc-icon new-tab'} />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>State</td>
+              <td>{publishRes?.data.createSchemaResult?.state}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <label>Table - {publishRes.tableName}</label>
+        <table>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>{publishRes?.data?.createTableResult?.id}</td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td>
+                <a href={publishRes?.data?.createTableResult?.infoUrl} target="_blank" rel="noopener noreferrer">
+                  {`${publishRes?.data?.createTableResult?.infoUrl} `}
+                  <i className={'icon mbc-icon new-tab'} />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>State</td>
+              <td>{publishRes?.data?.createTableResult?.state}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ) : (
     <div className={Styles.flexLayout}>
       <div className={classNames('input-field-group', publishSchemaError?.length ? 'error' : '')}>
         <label className={classNames('input-label', Styles.pwdLabel)}>
@@ -670,10 +730,14 @@ const FileExplorer = () => {
     setPublishModal({ modal: false, data: {}, schemaName: '', tableName: '' });
     setPublishSchemaError('');
     setPublishTableError('');
+    setPublishRes({ modal: false, data: {} });
   };
 
   const publishAccept = () => {
-    if (publishFieldValidation()) {
+    const publishDetailsModal = publishRes.modal;
+    if (publishDetailsModal) {
+      setPublishRes({ modal: false, data: {} });
+    } else if (publishFieldValidation()) {
       const objectPath = getFilePath(folderChain);
 
       const selectedFiles = publishModal.data.state.selectedFiles[0];
@@ -683,7 +747,7 @@ const FileExplorer = () => {
       ProgressIndicator.show();
       bucketsObjectApi
         .publishToTrino(bucketName, filePath, publishModal.schemaName, publishModal.tableName)
-        .then(() => {
+        .then((res) => {
           Notification.show(`${selectedFileName} published successfully.`);
           const copyselectedFiles = { ...selectedFiles };
           const lastIndexOfSlash = copyselectedFiles.objectName.lastIndexOf('/');
@@ -700,7 +764,17 @@ const FileExplorer = () => {
             copyselectedFiles.parentId = files.fileMap[currentFolderId].parentId;
             copyselectedFiles.isDir = true;
           }
-          dispatch(getFiles(files.fileMap, bucketName, copyselectedFiles));
+          setPublishRes({
+            modal: true,
+            data: res?.data?.data,
+            schemaName: publishModal.schemaName,
+            tableName: publishModal.tableName,
+          });
+          // remove selected parquet file as it will be moved to published parquet folder
+          const newFileMap = { ...files.fileMap };
+          delete newFileMap[setObjectKey(filePath)];
+
+          dispatch(getFiles(newFileMap, bucketName, copyselectedFiles));
         })
         .catch((e) => {
           const errorMsg = e.response.data.message.errors?.map((item) => `${item.message}`).join(';');
@@ -818,6 +892,12 @@ const FileExplorer = () => {
         </div>
         <div className={'explorer-content'}>
           <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
+          <FileUpload
+            uploadRef={folderUploadRef}
+            bucketName={bucketName}
+            folderChain={folderChain}
+            enableFolderUpload={true}
+          />
           <FullFileBrowser
             files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
             fileActions={fileActions}
@@ -925,13 +1005,13 @@ const FileExplorer = () => {
         onAccept={deleteAccept}
       />
       <Modal
-        title={'Publish to Trino'}
+        title={publishRes.modal ? 'Published Details' : 'Publish to Trino'}
         ahiddenTitle={true}
-        acceptButtonTitle="Confirm"
+        acceptButtonTitle={publishRes.modal ? 'OK' : 'Confirm'}
         cancelButtonTitle="Cancel"
         showAcceptButton={true}
-        showCancelButton={true}
-        show={publishModal.modal}
+        showCancelButton={publishRes.modal ? false : true}
+        show={publishModal.modal || publishRes.modal}
         content={publishContent}
         onCancel={publishClose}
         onAccept={publishAccept}
