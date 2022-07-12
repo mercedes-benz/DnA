@@ -718,6 +718,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             useCaseType: string,
             tags: string,
           ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
+          showSolutionsFilter = {true}
           solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
           setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
         />
