@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.userinfo.UsersApi;
+import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -76,6 +77,9 @@ public class UserInfoController implements UsersApi {
 	
 	@Autowired
 	private UserInfoService userInfoService;
+	
+	@Autowired
+	private UserInfoAssembler userinfoAssembler;
 
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
@@ -200,6 +204,8 @@ public class UserInfoController implements UsersApi {
 			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
 				UserInfoVO userInfoVO = userRequestVO.getData();
 				UserInfoVO currentUserData = userInfoService.getById(userInfoVO.getId());
+				//To set key existing data if missing in request
+				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
 				if (!rolesUpdated(userRequestVO, currentUserData)) {
 					userInfoVO.setToken(currentUserData.getToken());
 				} else {

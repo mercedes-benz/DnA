@@ -1,6 +1,6 @@
 {
   "name": "dna-web",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Web Frontend for DnA@MBC based on Digital Design System(UILab)",
   "license": "MIT",
   "author": {
@@ -77,6 +77,7 @@
     "react-intl": "^5.25.1",
     "react-number-format": "^4.9.3",
     "react-simple-maps": "^2.3.0",
+    "react-slider": "^2.0.1",
     "react-styleguidist": "^11.2.0",
     "react-tooltip": "^4.2.18",
     "recharts": "^2.0.9",

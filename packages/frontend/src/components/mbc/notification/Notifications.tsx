@@ -354,7 +354,7 @@ const Notifications = (props: any) => {
                           <th>
                             <div>
                               <label className={classNames('checkbox', Styles.checkboxItem)}>
-                                <span className="wrapper">
+                                <span className={classNames('wrapper', Styles.thCheckbox)}>
                                   <input
                                     type="checkbox"
                                     className="ff-only"
