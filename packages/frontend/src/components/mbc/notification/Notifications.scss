@@ -65,6 +65,10 @@
             &:nth-child(3) {
               min-width: 150px;
             }
+
+            .thCheckbox {
+              margin-left: -10px;
+            }
           }
         }
         td {

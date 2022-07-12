@@ -35,9 +35,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
@@ -83,6 +85,7 @@ import com.daimler.data.dto.relatedProduct.RelatedProductVO;
 import com.daimler.data.dto.skill.SkillVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.DataSourceSummaryVO;
 import com.daimler.data.dto.solution.SolutionAnalyticsVO;
 import com.daimler.data.dto.solution.SolutionPortfolioVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -732,21 +735,19 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 	private void updateDataSources(SolutionVO vo) {
 		if (vo.getDataSources() != null) {
-			List<String> dataSources = vo.getDataSources().getDataSources();
-			if (dataSources != null) {
-				dataSources.forEach(dataSource -> {
-					DataSourceVO dataSourceVO = dataSourceService.getByUniqueliteral("name", dataSource);
-					if (dataSourceVO != null && dataSourceVO.getName() != null
-							&& dataSourceVO.getName().equalsIgnoreCase(dataSource)) {
-						return;
-					} else {
-						DataSourceVO newDataSourceVO = new DataSourceVO();
-						newDataSourceVO.setName(dataSource);
-						dataSourceService.create(newDataSourceVO);
-					}
-				});
-			}
-
+			List<DataSourceSummaryVO> dataSources = vo.getDataSources().getDataSources();
+			Optional.ofNullable(dataSources).ifPresent(l -> l.forEach(dataSourceSummaryVO -> {
+				DataSourceVO dataSourceVO = dataSourceService.getByUniqueliteral("name",
+						dataSourceSummaryVO.getDataSource());
+				if (dataSourceVO != null && dataSourceVO.getName() != null
+						&& dataSourceVO.getName().equalsIgnoreCase(dataSourceSummaryVO.getDataSource())) {
+					return;
+				} else {
+					DataSourceVO newDataSourceVO = new DataSourceVO();
+					newDataSourceVO.setName(dataSourceSummaryVO.getDataSource());
+					dataSourceService.create(newDataSourceVO);
+				}
+			}));
 		}
 	}
 
@@ -847,7 +848,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 			if ("Solution_delete".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Deleted";
-				message = "Solution " + solutionName + " is delete by user " + userName;
+				message = "Solution " + solutionName + " is deleted by user " + userName;
 				LOGGER.info("Publishing message on solution delete for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_update".equalsIgnoreCase(eventType)) {

@@ -414,8 +414,13 @@ export interface IKpi {
 }
 
 export interface IDataSource {
-  dataSources?: string[];
+  dataSources?: IDataSources[];
   dataVolume?: IDataVolume;
+}
+
+export interface IDataSources {
+  dataSource: string;
+  weightage: number;
 }
 
 export interface IDataSourceMaster {
