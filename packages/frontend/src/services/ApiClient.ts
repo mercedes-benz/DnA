@@ -811,7 +811,10 @@ export class ApiClient {
           teamMemberPosition
         },
         dataSources {
-          dataSources,
+          dataSources {
+            dataSource,
+            weightage
+          },
           dataVolume {
             id,
             name
