@@ -344,7 +344,7 @@ podLabels: {}
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
 podAnnotations:
-    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/agent-inject: 'false'
     vault.hashicorp.com/role: 'minio'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-root-user: 'kv/dna/KubernetesSecret/Minio'
@@ -356,8 +356,7 @@ podAnnotations:
     vault.hashicorp.com/agent-inject-template-root-password: | 
       {{`{{- with secret "kv/dna/KubernetesSecret/Minio" -}}
       {{ .Data.data.MINIO_ROOT_PASSWORD }}
-      {{- end }}`}}     
-
+      {{- end }}`}}
 ## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
 ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
 ##
