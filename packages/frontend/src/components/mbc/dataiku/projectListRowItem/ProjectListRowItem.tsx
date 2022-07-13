@@ -4,6 +4,8 @@ import { Envs } from '../../../../globals/Envs';
 import { getDateFromTimestampForDifference, getDateDifferenceFromToday } from '../../../../services/utils';
 import { IDataiku } from '../../../../globals/types';
 import { history } from '../../../../router/History';
+// @ts-ignore
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import Styles from './ProjectListRowItem.scss';
 
 const classNames = cn.bind(Styles);
@@ -34,6 +36,7 @@ const ProjectListRowItem = (props: ISolutionListRowItemProps) => {
   };
 
   const goToSolution = (solutionId: string) => {
+    Tooltip.clear();
     history.push('/summary/' + solutionId);
   };
 
