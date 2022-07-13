@@ -87,7 +87,7 @@ frontend:
       
   appFrontend:
     replicaCount: 1
-    image: vardhandevalla/dna-app-frontend:vokta.dev
+    image: vardhandevalla/dna-app-fronted:fosstesting.oktav1
     ngnix:
       backend: http://dna-service.dna.svc.cluster.local:80
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
@@ -115,7 +115,7 @@ backend:
     backend:
       replicaCount: 1
       
-      image: vardhandevalla/dna-app-backend:vokta.dev
+      image: vardhandevalla/dna-app-backend:fosstesting.oktav1
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
@@ -239,7 +239,7 @@ clamav:
   app:
     backend:
       name: clamav-rest
-      image: vardhandevalla/malware-backend:vokta.dev
+      image: vardhandevalla/dna-malware-backend:fosstesting.oktav1
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -326,7 +326,7 @@ naas:
   namespace: naas
   app:
     backend:
-      image: vardhandevalla/naas-backend:vokta.dev
+      image: vardhandevalla/dna-naas-backend:fosstesting.oktav1
       secrets:
         name: naas-app-secrets
         jwtKey: oeRaYY7Wo24sDqKSX3IM9ASGmdGPmkTd9jo1QTy4b7P9Ze5_9hKolVX8xNrQDcNRfVEdTZNOuOyqEGhXEbdJI-ZQ19k_o9MI0y3eZN2lp9jow55FfXMiINEdt1XR85VipRLSOkT6kSpzs2x-jbLDiz9iFVzkd81YKxMgPA7VfZeQUm4n-mOmnWMaVX30zGFU4L3oPBctYKkl4dYfqYWqRNfrgPJVi5DGFjywgxx0ASEiJHtV72paI3fDR2XwlSkyhhmY-ICjCRmsJN4fX1pdoL8a18-aQrvyu4j0Os6dVPYIoPvvY0SAZtWYKHfM15g7A3HD4cVREf9cUsprCRK93w
@@ -452,7 +452,7 @@ notebooks:
 dashboard:
   enabled: true
   namespace: dashboard
-  image: vardhandevalla/dashboard-backend:vokta.dev
+  image: vardhandevalla/dna-dashboard-backend:fosstesting.oktav1
   imagePullSecret: 
     name: vddockerhub
   dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
@@ -1182,10 +1182,10 @@ storagemfe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/storage-frontend
+    repository: docker.io/vardhandevalla/dna-storage-frontend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: vokta.dev
+    tag: fosstesting.oktav1
 
 
   imagePullSecrets:
@@ -1355,10 +1355,10 @@ storagebe:
   replicaCount: 1
 
   image:
-    repository: docker.io/vardhandevalla/storage-backend
+    repository: docker.io/vardhandevalla/dna-storage-backend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: vokta.dev
+    tag: fosstesting.oktav1
 
   imagePullSecrets:
     - name: vddockerhub
