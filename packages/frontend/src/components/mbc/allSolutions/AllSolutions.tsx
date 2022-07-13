@@ -256,7 +256,7 @@ export default class AllSolutions extends React.Component<
             break;
         }
         this.setState({ queryParams }, () => {
-          this.getSolutions(true);
+          // this.getSolutions(true);
         });
       } else if (window.location.href.indexOf('allsolutions') !== -1) {
         this.setState({ showSolutionsFilter: true });
