@@ -17,6 +17,7 @@ import { bucketActions } from './redux/bucket.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
+import { Envs } from '../Utility/envs';
 
 export const BucketList = () => {
   const dispatch = useDispatch();
@@ -27,6 +28,8 @@ export const BucketList = () => {
   const [currentSortOrder, setCurrentSortOrder] = useState('asc');
   const [nextSortOrder, setNextSortOrder] = useState('desc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState('bucketName');
+
+  const isDataikuEnabled = Envs.ENABLE_DATAIKU;
 
   const sortByColumn = (columnName, sortOrder) => {
     return () => {
@@ -92,7 +95,7 @@ export const BucketList = () => {
     <div>
       <h3>Are you sure you want to delete {selectedItem.bucketName} ? </h3>
       <h5>A bucket can only be deleted if its empty.</h5>
-      <h6>Dataiku project(s) connection if any, will be removed.</h6>
+      {isDataikuEnabled && <h6>Dataiku project(s) connection if any, will be removed.</h6>}
     </div>
   );
 
