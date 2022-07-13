@@ -451,7 +451,7 @@ const FileExplorer = () => {
       uploadRef.current.click();
     } else if (data.id === CustomActions.UploadFolder.id) {
       folderUploadRef.current.click();
-    } else if (data.id === ChonkyActions.DeleteFiles.id) {
+    } else if (data.id === CustomActions.DeleteFiles.id) {
       const isPublishedParquetFolder = /(PublishedParquet)/i.test(currentFolderId);
       if (isPublishedParquetFolder) {
         Notification.show('Deleting files under Published folder not yet implemented!', 'alert');
@@ -461,7 +461,7 @@ const FileExplorer = () => {
           data,
         });
       }
-    } else if (data.id === ChonkyActions.DownloadFiles.id) {
+    } else if (data.id === CustomActions.DownloadFiles.id) {
       data.state.selectedFiles?.forEach((item) => {
         // if selected multiple items, download each file
         dispatch(downloadFoldersOrFiles(bucketName, item));

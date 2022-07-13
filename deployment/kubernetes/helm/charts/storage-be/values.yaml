@@ -85,7 +85,15 @@ envs:
     valueFrom:
       secretKeyRef:
         key: dataikuTrainingApiKey
-        name: storage-be              
+        name: storage-be  
+  - name: FLYWAY_ENABLED
+    value: "true"
+  - name: FLYWAY_BASELINE_ON_MIGRATE
+    value: "true"
+  - name: FLYWAY_BASELINEVERSION
+    value: "0"  
+  - name: FLYWAY_SCHEMA
+    value: "public"                                
 
 secret:
   - key: vaultToken

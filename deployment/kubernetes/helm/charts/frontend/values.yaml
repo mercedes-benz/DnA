@@ -63,7 +63,7 @@ configJs: |
       MALWARESCAN_API_BASEURL: "http://localhost:9002/api",
       ML_PIPELINE_URL: "http://localhost:9006",
       MODEL_REGISTRY_API_BASEURL: "http://localhost:9006/api/",
-    
+      INTERNAL_USER_TEAMS_INFO='(Recommended to use Short ID. To find Short ID use <a href="YOUR_TEAMS_INFO_URL" target="_blank" rel="noreferrer noopener">Teams</a>)'
     };
 
     window["STORAGE_INJECTED_ENVIRONMENT"]={
@@ -90,3 +90,4 @@ appFrontend:
   ngnix:
     backend: http://dna-app-backend-service.dna.svc.cluster.local:80
     avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
+    clamav: http://clamav-rest-service.clamav.svc.cluster.local:8181

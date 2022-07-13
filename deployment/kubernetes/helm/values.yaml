@@ -183,7 +183,7 @@ backend:
       port: 7171 
 
 #Suchart properties for i3postgressql database
-i3postgresql:
+postgresql-helm:
   enabled: false
   namespace: dna
   app:

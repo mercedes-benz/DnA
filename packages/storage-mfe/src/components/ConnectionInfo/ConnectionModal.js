@@ -13,6 +13,7 @@ import Tags from 'dna-container/Tags';
 
 import { bucketsApi } from '../../apis/buckets.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { Envs } from '../Utility/envs';
 
 const copyToClipboard = (content) => {
   navigator.clipboard.writeText('');
@@ -32,6 +33,8 @@ export const ConnectionModal = () => {
   const [dataikuNotificationPortal, setDataikuNotificationPortal] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDataikuProjects, setSelectedDataikuProjects] = useState([]);
+
+  const isDataikuEnabled = Envs.ENABLE_DATAIKU;
 
   const disableMakeConnectionBtn =
     !bucketInfo.accessInfo.permission?.write || dataikuProjectList?.length > 0
@@ -72,7 +75,7 @@ export const ConnectionModal = () => {
   }, [connect?.bucketName, connect?.accessInfo]);
 
   useEffect(() => {
-    if (connect.modal) {
+    if (connect.modal && isDataikuEnabled) {
       setIsLoading(true);
       bucketsApi
         .getDataikuProjects(true)
@@ -90,7 +93,7 @@ export const ConnectionModal = () => {
           setIsLoading(false);
         });
     }
-  }, [connect.modal]);
+  }, [connect.modal, isDataikuEnabled]);
 
   useEffect(() => {
     connect?.modal && setSelectedDataikuProjects(connect?.dataikuProjects);
@@ -215,7 +218,7 @@ y = pd.read_csv(y_file_obj)`}
           )}
           isMandatory={false}
           showMissingEntryError={false}
-          enableCustomValue={false}
+          disableOnBlurAdd={true}
           suggestionPopupHeight={120}
           isDisabled={!bucketInfo.accessInfo.permission?.write}
         />
@@ -309,9 +312,11 @@ y = pd.read_csv(y_file_obj)`}
                     <strong>How to Connect from DNA Jupyter NoteBook</strong>
                   </a>
                 </li>
-                <li className={'tab'}>
+                <li className={`tab ${!isDataikuEnabled ? 'disable' : ''}`}>
                   <a href="#tab-content-2" id="dataiku">
-                    <strong>Connect to Dataiku project(s)</strong>
+                    <strong style={{ ...(!isDataikuEnabled && { color: '#99a5b3' }) }}>
+                      {`Connect to Dataiku project(s)${!isDataikuEnabled ? ' ( Coming soon )' : ''}`}
+                    </strong>
                   </a>
                 </li>
               </ul>
