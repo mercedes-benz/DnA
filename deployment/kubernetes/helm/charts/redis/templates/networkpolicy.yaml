@@ -16,28 +16,6 @@ spec:
     matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
   policyTypes:
     - Ingress
-  {{- if or (eq .Values.architecture "replication") .Values.networkPolicy.extraEgress }}
-    - Egress
-  egress:
-    {{- if eq .Values.architecture "replication" }}
-    # Allow dns resolution
-    - ports:
-        - port: 53
-          protocol: UDP
-    # Allow outbound connections to other cluster pods
-    - ports:
-        - port: {{ .Values.master.containerPorts.redis }}
-        {{- if .Values.sentinel.enabled }}
-        - port: {{ .Values.sentinel.containerPorts.sentinel }}
-        {{- end }}
-      to:
-        - podSelector:
-            matchLabels: {{- include "common.labels.matchLabels" . | nindent 14 }}
-    {{- end }}
-    {{- if .Values.networkPolicy.extraEgress }}
-    {{- include "common.tplvalues.render" ( dict "value" .Values.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
-    {{- end }}
-  {{- end }}
   ingress:
     # Allow inbound connections
     - ports:
