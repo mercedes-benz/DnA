@@ -220,7 +220,7 @@ public class BaseStorageService implements StorageService {
 
 								LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
 								MinioGenericResponse onboardUserResponse = dnaMinioClient
-										.onboardUserMinio(userVO.getAccesskey().toUpperCase(), policies);
+										.onboardUserMinio(userVO.getAccesskey(), policies);
 								if (onboardUserResponse != null
 										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 									subscribedUsers.add(userVO.getAccesskey());
@@ -874,7 +874,7 @@ public class BaseStorageService implements StorageService {
 				}
 
 				LOGGER.info("Onboarding collaborator:{}", userId);
-				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId.toUpperCase(),
+				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId,
 						policies);
 				if (onboardUserResponse != null && onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 					LOGGER.info("Collaborator:{} onboarding successfull", userId);
