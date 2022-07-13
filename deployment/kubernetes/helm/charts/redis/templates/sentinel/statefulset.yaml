@@ -137,9 +137,9 @@ spec:
             {{- if .Values.auth.enabled }}
             {{- if .Values.auth.usePasswordFiles }}
             - name: REDIS_PASSWORD_FILE
-              value: "/opt/bitnami/redis/secrets/redis-password"
+              value: "/vault/secrets/redis-password"
             - name: REDIS_MASTER_PASSWORD_FILE
-              value: "/opt/bitnami/redis/secrets/redis-password"
+              value: "/vault/secrets/redis-password"
             {{- else }}
             - name: REDIS_PASSWORD
               valueFrom:
@@ -252,7 +252,7 @@ spec:
             {{- end }}
             {{- if .Values.auth.usePasswordFiles }}
             - name: redis-password
-              mountPath: /opt/bitnami/redis/secrets/
+              mountPath: /vault/secrets/
             {{- end }}
             - name: redis-data
               mountPath: {{ .Values.replica.persistence.path }}
@@ -313,7 +313,7 @@ spec:
             {{- if .Values.auth.enabled }}
             {{- if .Values.auth.usePasswordFiles }}
             - name: REDIS_PASSWORD_FILE
-              value: "/opt/bitnami/redis/secrets/redis-password"
+              value: "/vault/secrets/redis-password"
             {{- else }}
             - name: REDIS_PASSWORD
               valueFrom:
@@ -422,7 +422,7 @@ spec:
               mountPath: /opt/bitnami/redis-sentinel/etc
             {{- if .Values.auth.usePasswordFiles }}
             - name: redis-password
-              mountPath: /opt/bitnami/redis/secrets/
+              mountPath: /vault/secrets/
             {{- end }}
             - name: redis-data
               mountPath: {{ .Values.replica.persistence.path }}
