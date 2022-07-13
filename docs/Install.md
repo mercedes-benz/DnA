@@ -198,6 +198,64 @@ For reference:
 ![This is an image](./images/Generate_api_key_01.PNG)
 ![This is an image](./images/Generate_api_key_02.PNG)
 
+**Airflow**
+
+We are also providing Apache Airflow as a service in the DnA platform to programmatically author , schedule and monitor workflows.
+
+Go to the deployment directory and execute the below commands to build the images
+```
+docker-compose -f ./docker-compose-airflow.yml     (#Building airflow-backend service)
+docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/airflow.Dockerfile   (#building Airflow service)
+docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/git-sync.Dockerfile (#Building Git-sync image)
+```
+After building the images , update the images names in the [values.yaml](../deployment/kubernetes/helm/values.yaml) . You can refer the values.yaml to check on where to update the image names.
+
+We are storing the DAGS of the airflow in the git repo . For this you need to create a new git repo and update the below values in the [Values.yaml](../deployment/kubernetes/helm/values.yaml).
+```
+gitToken:
+gitUrl:
+gitMountPath:
+gitBranch:
+gitUserName:
+gitPassword:
+repo: 
+```
+If you are accessing the git over ssh you can update those values in the below parametrs in the [Values.yaml](../deployment/kubernetes/helm/values.yaml)
+```
+knownHosts:
+gitSshKey:
+```
+
+Client Secret key was a base 64 encoded value of the below json file . The below values you will get it from the OIDC provider (Eg: OKTA OIDC )
+```
+    clientsecret is a json value of all our client credentials
+     {
+     "web": {
+         "client_id": "",
+         "client_secret": "",
+         "auth_uri": "",
+         "token_uri": "",
+         "userinfo_uri": "",
+         "issuer": "",
+         "redirect_uris": ["http://localhost:9010/*"]
+     }
+    }
+```
+
+If you have the domain name set that value to the below parameter in the [values.yaml](../deployment/kubernetes/helm/values.yaml).. You can also test this locally by port-forwarding the airflow service
+```
+webserver:
+  baseUrl:
+```
+Generating the airflow secret key
+```
+webserver:
+  secretkey:
+```
+
+
+
+
 **Upgrading**
 
 Do Helm Upgrade, if you made changes on helm files.
