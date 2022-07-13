@@ -35,7 +35,7 @@
   shell:
     cmd: |
       /etc/init.d/dataiku stop
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-training, dss-upgrade-automation ]
 
 - name: Create Backup Folder
   file:
@@ -44,11 +44,11 @@
     owner: "{{dss_system_user}}"
     group: "{{dss_system_user}}"
     mode: "775"
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-training, dss-upgrade-automation ]
 
 - name: Backup Dataiku Directory
   shell: tar --use-compress-program="pigz -k --fast" -cf {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz {{dss_data_directory}}
-  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
+  tags: [ dss-upgrade-training, dss-upgrade-automation ]
 
 - name: Upload backup file into Azure Storage container
   shell: "az storage blob upload -c {{azure_storage_container}} -f {{dss_backup_directory}}/dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz -n dataiku_backup_{{date_now}}_{{ansible_eth0.ipv4.address}}.tar.gz --connection-string '{{azure_storage_conn_string}}'"
