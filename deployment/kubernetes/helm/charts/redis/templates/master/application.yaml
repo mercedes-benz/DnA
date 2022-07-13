@@ -129,7 +129,7 @@ spec:
             {{- if .Values.auth.enabled }}
             {{- if .Values.auth.usePasswordFiles }}
             - name: REDIS_PASSWORD_FILE
-              value: "/opt/bitnami/redis/secrets/redis-password"
+              value: "/vault/secrets/redis-password"
             {{- else }}
             - name: REDIS_PASSWORD
               valueFrom:
@@ -226,7 +226,7 @@ spec:
               mountPath: /health
             {{- if .Values.auth.usePasswordFiles }}
             - name: redis-password
-              mountPath: /opt/bitnami/redis/secrets/
+              mountPath: /vault/secrets/
             {{- end }}
             - name: redis-data
               mountPath: {{ .Values.master.persistence.path }}
