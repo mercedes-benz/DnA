@@ -109,13 +109,13 @@ docker-compose -f docker-compose-local-basic.yml build
 Execute the below command for building the airflow-Backend , airflow and git-sync dockerfile.
 ```
 docker-compose -f docker-compose-airflow.yml build
-docker build . -t <image_name_of_your_wish> -f ./dockerfiles/airflow.Dockerfile
-docker build . -t <image_name_of_your_wish> -f ./dockerfiles/git-sync.Dockerfile
+docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/airlow/airflow.Dockerfile
+docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/airflow/git-sync.Dockerfile
 ```
 
 Execute the below command for building the images for the notebook service.
 ```
-docker-compose -f ./docker-compose-notebook.yml
+docker-compose -f ./docker-compose-notebook.yml build
 ```
 
 Execute the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values.
@@ -250,17 +250,6 @@ webserver:
   secretkey:
 ```
 
-You can enable openID connect on our DNA platform . In order to work this you need to set the all the OIDC releated paramerts in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
-```
-oidcClientID:
-oidcClientSecret:
-oidcInfoUrl:
-oidcIntrospectionUrl:
-oidcRevocationUrl:
-oidcDisabled: true
-oidc.logout.uri:
-```
-
 **Notebooks**
 
 We are also offering jupyter notebooks as a service in our DnA platform , which allows you to create and share documents that contain live code, mathematical equations, graphics, maps, plots, visualizations, and narrative text. It integrates with many programming languages like Python, PHP, R, C#, etc.
@@ -301,14 +290,14 @@ helm upgrade dna helm/
 
 In order to access the DnA application over localhost you need to port-forward the below service.
 ```
-kubectl port-forward service/storage-mfe 7175:80
-kubectl port-forward service/naas-backend-service 9004:7272
-kubectl port-forward service/dashboard-backend-service 9005:7173
-kubectl port-forward service/proxy-public 9001:8000
-kubectl port-forward service/clamav-rest-service 9002:8181
-kubectl port-forward service/airflow 9010:8080
-kubectl port-forward service/irflow-backend-service 9003:7171
-kubectl port-forward service/dna-frontend-service 8080:3000
+kubectl port-forward service/storage-mfe 7175:80 -n storage
+kubectl port-forward service/naas-backend-service 9004:7272 -n naas
+kubectl port-forward service/dashboard-backend-service 9005:7173 -n dashboard
+kubectl port-forward service/proxy-public 9001:8000 -n notebooks
+kubectl port-forward service/clamav-rest-service 9002:8181 -n clamav
+kubectl port-forward service/airflow 9010:8080 -n airflow
+kubectl port-forward service/airflow-backend-service 9003:7171 -n airflow
+kubectl port-forward service/dna-frontend-service 8080:3000 -n dna
 ```
 After executing the above step , you can access the application by opening the (http://localhost:8080) in your browser.
 
