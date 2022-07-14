@@ -1,6 +1,10 @@
 window['INJECTED_ENVIRONMENT'] = {
   OIDC_DISABLED: true,
   API_BASEURL: 'http://localhost:7171/api',
+  DATA_PIPELINES_API_BASEURL: 'http://localhost:7172/airflow/api',
+  MALWARESCAN_API_BASEURL: 'http://localhost:8181/api',
+  DASHBOARD_API_BASEURL: 'http://localhost:7173/api',
+  NOTIFICATIONS_API_BASEURL: 'http://localhost:7272/api',
   DNA_COMPANY_NAME: 'Company_Name',
   DNA_APPNAME_HEADER: 'DnA App',
   DNA_APPNAME_HOME: 'Data and Analytics',
@@ -29,6 +33,7 @@ window['INJECTED_ENVIRONMENT'] = {
   MALWARE_SCAN_SWAGGER_UI_URL: 'YOUR_MALWARE_SCAN_SWAGGER_UI_URL',
   ENABLE_MALWARE_SCAN_ONEAPI_INFO: false,
   ENABLE_DATA_PIPELINE_SERVICE: true,
+  DATA_PIPELINES_APP_BASEURL: "DATA_PIPELINE_AIRFLOW_APP_URL",
   ENABLE_MY_MODEL_REGISTRY_SERVICE: false,
   ENABLE_STORAGE_SERVICE: true,
   STORAGE_MFE_APP_URL: 'http://localhost:8083',
@@ -48,5 +53,5 @@ window['STORAGE_INJECTED_ENVIRONMENT'] = {
   TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>',
   ENABLE_DATA_CLASSIFICATION_SECRET: false,
   TRINO_API_BASEURL: 'http://localhost:7575/api',
-  ENABLE_TRINO_PUBLISH: true,
+  ENABLE_TRINO_PUBLISH: false,
 };
