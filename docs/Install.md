@@ -1,8 +1,8 @@
-## **Install with docker-compose**
+<h1>Install with docker-compose</h1>
 
 Docker Compose will help to start the application locally on your computer and provides support to develop and debug the docker containers in the local machine.
 
-Software Prerequisites:
+<h4>Software Prerequisites</h4>
 
 * Git 2.35.1+
 * Docker 20.10.13+
@@ -14,24 +14,24 @@ Hardware Prerequisites :
 
 * Recommend 6GB free RAM
   
-#### **Note**
+<h4>Note</h4>
   
   * *For windows user, enable WSL engine in Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
   * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
 
-#### **JWT Token**
+<h4>JWT Token</h4>
 
 JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and update the value to the parameters `jwtKey`,`jwtSecretKey` in the [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml) and [values.yaml](../kubernetes/helm/values.yaml) 
 
 * [JWT TOKEN GENERATOR](https://www.javainuse.com/jwtgenerator)
 
-#### **Minio Username And Password**
+<h4>Minio Username And Password</h4>
 
 Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of your wish and update the value to the parameters `minioAccessKey`,`s3AccessKey` , `minioSecretKey`,`s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml).
 
 Password should be a min length of  8 or more characters with a mix of letters, numbers & symbols.
 
-#### **Git Cloning** 
+<h4>Git Cloning</h4>
 
 Clone the Git Repo in your local computer. (this can be done by executing the below command on terminal/command prompt/some visual git client(GithubDesktop)).
 ```
@@ -41,7 +41,9 @@ Once when cloning is finishied , you will have a copy of the entire repository l
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
-#### **Docker Compose**
+
+<h4>Docker Compose</h4>
+
 Execute the below docker-compose command to create the DnA application.
 ```
 docker-compose -f docker-compose-local-basic.yml up -d
@@ -57,7 +59,7 @@ To stop the application.
 docker-compose -f docker-compose-local-basic.yml down
 ```
 -------------------------------------------------------------------------------------------------------
-<h1>**Install with Helm**</h1>
+<h1>Install with Helm</h1>
 
 Helm helps you to deploy and manage Kubernetes applications in an easier way.
 
@@ -71,13 +73,13 @@ Prerequisites :
 * JWT token
 * Minio Username/Password
 
-<h3>**JWT Token**</h3>
+<h4>JWT Token</h4>
 
 JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and mention the same under `jwtKey/jwtSecretKey` in the [values.yaml](../kubernetes/helm/values.yaml).
 
 * [Refer here](https://www.javainuse.com/jwtgenerator)
 
-<h3>**Minio Username And Password**</h3>
+<h4>Minio Username And Password</h4>
 
 Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of you wish and mention the same under `minioAccessKey/s3AccessKey` , `minioSecretKey/s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml) as well.
 
@@ -85,7 +87,7 @@ Password should be a combination of  8 or more characters with a mix of letters,
 
 *Eg: Minio@123
 
-<h3>**Git Cloning**</h3> 
+<h4>Git Cloning</h4> 
 
 Clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some_visual_git_client(GithubDesktop)).
 
@@ -96,7 +98,7 @@ Once when cloning is finishied, you will have a copy of the entire repository lo
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
-<h3>**Build & push images**</h3>
+<h4>Build & push images</h4>
 
 Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-postgress ,dashboard , malware , vault, clamav, naas-backend , zooKeeper , broker , storage-mfe , storage-be and minio .
 
@@ -123,7 +125,7 @@ Execute the below commands for pushing the images to your reposirtory . Replace 
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
 ```
-</h3>**Namespaces**</h3>
+</h4>Namespaces</h4>
 
 Execute the below commands to create namespaces.
 ```
@@ -134,7 +136,7 @@ kubectl create ns dashboard
 kubectl create ns vault
 kubectl create ns storage
 ```
-<h3>**values.yaml**</h3>
+<h4>values.yaml</h4>
 
 Update the images of the respective services in the values.yaml. Refer [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
@@ -149,7 +151,7 @@ For more info on kubernetes secret for pulling the images.
   * Refer [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
 
 
-<h2>**Helm**</h2>
+<h4>Helm</h4>
 
 We are offering mutiple services via this helm chart , Have a look into those by clicking the link [Readme.md](../README.md).
 
@@ -168,7 +170,7 @@ helm list
 ```
 After installation you need to perform the below steps inorder to use the DnA platform application.
 
-<h3>Vault service**</h3>
+<h3>Vault service</h3>
 
 We are providing vault service to store the API keys that were generated in the malware scan service.
 
@@ -195,7 +197,7 @@ Execute the below commands to enable the kv engine for storing the secrets:
 kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
 kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
-<h3>**Attachment scan**</h3>
+<h4>Attachment scan</h4>
 
 To scan the attachments free from malicious code  you can use the malware scan service . We are creating malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav).
 
@@ -211,7 +213,7 @@ For reference:
 ![This is an image](./images/Generate_api_key_01.PNG)
 ![This is an image](./images/Generate_api_key_02.PNG)
 
-<h3>**Airflow**</h3>
+<h4>Airflow</h4>
 
 We are also providing Apache Airflow as a service in the DnA platform to programmatically author , schedule and monitor workflows.
 
@@ -237,7 +239,7 @@ webserver:
   secretkey:
 ```
 
-<h3>**Notebooks**</h3>
+<h4>Notebooks</h4>
 
 We are also offering jupyter notebooks as a service in our DnA platform , which allows you to create and share documents that contain live code, mathematical equations, graphics, maps, plots, visualizations, and narrative text. It integrates with many programming languages like Python, PHP, R, C#, etc.
 
@@ -258,7 +260,7 @@ openssl rand -hex 32
 ```
 **Note** - Update this apitoken value to the "notebookSecretToken" parameter in the backend section of the values.yaml
 
-<h3>**Accessing the application with localhost**</h3>
+<h4>Accessing the application with localhost</h4>
 
 In order to access the DnA application over localhost you need to port-forward the below service.
 ```
@@ -275,7 +277,7 @@ After executing the above step , you can access the application by opening the (
 
 **Note** -- If you change any port numbers of the services then you also need to change the respective values in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
-<h3>**Production Environemnt**</h3>
+<h4>Production Environemnt</h4>
 
 We are already providing ingress manifest files for every microservice. So install any kubernetes ingress controller to install the application directly in the production environment.
 
@@ -287,9 +289,26 @@ Eg : Please refer the below image and enable the ingress for every microservice.
 
 **Note** -- If you are using this application for the production env , then update those domain names for the respective values in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
-<h1>**Customizing the DnA platform**</h1>
+<h2>Upgrading</h2>
 
-<h3>**Frontend**</h3>
+Do Helm Upgrade, if you made changes on helm files.
+```
+cd <<Clonned Folder Path>>\deployment\kubernetes 
+helm upgrade dna helm/
+```
+
+
+<h2>Uninstalling</h2>
+
+To uninstall the helm app
+
+```
+helm uninstall dna
+```
+
+<h2>Customizing the DnA platform</h2>
+
+<h4>Frontend</h4>
 
 You can customize our DNA platform application with the paramerts in the frontend section of the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
@@ -302,23 +321,6 @@ ENABLE_STORAGE_SERVICE: true
 ENABLE_REPORTS: true
 ENABLE_NOTIFICATION: true
 ```
-<h3>**Upgrading**</h3>
-
-Do Helm Upgrade, if you made changes on helm files.
-```
-cd <<Clonned Folder Path>>\deployment\kubernetes 
-helm upgrade dna helm/
-```
-
-
-<h1>**Uninstalling**</h1>
-
-To uninstall the helm app
-
-```
-helm uninstall dna
-```
-
 <h4>DnA Platform can be configured quite a lot, have a look at possible config parameters</h4>
 
 * [Environment Variables](./APP-ENV-CONFIG.md)
@@ -335,6 +337,6 @@ helm uninstall dna
 * [Helm installation](https://helm.sh/docs/intro/install/)
 * [About Helm](https://helm.sh/docs/)
 
-<h2>**Troubleshooting**</h2>
+<h2>Troubleshooting</h2>
 
 * *If you face any issue with helm installation, refer [FAQ](./FAQ.md)*.
