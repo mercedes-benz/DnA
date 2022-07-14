@@ -140,6 +140,8 @@ redirect_uris: ["http://localhost:9010/*"]
 oidc:
   logout:
     uri: [Base URL]/oauth2/v1/logout
+```
+
 ##### Links
 
 * [About DNA deployment.](/README.md)
