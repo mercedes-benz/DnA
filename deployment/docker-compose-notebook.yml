@@ -1,13 +1,13 @@
 version: "3.5"
 services:
   pyspark-notebook-base:
-    image: vardhandevalla/pyspark-notebook-base-bug-03:vokta.dev
+    image: vardhandevalla/pyspark-notebook-base:iframe
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-base.Dockerfile
 
   pyspark-notebook-default:
-    image: ${IMAGE_DEFAULT_NOTEBOOK:-vardhandevalla/pyspark-notebook-default-bug-02:vokta.dev}
+    image: ${IMAGE_DEFAULT_NOTEBOOK:-vardhandevalla/pyspark-notebook-default:iframe}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-default.Dockerfile
@@ -15,23 +15,23 @@ services:
       - pyspark-notebook-base
    
   pyspark-notebook-tensorflow:
-    image: ${IMAGE_TENSORFLOW_NOTEBOOK:-vardhandevalla/pyspark-notebook-tensorflow-bug-03:vokta.dev}
+    image: ${IMAGE_TENSORFLOW_NOTEBOOK:-vardhandevalla/pyspark-notebook-tensorflow:iframe}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-tensorflow.Dockerfile
       args:
-        defaultimage: ${IMAGE_DEFAULT_NOTEBOOK:-vardhandevalla/pyspark-notebook-default-bug-03:vokta.dev}
+        defaultimage: ${IMAGE_DEFAULT_NOTEBOOK:-vardhandevalla/pyspark-notebook-base:iframe}
     depends_on:
       - pyspark-notebook-default
   
   result-configurable-httpproxy:
-    image: ${IMAGE_RESULT_CONFIGPROXY:-vardhandevalla/configurable-http-proxy-bug-03:vokta.dev}
+    image: ${IMAGE_RESULT_CONFIGPROXY:-vardhandevalla/configurable-http-proxy:iframe}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/configurableHttpProxy.Dockerfile
 
   result-hub:
-    image: ${IMAGE_RESULT_HUB:-vardhandevalla/jupyterhub-bug-03:vokta.dev}
+    image: ${IMAGE_RESULT_HUB:-vardhandevalla/jupyterhub:iframe}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/jupyterhub.Dockerfile
