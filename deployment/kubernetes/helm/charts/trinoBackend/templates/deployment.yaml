@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Chart.Name }}-backend
+  name: {{ .Chart.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    name: {{ .Chart.Name }}-backend
+    name: {{ .Chart.Name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: {{ .Chart.Name }}-backend
+      name: {{ .Chart.Name }}
   template:
     metadata:
       labels:
-        name: {{ .Chart.Name }}-backend
+        name: {{ .Chart.Name }}
     spec:
       containers:
         - name: {{ .Chart.Name }}-service
