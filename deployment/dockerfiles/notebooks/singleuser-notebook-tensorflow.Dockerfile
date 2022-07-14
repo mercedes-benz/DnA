@@ -1,4 +1,5 @@
-FROM jupyter/pyspark-notebook:latest
+ARG defaultimage=vardhandevalla/pyspark-notebook-base-bug-02:vokta.dev
+FROM $defaultimage
 
 USER root
 

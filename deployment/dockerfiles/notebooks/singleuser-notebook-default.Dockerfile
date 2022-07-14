@@ -1,4 +1,5 @@
-FROM jupyter/pyspark-notebook:latest
+ARG baseimage=pyspark-notebook-base:latest
+FROM $baseimage
 
 USER root
 

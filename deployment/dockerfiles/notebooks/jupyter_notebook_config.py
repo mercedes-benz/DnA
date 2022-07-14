@@ -507,7 +507,7 @@ c.NotebookApp.shutdown_no_activity_timeout = 30 * 60
 #  Default: {}
 c.NotebookApp.tornado_settings = {
     'headers': {
-        'Content-Security-Policy': "frame-ancestors 'self' DNA_URL_HTTPS_DEV LOGIN_INT SSO_INT HOST "
+        'Content-Security-Policy': "frame-ancestors 'self' http://localhost:8080 http://localhost:9001 dev-36980595.okta.com *.okta.com"
     }
 }
 
