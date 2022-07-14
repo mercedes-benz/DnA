@@ -38,6 +38,23 @@
           background-size: cover;
           background-repeat: no-repeat;
           background-position: right;
+
+          &.malwareScan {
+            background-image: url("../../../assets/images/Malware_Scan.jpg");
+          }
+
+          &.dataPipeline {
+            background-image: url("../../../assets/images/Data_Pipeline.jpg");
+          }
+
+          &.mlPipeline {
+            background-image: url("../../../assets/images/ML_Pipeline.jpg");
+          }
+
+          &.myStorage {
+            background-image: url("../../../assets/images/My_Storage.jpg");
+          }
+
           i {
             opacity: 0.2;
           }
