@@ -52,7 +52,7 @@ const Services = () => {
         <div className={Styles.content}>
           <div className={Styles.Workspaces}>
             <div className={Styles.WorkspacesNavigation} onClick={malwareNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.malwareScan)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> Malware Scan {!ENABLE_MALWARE_SCAN_SERVICE && <label> ( Coming Soon ) </label>} </span>
                 <span>
@@ -62,7 +62,7 @@ const Services = () => {
               </div>
             </div>
             <div className={Styles.WorkspacesNavigation} onClick={pipelineNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.dataPipeline)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> Data Pipeline {!enableDataPipelineService && <label> ( Coming Soon ) </label>} </span>
                 <span>
@@ -77,7 +77,7 @@ const Services = () => {
               target="_blank"
               rel="noreferrer"
             >
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.mlPipeline)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> ML Pipeline {!enableMLPipelineService && <label> ( Coming Soon ) </label>} </span>
                 <span>
@@ -89,7 +89,7 @@ const Services = () => {
           </div>
           <div className={Styles.Workspaces}>
             <div className={Styles.WorkspacesNavigation} onClick={storageNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.myStorage)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> My Storage {!enableStorageService && <label> ( Coming Soon ) </label>} </span>
                 <span>
