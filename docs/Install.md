@@ -37,7 +37,7 @@ Clone the Git Repo in your local computer. (this can be done by executing the be
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
-Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. (replace <`<Cloned Folder>`> with actual location path of your computer).
+Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. (replace contents enclosed in **<<...>>** with actual location path of your computer).
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
@@ -94,7 +94,7 @@ Clone the Git Repo in your local computer (this can be done by executing the bel
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
-Once when cloning is finishied, you will have a copy of the entire repository locally .Go to the deployment folder by executing the the below command.  (replace <`<Cloned Folder>`> with actual location path of your computer).
+Once when cloning is finishied, you will have a copy of the entire repository locally .Go to the deployment folder by executing the the below command.  (replace contents enclosed in **<<...>>** with actual location path of your computer).
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
@@ -111,8 +111,8 @@ docker-compose -f docker-compose-local-basic.yml build
 Execute the below command for building the airflow-Backend , airflow and git-sync dockerfile.
 ```
 docker-compose -f docker-compose-airflow.yml build
-docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/airlow/airflow.Dockerfile
-docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/airflow/git-sync.Dockerfile
+docker build ./dockerfiles/airflow -t airflow-service:latest -f ./dockerfiles/airlow/airflow.Dockerfile
+docker build ./dockerfiles/airflow -t git-sync:latest -f ./dockerfiles/airflow/git-sync.Dockerfile
 ```
 
 Execute the below command for building the images for the notebook service.
@@ -120,7 +120,7 @@ Execute the below command for building the images for the notebook service.
 docker-compose -f ./docker-compose-notebook.yml build
 ```
 
-Execute the below commands for pushing the images to your reposirtory . Replace the contents that are enclosed in <<...>> to the respective values.
+Execute the below commands for pushing the images to your reposirtory.(replace contents enclosed in **<<...>>** with actual location path of your computer).
 ```
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
@@ -159,7 +159,7 @@ In order to use our helm charts you should have kafka service . you can install 
 
 After installing the kafka, update the `naasBroker` parameter value in [Values.yaml](../deployment/kubernetes/helm/values.yaml) to the Fully qualified domain name of the kafka service.
 
-Execute the below commands to deploy application on the kubernetes cluster using helm.
+Execute the below commands to deploy application on the kubernetes cluster using helm.(Replace contents enclosed in **<<...>>** with actual location path of your computer).
 ```
 cd <<Clonned Folder Path>>\deployment\kubernetes
 helm install dna helm/
