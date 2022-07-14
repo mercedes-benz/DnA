@@ -32,7 +32,7 @@ window['INJECTED_ENVIRONMENT'] = {
   ENABLE_MALWARE_SCAN_SERVICE: true,
   MALWARE_SCAN_SWAGGER_UI_URL: 'YOUR_MALWARE_SCAN_SWAGGER_UI_URL',
   ENABLE_MALWARE_SCAN_ONEAPI_INFO: false,
-  ENABLE_DATA_PIPELINE_SERVICE: true,
+  ENABLE_DATA_PIPELINE_SERVICE: false,
   DATA_PIPELINES_APP_BASEURL: "DATA_PIPELINE_AIRFLOW_APP_URL",
   ENABLE_MY_MODEL_REGISTRY_SERVICE: false,
   ENABLE_STORAGE_SERVICE: true,
@@ -47,7 +47,7 @@ window['INJECTED_ENVIRONMENT'] = {
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {
-  CONTAINER_APP_URL: 'http://localhost:9090',
+  CONTAINER_APP_URL: 'http://localhost:8080',
   API_BASEURL: 'http://localhost:7171/api',
   STORAGE_API_BASEURL: 'http://localhost:7175/api',
   TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>',
