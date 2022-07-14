@@ -12,7 +12,6 @@ import Styles from './AddTeamMemberModal.scss';
 import { Envs } from '../../../../globals/Envs';
 import * as Validation from '../../../../utils/Validation';
 import TeamSearch from '../../teamSearch/TeamSearch';
-import TextBox from '../../shared/textBox/TextBox';
 
 const classNames = cn.bind(Styles);
 
@@ -102,7 +101,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   }
 
   public render() {
-    // const requiredError = '*Missing entry';
+    const requiredError = '*Missing entry';
     const teamPositionInternalError = this.state.teamPositionInternalError || '';
     // const userIdInternalError = this.state.userIdInternalError || '';
     const companyExternalError = this.state.companyExternalError || '';
@@ -179,17 +178,32 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
           )}
           <div className={belongingInternal ? Styles.internalWrapper : 'hide'}>
             {!this.props.hideTeamPosition ? (
-              <TextBox
-                type="text"
-                controlId={'teamPositionInternal'}
-                label={'Team Position (e.g. IT)'}
-                placeholder={"Type here"}
-                value={teamPositionInternal}
-                errorText={teamPositionInternalError}
-                required={!this.props.teamPositionNotRequired ? true : false}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  teamPositionInternalError.length ? 'error' : '',
+                )}
+              >
+                <label htmlFor="teamPositionInternal" className="input-label">
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
+                  id="teamPositionInternal"
+                  name="teamPositionInternal"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  value={teamPositionInternal}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', teamPositionInternalError.length ? '' : 'hide')}>
+                  {teamPositionInternalError}
+                </span>
+              </div>
             ) : (
               ''
             )}
@@ -210,29 +224,53 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
           </div>
           <div className={!belongingInternal ? Styles.externalWrapper : 'hide'}>
             <div className={Styles.flexLayout}>
-              <TextBox
-                type="text"
-                controlId={'companyExternal'}
-                label={'Company'}
-                placeholder={"Type here"}
-                value={companyExternal}
-                errorText={companyExternalError}
-                required={true}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
-              
-              <TextBox
-                type="text"
-                controlId={'teamPositionExternal'}
-                label={'Team Position (e.g. IT)'}
-                placeholder={"Type here"}
-                value={teamPositionExternal}
-                errorText={teamPositionExternalError}
-                required={true}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
+              <div
+                className={classNames('input-field-group include-error', companyExternalError.length ? 'error' : '')}
+              >
+                <label htmlFor="companyExternal" className="input-label">
+                  Company<sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={true}
+                  required-error={requiredError}
+                  id="companyExternal"
+                  name="companyExternal"
+                  placeholder="Type here"
+                  value={companyExternal}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', companyExternalError.length ? '' : 'hide')}>
+                  {companyExternalError}
+                </span>
+              </div>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  teamPositionExternalError.length ? 'error' : '',
+                )}
+              >
+                <label htmlFor="teamPositionExternal" className="input-label">
+                  Team Position (e.g. IT)<sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={true}
+                  required-error={requiredError}
+                  id="teamPositionExternal"
+                  name="teamPositionExternal"
+                  placeholder="Type here"
+                  value={teamPositionExternal}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', teamPositionExternalError.length ? '' : 'hide')}>
+                  {teamPositionExternalError}
+                </span>
+              </div>
             </div>
             <div className={Styles.actionWrapper}>
               <button className="btn btn-primary" onClick={this.addTeamMember} type="button">
@@ -247,125 +285,208 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
     const addTeamMemberModalContentForFoss: React.ReactNode = (
       <div id="teamsModalDiv" className={classNames(Styles.firstPanel, Styles.addTeamMemberModal)}>
         <div className={Styles.formWrapper}>
-          { !(Envs.OIDC_PROVIDER === 'INTERNAL') &&
-            <TextBox
+          {/* <div className={belongingInternal ? Styles.internalWrapper : 'hide'}> */}
+          <div
+            className={classNames(
+              'input-field-group include-error',
+              shortIDError.length ? 'error' : '',
+              Envs.OIDC_PROVIDER === 'INTERNAL' ? 'hide' : '',
+            )}
+          >
+            <label htmlFor="shortID" className="input-label">
+              User Name / Email<sup>*</sup>
+            </label>
+            <input
               type="email"
-              controlId={'shortID'}
-              label={'User Name / Email'}
-              placeholder={"example@example.com"}
-              value={shortID}
-              errorText={shortIDError}
+              className="input-field"
               required={true}
+              required-error={requiredError}
+              id="shortID"
+              name="shortID"
+              placeholder="example@example.com"
+              autoComplete="off"
+              value={shortID}
               maxLength={200}
               onChange={this.textInputOnChange}
               onBlur={this.validateEmailID}
             />
-          }
+            <span className={classNames('error-message', shortIDError.length ? '' : 'hide')}>{shortIDError}</span>
+          </div>
           <div className={classNames(Styles.flexLayout, Envs.OIDC_PROVIDER !== 'INTERNAL' ? 'hide' : '')}>
-            <TextBox
-              type="text"
-              controlId={'shortID'}
-              label={'User ID'}
-              placeholder={"Type here"}
-              value={shortID}
-              errorText={shortIDError}
-              required={true}
-              maxLength={200}
-              onChange={this.textInputOnChange}
-            />
+            <div className={classNames('input-field-group include-error', shortIDError.length ? 'error' : '')}>
+              <label htmlFor="shortID" className="input-label">
+                User ID<sup>*</sup>
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                required={true}
+                required-error={requiredError}
+                id="shortID"
+                name="shortID"
+                placeholder="Type here"
+                autoComplete="off"
+                value={shortID}
+                maxLength={200}
+                onChange={this.textInputOnChange}
+              />
+              <span className={classNames('error-message', shortIDError.length ? '' : 'hide')}>{shortIDError}</span>
+            </div>
 
-            <TextBox
-              type="email"
-              controlId={'email'}
-              label={'Email'}
-              placeholder={"example@example.com"}
-              value={email}
-              errorText={emailError}
-              required={true}
-              maxLength={200}
-              onChange={this.textInputOnChange}
-              onBlur={this.validateEmailID}
-            />
+            <div className={classNames('input-field-group include-error', emailError.length ? 'error' : '')}>
+              <label htmlFor="email" className="input-label">
+                Email<sup>*</sup>
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                required={true}
+                required-error={requiredError}
+                id="email"
+                name="email"
+                placeholder="example@example.com"
+                autoComplete="off"
+                value={email}
+                maxLength={200}
+                onChange={this.textInputOnChange}
+                onBlur={this.validateEmailID}
+              />
+              <span className={classNames('error-message', emailError.length ? '' : 'hide')}>{emailError}</span>
+            </div>
           </div>
           <div className={Styles.flexLayout}>
-            <TextBox
-              type="text"
-              controlId={'firstName'}
-              label={'First Name'}
-              placeholder={"Type here"}
-              value={firstName}
-              errorText={firstNameError}
-              required={true}
-              maxLength={200}
-              onChange={this.textInputOnChange}
-            />
+            <div className={classNames('input-field-group include-error', firstNameError.length ? 'error' : '')}>
+              <label htmlFor="firstName" className="input-label">
+                First Name<sup>*</sup>
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                required={true}
+                required-error={requiredError}
+                id="firstName"
+                name="firstName"
+                placeholder="Type here"
+                autoComplete="off"
+                value={firstName}
+                maxLength={200}
+                onChange={this.textInputOnChange}
+              />
+              <span className={classNames('error-message', firstNameError.length ? '' : 'hide')}>{firstNameError}</span>
+            </div>
 
-            <TextBox
-              type="text"
-              controlId={'lastName'}
-              label={'Last Name'}
-              placeholder={"Type here"}
-              value={lastName}
-              errorText={lastNameError}
-              required={true}
-              maxLength={200}
-              onChange={this.textInputOnChange}
-            />
+            <div className={classNames('input-field-group include-error', lastNameError.length ? 'error' : '')}>
+              <label htmlFor="lastName" className="input-label">
+                Last Name<sup>*</sup>
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                required={true}
+                required-error={requiredError}
+                id="lastName"
+                name="lastName"
+                placeholder="Type here"
+                autoComplete="off"
+                value={lastName}
+                maxLength={200}
+                onChange={this.textInputOnChange}
+              />
+              <span className={classNames('error-message', lastNameError.length ? '' : 'hide')}>{lastNameError}</span>
+            </div>
           </div>
 
           <div className={Styles.flexLayout}>
-            <TextBox
-              type="text"
-              controlId={'company'}
-              label={'Company'}
-              placeholder={"Type here"}
-              value={company}
-              errorText={companyError}
-              required={true}
-              maxLength={200}
-              onChange={this.textInputOnChange}
-            />
+            <div className={classNames('input-field-group include-error', companyError.length ? 'error' : '')}>
+              <label htmlFor="company" className="input-label">
+                Company<sup>*</sup>
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                required={true}
+                required-error={requiredError}
+                id="company"
+                name="company"
+                placeholder="Type here"
+                autoComplete="off"
+                value={company}
+                maxLength={200}
+                onChange={this.textInputOnChange}
+              />
+              <span className={classNames('error-message', companyError.length ? '' : 'hide')}>{companyError}</span>
+            </div>
 
-            <TextBox
-              type="text"
-              controlId={'department'}
-              label={'Department'}
-              placeholder={"Type here"}
-              value={department}
-              errorText={departmentError}
-              required={true}
-              maxLength={200}
-              onChange={this.textInputOnChange}
-            />
+            <div className={classNames('input-field-group include-error', departmentError.length ? 'error' : '')}>
+              <label htmlFor="department" className="input-label">
+                Department<sup>*</sup>
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                required={true}
+                required-error={requiredError}
+                id="department"
+                name="department"
+                placeholder="Type here"
+                autoComplete="off"
+                value={department}
+                maxLength={200}
+                onChange={this.textInputOnChange}
+              />
+              <span className={classNames('error-message', departmentError.length ? '' : 'hide')}>
+                {departmentError}
+              </span>
+            </div>
           </div>
 
           <div className={Styles.flexLayout}>
             {!this.props.hideTeamPosition ? (
-              <TextBox
-                type="text"
-                controlId={'teamPosition'}
-                label={'Team Position (e.g. IT)'}
-                placeholder={"Type here"}
-                value={teamPosition}
-                errorText={teamPositionError}
-                required={!this.props.teamPositionNotRequired ? true : false}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
+              <div className={classNames('input-field-group include-error', teamPositionError.length ? 'error' : '')}>
+                <label htmlFor="teamPosition" className="input-label">
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
+                  id="teamPosition"
+                  name="teamPosition"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  value={teamPosition}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', teamPositionError.length ? '' : 'hide')}>
+                  {teamPositionError}
+                </span>
+              </div>
             ) : (
               ''
             )}
-            <TextBox
-              type="text"
-              controlId={'mobileNumber'}
-              label={'Mobile No.'}
-              placeholder="+49123456"
-              value={mobileNumber}
-              errorText={mobileNumberError}
-              required={true}
-              maxLength={15}
-              onChange={this.validateMobile}
-            />
+            <div className={classNames('input-field-group include-error', mobileNumberError.length ? 'error' : '')}>
+              <label htmlFor="mobileNumber" className="input-label">
+                Mobile No.<sup>*</sup>
+              </label>
+              <input
+                type="text"
+                className="input-field"
+                required={true}
+                required-error={requiredError}
+                id="mobileNumber"
+                name="mobileNumber"
+                placeholder="+49123456"
+                autoComplete="off"
+                value={mobileNumber}
+                maxLength={15}
+                onChange={this.validateMobile}
+              />
+              <span className={classNames('error-message', mobileNumberError.length ? '' : 'hide')}>
+                {mobileNumberError}
+              </span>
+            </div>
           </div>
 
           <div className={classNames(Styles.flexLayout, Styles.actionWrapper, Styles.saveButton)}>
