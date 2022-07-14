@@ -10,7 +10,7 @@ Docker Compose will help to start the application locally on your computer and p
 * JWT token
 * Minio Username/Password
 
-Hardware Prerequisites :
+<h4>Hardware Prerequisites</h4>
 
 * Recommend 6GB free RAM
   
@@ -104,7 +104,7 @@ Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-
 
 Refer [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
 ```
-cd <<Clonned Folder Path>>/deployment/
+cd <<**Clonned Folder Path**>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
 
@@ -125,7 +125,7 @@ Execute the below commands for pushing the images to your reposirtory . Replace 
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
 ```
-</h4>Namespaces</h4>
+<h4>Namespaces</h4>
 
 Execute the below commands to create namespaces.
 ```
