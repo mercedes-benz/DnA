@@ -57,7 +57,7 @@ To stop the application.
 docker-compose -f docker-compose-local-basic.yml down
 ```
 -------------------------------------------------------------------------------------------------------
-## **Install with Helm**
+<h1>**Install with Helm**</h1>
 
 Helm helps you to deploy and manage Kubernetes applications in an easier way.
 
@@ -71,13 +71,13 @@ Prerequisites :
 * JWT token
 * Minio Username/Password
 
-#### **JWT Token**
+<h3>**JWT Token**</h3>
 
 JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and mention the same under `jwtKey/jwtSecretKey` in the [values.yaml](../kubernetes/helm/values.yaml).
 
 * [Refer here](https://www.javainuse.com/jwtgenerator)
 
-#### **Minio Username And Password**
+<h3>**Minio Username And Password**</h3>
 
 Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of you wish and mention the same under `minioAccessKey/s3AccessKey` , `minioSecretKey/s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml) as well.
 
@@ -85,7 +85,7 @@ Password should be a combination of  8 or more characters with a mix of letters,
 
 *Eg: Minio@123
 
-#### **Git Cloning** 
+<h3>**Git Cloning**</h3> 
 
 Clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some_visual_git_client(GithubDesktop)).
 
@@ -96,7 +96,7 @@ Once when cloning is finishied, you will have a copy of the entire repository lo
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
-#### **Build & push images**
+<h3>**Build & push images**</h3>
 
 Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-postgress ,dashboard , malware , vault, clamav, naas-backend , zooKeeper , broker , storage-mfe , storage-be and minio .
 
@@ -123,7 +123,7 @@ Execute the below commands for pushing the images to your reposirtory . Replace 
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
 ```
-#### **Namespaces**
+</h3>**Namespaces**</h3>
 
 Execute the below commands to create namespaces.
 ```
@@ -134,7 +134,7 @@ kubectl create ns dashboard
 kubectl create ns vault
 kubectl create ns storage
 ```
-#### **values.yaml**
+<h3>**values.yaml**</h3>
 
 Update the images of the respective services in the values.yaml. Refer [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
@@ -149,7 +149,7 @@ For more info on kubernetes secret for pulling the images.
   * Refer [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
 
 
-<h1>**Helm**</h1>
+<h2>**Helm**</h2>
 
 We are offering mutiple services via this helm chart , Have a look into those by clicking the link [Readme.md](../README.md).
 
@@ -168,7 +168,7 @@ helm list
 ```
 After installation you need to perform the below steps inorder to use the DnA platform application.
 
-**Vault service**
+<h3>Vault service**</h3>
 
 We are providing vault service to store the API keys that were generated in the malware scan service.
 
@@ -195,7 +195,7 @@ Execute the below commands to enable the kv engine for storing the secrets:
 kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
 kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
 ```
-**Attachment scan**
+<h3>**Attachment scan**</h3>
 
 To scan the attachments free from malicious code  you can use the malware scan service . We are creating malware scan as a service by abstracting the [clamav service](https://github.com/Cisco-Talos/clamav).
 
@@ -211,7 +211,7 @@ For reference:
 ![This is an image](./images/Generate_api_key_01.PNG)
 ![This is an image](./images/Generate_api_key_02.PNG)
 
-**Airflow**
+<h3>**Airflow**</h3>
 
 We are also providing Apache Airflow as a service in the DnA platform to programmatically author , schedule and monitor workflows.
 
@@ -237,7 +237,7 @@ webserver:
   secretkey:
 ```
 
-**Notebooks**
+<h3>**Notebooks**</h3>
 
 We are also offering jupyter notebooks as a service in our DnA platform , which allows you to create and share documents that contain live code, mathematical equations, graphics, maps, plots, visualizations, and narrative text. It integrates with many programming languages like Python, PHP, R, C#, etc.
 
@@ -258,28 +258,7 @@ openssl rand -hex 32
 ```
 **Note** - Update this apitoken value to the "notebookSecretToken" parameter in the backend section of the values.yaml
 
-**Frontend**
-
-You can customize our DNA platform application with the paramerts in the frontend section of the [values.yaml](../deployment/kubernetes/helm/values.yaml)
-
-By default all services like (Jupyter workspace , Malware Scan , Data Pipeline (airflow) , Storage Service , Reports (Dashboard) , Notifications) were enabled in the dna-frontend service [values.yaml](../deployment/kubernetes/helm/values.yaml). If you don`t want to install any of the above respective service you can turn it off by seeting the below parameter value to "false".
-```
-ENABLE_JUPYTER_WORKSPACE: true
-ENABLE_MALWARE_SCAN_SERVICE: true
-ENABLE_DATA_PIPELINE_SERVICE: true
-ENABLE_STORAGE_SERVICE: true
-ENABLE_REPORTS: true
-ENABLE_NOTIFICATION: true
-```
-**Upgrading**
-
-Do Helm Upgrade, if you made changes on helm files.
-```
-cd <<Clonned Folder Path>>\deployment\kubernetes 
-helm upgrade dna helm/
-```
-
-**Accessing the application with localhost**
+<h3>**Accessing the application with localhost**</h3>
 
 In order to access the DnA application over localhost you need to port-forward the below service.
 ```
@@ -296,7 +275,7 @@ After executing the above step , you can access the application by opening the (
 
 **Note** -- If you change any port numbers of the services then you also need to change the respective values in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
-**Production Environemnt**
+<h3>**Production Environemnt**</h3>
 
 We are already providing ingress manifest files for every microservice. So install any kubernetes ingress controller to install the application directly in the production environment.
 
@@ -308,22 +287,47 @@ Eg : Please refer the below image and enable the ingress for every microservice.
 
 **Note** -- If you are using this application for the production env , then update those domain names for the respective values in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
-**Uninstalling**
+<h1>**Customizing the DnA platform**</h1>
+
+<h3>**Frontend**</h3>
+
+You can customize our DNA platform application with the paramerts in the frontend section of the [values.yaml](../deployment/kubernetes/helm/values.yaml)
+
+By default all services like (Jupyter workspace , Malware Scan , Data Pipeline (airflow) , Storage Service , Reports (Dashboard) , Notifications) were enabled in the dna-frontend service [values.yaml](../deployment/kubernetes/helm/values.yaml). If you don`t want to install any of the above respective service you can turn it off by seeting the below parameter value to "false".
+```
+ENABLE_JUPYTER_WORKSPACE: true
+ENABLE_MALWARE_SCAN_SERVICE: true
+ENABLE_DATA_PIPELINE_SERVICE: true
+ENABLE_STORAGE_SERVICE: true
+ENABLE_REPORTS: true
+ENABLE_NOTIFICATION: true
+```
+<h3>**Upgrading**</h3>
+
+Do Helm Upgrade, if you made changes on helm files.
+```
+cd <<Clonned Folder Path>>\deployment\kubernetes 
+helm upgrade dna helm/
+```
+
+
+<h1>**Uninstalling**</h1>
 
 To uninstall the helm app
 
 ```
 helm uninstall dna
 ```
--------------------------------------------------------------------------------------------------------
-DnA Platform can be configured quite a lot, have a look at possible config parameters:
+
+<h4>DnA Platform can be configured quite a lot, have a look at possible config parameters</h4>
 
 * [Environment Variables](./APP-ENV-CONFIG.md)
 
-Follow simple instructions on how to use simple and free Open ID Connect identity provider
+<h4>Follow simple instructions on how to use simple and free Open ID Connect identity provider</h4>
 
 * [OpenId Connect with OKTA](./OPENID-CONNECT.md)
-##### FAQ
+
+<h2>FAQ</h2>
 
 * [About GIT](https://git-scm.com/doc)
 * [Docker installation.](https://docs.docker.com/get-docker/)
@@ -331,6 +335,6 @@ Follow simple instructions on how to use simple and free Open ID Connect identit
 * [Helm installation](https://helm.sh/docs/intro/install/)
 * [About Helm](https://helm.sh/docs/)
 
-**Troubleshooting**
+<h2>**Troubleshooting**</h2>
 
 * *If you face any issue with helm installation, refer [FAQ](./FAQ.md)*.
