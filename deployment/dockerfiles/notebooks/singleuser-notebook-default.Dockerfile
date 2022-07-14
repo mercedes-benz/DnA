@@ -1,4 +1,4 @@
-ARG baseimage=vardhandevalla/pyspark-notebook-base:iframe.v1
+ARG baseimage=vardhandevalla/pyspark-notebook-base:iframe
 FROM $baseimage
 
 USER root
