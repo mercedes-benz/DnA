@@ -151,7 +151,7 @@ For more info on kubernetes secret for pulling the images.
   * Refer [harbor-pull-secret manifest file](../deployment/kubernetes/helm/charts/backend/templates/secrets/harbor-pull-secret.yaml)
 
 
-<h4>Helm</h4>
+<h3>Helm</h3>
 
 We are offering mutiple services via this helm chart , Have a look into those by clicking the link [Readme.md](../README.md).
 
@@ -168,9 +168,9 @@ Execute the below command to list out the helm releases.
 ```
 helm list
 ```
-After installation you need to perform the below steps inorder to use the DnA platform application.
+<h3>After installation you need to perform the below steps inorder to use the DnA platform application</h3>
 
-<h3>Vault service</h3>
+<h4>Vault service</h4>
 
 We are providing vault service to store the API keys that were generated in the malware scan service.
 
