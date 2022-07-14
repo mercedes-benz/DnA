@@ -44,7 +44,7 @@ services:
       - API_DB_PASS=postgres
       - CORS_ORIGIN_URL=http://*
       - OIDC_DISABLED=true
-      - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4OTMxNzk5OSwiaWF0IjoxNjU1MTg5OTk5fQ.kf15I1mPOm2d5kU3a94oOiPdJxwCvMdB5itf-yPTL70
+      - JWT_SECRET_KEY=
       - INACTIVE_SOLUTION_DURATION_YRS=2
       - JUPYTER_NOTEBOOK=false
       - DATAIKU=false
@@ -97,7 +97,7 @@ services:
       - DNA_AUTH_ENABLE=true
       - LOGGING_ENVIRONMENT=DEV
       - LOGGING_PATH=/tmp/dashboard/logs/
-      - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4OTMxNzk5OSwiaWF0IjoxNjU1MTg5OTk5fQ.kf15I1mPOm2d5kU3a94oOiPdJxwCvMdB5itf-yPTL70
+      - JWT_SECRET_KEY=
       - FLYWAY_BASELINEVERSION=0
       - FLYWAY_BASELINE_ON_MIGRATE=true
       - FLYWAY_ENABLED=true
@@ -141,7 +141,7 @@ services:
       - FLYWAY_BASELINE_ON_MIGRATE=true
       - FLYWAY_ENABLED=true
       - FLYWAY_SCHEMA=public
-      - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4OTMxNzk5OSwiaWF0IjoxNjU1MTg5OTk5fQ.kf15I1mPOm2d5kU3a94oOiPdJxwCvMdB5itf-yPTL70
+      - JWT_SECRET_KEY=
       - NAAS_BROKER=broker:29092
       - VAULT_HOST=vault
       - VAULT_PORT=8200
@@ -188,7 +188,7 @@ services:
       - CORS_ORIGIN_URL=http://*      
       - DNA_URI=http://app-backend:7171
       - DNA_AUTH_ENABLE=true
-      - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4OTMxNzk5OSwiaWF0IjoxNjU1MTg5OTk5fQ.kf15I1mPOm2d5kU3a94oOiPdJxwCvMdB5itf-yPTL70
+      - JWT_SECRET_KEY=
       - DNA_USER_NOTIFICATION_PREF_GET_URI=/api/notification-preferences
       - NAAS_BROKER=broker:29092
       - NAAS_CENTRAL_TOPIC=dnaCentralEventTopic
@@ -270,7 +270,7 @@ services:
       - VAULT_PATH=dna/minio
       - DNA_URI=http://app-backend:7171
       - DNA_AUTH_ENABLE=true
-      - JWT_SECRET_KEY=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4OTMxNzk5OSwiaWF0IjoxNjU1MTg5OTk5fQ.kf15I1mPOm2d5kU3a94oOiPdJxwCvMdB5itf-yPTL70
+      - JWT_SECRET_KEY=
       - MINIO_ENDPOINT=http://minio:9000
       - MINIO_ADMIN_ACCESS_KEY=minioadmin
       - MINIO_ADMIN_SECRET_KEY=minioadmin
