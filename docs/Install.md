@@ -20,10 +20,6 @@ Clone the Git Repo in your local computer. (this can be done by executing the be
 ```
 git clone https://github.com/mercedes-benz/DnA.git
 ```
-Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. (replace contents enclosed in **<<...>>** with actual location path of your computer).
-```
-cd <<Clonned Folder Path>>/deployment/
-```
 --------------------------------------------------------------------------------------------------------
 <h2>Install with docker-compose</h2>
 
@@ -47,6 +43,11 @@ Docker Compose will help to start the application locally on your computer and p
   * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
 
 <h4>Docker Compose</h4>
+
+Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. (replace contents enclosed in __<<...>>__ with actual location path of your computer).
+```
+cd <<Clonned Folder Path>>/deployment/
+```
 
 Execute the below docker-compose command to create the DnA application.
 ```
