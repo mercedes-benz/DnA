@@ -27,7 +27,10 @@ trino:
   uri: ${TRINO_BASEURI:http://xxxxx}
   user: ${TRINO_USER:XXXXX}
   password: ${TRINO_PASSWORD:XXXXX}
+  ssl: ${TRINO_SSL:true}
+  sslverification: ${TRINO_SSLVERIFICATION:NONE}
   catalog: ${TRINO_CATALOG:XXXXX}
+  hadoop.remoteUser: ${TRINO_UNIX_HADOOP_REMOTEUSER:spring}
    
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

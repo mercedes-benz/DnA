@@ -783,52 +783,94 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   protected validateInternalTeamMemberFormForFoss = () => {
     let formValid = true;
     if (Envs.OIDC_PROVIDER === 'INTERNAL') {
-      if (
-        this.state.teamPosition === '' ||
-        this.state.teamPosition === null ||
-        this.state.shortID === '' ||
-        this.state.shortID === null ||
-        this.state.company === '' ||
-        this.state.company === null ||
-        this.state.department === '' ||
-        this.state.department === null ||
-        this.state.firstName === '' ||
-        this.state.firstName === null ||
-        this.state.lastName === '' ||
-        this.state.lastName === null ||
-        this.state.email === '' ||
-        this.state.email === null ||
-        this.state.mobileNumber === '' ||
-        this.state.mobileNumber === null ||
-        !this.state.isEmailValid
-      ) {
-        formValid = false;
+      if(this.props.hideTeamPosition) {
+        if (
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.email === '' ||
+          this.state.email === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
+      } else {
+        if (
+          this.state.teamPosition === '' ||
+          this.state.teamPosition === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.email === '' ||
+          this.state.email === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
       }
-
+      
       ['shortID', 'email', 'firstName', 'lastName', 'company', 'department', 'teamPosition', 'mobileNumber'].map(
         (field) => this.formFieldsErrorValidation(field),
       );
     } else {
-      if (
-        this.state.teamPosition === '' ||
-        this.state.teamPosition === null ||
-        this.state.company === '' ||
-        this.state.company === null ||
-        this.state.department === '' ||
-        this.state.department === null ||
-        this.state.firstName === '' ||
-        this.state.firstName === null ||
-        this.state.lastName === '' ||
-        this.state.lastName === null ||
-        this.state.shortID === '' ||
-        this.state.shortID === null ||
-        this.state.mobileNumber === '' ||
-        this.state.mobileNumber === null ||
-        !this.state.isEmailValid
-      ) {
-        formValid = false;
+      if(this.props.hideTeamPosition) {
+        if (
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
+      } else {
+        if (
+          this.state.teamPosition === '' ||
+          this.state.teamPosition === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
       }
-
+      
       ['shortID', 'teamPosition', 'company', 'department', 'firstName', 'lastName', 'mobileNumber'].map((field) =>
         this.formFieldsErrorValidation(field),
       );

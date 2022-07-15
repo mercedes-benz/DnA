@@ -13,6 +13,7 @@ import Tags from 'dna-container/Tags';
 
 import { bucketsApi } from '../../apis/buckets.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { Envs } from '../Utility/envs';
 
 const copyToClipboard = (content) => {
   navigator.clipboard.writeText('');
@@ -33,11 +34,18 @@ export const ConnectionModal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDataikuProjects, setSelectedDataikuProjects] = useState([]);
 
+  const isDataikuEnabled = Envs.ENABLE_DATAIKU;
+
   const disableMakeConnectionBtn =
-    connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
-    (selectedDataikuProjects?.length
-      ? selectedDataikuProjects?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
-      : true);
+    !bucketInfo.accessInfo.permission?.write || dataikuProjectList?.length > 0
+      ? connect?.dataikuProjects?.length === selectedDataikuProjects?.length &&
+        (selectedDataikuProjects?.length
+          ? dataikuProjectList
+              ?.filter((item) => selectedDataikuProjects.indexOf(item.projectKey) > -1)
+              ?.map((item) => item.name)
+              ?.every((i) => connect?.dataikuProjects?.indexOf(i) > -1)
+          : true)
+      : true;
 
   const { pathname } = useLocation();
   const isCreatePage = pathname === '/createBucket';
@@ -67,7 +75,7 @@ export const ConnectionModal = () => {
   }, [connect?.bucketName, connect?.accessInfo]);
 
   useEffect(() => {
-    if (connect.modal) {
+    if (connect.modal && isDataikuEnabled) {
       setIsLoading(true);
       bucketsApi
         .getDataikuProjects(true)
@@ -85,7 +93,7 @@ export const ConnectionModal = () => {
           setIsLoading(false);
         });
     }
-  }, [connect.modal]);
+  }, [connect.modal, isDataikuEnabled]);
 
   useEffect(() => {
     connect?.modal && setSelectedDataikuProjects(connect?.dataikuProjects);
@@ -94,9 +102,11 @@ export const ConnectionModal = () => {
 
   useEffect(() => {
     // deserialize the response to show value in dropdown
-    const data = dataikuProjectList
-      ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
-      ?.map((item) => item.name);
+    const data = dataikuProjectList?.length
+      ? dataikuProjectList
+          ?.filter((item) => connect?.dataikuProjects.includes(item.projectKey))
+          ?.map((item) => item.name)
+      : connect?.dataikuProjects;
     dispatch({
       type: 'CONNECTION_INFO',
       payload: {
@@ -208,9 +218,15 @@ y = pd.read_csv(y_file_obj)`}
           )}
           isMandatory={false}
           showMissingEntryError={false}
-          enableCustomValue={false}
+          disableOnBlurAdd={true}
           suggestionPopupHeight={120}
           isDisabled={!bucketInfo.accessInfo.permission?.write}
+        />
+      ) : connect?.dataikuProjects?.length ? (
+        <Tags
+          title={`Dataiku project(s) linked to the bucket. You don't have projects to make new connection.`}
+          chips={connect?.dataikuProjects}
+          isDisabled={true}
         />
       ) : (
         <div className={Styles.emptyDataikuProjectsList}>No project(s) to connect</div>
@@ -296,9 +312,11 @@ y = pd.read_csv(y_file_obj)`}
                     <strong>How to Connect from DNA Jupyter NoteBook</strong>
                   </a>
                 </li>
-                <li className={'tab'}>
+                <li className={`tab ${!isDataikuEnabled ? 'disable' : ''}`}>
                   <a href="#tab-content-2" id="dataiku">
-                    <strong>Connect to Dataiku project(s)</strong>
+                    <strong style={{ ...(!isDataikuEnabled && { color: '#99a5b3' }) }}>
+                      {`Connect to Dataiku project(s)${!isDataikuEnabled ? ' ( Coming soon )' : ''}`}
+                    </strong>
                   </a>
                 </li>
               </ul>
