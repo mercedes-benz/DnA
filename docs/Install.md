@@ -239,7 +239,7 @@ openssl rand -hex 32
 ```
 **Note** - Update this apitoken value to the "notebookSecretToken" parameter in the backend section of the values.yaml
 
-<h2>Accessing the application with localhost</h2>
+<h2>Accessing the application over localhost</h2>
 
 In order to access the DnA application over localhost you need to port-forward the below service.
 ```
