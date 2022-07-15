@@ -54,6 +54,8 @@ data:
 
             set $avscan_mgw_server {{ .Values.appFrontend.ngnix.avscanMgwServer | quote }};
 
+            set $clamav {{ .Values.appFrontend.ngnix.clamav | quote }};
+
             root /usr/share/nginx/html;
             index index.htm index.html;
             try_files $uri $uri/ /index.html;
@@ -101,6 +103,17 @@ data:
               proxy_ssl_session_reuse off;
               proxy_set_header Host $http_host;
               proxy_redirect off;
+            }
+
+            location ^~ /avscan {
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-NginX-Proxy true;
+              proxy_pass $clamav;
+              proxy_ssl_session_reuse off;
+              proxy_set_header Host $http_host;
+              proxy_redirect off; # note the trailing slash here, it matters!
+              rewrite /avscan(.*) $1 break;
             }
 
             location /inject-environment {
