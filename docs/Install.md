@@ -235,7 +235,7 @@ avscanAppId:
 ```
 For reference:
 
-![This is an image](./images/Generate_api_key_01.PNG)
+![This is an image](./images/Generate_api_key_1.PNG)
 ![This is an image](./images/Generate_api_key_02.PNG)
 
 <h2>Accessing the application over localhost</h2>
@@ -264,8 +264,6 @@ By default, we are disabling the ingress in [values.yaml](../deployment/kubernet
 Eg : Please refer the below image and enable the ingress for every microservice.
 
 ![enabling the ingress for frontend service](./images/ingress_enabled_true.PNG)
-
-**Note** -- If you are using this application for the production env , then update those domain names for the respective values in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
 <h2>Upgrading</h2>
 
