@@ -1,0 +1,73 @@
+import React, { useState, useEffect } from 'react';
+// @ts-ignore
+import ReactSlider from 'react-slider';
+import NumberFormat from 'react-number-format';
+import Styles from './DataSource.scss';
+
+export interface IDataSourceProps {
+  name: string;
+  weightage: number;
+  onWeightageChange: (index: number) => void;
+}
+
+const DataSource = (props: IDataSourceProps) => {
+
+  const [sliderValue, setSliderValue] = useState(props.weightage);
+
+  const handleSliderValueChange = (val: any) => {
+    setSliderValue(val);
+  }
+
+  const handleInputChange = (e: any) => {
+    if(parseInt(e.target.value) > 100) {
+      setSliderValue(100);
+    } else {
+      setSliderValue(parseInt(e.target.value));
+    }
+  }
+
+  const handleKeyDown = (e: any) => {
+    if (e.key === "." || e.key === "," || e.key === "-") {
+      e.preventDefault();
+    }
+  };
+
+  useEffect(() => {
+    props.onWeightageChange(sliderValue);
+  }, [sliderValue]);
+
+  return (
+    <tr>
+      <td>
+          {props.name}
+      </td>
+      <td>
+        <div className={Styles.sliderContainer}>
+          <div className={Styles.sliderWrapper}>
+            <ReactSlider
+              className={Styles.horizontalSlider}
+              thumbClassName="thumb"
+              trackClassName="track"
+              value={isNaN(sliderValue) ? 0 : sliderValue}
+              onChange={(val:any) => handleSliderValueChange(val)}
+              renderThumb={(props: any, state:any) => <div {...props}><div className={Styles.thumbContainer}><div className={Styles.thumb}></div> <div className={Styles.thumbValue}>{state.valueNow}%</div></div></div>}
+            />
+          </div>
+          <div className={'input-field-group ' + Styles.inputContainer}>
+              {/* @ts-ignore */}
+              <NumberFormat
+                className={'input-field'}
+                placeholder="%"
+                maxLength={3}
+                value={sliderValue}
+                onChange={(e:any) => handleInputChange(e)}
+                onKeyDown={handleKeyDown}
+              />
+          </div>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+export default DataSource;

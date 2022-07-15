@@ -321,7 +321,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               isProductOwner !== undefined ||
               // user.id === (res.createdBy ? res.createdBy.id : '')
               res.members.admin.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
-              user?.divisionAdmins.includes(res?.description?.division?.name)
+              (user?.divisionAdmins && user?.divisionAdmins.includes(res?.description?.division?.name))
             ) {
               const response = this.state.response;
               const {
