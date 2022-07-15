@@ -69,6 +69,25 @@
   }
 }
 
+.publishDetails {
+  color: #acb8c4;
+  margin: 35px 35px 0;
+  overflow-y: auto;
+  label {
+    font-weight: bold;
+  }
+  tr > td {
+    padding-right: 15px;
+    &:last-child::before {
+      content: ":";
+      margin-right: 5px;
+    }
+  }
+  i {
+    font-size: var(--font-size-icon-small);
+  }
+}
+
 :global {
   #storagePreview {
     margin-top: 20px;
@@ -148,23 +167,27 @@
       div[class*="folderBackSideMid"],
       div[class*="folderBackSideTop"],
       div[class*="folderFrontSide"] {
-        background-color: #697582;
         box-shadow: none !important;
       }
       &[class*="previewFile-d"] {
-        background-color: #99a5b3;
         box-shadow: none !important;
       }
     }
+
+    div[class*="gridFileEntry"][data-chonky-file-id*="PublishedParquet"] {
+      div[class*="gridFileEntryName"] {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    }
+
     div[class*="gridFileEntryName"] {
       font-size: var(--font-size-default) !important;
       color: #acb8c4;
     }
     div[class*="listFileEntry"] {
       font-size: var(--font-size-default) !important;
-      div[class*="listFileEntryIcon"] {
-        color: #acb8c4;
-      }
       div[class*="listFileEntryProperty"] {
         text-align: right;
       }
