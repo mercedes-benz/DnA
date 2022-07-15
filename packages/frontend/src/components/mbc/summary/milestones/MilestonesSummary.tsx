@@ -72,6 +72,10 @@ const defaultOps: IPhasesItem = {
 };
 export default class MilestonesSummary extends React.Component<IMilestonesProps, IMileStonesState> {
   public static getDerivedStateFromProps(props: IMilestonesProps, state: IMileStonesState) {
+    if (props && props.milestones && props.milestones.rollouts.details.length > 0) {
+      const milestones: IMilestonesList = state.milestones;
+      milestones.rollouts.details = props.milestones.rollouts.details;
+    }
     if (props && props.milestones && props.milestones.phases.length > 0) {
       const milestones: IMilestonesList = state.milestones;
       milestones.phases.forEach((milestone) => {
@@ -272,8 +276,21 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
                     </div>
                   );
                 }
+              })}              
+            </div>
+            <h3>Rollout Locations</h3>
+            <br/>
+            <div className={classNames(Styles.rolloutLocationsList)}>
+              {this.state.milestones?.rollouts?.details && this.state.milestones?.rollouts?.details.map((rollout, index) => {
+                return (
+                  <span key={index}>
+                    {rollout.location.name}({rollout.month > 0 && rollout.year > 0 ? regionalForMonthAndYear(rollout.month+'/'+'01'+'/'+rollout.year):''})
+                    { index <= this.state.milestones.rollouts.details.length-2 ? ', ' : '' }
+                  </span>
+                );
               })}
             </div>
+            
           </div>
         </div>
       </React.Fragment>
