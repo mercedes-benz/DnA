@@ -31,7 +31,7 @@ services:
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/configurableHttpProxy.Dockerfile
 
   result-hub:
-    image: ${IMAGE_RESULT_HUB:-vardhandevalla/jupyterhub:vokta.dev}
+    image: ${IMAGE_RESULT_HUB:-vardhandevalla/jupyterhub-bug-fix:vokta.dev}
     build:
       context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
       dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/jupyterhub.Dockerfile

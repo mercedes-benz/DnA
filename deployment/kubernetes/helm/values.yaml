@@ -395,22 +395,22 @@ notebooks:
         kf_pipelines_endpoint: ""
 
     image:
-      name: vardhandevalla/jupyterhub:vokta.dev
+      name: vardhandevalla/jupyterhub:iframe
       pullPolicy: Always
 
     profileListImages:
-      default: vardhandevalla/pyspark-notebook-default:vokta.dev
-      tensorflow: vardhandevalla/pyspark-notebook-tensorflow:vokta.dev
+      default: vardhandevalla/pyspark-notebook-default:iframe
+      tensorflow: vardhandevalla/pyspark-notebook-tensorflow:iframe
       chronos: ""
 
     proxy:
-      image: vardhandevalla/configurable-http-proxy:vokta.dev
+      image: vardhandevalla/configurable-http-proxy-bug-03:vokta.dev
 
     hubConfig:
       name: hub-config
-      KubeSpawnerimage: vardhandevalla/pyspark-notebook-default:vokta.dev
+      KubeSpawnerimage: vardhandevalla/pyspark-notebook-default:iframe
       serviceAccount: hub 
-      securitycontext: HOST http://localhost:8080/* http://localhost:9001 https://dev-36980595.okta.com
+      securitycontext: http://localhost:8080 http://localhost:9001 dev-36980595.okta.com *.okta.com
       #BY default jupyter notebook will not have the okta authentication , we need to configure the generic oAuth authenticator
       oauthAuthenticator: GenericOAuthenticator
       oauthClientId: 0oa5em9fqg92V7Xyf5d7

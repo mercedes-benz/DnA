@@ -26,6 +26,11 @@ c.JupyterHub.last_activity_interval = 60
 #     'slow_spawn_timeout': 0,
 # }
 
+    c.JupyterHub.tornado_settings = {
+        'headers': {
+            'Content-Security-Policy': "frame-ancestors 'self' http://localhost:8080/* http://localhost:9001 https://dev-36980595.okta.com *.okta.com",
+        }
+    }
 
 # def camelCaseify(s):
 #     """convert snake_case to camelCase
@@ -72,7 +77,7 @@ c.JupyterHub.port = int(os.environ['PROXY_PUBLIC_SERVICE_PORT'])
 c.JupyterHub.hub_ip = '0.0.0.0'
 
 #c.JupyterHub.redirect_to_server = False
-c.JupyterHub.base_url = '/notebooks/'
+c.JupyterHub.base_url = '/'
 
 c.JupyterHub.allow_named_servers = True
 
@@ -147,104 +152,200 @@ c.JupyterHub.allow_named_servers = True
 
 #     c.KubeSpawner.image = image
 
-#c.KubeSpawner.image = "jupyter/pyspark-notebook:latest"
-#c.KubeSpawner.image = "dna/jupyterlab:latest"
-c.KubeSpawner.image = "dna/pyspark-notebook:kfp1.2"
-#c.KubeSpawner.image = "dna/k8s-singleuser-sample:0.11.1"
 
-c.KubeSpawner.service_account = "hub"
+    #c.KubeSpawner.image = "jupyter/pyspark-notebook:latest"
 
-# if get_config('singleuser.imagePullSecret.enabled'):
-#     c.KubeSpawner.image_pull_secrets = 'singleuser-image-credentials'
+    c.KubeSpawner.image = "vardhandevalla/pyspark-notebook-default:vokta.dev"
 
-# # scheduling:
-# if get_config('scheduling.userScheduler.enabled'):
-#     c.KubeSpawner.scheduler_name = os.environ['HELM_RELEASE_NAME'] + "-user-scheduler"
-# if get_config('scheduling.podPriority.enabled'):
-#     c.KubeSpawner.priority_class_name = os.environ['HELM_RELEASE_NAME'] + "-default-priority"
+    c.KubeSpawner.image_pull_policy = "Always"
 
-# # add node-purpose affinity
-# match_node_purpose = get_config('scheduling.userPods.nodeAffinity.matchNodePurpose')
-# if match_node_purpose:
-#     node_selector = dict(
-#         matchExpressions=[
-#             dict(
-#                 key="hub.jupyter.org/node-purpose",
-#                 operator="In",
-#                 values=["user"],
-#             )
-#         ],
-#     )
-#     if match_node_purpose == 'prefer':
-#         c.KubeSpawner.node_affinity_preferred.append(
-#             dict(
-#                 weight=100,
-#                 preference=node_selector,
-#             ),
-#         )
-#     elif match_node_purpose == 'require':
-#         c.KubeSpawner.node_affinity_required.append(node_selector)
-#     elif match_node_purpose == 'ignore':
-#         pass
-#     else:
-#         raise ValueError("Unrecognized value for matchNodePurpose: %r" % match_node_purpose)
 
-# # add dedicated-node toleration
-# for key in (
-#     'hub.jupyter.org/dedicated',
-#     # workaround GKE not supporting / in initial node taints
-#     'hub.jupyter.org_dedicated',
-# ):
-#     c.KubeSpawner.tolerations.append(
-#         dict(
-#             key=key,
-#             operator='Equal',
-#             value='user',
-#             effect='NoSchedule',
-#         )
-#     )
+    c.KubeSpawner.service_account = "hub"
 
-# # Configure dynamically provisioning pvc
-# storage_type = get_config('singleuser.storage.type')
 
-# if storage_type == 'dynamic':
-#     pvc_name_template = get_config('singleuser.storage.dynamic.pvcNameTemplate')
-#     c.KubeSpawner.pvc_name_template = pvc_name_template
-#     volume_name_template = get_config('singleuser.storage.dynamic.volumeNameTemplate')
-#     c.KubeSpawner.storage_pvc_ensure = True
-#     set_config_if_not_none(c.KubeSpawner, 'storage_class', 'singleuser.storage.dynamic.storageClass')
-#     set_config_if_not_none(c.KubeSpawner, 'storage_access_modes', 'singleuser.storage.dynamic.storageAccessModes')
-#     set_config_if_not_none(c.KubeSpawner, 'storage_capacity', 'singleuser.storage.capacity')
+    # if get_config('singleuser.imagePullSecret.enabled'):
 
-#     # Add volumes to singleuser pods
-#     c.KubeSpawner.volumes = [
-#         {
-#             'name': volume_name_template,
-#             'persistentVolumeClaim': {
-#                 'claimName': pvc_name_template
-#             }
-#         }
-#     ]
-#     c.KubeSpawner.volume_mounts = [
-#         {
-#             'mountPath': get_config('singleuser.storage.homeMountPath'),
-#             'name': volume_name_template
-#         }
-#     ]
-# elif storage_type == 'static':
-#     pvc_claim_name = get_config('singleuser.storage.static.pvcName')
-#     c.KubeSpawner.volumes = [{
-#         'name': 'home',
-#         'persistentVolumeClaim': {
-#             'claimName': pvc_claim_name
-#         }
-#     }]
+    #     c.KubeSpawner.image_pull_secrets = 'singleuser-image-credentials'
 
-#     c.KubeSpawner.volume_mounts = [{
-#         'mountPath': get_config('singleuser.storage.homeMountPath'),
-#         'name': 'home',
-#         'subPath': get_config('singleuser.storage.static.subPath')
-#     }]
+
+    # # scheduling:
+
+    # if get_config('scheduling.userScheduler.enabled'):
+
+    #     c.KubeSpawner.scheduler_name = os.environ['HELM_RELEASE_NAME'] +
+    "-user-scheduler"
+
+    # if get_config('scheduling.podPriority.enabled'):
+
+    #     c.KubeSpawner.priority_class_name = os.environ['HELM_RELEASE_NAME'] +
+    "-default-priority"
+
+
+    # # add node-purpose affinity
+
+    # match_node_purpose =
+    get_config('scheduling.userPods.nodeAffinity.matchNodePurpose')
+
+    # if match_node_purpose:
+
+    #     node_selector = dict(
+
+    #         matchExpressions=[
+
+    #             dict(
+
+    #                 key="hub.jupyter.org/node-purpose",
+
+    #                 operator="In",
+
+    #                 values=["user"],
+
+    #             )
+
+    #         ],
+
+    #     )
+
+    #     if match_node_purpose == 'prefer':
+
+    #         c.KubeSpawner.node_affinity_preferred.append(
+
+    #             dict(
+
+    #                 weight=100,
+
+    #                 preference=node_selector,
+
+    #             ),
+
+    #         )
+
+    #     elif match_node_purpose == 'require':
+
+    #         c.KubeSpawner.node_affinity_required.append(node_selector)
+
+    #     elif match_node_purpose == 'ignore':
+
+    #         pass
+
+    #     else:
+
+    #         raise ValueError("Unrecognized value for matchNodePurpose: %r" %
+    match_node_purpose)
+
+
+    # # add dedicated-node toleration
+
+    # for key in (
+
+    #     'hub.jupyter.org/dedicated',
+
+    #     # workaround GKE not supporting / in initial node taints
+
+    #     'hub.jupyter.org_dedicated',
+
+    # ):
+
+    #     c.KubeSpawner.tolerations.append(
+
+    #         dict(
+
+    #             key=key,
+
+    #             operator='Equal',
+
+    #             value='user',
+
+    #             effect='NoSchedule',
+
+    #         )
+
+    #     )
+
+
+    # # Configure dynamically provisioning pvc
+
+    # storage_type = get_config('singleuser.storage.type')
+
+
+    # if storage_type == 'dynamic':
+
+    #     pvc_name_template =
+    get_config('singleuser.storage.dynamic.pvcNameTemplate')
+
+    #     c.KubeSpawner.pvc_name_template = pvc_name_template
+
+    #     volume_name_template =
+    get_config('singleuser.storage.dynamic.volumeNameTemplate')
+
+    #     c.KubeSpawner.storage_pvc_ensure = True
+
+    #     set_config_if_not_none(c.KubeSpawner, 'storage_class',
+    'singleuser.storage.dynamic.storageClass')
+
+    #     set_config_if_not_none(c.KubeSpawner, 'storage_access_modes',
+    'singleuser.storage.dynamic.storageAccessModes')
+
+    #     set_config_if_not_none(c.KubeSpawner, 'storage_capacity',
+    'singleuser.storage.capacity')
+
+
+    #     # Add volumes to singleuser pods
+
+    #     c.KubeSpawner.volumes = [
+
+    #         {
+
+    #             'name': volume_name_template,
+
+    #             'persistentVolumeClaim': {
+
+    #                 'claimName': pvc_name_template
+
+    #             }
+
+    #         }
+
+    #     ]
+
+    #     c.KubeSpawner.volume_mounts = [
+
+    #         {
+
+    #             'mountPath': get_config('singleuser.storage.homeMountPath'),
+
+    #             'name': volume_name_template
+
+    #         }
+
+    #     ]
+
+    # elif storage_type == 'static':
+
+    #     pvc_claim_name = get_config('singleuser.storage.static.pvcName')
+
+    #     c.KubeSpawner.volumes = [{
+
+    #         'name': 'home',
+
+    #         'persistentVolumeClaim': {
+
+    #             'claimName': pvc_claim_name
+
+    #         }
+
+    #     }]
+
+
+    #     c.KubeSpawner.volume_mounts = [{
+
+    #         'mountPath': get_config('singleuser.storage.homeMountPath'),
+
+    #         'name': 'home',
+
+    #         'subPath': get_config('singleuser.storage.static.subPath')
+
+    #     }]
 
 # c.KubeSpawner.volumes.extend(get_config('singleuser.storage.extraVolumes', []))
 # c.KubeSpawner.volume_mounts.extend(get_config('singleuser.storage.extraVolumeMounts', []))
@@ -262,60 +363,85 @@ c.KubeSpawner.lifecycle_hooks = {
     # }
 }
 
-# Mount volume for storage
-pvc_name_template = 'claim-{username}'
-c.KubeSpawner.pvc_name_template = pvc_name_template
-volume_name_template = 'volume-{username}'
+    # Mount volume for storage
 
-c.KubeSpawner.storage_pvc_ensure = True
-c.KubeSpawner.storage_class = 'cinder'
-c.KubeSpawner.storage_access_modes = ['ReadWriteOnce']
-c.KubeSpawner.storage_capacity = '200Mi'
+    pvc_name_template = 'claim-{username}'
 
-c.KubeSpawner.enable_user_namespaces = True
-c.KubeSpawner.user_namespace_template = "kubeflow-{username}"
+    c.KubeSpawner.pvc_name_template = pvc_name_template
 
-#  Open bug https://github.com/jupyterhub/kubespawner/issues/493 not launching lab.
-#  this argument may not have any effect, manually ask users to use /lab instead of /tree
-c.KubeSpawner.default_url = '/lab'
+    volume_name_template = 'volume-{username}'
+
+
+    c.KubeSpawner.storage_pvc_ensure = True
+
+    c.KubeSpawner.storage_class = 'default'
+
+    c.KubeSpawner.storage_access_modes = ['ReadWriteOnce']
+
+    c.KubeSpawner.storage_capacity = '200Mi'
+
+
+    #set True if you want to enable user namespace
+
+    c.KubeSpawner.enable_user_namespaces = False
+
+    c.KubeSpawner.user_namespace_template = "kubeflow-{username}"
+
+
+    #  Open bug https://github.com/jupyterhub/kubespawner/issues/493 not
+    launching lab.
+
+    #  this argument may not have any effect, manually ask users to use /lab
+    instead of /tree
+
+    c.KubeSpawner.default_url = '/lab'
 
 # CPU & Memlimits
 c.KubeSpawner.mem_limit = '512M'
 c.KubeSpawner.cpu_limit = 0.5
 
 
-c.KubeSpawner.uid = 1000
-c.KubeSpawner.fs_gid = 100
-c.KubeSpawner.start_timeout = 60 * 5
-c.KubeSpawner.k8s_api_request_retry_timeout = 60 * 5
-c.KubeSpawner.k8s_api_request_timeout = 60 * 5
-c.KubeSpawner.http_timeout = 60 * 5
 
-# Add volumes to singleuser pods
-c.KubeSpawner.volumes = [
-    {
-        'name': volume_name_template,
-        'persistentVolumeClaim': {
-            'claimName': pvc_name_template
+    c.KubeSpawner.uid = 1000
+
+    c.KubeSpawner.fs_gid = 100
+
+    c.KubeSpawner.start_timeout = 60 * 5
+
+    c.KubeSpawner.k8s_api_request_retry_timeout = 60 * 5
+
+    c.KubeSpawner.k8s_api_request_timeout = 60 * 5
+
+    c.KubeSpawner.http_timeout = 60 * 5
+
+
+    # Add volumes to singleuser pods
+
+    c.KubeSpawner.volumes = [
+        {
+            'name': volume_name_template,
+            'persistentVolumeClaim': {
+                'claimName': pvc_name_template
+            }
         }
-    }
-]
-c.KubeSpawner.volume_mounts = [
-    {
-        'mountPath': '/home/jovyan',
-        'name': volume_name_template
-    }
-]
+    ]
+
+    c.KubeSpawner.volume_mounts = [
+        {
+            'mountPath': '/home/jovyan',
+            'name': volume_name_template
+        }
+    ]
 
 c.JupyterHub.admin_users = {"service-admin", }
 c.JupyterHub.api_tokens = {
-    "************************************************************************": "service-admin",
+    "2ed214ef11cdf07067873f82babf520b55ce6a180f5a39efb2458fd4a57a2748": "service-admin",
 }
 c.JupyterHub.services = [
     {
         "name": "service-token",
         "admin": True,
-        "api_token": "************************************************************************",
+        "api_token": "2ed214ef11cdf07067873f82babf520b55ce6a180f5a39efb2458fd4a57a2748",
     },
 ]
 
@@ -337,64 +463,133 @@ c.JupyterHub.hub_connect_port = int(os.environ['HUB_SERVICE_PORT'])
 #c.JupyterHub.authenticator_class = 'jupyterhub.auth.DummyAuthenticator'
 #c.DummyAuthenticator.password = "password"
 
-c.Application.log_level = 'DEBUG'
 
-c.JupyterHub.authenticator_class = GenericOAuthenticator
-c.GenericOAuthenticator.client_id = '**************************************************'
-c.GenericOAuthenticator.client_secret = '**************************************************'
-c.GenericOAuthenticator.oauth_callback_url = "DNA_URL_HTTPS_DEV/notebooks/hub/oauth_callback"
-c.GenericOAuthenticator.authorize_url = 'https://SSO_INT/as/authorization.oauth2'
-c.GenericOAuthenticator.token_url = 'https://SSO_INT/as/token.oauth2'
-c.GenericOAuthenticator.userdata_url = 'https://SSO_INT/idp/userinfo.openid'
-#c.GenericOAuthenticator.userdata_params = {'state': 'state'}
-# the next can be a callable as well, e.g.: lambda t: t.get('complex').get('structure').get('username')
-c.GenericOAuthenticator.username_key = 'sub'
-c.GenericOAuthenticator.login_service = 'OIDC'
-c.GenericOAuthenticator.scope = ['openid', 'email']
-c.GenericOAuthenticator.logout_redirect_url = 'https://SSO_INT/idp/startSLO.ping'
+    c.Application.log_level = 'ERROR'
 
-# if auth_type == 'google':
-#     c.JupyterHub.authenticator_class = 'oauthenticator.GoogleOAuthenticator'
-#     for trait, cfg_key in common_oauth_traits + (
-#         ('hosted_domain', None),
-#         ('login_service', None),
-#     ):
-#         if cfg_key is None:
-#             cfg_key = camelCaseify(trait)
-#         set_config_if_not_none(c.GoogleOAuthenticator, trait, 'auth.google.' + cfg_key)
-#     email_domain = get_config('auth.google.hostedDomain')
-# elif auth_type == 'github':
-#     c.JupyterHub.authenticator_class = 'oauthenticator.github.GitHubOAuthenticator'
-#     for trait, cfg_key in common_oauth_traits + (
-#         ('github_organization_whitelist', 'orgWhitelist'),
-#     ):
-#         if cfg_key is None:
-#             cfg_key = camelCaseify(trait)
-#         set_config_if_not_none(c.GitHubOAuthenticator, trait, 'auth.github.' + cfg_key)
-# elif auth_type == 'cilogon':
-#     c.JupyterHub.authenticator_class = 'oauthenticator.CILogonOAuthenticator'
-#     for trait, cfg_key in common_oauth_traits:
-#         if cfg_key is None:
-#             cfg_key = camelCaseify(trait)
-#         set_config_if_not_none(c.CILogonOAuthenticator, trait, 'auth.cilogon.' + cfg_key)
-# elif auth_type == 'gitlab':
-#     c.JupyterHub.authenticator_class = 'oauthenticator.gitlab.GitLabOAuthenticator'
-#     for trait, cfg_key in common_oauth_traits + (
-#         ('gitlab_group_whitelist', None),
-#         ('gitlab_project_id_whitelist', None),
-#         ('gitlab_url', None),
-#     ):
-#         if cfg_key is None:
-#             cfg_key = camelCaseify(trait)
-#         set_config_if_not_none(c.GitLabOAuthenticator, trait, 'auth.gitlab.' + cfg_key)
-# elif auth_type == 'azuread':
-#     c.JupyterHub.authenticator_class = 'oauthenticator.azuread.AzureAdOAuthenticator'
-#     for trait, cfg_key in common_oauth_traits + (
-#         ('tenant_id', None),
-#         ('username_claim', None),
-#     ):
-#         if cfg_key is None:
-#             cfg_key = camelCaseify(trait)
+
+    c.JupyterHub.authenticator_class = GenericOAuthenticator
+
+    c.GenericOAuthenticator.client_id = '0oa5em9fqg92V7Xyf5d7'
+
+    c.GenericOAuthenticator.client_secret =
+    'fTjokQtY1wrY2CRyczw2fdGyohlz-YyJNhVpqxkE'
+
+    c.GenericOAuthenticator.oauth_callback_url =
+    "http://localhost:9001/hub/oauth_callback"
+
+    c.GenericOAuthenticator.authorize_url =
+    'https://dev-36980595.okta.com/oauth2/v1/authorize'
+
+    c.GenericOAuthenticator.token_url =
+    'https://dev-36980595.okta.com/oauth2/v1/token'
+
+    c.GenericOAuthenticator.userdata_url =
+    'https://dev-36980595.okta.com/oauth2/v1/userinfo'
+
+    #c.GenericOAuthenticator.userdata_params = {'state': 'state'}
+
+    # the next can be a callable as well, e.g.: lambda t:
+    t.get('complex').get('structure').get('username')
+
+    c.GenericOAuthenticator.username_key = 'sub'
+
+    c.GenericOAuthenticator.login_service = 'OKTA'
+
+    c.GenericOAuthenticator.scope = ['openid', 'email']
+
+
+    # if auth_type == 'google':
+
+    #     c.JupyterHub.authenticator_class =
+    'oauthenticator.GoogleOAuthenticator'
+
+    #     for trait, cfg_key in common_oauth_traits + (
+
+    #         ('hosted_domain', None),
+
+    #         ('login_service', None),
+
+    #     ):
+
+    #         if cfg_key is None:
+
+    #             cfg_key = camelCaseify(trait)
+
+    #         set_config_if_not_none(c.GoogleOAuthenticator, trait,
+    'auth.google.' + cfg_key)
+
+    #     email_domain = get_config('auth.google.hostedDomain')
+
+    # elif auth_type == 'github':
+
+    #     c.JupyterHub.authenticator_class =
+    'oauthenticator.github.GitHubOAuthenticator'
+
+    #     for trait, cfg_key in common_oauth_traits + (
+
+    #         ('github_organization_whitelist', 'orgWhitelist'),
+
+    #     ):
+
+    #         if cfg_key is None:
+
+    #             cfg_key = camelCaseify(trait)
+
+    #         set_config_if_not_none(c.GitHubOAuthenticator, trait,
+    'auth.github.' + cfg_key)
+
+    # elif auth_type == 'cilogon':
+
+    #     c.JupyterHub.authenticator_class =
+    'oauthenticator.CILogonOAuthenticator'
+
+    #     for trait, cfg_key in common_oauth_traits:
+
+    #         if cfg_key is None:
+
+    #             cfg_key = camelCaseify(trait)
+
+    #         set_config_if_not_none(c.CILogonOAuthenticator, trait,
+    'auth.cilogon.' + cfg_key)
+
+    # elif auth_type == 'gitlab':
+
+    #     c.JupyterHub.authenticator_class =
+    'oauthenticator.gitlab.GitLabOAuthenticator'
+
+    #     for trait, cfg_key in common_oauth_traits + (
+
+    #         ('gitlab_group_whitelist', None),
+
+    #         ('gitlab_project_id_whitelist', None),
+
+    #         ('gitlab_url', None),
+
+    #     ):
+
+    #         if cfg_key is None:
+
+    #             cfg_key = camelCaseify(trait)
+
+    #         set_config_if_not_none(c.GitLabOAuthenticator, trait,
+    'auth.gitlab.' + cfg_key)
+
+    # elif auth_type == 'azuread':
+
+    #     c.JupyterHub.authenticator_class =
+    'oauthenticator.azuread.AzureAdOAuthenticator'
+
+    #     for trait, cfg_key in common_oauth_traits + (
+
+    #         ('tenant_id', None),
+
+    #         ('username_claim', None),
+
+    #     ):
+
+    #         if cfg_key is None:
+
+    #             cfg_key = camelCaseify(trait)
 
 #         set_config_if_not_none(c.AzureAdOAuthenticator, trait, 'auth.azuread.' + cfg_key)
 # elif auth_type == 'mediawiki':
