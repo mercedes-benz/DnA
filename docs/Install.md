@@ -1,23 +1,6 @@
-<h1>Install with docker-compose</h1>
+<h1>Installation Gudie</h1>
 
-Docker Compose will help to start the application locally on your computer and provides support to develop and debug the docker containers in the local machine.
-
-<h4>Software Prerequisites</h4>
-
-* Git 2.35.1+
-* Docker 20.10.13+
-* Docker Compose v2.3.3+
-* JWT token
-* Minio Username/Password
-
-<h4>Hardware Prerequisites</h4>
-
-* Recommend 6GB free RAM
-  
-<h4>Note</h4>
-  
-  * *For windows user, enable WSL engine in Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
-  * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
+<h3>Prerequisties</h3>
 
 <h4>JWT Token</h4>
 
@@ -41,6 +24,27 @@ Once when cloning is finishied , you will have a copy of the entire repository l
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
+--------------------------------------------------------------------------------------------------------
+<h2>Install with docker-compose</h2>
+
+Docker Compose will help to start the application locally on your computer and provides support to develop and debug the docker containers in the local machine.
+
+<h4>Software Prerequisites</h4>
+
+* Git 2.35.1+
+* Docker 20.10.13+
+* Docker Compose v2.3.3+
+* JWT token
+* Minio Username/Password
+
+<h4>Hardware Prerequisites</h4>
+
+* Recommend 6GB free RAM
+  
+<h4>Note</h4>
+  
+  * *For windows user, enable WSL engine in Docker Desktop. Check [FAQ](./FAQ.md) to enable WSL*.
+  * *Make sure your firewall is not restricting the npm and gradle packages of the docker files*.
 
 <h4>Docker Compose</h4>
 
@@ -63,7 +67,7 @@ docker-compose -f docker-compose-local-basic.yml down
 
 Helm helps you to deploy and manage Kubernetes applications in an easier way.
 
-Prerequisites :
+<h4>Prerequisites</h4>
 
 * Kubernetes Cluster 1.22+
 * Helm v3.8.1+
@@ -73,31 +77,6 @@ Prerequisites :
 * JWT token
 * Minio Username/Password
 
-<h4>JWT Token</h4>
-
-JWT token is used to for the internal communication between microservices. You can generate this token by clicking on the link below. Copy the generated JWT token and mention the same under `jwtKey/jwtSecretKey` in the [values.yaml](../kubernetes/helm/values.yaml).
-
-* [Refer here](https://www.javainuse.com/jwtgenerator)
-
-<h4>Minio Username And Password</h4>
-
-Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/values.yaml) and specify the username and password of you wish and mention the same under `minioAccessKey/s3AccessKey` , `minioSecretKey/s3SecretKey` in the parent [values.yaml](../kubernetes/helm/values.yaml) as well.
-
-Password should be a combination of  8 or more characters with a mix of letters, numbers & symbols
-
-*Eg: Minio@123
-
-<h4>Git Cloning</h4> 
-
-Clone the Git Repo in your local computer (this can be done by executing the below command on terminal/command prompt/some_visual_git_client(GithubDesktop)).
-
-```
-git clone https://github.com/mercedes-benz/DnA.git
-```
-Once when cloning is finishied, you will have a copy of the entire repository locally .Go to the deployment folder by executing the the below command.  (replace contents enclosed in **<<...>>** with actual location path of your computer).
-```
-cd <<Clonned Folder Path>>/deployment/
-```
 <h4>Build & push images</h4>
 
 Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-postgress ,dashboard , malware , vault, clamav, naas-backend , zooKeeper , broker , storage-mfe , storage-be and minio .
@@ -168,7 +147,7 @@ Execute the below command to list out the helm releases.
 ```
 helm list
 ```
-<h3>After installation you need to perform the below steps inorder to use the DnA platform application</h3>
+<h3>Follow the below steps for seamless experience in DnA application</h3>
 
 <h4>Vault service</h4>
 
@@ -260,7 +239,7 @@ openssl rand -hex 32
 ```
 **Note** - Update this apitoken value to the "notebookSecretToken" parameter in the backend section of the values.yaml
 
-<h4>Accessing the application with localhost</h4>
+<h2>Accessing the application with localhost</h2>
 
 In order to access the DnA application over localhost you need to port-forward the below service.
 ```
@@ -277,7 +256,7 @@ After executing the above step , you can access the application by opening the (
 
 **Note** -- If you change any port numbers of the services then you also need to change the respective values in the [values.yaml](../deployment/kubernetes/helm/values.yaml)
 
-<h4>Production Environemnt</h4>
+<h2>Production Environemnt</h2>
 
 We are already providing ingress manifest files for every microservice. So install any kubernetes ingress controller to install the application directly in the production environment.
 
