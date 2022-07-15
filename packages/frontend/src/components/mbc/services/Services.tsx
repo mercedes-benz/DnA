@@ -7,6 +7,7 @@ import { Envs } from '../../../globals/Envs';
 const Services = () => {
   const ENABLE_MALWARE_SCAN_SERVICE = Envs.ENABLE_MALWARE_SCAN_SERVICE;
   const enableDataPipelineService = Envs.ENABLE_DATA_PIPELINE_SERVICE;
+  const enableMyModelRegistryService = Envs.ENABLE_MY_MODEL_REGISTRY_SERVICE;
   const enableMLPipelineService = Envs.ENABLE_ML_PIPELINE_SERVICE;
   const enableStorageService = Envs.ENABLE_STORAGE_SERVICE;
   const MLPipelineUrl = enableMLPipelineService ? Envs.ML_PIPELINE_URL : '#/comingsoon';
@@ -19,7 +20,11 @@ const Services = () => {
     }
   };
   const modelRegistryNav = () => {
-    history.push('/modelregistry');
+    if (enableMyModelRegistryService) {
+      history.push('/modelregistry');
+    } else {
+      history.push('/comingsoon');
+    }
   };
   const pipelineNav = () => {
     if (enableDataPipelineService) {
@@ -47,7 +52,7 @@ const Services = () => {
         <div className={Styles.content}>
           <div className={Styles.Workspaces}>
             <div className={Styles.WorkspacesNavigation} onClick={malwareNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.malwareScan)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> Malware Scan {!ENABLE_MALWARE_SCAN_SERVICE && <label> ( Coming Soon ) </label>} </span>
                 <span>
@@ -57,7 +62,7 @@ const Services = () => {
               </div>
             </div>
             <div className={Styles.WorkspacesNavigation} onClick={pipelineNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.dataPipeline)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> Data Pipeline {!enableDataPipelineService && <label> ( Coming Soon ) </label>} </span>
                 <span>
@@ -72,7 +77,7 @@ const Services = () => {
               target="_blank"
               rel="noreferrer"
             >
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.mlPipeline)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> ML Pipeline {!enableMLPipelineService && <label> ( Coming Soon ) </label>} </span>
                 <span>
@@ -84,7 +89,7 @@ const Services = () => {
           </div>
           <div className={Styles.Workspaces}>
             <div className={Styles.WorkspacesNavigation} onClick={storageNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
+              <div className={classNames(Styles.WorkspacesNavigationVisual, Styles.myStorage)}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
                 <span> My Storage {!enableStorageService && <label> ( Coming Soon ) </label>} </span>
                 <span>
@@ -96,7 +101,7 @@ const Services = () => {
             <div className={Styles.WorkspacesNavigation} onClick={modelRegistryNav}>
               <div className={Styles.WorkspacesNavigationVisual}></div>
               <div className={Styles.WorkspacesNavigationTitle}>
-                <span> My Model Registry </span>
+                <span> My Model Registry {!enableMyModelRegistryService && <label> ( Coming Soon ) </label>} </span>
                 <span>
                   {' '}
                   <i className="icon mbc-icon arrow small right"></i>

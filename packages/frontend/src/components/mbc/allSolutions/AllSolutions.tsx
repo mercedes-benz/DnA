@@ -256,7 +256,7 @@ export default class AllSolutions extends React.Component<
             break;
         }
         this.setState({ queryParams }, () => {
-          this.getSolutions(true);
+          // this.getSolutions(true);
         });
       } else if (window.location.href.indexOf('allsolutions') !== -1) {
         this.setState({ showSolutionsFilter: true });
@@ -268,12 +268,12 @@ export default class AllSolutions extends React.Component<
         queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
         this.setState({ allSolutionsFilterApplied: false, queryParams }, () => {
           SelectBox.defaultSetup();
-          this.getSolutions();
+          // this.getSolutions();
         });
       } else {
         this.setState({ allSolutionsFilterApplied: false });
         SelectBox.defaultSetup();
-        this.getSolutions();
+        // this.getSolutions();
       }
     });
     ApiClient.getNotebooksDetails()
@@ -576,23 +576,20 @@ export default class AllSolutions extends React.Component<
               onCancel={this.onCancellingDeleteChanges}
               onAccept={this.onAcceptDeleteChanges}
             />
-          </div>
-          {this.state.showSolutionsFilter && (
-            <>
-              <SolutionsFilter
-                userId={this.props.user.id}
-                getFilterQueryParams={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams)}
-                solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
-                setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
-                // getValuesFromFilter={(value: any) => {
-                //   this.setState({ locations: value.locations ? value.locations : [] });
-                //   this.setState({ phases: value.phases ? value.phases : [] });
-                //   this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
-                //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
-                // }}
-              />
-            </>
-          )}
+          </div>          
+          <SolutionsFilter
+            userId={this.props.user.id}
+            getFilterQueryParams={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter? false : true)}
+            solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
+            setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
+            showSolutionsFilter = {this.state.showSolutionsFilter}
+            // getValuesFromFilter={(value: any) => {
+            //   this.setState({ locations: value.locations ? value.locations : [] });
+            //   this.setState({ phases: value.phases ? value.phases : [] });
+            //   this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
+            //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
+            // }}
+          />
           {exportCSVIcon()}
         </div>
       </React.Fragment>
@@ -760,16 +757,40 @@ export default class AllSolutions extends React.Component<
 
   protected getFilteredSolutions = (queryParams: IFilterParams, getPublished?: boolean) => {
     ProgressIndicator.show();
-    this.setState(
-      {
-        queryParams,
-        currentPageOffset: 0,
-        currentPageNumber: 1,
-      },
-      () => {
-        this.getSolutions(getPublished);
-      },
-    );
+
+    if (
+      window.location.href.indexOf('bookmarks') !== -1 ||
+      window.location.href.indexOf('mysolutions') !== -1
+    ) {
+      queryParams = this.state.queryParams;
+      queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
+      this.setState(
+        {
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+          allSolutionsFilterApplied: false, 
+          queryParams
+        },
+        () => {          
+          SelectBox.defaultSetup();
+          this.getSolutions();          
+        },
+      );
+      
+    } else {
+      this.setState(
+        {
+          queryParams,
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+        },
+        () => {
+          this.getSolutions(getPublished);
+        },
+      );
+      
+    }
+    
   };
 
   protected getSolutions = (getPublished?: boolean) => {
@@ -779,7 +800,7 @@ export default class AllSolutions extends React.Component<
     const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
     const status = queryParams.status.join(',');
     const useCaseType = queryParams.useCaseType.join(',');
-    const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume.join(',') : '';
+    const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
     const tags = queryParams.tag.join(',');
 
     ApiClient.getSolutionsByGraphQL(
@@ -970,8 +991,8 @@ export default class AllSolutions extends React.Component<
       userId = solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (solution?.createdBy?.id === userInfo.id) {
       userId = solution.createdBy.id;
-    } else if (userInfo?.divisionAdmins.includes(solution?.division?.name)) {
-      userId = userInfo.id;
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(solution?.division?.name)) {
+      userId = userInfo.id;    
     } else {
       userId = '';
     }

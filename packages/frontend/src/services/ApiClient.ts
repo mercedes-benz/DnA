@@ -353,7 +353,7 @@ export class ApiClient {
       res.forEach((division: any) => {
         division.subdivisions.forEach((subdiv: ISubDivisionSolution) => {
           subdiv.division = division.id;
-          subdiv.id = subdiv.id + '-' + division.id;
+          subdiv.id = subdiv.id + '@-@' + division.id;
           tempSubDivision.push(subdiv);
         });
       });
@@ -367,7 +367,7 @@ export class ApiClient {
       res.forEach((division: any) => {
         division.subdivisions.forEach((subdiv: ISubDivisionSolution) => {
           subdiv.division = division.id;
-          subdiv.id = subdiv.id + '-' + division.id;
+          subdiv.id = subdiv.id + '@-@' + division.id;
           tempSubDivisions.push(subdiv);
         });
       });
@@ -811,7 +811,10 @@ export class ApiClient {
           teamMemberPosition
         },
         dataSources {
-          dataSources,
+          dataSources {
+            dataSource,
+            weightage
+          },
           dataVolume {
             id,
             name

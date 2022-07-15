@@ -220,7 +220,7 @@ public class BaseStorageService implements StorageService {
 
 								LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
 								MinioGenericResponse onboardUserResponse = dnaMinioClient
-										.onboardUserMinio(userVO.getAccesskey().toUpperCase(), policies);
+										.onboardUserMinio(userVO.getAccesskey(), policies);
 								if (onboardUserResponse != null
 										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 									subscribedUsers.add(userVO.getAccesskey());
@@ -555,7 +555,7 @@ public class BaseStorageService implements StorageService {
 		String currentUser = userStore.getUserInfo().getId();
 
 		// Setting current user as user Id if userId is null
-		userId = StringUtils.hasText(userId) ? userId.toUpperCase() : currentUser;
+		userId = StringUtils.hasText(userId) ? userId : currentUser;
 
 		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
 			LOGGER.info("No permission to refresh user:{}, only owner or admin can refresh", userId);
@@ -566,7 +566,7 @@ public class BaseStorageService implements StorageService {
 		} else {
 
 			LOGGER.debug("Refresh user through minio client.");
-			MinioGenericResponse minioResponse = dnaMinioClient.userRefresh(userId.toUpperCase());
+			MinioGenericResponse minioResponse = dnaMinioClient.userRefresh(userId);
 			if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 				LOGGER.info("Success from refresh minio client.");
 				httpStatus = HttpStatus.OK;
@@ -591,7 +591,7 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		// Setting current user as user Id if userId is null
-		userId = StringUtils.hasText(userId) ? userId.toUpperCase() : currentUser;
+		userId = StringUtils.hasText(userId) ? userId : currentUser;
 		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
 			LOGGER.info(
 					"No permission to get Connection details for user:{}, only owner or admin can get connection details.",
@@ -692,21 +692,27 @@ public class BaseStorageService implements StorageService {
 
 	@Override
 	@Transactional
-	public ResponseEntity<GenericMessage> deleteBucket(String bucketName) {
+	public ResponseEntity<GenericMessage> deleteBucket(String bucketName, Boolean live) {
 		GenericMessage genericMessage = new GenericMessage();
 		HttpStatus httpStatus;
-		
+
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-		
-		LOGGER.info("Removing bucket:{}",bucketName);
+
+		LOGGER.info("Removing bucket:{}", bucketName);
 		MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from minio remove bucket.");
-			//Fetching bucket info from database
+			// Fetching bucket info from database
 			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
-			if(Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
-				LOGGER.info("Deleting bucket:{} info from database",bucketName);
+			if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
+				// To delete dataiku connection if exists
+				Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(project -> {
+					LOGGER.info("Removing connection for project:{}", project);
+					dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, bucketName),
+							live);
+				}));
+				LOGGER.info("Deleting bucket:{} info from database", bucketName);
 				jpaRepo.deleteById(entity.getId());
 			}
 			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
@@ -714,8 +720,7 @@ public class BaseStorageService implements StorageService {
 		} else {
 			LOGGER.info("Failure from minio remove bucket.");
 			genericMessage.setSuccess(ConstantsUtility.FAILURE);
-			genericMessage
-					.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
+			genericMessage.setErrors(getMessages(minioResponse != null ? minioResponse.getErrors() : null));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 		return new ResponseEntity<>(genericMessage, httpStatus);
@@ -869,7 +874,7 @@ public class BaseStorageService implements StorageService {
 				}
 
 				LOGGER.info("Onboarding collaborator:{}", userId);
-				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId.toUpperCase(),
+				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId,
 						policies);
 				if (onboardUserResponse != null && onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 					LOGGER.info("Collaborator:{} onboarding successfull", userId);
