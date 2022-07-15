@@ -191,7 +191,7 @@ export default class AddOrEditFactorModal extends React.Component<
                         name="year"
                         placeholder="Type here"
                         value={                                              
-                          costFactor.year
+                          costFactor.year === null ? '' : costFactor.year
                         }
                         thousandSeparator={false}
                         decimalScale={0}
@@ -339,7 +339,7 @@ export default class AddOrEditFactorModal extends React.Component<
                         name="year"
                         placeholder="Type here"
                         value={                                              
-                          valueFactor.year
+                          valueFactor.year === null ? '' : valueFactor.year
                         }
                         thousandSeparator={false}
                         decimalScale={0}
@@ -1057,8 +1057,8 @@ export default class AddOrEditFactorModal extends React.Component<
 
   protected validateYearLength(el: any) {
     const { rampUp, rampUpValue } = this.state;
-    const numberVal = el?.event?.target?.value;
-    const index: number = parseInt(el?.event?.target?.id.split('-')[1], 0);
+    const numberVal = el?.target?.value;
+    const index: number = parseInt(el?.target?.id.split('-')[1], 0);
     if (numberVal.length < 4 && this.props.factorId === 'Cost') {
       rampUp[index].year = null;
       this.setState({

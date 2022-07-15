@@ -119,7 +119,9 @@ const Notifications = (props: any) => {
   };
 
   const markNotificationAsRead = (notificationIds: any, showMessage = true) => {
-    ProgressIndicator.show();
+    if (showMessage) {
+      ProgressIndicator.show();
+    }
     NotificationApiClient.markAsReadNotifications(notificationIds, props.user.id)
       .then((response) => {
         setMessage('UPDATE_NOTIFICATIONS');
@@ -129,8 +131,10 @@ const Notifications = (props: any) => {
         }
       })
       .catch((err) => {
-        showErrorNotification('Something went wrong');
-        ProgressIndicator.hide();
+        if (showMessage) {
+          showErrorNotification('Something went wrong');
+          ProgressIndicator.hide();
+        }
       });
   };
 
@@ -350,7 +354,7 @@ const Notifications = (props: any) => {
                           <th>
                             <div>
                               <label className={classNames('checkbox', Styles.checkboxItem)}>
-                                <span className="wrapper">
+                                <span className={classNames('wrapper', Styles.thCheckbox)}>
                                   <input
                                     type="checkbox"
                                     className="ff-only"
@@ -469,9 +473,13 @@ const Notifications = (props: any) => {
                 </div>
                 <div className={Styles.notificationContent}>
                   {/* <p>Hey John Doe,</p> */}
-
-                  <p>{notificationDetails? JSON.parse(notificationDetails)?.messageDetails ? markdownParser(JSON.parse(notificationDetails)?.messageDetails) : '' : ''}</p>
-
+                  
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html: notificationDetails ? JSON.parse(notificationDetails).messageDetails ? markdownParser(JSON.parse(notificationDetails).messageDetails) : '' : '',
+                    }}
+                  />
+                  
                   {notificationDetails ? (
                     JSON.parse(notificationDetails).eventType === 'Solution Updated' ? (
                       JSON.parse(notificationDetails)?.changeLogs ? (
