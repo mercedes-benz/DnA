@@ -1,4 +1,3 @@
-# Available parameters and their default values for the Vault chart.
 
 namespace: vault
 global:
@@ -6,9 +5,9 @@ global:
   # will enable or disable all the components within this chart by default.
   enabled: true
   # Image pull secret to use for registry authentication.
-  imagePullSecrets: [ ]
+  imagePullSecrets:
   # imagePullSecrets:
-  #   - name: image-pull-secret
+      - name: vddockerhub
   # TLS for end-to-end encrypted transport
   tlsDisable: true
 
@@ -18,8 +17,8 @@ server:
   # By default no direct resource request is made.
 
   image:
-    repository: ""
-    tag: ""
+    repository: docker.io/vardhandevalla/vault
+    tag: latest
     # Overrides the default Image Pull Policy
     pullPolicy: IfNotPresent
 
@@ -153,10 +152,10 @@ server:
   dataStorage:
     enabled: true
     # Size of the PVC created
-    size: 10Gi
+    size: 1Gi
     # Name of the storage class to use.  If null it will use the
     # configured default Storage Class.
-    storageClass: cinder-retain
+    storageClass: managed
     # Access Mode of the storage device being used for the PVC
     accessMode: ReadWriteOnce
 
@@ -168,10 +167,10 @@ server:
   auditStorage:
     enabled: true
     # Size of the PVC created
-    size: 10Gi
+    size: 1Gi
     # Name of the storage class to use.  If null it will use the
     # configured default Storage Class.
-    storageClass: cinder-retain
+    storageClass: managed
     # Access Mode of the storage device being used for the PVC
     accessMode: ReadWriteOnce
 
@@ -286,3 +285,4 @@ ui:
   # This should be a multi-line string mapping directly to the a map of
   # the annotations to apply to the ui service
   annotations: { }
+
