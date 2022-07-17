@@ -559,10 +559,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			bucketCollaborators = new ArrayList<>();
 			// Iterating over usersInfo map to get collaborators
 			for (var entry : usersInfo.entrySet()) {
-				if (StringUtils.hasText(entry.getValue().policyName()) && !entry.getKey().equals(currentUser)) {
+				if (StringUtils.hasText(entry.getValue().policyName())) {
 					UserVO userVO = new UserVO();
 					PermissionVO permissionVO = new PermissionVO();
-					if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READ)) {
+					if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READ)) {
 						LOGGER.debug("User:{} has read access to bucket:{}", entry.getKey(), bucketName);
 						// Setting accesskey
 						userVO.setAccesskey(entry.getKey());
@@ -572,7 +572,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						userVO.setPermission(permissionVO);
 
 					}
-					if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READWRITE)) {
+					if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READWRITE)) {
 						LOGGER.debug("User:{} has read/write access to bucket:{}", entry.getKey(), bucketName);
 						// Setting accesskey
 						userVO.setAccesskey(entry.getKey());
@@ -581,18 +581,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						permissionVO.setWrite(true);
 						userVO.setPermission(permissionVO);
 					}
-
 					if (!ObjectUtils.isEmpty(userVO.getAccesskey())) {
 						LOGGER.debug("Setting Collaborator as user:{} has access to bucket:{}", entry.getKey(),
 								bucketName);
 						userVO.setPermission(permissionVO);
 						bucketCollaborators.add(userVO);
 					}
-
 				}
 			}
 		}
-
 		return bucketCollaborators;
 	}
 	

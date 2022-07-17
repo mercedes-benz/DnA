@@ -746,11 +746,10 @@ public class BaseStorageService implements StorageService {
 	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
-
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 
-		LOGGER.debug("Validate Bucket before update.");
+		LOGGER.info("Validating Bucket before update.");
 		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
 		if (!ObjectUtils.isEmpty(errors)) {
 			responseVO.setStatus(ConstantsUtility.FAILURE);
@@ -953,16 +952,13 @@ public class BaseStorageService implements StorageService {
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(null, true);
 		HttpStatus httpStatus;
 		GenericMessage genericMessage = new GenericMessage();
-
 		if (minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)
 				&& !ObjectUtils.isEmpty(minioResponse.getBuckets())) {
 			LOGGER.info("Success from list buckets minio client");
 			httpStatus = minioResponse.getHttpStatus();
 			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
-
 			// getting users info from minio user cache
 			Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
-
 			// Iterating over bucket list
 			for (Bucket bucket : minioResponse.getBuckets()) {
 				String bucketName = bucket.name();
@@ -977,13 +973,12 @@ public class BaseStorageService implements StorageService {
 					bucketVo.setPiiData(false);
 					bucketVo.setClassificationType("Internal");
 					bucketVo.setTermsOfUse(false);
-
 					List<UserVO> collaborators = new ArrayList<>();
 					for (var entry : usersInfo.entrySet()) {
 						if (StringUtils.hasText(entry.getValue().policyName())) {
 							UserVO userVO = null;
 							PermissionVO permissionVO = new PermissionVO();
-							if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READ)) {
+							if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READ)) {
 								LOGGER.debug("User:{} has read access to bucket:{}", entry.getKey(), bucketName);
 								// Setting accesskey
 								userVO = new UserVO();
@@ -992,9 +987,8 @@ public class BaseStorageService implements StorageService {
 								permissionVO.setRead(true);
 								permissionVO.setWrite(false);
 								userVO.setPermission(permissionVO);
-
 							}
-							if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READWRITE)) {
+							if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READWRITE)) {
 								LOGGER.debug("User:{} has read/write access to bucket:{}", entry.getKey(), bucketName);
 								userVO = new UserVO();
 								// Setting accesskey
@@ -1013,7 +1007,6 @@ public class BaseStorageService implements StorageService {
 									bucketVo.setCreatedBy(createdByVO);
 								}
 							}
-
 							if (Objects.nonNull(userVO)) {
 								UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
 								if (Objects.nonNull(userInfoVO)) {
