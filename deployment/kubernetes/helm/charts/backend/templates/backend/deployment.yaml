@@ -16,9 +16,25 @@ spec:
       labels:
         zone: web
         app: {{ .Release.Name }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}       
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}      
       containers:
-        - env:
+        - name: backend
+          image: {{ .Values.app.backend.image }}
+          imagePullPolicy: Always
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}        
+          env:
             - name: ITSMM
               value: {{ .Values.app.backend.config.enableItsmm | quote }}
             - name: JUPYTER_NOTEBOOK
@@ -169,9 +185,7 @@ spec:
               value: {{ .Values.app.backend.config.avscanUploadApi }} 
             - name: DATASOURCE_BULKCREATE_API_ACCESS_TOKEN
               value: {{ .Values.app.backend.config.dataSourceBulkCreateApiAccessToken }}               
-          image: {{ .Values.app.backend.image }}
-          imagePullPolicy: Always
-          name: backend
+          {{- end }}  
           ports:
             - containerPort: 7171
           resources: {}
@@ -195,5 +209,7 @@ spec:
               port: {{ .Values.app.probes.readinessProbe.port }} 
       securityContext:
         runAsUser: 1000
+      {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecret.name }}
+      {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
