@@ -215,7 +215,7 @@ kubectl exec vault-0 -n vault  -- vault operator unseal <key_03>
 ```
 For reference 
 
-![This is an image](./images/vault-unsealed.PNG)
+![This is an image](./images/vault-generating_tokens.PNG)
 
 Execute the below commands to enable the kv engine for storing the secrets:
 ```
