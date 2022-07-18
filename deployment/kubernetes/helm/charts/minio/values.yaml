@@ -345,7 +345,7 @@ podLabels: {}
 ##
 podAnnotations:
     vault.hashicorp.com/agent-inject: 'false'
-    vault.hashicorp.com/role: 'minio'
+    vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-root-user: 'kv/dna/KubernetesSecret/Minio'
     vault.hashicorp.com/agent-inject-secret-root-password: 'kv/dna/KubernetesSecret/Minio'
