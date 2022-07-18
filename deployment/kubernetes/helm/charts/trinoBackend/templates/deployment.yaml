@@ -14,14 +14,28 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}        
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}     
       containers:
         - name: {{ .Chart.Name }}-service
           image: {{ .Values.image }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}          
           {{- with .Values.envs }}            
           env:
           {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}               
           ports:
             - containerPort: {{ .Values.containerPort }}
