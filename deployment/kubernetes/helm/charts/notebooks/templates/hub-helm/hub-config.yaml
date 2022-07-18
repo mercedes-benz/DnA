@@ -383,13 +383,13 @@ data:
 
     c.JupyterHub.admin_users = {"service-admin", }
     c.JupyterHub.api_tokens = {
-        "b9cfc64284c1c5950812a0745da0bc274033b7ef538a07950a17e9c69ee9e388": "service-admin",
+        "XXXXXXX": "service-admin",
     }
     c.JupyterHub.services = [
         {
             "name": "service-token",
             "admin": True,
-            "api_token": "b9cfc64284c1c5950812a0745da0bc274033b7ef538a07950a17e9c69ee9e388",
+            "api_token": "XXXXX",
         },
         {
             'name': 'idle-culler',
