@@ -845,14 +845,14 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
             
             <Text style={[styles.subTitle, styles.setMarginTop]}>Rollout Locations</Text>
             <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 25, marginTop: 25 }}>
-            {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.map((rollout, index) => {
+            {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.length > 0 ? props.solution.milestones?.rollouts?.details.map((rollout, index) => {
                 return (
                   <Text key={index}>
                     {rollout.location.name}({rollout.month > 0 && rollout.year > 0 ? regionalForMonthAndYear(rollout.month+'/'+'01'+'/'+rollout.year):''})
                     { index <= props.solution.milestones.rollouts.details.length-2 ? ', ' : '' }
                   </Text>
                 );
-              })}
+              }) : <Text>N/A</Text>}
             </View>
             <View style={styles.seperatorLine} />
           </View>
