@@ -304,7 +304,7 @@ master:
   ##
   podAnnotations:
     vault.hashicorp.com/agent-inject: 'false'
-    vault.hashicorp.com/role: 'redis'
+    vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-redis-password: 'kv/dna/KubernetesSecret/Redis'
     vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "kv/dna/KubernetesSecret/Redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
@@ -692,7 +692,7 @@ replica:
   ##
   podAnnotations:
     vault.hashicorp.com/agent-inject: 'false'
-    vault.hashicorp.com/role: 'redis'
+    vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-redis-password: 'kv/dna/KubernetesSecret/Redis'
     vault.hashicorp.com/agent-inject-template-redis-password: '{{`{{- with secret "kv/dna/KubernetesSecret/Redis" -}}{{ .Data.data.REDIS_ROOT_PASSWORD }}{{- end }}`}}'
