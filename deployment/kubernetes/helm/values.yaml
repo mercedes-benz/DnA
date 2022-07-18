@@ -24,17 +24,17 @@ frontend:
       cert-manager.io/cluster-issuer: ""
   configJs: |
       window["INJECTED_ENVIRONMENT"]={
-        OIDC_DISABLED: ,
-        OIDC_PROVIDER: "",
+        OIDC_DISABLED: true,
+        OIDC_PROVIDER: "OKTA",
         API_BASEURL: "api",
-        CLIENT_IDS: "",
-        REDIRECT_URLS: "",
-        OAUTH2_AUTH_URL: "",
-        OAUTH2_LOGOUT_URL: "",
-        OAUTH2_REVOKE_URL: "",
-        OAUTH2_TOKEN_URL: "",
-        DNA_COMPANY_NAME: "DNA",
-        DNA_APPNAME_HEADER: "DNA",
+        CLIENT_IDS: 'YOUR_CLIENT_ID',
+        REDIRECT_URLS: 'YOUR_OKTA_REDIRECT_URL',
+        OAUTH2_AUTH_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/authorize',
+        OAUTH2_LOGOUT_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/logout',
+        OAUTH2_REVOKE_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/revoke',
+        OAUTH2_TOKEN_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/token',
+        DNA_COMPANY_NAME: "Company_Name",
+        DNA_APPNAME_HEADER: "DnA App",
         DNA_APPNAME_HOME: "Data and Analytics",
         DNA_CONTACTUS_HTML: "<div><p>There could be many places where you may need our help, and we are happy to support you. <br \/> Please add your communication channels links here<\/p><\/div>",
         DNA_BRAND_LOGO_URL: "/images/branding/logo-brand.png",
@@ -43,7 +43,7 @@ frontend:
         ENABLE_DATA_COMPLIANCE: false,
         ENABLE_JUPYTER_WORKSPACE: true,
         JUPYTER_NOTEBOOK_URL: "http://localhost:9001",
-        JUPYTER_NOTEBOOK_OIDC_POPUP_URL: "",
+        JUPYTER_NOTEBOOK_OIDC_POPUP_URL: "http://localhost:9001/hub/oauth_login?next=",
         JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME: 5000,
         ENABLE_DATAIKU_WORKSPACE: false,
         DATAIKU_LIVE_APP_URL: "",
@@ -88,8 +88,8 @@ frontend:
       
   appFrontend:
     replicaCount: 1
-  #Build the image of the app-frontend service in the docker-compose-local-basic and update the value here.
-    image: ""
+  #Build & update the image of the app-frontend service in the docker-compose-local-basic and update the value here.
+    image: dna/app-frontend
     ngnix:
       backend: http://dna-service.dna.svc.cluster.local:80
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
@@ -100,7 +100,7 @@ backend:
   enabled: true
   namespace: dna
   imagePullSecret: 
-    name: 
+    name: dockerregistry
   #Update the .dockerconfigjson value in the below key parameter.
     key:  
   ingress:
@@ -118,14 +118,14 @@ backend:
     backend:
       replicaCount: 1
       #Update the image of the app-backend service in the docker-compose-local-basic.yml
-      image: ""
+      image: dna/app-backend
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
         #Notebook secret key was the jupyter.api_token that was generated in the hub-config.yaml
         notebookSecretToken: ""
-        oidcClientID: ""
-        oidcClientSecret: ""
+        oidcClientID: YOUR_CLIENT_ID
+        oidcClientSecret: YOUR_CLIENT_SECRET
         drdCertPassword: ""
         jwtSecretKey: ""
         s3AccessKey: admin
@@ -145,13 +145,13 @@ backend:
         enableInternalUser: false
         redirectUrl: http://localhost:8080
         dbUri: jdbc:postgresql://dna-bitnamipostgresql:5432/db
-        oidcUserInfoUrl: ""
-        oidcTokenIntrospectionUrl: ""
-        oidcProvider: ""
-        oidcTokenRevocationUrl: ""
+        oidcUserInfoUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo
+        oidcTokenIntrospectionUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/introspect
+        oidcProvider: OKTA
+        oidcTokenRevocationUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/revoke
         internalUserRequestUrl: ""
         internalCertFile: ""
-        oidcDisabled: false
+        oidcDisabled: true
         s3BucketName: dna
         s3Url: http://minio.storage.svc.cluster.local:9000
         corosOriginUrl: http://*
@@ -734,7 +734,7 @@ clamav:
     backend:
       name: clamav-rest
       #Update the image of the dna/malware-backend service in the docker-compose-local-basic.yml
-      image: ""
+      image: dna/malware-backend
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -766,6 +766,7 @@ clamav:
         enableAuth: true
         verifyLoginApi: /api/verifyLogin
         unscribeMalwareScanApi: /api/malwarescan/unsubscribe/
+        naas_broker: ""
 
   #Update your kafka service FQDN name in the "NAAS_BROKER" parameter
         naas_broker: ""
@@ -789,7 +790,7 @@ clamav:
 
   #Update the image of clamav service in the docker-compose-local-basic.yml
   image:
-    repo: ""
+    repo: mkodockx/docker-clamav:stretch-slim
     replicaCount: 1
     pullPolicy: Always
   ingress:
@@ -810,13 +811,13 @@ clamav:
     accessModes: ReadWriteOnce
     size: 2G
 
-  # resources:
-  #   requests:
-  #     memory: "512Mi"
-  #     cpu: "250m"
-  #   limits:
-  #     memory: "1000Mi"
-  #     cpu: "500m"
+  resources:
+    requests:
+      memory: "5000Mi"
+      cpu: "500m"
+    limits:
+      memory: "8000Mi"
+      cpu: "700m"
       
 #Subchart properties for naas
 naas:
@@ -826,7 +827,7 @@ naas:
   #update the image name of the naas-backend service in the docker-compose-local-basic.yml
   app:
     backend:
-      image: ""
+      image: dna/naas-backend
       secrets:
         name: naas-app-secrets
         authApiToken: ""
@@ -902,8 +903,9 @@ notebooks:
 
   #Build & Update the images of the pyspark-notebook-default & pyspark-notebook-tensorflow services in the docker-compose-notebook.yml . Keep the chronos parameter to empty value
     profileListImages:
-      default: pyspark-notebook-default
-      tensorflow: pyspark-notebook:1.0-tensorflow
+      default: pyspark-notebook-default:latest
+      tensorflow: pyspark-notebook-tensorflow:latest
+  #Chronos image is a coming soon feature
       chronos: ""
 
   #Build & update the image of the result-configurable-httpproxy services in the docker-compose-notbook.yml
@@ -913,20 +915,20 @@ notebooks:
   #Build & update the image of the pyspark-notebook-base service in the docker-compose-notebook.yml
     hubConfig:
       name: hub-config
-      KubeSpawnerimage: pyspark-notebook:1.0-default
+      KubeSpawnerimage: pyspark-notebook-default:latest
       serviceAccount: hub 
       #Inorder to use the iframe for the notebooks service in the dna platform update the security context with frontend domain & Notebook domain name . For testing purpose we port-forwarded the dna-frontend and notebook service to 8080 and 9001 respectively and mentioned in the security context
       securitycontext: HOST http://localhost:8080/* http://localhost:9001
       oauthAuthenticator: GenericOAuthenticator
-      oauthClientId: ""
-      oauthClientSecret: ""
-      oauthCallback: ""
-      oauthAuthorizeUrl: ""
-      oauthTokenUrl: ""
-      oauthUserDataUrl: ""
+      oauthClientId: YOUR_CLIENT_ID
+      oauthClientSecret: YOUR_CLIENT_SECRET
+      oauthCallback: http://localhost:9001/hub/oauth_callback
+      oauthAuthorizeUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/authorize
+      oauthTokenUrl: https://YOUR_OKTA_DOMAIN.okta.com/v1/token
+      oauthUserDataUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo
       oauthUsrKey: sub
       #OIDC Provider = oauthLoginSvc
-      oauthLoginSvc: ""
+      oauthLoginSvc: OKTA
       prespawn_hook: ""
       enableUserNS: "False"
       userNameSpaceTemplate: kubeflow
@@ -959,7 +961,7 @@ dashboard:
   enabled: true
   namespace: dashboard
   #Build & Update the image of the dashboard-backend in the docker-compose-local-basic.yml
-  image: ""
+  image: dna/dashboard-backend
   imagePullSecret: 
     name: dockerregistry
     key: "docker-config" 
@@ -1019,12 +1021,12 @@ airflow:
   appName: airflow
   namespace: airflow
    imagePullSecret: 
-    name: ""
+    name: dockerregistry
     #update the .dockerconfigjson of our image registry into the below key parameter
     key:  ""
   #Update the Airflow backend image name to the below parameter (docker-compose -f docker-compose-airflow.yml build)
   backend:
-    image: ""
+    image: airflow_backend
     imagePullPolicy: Always
   #Update the jdbc postgresql url to the below url paramater "jdbc:postgresql://host(Datbase service FQDN):port/database"
     dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
@@ -1035,14 +1037,14 @@ airflow:
       dbUsername: airflow
       gitToken: ""
       jwtKey: ""
-      oidcClientID: "" 
-      oidcClientSecret: ""
+      oidcClientID: YOUR_CLIENT_ID 
+      oidcClientSecret: YOUR_CLIENT_ID
     containerPort: 7171
     crossOriginUrl: http://*
     apiUrl: http://dna-service.dna.svc.cluster.local:80
-    oidcInfoUrl: "" 
-    oidcIntrospectionUrl: "" 
-    oidcRevocationUrl: "" 
+    oidcInfoUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo  
+    oidcIntrospectionUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/introspect 
+    oidcRevocationUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/revoke  
     oidcDisabled: true
     gitUrl: ""
     gitMountPath: /git/airflow-user-dags
@@ -1093,18 +1095,18 @@ airflow:
     #clientsecret is a base64 encoded value of the below OIDC parameters
     # {
     # "web": {
-    #     "client_id": "",
-    #     "client_secret": "",
-    #     "auth_uri": "[base_url]/oauth2/v1/authorize",
-    #     "token_uri": "[base_url]/oauth2/v1/token",
-    #     "userinfo_uri": "[base_url]/oauth2/v1/userinfo",
-    #     "issuer": "[base_url]",
+    #     "client_id": YOUR_CLIENT_ID,
+    #     "client_secret": YOUR_CLIENT_ID,
+    #     "auth_uri": "https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/authorize",
+    #     "token_uri": "https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/token",
+    #     "userinfo_uri": "https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo",
+    #     "issuer": "https://YOUR_OKTA_DOMAIN.okta.com",
     #     "redirect_uris": ["http://localhost:9010/*"]
     # }
     #   }
   #update the git-sync image to the below image paramaeter (docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/airflow/git-sync.Dockerfile)
   gitSync:
-    image: 
+    image: dna/git-sync:latest
     repo: 
     dest: git-sync
     branch: main
@@ -1188,7 +1190,7 @@ airflow:
   docker:
   #Build the airflow image using the airflow.Dockerfile
     image:
-      name: ""
+      name: dna/airflow-service
       tag: latest
 
   service:
@@ -1242,7 +1244,7 @@ airflow:
 
   oidc:
     logout:
-      uri: ""
+      uri: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/logout
 
   Storage:
     storageClass: ""
@@ -1703,7 +1705,7 @@ storagemfe:
 
   image:
     #Build & update the storage-frontend service in the docker-compose-local-basic.yml
-    repository: ""
+    repository: dna/storage-frontend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
@@ -1881,7 +1883,7 @@ storagebe:
   replicaCount: 1
   #Build & Update the storage-backend service in the docker-compose-local-basic.yml
   image:
-    repository: ""
+    repository: dna/storage-backend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
