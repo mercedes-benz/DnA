@@ -95,7 +95,7 @@ vaultInjector:
   enable: false
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna-app'
+    vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/KubernetesSecret/DnASPA'
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
