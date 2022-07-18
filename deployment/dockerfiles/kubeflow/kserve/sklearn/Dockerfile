@@ -1,4 +1,4 @@
-FROM dna/kfserving/sklearnserver:v0.6.1
+FROM kfserving/sklearnserver:v0.6.1
 
 USER 1000
 

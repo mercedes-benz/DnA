@@ -27,7 +27,7 @@ data:
         "sklearn": {
           "v1": {
             "image": "kfserving/sklearnserver",
-            "defaultImageVersion": "v0.6.1",
+            "defaultImageVersion": "v0.8.0",
             "supportedFrameworks": [
               "sklearn"
             ],
@@ -45,7 +45,7 @@ data:
         "xgboost": {
           "v1": {
             "image": "kfserving/xgbserver",
-            "defaultImageVersion": "v0.6.1",
+            "defaultImageVersion": "v0.8.0",
             "supportedFrameworks": [
               "xgboost"
             ],

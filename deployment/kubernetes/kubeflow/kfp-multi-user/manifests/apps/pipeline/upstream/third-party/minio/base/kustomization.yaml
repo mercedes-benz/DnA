@@ -2,7 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- minio-deployment.yaml
-- minio-pvc.yaml
-- minio-service.yaml
+#Commenting the below resources because we already have the minio installed.
+#- minio-deployment.yaml
+#- minio-pvc.yaml
+#- minio-service.yaml
 - mlpipeline-minio-artifact-secret.yaml

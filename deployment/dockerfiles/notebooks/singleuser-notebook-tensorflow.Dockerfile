@@ -1,4 +1,5 @@
-FROM jupyter/pyspark-notebook:latest
+ARG defaultimage=pyspark-notebook-default:latest
+FROM $defaultimage
 
 USER root
 

@@ -1,3 +1,5 @@
+# Enforce an explicit deny-by-default authorization model, similar to
+# the deprecated Istio RBAC
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:

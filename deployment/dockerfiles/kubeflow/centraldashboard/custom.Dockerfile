@@ -1,5 +1,5 @@
 # As we were facing troubles building the original image we simply copied the changed files and rebuild
-FROM dna/j1r0q0g6/notebooks/central-dashboard:v1.4
+FROM public.ecr.aws/j1r0q0g6/notebooks/central-dashboard:v1.4
 
 COPY manage-users-view.pug public/components/manage-users-view.pug
 COPY api_workgroup.ts app/api_workgroup.ts

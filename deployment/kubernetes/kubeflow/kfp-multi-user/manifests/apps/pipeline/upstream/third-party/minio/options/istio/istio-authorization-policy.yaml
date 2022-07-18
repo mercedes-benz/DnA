@@ -24,7 +24,7 @@ kind: DestinationRule
 metadata:
   name: ml-pipeline-minio
 spec:
-  host: minio-service.kubeflow.svc.cluster.local
+  host: minio.storage.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL

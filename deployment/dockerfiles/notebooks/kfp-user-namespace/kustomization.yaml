@@ -5,12 +5,12 @@ kind: Kustomization
 resources:
 - networking-policy.yaml
 - profile-instance.yaml
-- pod-default.yaml
 - envoy-filter.yaml
 - kale-workflow-rbac.yaml
 - ml-pipeline-authorization.yaml
 - notebooks-authorization.yaml
 - minio-access.yaml
+- mlpipeline-minio-artifact.yaml
 configMapGenerator:
 - name: default-install-config
   namespace: kubeflow #this is the addition

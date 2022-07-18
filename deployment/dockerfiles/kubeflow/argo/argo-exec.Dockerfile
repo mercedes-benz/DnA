@@ -1,4 +1,4 @@
-FROM dna/ml-pipeline/argoexec:v3.1.14-patch-license-compliance
+FROM gcr.io/ml-pipeline/argoexec:v3.1.14-license-compliance
 
 USER 0 
 

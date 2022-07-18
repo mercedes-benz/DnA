@@ -22,7 +22,7 @@ spec:
         runAsUser: 65534
       containers:
       - name: centraldashboard
-        image: dna/j1r0q0g6/notebooks/central-dashboard
+        image: public.ecr.aws/j1r0q0g6/notebooks/central-dashboard
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

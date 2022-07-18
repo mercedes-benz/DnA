@@ -582,7 +582,7 @@ spec:
           type: Utilization
           averageUtilization: 100
 ---
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: eventing-webhook

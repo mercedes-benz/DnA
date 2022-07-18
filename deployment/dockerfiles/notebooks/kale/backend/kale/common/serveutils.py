@@ -328,20 +328,25 @@ def serve(model: Any,
             os.makedirs(PREDICTOR_MODEL_DIR, exist_ok=True)
         model_filepath = f"{PREDICTOR_MODEL_DIR}/predictions.csv"
         model.to_csv(model_filepath)
+    elif predictor == "xgboost":
+        if not os.path.isdir(PREDICTOR_MODEL_DIR):
+            os.makedirs(PREDICTOR_MODEL_DIR, exist_ok=True)
+        model_filepath = f"{PREDICTOR_MODEL_DIR}/model.bst"
+        model.save_model(model_filepath)
     else:
         predictor_type = marshal.get_backend(model).predictor_type
+        predictor_name = marshal.get_backend(model).display_name
         if predictor and predictor != predictor_type:
-            raise RuntimeError("Trying to create an InferenceService with"
-                               " predictor of type '%s' but the model is of type"
-                               " '%s'" % (predictor, predictor_type))
-        if not predictor_type:
+            log.warning(f"The type of predictor automatically read: {predictor_name}"
+                        f" is different from what was explicitly specified: {predictor}")
+        elif not (predictor or predictor_type):
             log.error("Kale does not yet support serving objects with '%s'"
-                      " backend.\n\nPlease help us improve Kale by opening a new"
-                      " issue at:\n"
-                      "https://github.com/kubeflow-kale/kale/issues",
-                      marshal.get_backend(model).display_name)
+                      " backend.\n If predictor type was not correctly read, "
+                      "please provide predictor as an argument explicitly",
+                      predictor_name)
             utils.graceful_exit(-1)
-        predictor = predictor_type  # in case `predictor` is None
+        else:
+            predictor = predictor_type
 
         # Dump the model
         marshal.set_data_dir(PREDICTOR_MODEL_DIR)
@@ -370,8 +375,8 @@ def serve(model: Any,
 
 
 def save_file_to_minio(minio_path, model_filepath, model_uri):
-    minio_client = Minio('minio-service.kubeflow.svc.cluster.local:9000', access_key='*********', secret_key='*********',
-                         secure=False)
+    minio_client = Minio('minio.storage.svc.cluster.local:9000', access_key='USER_ID',
+                         secret_key='PASSWORD', secure=False)
     try:
         minio_client.fput_object(MINIO_BUCKET, minio_path, model_filepath)
         log.info("Model file saved successfully at {}".format(model_uri))
