@@ -38,7 +38,7 @@ Docker Compose will help to start the application locally on your computer and p
 
 <h4>Docker Compose</h4>
 
-Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. (replace contents enclosed in __<<...>>__ with actual location path of your computer).
+Once when cloning is finishied , you will have a copy of the entire repository locally.Go to the deployment folder by executing the the below command. `Replace contents enclosed in __<<...>>__ with actual location path of your computer `.
 ```
 cd <<Clonned Folder Path>>/deployment/
 ```
@@ -79,11 +79,11 @@ Go to [minio sub-chart values.yaml](../deployment/kubernetes/helm/charts/minio/v
 Password should be a min length of  8 or more characters with a mix of letters, numbers & symbols.
 <h4>Build & push images</h4>
 
-Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-postgress ,dashboard , malware , vault, clamav, naas-backend , zooKeeper , broker , storage-mfe , storage-be and minio .
+Execute the below command to create images of dnA-frontend,dna-Backend, bitnami-postgress ,dashboard , malware , vault, clamav, naas-backend , zooKeeper , broker , storage-mfe , storage-be and minio .`Replace contents enclosed in __<<...>>__ with actual location path of your computer `.
 
-Refer [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml)
+Refer [docker-compose-local-basic.yml](../deployment/docker-compose-local-basic.yml) 
 ```
-cd <<**Clonned Folder Path**>>/deployment/
+cd <<Clonned Folder Path>>/deployment/
 docker-compose -f docker-compose-local-basic.yml build
 ```
 
@@ -99,7 +99,7 @@ Execute the below command for building the images for the notebook service.
 docker-compose -f ./docker-compose-notebook.yml build
 ```
 
-Execute the below commands for pushing the images to your reposirtory.(replace contents enclosed in **<<...>>** with actual location path of your computer).
+Execute the below commands for pushing the images to your reposirtory.`Replace contents enclosed in **<<...>>** with image names that were built with docker compose`.
 ```
 docker tag <<image_name_that_were_built_with_docker_compose>> <<your_repository_name/image_name_of_your_wish>>
 docker push <<your_repository_name/image_name_of_your_wish>>
@@ -184,7 +184,7 @@ In order to use our helm charts you should have kafka service . you can install 
 
 After installing the kafka, update the `naasBroker` parameter value in [Values.yaml](../deployment/kubernetes/helm/values.yaml) to the Fully qualified domain name of the kafka service.
 
-Execute the below commands to deploy application on the kubernetes cluster using helm.(Replace contents enclosed in **<<...>>** with actual location path of your computer).
+Execute the below commands to deploy application on the kubernetes cluster using helm.`Replace contents enclosed in **<<...>>** with actual location path of your computer`.
 ```
 cd <<Clonned Folder Path>>\deployment\kubernetes
 helm install dna helm/
@@ -217,7 +217,7 @@ For reference
 
 ![This is an image](./images/vault-generating_tokens.PNG)
 
-Execute the below commands to enable the kv engine for storing the secrets:
+Execute the below commands to enable the kv engine for storing the secrets and `replace contents enclosed in __<<...>>__ with your generated root token `.
 ```
 kubectl exec vault-0 -n vault  -- vault operator login <<Vault_root_token>>
 kubectl exec vault-0 -n vault  -- vault secrets enable -version=2 -path=kv kv
@@ -268,6 +268,8 @@ Eg : Please refer the below image and enable the ingress for every microservice.
 <h2>Upgrading</h2>
 
 Do Helm Upgrade, if you made changes on helm files.
+
+`Replace contents enclosed in __<<...>>__ with actual location path of your computer `.
 ```
 cd <<Clonned Folder Path>>\deployment\kubernetes 
 helm upgrade dna helm/
