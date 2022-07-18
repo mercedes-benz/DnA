@@ -1,14 +1,15 @@
 {{ template "vault.mode" . }}
+{{- if ne .mode "external" }}
 {{- if .serverEnabled -}}
-{{- if and (ne .mode "") (eq (.Values.server.authDelegator.enabled | toString) "true") }}
+{{- if eq .mode "ha" }}
 {{- if .Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1" -}}
 apiVersion: rbac.authorization.k8s.io/v1
 {{- else }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
 {{- end }}
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: {{ template "vault.fullname" . }}-server-binding
+  name: {{ template "vault.fullname" . }}-discovery-rolebinding
   namespace: {{ .Values.namespace }}
   labels:
     helm.sh/chart: {{ include "vault.chart" . }}
@@ -17,11 +18,12 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:auth-delegator
+  kind: Role
+  name: {{ template "vault.fullname" . }}-discovery-role
 subjects:
 - kind: ServiceAccount
   name: {{ template "vault.serviceAccount.name" . }}
   namespace: {{ .Values.namespace }}
+{{ end }}
 {{ end }}
 {{ end }}
