@@ -56,7 +56,7 @@ import {
 } from '../../../../globals/types';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
 import { Envs } from '../../../../globals/Envs';
-import { getDateTimeFromTimestamp } from '../../../../services/utils';
+import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
 import {IntlProvider, FormattedNumber} from 'react-intl';
 
@@ -842,6 +842,18 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           <View wrap={false}>
             <Text style={[styles.subTitle, styles.setMarginTop]}>Milestones</Text>
             <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones)}</View>
+            
+            <Text style={[styles.subTitle, styles.setMarginTop]}>Rollout Locations</Text>
+            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 25, marginTop: 25 }}>
+            {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.map((rollout, index) => {
+                return (
+                  <Text key={index}>
+                    {rollout.location.name}({rollout.month > 0 && rollout.year > 0 ? regionalForMonthAndYear(rollout.month+'/'+'01'+'/'+rollout.year):''})
+                    { index <= props.solution.milestones.rollouts.details.length-2 ? ', ' : '' }
+                  </Text>
+                );
+              })}
+            </View>
             <View style={styles.seperatorLine} />
           </View>
         ) : (
