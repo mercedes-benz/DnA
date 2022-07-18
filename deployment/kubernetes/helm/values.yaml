@@ -845,9 +845,9 @@ naas:
         mailServerPort: ""
         notificationSenderEmail: "" 
         poll_time: 5000
-        naas_central_topic: CentralEventTopic
-        naas_centralread_topic: CentralReadTopic
-        naas_centraldelte_topic: CentralDeleteTopic
+        naas_central_topic: dnaCentralEventTopic
+        naas_centralread_topic: dnaCentralReadTopic
+        naas_centraldelte_topic: dnaCentralDeleteTopic
         loggingPath: /tmp/naas/log
         loggingEnvironment: dev
         corsOriginUrl: http://*
