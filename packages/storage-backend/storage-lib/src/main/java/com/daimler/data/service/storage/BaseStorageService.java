@@ -746,11 +746,10 @@ public class BaseStorageService implements StorageService {
 	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
-
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 
-		LOGGER.debug("Validate Bucket before update.");
+		LOGGER.info("Validating Bucket before update.");
 		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
 		if (!ObjectUtils.isEmpty(errors)) {
 			responseVO.setStatus(ConstantsUtility.FAILURE);
@@ -760,7 +759,9 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
 					currentUser);
-			if(!(ObjectUtils.isEmpty(existingCollaborators) && ObjectUtils.isEmpty(bucketVo.getCollaborators()))) {
+			LOGGER.info("Fetching new collaborators for bucket:{}", bucketVo.getBucketName());
+			List<UserVO> newCollaborators = getNewCollaborators(bucketVo);
+			if(!(ObjectUtils.isEmpty(existingCollaborators) && ObjectUtils.isEmpty(newCollaborators))) {
 				// To update collaborators list
 				errors = updateBucketCollaborator(bucketVo.getBucketName(), existingCollaborators,
 						bucketVo.getCollaborators());
@@ -785,6 +786,20 @@ public class BaseStorageService implements StorageService {
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
 
+	/*
+	 * To get list of new collaborators
+	 * Add creator as collaborator if not present in collaborators list
+	 */
+	private List<UserVO> getNewCollaborators(BucketVo bucketVo) {
+		List<UserVO> newCollaborators = bucketVo.getCollaborators();
+		UserVO creator = storageAssembler.toUserVO(bucketVo.getCreatedBy());
+		if (Objects.nonNull(creator) && (ObjectUtils.isEmpty(newCollaborators) || newCollaborators.stream()
+				.noneMatch(c -> creator.getAccesskey().equalsIgnoreCase(c.getAccesskey())))) {
+			newCollaborators.add(creator);
+		}
+		return newCollaborators;
+	}
+	
 	/*
 	 * To get Union of list return list of user by making unison of 2 userVO list
 	 */
@@ -814,45 +829,39 @@ public class BaseStorageService implements StorageService {
 		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		String readPolicy = bucketName + "_" + ConstantsUtility.READ;
 		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;
-
 		// To get all users list
 		List<String> usersId = getUsersUnion(existingCollaborators, newCollaborators);
 		for (String userId : usersId) {
 			// To get User details from newCollaborators
 			Optional<UserVO> newCollaborator = newCollaborators.stream()
 					.filter(userVO -> userVO.getAccesskey().equals(userId)).findAny();
-
 			// To get User details from existingCollaborators
 			Optional<UserVO> existingCollaborator = existingCollaborators.stream()
 					.filter(userVO -> userVO.getAccesskey().equals(userId)).findAny();
-
 			// To get user info from Minio
 			UserInfo userInfo = usersInfo.get(userId);
 			String policy = "";
-
 			// if user presents in new and existing
 			if (newCollaborator.isPresent() && existingCollaborator.isPresent()) {
+				LOGGER.info("Checking permission update for existing collaborators");
 				PermissionVO permissionVO = newCollaborator.get().getPermission();
-
 				// Getting policy from user
 				policy = userInfo.policyName();
-
 				// Checking for read permission
 				// if read permission available adding it
 				// if read permission not available removing it
 				if (Boolean.TRUE.equals(permissionVO.isRead())) {
-					policy = !policy.contains(readPolicy) ? policy.concat("," + readPolicy) : policy;
+					policy = StorageUtility.addPolicy(policy, readPolicy);
 				} else {
-					policy = policy.contains(readPolicy) ? policy.replace(readPolicy, "") : policy;
+					policy = StorageUtility.removePolicy(policy, readPolicy);
 				}
-
 				// Checking for read/write permission
 				// if read/write permission available adding it
 				// if read/write permission not available removing it
 				if (Boolean.TRUE.equals(permissionVO.isWrite())) {
-					policy = !policy.contains(readWritePolicy) ? policy.concat("," + readWritePolicy) : policy;
+					policy = StorageUtility.addPolicy(policy, readWritePolicy);
 				} else {
-					policy = policy.contains(readWritePolicy) ? policy.replace(readWritePolicy, "") : policy;
+					policy = StorageUtility.removePolicy(policy, readWritePolicy);
 				}
 				// Setting permission in Minio
 				dnaMinioClient.setPolicy(userId, false, policy);
@@ -860,6 +869,7 @@ public class BaseStorageService implements StorageService {
 			}
 			// If user presents only in new
 			else if (newCollaborator.isPresent() && !existingCollaborator.isPresent()) {
+				LOGGER.info("Setting permission for new collaborators");
 				PermissionVO permissionVO = newCollaborator.get().getPermission();
 				List<String> policies = new ArrayList<>();
 				// for read permission
@@ -872,7 +882,6 @@ public class BaseStorageService implements StorageService {
 					LOGGER.debug("Setting READ/WRITE access.");
 					policies.add(readWritePolicy);
 				}
-
 				LOGGER.info("Onboarding collaborator:{}", userId);
 				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId,
 						policies);
@@ -889,12 +898,10 @@ public class BaseStorageService implements StorageService {
 			else if (!newCollaborator.isPresent() && existingCollaborator.isPresent()) {
 				// Getting policy from user
 				policy = userInfo.policyName();
-
 				// Removing read permission
-				policy = policy.contains(readPolicy) ? policy.replace(readPolicy, "") : policy;
+				policy = StorageUtility.removePolicy(policy, readPolicy);
 				// Removing read/write permission
-				policy = policy.contains(readWritePolicy) ? policy.replace(readWritePolicy, "") : policy;
-
+				policy = StorageUtility.removePolicy(policy, readWritePolicy);
 				// Setting permission in Minio
 				dnaMinioClient.setPolicy(userId, false, policy);
 
@@ -945,16 +952,13 @@ public class BaseStorageService implements StorageService {
 		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(null, true);
 		HttpStatus httpStatus;
 		GenericMessage genericMessage = new GenericMessage();
-
 		if (minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)
 				&& !ObjectUtils.isEmpty(minioResponse.getBuckets())) {
 			LOGGER.info("Success from list buckets minio client");
 			httpStatus = minioResponse.getHttpStatus();
 			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
-
 			// getting users info from minio user cache
 			Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
-
 			// Iterating over bucket list
 			for (Bucket bucket : minioResponse.getBuckets()) {
 				String bucketName = bucket.name();
@@ -969,13 +973,12 @@ public class BaseStorageService implements StorageService {
 					bucketVo.setPiiData(false);
 					bucketVo.setClassificationType("Internal");
 					bucketVo.setTermsOfUse(false);
-
 					List<UserVO> collaborators = new ArrayList<>();
 					for (var entry : usersInfo.entrySet()) {
 						if (StringUtils.hasText(entry.getValue().policyName())) {
 							UserVO userVO = null;
 							PermissionVO permissionVO = new PermissionVO();
-							if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READ)) {
+							if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READ)) {
 								LOGGER.debug("User:{} has read access to bucket:{}", entry.getKey(), bucketName);
 								// Setting accesskey
 								userVO = new UserVO();
@@ -984,9 +987,8 @@ public class BaseStorageService implements StorageService {
 								permissionVO.setRead(true);
 								permissionVO.setWrite(false);
 								userVO.setPermission(permissionVO);
-
 							}
-							if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READWRITE)) {
+							if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READWRITE)) {
 								LOGGER.debug("User:{} has read/write access to bucket:{}", entry.getKey(), bucketName);
 								userVO = new UserVO();
 								// Setting accesskey
@@ -1005,7 +1007,6 @@ public class BaseStorageService implements StorageService {
 									bucketVo.setCreatedBy(createdByVO);
 								}
 							}
-
 							if (Objects.nonNull(userVO)) {
 								UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
 								if (Objects.nonNull(userInfoVO)) {
