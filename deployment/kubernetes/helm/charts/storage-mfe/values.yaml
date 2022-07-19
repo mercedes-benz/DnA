@@ -75,12 +75,12 @@ vaultInjector:
   enable: false
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'storage'
+    vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/KubernetesSecret/StorageSPA'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/KubernetesSecret/storageMFE'
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
     vault.hashicorp.com/agent-inject-template-configjs: | 
-      {{- with secret "kv/dna/KubernetesSecret/StorageSPA" -}}
+      {{- with secret "kv/dna/KubernetesSecret/storageMFE" -}}
           window["STORAGE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
