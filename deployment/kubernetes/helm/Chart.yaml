@@ -81,6 +81,11 @@ dependencies:
   repository: file://charts/trinoBackend
   version: 0.1.0
   condition: trinoBackend.enabled
+
+- name: redis
+  repository: file://charts/redis
+  version: 16.13.0
+  condition: redis.enabled
   
 # A chart can be either an 'application' or a 'library' chart.
 #
