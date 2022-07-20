@@ -1,0 +1,4 @@
+window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
+  CONTAINER_APP_URL: 'http://localhost:9090',
+  DATA_PRODUCT_API_BASEURL: '',
+};
