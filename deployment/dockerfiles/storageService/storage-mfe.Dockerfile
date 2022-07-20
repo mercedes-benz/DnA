@@ -12,8 +12,10 @@ RUN yarn build:docker
 FROM bitnami/nginx:latest
 
 WORKDIR /usr/share/nginx/html
+USER 0
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=base /usr/src/packages/storage-mfe/dist .
 COPY nginx.conf /opt/bitnami/nginx/conf/nginx.conf
+RUN chmod -R g+rwX /usr/share/nginx/html
 EXPOSE 3000
 USER 1001
