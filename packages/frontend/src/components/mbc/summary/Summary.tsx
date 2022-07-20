@@ -339,6 +339,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       onDelete={this.onDeleteSolution}
                       updateBookmark={this.updateBookmark}
                       onExportToPDFDocument={pdfContent}
+                      isPublished={this.state.solution.publish}
                     />
 
                     {this.state.canShowPlatform && (
