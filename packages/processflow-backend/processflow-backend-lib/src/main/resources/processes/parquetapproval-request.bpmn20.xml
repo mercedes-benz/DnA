@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             typeLanguage="http://www.w3.org/2001/XMLSchema"
+             expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://www.flowable.org/processdef">
+
+    <process id = "parquetApprovalRequest" name="Parquet Approval Request" isExecutable="true">
+
+        <startEvent id="startEvent"/>
+        <sequenceFlow sourceRef="startEvent" targetRef="getInput"/>
+		<userTask id="getInput" name="Get input variables - filepath, schema name, tablename from user" />
+    	<sequenceFlow sourceRef="getInput" targetRef="validateParquetTask"/>
+    	<serviceTask id="validateParquetTask" name="Check if file at given path is valid Parquet"  
+    		flowable:class="com.daimler.data.dna.processflow.service.parquet.handlers.ParquetValidatorHandler"/>
+    	<sequenceFlow sourceRef="validateParquetTask" targetRef="isParquetValidDecision"/>
+    	
+    	<exclusiveGateway id="isParquetValidDecision"/>
+	    <sequenceFlow sourceRef="isParquetValidDecision" targetRef="moveToNewFolderTask">
+	      <conditionExpression xsi:type="tFormalExpression">
+	        <![CDATA[
+	          ${validParquet}
+	        ]]>
+	      </conditionExpression>
+	    </sequenceFlow>
+	    <sequenceFlow  sourceRef="isParquetValidDecision" targetRef="sendInvalidParquetNotification">
+	      <conditionExpression xsi:type="tFormalExpression">
+	        <![CDATA[
+	          ${!validParquet}
+	        ]]>
+	      </conditionExpression>
+	    </sequenceFlow>
+	    
+	    <serviceTask id="sendInvalidParquetNotification" name="Send notification to user that uploaded parquet is invalid" 
+    		flowable:class="com.daimler.data.dna.processflow.service.parquet.handlers.InvalidParquetHandler"/>
+	    <sequenceFlow sourceRef="sendInvalidParquetNotification" targetRef="sendInvalidParquetNotificationEnd"/>
+	    <endEvent id="sendInvalidParquetNotificationEnd"/>
+	    
+    	<serviceTask id="moveToNewFolderTask" name="Move parquet to new folder" 
+    		flowable:class="com.daimler.data.dna.processflow.service.parquet.handlers.ValidParquetHandler"/>
+	    <sequenceFlow sourceRef="moveToNewFolderTask" targetRef="approveTask"/>
+	    
+        <userTask id="approveTask" name="Approve or reject if columns are complaint or has pii information" flowable:candidateGroups="data-governors"/>
+        <sequenceFlow sourceRef="approveTask" targetRef="decision"/>
+
+        <exclusiveGateway id="decision"/>
+        <sequenceFlow sourceRef="decision" targetRef="publishToTrino">
+            <conditionExpression xsi:type="tFormalExpression">
+                <![CDATA[
+          ${approved}
+        ]]>
+            </conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow sourceRef="decision" targetRef="sendRejectionNotification">
+            <conditionExpression xsi:type="tFormalExpression">
+                <![CDATA[
+          ${!approved}
+        ]]>
+            </conditionExpression>
+        </sequenceFlow>
+
+        <serviceTask id = "publishToTrino" name="Publish approved valid parquet to trino"
+                     flowable:class="com.daimler.data.dna.processflow.service.parquet.handlers.ApprovedParquetTrinoPublisherHandler"/>
+        <sequenceFlow sourceRef = "publishToTrino" targetRef = "publishToTrinoEnd"/>
+		<endEvent id="publishToTrinoEnd"/>
+		
+        <serviceTask id="sendRejectionNotification" name="Send notification and email saying Approver rejected with comments"
+                     flowable:class="com.daimler.data.dna.processflow.service.parquet.handlers.RejectedParquetHandler"/>
+        <sequenceFlow sourceRef="sendRejectionNotification" targetRef="sendRejectionNotificationEnd"/>
+        <endEvent id="sendRejectionNotificationEnd"/>
+
+    </process>
+
+</definitions>
