@@ -54,7 +54,7 @@ dependencies:
 
 - name: vault
   repository: file://charts/vault
-  version: 0.2.1
+  version: 0.19.0
   condition: vault.enabled
 
 - name: storagemfe
@@ -81,6 +81,11 @@ dependencies:
   repository: file://charts/trinoBackend
   version: 0.1.0
   condition: trinoBackend.enabled
+
+- name: redis
+  repository: file://charts/redis
+  version: 16.13.0
+  condition: redis.enabled
   
 # A chart can be either an 'application' or a 'library' chart.
 #

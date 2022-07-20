@@ -945,6 +945,22 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                 </button>
               </div>
             </div>
+            {this.state.milestones?.rollouts?.details && this.state.milestones?.rollouts?.details.length > 0 ?
+              <div>
+                <h3>Rollout Locations</h3>
+                <br/>
+                <div className={classNames(Styles.rolloutLocationsList)}>
+                  { this.state.milestones?.rollouts?.details.map((rollout, index) => {
+                    return (
+                      <span key={index}>
+                        {rollout.location.name}({rollout.month > 0 && rollout.year > 0 ? regionalForMonthAndYear(rollout.month+'/'+'01'+'/'+rollout.year):''})
+                        { index <= this.state.milestones.rollouts.details.length-2 ? ', ' : '' }
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            : ''}
           </div>
           <div className={classNames(milestonesErrorMessage.length ? '' : 'hide')}>
             <span className="error-message">{milestonesErrorMessage}</span>

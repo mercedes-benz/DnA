@@ -1,6 +1,6 @@
 ---
 
-dss_version: "10.0.4"
+dss_version: "11.0.0"
 dss_install_archive_name: "dataiku-dss-{{dss_version}}"
 dss_install_archive_name_with_extension: "{{dss_install_archive_name}}.tar.gz"
 dss_download_url: "https://cdn.downloads.dataiku.com/public/dss/{{dss_version}}/{{dss_install_archive_name_with_extension}}"
