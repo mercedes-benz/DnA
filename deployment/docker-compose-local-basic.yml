@@ -36,6 +36,7 @@ services:
       - PROJECTSMO_DNA_APP_LOGO_URL=/images/branding/logo-app-white.png
       - PROJECTSMO_ENABLE_NOTIFICATION=true
       - PROJECTSMO_INTERNAL_USER_TEAMS_INFO=(Recommended to use Short ID. To find Short ID use <a href=\"YOUR_TEAMfS_INFO_URL\" target=\"_blank\" rel=\"noreferrer noopener\">Teams</a>)
+      - PROJECTSMO_DATA_PRODUCT_MFE_APP_URL=http://localhost:8084
     ports:
       - 8080:3000
     depends_on:

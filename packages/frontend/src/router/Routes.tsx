@@ -36,8 +36,15 @@ const UserSettings = React.lazy(() => import('../components/mbc/userSettings/use
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
+const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
 
-const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN, USER_ROLE.DIVISIONADMIN];
+const UserAndAdminRole = [
+  USER_ROLE.USER,
+  USER_ROLE.EXTENDED,
+  USER_ROLE.ADMIN,
+  USER_ROLE.REPORTADMIN,
+  USER_ROLE.DIVISIONADMIN,
+];
 const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 
 const publicRoutes = [
@@ -268,6 +275,13 @@ const protectedRoutes = [
     exact: false,
     path: '/storage',
     title: 'Storage',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataProductComponent,
+    exact: false,
+    path: '/dataproduct',
+    title: 'Data Product',
   },
 ];
 
