@@ -39,6 +39,7 @@ window['INJECTED_ENVIRONMENT'] = {
   MODEL_REGISTRY_API_BASEURL: 'YOUR_MODEL_REGISTRY_API_BASEURL',
   INTERNAL_USER_TEAMS_INFO:
     '(Recommended to use Short ID. To find Short ID use <a href="YOUR_TEAMS_INFO_URL" target="_blank" rel="noreferrer noopener">Teams</a>)',
+  DATA_PRODUCT_MFE_APP_URL: 'http://localhost:8084',
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {
