@@ -268,12 +268,12 @@ export default class AllSolutions extends React.Component<
         queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
         this.setState({ allSolutionsFilterApplied: false, queryParams }, () => {
           SelectBox.defaultSetup();
-          this.getSolutions();
+          // this.getSolutions();
         });
       } else {
         this.setState({ allSolutionsFilterApplied: false });
         SelectBox.defaultSetup();
-        this.getSolutions();
+        // this.getSolutions();
       }
     });
     ApiClient.getNotebooksDetails()
@@ -757,16 +757,40 @@ export default class AllSolutions extends React.Component<
 
   protected getFilteredSolutions = (queryParams: IFilterParams, getPublished?: boolean) => {
     ProgressIndicator.show();
-    this.setState(
-      {
-        queryParams,
-        currentPageOffset: 0,
-        currentPageNumber: 1,
-      },
-      () => {
-        this.getSolutions(getPublished);
-      },
-    );
+
+    if (
+      window.location.href.indexOf('bookmarks') !== -1 ||
+      window.location.href.indexOf('mysolutions') !== -1
+    ) {
+      queryParams = this.state.queryParams;
+      queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
+      this.setState(
+        {
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+          allSolutionsFilterApplied: false, 
+          queryParams
+        },
+        () => {          
+          SelectBox.defaultSetup();
+          this.getSolutions();          
+        },
+      );
+      
+    } else {
+      this.setState(
+        {
+          queryParams,
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+        },
+        () => {
+          this.getSolutions(getPublished);
+        },
+      );
+      
+    }
+    
   };
 
   protected getSolutions = (getPublished?: boolean) => {
