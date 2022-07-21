@@ -1,0 +1,117 @@
+.expansion-panel-group {
+  border-bottom: 1px solid #c0c8d0;
+  .expansion-panel {
+    font-family: "Roboto-Regular";
+    font-size: 14px;
+    width: 100%;
+    overflow: hidden;
+    border-top: 1px solid #c0c8d0;
+    position: relative;
+    color: #00ADEF;
+    &.open {
+      color: #697582;
+    }
+    .animation-wrapper {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      right: 4px;
+      top: 5px;
+      border-radius: 50%;
+    }
+    &-label {
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 44px 13px 32px;
+      cursor: pointer;
+      margin: 0;
+      color: #383F49;
+      position: relative;
+      /* Icon */
+      &:hover {
+        color: black;
+      }
+      i.icon {
+        position: absolute;
+        right: 10px;
+        /*float: right;
+        font-size: 15px;
+        margin-right: -33px;
+        color: #697582;
+        transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;*/
+      }
+    }
+    &-content {
+      max-height: 0;
+      opacity: 0;
+      transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1) 0s;
+      overflow: hidden;
+      color: #1c2026;
+  
+      > p {
+        padding: 10px 32px 25px;
+        margin: 0;
+        white-space: pre-wrap;
+      }
+    }
+    &-close {
+      display: flex;
+      justify-content: flex-end;
+      padding: 1em;
+      font-size: 0.75em;
+      cursor: pointer;
+      &:hover {
+        color: #697582;
+      }
+    }
+    input {
+      position: absolute;
+      opacity: 0;
+      z-index: -1;
+    }
+  
+    &.disabled {
+      pointer-events: none;
+  
+      .expansion-panel-label {
+        color: #99a5b3;
+        i.icon::before, i.icon::after {
+          background: #C0C8D0!important;
+        }
+      }
+    }
+  
+    // :checked
+    input:checked {
+      + .expansion-panel-label>i.icon {
+          /*transform: rotate(-90deg);
+          transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+          margin-right: -28px;
+          margin-top: 2px;*/
+          &::before, &::after {
+            background: #697582!important;
+          }
+      }
+      ~ .expansion-panel-content {
+        opacity: 1;
+        max-height: 2000px;
+        transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1) 0s;
+        overflow: auto;
+      }
+    }
+  
+    .nested {
+      .animation-wrapper {
+        right: 36px;
+      }
+      color: #00ADEF;
+      &.open {
+        color: #697582;
+      }
+      border-bottom: none;
+      margin-left: 32px;
+      padding-right: 32px;
+      position: relative;
+    }
+  }
+}
