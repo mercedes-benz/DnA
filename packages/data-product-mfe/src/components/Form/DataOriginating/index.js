@@ -4,6 +4,7 @@ import Styles from '../Form.common.styles.scss';
 
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
+import { Envs } from '../../../Utility/envs';
 
 const DataOriginating = ({ onSave }) => {
   const {
@@ -66,14 +67,7 @@ const DataOriginating = ({ onSave }) => {
               </div>
               <span className={classNames('error-message')}>{errors?.dataOriginatedFromChina?.message}</span>
             </div>
-            <p>
-              If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach
-              out to us at the{' '}
-              <a href={'***REMOVED***'} target="_blank" rel="noopener noreferrer">
-                Data Governance Office FM
-              </a>{' '}
-              directly.
-            </p>
+            <div dangerouslySetInnerHTML={{ __html: Envs.DATA_GOVERNANCE_HTML_FOR_CHINA_DATA }}></div>
           </div>
           <div className="btnContainer">
             <button
