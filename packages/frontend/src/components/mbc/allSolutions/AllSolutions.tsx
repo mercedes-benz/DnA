@@ -757,8 +757,66 @@ export default class AllSolutions extends React.Component<
 
   protected getFilteredSolutions = (queryParams: IFilterParams, getPublished?: boolean) => {
     ProgressIndicator.show();
+    const enablePortfolioSolutionsView = window.location.href.indexOf('viewsolutions') !== -1;
 
-    if (
+    if (enablePortfolioSolutionsView) {
+      const { kpi, value } = this.props.match.params;
+      if (queryParams.status.includes('0')) {
+        queryParams.status = [];
+      }
+      if (queryParams.useCaseType.includes('0')) {
+        queryParams.useCaseType = [];
+      }
+      queryParams.dataVolume = [];
+      switch (kpi) {
+        case 'phase':
+          queryParams.phase = [value];
+          ApiClient.get('phases')
+            .then((res) => {
+              this.setState({ phases: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        case 'datavolume':
+          queryParams.dataVolume = [value];
+          ApiClient.get('datavolumes')
+            .then((res) => {
+              this.setState({ dataVolumes: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        case 'location':
+          queryParams.location = [value];
+          ApiClient.get('locations')
+            .then((res) => {
+              this.setState({ locations: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        default:
+          break;
+      }
+      this.setState({ queryParams,
+        currentPageOffset: 0,
+        currentPageNumber: 1, }, () => {
+        this.getSolutions(true);
+      });
+    } 
+    else if (window.location.href.indexOf('allsolutions') !== -1) {
+      this.setState({ showSolutionsFilter: true,
+        queryParams,
+        currentPageOffset: 0,
+        currentPageNumber: 1 }, () => {
+        this.getSolutions();
+      });
+    } 
+    else if (
       window.location.href.indexOf('bookmarks') !== -1 ||
       window.location.href.indexOf('mysolutions') !== -1
     ) {
