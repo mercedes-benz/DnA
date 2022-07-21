@@ -33,7 +33,7 @@ window['INJECTED_ENVIRONMENT'] = {
   MALWARE_SCAN_SWAGGER_UI_URL: 'http://localhost:8181/swagger-ui.html',
   ENABLE_MALWARE_SCAN_ONEAPI_INFO: false,
   ENABLE_DATA_PIPELINE_SERVICE: false,
-  DATA_PIPELINES_APP_BASEURL: "DATA_PIPELINE_AIRFLOW_APP_URL",
+  DATA_PIPELINES_APP_BASEURL: 'DATA_PIPELINE_AIRFLOW_APP_URL',
   ENABLE_MY_MODEL_REGISTRY_SERVICE: false,
   ENABLE_STORAGE_SERVICE: true,
   STORAGE_MFE_APP_URL: 'http://localhost:8083',
@@ -44,6 +44,7 @@ window['INJECTED_ENVIRONMENT'] = {
   MODEL_REGISTRY_API_BASEURL: 'YOUR_MODEL_REGISTRY_API_BASEURL',
   INTERNAL_USER_TEAMS_INFO:
     '(Recommended to use Short ID. To find Short ID use <a href="YOUR_TEAMS_INFO_URL" target="_blank" rel="noreferrer noopener">Teams</a>)',
+  ENABLE_DATA_PRODUCT: true,
   DATA_PRODUCT_MFE_APP_URL: 'http://localhost:8084',
 };
 
@@ -55,4 +56,11 @@ window['STORAGE_INJECTED_ENVIRONMENT'] = {
   ENABLE_DATA_CLASSIFICATION_SECRET: false,
   TRINO_API_BASEURL: 'http://localhost:7575/api',
   ENABLE_TRINO_PUBLISH: false,
+};
+
+window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
+  CONTAINER_APP_URL: 'http://localhost:9090',
+  DATA_PRODUCT_API_BASEURL: '',
+  DATA_GOVERNANCE_HTML_FOR_CHINA_DATA:
+    '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="#" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
 };
