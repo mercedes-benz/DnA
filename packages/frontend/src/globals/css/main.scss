@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import "./css-custom-properties.css";
 
 /* Uilab dark theme overrides and New Icons override SCSS */
@@ -364,6 +365,7 @@
   .switch .wrapper input[type="checkbox"]:disabled::after,
   .switch .wrapper input[type="radio"]:disabled::after {
     opacity: 0.5;
+    background: none;
   }
 
   /* Input Fields */
