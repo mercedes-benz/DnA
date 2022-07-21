@@ -130,4 +130,8 @@ export const Envs = {
     getInjectedEnv('INTERNAL_USER_TEAMS_INFO') !== undefined
       ? getInjectedEnv('INTERNAL_USER_TEAMS_INFO') 
       : EnvParser.parseBool(process.env.INTERNAL_USER_TEAMS_INFO, false),
+  ENABLE_DATA_PRODUCT:
+    getInjectedEnv('ENABLE_DATA_PRODUCT') !== undefined
+      ? getInjectedEnv('ENABLE_DATA_PRODUCT')
+      : EnvParser.parseBool(process.env.ENABLE_DATA_PRODUCT, false),
 };

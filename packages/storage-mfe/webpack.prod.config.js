@@ -17,8 +17,6 @@ const fs = require('fs');
 const copyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('./ExternalTemplateRemotesPlugin');
 
-const CONTAINER_APP_URL = process.env.CONTAINER_APP_URL ? process.env.CONTAINER_APP_URL : 'http://localhost:9090';
-
 const base = {
   mode: 'production',
   target: 'web',
