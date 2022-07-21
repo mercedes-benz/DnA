@@ -26,4 +26,6 @@ const getDNAInjectedEnv = (key) => {
 export const Envs = {
   DATA_PRODUCT_API_BASEURL: getInjectedEnv('DATA_PRODUCT_API_BASEURL') || process.env.DATA_PRODUCT_API_BASEURL,
   API_BASEURL: getDNAInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
+  DATA_GOVERNANCE_HTML_FOR_CHINA_DATA:
+    getInjectedEnv('DATA_GOVERNANCE_HTML_FOR_CHINA_DATA') || process.env.DATA_GOVERNANCE_HTML_FOR_CHINA_DATA,
 };
