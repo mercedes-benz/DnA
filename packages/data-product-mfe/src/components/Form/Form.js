@@ -58,7 +58,7 @@ const Form = ({ user }) => {
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
-  const [showChangeAlert, setShowChangeAlert] = useState(false);
+  const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
 
   const elementRef = useRef(Object.keys(tabs).map(() => createRef()));
 
@@ -89,9 +89,9 @@ const Form = ({ user }) => {
 
   const setTab = (e) => {
     const id = e.target.id;
-    if (currentTab !== e.target.id) {
+    if (currentTab !== id) {
       if (formState.isDirty) {
-        setShowChangeAlert(true);
+        setShowChangeAlert({ modal: true, switchingTab: id });
       } else {
         setCurrentTab(id);
       }
@@ -253,7 +253,7 @@ const Form = ({ user }) => {
           cancelButtonTitle="Cancel"
           showAcceptButton={true}
           showCancelButton={true}
-          show={showChangeAlert}
+          show={showChangeAlert?.modal}
           content={
             <div id="contentparentdiv">
               Press &#187;Close&#171; to save your changes or press
@@ -262,17 +262,18 @@ const Form = ({ user }) => {
             </div>
           }
           onCancel={() => {
-            setCurrentTab(Object.keys(tabs)[Object.keys(tabs).indexOf(currentTab) - 1]);
-            setShowChangeAlert(false);
-            const defaultValues = Object.values(watch()).reduce((acc, curr) => ({ ...acc, ...curr }), {}); // update api response to reset
-            reset(watch());
+            reset(watch()); // to reset different states of the form.
+            const defaultValues = watch(); // update api response to reset
             // defaultValues['personalRelatedDataDescription'] = 'sample code';
             Object.entries(defaultValues).map(([key, value]) => {
               setValue(key, value); // setting default values
             });
+            setCurrentTab(showChangeAlert.switchingTab);
+            elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
+            setShowChangeAlert({ modal: false, switchingTab: '' });
           }}
           onAccept={() => {
-            setShowChangeAlert(false);
+            setShowChangeAlert({ modal: false, switchingTab: '' });
             elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
           }}
         />
