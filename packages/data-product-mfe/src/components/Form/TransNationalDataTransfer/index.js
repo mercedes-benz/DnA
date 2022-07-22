@@ -18,8 +18,9 @@ const TransNationalDataTransfer = ({ onSave }) => {
 
   const validateNotWithinEU = (value) => {
     return (
-      ((watch('transnationalDataTransfer') === null || watch('transnationalDataTransfer') === 'No') &&
-        watch('transnationalDataTransferNotWithinEU') === null) ||
+      !watch('transnationalDataTransfer') ||
+      watch('transnationalDataTransfer') === 'No' ||
+      watch('transnationalDataTransferNotWithinEU') === 'null' ||
       value?.length > 0 ||
       '*Missing entry'
     );
@@ -35,6 +36,12 @@ const TransNationalDataTransfer = ({ onSave }) => {
       '*Missing entry'
     );
   };
+
+  const isLCOApproveOptionsDisabled =
+    !watch('transnationalDataTransfer') ||
+    watch('transnationalDataTransfer') === 'No' ||
+    watch('transnationalDataTransferNotWithinEU') === 'No' ||
+    !watch('transnationalDataTransferNotWithinEU');
 
   return (
     <>
@@ -106,7 +113,8 @@ const TransNationalDataTransfer = ({ onSave }) => {
                       <input
                         {...register('transnationalDataTransferNotWithinEU', {
                           validate: validateNotWithinEU,
-                          disabled: watch('transnationalDataTransfer') === 'No',
+                          disabled:
+                            watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                           setValueAs: (value) => {
                             if (watch('transnationalDataTransfer') === 'No') return undefined;
                             return value;
@@ -128,7 +136,8 @@ const TransNationalDataTransfer = ({ onSave }) => {
                       <input
                         {...register('transnationalDataTransferNotWithinEU', {
                           validate: validateNotWithinEU,
-                          disabled: watch('transnationalDataTransfer') === 'No',
+                          disabled:
+                            watch('transnationalDataTransfer') === '' || watch('transnationalDataTransfer') === 'No',
                         })}
                         type="radio"
                         className="ff-only"
@@ -163,7 +172,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
                     <input
                       {...register('LCOApprovedDataTransfer', {
                         validate: validateLCOApproved,
-                        disabled: watch('transnationalDataTransfer') === 'No',
+                        disabled: isLCOApproveOptionsDisabled,
                         setValueAs: (value) => {
                           if (watch('transnationalDataTransfer') === 'No') return undefined;
                           return value;
@@ -182,7 +191,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
                     <input
                       {...register('LCOApprovedDataTransfer', {
                         validate: validateLCOApproved,
-                        disabled: watch('transnationalDataTransfer') === 'No',
+                        disabled: isLCOApproveOptionsDisabled,
                       })}
                       type="radio"
                       className="ff-only"
@@ -197,7 +206,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
                     <input
                       {...register('LCOApprovedDataTransfer', {
                         validate: validateLCOApproved,
-                        disabled: watch('transnationalDataTransfer') === 'No',
+                        disabled: isLCOApproveOptionsDisabled,
                       })}
                       type="radio"
                       className="ff-only"
