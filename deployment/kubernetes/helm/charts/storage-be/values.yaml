@@ -40,12 +40,12 @@ envs:
     value: http://my-release-minio.minio.svc.cluster.local:9000
   - name: MINIO_CLIENT_API
     value: ""
-  - name: MINIO_ADMIN_ACCESS_KEY
+  - name: MINIO_ROOT_USER
     valueFrom:
       secretKeyRef:
         key: minioAccessKey
         name: storage-be  
-  - name: MINIO_ADMIN_SECRET_KEY
+  - name: MINIO_ROOT_PASSWORD
     valueFrom:
       secretKeyRef:
         key: minioSecretKey
@@ -192,5 +192,10 @@ vaultInjector:
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/minio" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}        
   saName: "default"
   jarName: "storage-lib*.jar"
