@@ -2435,3 +2435,7 @@ trinoBackend:
 #Redis Sub Chart
 redis:
   enabled: true
+
+#subChart properties data-product-mfe
+data-product-mfe:
+  enabled: true
