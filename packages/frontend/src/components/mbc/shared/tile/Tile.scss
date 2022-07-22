@@ -1,0 +1,49 @@
+.WorkspacesNavigation {
+  background-color: #252a33;
+  cursor: pointer;
+  height: 209px;
+  flex: 0 0 calc(33.333333% - 16px);
+  max-width: calc(33.333333% - 16px);
+  margin: 8px;
+
+  .WorkspacesNavigationVisual {
+    height: 75%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    i {
+      opacity: 0.2;
+    }
+  }
+  .WorkspacesNavigationTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--font-size-sub-headline);
+    height: 25%;
+    padding: 10px 12px;
+    i {
+      font-size: var(--font-size-icon);
+      transition: 0.5s;
+      -webkit-transition: 0.5s;
+      -moz-transition: 0.5s;
+      -o-transition: 0.5s;
+      -ms-transition: 0.2s;
+    }
+    label {
+      opacity: 0.5;
+      margin-bottom: 0;
+    }
+  }
+  
+  &:hover {
+    color: #00adef!important;
+    i {
+      padding-left: 7px;
+      transition: 0.5s;
+      -webkit-transition: 0.5s;
+      -moz-transition: 0.5s;
+      -o-transition: 0.5s;
+      -ms-transition: 0.2s;
+    }
+  }
+}
