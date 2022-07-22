@@ -26,8 +26,8 @@ minio:
   models.bucketname: ${MINIO_MODELS_BUCKETNAME:XXXXX}
   models.pattern.prefix: ${MINIO_MODELS_PATTERN_PREFIX:XXXXX}
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-  accessKey: ${MINIO_ACCESS_KEY:XXXXXX} 
-  secretKey: ${MINIO_SECRET_KEY:XXXXXX}
+  accessKey: ${MINIO_ROOT_USER:XXXXXX} 
+  secretKey: ${MINIO_ROOT_PASSWORD:XXXXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
