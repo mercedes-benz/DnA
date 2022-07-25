@@ -105,10 +105,10 @@ vaultInjector:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/KubernetesSecret/dnaFrontend'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/kubernetesSecret/dnaFrontend'
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
     vault.hashicorp.com/agent-inject-template-configjs: | 
-      {{- with secret "kv/dna/KubernetesSecret/dnaFrontend" -}}
+      {{- with secret "kv/dna/kubernetesSecret/dnaFrontend" -}}
           window["INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -119,7 +119,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}
-      {{- with secret "kv/dna/KubernetesSecret/storageMFE" -}}
+      {{- with secret "kv/dna/kubernetesSecret/storageMFE" -}}
           window["STORAGE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

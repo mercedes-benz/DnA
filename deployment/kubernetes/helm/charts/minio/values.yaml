@@ -347,14 +347,14 @@ podAnnotations:
     vault.hashicorp.com/agent-inject: 'false'
     vault.hashicorp.com/role: 'dna'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-root-user: 'kv/dna/KubernetesSecret/minio'
-    vault.hashicorp.com/agent-inject-secret-root-password: 'kv/dna/KubernetesSecret/minio'
+    vault.hashicorp.com/agent-inject-secret-root-user: 'kv/dna/kubernetesSecret/minio'
+    vault.hashicorp.com/agent-inject-secret-root-password: 'kv/dna/kubernetesSecret/minio'
     vault.hashicorp.com/agent-inject-template-root-user: | 
-      {{`{{- with secret "kv/dna/KubernetesSecret/minio" -}}
+      {{`{{- with secret "kv/dna/kubernetesSecret/minio" -}}
       {{ .Data.data.MINIO_ROOT_USER }}
       {{- end }}`}}
     vault.hashicorp.com/agent-inject-template-root-password: | 
-      {{`{{- with secret "kv/dna/KubernetesSecret/minio" -}}
+      {{`{{- with secret "kv/dna/kubernetesSecret/minio" -}}
       {{ .Data.data.MINIO_ROOT_PASSWORD }}
       {{- end }}`}}
 ## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
