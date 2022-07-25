@@ -25,41 +25,27 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.userinfo;
+package com.daimler.data.db.repo.common;
 
 import java.util.List;
-import java.util.Optional;
 
-import com.daimler.data.db.entities.UserInfoNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+public interface CommonDataRepository<T, ID> {
 
-public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoNsql, String> {
+	void deleteAll();
 
-	/**
-	 * To return get all user information with given identifier
-	 * 
-	 * @param searchTerm
-	 * @param limit
-	 * @param offset
-	 * @param sortBy
-	 * @param sortOrder
-	 * @return list of user info {@code List<UserInfoNsql>}
-	 */
-	public List<UserInfoNsql> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+	void insertAll(List<T> tNsqlList);
 
-	/**
-	 * To return count based on given identifier
-	 * 
-	 * @param searchTerm
-	 * @return total count {@code Long}
-	 */
-	public Long getCount(String searchTerm);
-	
-	/**
-	 * Retrieves an entity by its id.
-	 *
-	 * @param id must not be {@literal null}.
-	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
-	 */
-	Optional<UserInfoNsql> findById(String id);
+	T findbyUniqueLiteral(String uniqueliteralName, String value);
+
+	List<T> findAllSortyByUniqueLiteral(int limit, int offset, String uniqueLiteralName,
+			CommonDataRepositoryImpl.SORT_TYPE sortOrder);
+
+	List<T> findAllSortyByUniqueLiteral(String uniqueLiteralName, CommonDataRepositoryImpl.SORT_TYPE sortOrder);
+
+	void update(T entity);
+
+	List<T> findAll(int limit, int offset);
+
+	Long getCount(int limit, int offset);
+
 }

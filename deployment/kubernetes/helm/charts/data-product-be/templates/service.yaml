@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "data-product-be.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "data-product-be.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "data-product-be.selectorLabels" . | nindent 4 }}

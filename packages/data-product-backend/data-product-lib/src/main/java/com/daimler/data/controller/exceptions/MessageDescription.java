@@ -25,41 +25,27 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.userinfo;
+package com.daimler.data.controller.exceptions;
 
-import java.util.List;
-import java.util.Optional;
+public class MessageDescription {
 
-import com.daimler.data.db.entities.UserInfoNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+	private String message;
 
-public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoNsql, String> {
+	public MessageDescription() {
+		super();
+	}
 
-	/**
-	 * To return get all user information with given identifier
-	 * 
-	 * @param searchTerm
-	 * @param limit
-	 * @param offset
-	 * @param sortBy
-	 * @param sortOrder
-	 * @return list of user info {@code List<UserInfoNsql>}
-	 */
-	public List<UserInfoNsql> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+	public MessageDescription(String message) {
+		super();
+		this.message = message;
+	}
 
-	/**
-	 * To return count based on given identifier
-	 * 
-	 * @param searchTerm
-	 * @return total count {@code Long}
-	 */
-	public Long getCount(String searchTerm);
-	
-	/**
-	 * Retrieves an entity by its id.
-	 *
-	 * @param id must not be {@literal null}.
-	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
-	 */
-	Optional<UserInfoNsql> findById(String id);
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
 }
