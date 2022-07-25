@@ -87,6 +87,11 @@ dependencies:
   version: 16.13.0
   condition: redis.enabled
 
+- name: data-product-mfe
+  repository: file://charts/data-product-mfe
+  version: 0.1.0
+  condition: data-product-mfe.enabled
+  
 - name: data-product-be
   repository: file://charts/data-product-be
   version: 0.1.0
