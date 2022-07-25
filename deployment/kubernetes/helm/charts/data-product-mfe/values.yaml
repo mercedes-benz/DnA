@@ -11,8 +11,7 @@ configJs: |
       DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="https://localhost" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
       DATA_PRODUCT_TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>'
     };
-conf:
-  dataProductBackendUrl: http://data-product-be.data-product.svc.cluster.local:80
+
 replicaCount: 1
 
 image:
@@ -78,10 +77,10 @@ vaultInjector:
     vault.hashicorp.com/agent-inject: 'true'
     vault.hashicorp.com/role: 'data-product'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/KubernetesSecret/dataProductMFE'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/kubernetesSecret/dataProductMFE'
     vault.hashicorp.com/agent-inject-file-configjs: "config.js"
     vault.hashicorp.com/agent-inject-template-configjs: | 
-      {{- with secret "kv/dna/KubernetesSecret/dataProductMFE" -}}
+      {{- with secret "kv/dna/kubernetesSecret/dataProductMFE" -}}
           window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
