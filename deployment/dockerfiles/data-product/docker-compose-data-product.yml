@@ -1,0 +1,8 @@
+version: "2.1"
+services:
+  data-product-mfe:
+    image: ${IMAGE_DATA_PRODUCT_MFE:-data-product-mfe}
+    container_name: data-product-mfe
+    build:
+      context: ../../../packages/data-product-mfe/
+      dockerfile: $PWD/data-product-mfe.Dockerfile
