@@ -16,7 +16,7 @@ import BasicInformation from './BasicInformation';
 import ContactInformation from './ContactInformation';
 import Classification from './ClassificationAndConfidentiality';
 import PersonalRelatedData from './PersonalRelatedData';
-import TransNationalDataTransfer from './transNationalDataTransfer';
+import TransNationalDataTransfer from './TransNationalDataTransfer';
 import DataOriginating from './DataOriginating';
 import OtherRelevant from './OtherRelavantInfo';
 import DeletionRequirements from './DeletionRequirements';
