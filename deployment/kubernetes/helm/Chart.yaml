@@ -86,6 +86,11 @@ dependencies:
   repository: file://charts/redis
   version: 16.13.0
   condition: redis.enabled
+
+- name: data-product-be
+  repository: file://charts/data-product-be
+  version: 0.1.0
+  condition: data-product-be.enabled
   
 # A chart can be either an 'application' or a 'library' chart.
 #
