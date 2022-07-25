@@ -309,4 +309,9 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		}));
 	}
 	
+	@Override
+	public UserInfoVO getById(String id) {
+		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
+		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
+	}
 }
