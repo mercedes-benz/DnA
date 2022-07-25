@@ -25,41 +25,28 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.userinfo;
+package com.daimler.data.db.entities;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.Serializable;
 
-import com.daimler.data.db.entities.UserInfoNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoNsql, String> {
+import com.daimler.data.db.jsonb.datacompliance.DataCompliance;
 
-	/**
-	 * To return get all user information with given identifier
-	 * 
-	 * @param searchTerm
-	 * @param limit
-	 * @param offset
-	 * @param sortBy
-	 * @param sortOrder
-	 * @return list of user info {@code List<UserInfoNsql>}
-	 */
-	public List<UserInfoNsql> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+@Entity
+@Table(name = "datacompliance_nsql")
+public class DataComplianceNsql extends BaseEntity<DataCompliance> implements Serializable {
 
-	/**
-	 * To return count based on given identifier
-	 * 
-	 * @param searchTerm
-	 * @return total count {@code Long}
-	 */
-	public Long getCount(String searchTerm);
-	
-	/**
-	 * Retrieves an entity by its id.
-	 *
-	 * @param id must not be {@literal null}.
-	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
-	 */
-	Optional<UserInfoNsql> findById(String id);
+	private static final long serialVersionUID = 4857908075537600169L;
+
+	public DataComplianceNsql() {
+		super();
+	}
+
+	public DataComplianceNsql(String id, DataCompliance data) {
+		this.setId(id);
+		this.setData(data);
+	}
+
 }
