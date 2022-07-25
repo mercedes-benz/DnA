@@ -25,41 +25,52 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.userinfo;
+package com.daimler.data.db.entities;
 
-import java.util.List;
-import java.util.Optional;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
-import com.daimler.data.db.entities.UserInfoNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
+import java.util.Objects;
+import java.util.UUID;
 
-public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoNsql, String> {
+@MappedSuperclass
+@TypeDefs({ @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class) })
+public class BaseEntity<T> {
 
-	/**
-	 * To return get all user information with given identifier
-	 * 
-	 * @param searchTerm
-	 * @param limit
-	 * @param offset
-	 * @param sortBy
-	 * @param sortOrder
-	 * @return list of user info {@code List<UserInfoNsql>}
-	 */
-	public List<UserInfoNsql> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+	@Id
+	@Column(name = "id", updatable = false, nullable = false)
+	private String id;
 
-	/**
-	 * To return count based on given identifier
-	 * 
-	 * @param searchTerm
-	 * @return total count {@code Long}
-	 */
-	public Long getCount(String searchTerm);
-	
-	/**
-	 * Retrieves an entity by its id.
-	 *
-	 * @param id must not be {@literal null}.
-	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
-	 */
-	Optional<UserInfoNsql> findById(String id);
+	@Type(type = "jsonb")
+	@Column(columnDefinition = "jsonb")
+	private T data;
+
+	@PrePersist
+	public void populateId() {
+		if (Objects.isNull(this.getId()))
+			this.setId(UUID.randomUUID().toString());
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public T getData() {
+		return data;
+	}
+
+	public void setData(T data) {
+		this.data = data;
+	}
+
 }
