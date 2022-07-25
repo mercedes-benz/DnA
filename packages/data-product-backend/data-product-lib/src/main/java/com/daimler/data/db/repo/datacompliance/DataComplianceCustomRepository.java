@@ -25,41 +25,22 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.userinfo;
+package com.daimler.data.db.repo.datacompliance;
 
 import java.util.List;
-import java.util.Optional;
 
-import com.daimler.data.db.entities.UserInfoNsql;
+import com.daimler.data.db.entities.DataComplianceNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoNsql, String> {
+public interface DataComplianceCustomRepository extends CommonDataRepository<DataComplianceNsql, String> {
 
-	/**
-	 * To return get all user information with given identifier
-	 * 
-	 * @param searchTerm
-	 * @param limit
-	 * @param offset
-	 * @param sortBy
-	 * @param sortOrder
-	 * @return list of user info {@code List<UserInfoNsql>}
-	 */
-	public List<UserInfoNsql> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+	List<DataComplianceNsql> getAllWithFiltersUsingNativeQuery(String entityId, String entityName,
+			List<String> localComplianceOfficer, List<String> localComplianceResponsible,
+			List<String> dataProtectionCoordinator, List<String> localComplianceSpecialist, int offset, int limit,
+			String sortBy, String sortOrder);
 
-	/**
-	 * To return count based on given identifier
-	 * 
-	 * @param searchTerm
-	 * @return total count {@code Long}
-	 */
-	public Long getCount(String searchTerm);
-	
-	/**
-	 * Retrieves an entity by its id.
-	 *
-	 * @param id must not be {@literal null}.
-	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
-	 */
-	Optional<UserInfoNsql> findById(String id);
+	Long getCountUsingNativeQuery(String entityId, String entityName, List<String> localComplianceOfficer,
+			List<String> localComplianceResponsible, List<String> dataProtectionCoordinator,
+			List<String> localComplianceSpecialist);
+
 }
