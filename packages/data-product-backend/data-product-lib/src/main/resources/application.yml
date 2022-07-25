@@ -35,7 +35,7 @@ dna:
   
 
 server:
-  port: 7979
+  port: 7184
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
