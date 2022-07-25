@@ -90,7 +90,12 @@ public class CacheUpdateEventListener {
 	
 	@Autowired
 	private JMailer mailer;
-
+	
+	private static String SOLUTION_NOTIFICATION_KEY = "Solution";
+	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
+	private static String STORAGE_NOTIFICATION_KEY = "Storage";
+	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
+	
 	@PostConstruct
 	public void init() {
 
@@ -153,13 +158,21 @@ public class CacheUpdateEventListener {
 								UserNotificationPrefVO preferenceVO = userNotificationPreferencesClient.getUserNotificationPreferences(user);
 								boolean appNotificationPreferenceFlag = true;
 								boolean emailNotificationPreferenceFlag = false;
-								if(record.value().getEventType().contains("Solution")) {
+								if(record.value().getEventType().contains(SOLUTION_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getSolutionNotificationPref().isEnableAppNotifications();
 									emailNotificationPreferenceFlag =  preferenceVO.getSolutionNotificationPref().isEnableEmailNotifications();
 								}
-								if(record.value().getEventType().contains("Notebook")) {
+								if(record.value().getEventType().contains(NOTEBOOK_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getNotebookNotificationPref().isEnableAppNotifications();
 									emailNotificationPreferenceFlag =  preferenceVO.getNotebookNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getPersistenceNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getPersistenceNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
 								}
 								NotificationVO vo = new NotificationVO();
 								vo.setDateTime(record.value().getTime());

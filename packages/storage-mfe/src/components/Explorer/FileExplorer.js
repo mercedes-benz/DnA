@@ -8,13 +8,20 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
 
 import { FullFileBrowser, ChonkyActions, FileHelper } from 'chonky';
+import { CustomActions } from './CustomFileActions';
 
-import { deleteFiles, downloadFoldersOrFiles, getFiles, setFiles } from './redux/fileExplorer.actions';
+import {
+  deleteFiles,
+  downloadFoldersOrFiles,
+  getFiles,
+  setActionButtons,
+  setFiles,
+} from './redux/fileExplorer.actions';
 import { useParams } from 'react-router-dom';
 
 import { setChonkyDefaults } from 'chonky';
 import { ChonkyIconFA } from 'chonky-icon-fontawesome';
-import { getDateTimeFromTimestamp } from '../Utility/utils';
+import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 
 import FileUpload from './Upload';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -45,7 +52,7 @@ import 'ace-builds/src-noconflict/mode-kotlin';
 import 'ace-builds/src-noconflict/mode-golang';
 
 import { bucketsObjectApi } from '../../apis/fileExplorer.api';
-import { serializeFolderChain } from './Utils';
+import { getFilePath, serializeFolderChain, setObjectKey } from './Utils';
 import { aceEditorMode, IMAGE_EXTNS, PREVIEW_ALLOWED_EXTNS } from '../Utility/constants';
 import { history } from '../../store/storeRoot';
 
@@ -54,23 +61,13 @@ import { v4 as uuidv4 } from 'uuid';
 // inform chonky on which iconComponent to use
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
-// const UploadFolder = defineFileAction({
-//   id: 'upload_folder',
-//   button: {
-//     name: 'Upload folder',
-//     toolbar: true,
-//     tooltip: 'Upload folder',
-//     icon: 'upload',
-//   },
-// });
-
 const FileExplorer = () => {
   const dispatch = useDispatch();
   const { bucketPermission } = useSelector((state) => state.fileExplorer);
 
   const { bucketName } = useParams();
 
-  const { files } = useSelector((state) => state.fileExplorer);
+  const { files, fileActions, bucketObjects } = useSelector((state) => state.fileExplorer);
 
   const [currentFolderId, setCurrentFolderId] = useState(bucketName);
   const [newFolderName, setNewFolderName] = useState('');
@@ -104,8 +101,24 @@ const FileExplorer = () => {
     data: {},
   });
 
+  const [publishModal, setPublishModal] = useState({
+    modal: false,
+    schemaName: '',
+    tableName: '',
+    data: {},
+  });
+  const [publishSchemaError, setPublishSchemaError] = useState('');
+  const [publishTableError, setPublishTableError] = useState('');
+  const [publishRes, setPublishRes] = useState({
+    modal: false,
+    data: {},
+    schemaName: '',
+    tableName: '',
+  });
+
   const currentFolderIdRef = useRef(currentFolderId);
   const uploadRef = useRef(null);
+  const folderUploadRef = useRef(null);
   const inputRef = useRef(null);
   const pwdInputRef = useRef(null);
 
@@ -116,14 +129,6 @@ const FileExplorer = () => {
     blobURL: '',
   });
 
-  const myFileActions = [
-    ...(bucketPermission.write ? [ChonkyActions.UploadFiles] : []),
-    // ...(bucketPermission.write ? [UploadFolder] : []),
-    ...(bucketPermission.write ? [ChonkyActions.CreateFolder] : []),
-    ChonkyActions.DownloadFiles,
-    ...(bucketPermission.write ? [ChonkyActions.DeleteFiles] : []),
-  ];
-
   // localization
   const i18n = {
     // set date format
@@ -131,7 +136,7 @@ const FileExplorer = () => {
       formatFileModDate: (intl, file) => {
         const safeModDate = FileHelper.getModDate(file);
         if (safeModDate) {
-          return `${getDateTimeFromTimestamp(safeModDate, '.')}`;
+          return `${regionalDateAndTimeConversionSolution(safeModDate)}`;
         } else {
           return null;
         }
@@ -241,9 +246,10 @@ const FileExplorer = () => {
       }
 
       setNewFolderName('');
+      dispatch(setActionButtons(bucketPermission, bucketObjects, false));
       return newFileMap;
     },
-    [dispatch],
+    [dispatch, bucketObjects, bucketPermission],
   );
 
   const goBack = () => {
@@ -253,7 +259,7 @@ const FileExplorer = () => {
   const onDelete = (data) => {
     // Delete the files
     const newFileMap = { ...files.fileMap };
-
+    let setPublishBtn = false;
     const fileList = [];
     data.state.selectedFiles?.forEach((file) => {
       // Delete file from the file map.
@@ -282,6 +288,14 @@ const FileExplorer = () => {
               childrenIds: newChildrenIds,
               childrenCount: newChildrenIds?.length,
             };
+            //check whether are there any parquet files
+            const bucketObjects = [];
+            newFileMap[newFileMap[file.parentId].parentId]?.childrenIds.filter((item) => {
+              bucketObjects.push(newFileMap[item]);
+              return item;
+            });
+            dispatch(setActionButtons(bucketPermission, bucketObjects));
+            setPublishBtn = true;
             delete newFileMap[file.parentId];
           }
         }
@@ -289,7 +303,14 @@ const FileExplorer = () => {
       fileList.push(file.objectName);
     });
 
-    dispatch(deleteFiles(bucketName, fileList.join(','), newFileMap));
+    dispatch(deleteFiles(bucketName, fileList.join(','), newFileMap, bucketObjects));
+    !setPublishBtn &&
+      dispatch(
+        setActionButtons(
+          bucketPermission,
+          bucketObjects.filter((item) => item.objectName !== fileList.join(',')),
+        ),
+      );
   };
 
   const onOpenFolder = (fileToOpen, isEmptyFolder = false) => {
@@ -385,7 +406,7 @@ const FileExplorer = () => {
   const onOpenFile = (data, fileToOpen) => {
     if (data.state.selectedFiles.length) {
       if (data.state.selectedFiles.length === 1) {
-        const extension = fileToOpen.name.toLowerCase()?.split('.')?.[1];
+        const extension = fileToOpen.name.toLowerCase()?.replace(/^.*?\.([a-zA-Z0-9]+)$/, '$1');
         const isImage = IMAGE_EXTNS.includes(extension);
         const allowedExt = PREVIEW_ALLOWED_EXTNS.includes(extension);
         const isPDF = extension === 'pdf';
@@ -428,12 +449,19 @@ const FileExplorer = () => {
       setShowCreateNewFolderModal(true);
     } else if (data.id === ChonkyActions.UploadFiles.id) {
       uploadRef.current.click();
-    } else if (data.id === ChonkyActions.DeleteFiles.id) {
-      setShowDeleteModal({
-        modal: true,
-        data,
-      });
-    } else if (data.id === ChonkyActions.DownloadFiles.id) {
+    } else if (data.id === CustomActions.UploadFolder.id) {
+      folderUploadRef.current.click();
+    } else if (data.id === CustomActions.DeleteFiles.id) {
+      const isPublishedParquetFolder = /(PublishedParquet)/i.test(currentFolderId);
+      if (isPublishedParquetFolder) {
+        Notification.show('Deleting files under Published folder not yet implemented!', 'alert');
+      } else {
+        setShowDeleteModal({
+          modal: true,
+          data,
+        });
+      }
+    } else if (data.id === CustomActions.DownloadFiles.id) {
       data.state.selectedFiles?.forEach((item) => {
         // if selected multiple items, download each file
         dispatch(downloadFoldersOrFiles(bucketName, item));
@@ -454,6 +482,12 @@ const FileExplorer = () => {
         // on opening files
         onOpenFile(data, fileToOpen);
       }
+    } else if (data.id === CustomActions.PublishFolder.id) {
+      setPublishModal({
+        ...publishModal,
+        modal: true,
+        data,
+      });
     }
   };
 
@@ -498,6 +532,11 @@ const FileExplorer = () => {
       formValid = false;
     }
 
+    if (/(PublishedParquet|Published Parquet)/gi.test(folderName)) {
+      setFolderNameError(`Folder name containing "Published Parquet" text is not allowed.`);
+      formValid = false;
+    }
+
     return formValid;
   };
 
@@ -512,7 +551,7 @@ const FileExplorer = () => {
             className={classNames('input-label', Styles.inputLabel, Styles.folderPathLabel)}
           >{`${bucketName}/${currentFolderPath}`}</label>
         </div>
-        <div style={{ maxHeight: 40 }}>
+        <div style={{ maxHeight: 40, minWidth: '24vw' }}>
           <input
             type="text"
             className="input-field"
@@ -580,6 +619,199 @@ const FileExplorer = () => {
   const deleteAccept = () => {
     onDelete(showDeleteModal.data);
     setShowDeleteModal({ modal: false });
+  };
+
+  const handlePublishFields = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setPublishModal({
+      ...publishModal,
+      [name]: value,
+    });
+  };
+
+  const publishContent = publishRes?.modal ? (
+    <div className={Styles.publishDetails}>
+      <div>
+        <label>Schema - {publishRes.schemaName}</label>
+        <table>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>{publishRes?.data?.createSchemaResult?.id}</td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td>
+                <a href={publishRes?.data.createSchemaResult?.infoUrl} target="_blank" rel="noopener noreferrer">
+                  {`${publishRes?.data.createSchemaResult?.infoUrl} `}
+                  <i className={'icon mbc-icon new-tab'} />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>State</td>
+              <td>{publishRes?.data.createSchemaResult?.state}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <label>Table - {publishRes.tableName}</label>
+        <table>
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>{publishRes?.data?.createTableResult?.id}</td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td>
+                <a href={publishRes?.data?.createTableResult?.infoUrl} target="_blank" rel="noopener noreferrer">
+                  {`${publishRes?.data?.createTableResult?.infoUrl} `}
+                  <i className={'icon mbc-icon new-tab'} />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>State</td>
+              <td>{publishRes?.data?.createTableResult?.state}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ) : (
+    <div className={Styles.flexLayout}>
+      <div className={classNames('input-field-group', publishSchemaError?.length ? 'error' : '')}>
+        <label className={classNames('input-label', Styles.pwdLabel)}>
+          Schema Name <sup>*</sup>
+        </label>
+        <div className={Styles.pdfPwdContainer}>
+          <input
+            className="input-field"
+            type={'text'}
+            value={publishModal.schemaName || ''}
+            name="schemaName"
+            onChange={(e) => {
+              handlePublishFields(e);
+              setPublishSchemaError('');
+            }}
+          />
+        </div>
+        <span className={classNames('error-message', publishSchemaError?.length ? '' : 'hide')}>
+          {publishSchemaError}
+        </span>
+      </div>
+      <div className={classNames('input-field-group', publishTableError?.length ? 'error' : '')}>
+        <label className={classNames('input-label', Styles.pwdLabel)}>
+          Table Name<sup>*</sup>
+        </label>
+        <div className={Styles.pdfPwdContainer}>
+          <input
+            className="input-field"
+            type={'text'}
+            name="tableName"
+            value={publishModal.tableName || ''}
+            onChange={(e) => {
+              handlePublishFields(e);
+              setPublishTableError('');
+            }}
+          />
+        </div>
+        <span className={classNames('error-message', publishTableError?.length ? '' : 'hide')}>
+          {publishTableError}
+        </span>
+      </div>
+    </div>
+  );
+
+  const publishClose = () => {
+    setPublishModal({ modal: false, data: {}, schemaName: '', tableName: '' });
+    setPublishSchemaError('');
+    setPublishTableError('');
+    setPublishRes({ modal: false, data: {} });
+  };
+
+  const publishAccept = () => {
+    const publishDetailsModal = publishRes.modal;
+    if (publishDetailsModal) {
+      setPublishRes({ modal: false, data: {} });
+    } else if (publishFieldValidation()) {
+      const objectPath = getFilePath(folderChain);
+
+      const selectedFiles = publishModal.data.state.selectedFiles[0];
+      const selectedFileName = selectedFiles?.name;
+      const filePath = objectPath + selectedFileName;
+
+      ProgressIndicator.show();
+      bucketsObjectApi
+        .publishToTrino(bucketName, filePath, publishModal.schemaName, publishModal.tableName)
+        .then((res) => {
+          Notification.show(`${selectedFileName} published successfully.`);
+          const copyselectedFiles = { ...selectedFiles };
+          const lastIndexOfSlash = copyselectedFiles.objectName.lastIndexOf('/');
+          const isRootFolder = lastIndexOfSlash === -1;
+          if (isRootFolder) {
+            copyselectedFiles.objectName = '';
+            copyselectedFiles.id = copyselectedFiles.parentId;
+            copyselectedFiles.name = copyselectedFiles.parentId;
+            copyselectedFiles.parentId = undefined;
+          } else {
+            copyselectedFiles.objectName = copyselectedFiles.objectName.substring(0, lastIndexOfSlash + 1);
+            copyselectedFiles.id = copyselectedFiles.parentId;
+            copyselectedFiles.name = files.fileMap[currentFolderId].name;
+            copyselectedFiles.parentId = files.fileMap[currentFolderId].parentId;
+            copyselectedFiles.isDir = true;
+          }
+          setPublishRes({
+            modal: true,
+            data: res?.data?.data,
+            schemaName: publishModal.schemaName,
+            tableName: publishModal.tableName,
+          });
+          // remove selected parquet file as it will be moved to published parquet folder
+          const newFileMap = { ...files.fileMap };
+          delete newFileMap[setObjectKey(filePath)];
+
+          dispatch(getFiles(newFileMap, bucketName, copyselectedFiles));
+        })
+        .catch((e) => {
+          const errorMsg = e.response.data.message.errors?.map((item) => `${item.message}`).join(';');
+          Notification.show(`Error while publishing ${selectedFileName}. \n ${errorMsg}`, 'alert');
+          ProgressIndicator.hide();
+        });
+      setPublishModal({
+        modal: false,
+        schemaName: '',
+        tableName: '',
+        data: {},
+      });
+      setPublishSchemaError('');
+      setPublishTableError('');
+    }
+  };
+
+  const publishFieldValidation = () => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+    const { schemaName, tableName } = publishModal;
+
+    if (schemaName === '') {
+      setPublishSchemaError(errorMissingEntry);
+      formValid = false;
+    }
+    if (tableName === '') {
+      setPublishTableError(errorMissingEntry);
+      formValid = false;
+    }
+
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+
+    return formValid;
   };
 
   const serializedFileName = showPreview.fileName?.split('.')?.filter((x) => x);
@@ -660,9 +892,15 @@ const FileExplorer = () => {
         </div>
         <div className={'explorer-content'}>
           <FileUpload uploadRef={uploadRef} bucketName={bucketName} folderChain={folderChain} />
+          <FileUpload
+            uploadRef={folderUploadRef}
+            bucketName={bucketName}
+            folderChain={folderChain}
+            enableFolderUpload={true}
+          />
           <FullFileBrowser
             files={files?.fileMap?.[currentFolderId]?.childrenIds?.map((item) => files.fileMap[item])}
-            fileActions={myFileActions}
+            fileActions={fileActions}
             onFileAction={handleAction}
             folderChain={folderChain}
             darkMode={true}
@@ -765,6 +1003,18 @@ const FileExplorer = () => {
         content={deleteFileOrFolderContent}
         onCancel={deleteClose}
         onAccept={deleteAccept}
+      />
+      <Modal
+        title={publishRes.modal ? 'Published Details' : 'Publish to Trino'}
+        ahiddenTitle={true}
+        acceptButtonTitle={publishRes.modal ? 'OK' : 'Confirm'}
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={publishRes.modal ? false : true}
+        show={publishModal.modal || publishRes.modal}
+        content={publishContent}
+        onCancel={publishClose}
+        onAccept={publishAccept}
       />
       <ConfirmModal
         title={''}

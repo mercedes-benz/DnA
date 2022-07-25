@@ -40,6 +40,7 @@ type SolutionsFilterType = {
   getValuesFromFilter?: Function;
   solutionsDataLoaded: boolean;
   setSolutionsDataLoaded: Function;
+  showSolutionsFilter?: boolean;
 };
 
 /**
@@ -49,6 +50,7 @@ type SolutionsFilterType = {
  * @param {Function} getValuesFromFilter callback function to get access to all the filter values, that can be used in the main page
  * @param {boolean} solutionsDataLoaded solutions data loaded
  * @param {Function} setSolutionsDataLoaded setter for solutions data loaded
+ * @param {boolean} showSolutionsFilter filter should be visible or not
  * @returns
  */
 
@@ -59,6 +61,7 @@ const SolutionsFilter = ({
   getValuesFromFilter,
   solutionsDataLoaded,
   setSolutionsDataLoaded,
+  showSolutionsFilter,
 }: SolutionsFilterType) => {
   const { pathname } = useLocation();
   const [openFilterPanel, setFilterPanel] = useState(false);
@@ -242,7 +245,7 @@ const SolutionsFilter = ({
               });
               queryParams.division = filterPreferences.divisions.map((division: IDivisionFilterPreference) => {
                 division.subdivisions.forEach((subdivision: ISubDivisionSolution) => {
-                  subdivision.id = subdivision.id + '-' + division.id;
+                  subdivision.id = subdivision.id + '@-@' + division.id;
                   subdivision.division = division.id;
                   savedSubDivisionsList.push(subdivision);
                 });
@@ -271,7 +274,7 @@ const SolutionsFilter = ({
             }
             userPreferenceDataId = userPreference.id;
           }
-
+          // sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
           setQueryParams(queryParams);
           setUserPreferenceDataId(userPreferenceDataId);
           Button.defaultSetup();
@@ -423,7 +426,7 @@ const SolutionsFilter = ({
         const subdivision: ISubDivisionSolution = { id: '0', name: null, division: null };
         subdivision.id = option.value;
         subdivision.name = option.label;
-        subdivision.division = option.value.split('-')[1];
+        subdivision.division = option.value.split('@-@')[1];
         selectedValues.push(subdivision);
         ids.push(option.value);
       });
@@ -505,10 +508,10 @@ const SolutionsFilter = ({
       const tempArr: any[] = [];
       divisionFilterValues.forEach((item) => {
         const tempSubdiv = subDivisionFilterValues.map((value: any) => {
-          const tempSubDivId = value.id.split('-')[1];
+          const tempSubDivId = value.id.split('@-@')[1];
           if (item.id === tempSubDivId) {
             const tempSubDivObj: IDivision = { id: '', name: '' };
-            tempSubDivObj.id = value.id.split('-')[0];
+            tempSubDivObj.id = value.id.split('@-@')[0];
             tempSubDivObj.name = value.name;
             return tempSubDivObj;
           }
@@ -806,7 +809,7 @@ const SolutionsFilter = ({
           </div>
         </div>
       </div>
-      <div className={`${Styles.triggerWrapper} triggerWrapper`}>
+      <div className={classNames(`${Styles.triggerWrapper} triggerWrapper`, showSolutionsFilter ? '' : 'hidden')}>
         <span
           className={classNames(Styles.iconTrigger, openFilterPanel ? Styles.active : '')}
           onClick={onFilterIconClick}

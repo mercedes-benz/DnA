@@ -31,6 +31,10 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +53,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.dto.AVScanResponseWrapperVO;
 import com.daimler.data.dto.FileScanDetailsVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 @Component
 public class AVScannerClient {
@@ -64,8 +70,20 @@ public class AVScannerClient {
 	@Value("${avscan.apiKey}")
 	private String apiKey;
 
+	@Value("${avscan.subscriptionProvisionApi}")
+	private String subscriptionProvisionApi;
+
+	@Value("${avscan.scanApi}")
+	private String scanApi;
+
 	@Autowired
 	RestTemplate restTemplate;
+
+	@Autowired
+	ServletRequest servletRequest;
+
+	@Autowired
+	HttpServletRequest httpRequest;
 
 	/**
 	 * To scan file for malware
@@ -76,7 +94,7 @@ public class AVScannerClient {
 	public Optional<FileScanDetailsVO> scan(MultipartFile file) {
 		FileScanDetailsVO fileScanDetailsVO = new FileScanDetailsVO();
 		try {
-			String avscanUri = avscanBaseUri + "/scan/upload";
+			String avscanUri = avscanBaseUri + scanApi;
 			LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 
 			if (!file.isEmpty()) {
@@ -123,5 +141,30 @@ public class AVScannerClient {
 			result = matcher.group(1);
 		}
 		return result;
+	}
+
+	public String updateSolIdForSubscribedAppId(String currDnaSubscriptionAppId, String prevDnaSubscriptionAppId,
+			String solutionId) {
+		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		JSONObject finalObject = null;
+		JSONObject obj = new JSONObject();
+		obj.put("currDnaSubscriptionAppId", currDnaSubscriptionAppId);
+		obj.put("prevDnaSubscriptionAppId", prevDnaSubscriptionAppId);
+		obj.put("solutionId", solutionId);
+		finalObject = new JSONObject();
+		finalObject.put("data", obj);
+		String status = "";
+		String jwt = httpRequest.getHeader("Authorization");
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
+		headers.set("Authorization", jwt);
+		HttpEntity entity = new HttpEntity<>(finalObject.toString(), headers);
+		ResponseEntity<String> response = restTemplate.exchange(avscanBaseUri + subscriptionProvisionApi,
+				HttpMethod.PUT, entity, String.class);
+		if (response != null && response.hasBody()) {
+			status = response.getStatusCode().toString();
+		}
+		return status;
 	}
 }

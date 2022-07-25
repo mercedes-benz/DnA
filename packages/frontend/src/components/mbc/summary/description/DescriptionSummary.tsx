@@ -8,7 +8,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { history } from '../../../../router/History';
 import { IDescriptionRequest } from '../../createNewSolution/description/Description';
 import AttachmentsListItem from '../datacompliance/attachments/AttachmentsListItems';
-import { getDateTimeFromTimestamp } from '../../../../services/utils';
+import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Styles from './DescriptionSummary.scss';
 
 const classNames = cn.bind(Styles);
@@ -18,6 +18,7 @@ export interface IDescriptionSummaryProps {
   description: IDescriptionRequest;
   canEdit: boolean;
   bookmarked: boolean;
+  isPublished: boolean;
   createdDate?: string;
   lastModifiedDate?: string;
   onEdit: (solutionId: string) => void;
@@ -215,6 +216,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
             </div>
             <h3 id="productName">{description.productName}</h3>
             <span className={Styles.description}>Solution Summary</span>
+            {!this.props.isPublished && <span className={Styles.draftIndicator}>DRAFT</span>}
             <div className={Styles.firstPanel}>
               <div className={Styles.formWrapper}>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -314,12 +316,12 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="createdAt">
                     <label className="input-label summary">Created On</label>
                     <br />
-                    {this.props.createdDate ? getDateTimeFromTimestamp(this.props.createdDate) : '-'}
+                    {this.props.createdDate ? regionalDateAndTimeConversionSolution(this.props.createdDate) : '-'}
                   </div>
                   <div id="lastModifiedAt">
                     <label className="input-label summary">Last Modified On</label>
                     <br />
-                    {this.props.lastModifiedDate ? getDateTimeFromTimestamp(this.props.lastModifiedDate) : '-'}
+                    {this.props.lastModifiedDate ? regionalDateAndTimeConversionSolution(this.props.lastModifiedDate) : '-'}
                   </div>
                 </div>
                 <hr className="divider1" />

@@ -15,6 +15,11 @@ export interface ITagsFieldProps {
   showMissingEntryError: boolean;
   fixedChips?: string[];
   enableUppercase?: boolean;
+  suggestionRender?: (tag: any) => React.ReactNode;
+  disableOnBlurAdd?: boolean;
+  suggestionPopupHeight?: number;
+  isDisabled?: boolean;
+  removeTag?: (index: number) => void;
 }
 
 export interface ITagsFiledState {
@@ -65,7 +70,10 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         <div className="chips" key={index}>
           <label className="name">{chip}</label>
           {canDelete ? (
-            <span className="close-btn" onClick={this.deleteChip.bind(null, chip)}>
+            <span
+              className={`close-btn ${this.props.isDisabled ? 'disable' : ''}`}
+              onClick={this.deleteChip.bind(null, chip)}
+            >
               <i className="icon close" />
             </span>
           ) : null}
@@ -79,8 +87,14 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         className += ' ' + classNames(Styles.active);
       }
       return (
-        <div id={filteredTag.id} key={filteredTag.id} onMouseDown={this.onSuggestionMouseDown} className={className}>
-          {filteredTag.name}
+        <div
+          id={filteredTag.id}
+          key={filteredTag.id}
+          onMouseDown={this.onSuggestionMouseDown}
+          className={className}
+          data-value={filteredTag.name}
+        >
+          {this.props.suggestionRender ? this.props.suggestionRender(filteredTag) : filteredTag.name}
         </div>
       );
     });
@@ -93,8 +107,9 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         id={'tagcontainer_' + this.props.title.replace(' ', '_')}
         className={classNames(
           'input-field-group' + (this.props.showMissingEntryError ? ' include-error' : ''),
-          this.state.isFocused ? 'focused' : '',
+          !this.props.isDisabled && this.state.isFocused ? 'focused' : '',
           this.props.showMissingEntryError ? Styles.validationError + ' error' : '',
+          this.state.filteredTags?.length ? 'open-suggestion' : '',
         )}
       >
         <label htmlFor="tag" className="input-label">
@@ -104,6 +119,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         <div
           className={classNames(
             'input-field ' + Styles.tagParent + ' ' + (this.state.chips.length !== 0 ? Styles.haveChips : ''),
+            this.props.isDisabled
+              ? this.state.chips?.length
+                ? Styles.tagParentDisabled
+                : Styles.tagParentDisabledFocus
+              : '',
           )}
           onClick={this.focusInput}
         >
@@ -112,18 +132,30 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             className={classNames(Styles.tagInputField)}
             type="text"
             id="tag"
-            placeholder={!isMaxReached ? 'Type here' : ''}
+            placeholder={!isMaxReached && !this.props.isDisabled ? 'Type here' : ''}
             onKeyDown={this.onKeyDown}
             onChange={this.onTextInputChange}
             autoComplete="off"
             value={this.state.userInput}
             onFocus={this.onTagFieldFocus}
             onBlur={this.onTagFieldBlur}
-            readOnly={isMaxReached}
+            readOnly={isMaxReached || this.props.isDisabled}
           />
         </div>
         {suggestions?.length ? (
-          suggestions
+          this.props.suggestionRender ? (
+            <div
+              className="mbc-scroll"
+              style={{
+                overflowY: 'auto',
+                ...(this.props.suggestionPopupHeight && { height: this.props.suggestionPopupHeight }),
+              }}
+            >
+              {suggestions}
+            </div>
+          ) : (
+            suggestions
+          )
         ) : (
           <span className={classNames('error-message', this.props.showMissingEntryError ? '' : 'hide')}>
             {missingEntryMessage}
@@ -139,15 +171,20 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
   protected onTagFieldBlur = (event: React.FocusEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
-    if (target.value) {
-      this.updateChips(target.value);
+    if (!this.props.disableOnBlurAdd) {
+      if (target.value) {
+        this.updateChips(target.value);
+      }
+    } else {
+      this.setState({ userInput: '', filteredTags: [] });
     }
+
     this.setState({ isFocused: false });
   };
 
   protected onSuggestionMouseDown = (event: React.MouseEvent) => {
     const target = event.currentTarget as HTMLElement;
-    const userInput = target.innerText;
+    const userInput = target.getAttribute('data-value');
     if (target.id && target.id !== '0') {
       this.setState({
         userInput,
@@ -240,7 +277,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         return;
       }
 
-      if(this.props.enableUppercase) {
+      if (this.props.enableUppercase) {
         value = value.toUpperCase();
       }
 
@@ -273,7 +310,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const chips = this.state.chips;
     if (index >= 0) {
       chips.splice(index, 1);
-      this.props.setTags(chips);
+      if (this.props.removeTag !== undefined) {
+        this.props.removeTag(index);
+      } else {
+        this.props.setTags(chips);
+      }
       this.setState({
         chips,
         filteredTags: [],

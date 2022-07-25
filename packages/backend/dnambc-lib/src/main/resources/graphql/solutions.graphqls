@@ -256,8 +256,13 @@ type SubDivision{
     name: String
 }
 type SolutionDatasourceVO{
-    dataSources: [String],
+    dataSources: [DataSourceSummaryVO],
     dataVolume: DataVolumeVO
+}
+
+type DataSourceSummaryVO{
+	dataSource: String,
+	weightage: Int
 }
 
 type DataVolumeVO{

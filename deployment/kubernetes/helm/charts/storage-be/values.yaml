@@ -38,6 +38,8 @@ envs:
     value: "" 
   - name: MINIO_ENDPOINT
     value: http://my-release-minio.minio.svc.cluster.local:9000
+  - name: MINIO_CLIENT_API
+    value: ""
   - name: MINIO_ADMIN_ACCESS_KEY
     valueFrom:
       secretKeyRef:
@@ -67,7 +69,31 @@ envs:
     valueFrom:
       secretKeyRef:
         key: malwareApiKey
-        name: storage-be                       
+        name: storage-be
+  - name: STORAGE_TERMS_OF_USE_URL
+    value: ""          
+  - name: DATAIKU_PROD_URI
+    value: "https://dss-dev.xto.corpintra.net/public/api"    
+  - name: DATAIKU_PROD_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: dataikuProdApiKey
+        name: storage-be
+  - name: DATAIKU_TRAINING_URI
+    value: "https://dss-training.xto.corpintra.net/public/api"
+  - name: DATAIKU_TRAINING_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: dataikuTrainingApiKey
+        name: storage-be  
+  - name: FLYWAY_ENABLED
+    value: "true"
+  - name: FLYWAY_BASELINE_ON_MIGRATE
+    value: "true"
+  - name: FLYWAY_BASELINEVERSION
+    value: "0"  
+  - name: FLYWAY_SCHEMA
+    value: "public"                                
 
 secret:
   - key: vaultToken
@@ -81,7 +107,11 @@ secret:
   - key: malwareApiId 
     value: ""
   - key: malwareApiKey
-    value: ""    
+    value: ""   
+  - key: dataikuProdApiKey
+    value: ""
+  - key: dataikuTrainingApiKey
+    value: ""       
 
 replicaCount: 1
 
@@ -146,3 +176,21 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/KubernetesSecret/storageService'
+    vault.hashicorp.com/agent-inject-template-envvar: | 
+      {{- with secret "kv/dna/KubernetesSecret/storageService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+  saName: "default"
+  jarName: "storage-lib*.jar"

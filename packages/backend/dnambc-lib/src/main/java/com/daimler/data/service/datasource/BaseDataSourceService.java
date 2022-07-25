@@ -27,26 +27,41 @@
 
 package com.daimler.data.service.datasource;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
 import com.daimler.data.assembler.DataSourceAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataSourceNsql;
 import com.daimler.data.db.repo.datasource.DataSourceCustomRepository;
 import com.daimler.data.db.repo.datasource.DataSourceRepository;
-import com.daimler.data.db.repo.solution.SolutionCustomRepository;
+import com.daimler.data.dto.datasource.DataSourceCreateVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 @Service
 @Slf4j
 public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataSourceNsql, String>
 		implements DataSourceService {
 
+	private static Logger logger = LoggerFactory.getLogger(BaseDataSourceService.class);
+	
 	@Autowired
 	private DataSourceCustomRepository customRepo;
 	@Autowired
@@ -57,6 +72,9 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 	@Autowired
 	private SolutionService solutionService;
 
+	@Value("${dna.dataSource.bulkCreate.api.accessToken}")
+	private String accessToken;
+	
 	public BaseDataSourceService() {
 		super();
 	}
@@ -70,4 +88,43 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 		solutionService.deleteTagForEachSolution(dsName, null, SolutionService.TAG_CATEGORY.DS);
 		return deleteById(id);
 	}
+
+	@Transactional
+	@Override
+	public ResponseEntity<GenericMessage> bulkCreate(List<DataSourceCreateVO> dataSourcesCreateVO) {
+		GenericMessage genericMessage = new GenericMessage();
+		HttpStatus httpStatus;
+		if (ObjectUtils.isEmpty(dataSourcesCreateVO)) {
+			logger.info("Empty list found for bulk datasource creation.");
+			genericMessage.setErrors(Arrays.asList(new MessageDescription("Empty record cannot be created.")));
+			httpStatus = HttpStatus.BAD_REQUEST;
+		} else {
+			// Iterating over list of data-sources
+			for (DataSourceCreateVO dataSourceCreateVO : dataSourcesCreateVO) {
+				DataSourceNsql dataSourceNsql = customRepo.findbyUniqueLiteral("name", dataSourceCreateVO.getName());
+				if (dataSourceNsql != null && dataSourceNsql.getData() != null) {
+					logger.info("Datasource:{} already exists.", dataSourceCreateVO.getName());
+				} else {
+					logger.info("Creating new datasource:{}", dataSourceCreateVO.getName());
+					DataSourceVO dataSourceVO = new DataSourceVO();
+					BeanUtils.copyProperties(dataSourceCreateVO, dataSourceVO);
+					super.create(dataSourceVO);
+				}
+			}
+			httpStatus = HttpStatus.OK;
+			genericMessage.setSuccess("SUCCESS");
+		}
+		return new ResponseEntity<>(genericMessage, httpStatus);
+	}
+	
+	@Override
+	public boolean accessTokenIntrospection(String token) {
+		boolean validAccessToken = false;
+		if(StringUtils.hasText(token) && token.equals(accessToken)) {
+			validAccessToken = true;
+		}
+		return validAccessToken;
+	}
+	
+	
 }

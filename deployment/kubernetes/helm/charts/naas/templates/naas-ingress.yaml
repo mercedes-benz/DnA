@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   {{- with .Values.ingress.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}    
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   rules:
@@ -18,35 +18,10 @@ spec:
                 name: {{ .Chart.Name }}-backend-service
                 port: 
                   name: api-http
-            path: /naas/api
+            path: /
             pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port:
-                  name: api-http
-            path: /naas/swagger-ui.html
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port: 
-                  name: api-http
-            path: /naas/swagger-resources
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port:
-                  name: api-http
-            path: /naas/v2/api-docs
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port:
-                  name: api-http
-            path: /naas/webjars
-            pathType: Prefix
-{{- end }}
-
+  tls:
+    - hosts:
+      - {{ .Values.ingress.host }}
+      secretName: naas-tls       
+ {{- end }}

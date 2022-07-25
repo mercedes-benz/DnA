@@ -16,9 +16,25 @@ spec:
       labels:
         zone: web
         app: {{ .Release.Name }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}       
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}      
       containers:
-        - env:
+        - name: backend
+          image: {{ .Values.app.backend.image }}
+          imagePullPolicy: Always
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}        
+          env:
             - name: ITSMM
               value: {{ .Values.app.backend.config.enableItsmm | quote }}
             - name: JUPYTER_NOTEBOOK
@@ -108,21 +124,6 @@ spec:
                 secretKeyRef:
                   key: notebook.secret.token
                   name: {{ .Values.app.backend.secrets.name }}
-            - name: VAULT_HOST
-              value: {{ .Values.app.backend.config.vaultHost }}
-            - name: VAULT_PORT
-              value: {{ .Values.app.backend.config.vaultPort | quote }}
-            - name: VAULT_SCHEME
-              value: http
-            - name: VAULT_AUTHENTICATION
-              value: TOKEN
-            - name: VAULT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  key: vault.root.token
-                  name: {{ .Values.app.vault.secret.name }}
-            - name: VAULT_MOUNTPATH
-              value: kv
             - name: DATAIKU_PROD_URI
               value: {{ .Values.app.backend.config.dataikuProdUri }}
             - name: DATAIKU_PROD_API_KEY
@@ -177,10 +178,14 @@ spec:
             - name: JWT_TOKEN_EXPIRY_TIME_IN_MIN
               value: "90"   
             - name: DASHBOARD_URI
-              value: {{ .Values.app.backend.config.dashboardUri }}         
-          image: {{ .Values.app.backend.image }}
-          imagePullPolicy: Always
-          name: backend
+              value: {{ .Values.app.backend.config.dashboardUri }}
+            - name: AVSCAN_SUBSCRIPTION_PROVISION_API
+              value: {{ .Values.app.backend.config.avscanSubsProvisionAPI }}
+            - name: AVSCAN_UPLOAD_API
+              value: {{ .Values.app.backend.config.avscanUploadApi }} 
+            - name: DATASOURCE_BULKCREATE_API_ACCESS_TOKEN
+              value: {{ .Values.app.backend.config.dataSourceBulkCreateApiAccessToken }}               
+          {{- end }}  
           ports:
             - containerPort: 7171
           resources: {}
@@ -204,5 +209,7 @@ spec:
               port: {{ .Values.app.probes.readinessProbe.port }} 
       securityContext:
         runAsUser: 1000
+      {{- if .Values.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecret.name }}
+      {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}

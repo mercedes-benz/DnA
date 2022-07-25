@@ -32,7 +32,7 @@ export const getDataForCSV = (listData: IDataiku[], onDataSuccess: (csvData: Dat
       name: project.name ? sanitize(project.name) : 'NA',
       description: project.shortDesc ? sanitize(project.shortDesc) : 'NA',
       tags: project.tags && project.tags.length > 0 ? sanitize(project.tags.join(', ')) : 'NA',
-      owner: project.ownerDisplayName ? project.ownerDisplayName : 'NA',
+      owner: project.ownerDisplayName ? project.ownerDisplayName : ( project.ownerLogin || 'NA'),
       projectStatus: project.projectStatus ? project.projectStatus : 'NA',
       contributers: project.contributors && project.contributors.length > 0 ? project.contributors : 'NA',
       checklists: checklistItems.length > 0 ? checklistItems : 'NA',

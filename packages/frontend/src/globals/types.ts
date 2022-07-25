@@ -293,6 +293,7 @@ export interface IUserInfo {
   department: string;
   favoriteUsecases?: IUserFavoriteUseCase[];
   roles?: IRole[];
+  divisionAdmins?: string[];
 }
 export interface IUserRequestVO {
   data: IUserInfo;
@@ -413,8 +414,13 @@ export interface IKpi {
 }
 
 export interface IDataSource {
-  dataSources?: string[];
+  dataSources?: IDataSources[];
   dataVolume?: IDataVolume;
+}
+
+export interface IDataSources {
+  dataSource: string;
+  weightage: number;
 }
 
 export interface IDataSourceMaster {
@@ -1027,12 +1033,14 @@ export interface IFilterPreferences {
 
 
 export interface INoticationModules {  
-  solutionNotificationPref: INoticationEnableDisable;
-  notebookNotificationPref: INoticationEnableDisable;
+  solutionNotificationPref: INotificationEnableDisable;
+  notebookNotificationPref: INotificationEnableDisable;
+  dashboardNotificationPref: INotificationEnableDisable;
+  persistenceNotificationPref: INotificationEnableDisable;
   userId: string;
 }
 
-export interface INoticationEnableDisable {
+export interface INotificationEnableDisable {
   enableAppNotifications: boolean;
   enableEmailNotifications: boolean;
 }

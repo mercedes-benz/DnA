@@ -1,5 +1,5 @@
 import { Data } from 'react-csv/components/CommonPropTypes';
-import { IAllSolutionsResultCSV, IFilterParams } from '../globals/types';
+import { IAllSolutionsResultCSV, IDataSources, IFilterParams } from '../globals/types';
 import { ApiClient } from './ApiClient';
 import { Envs } from '../globals/Envs';
 import { getDivisionsQueryValue } from './utils';
@@ -128,7 +128,7 @@ export const getDataForCSV = (
   const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
   let status = queryParams.status.join(',');
   let useCaseType = queryParams.useCaseType.join(',');
-  const dataVolumes = enablePortfolioSolutionsView ? queryParams.dataVolume.join(',') : '';
+  const dataVolumes = enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
   const tags = queryParams.tag.join(',');
   if (queryParams.location.length === numberOfSelectedLocations) {
     locationIds = '';
@@ -246,7 +246,7 @@ export const getDataForCSV = (
                 : 'NA',
             dataSources:
               solution.dataSources && solution.dataSources.dataSources && solution.dataSources.dataSources.length > 0
-                ? sanitize(solution.dataSources.dataSources.join(', '))
+                ? setDataSources(solution.dataSources.dataSources)
                 : 'NA',
             totalDataVolume:
               solution.dataSources && solution.dataSources.dataVolume ? solution.dataSources.dataVolume.name : 'NA',
@@ -370,4 +370,10 @@ export const getDataForCSV = (
 
 export const sanitize = (text: string) => {
   return text.replace(/"/g, '""');
+};
+
+export const setDataSources = (dataSources: IDataSources[]) => {
+  const stringValsArr = dataSources.map((item: any) => item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
+  const dataValues = stringValsArr.join(', ');
+  return dataValues;
 };

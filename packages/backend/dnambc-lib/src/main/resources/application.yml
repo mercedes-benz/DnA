@@ -37,17 +37,7 @@ spring:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:localhost:9092}
-    vault:
-      host: ${VAULT_HOST:localhost}
-      port: ${VAULT_PORT:8200}
-      scheme: ${VAULT_SCHEME:http}
-      authentication: ${VAULT_AUTHENTICATION:TOKEN}
-      token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
-      mountpath: ${VAULT_MOUNTPATH:secret}
-      vaultpath: ${VAULT_PATH:dnambc/avscan}
-      kv:
-       enabled: true    
+          brokers: ${NAAS_BROKER:localhost:9092}   
 
 
 kafka:
@@ -63,6 +53,11 @@ dna:
       internal-user-enabled: ${DRD_INTERNAL_USER_ENABLED:false}
   user:
     role: ${USER_ROLE:Admin}
+  #Access token to access datasource bulk create from external source
+  dataSource:
+     bulkCreate:
+        api:
+           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:85ab6f81-b1fa-4c46-a160-c2b46ea780b0} 
       
 graphql:
   servlet:
@@ -76,10 +71,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-
-
-
-
 
 oidc:
   provider: ${OIDC_PROVIDER:OKTA}
@@ -98,7 +89,7 @@ oidc:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:xxxxxx}
-    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences}
+    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences;/api/datasources/bulk}
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
 
 drd:
@@ -155,6 +146,8 @@ avscan:
   uri: ${AVSCAN_URI:xxxxx}
   appid: ${AVSCAN_APP_ID:xxxxx}
   apiKey: ${AVSCAN_API_KEY:xxxxx} 
+  subscriptionProvisionApi: ${AVSCAN_SUBSCRIPTION_PROVISION_API:/api/subscription/provision}
+  scanApi: ${AVSCAN_UPLOAD_API:/api/v1/scan/upload}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -175,6 +168,7 @@ logging:
           controller.ItsmmGameController: DEBUG
     org.springframework.boot.autoconfigure.logging: INFO
     com.daimler.data.controller.ItsmmGameController: DEBUG
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
     org:
       springframework:
         web:

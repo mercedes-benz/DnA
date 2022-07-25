@@ -146,10 +146,16 @@ definitions:
       $ref: "#/definitions/NotificationPreferenceVO"
     notebookNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
+    persistenceNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"
+    dashboardNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"
   required:
      - userId
      - solutionNotificationPref
      - notebookNotificationPref
+     - persistenceNotificationPref
+     - dashboardNotificationPref
      
  NotificationPreferenceVO:
   type: object

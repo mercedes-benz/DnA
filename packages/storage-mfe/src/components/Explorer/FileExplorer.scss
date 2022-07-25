@@ -61,6 +61,33 @@
   color: #acb8c4 !important;
 }
 
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 30px);
+  }
+}
+
+.publishDetails {
+  color: #acb8c4;
+  margin: 35px 35px 0;
+  overflow-y: auto;
+  label {
+    font-weight: bold;
+  }
+  tr > td {
+    padding-right: 15px;
+    &:last-child::before {
+      content: ":";
+      margin-right: 5px;
+    }
+  }
+  i {
+    font-size: var(--font-size-icon-small);
+  }
+}
+
 :global {
   #storagePreview {
     margin-top: 20px;
@@ -69,6 +96,7 @@
     }
   }
   .explorer-content {
+    min-width: 630px;
     .chonky-chonkyRoot {
       background-color: #252a33;
       min-width: 500px;
@@ -83,6 +111,13 @@
     }
     .chonky-toolbarWrapper {
       padding-bottom: 7px;
+      button[title="Publish to Trino"]:disabled > span:after {
+        content: "( Select parquet file )";
+        position: absolute;
+        top: 15px;
+        left: 31px;
+        font-size: var(--font-size-tiny);
+      }
     }
     .chonky-activeButton {
       color: #00adef !important;
@@ -132,23 +167,27 @@
       div[class*="folderBackSideMid"],
       div[class*="folderBackSideTop"],
       div[class*="folderFrontSide"] {
-        background-color: #697582;
         box-shadow: none !important;
       }
       &[class*="previewFile-d"] {
-        background-color: #99a5b3;
         box-shadow: none !important;
       }
     }
+
+    div[class*="gridFileEntry"][data-chonky-file-id*="PublishedParquet"] {
+      div[class*="gridFileEntryName"] {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    }
+
     div[class*="gridFileEntryName"] {
       font-size: var(--font-size-default) !important;
       color: #acb8c4;
     }
     div[class*="listFileEntry"] {
       font-size: var(--font-size-default) !important;
-      div[class*="listFileEntryIcon"] {
-        color: #acb8c4;
-      }
       div[class*="listFileEntryProperty"] {
         text-align: right;
       }
@@ -207,11 +246,13 @@
       }
     }
   }
-  .MuiPaper-root.MuiPopover-paper {
-    .chonky-dropdownList {
-      // show hidden files options
-      li.MuiListItem-gutters:nth-child(4) {
-        display: none;
+  .MuiPopover-root:nth-last-child(1) {
+    .MuiPaper-root.MuiPopover-paper {
+      .chonky-dropdownList {
+        // show hidden files options
+        li.MuiListItem-gutters:nth-child(4) {
+          display: none;
+        }
       }
     }
   }

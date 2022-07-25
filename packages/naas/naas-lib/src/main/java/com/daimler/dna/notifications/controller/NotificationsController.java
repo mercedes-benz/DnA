@@ -53,7 +53,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.daimler.data.dto.userinfo.UsersCollection;
 import com.daimler.dna.notifications.api.NotificationsApi;
+import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
 import com.daimler.dna.notifications.controller.exceptions.GenericMessage;
 import com.daimler.dna.notifications.controller.exceptions.MessageDescription;
@@ -63,6 +65,7 @@ import com.daimler.dna.notifications.dto.MarkedSelection;
 import com.daimler.dna.notifications.dto.NotificationCollectionVO;
 import com.daimler.dna.notifications.dto.NotificationRequestVO;
 import com.daimler.dna.notifications.dto.NotificationRequestVOData;
+import com.daimler.dna.notifications.dto.NotificationRequestVOData.ServiceUsersTypeEnum;
 import com.daimler.dna.notifications.dto.NotificationVO;
 
 import io.swagger.annotations.Api;
@@ -81,6 +84,9 @@ public class NotificationsController implements NotificationsApi {
 
 	@Autowired
 	private NotificationsService notificationService;
+	
+	@Autowired
+	private DnaNotificationPreferenceClient dnaClient;
 
 	@ApiOperation(value = "Get all notifications with filters.", nickname = "getAll", notes = "Get all notifications based on filter values", response = NotificationCollectionVO.class, tags = {
 			"notifications", })
@@ -133,7 +139,18 @@ public class NotificationsController implements NotificationsApi {
 			List<NotificationVO> result = new ArrayList<NotificationVO>();
 			result.addAll(unreadlist);
 			result.addAll(readlist);
-			collectResult.setRecords(result);
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			SimpleDateFormat existingDateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+			List<NotificationVO> isoDateFormattedResult = result.stream().map(n -> {
+				String notificationTime = n.getDateTime();
+				try {
+					n.setDateTime(isoFormat.format(existingDateFormatter.parse(notificationTime)));
+				} catch (Exception e) {
+					LOG.error("Failed in parsing date for record {} of date {} for user {}", n.getId(),n.getDateTime(),userId);
+				}
+				return n;
+			}).collect(Collectors.toList());
+			collectResult.setRecords(isoDateFormattedResult);
 			return new ResponseEntity<>(collectResult, HttpStatus.OK);
 		} catch (Exception e) {
 			MessageDescription exceptionMsg = new MessageDescription(
@@ -203,7 +220,7 @@ public class NotificationsController implements NotificationsApi {
 		}
 	}
 
-	@ApiOperation(value = "service to pbulish a message to central events topic", nickname = "publishToCentralTopic", notes = "service to pbulish a message to central events topic", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class, tags = {
+	@ApiOperation(value = "service to publish a message to central events topic", nickname = "publishToCentralTopic", notes = "service to publish a message to central events topic", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class, tags = {
 			"notifications", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Published successfully.", response = com.daimler.dna.notifications.controller.exceptions.GenericMessage.class),
@@ -227,15 +244,27 @@ public class NotificationsController implements NotificationsApi {
 					record.setMessage(data.getMessage());
 					record.setPublishingAppName(data.getPublishingUser());
 					record.setPublishingUser(data.getPublishingUser());
-					record.setSubscribedUsers(data.getSubscribedUsers());
+					ServiceUsersTypeEnum serviceType = data.getServiceUsersType();
+					if("All".equalsIgnoreCase(serviceType.name())){
+						UsersCollection usersCollection = dnaClient.getAllUsers();
+						if(usersCollection!=null && usersCollection.getRecords()!= null && !usersCollection.getRecords().isEmpty()) {
+							List<String> allUsers = new ArrayList<>();
+							allUsers = usersCollection.getRecords().stream().map(n -> n.getId()).collect(Collectors.toList());
+							record.setSubscribedUsers(allUsers);
+							LOG.info("Broadcasting message to all users");
+						}
+					}else {
+						record.setSubscribedUsers(data.getSubscribedUsers());
+						LOG.info("Sending custom notification to users {}", data.getSubscribedUsers());
+					}
 					SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 					record.setTime(dateFormatter.format(new Date()));
 					record.setUuid(UUID.randomUUID().toString());
 					notificationService.publishMessage(record);
 					GenericMessage successMsg = new GenericMessage();
 					successMsg.setSuccess("Published successfully");
-					LOG.debug("Published successfully by user {} of type {} to users {} ", data.getPublishingUser(),
-							data.getEventType(), data.getSubscribedUsers());
+					LOG.info("Published successfully by user {} of type {} ", data.getPublishingUser(),
+							data.getEventType());
 					return new ResponseEntity<>(successMsg, HttpStatus.OK);
 				}
 			}

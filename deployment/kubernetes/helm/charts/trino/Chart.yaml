@@ -1,0 +1,19 @@
+apiVersion: v2
+name: trino
+description: Fast distributed SQL query engine for big data analytics that helps you explore your data universe
+# Chart based on the official Trino community chart adjusted to run on enterprise environment
+type: application
+
+version: 0.5.0
+
+appVersion: "372"
+
+icon: https://trino.io/assets/trino.png
+
+home: https://trino.io/
+sources:
+  - https://github.com/trinodb/charts
+  - https://github.com/trinodb/trino/tree/master/core/docker
+
+maintainers:
+  - name: Trino community

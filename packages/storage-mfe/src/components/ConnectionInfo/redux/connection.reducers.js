@@ -3,6 +3,7 @@ export const connectionInfoInitialState = {
   connect: {
     modal: false,
     accessInfo: {},
+    dataikuProjects: [],
   },
 };
 
@@ -19,6 +20,14 @@ export const connectionReducer = (state = connectionInfoInitialState, action) =>
         connect: {
           ...state.connect,
           ...action.payload,
+        },
+      };
+    case 'SELECTED_DATAIKU_PROJECTS':
+      return {
+        ...state,
+        connect: {
+          ...state.connect,
+          dataikuProjects: action.payload,
         },
       };
     case 'RESET_CONNECTION_INFO':

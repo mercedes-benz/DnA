@@ -42,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.vault.support.VaultResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -58,7 +57,6 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.amazonaws.util.IOUtils;
 import com.daimler.data.application.config.AVScannerClient;
-import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.FileScanDetailsVO;
 import com.daimler.data.dto.attachment.FileDetailsVO;

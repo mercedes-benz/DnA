@@ -616,7 +616,7 @@ public class DnaProjectServiceImpl implements DnaProjectService {
 
 	private boolean dagNameExist(String dagName) {
 		Dag dag = dagRepository.findByDagId(dagName);
-		return !ObjectUtils.isEmpty(dag);
+		return Objects.nonNull(dag);
 	}
 
 	private boolean checkDagMenu(String dagName) {

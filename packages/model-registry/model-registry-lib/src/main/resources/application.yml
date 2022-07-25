@@ -1,0 +1,51 @@
+spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
+  application:
+    name: model-registry-service
+
+dna:
+  uri: ${DNA_URI:XXXXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  
+model:  
+  host: ${HOST:XXXXXX}
+  certManager: ${CERT_MANAGER:XXXXXX}
+  backendServiceSuffix: ${BACKEND_SERVICE_SUFFIX:predictor-default-00001-private}
+
+server:
+  port: 7373
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+  
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:XXXXXX}
+    
+minio:
+  models.bucketname: ${MINIO_MODELS_BUCKETNAME:XXXXX}
+  models.pattern.prefix: ${MINIO_MODELS_PATTERN_PREFIX:XXXXX}
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  accessKey: ${MINIO_ACCESS_KEY:XXXXXX} 
+  secretKey: ${MINIO_SECRET_KEY:XXXXXX}
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data: INFO
+    org.springframework.boot.autoconfigure.logging: INFO
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO

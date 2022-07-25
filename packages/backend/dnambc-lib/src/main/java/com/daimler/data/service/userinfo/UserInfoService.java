@@ -61,4 +61,33 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 
 	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
 			List<ChangeLogVO> changeLogs);
+	
+	/**
+	 * To get all records with given identifier
+	 * 
+	 * @param searchTerm
+	 * @param limit
+	 * @param offset
+	 * @param sortBy
+	 * @param sortOrder
+	 * @return users information {@code List<UserInfoVO>}
+	 */
+	List<UserInfoVO> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+	
+	/**
+	 * To get total count with given identifier
+	 * 
+	 * @param searchTerm
+	 * @return count {@code Long}
+	 */
+	Long getCountWithFilters(String searchTerm);
+	
+	/**
+	 * To update/remove divisions from a user having role DivisionAdmin
+	 * if division value got updated/deleted then associated user should also get updated accordingly
+	 * 
+	 * @param divisionOldValue
+	 * @param divisionNewValue
+	 */
+	public void updateDivisionForUserRole(String divisionOldValue, String divisionNewValue);
 }

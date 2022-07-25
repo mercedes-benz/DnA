@@ -8,6 +8,8 @@ export const fileExplorerInitialState = {
     write: true,
     read: true,
   },
+  fileActions: [],
+  bucketObjects: [],
   error: '',
 };
 
@@ -54,6 +56,18 @@ export const fileExplorerReducer = (state = fileExplorerInitialState, action) =>
       return {
         ...state,
         bucketPermission: action.payload,
+      };
+    }
+    case 'SET_ACTION_BUTTONS': {
+      return {
+        ...state,
+        fileActions: action.payload,
+      };
+    }
+    case 'SET_BUCKET_OBJECTS': {
+      return {
+        ...state,
+        bucketObjects: action.payload,
       };
     }
     default:

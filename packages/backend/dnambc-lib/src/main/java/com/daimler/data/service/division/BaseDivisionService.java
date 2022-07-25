@@ -164,7 +164,6 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 	@Override
 	@Transactional
 	public ResponseEntity<GenericMessage> deleteDivision(String id) {
-
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		if (!userInfoService.isAdmin(userId)) {
@@ -176,12 +175,14 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 			return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 		}
 		DivisionVO existingVO = super.getById(id);
+		String divisionName = existingVO != null ? existingVO.getName() : "";
 		LOGGER.debug("Calling solutionService to delete cascading refences to division {}", id);
-		solutionService.deleteTagForEachSolution(id, null, SolutionService.TAG_CATEGORY.DIVISION);
+		solutionService.deleteTagForEachSolution(divisionName, null, SolutionService.TAG_CATEGORY.DIVISION);
+		//To remove division from users role division lists
+		userInfoService.updateDivisionForUserRole(divisionName, null);
 		deleteById(id);
 		LOGGER.debug("Calling dashboardService to delete cascading refences to division {}", id);
 		dashboardClient.deleteDivisionFromEachReport(id);
-		String divisionName = existingVO != null ? existingVO.getName() : "";
 		String userName = super.currentUserName(currentUser);
 		String eventMessage = "Division " + divisionName + " has been deleted by Admin " + userName;
 		List<ChangeLogVO> changeLogs = new ArrayList<>();
@@ -224,6 +225,8 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 				if (mergedDivisionVO != null && mergedDivisionVO.getId() != null) {
 					LOGGER.debug("Calling dashboardService to update cascading refences to division {}", id);
 					dashboardClient.updateDivisionFromEachReport(vo);
+					//To update division value for users having DivisionAdmin role
+					userInfoService.updateDivisionForUserRole(existingVO.getName(), uniqueDivisionName);
 					response.setData(mergedDivisionVO);
 					response.setErrors(null);
 					List<ChangeLogVO> changeLogs = new ArrayList<>();

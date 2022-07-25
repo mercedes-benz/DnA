@@ -1,0 +1,22 @@
+.dagCollContentList {
+    font-size: var(--font-size-smallest);
+    border: 1px solid #383f49;
+    margin-top: 12px;
+    padding: 0 12px;
+    background-color: #252a33;
+}
+.dagCollContentListAdd {
+    margin: 25px auto;
+    width: 85%;
+    input {
+        opacity: unset !important;
+        position: absolute !important;
+        z-index: unset !important;
+        width: 98%;
+        margin-top: 2px;
+    }
+    .userExistedError {
+        color: #e84d47;
+        padding: 4px 0;
+    }
+}

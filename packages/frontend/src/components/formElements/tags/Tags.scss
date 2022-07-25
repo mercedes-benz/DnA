@@ -42,3 +42,14 @@
     border-color: #e84d47;
   }
 }
+.tagParentDisabled {
+  border: none !important;
+}
+.tagParentDisabledFocus {
+  border-color: transparent !important;
+  &::after {
+    content: "You have read only permission";
+    color: #acb8c4;
+    font-size: var(--font-size-small);
+  }
+}

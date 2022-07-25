@@ -20,3 +20,15 @@ export const getDateTimeFromTimestamp = (givenDate, seperator) => {
     mins
   );
 };
+
+export const regionalDateAndTimeConversionSolution = (dateString) => { 
+  // const newDateString = dateString.split(/-| /);   
+  // const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
+  
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false,
+  }).format(date);
+};

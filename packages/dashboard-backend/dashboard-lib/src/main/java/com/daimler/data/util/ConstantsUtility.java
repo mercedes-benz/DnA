@@ -29,4 +29,8 @@ package com.daimler.data.util;
 
 public class ConstantsUtility {
 
+	private ConstantsUtility() {}
+
+	public static final String DIVISION_ADMIN = "DivisionAdmin";
+
 }

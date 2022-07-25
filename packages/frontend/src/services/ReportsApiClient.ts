@@ -10,9 +10,9 @@ import {
   IAddNewCategoriesItem,
 } from '../globals/types';
 
-const baseUrl = Envs.API_BASEURL
-  ? `dashboards/${Envs.API_BASEURL}`
-  : `http://${window.location.hostname}:7173/dashboards/api`;
+const baseUrl = Envs.DASHBOARD_API_BASEURL
+  ? Envs.DASHBOARD_API_BASEURL
+  : `http://${window.location.hostname}:7173/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
@@ -37,7 +37,7 @@ export class ReportsApiClient {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
 
-  public static getCreateNewReportData(OIDC_DISABLED: boolean, userId: string): Promise<any[]> {
+  public static getCreateNewReportData(): Promise<any[]> {
     return Promise.all([
       this.get('lov/datasources'),
       this.get('lov/customer/departments'),
@@ -57,7 +57,6 @@ export class ReportsApiClient {
       this.get('lov/subsystems'),
       ApiClient.get('divisions'),
       this.get('departments'),
-      ...(!OIDC_DISABLED ? [ApiClient.getDRDUserInfo(userId)] : [new Promise((resolve, reject) => resolve(''))]),
     ]);
   }
 

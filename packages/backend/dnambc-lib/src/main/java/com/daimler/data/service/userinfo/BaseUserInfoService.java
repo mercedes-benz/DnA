@@ -31,7 +31,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +65,8 @@ import lombok.extern.slf4j.Slf4j;
 public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoNsql, String>
 		implements UserInfoService {
 
+	private static Logger logger = LoggerFactory.getLogger(BaseUserInfoService.class);
+	
 	@Autowired
 	private UserInfoCustomRepository customRepo;
 	@Autowired
@@ -263,4 +268,45 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		return !ObjectUtils.isEmpty(userinfo) && userinfo.getIsLoggedIn().equalsIgnoreCase("Y");
 	}
 
+	@Override
+	public List<UserInfoVO> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy,
+			String sortOrder) {
+		logger.info("Fetching user information from table.");
+		List<UserInfoNsql> userInfoEntities = customRepo.getAllWithFilters(searchTerm, limit, offset, sortBy,
+				sortOrder);
+		logger.info("Success from get information from table.");
+		if (!ObjectUtils.isEmpty(userInfoEntities)) {
+			return userInfoEntities.stream().map(n -> userinfoAssembler.toVo(n)).toList();
+		} else {
+			return new ArrayList<>();
+		}
+	}
+
+	@Override
+	public Long getCountWithFilters(String searchTerm) {
+		logger.info("Fetching total count of user information.");
+		return customRepo.getCount(searchTerm);		
+	}
+
+	@Override
+	@Transactional
+	public void updateDivisionForUserRole(String divisionOldValue, String divisionNewValue) {
+		List<UserInfoNsql> userInfoEntities = customRepo.getAllWithFilters(divisionOldValue, 0, 0, null, null);
+		Optional.ofNullable(userInfoEntities).ifPresent(l -> l.forEach(userInfoNsql -> {
+			if (!ObjectUtils.isEmpty(userInfoNsql.getData().getDivisionAdmins())
+					&& userInfoNsql.getData().getDivisionAdmins().contains(divisionOldValue)) {
+				int index = userInfoNsql.getData().getDivisionAdmins().indexOf(divisionOldValue);
+				if (StringUtils.hasText(divisionNewValue)) {
+					logger.info("Setting new division value:{} for division:{}", divisionNewValue, divisionOldValue);
+					userInfoNsql.getData().getDivisionAdmins().set(index, divisionNewValue);
+				} else {
+					logger.info("Removing division:{}", divisionOldValue);
+					userInfoNsql.getData().getDivisionAdmins().remove(index);
+				}
+				logger.debug("Saving pdtaed userInfo in database");
+				jpaRepo.save(userInfoNsql);
+			}
+		}));
+	}
+	
 }

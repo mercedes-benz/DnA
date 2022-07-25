@@ -37,6 +37,12 @@ public class ConstantsUtility {
 	public static final String DELETE = "DEL";
 	public static final String URI = "uri";
 	public static final String HOSTNAME = "hostName";
+	public static final String BUCKET_NAME = "bucketName";
+	public static final String DATAIKU_READ_ONLY = "READ-ONLY";
+	
+	//for rest template
+	public static final String ACCEPT = "Accept";
+	public static final String CONTENT_TYPE = "Content-Type";
 	
 	//Variables for cache
 	public static final String MINIO_USERS_CACHE = "minioUsersCache";

@@ -16,7 +16,8 @@ import { bucketsApi } from '../../apis/buckets.api';
 import { bucketActions } from './redux/bucket.actions';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import { getDateTimeFromTimestamp } from '../Utility/utils';
+import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
+import { Envs } from '../Utility/envs';
 
 export const BucketList = () => {
   const dispatch = useDispatch();
@@ -27,6 +28,8 @@ export const BucketList = () => {
   const [currentSortOrder, setCurrentSortOrder] = useState('asc');
   const [nextSortOrder, setNextSortOrder] = useState('desc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState('bucketName');
+
+  const isDataikuEnabled = Envs.ENABLE_DATAIKU;
 
   const sortByColumn = (columnName, sortOrder) => {
     return () => {
@@ -43,7 +46,7 @@ export const BucketList = () => {
           }
           return 0;
         });
-      } else if (columnName === 'creationDate') {
+      } else if (columnName === 'createdDate' || columnName === 'lastModifiedDate') {
         sortedArray = bucketList?.sort((a, b) => {
           const nameA = new Date(a[columnName]);
           const nameB = new Date(b[columnName]);
@@ -92,6 +95,7 @@ export const BucketList = () => {
     <div>
       <h3>Are you sure you want to delete {selectedItem.bucketName} ? </h3>
       <h5>A bucket can only be deleted if its empty.</h5>
+      {isDataikuEnabled && <h6>Dataiku project(s) connection if any, will be removed.</h6>}
     </div>
   );
 
@@ -168,12 +172,35 @@ export const BucketList = () => {
                   <div className={Styles.bucketTitleCol}>
                     <label
                       className={
-                        'sortable-column-header ' + (currentColumnToSort === 'creationDate' ? currentSortOrder : '')
+                        'sortable-column-header ' + (currentColumnToSort === 'createdDate' ? currentSortOrder : '')
                       }
-                      onClick={sortByColumn('creationDate', nextSortOrder)}
+                      onClick={sortByColumn('createdDate', nextSortOrder)}
                     >
                       <i className="icon sort" />
                       Created On
+                    </label>
+                  </div>
+                  <div className={Styles.bucketTitleCol}>
+                    <label
+                      className={
+                        'sortable-column-header ' + (currentColumnToSort === 'lastModifiedDate' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('lastModifiedDate', nextSortOrder)}
+                    >
+                      <i className="icon sort" />
+                      Last Modified On
+                    </label>
+                  </div>
+                  <div className={Styles.bucketTitleCol}>
+                    <label
+                      className={
+                        'sortable-column-header ' +
+                        (currentColumnToSort === 'classificationType' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('classificationType', nextSortOrder)}
+                    >
+                      <i className="icon sort" />
+                      Data Classification
                     </label>
                   </div>
                   <div className={Styles.bucketTitleCol}>Action</div>
@@ -202,8 +229,12 @@ export const BucketList = () => {
                           </div>
                           <div className={Styles.bucketTitleCol}>{displayPermission(item?.permission)}</div>
                           <div className={Styles.bucketTitleCol}>
-                            {getDateTimeFromTimestamp(item.creationDate, '.')}
+                            {regionalDateAndTimeConversionSolution(item.createdDate)}
                           </div>
+                          <div className={Styles.bucketTitleCol}>
+                            {regionalDateAndTimeConversionSolution(item.lastModifiedDate)}
+                          </div>
+                          <div className={Styles.bucketTitleCol}>{item.classificationType}</div>
                           <div className={Styles.bucketTitleCol}></div>
                         </div>
 
@@ -214,18 +245,22 @@ export const BucketList = () => {
                           {item.collaborators?.length ? (
                             <div className={Styles.projectList}>
                               <div className={Styles.bucketTile + ' ' + Styles.bucketTileCaption}>
-                                <div className={Styles.bucketTitleCol}>User Id</div>
-                                {/* <div className={Styles.bucketTitleCol}>Name</div> */}
+                                <div className={classNames(Styles.bucketTitleCol, Styles.expansionpanelFirstCol)}>
+                                  User Id
+                                </div>
+                                <div className={Styles.bucketTitleCol}>Name</div>
                                 <div className={Styles.bucketTitleCol}>Permission</div>
                                 <div className={Styles.bucketTitleCol}></div>
                               </div>
                               {item.collaborators?.map((bucketItem, bucketIndex) => {
                                 return (
                                   <div key={bucketIndex} className={Styles.bucketTile}>
-                                    <div className={Styles.bucketTitleCol}>{bucketItem.accesskey}</div>
-                                    {/* <div
+                                    <div className={classNames(Styles.bucketTitleCol, Styles.expansionpanelFirstCol)}>
+                                      {bucketItem.accesskey}
+                                    </div>
+                                    <div
                                       className={Styles.bucketTitleCol}
-                                    >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div> */}
+                                    >{`${bucketItem.firstName} ${bucketItem.lastName}`}</div>
                                     <div className={Styles.bucketTitleCol}>
                                       {displayPermission(bucketItem?.permission)}
                                     </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Route } from 'react-router-dom';
 
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
-import server from '../server/api';
+import { hostServer } from '../server/api';
 import { history } from '../store/storeRoot';
 
 import { LocalWrapper } from './LocalWrapper';
@@ -15,7 +15,7 @@ export const ProtectedRoute = ({ component: Component, ...rest }) => {
     if (process.env.NODE_ENV === 'development') {
       if (!rest.user?.roles?.length) {
         if (!hasJwt) {
-          server.get('/login').then((res) => {
+          hostServer.get('/login', { data: {} }).then((res) => {
             sessionStorage.setItem(SESSION_STORAGE_KEYS.JWT, res.data.token);
             window.location.reload();
             setJwt(true);
@@ -27,8 +27,10 @@ export const ProtectedRoute = ({ component: Component, ...rest }) => {
 
   useEffect(() => {
     if (hasJwt) {
-      server
-        .post('/verifyLogin')
+      hostServer
+        .post('/verifyLogin', {
+          data: {},
+        })
         .then((res) => {
           sessionStorage.setItem(SESSION_STORAGE_KEYS.JWT, res.data.token);
         })

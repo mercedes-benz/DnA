@@ -11,8 +11,26 @@ export const serializeFolderChain = (list) => {
     ?.filter((x) => x); //filter falsy value
 };
 
+export const getFilePath = (folderChain) => {
+  const prefix = serializeFolderChain(folderChain);
+
+  let objectPath;
+  const existingFolder = folderChain.filter((item) => item?.childrenCount && item.objectName);
+
+  if (existingFolder?.length && existingFolder.length !== 1) {
+    const existingFolderIndex = prefix.indexOf(existingFolder[existingFolder.length - 1]?.objectName);
+    const newFolderPath = prefix.slice(existingFolderIndex).join('');
+    objectPath = newFolderPath;
+  } else {
+    objectPath = prefix.join('');
+  }
+  return objectPath;
+};
+
 // serialize characters to ensure valid object key
 export const setObjectKey = (item) => item.replaceAll(/(\.|\/)/g, '').replaceAll(' ', '');
+
+const isPublishedParquetFolder = (name) => /(PublishedParquet)/i.test(name);
 
 export const serializeAllObjects = (data, bucketName) => {
   let result = {};
@@ -37,6 +55,7 @@ export const serializeAllObjects = (data, bucketName) => {
       childrenCount: data.bucketObjects?.length,
       childrenIds,
       objectName: `${bucketName}/`,
+      color: '#697582',
     };
     return item;
   });
@@ -48,6 +67,12 @@ export const serializeAllObjects = (data, bucketName) => {
       name: child.name,
       parentId: child.parentId,
       modDate: child.lastModified,
+      ...(child.isDir
+        ? isPublishedParquetFolder(child.name)
+          ? { color: '#135592' }
+          : { color: '#697582' }
+        : { color: '#acb8c4' }),
+
       ...child,
     };
     return child;
@@ -82,6 +107,7 @@ export const serializeObjects = (data, fileToOpen) => {
       childrenIds,
       parentId: fileToOpen?.parentId,
       objectName: fileToOpen.objectName,
+      color: '#697582',
     };
     return item;
   });
@@ -93,6 +119,11 @@ export const serializeObjects = (data, fileToOpen) => {
       parentId: child.parentId,
       modDate: child.lastModified,
       isDir: child.isDir,
+      ...(child.isDir
+        ? isPublishedParquetFolder(child.name)
+          ? { color: '#135592' }
+          : { color: '#697582' }
+        : { color: '#acb8c4' }),
       ...child,
     };
     return child;

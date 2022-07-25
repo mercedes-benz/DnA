@@ -56,15 +56,16 @@ export const removeURLParameter = (url: string, paramKey: string) => {
 export const DataFormater = (value: number) => {
   const sign = Math.sign(Number(value));
   // Nine Zeroes for Billions
+  
   let formatedValue = (
     Math.abs(Number(value)) >= 1.0e9
-      ? (sign * (Math.abs(Number(value)) / 1.0e9)).toFixed(2) + 'B'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e9)).toFixed(2))) + 'B'
       : // Six Zeroes for Millions
       Math.abs(Number(value)) >= 1.0e6
-      ? (sign * (Math.abs(Number(value)) / 1.0e6)).toFixed(2) + 'M'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e6)).toFixed(2))) + 'M'
       : // Three Zeroes for Thousands
       Math.abs(Number(value)) >= 1.0e3
-      ? (sign * (Math.abs(Number(value)) / 1.0e3)).toFixed(2) + 'K'
+      ? new Intl.NumberFormat(navigator.language).format(Number((sign * (Math.abs(Number(value)) / 1.0e3)).toFixed(2))) + 'K'
       : Math.abs(Number(value)).toFixed(2)
   ).replace('.00', '');
 
@@ -103,35 +104,38 @@ export const trackEvent = (category: string, action: string, name: string, value
 
 export const getDateFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
-  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
-  const sep = seperator || '-';
-  return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
+  return regionalDateAndTimeConversionSolution(d);
+  // const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
+  // const sep = seperator || '-';
+  // return td.getUTCDate() + sep + (td.getUTCMonth() + 1) + sep + td.getUTCFullYear();
+};
+
+export const getDateFromTimestampForDifference = (givenDate: string, seperator?: string) => {
+  const d = (new Date(givenDate)).toUTCString();
+  return d;
 };
 
 export const getDateTimeFromTimestamp = (givenDate: string, seperator?: string) => {
   const d = new Date(givenDate);
-  const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
-  const time = td.getUTCHours();
-  const mins = td.getUTCMinutes();
-  return (
-    getDateFromTimestamp(givenDate, seperator) +
-    ' at ' +
-    (time < 10 ? '0' : '') +
-    time +
-    ':' +
-    (mins < 10 ? '0' : '') +
-    mins
-  );
+  return regionalDateAndTimeConversionSolution(d);
+  // const td = new Date((d.getTime() + (-d.getTimezoneOffset() * 60000)));
+  // const time = td.getUTCHours();
+  // const mins = td.getUTCMinutes();
+  // return (
+  //   getDateFromTimestamp(givenDate, seperator) +
+  //   ' at ' +
+  //   (time < 10 ? '0' : '') +
+  //   time +
+  //   ':' +
+  //   (mins < 10 ? '0' : '') +
+  //   mins
+  // );
 };
 
 export const getDateDifferenceFromToday = (dateFrom: string) => {
-  const dateSplitted = dateFrom.split('-');
-  // Making format in MM-DD-YYYY;
-  const tempDate = dateSplitted[1] + '-' + dateSplitted[0] + '-' + dateSplitted[2];
-  const date1 = new Date(tempDate);
+  const date1 = new Date(dateFrom);
   const date2 = new Date();
   const diffTime = Math.abs(date2.getTime() - date1.getTime());
-  // const diffTime = Math.abs(date2.getDate() - date1.getDate());
   const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
   return diffDays;
 };
@@ -147,13 +151,13 @@ export const getDateDifferenceFromTodayUsingGetDate = (dateFrom: string) => {
 export const getDateAfterSomeDays = (noOfDays: number) => {
   const someDate = new Date();
   const numberOfDaysToAdd = noOfDays;
-  someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
-  const dd = someDate.getDate();
-  const mm = someDate.getMonth() + 1;
-  const y = someDate.getFullYear();
+  return regionalDateAndTimeConversionSolution(someDate.setDate(someDate.getDate() + numberOfDaysToAdd));
+  // const dd = someDate.getDate();
+  // const mm = someDate.getMonth() + 1;
+  // const y = someDate.getFullYear();
 
-  const someFormattedDate = dd + '-' + mm + '-' + y;
-  return someFormattedDate;
+  // const someFormattedDate = dd + '-' + mm + '-' + y;
+  // return someFormattedDate;
 };
 
 export const convertTextToLink = (text: string, env: string) => {
@@ -205,7 +209,7 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
     const emptySubDivId = 'EMPTY';
     distinctSelectedDivisions.forEach((item) => {
       const tempSubdiv = subDivisions.map((value) => {
-        const tempArray = value.split('-');
+        const tempArray = value.split('@-@');
         const subDivId = tempArray[0];
         if (subDivId === emptySubDivId) {
           hasEmpty = true;
@@ -236,3 +240,52 @@ export const getDivisionsQueryValue = (divisions: string[], subDivisions: string
   }
   return divisionIds;
 };
+
+export const regionalDateAndTimeConversion = (dateString: any) => { 
+  // const newDateString = dateString.split(/-| /);   
+  // const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
+  
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false,
+  }).format(date);
+};
+
+export const regionalDateAndTimeConversionSolution = (dateString: any) => { 
+  // const newDateString = dateString.split(/-| /);   
+  // const dateUTC = newDateString[2]+'-'+newDateString[1]+'-'+newDateString[0]+'T'+newDateString[3]+'Z';
+  
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false,
+  }).format(date);
+};
+
+export const regionalForMonthAndYear = (dateString: any) => { 
+   const date = new Date(dateString);
+  return new Intl.DateTimeFormat(navigator.language,{
+    year: 'numeric', month: 'numeric'
+  }).format(date);
+};
+
+export const thousandSeparator = (region: string) => {
+  if(region.includes('de') || region.includes('it') || region.includes('es'))
+    return  "."
+  else if(region.includes('fr') || region.includes('fi') || region.includes('da') || region.includes('sv')) 
+    return " " 
+  else  
+    return ","
+}
+
+export const decimalSeparator = (region: string) => {
+  if(region.includes('de') || region.includes('it') || region.includes('es'))
+    return  ","
+  else if(region.includes('fr') || region.includes('fi') || region.includes('da') || region.includes('sv')) 
+    return "," 
+  else  
+    return "."
+}

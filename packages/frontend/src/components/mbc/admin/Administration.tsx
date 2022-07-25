@@ -14,6 +14,7 @@ import { TagHandling } from './taghandling/TagHandling';
 import { UserRoleManagement } from './userrole/UserRoleManagement';
 import { MalwareScanapikeys } from './malwarescanapikeys/MalwareScanapikeys';
 import { ReportTagHandling } from '../reportAdmin/taghandling/ReportTagHandling';
+import { AdminNotifications } from './notifications/AdminNotifications';
 
 import { Envs } from '../../../globals/Envs';
 
@@ -81,6 +82,13 @@ export default class Administration extends React.Component<IAdministrationProps
                       </a>
                     </li>
                   )}
+                  {isAdmin && (
+                    <li className={Styles.tab + ' tab ' + (isReportAdmin && 'tab active')}>
+                      <a href="#tab-content-5" id="notificationTagHandling">
+                        Notification
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </nav>
             </div>
@@ -88,7 +96,6 @@ export default class Administration extends React.Component<IAdministrationProps
               {isAdmin && (
                 <>
                   <div id="tab-content-1" className={'tab-content ' + Styles.contentTab}>
-                    {this.state.currentUserRole}
                     <UserRoleManagement />
                   </div>
                   <div id="tab-content-2" className={'tab-content ' + Styles.contentTab}>
@@ -108,9 +115,11 @@ export default class Administration extends React.Component<IAdministrationProps
                   <ReportTagHandling />
                 </div>
               )}
-              {/* <div id="tab-content-3" className="tab-content">
-                <h6>Application Settings</h6>
-              </div> */}
+              {isAdmin && (
+                <div id="tab-content-5" className={'tab-content ' + Styles.contentTab}>
+                  <AdminNotifications userId={this.props.user.id} />
+                </div>
+              )}
             </div>
           </div>
         </div>

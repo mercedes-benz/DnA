@@ -1,9 +1,11 @@
 import cn from 'classnames';
 import React from 'react';
 import { Envs } from '../../../../globals/Envs';
-import { getDateFromTimestamp, getDateDifferenceFromToday } from '../../../../services/utils';
+import { getDateFromTimestampForDifference, getDateDifferenceFromToday } from '../../../../services/utils';
 import { IDataiku } from '../../../../globals/types';
 import { history } from '../../../../router/History';
+// @ts-ignore
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import Styles from './ProjectListRowItem.scss';
 
 const classNames = cn.bind(Styles);
@@ -34,6 +36,7 @@ const ProjectListRowItem = (props: ISolutionListRowItemProps) => {
   };
 
   const goToSolution = (solutionId: string) => {
+    Tooltip.clear();
     history.push('/summary/' + solutionId);
   };
 
@@ -55,7 +58,7 @@ const ProjectListRowItem = (props: ISolutionListRowItemProps) => {
           ''
         )}
         <td className="wrap-text">
-          {getDateDifferenceFromToday(getDateFromTimestamp(props.project.versionTag.lastModifiedOn))} days ago
+          {getDateDifferenceFromToday(getDateFromTimestampForDifference(props?.project?.versionTag?.lastModifiedOn))} days ago
         </td>
         <td className={Styles.iconAction}>
           {props.isProduction ? (

@@ -35,35 +35,46 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.config.AVScannerClient;
 import com.daimler.data.assembler.SolutionAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataikuNsql;
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.db.jsonb.SubDivision;
 import com.daimler.data.db.jsonb.solution.SkillSummary;
+import com.daimler.data.db.jsonb.solution.Solution;
 import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
 import com.daimler.data.db.jsonb.solution.SolutionDatasource;
 import com.daimler.data.db.jsonb.solution.SolutionDivision;
 import com.daimler.data.db.jsonb.solution.SolutionLanguage;
 import com.daimler.data.db.jsonb.solution.SolutionPlatform;
+import com.daimler.data.db.jsonb.solution.SolutionTeamMember;
 import com.daimler.data.db.jsonb.solution.SolutionVisualization;
 import com.daimler.data.db.repo.dataiku.DataikuCustomRepository;
 import com.daimler.data.db.repo.solution.SolutionCustomRepository;
 import com.daimler.data.db.repo.solution.SolutionRepository;
 import com.daimler.data.dto.algorithm.AlgorithmVO;
-import com.daimler.data.dto.appsubscription.SubscriptionVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
 import com.daimler.data.dto.divisions.DivisionVO;
 import com.daimler.data.dto.divisions.SubdivisionVO;
@@ -74,6 +85,7 @@ import com.daimler.data.dto.relatedProduct.RelatedProductVO;
 import com.daimler.data.dto.skill.SkillVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.DataSourceSummaryVO;
 import com.daimler.data.dto.solution.SolutionAnalyticsVO;
 import com.daimler.data.dto.solution.SolutionPortfolioVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -81,7 +93,6 @@ import com.daimler.data.dto.solution.TeamMemberVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.dto.visualization.VisualizationVO;
 import com.daimler.data.service.algorithm.AlgorithmService;
-import com.daimler.data.service.appsubscription.AppSubscriptionService;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.dataiku.DataikuService;
 import com.daimler.data.service.datasource.DataSourceService;
@@ -151,10 +162,10 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	private DataikuCustomRepository dataikuCustomRepo;
 
 	@Autowired
-	private AppSubscriptionService appSubscriptionService;
+	private SkillService skillService;
 
 	@Autowired
-	private SkillService skillService;
+	private AVScannerClient aVScannerClient;
 
 	public BaseSolutionService() {
 		super();
@@ -193,10 +204,15 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		boolean noteBookAttachedAlready = false;
 		String notebookEvent = "provisioned";
 		SolutionVO prevVo = new SolutionVO();
+		String prevDnaSubscriptionAppId = "";
 		if (isUpdate) {
 			String prevNotebookId = "";
 			String currNotebookId = "";
 			prevVo = this.getById(vo.getId());
+			if (prevVo != null && prevVo.getPortfolio() != null
+					&& StringUtils.hasText(prevVo.getPortfolio().getDnaSubscriptionAppId())) {
+				prevDnaSubscriptionAppId = prevVo.getPortfolio().getDnaSubscriptionAppId();
+			}
 			if (prevVo != null && prevVo.getPortfolio() != null && prevVo.getPortfolio().getDnaNotebookId() != null)
 				prevNotebookId = prevVo.getPortfolio().getDnaNotebookId();
 			if (vo != null && vo.getPortfolio() != null && vo.getPortfolio().getDnaNotebookId() != null)
@@ -252,12 +268,19 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			}
 		}
 
-		if (responseSolutionVO != null && responseSolutionVO.getId() != null && vo.getPortfolio() != null
-		// && StringUtils.isNotEmpty(vo.getPortfolio().getDnaSubscriptionAppId())
-		) {
-			LOGGER.info("Updating Solution Id in DnA Malware scan service subscription...");
-			appSubscriptionService.updateSolIdForSubscribedAppId(vo.getPortfolio().getDnaSubscriptionAppId(),
-					responseSolutionVO.getId());
+		if (responseSolutionVO != null && responseSolutionVO.getId() != null) {
+			String currDnaSubscriptionAppId = "";
+			if (responseSolutionVO.getPortfolio() != null
+					&& StringUtils.hasText(responseSolutionVO.getPortfolio().getDnaSubscriptionAppId())) {
+				currDnaSubscriptionAppId = responseSolutionVO.getPortfolio().getDnaSubscriptionAppId();
+			}
+
+			if (!currDnaSubscriptionAppId.equals(prevDnaSubscriptionAppId)) {
+				LOGGER.info("Updating Solution Id in DnA Malware scan service subscription...");
+				aVScannerClient.updateSolIdForSubscribedAppId(currDnaSubscriptionAppId, prevDnaSubscriptionAppId,
+						responseSolutionVO.getId());
+			}
+
 		}
 		String eventType = "";
 		String solutionName = responseSolutionVO.getProductName();
@@ -295,7 +318,16 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Transactional
 	@Override
 	public void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category) {
-
+		
+		CreatedByVO currentUser = this.userStore.getVO();
+		TeamMemberVO ModifyingteamMemberVO = new TeamMemberVO();
+		BeanUtils.copyProperties(currentUser, ModifyingteamMemberVO);
+		ModifyingteamMemberVO.setShortId(currentUser.getId());
+		String userId = currentUser != null ? currentUser.getId() : "dna_system";
+		String userName = this.currentUserName(currentUser);
+		
+		List<SolutionNsql> notifyingSolutions = null;
+		
 		List<SolutionNsql> solutionNsqlList = null;
 		if (!StringUtils.hasText(tagName) && StringUtils.hasText(relatedProductName)) {
 			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
@@ -311,8 +343,32 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		// null, null, null, true, null, Arrays.asList(tagName),
 		// Arrays.asList(relatedProductName), null,0, 999999999,null,null);
 		if (solutionNsqlList != null && !solutionNsqlList.isEmpty()) {
+			notifyingSolutions = solutionNsqlList;
 			solutionNsqlList.forEach(solutionNsql -> {
+				
+				String fieldName = "";
+				String changeDescription = "";
+				String message = "";
+				List<String> teamMembers = new ArrayList<>();
+				List<String> teamMembersEmails = new ArrayList<>();
+				Solution solutionJson = solutionNsql.getData();
+				String solutionName = solutionJson.getProductName();
+				List<ChangeLogVO> changeLogs = new ArrayList<>();
+				ChangeLogVO changeLog = new ChangeLogVO();
+				changeLog.setChangeDate(new Date());
+				changeLog.setModifiedBy(ModifyingteamMemberVO);
+				changeLog.setNewValue(null);
+				changeLog.setOldValue(tagName);
+				List<SolutionTeamMember> solutionTeamMembers = solutionJson.getTeamMembers();
+				for (SolutionTeamMember user : solutionTeamMembers) {
+					teamMembers.add(user.getShortId());
+					teamMembersEmails.add(user.getEmail());
+				}
+				
 				if (category.equals(TAG_CATEGORY.TAG)) {
+					changeLog.setChangeDescription("Tags: Tag '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/tags/");
+					message = "Tag " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					List<String> tags = solutionNsql.getData().getTags();
 					if (tags != null && !tags.isEmpty()) {
 						Iterator<String> itr = tags.iterator();
@@ -326,6 +382,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.DS)) {
+					changeLog.setChangeDescription("Datasources: Datasource '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/dataSources/");
+					message = "Datasource " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					List<SolutionDatasource> dataSources = solutionNsql.getData().getDataSources();
 					if (dataSources != null && !dataSources.isEmpty()) {
 						Iterator<SolutionDatasource> itr = dataSources.iterator();
@@ -339,6 +398,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.LANG)) {
+					changeLog.setChangeDescription("Languages: Language '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/languages/");
+					message = "Language " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					List<SolutionLanguage> languages = solutionNsql.getData().getLanguages();
 					if (languages != null && !languages.isEmpty()) {
 						Iterator<SolutionLanguage> itr = languages.iterator();
@@ -352,6 +414,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.ALGO)) {
+					changeLog.setChangeDescription("Algorithms: Algorithm '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/algorithms/");
+					message = "Algorithm " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					List<SolutionAlgorithm> algorithms = solutionNsql.getData().getAlgorithms();
 					if (algorithms != null && !algorithms.isEmpty()) {
 						Iterator<SolutionAlgorithm> itr = algorithms.iterator();
@@ -365,6 +430,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.PLATFORM)) {
+					changeLog.setChangeDescription("Platforms: Platform '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/platforms/");
+					message = "Platform " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					List<SolutionPlatform> platforms = solutionNsql.getData().getPlatforms();
 					if (platforms != null && !platforms.isEmpty()) {
 						Iterator<SolutionPlatform> itr = platforms.iterator();
@@ -378,6 +446,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.VISUALIZATION)) {
+					changeLog.setChangeDescription("Visualizations: Visualization '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/visualizations/");
+					message = "Visualization " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					List<SolutionVisualization> visualizations = solutionNsql.getData().getVisualizations();
 					if (visualizations != null && !visualizations.isEmpty()) {
 						Iterator<SolutionVisualization> itr = visualizations.iterator();
@@ -391,6 +462,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.RELATEDPRODUCT)) {
+					changeLog.setChangeDescription("RelatedProducts: RelatedProduct '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/relatedProducts/");
+					message = "RelatedProduct " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					List<String> relatedProducts = solutionNsql.getData().getRelatedProducts();
 					if (relatedProducts != null && !relatedProducts.isEmpty()) {
 						Iterator<String> itr = relatedProducts.iterator();
@@ -404,6 +478,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.SKILL)) {
+					changeLog.setChangeDescription("Skills: Skill '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/skills/");
+					message = "Skill " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					LOGGER.debug("Deleting Skill:{} from solutions.", tagName);
 					if (!ObjectUtils.isEmpty(solutionNsql.getData().getSkills())) {
 						List<SkillSummary> skills = solutionNsql.getData().getSkills().stream()
@@ -412,6 +489,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.DIVISION)) {
+					changeLog.setChangeDescription("Divisions: Division '"+tagName+"' removed.");
+					changeLog.setFieldChanged("/divisions/");
+					message = "Division " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
 					LOGGER.debug("Deleting Division:{} from solutions.", tagName);
 					SolutionDivision soldivision = solutionNsql.getData().getDivision();
 					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
@@ -422,9 +502,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				}
-
+				changeLogs.add(changeLog);
+				LOGGER.debug("Publishing message on solution update event for solution {}, after admin action on {} and {}", solutionName, category, tagName);
+				kafkaProducer.send("Solution Updated after Admin action", solutionNsql.getId(), "", userId, message, true, teamMembers,
+						teamMembersEmails, changeLogs);
 			});
-		}
+			
+			}
 	}
 
 	@Override
@@ -651,21 +735,19 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 	private void updateDataSources(SolutionVO vo) {
 		if (vo.getDataSources() != null) {
-			List<String> dataSources = vo.getDataSources().getDataSources();
-			if (dataSources != null) {
-				dataSources.forEach(dataSource -> {
-					DataSourceVO dataSourceVO = dataSourceService.getByUniqueliteral("name", dataSource);
-					if (dataSourceVO != null && dataSourceVO.getName() != null
-							&& dataSourceVO.getName().equalsIgnoreCase(dataSource)) {
-						return;
-					} else {
-						DataSourceVO newDataSourceVO = new DataSourceVO();
-						newDataSourceVO.setName(dataSource);
-						dataSourceService.create(newDataSourceVO);
-					}
-				});
-			}
-
+			List<DataSourceSummaryVO> dataSources = vo.getDataSources().getDataSources();
+			Optional.ofNullable(dataSources).ifPresent(l -> l.forEach(dataSourceSummaryVO -> {
+				DataSourceVO dataSourceVO = dataSourceService.getByUniqueliteral("name",
+						dataSourceSummaryVO.getDataSource());
+				if (dataSourceVO != null && dataSourceVO.getName() != null
+						&& dataSourceVO.getName().equalsIgnoreCase(dataSourceSummaryVO.getDataSource())) {
+					return;
+				} else {
+					DataSourceVO newDataSourceVO = new DataSourceVO();
+					newDataSourceVO.setName(dataSourceSummaryVO.getDataSource());
+					dataSourceService.create(newDataSourceVO);
+				}
+			}));
 		}
 	}
 
@@ -708,7 +790,6 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Override
 	@Transactional
 	public boolean deleteById(String id) {
-		LOGGER.trace("Entering deleteById.");
 		SolutionVO solutionVO = this.getById(id);
 		if (notebookAllowed) {
 			LOGGER.info("Updating Notebook linkage.");
@@ -718,10 +799,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			}
 		}
 
-		SubscriptionVO availableSubscriptionVO = appSubscriptionService.getByUniqueliteral("solutionId", id);
-		if (availableSubscriptionVO != null) {
-			appSubscriptionService.updateSolIdForSubscribedAppId(availableSubscriptionVO.getAppId(), null);
+		if (solutionVO != null && solutionVO.getId() != null && solutionVO.getPortfolio() != null
+				&& StringUtils.hasText(solutionVO.getPortfolio().getDnaSubscriptionAppId())) {
+			LOGGER.info("Updating malware scan subscription linkage.");
+			aVScannerClient.updateSolIdForSubscribedAppId(solutionVO.getPortfolio().getDnaSubscriptionAppId(), "",
+					null);
 		}
+
 		if (dataikuAllowed) {
 			LOGGER.info("Updating Dataiku linkage.");
 			DataikuNsql dataikuEntity = dataikuCustomRepo.findbyUniqueLiteral("solutionId", id);
@@ -764,7 +848,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 			if ("Solution_delete".equalsIgnoreCase(eventType)) {
 				eventType = "Solution Deleted";
-				message = "Solution " + solutionName + " is delete by user " + userName;
+				message = "Solution " + solutionName + " is deleted by user " + userName;
 				LOGGER.info("Publishing message on solution delete for solution {} by userId {}", solutionName, userId);
 			}
 			if ("Solution_update".equalsIgnoreCase(eventType)) {
@@ -783,6 +867,51 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			}
 		} catch (Exception e) {
 			LOGGER.trace("Failed while publishing solution event msg {} ", e.getMessage());
+		}
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> malwareScanUnsubscribe(String solutionId) {
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			boolean isAdmin = userInfoService.isAdmin(userId);
+			boolean isOwner = false;
+			SolutionVO solutionVO = this.getById(solutionId);
+			if (StringUtils.hasText(userId)) {
+				String createdBy = solutionVO.getCreatedBy() != null ? solutionVO.getCreatedBy().getId() : null;
+				isOwner = (createdBy != null && createdBy.equals(userId));
+			}
+			if (!isAdmin && !isOwner) {
+				LOGGER.debug("User {} not authorized to unsubscribe malware scan service", userId);
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"Not authorized to unsubscribe malware scan. Only solution owner or an admin can unsubscribe");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(notAuthorizedMsg);
+				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+			}
+			if (solutionVO != null && solutionVO.getId() != null && solutionVO.getPortfolio() != null) {
+				solutionVO.getPortfolio().setDnaSubscriptionAppId(null);
+				this.create(solutionVO);
+			}
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			LOGGER.info("Solution {} unsubscribed successfully", solutionId);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			MessageDescription invalidMsg = new MessageDescription("No Solution with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			LOGGER.error("No Solution with the given id {} , couldnt unsubscribe.", solutionId);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			MessageDescription exceptionMsg = new MessageDescription("Failed to unsubscribe due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			LOGGER.error("Failed to unsubscribe malware scan for solution with id {} , due to internal error.",
+					solutionId);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

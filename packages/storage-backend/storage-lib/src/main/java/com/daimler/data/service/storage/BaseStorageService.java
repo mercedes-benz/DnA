@@ -30,16 +30,17 @@ package com.daimler.data.service.storage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -47,6 +48,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,23 +56,44 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.config.MalwareScannerClient;
 import com.daimler.data.application.config.VaultConfig;
+import com.daimler.data.assembler.StorageAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dataiku.client.DataikuClient;
+import com.daimler.data.db.entities.StorageNsql;
+import com.daimler.data.db.jsonb.Storage;
+import com.daimler.data.db.repo.storage.IStorageRepository;
+import com.daimler.data.db.repo.storage.StorageRepository;
+import com.daimler.data.dto.DataikuConnectionRequestDTO;
+import com.daimler.data.dto.DataikuGenericResponseDTO;
+import com.daimler.data.dto.DataikuIndexDTO;
+import com.daimler.data.dto.DataikuParameterDTO;
+import com.daimler.data.dto.DataikuPermission;
+import com.daimler.data.dto.DataikuReadabilityDTO;
 import com.daimler.data.dto.ErrorDTO;
 import com.daimler.data.dto.FileScanDetailsVO;
 import com.daimler.data.dto.MinioGenericResponse;
+import com.daimler.data.dto.Permission;
+import com.daimler.data.dto.UserInfoVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.storage.BucketCollectionVO;
 import com.daimler.data.dto.storage.BucketObjectResponseVO;
 import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
-import com.daimler.data.dto.storage.BucketResponseVO;
 import com.daimler.data.dto.storage.BucketResponseWrapperVO;
 import com.daimler.data.dto.storage.BucketVo;
+import com.daimler.data.dto.storage.ConnectionResponseVO;
+import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
+import com.daimler.data.dto.storage.ConnectionVO;
+import com.daimler.data.dto.storage.CreatedByVO;
 import com.daimler.data.dto.storage.PermissionVO;
 import com.daimler.data.dto.storage.UserRefreshWrapperVO;
 import com.daimler.data.dto.storage.UserVO;
 import com.daimler.data.minio.client.DnaMinioClient;
 import com.daimler.data.util.CacheUtil;
 import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.util.StorageUtility;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.minio.admin.UserInfo;
 import io.minio.messages.Bucket;
@@ -82,6 +105,12 @@ public class BaseStorageService implements StorageService {
 
 	@Value("${minio.endpoint}")
 	private String minioBaseUri;
+	
+	@Value("${storage.termsOfUse.uri}")
+	private String storageTermsOfUseUri;
+	
+	@Value("${minio.clientApi}")
+	private String minioClientApi;
 	
 	@Autowired
 	private CacheUtil cacheUtil;
@@ -101,17 +130,39 @@ public class BaseStorageService implements StorageService {
 	@Autowired
 	private MalwareScannerClient malwareScannerClient;
 	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
+	
+	private static String bucketCreationEvent = "Storage - Bucket Creation";
+	
+	@Autowired
+	private IStorageRepository jpaRepo;
+	
+	@Autowired
+	private StorageRepository customRepo;
+	
+	@Autowired
+	private StorageAssembler storageAssembler;
+	
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
+	
+	@Autowired
+	private DataikuClient dataikuClient;
+	
 	public BaseStorageService() {
 		super();
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<BucketResponseWrapperVO> createBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
+		String ownerEmail = userStore.getUserInfo().getEmail();
 		PermissionVO permissionVO = null;
 
 		LOGGER.debug("Validate Bucket before create.");
@@ -125,7 +176,7 @@ public class BaseStorageService implements StorageService {
 			MinioGenericResponse createBucketResponse = dnaMinioClient.createBucket(bucketVo.getBucketName());
 			if (createBucketResponse != null && createBucketResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 				LOGGER.info("Success from make minio bucket");
-				responseVO.setStatus(ConstantsUtility.SUCCESS);
+				responseVO.setStatus(createBucketResponse.getStatus());
 				LOGGER.info("Onboarding current user:{}", currentUser);
 				MinioGenericResponse onboardOwnerResponse = dnaMinioClient.onboardUserMinio(currentUser,
 						createBucketResponse.getPolicies());
@@ -143,11 +194,16 @@ public class BaseStorageService implements StorageService {
 					Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
 							bucketVo.getBucketName(), null);
 					ownerUserVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
+					String bucketUri = bucketVo.getBucketName();
 					ownerUserVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
 
 					// Setting bucket access info for owner
 					responseVO.setBucketAccessinfo(ownerUserVO);
-
+					List<String> subscribedUsers = new ArrayList<>();
+					subscribedUsers.add(currentUser);
+					List<String> subscribedUsersEmails = new ArrayList<>();
+					subscribedUsersEmails.add(ownerEmail);
+					
 					LOGGER.info("Onboarding collaborators");
 					if (!ObjectUtils.isEmpty(bucketVo.getCollaborators())) {
 						for (UserVO userVO : bucketVo.getCollaborators()) {
@@ -164,9 +220,11 @@ public class BaseStorageService implements StorageService {
 
 								LOGGER.info("Onboarding collaborator:{}", userVO.getAccesskey());
 								MinioGenericResponse onboardUserResponse = dnaMinioClient
-										.onboardUserMinio(userVO.getAccesskey().toUpperCase(), policies);
+										.onboardUserMinio(userVO.getAccesskey(), policies);
 								if (onboardUserResponse != null
 										&& onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+									subscribedUsers.add(userVO.getAccesskey());
+									subscribedUsersEmails.add(userVO.getEmail());
 									LOGGER.info("Collaborator:{} onboarding successfull", userVO.getAccesskey());
 								} else {
 									LOGGER.info("Collaborator:{} onboarding failed", userVO.getAccesskey());
@@ -177,11 +235,18 @@ public class BaseStorageService implements StorageService {
 							}
 						}
 					}
-
+					
+					String eventType = bucketCreationEvent;
+					this.publishEventMessages(eventType, bucketUri, null, bucketVo.getBucketName(), subscribedUsers,subscribedUsersEmails);
+					
 				} else {
 					LOGGER.info("Failure from onboard bucket owner.");
 				}
 
+				//To save bucket info in db
+				BucketVo savedBucketVo = saveBucket(bucketVo);
+				bucketVo.setId(savedBucketVo.getId());
+				
 				responseVO.setStatus(createBucketResponse.getStatus());
 				httpStatus = HttpStatus.OK;
 			} else {
@@ -195,7 +260,62 @@ public class BaseStorageService implements StorageService {
 		responseVO.setData(bucketVo);
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
+	
+	/*
+	 * To save bucket info to database
+	 * 
+	 */
+	private BucketVo saveBucket(BucketVo requestbucketVo) {
+		if (Objects.isNull(requestbucketVo.getCreatedBy())
+				|| !StringUtils.hasText(requestbucketVo.getCreatedBy().getId())) {
+			requestbucketVo.setCreatedBy(userStore.getVO());
+			requestbucketVo.setCreatedDate(new Date());
+			requestbucketVo.setLastModifiedDate(new Date());
+		}
+		LOGGER.info("Converting to entity.");
+		StorageNsql storageNsql = storageAssembler.toEntity(requestbucketVo);
+		LOGGER.info("Saving entity.");
+		StorageNsql savedEntity = jpaRepo.save(storageNsql);
+		return storageAssembler.toBucketVo(savedEntity);
+	}
+	
+	
+	private void publishEventMessages(String eventType, String bucketUri, List<ChangeLogVO> changeLogs, String bucketName,
+			List<String> subscribedUsers, List<String> subscribedUsersEmail) {
+		try {
+			String message = "";
+			String messageDetails = "";
+			Boolean mailRequired = true;
+			com.daimler.data.application.auth.UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String userId = currentUser.getId() != null ? currentUser.getId() : "dna_system";
+			String userName = userId;
+			if(currentUser!=null && currentUser.getFirstName()!= null) {
+				userName = currentUser.getFirstName();
+				if(currentUser.getLastName()!= null)
+					userName = userName + " " + currentUser.getLastName();
+			}
+			
+			/*
+			 * if(subscribedUsers!=null && !subscribedUsers.isEmpty() &&
+			 * subscribedUsers.contains(userId)) {
+			 * LOGGER.info("Removed current userid from subscribedUsers");
+			 * subscribedUsers.remove(userId); }
+			 */
 
+			if (bucketCreationEvent.equalsIgnoreCase(eventType)) {
+				message = "Storage bucket:  " + bucketName + ", is created by user " + userName;
+				messageDetails = "Please refer the link for [Terms of Use](" + storageTermsOfUseUri + ")";
+				LOGGER.info("Publishing message on bucket creation for bucketname {} by userId {}", bucketName, userId);
+			}
+			if (eventType != null && eventType != "") {
+					kafkaProducer.send(eventType, bucketUri, messageDetails, userId, message, mailRequired, subscribedUsers,subscribedUsersEmail,changeLogs);
+					LOGGER.info("Published event bucket-creation for bucketname {} by userId {}, for all collaborators {}", bucketName, userId,Arrays.toString(subscribedUsers.toArray()));
+			}
+		} catch (Exception e) {
+			LOGGER.trace("Failed while publishing storage event msg {} ", e.getMessage());
+		}
+	}
+	
 	/*
 	 * To validate create bucket.
 	 * 
@@ -251,33 +371,39 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
-
 		BucketCollectionVO bucketCollectionVO = new BucketCollectionVO();
 		LOGGER.debug("list buckets for user:{}", currentUser);
-		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser);
+		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(currentUser, false);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from list buckets minio client");
 			httpStatus = minioResponse.getHttpStatus();
-			List<BucketResponseVO> bucketsResponseVO = new ArrayList<>();
-			BucketResponseVO bucketResponseVO = null;
-			if(!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
+			if (!ObjectUtils.isEmpty(minioResponse.getBuckets())) {
+				// Fetching data from database for specified users
+				LOGGER.info("Fetching records from database.");
+				List<StorageNsql> storageEntities = customRepo.getAllWithFilters(currentUser);
+				List<BucketVo> bucketsVO = new ArrayList<>();
+				// Iterating over bucket list got from minio
 				for (Bucket bucket : minioResponse.getBuckets()) {
-					bucketResponseVO = new BucketResponseVO();
-					bucketResponseVO.setBucketName(bucket.name());
-					bucketResponseVO.setCreationDate(bucket.creationDate().toString());
-					// Setting current user permission for bucket
-					bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
-					LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
-					bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
-
-					bucketsResponseVO.add(bucketResponseVO);
+					BucketVo bucketVo = storageAssembler.toBucketVo(storageEntities, bucket.name());
+					if (Objects.isNull(bucketVo)) {
+						bucketVo = new BucketVo();
+						bucketVo.setBucketName(bucket.name());
+						bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
+						LOGGER.debug("Setting collaborators for bucket:{}", bucket.name());
+						bucketVo.setCollaborators(dnaMinioClient.getBucketCollaborators(bucket.name(), currentUser));
+					}
+					if (Objects.isNull(bucketVo.getPermission())) {
+						// Setting current user permission for bucket
+						bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucket.name(), currentUser));
+					}
+					bucketsVO.add(bucketVo);
 				}
-				bucketCollectionVO.setData(bucketsResponseVO);
+				bucketCollectionVO.setData(bucketsVO);
 			}
 		} else {
 			LOGGER.info("Failure from list buckets minio client");
-			httpStatus = minioResponse!=null?minioResponse.getHttpStatus():HttpStatus.INTERNAL_SERVER_ERROR;
-			bucketCollectionVO.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
+			httpStatus = minioResponse != null ? minioResponse.getHttpStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+			bucketCollectionVO.setErrors(getMessages(minioResponse != null ? minioResponse.getErrors() : null));
 		}
 		return new ResponseEntity<>(bucketCollectionVO, httpStatus);
 	}
@@ -429,7 +555,7 @@ public class BaseStorageService implements StorageService {
 		String currentUser = userStore.getUserInfo().getId();
 
 		// Setting current user as user Id if userId is null
-		userId = StringUtils.hasText(userId) ? userId.toUpperCase() : currentUser;
+		userId = StringUtils.hasText(userId) ? userId : currentUser;
 
 		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
 			LOGGER.info("No permission to refresh user:{}, only owner or admin can refresh", userId);
@@ -440,7 +566,7 @@ public class BaseStorageService implements StorageService {
 		} else {
 
 			LOGGER.debug("Refresh user through minio client.");
-			MinioGenericResponse minioResponse = dnaMinioClient.userRefresh(userId.toUpperCase());
+			MinioGenericResponse minioResponse = dnaMinioClient.userRefresh(userId);
 			if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 				LOGGER.info("Success from refresh minio client.");
 				httpStatus = HttpStatus.OK;
@@ -458,57 +584,62 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
-	public ResponseEntity<UserRefreshWrapperVO> getConnection(String bucketName, String userId, String prefix) {
+	public ResponseEntity<ConnectionResponseWrapperVO> getConnection(String bucketName, String userId, String prefix) {
 		HttpStatus httpStatus;
-		UserRefreshWrapperVO userRefreshWrapperVO = new UserRefreshWrapperVO();
-		userRefreshWrapperVO.setStatus(ConstantsUtility.FAILURE);
-
+		ConnectionResponseWrapperVO responseWrapperVO = new ConnectionResponseWrapperVO();
+		responseWrapperVO.setStatus(ConstantsUtility.FAILURE);
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-
 		// Setting current user as user Id if userId is null
-		userId = StringUtils.hasText(userId) ? userId.toUpperCase() : currentUser;
+		userId = StringUtils.hasText(userId) ? userId : currentUser;
 		if (!userId.equals(currentUser) && !userStore.getUserInfo().hasAdminAccess()) {
 			LOGGER.info(
 					"No permission to get Connection details for user:{}, only owner or admin can get connection details.",
 					userId);
-			userRefreshWrapperVO
+			responseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription("No permission to get Connection details for user:"
 							+ userId + ", only owner or admin can get connection details.")));
 			httpStatus = HttpStatus.FORBIDDEN;
 		} else if (Boolean.FALSE.equals(dnaMinioClient.validateUserInMinio(userId))) {
 			LOGGER.info("User:{} not present in Minio.", userId);
-			userRefreshWrapperVO
+			responseWrapperVO
 					.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Minio.")));
 			httpStatus = HttpStatus.NO_CONTENT;
 		} else {
 			String secretKey = vaultConfig.validateUserInVault(userId);
 			if (StringUtils.hasText(secretKey)) {
+				ConnectionResponseVO responseVO = new ConnectionResponseVO();
+
 				UserVO userVO = new UserVO();
-				//setting credentials
+				// setting credentials
 				userVO.setAccesskey(userId);
 				userVO.setSecretKey(secretKey);
-				//Setting permission
+				// Setting permission
 				userVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, userId));
-				Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,
-						bucketName, null);
+				Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser, bucketName, null);
 				userVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
 				userVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
-				
-				userRefreshWrapperVO.setData(userVO);
-				userRefreshWrapperVO.setStatus(ConstantsUtility.SUCCESS);
-				httpStatus = HttpStatus.OK;
-				
+				responseVO.setUserVO(userVO);
 
+				// To get connected dataiku projects from database
+				StorageNsql storageEntity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+				if (Objects.nonNull(storageEntity) && Objects.nonNull(storageEntity.getData())) {
+					// setting dataiku projects
+					responseVO.setDataikuProjects(storageEntity.getData().getDataikuProjects());
+				}
+
+				responseWrapperVO.setData(responseVO);
+				responseWrapperVO.setStatus(ConstantsUtility.SUCCESS);
+				httpStatus = HttpStatus.OK;
 			} else {
 				LOGGER.info("User:{} not present in Vault.", userId);
-				userRefreshWrapperVO
+				responseWrapperVO
 						.setErrors(Arrays.asList(new MessageDescription("User:" + userId + " not present in Vault.")));
 				httpStatus = HttpStatus.NO_CONTENT;
 			}
 		}
 
-		return new ResponseEntity<>(userRefreshWrapperVO, httpStatus);
+		return new ResponseEntity<>(responseWrapperVO, httpStatus);
 	}
 
 	@Override
@@ -560,24 +691,36 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
-	public ResponseEntity<GenericMessage> deleteBucket(String bucketName) {
+	@Transactional
+	public ResponseEntity<GenericMessage> deleteBucket(String bucketName, Boolean live) {
 		GenericMessage genericMessage = new GenericMessage();
 		HttpStatus httpStatus;
-		
+
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-		
-		LOGGER.info("Removing bucket:{}",bucketName);
+
+		LOGGER.info("Removing bucket:{}", bucketName);
 		MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from minio remove bucket.");
+			// Fetching bucket info from database
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+			if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
+				// To delete dataiku connection if exists
+				Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(project -> {
+					LOGGER.info("Removing connection for project:{}", project);
+					dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, bucketName),
+							live);
+				}));
+				LOGGER.info("Deleting bucket:{} info from database", bucketName);
+				jpaRepo.deleteById(entity.getId());
+			}
 			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
 			httpStatus = HttpStatus.OK;
 		} else {
 			LOGGER.info("Failure from minio remove bucket.");
 			genericMessage.setSuccess(ConstantsUtility.FAILURE);
-			genericMessage
-					.setErrors(getMessages(minioResponse!=null?minioResponse.getErrors():null));
+			genericMessage.setErrors(getMessages(minioResponse != null ? minioResponse.getErrors() : null));
 			httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 		return new ResponseEntity<>(genericMessage, httpStatus);
@@ -599,14 +742,14 @@ public class BaseStorageService implements StorageService {
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<BucketResponseWrapperVO> updateBucket(BucketVo bucketVo) {
 		BucketResponseWrapperVO responseVO = new BucketResponseWrapperVO();
 		HttpStatus httpStatus;
-
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 
-		LOGGER.debug("Validate Bucket before update.");
+		LOGGER.info("Validating Bucket before update.");
 		List<MessageDescription> errors = validateUpdateBucket(bucketVo);
 		if (!ObjectUtils.isEmpty(errors)) {
 			responseVO.setStatus(ConstantsUtility.FAILURE);
@@ -616,11 +759,20 @@ public class BaseStorageService implements StorageService {
 			LOGGER.info("Fetching existing collaborators for bucket:{}", bucketVo.getBucketName());
 			List<UserVO> existingCollaborators = dnaMinioClient.getBucketCollaborators(bucketVo.getBucketName(),
 					currentUser);
-
-			// To update collaborators list
-			errors = updateBucketCollaborator(bucketVo.getBucketName(), existingCollaborators,
-					bucketVo.getCollaborators());
+			LOGGER.info("Fetching new collaborators for bucket:{}", bucketVo.getBucketName());
+			List<UserVO> newCollaborators = getNewCollaborators(bucketVo);
+			if(!(ObjectUtils.isEmpty(existingCollaborators) && ObjectUtils.isEmpty(newCollaborators))) {
+				// To update collaborators list
+				errors = updateBucketCollaborator(bucketVo.getBucketName(), existingCollaborators,
+						bucketVo.getCollaborators());
+			}
 			if (ObjectUtils.isEmpty(errors)) {
+				//To update Bucket record in database
+				bucketVo.setLastModifiedDate(new Date());
+				bucketVo.setUpdatedBy(userStore.getVO());
+				BucketVo savedBucketVo =  this.saveBucket(bucketVo);
+				responseVO.setData(savedBucketVo);
+				
 				responseVO.setStatus(ConstantsUtility.SUCCESS);
 				httpStatus = HttpStatus.OK;
 			} else {
@@ -628,13 +780,26 @@ public class BaseStorageService implements StorageService {
 				responseVO.setErrors(errors);
 				httpStatus = HttpStatus.BAD_REQUEST;
 			}
-
 		}
 
 		responseVO.setData(bucketVo);
 		return new ResponseEntity<>(responseVO, httpStatus);
 	}
 
+	/*
+	 * To get list of new collaborators
+	 * Add creator as collaborator if not present in collaborators list
+	 */
+	private List<UserVO> getNewCollaborators(BucketVo bucketVo) {
+		List<UserVO> newCollaborators = bucketVo.getCollaborators();
+		UserVO creator = storageAssembler.toUserVO(bucketVo.getCreatedBy());
+		if (Objects.nonNull(creator) && (ObjectUtils.isEmpty(newCollaborators) || newCollaborators.stream()
+				.noneMatch(c -> creator.getAccesskey().equalsIgnoreCase(c.getAccesskey())))) {
+			newCollaborators.add(creator);
+		}
+		return newCollaborators;
+	}
+	
 	/*
 	 * To get Union of list return list of user by making unison of 2 userVO list
 	 */
@@ -649,9 +814,8 @@ public class BaseStorageService implements StorageService {
 		set.addAll(list1);
 		// Adding list two to set
 		set.addAll(list2);
-
 		// fetching users
-		return set.stream().map(t -> t.getAccesskey()).collect(Collectors.toList());
+		return set.stream().map(t -> t.getAccesskey()).toList();
 	}
 	
 	/*
@@ -665,45 +829,39 @@ public class BaseStorageService implements StorageService {
 		Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		String readPolicy = bucketName + "_" + ConstantsUtility.READ;
 		String readWritePolicy = bucketName + "_" + ConstantsUtility.READWRITE;
-
 		// To get all users list
 		List<String> usersId = getUsersUnion(existingCollaborators, newCollaborators);
 		for (String userId : usersId) {
 			// To get User details from newCollaborators
 			Optional<UserVO> newCollaborator = newCollaborators.stream()
 					.filter(userVO -> userVO.getAccesskey().equals(userId)).findAny();
-
 			// To get User details from existingCollaborators
 			Optional<UserVO> existingCollaborator = existingCollaborators.stream()
 					.filter(userVO -> userVO.getAccesskey().equals(userId)).findAny();
-
 			// To get user info from Minio
 			UserInfo userInfo = usersInfo.get(userId);
 			String policy = "";
-
 			// if user presents in new and existing
 			if (newCollaborator.isPresent() && existingCollaborator.isPresent()) {
+				LOGGER.info("Checking permission update for existing collaborators");
 				PermissionVO permissionVO = newCollaborator.get().getPermission();
-
 				// Getting policy from user
 				policy = userInfo.policyName();
-
 				// Checking for read permission
 				// if read permission available adding it
 				// if read permission not available removing it
 				if (Boolean.TRUE.equals(permissionVO.isRead())) {
-					policy = !policy.contains(readPolicy) ? policy.concat("," + readPolicy) : policy;
+					policy = StorageUtility.addPolicy(policy, readPolicy);
 				} else {
-					policy = policy.contains(readPolicy) ? policy.replace(readPolicy, "") : policy;
+					policy = StorageUtility.removePolicy(policy, readPolicy);
 				}
-
 				// Checking for read/write permission
 				// if read/write permission available adding it
 				// if read/write permission not available removing it
 				if (Boolean.TRUE.equals(permissionVO.isWrite())) {
-					policy = !policy.contains(readWritePolicy) ? policy.concat("," + readWritePolicy) : policy;
+					policy = StorageUtility.addPolicy(policy, readWritePolicy);
 				} else {
-					policy = policy.contains(readWritePolicy) ? policy.replace(readWritePolicy, "") : policy;
+					policy = StorageUtility.removePolicy(policy, readWritePolicy);
 				}
 				// Setting permission in Minio
 				dnaMinioClient.setPolicy(userId, false, policy);
@@ -711,6 +869,7 @@ public class BaseStorageService implements StorageService {
 			}
 			// If user presents only in new
 			else if (newCollaborator.isPresent() && !existingCollaborator.isPresent()) {
+				LOGGER.info("Setting permission for new collaborators");
 				PermissionVO permissionVO = newCollaborator.get().getPermission();
 				List<String> policies = new ArrayList<>();
 				// for read permission
@@ -723,9 +882,8 @@ public class BaseStorageService implements StorageService {
 					LOGGER.debug("Setting READ/WRITE access.");
 					policies.add(readWritePolicy);
 				}
-
 				LOGGER.info("Onboarding collaborator:{}", userId);
-				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId.toUpperCase(),
+				MinioGenericResponse onboardUserResponse = dnaMinioClient.onboardUserMinio(userId,
 						policies);
 				if (onboardUserResponse != null && onboardUserResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 					LOGGER.info("Collaborator:{} onboarding successfull", userId);
@@ -740,12 +898,10 @@ public class BaseStorageService implements StorageService {
 			else if (!newCollaborator.isPresent() && existingCollaborator.isPresent()) {
 				// Getting policy from user
 				policy = userInfo.policyName();
-
 				// Removing read permission
-				policy = policy.contains(readPolicy) ? policy.replace(readPolicy, "") : policy;
+				policy = StorageUtility.removePolicy(policy, readPolicy);
 				// Removing read/write permission
-				policy = policy.contains(readWritePolicy) ? policy.replace(readWritePolicy, "") : policy;
-
+				policy = StorageUtility.removePolicy(policy, readWritePolicy);
 				// Setting permission in Minio
 				dnaMinioClient.setPolicy(userId, false, policy);
 
@@ -756,9 +912,9 @@ public class BaseStorageService implements StorageService {
 	
 	
 	@Override
-	public ResponseEntity<BucketResponseVO> getByBucketName(String bucketName) {
+	public ResponseEntity<BucketVo> getByBucketName(String bucketName) {
 		HttpStatus httpStatus;
-		BucketResponseVO bucketResponseVO = new BucketResponseVO();
+		BucketVo bucketVo = new BucketVo();
 
 		LOGGER.debug("Check if bucket exists.");
 		boolean isBucketExists = dnaMinioClient.isBucketExists(bucketName);
@@ -766,16 +922,16 @@ public class BaseStorageService implements StorageService {
 			httpStatus = HttpStatus.NOT_FOUND;
 			LOGGER.info("Bucket not found.");
 		} else {
+			//Fetching bucket details from database
+			StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+			bucketVo = storageAssembler.toBucketVo(entity);
 			LOGGER.debug("Fetching Current user.");
 			String currentUser = userStore.getUserInfo().getId();
-
 			// Setting bucket details
-			bucketResponseVO.setBucketName(bucketName);
-			bucketResponseVO.setCollaborators(dnaMinioClient.getBucketCollaborators(bucketName, currentUser));
-			bucketResponseVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
+			bucketVo.setPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));			
 			httpStatus = HttpStatus.OK;
 		}
-		return new ResponseEntity<>(bucketResponseVO, httpStatus);
+		return new ResponseEntity<>(bucketVo, httpStatus);
 	}
 
 	/**
@@ -788,6 +944,221 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Calling avscan client to scan file:{}",multiPartFile.getOriginalFilename());
 		Optional<FileScanDetailsVO> aVScannerRes = malwareScannerClient.scan(multiPartFile);
 		return aVScannerRes.isPresent()?aVScannerRes.get():null;
+	}
+	
+	
+	@Override
+	public ResponseEntity<GenericMessage> bucketMigrate() {
+		MinioGenericResponse minioResponse = dnaMinioClient.getAllBuckets(null, true);
+		HttpStatus httpStatus;
+		GenericMessage genericMessage = new GenericMessage();
+		if (minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)
+				&& !ObjectUtils.isEmpty(minioResponse.getBuckets())) {
+			LOGGER.info("Success from list buckets minio client");
+			httpStatus = minioResponse.getHttpStatus();
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+			// getting users info from minio user cache
+			Map<String, UserInfo> usersInfo = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+			// Iterating over bucket list
+			for (Bucket bucket : minioResponse.getBuckets()) {
+				String bucketName = bucket.name();
+				// To check if record already exist for bucket
+				StorageNsql storage = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+				if (Objects.isNull(storage)) {
+					BucketVo bucketVo = new BucketVo();
+					bucketVo.setBucketName(bucketName);
+					bucketVo.setCreatedDate(Date.from(bucket.creationDate().toInstant()));
+					bucketVo.setLastModifiedDate(Date.from(bucket.creationDate().toInstant()));
+					// Setting default values
+					bucketVo.setPiiData(false);
+					bucketVo.setClassificationType("Internal");
+					bucketVo.setTermsOfUse(false);
+					List<UserVO> collaborators = new ArrayList<>();
+					for (var entry : usersInfo.entrySet()) {
+						if (StringUtils.hasText(entry.getValue().policyName())) {
+							UserVO userVO = null;
+							PermissionVO permissionVO = new PermissionVO();
+							if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READ)) {
+								LOGGER.debug("User:{} has read access to bucket:{}", entry.getKey(), bucketName);
+								// Setting accesskey
+								userVO = new UserVO();
+								userVO.setAccesskey(entry.getKey());
+								// Setting permission
+								permissionVO.setRead(true);
+								permissionVO.setWrite(false);
+								userVO.setPermission(permissionVO);
+							}
+							if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READWRITE)) {
+								LOGGER.debug("User:{} has read/write access to bucket:{}", entry.getKey(), bucketName);
+								userVO = new UserVO();
+								// Setting accesskey
+								userVO.setAccesskey(entry.getKey());
+								// Setting permission
+								permissionVO.setRead(true);
+								permissionVO.setWrite(true);
+								userVO.setPermission(permissionVO);
+								if (Objects.isNull(bucketVo.getCreatedBy())) {
+									CreatedByVO createdByVO = new CreatedByVO();
+									createdByVO.setId(entry.getKey());
+									UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
+									if (Objects.nonNull(userInfoVO)) {
+										BeanUtils.copyProperties(userInfoVO, createdByVO);
+									}
+									bucketVo.setCreatedBy(createdByVO);
+								}
+							}
+							if (Objects.nonNull(userVO)) {
+								UserInfoVO userInfoVO = dnaAuthClient.userInfoById(userVO.getAccesskey());
+								if (Objects.nonNull(userInfoVO)) {
+									BeanUtils.copyProperties(userInfoVO, userVO);
+								}
+								userVO.setPermission(permissionVO);
+								collaborators.add(userVO);
+							}
+						}
+					}
+					// setting collaborators
+					bucketVo.setCollaborators(collaborators);
+					LOGGER.info("Saving bucket:{} to database.", bucketVo.getBucketName());
+					this.saveBucket(bucketVo);
+
+				} else {
+					LOGGER.info("Bucket:{} already exists in database", bucketName);
+				}
+			}
+		} else {
+			LOGGER.info("Failure from list buckets minio client");
+			httpStatus = minioResponse.getHttpStatus();
+			genericMessage.setErrors(getMessages(minioResponse.getErrors()));
+		}
+		return new ResponseEntity<>(genericMessage, httpStatus);
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<GenericMessage> createDataikuConnection(ConnectionVO connectionVO, Boolean live) {
+		LOGGER.debug("Fetching Current user.");
+		GenericMessage genericMessage = new GenericMessage();
+		HttpStatus httpStatus;
+		// To fetch bucket details
+		StorageNsql storageEntity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME,
+				connectionVO.getBucketName());
+		// To validate before connection creation
+		List<MessageDescription> validationErrors = this.validateCreateConnection(storageEntity, connectionVO);
+		if (!ObjectUtils.isEmpty(validationErrors)) {
+			httpStatus = HttpStatus.BAD_REQUEST;
+			genericMessage.setErrors(validationErrors);
+		} else {
+			Storage storage = storageEntity.getData();
+			// Union of existing and new projects
+			List<String> projectsUnion = StorageUtility.getUnion(storage.getDataikuProjects(),
+					connectionVO.getDataikuProjects());
+
+			Optional.ofNullable(projectsUnion).ifPresent(l -> l.forEach(project -> {
+				// To check if project available in new list
+				boolean isNewProject = !ObjectUtils.isEmpty(connectionVO.getDataikuProjects())
+						&& connectionVO.getDataikuProjects().contains(project);
+				boolean isExistingProject = !ObjectUtils.isEmpty(storage.getDataikuProjects())
+						&& storage.getDataikuProjects().contains(project);
+				if (isNewProject && !isExistingProject) {
+					LOGGER.info("Creating new connection for project:{}", project);
+					this.createDataikuConnection(connectionVO.getBucketName(), project, live);
+				} else if (!isNewProject && isExistingProject) {
+					LOGGER.info("Removing connection for project:{}", project);
+					dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, connectionVO.getBucketName()),
+							live);
+				}
+			}));
+
+			// Saving connection details in db
+			storage.setDataikuProjects(connectionVO.getDataikuProjects());
+			storage.setLastModifiedDate(new Date());
+			storage.setUpdatedBy(storageAssembler.setUpdatedBy(userStore));
+			storageEntity.setData(storage);
+			jpaRepo.save(storageEntity);
+
+			httpStatus = HttpStatus.OK;
+			genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+		}
+		return new ResponseEntity<>(genericMessage, httpStatus);
+	}
+
+	/*
+	 * To validate create dataiku connection
+	 */
+	private List<MessageDescription> validateCreateConnection(StorageNsql storageEntity, ConnectionVO connectionVO) {
+		List<MessageDescription> errors = new ArrayList<>();
+		if (Objects.isNull(storageEntity) || Objects.isNull(storageEntity.getData())) {
+			LOGGER.info("Bucket:{} info not available in database, migrate data first.", connectionVO.getBucketName());
+			errors.add(new MessageDescription("Bucket information not available in database."));
+		}
+		return errors;
+	}
+	
+	/*
+	 * To setup data and create dataiku connection
+	 */
+	private DataikuGenericResponseDTO createDataikuConnection(String bucketName, String projectKey, Boolean live) {
+		DataikuConnectionRequestDTO requestDTO = new DataikuConnectionRequestDTO();
+		String currentUser = userStore.getUserInfo().getId();
+		String secretKey = vaultConfig.validateUserInVault(currentUser);
+		LOGGER.debug("Fetching permission..");
+		Optional<DataikuPermission> projectPermission = dataikuClient
+				.getDataikuProjectPermission(projectKey, live);
+		
+		List<String> projectGroups = new ArrayList<>();
+		List<String> allowedProjectGroups = new ArrayList<>();
+		if (projectPermission.isPresent() && !ObjectUtils.isEmpty(projectPermission.get().getPermissions())) {
+			projectGroups = projectPermission.get().getPermissions().stream().map(Permission::getGroup).toList();
+			if (!ObjectUtils.isEmpty(projectGroups)) {
+				//Removing READ-ONLY group from allowed groups
+				allowedProjectGroups = projectGroups.stream()
+						.filter(group -> !group.contains(ConstantsUtility.DATAIKU_READ_ONLY)).toList();
+			}
+		}
+		//Setting RequestDTO
+		requestDTO.setName(StorageUtility.getDataikuConnectionName(projectKey, bucketName));
+		requestDTO.setType("EC2");
+		
+		//Setting params
+		DataikuParameterDTO params = new DataikuParameterDTO();
+		params.setCredentialsMode("KEYPAIR");
+		params.setAccessKey(currentUser);
+		params.setSecretKey(secretKey);
+		params.setDefaultManagedBucket("/"+bucketName);
+		params.setDefaultManagedPath("/");
+		params.setRegionOrEndpoint(minioClientApi);
+		params.setHdfsInterface("S3A");
+		params.setEncryptionMode("NONE");
+		params.setChbucket("/"+bucketName);
+		params.setChroot("/");
+		params.setSwitchToRegionFromBucket(false);
+		params.setUsePathMode(false);
+		params.setMetastoreSynchronizationMode("NO_SYNC");
+		
+		requestDTO.setParams(params);
+		requestDTO.setAllowWrite(true);
+		requestDTO.setAllowManagedDatasets(true);
+		requestDTO.setAllowManagedFolders(true);
+		requestDTO.setUseGlobalProxy(false);
+		requestDTO.setMaxActivities(0);
+		requestDTO.setCredentialsMode("GLOBAL");
+		requestDTO.setUsableBy("ALLOWED");
+		//Setting allowed groups by removing READ-ONLY group
+		requestDTO.setAllowedGroups(allowedProjectGroups);
+		
+		DataikuReadabilityDTO detailsReadability = new DataikuReadabilityDTO();
+		detailsReadability.setReadableBy("ALLOWED");
+		detailsReadability.setAllowedGroups(projectGroups);
+		requestDTO.setDetailsReadability(detailsReadability);
+		
+		DataikuIndexDTO indexingSettings = new DataikuIndexDTO();
+		indexingSettings.setIndexForeignKeys(false);
+		indexingSettings.setIndexIndices(false);
+		indexingSettings.setIndexSystemTables(false);
+		requestDTO.setIndexingSettings(indexingSettings);
+		
+		return dataikuClient.createDataikuConnection(requestDTO, live);
 	}
 	
 }

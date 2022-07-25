@@ -47,6 +47,10 @@ class Tooltip {
       });
     });
   }
+
+  static clear() {
+    document.querySelectorAll('.tooltip.show').forEach(elem => elem.remove());
+  }
 }
 
 Tooltip.defaultSetup();

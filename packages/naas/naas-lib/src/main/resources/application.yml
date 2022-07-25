@@ -1,4 +1,5 @@
 spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: notification-service
   
@@ -64,8 +65,6 @@ kafka:
     
 server:
   port: 7272
-  servlet:
-    context-path: /naas
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
@@ -77,6 +76,7 @@ dna:
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
 # token: ${DNA_AUTH_API_TOKEN:XXXX}
   user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
+  user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}
   notification.senderEmail: ${DNA_NOTIFICATION_SENDER_EMAIL:system@dna-naas}
   
 jwt:

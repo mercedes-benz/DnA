@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hive-initschema
+  namespace: trino
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: hivemeta
+        image: hivemetastore:0.5
+        command: ["/opt/hive-metastore/bin/schematool"]
+        # to be run only once - adjust the values manually
+        args: ["--verbose" ,"-initSchema" , "-dbType", "postgres" , "-userName", "DBNAME", "-passWord", "PASSWORD" , "-url", "CONNECTION_TO_DB"]
+      restartPolicy: Never
+  backoffLimit: 1
