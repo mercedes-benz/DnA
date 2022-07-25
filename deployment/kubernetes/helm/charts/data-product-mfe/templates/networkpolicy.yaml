@@ -6,10 +6,7 @@ metadata:
 spec:
   ingress:
     - ports:
-        - port: 3000
-          protocol: TCP
-        - port: 7175
-          protocol: TCP
+        - port: {{ .Values.containerPort }}
   podSelector:
     matchLabels:
       {{- include "data-product-mfe.selectorLabels" . | nindent 8 }}

@@ -42,28 +42,38 @@ spec:
         {{- end }}           
       containers:
         - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ["cp /vault/secrets/config.js /usr/share/nginx/html/config.js && nginx -c /opt/bitnami/nginx/conf/nginx.conf -g 'daemon off;'"]
-          {{- end }}            
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}          
+          {{- with .Values.envs }}            
+          env:
+          {{- toYaml . | nindent 12 }}
+          {{- end }} 
+          {{- end }}           
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
               protocol: TCP
           livenessProbe:
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
             httpGet:
-              path: /
-              port: http
-            initialDelaySeconds: 10
-            periodSeconds: 5                
+              path: /actuator/health/liveness
+              port: http               
           readinessProbe:
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
             httpGet:
-              path: /index.html
-              port: http
-            initialDelaySeconds: 10
-            periodSeconds: 5            
+              path: /actuator/health/readiness
+              port: http           
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
