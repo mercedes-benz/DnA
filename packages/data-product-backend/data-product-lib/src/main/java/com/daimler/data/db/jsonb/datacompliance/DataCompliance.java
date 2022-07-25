@@ -25,41 +25,31 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.userinfo;
+package com.daimler.data.db.jsonb.datacompliance;
 
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
-import com.daimler.data.db.entities.UserInfoNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoNsql, String> {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-	/**
-	 * To return get all user information with given identifier
-	 * 
-	 * @param searchTerm
-	 * @param limit
-	 * @param offset
-	 * @param sortBy
-	 * @param sortOrder
-	 * @return list of user info {@code List<UserInfoNsql>}
-	 */
-	public List<UserInfoNsql> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DataCompliance {
 
-	/**
-	 * To return count based on given identifier
-	 * 
-	 * @param searchTerm
-	 * @return total count {@code Long}
-	 */
-	public Long getCount(String searchTerm);
-	
-	/**
-	 * Retrieves an entity by its id.
-	 *
-	 * @param id must not be {@literal null}.
-	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
-	 */
-	Optional<UserInfoNsql> findById(String id);
+	private String entityId;
+	private String entityName;
+	private List<String> localComplianceOfficer;
+	private List<String> localComplianceResponsible;
+	private List<String> dataProtectionCoordinator;
+	private List<String> localComplianceSpecialist;
+	private Date createdDate;
+	private Date lastModifiedDate;
+	private CreatedBy createdBy;
+	private CreatedBy modifiedBy;
 }
