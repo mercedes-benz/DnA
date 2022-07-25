@@ -1,10 +1,11 @@
 version: "2.1"
 services:
-  storage-mfe:
-    image: ${IMAGE_DATA_PRODUCT_MFE:-storage_mfe}
+  dataProduct-mfe:
+    image: ${IMAGE_DATA_PRODUCT_MFE:-dataProduct-mfe}
+    container_name: data-product-mfe
     build:
-      context: ../../../packages/storage-mfe/
-      dockerfile: $PWD/storage-mfe.Dockerfile
+      context: ../../../packages/data-product-mfe/
+      dockerfile: $PWD/dataProduct-mfe.Dockerfile
   
   dataProduct-be:
     image: ${IMAGE_DATA_PRODUCT_BE:-dataProduct_be}
