@@ -6,9 +6,7 @@ metadata:
     {{- include "data-product-be.labels" . | nindent 4 }}
   namespace: {{ .Values.namespace }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "data-product-be.selectorLabels" . | nindent 6 }}
