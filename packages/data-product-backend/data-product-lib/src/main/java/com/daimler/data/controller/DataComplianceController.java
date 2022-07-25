@@ -160,7 +160,7 @@ public class DataComplianceController implements DatacomplianceApi {
 					dataComplianceAssembler.toList(localComplianceResponsible),
 					dataComplianceAssembler.toList(dataProtectionCoordinator),
 					dataComplianceAssembler.toList(localComplianceSpecialist), offset, limit, sortBy, sortOrder);
-			LOGGER.debug("DataCompliances entry fetched successfully");
+			LOGGER.info("DataCompliances entry fetched successfully");
 			if (!ObjectUtils.isEmpty(dataCompliances)) {
 				dataComplianceCollection.setTotalCount(count.intValue());
 				dataComplianceCollection.setRecords(dataCompliances);

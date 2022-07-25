@@ -120,7 +120,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 				message.setMessage("Record already exists for given entityId.");
 				messages.add(message);
 				dataComplianceResponseVO.setErrors(messages);
-				LOGGER.debug("EntityId {} already exists, returning as CONFLICT", uniqueEntityId);
+				LOGGER.info("EntityId {} already exists, returning as CONFLICT", uniqueEntityId);
 				return new ResponseEntity<>(dataComplianceResponseVO, HttpStatus.CONFLICT);
 			}
 			requestDataComplianceVO.setCreatedBy(this.userStore.getVO());
@@ -175,7 +175,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 					message.setMessage("DataCompliance already exists.");
 					messages.add(message);
 					response.setErrors(messages);
-					LOGGER.debug("DataCompliance {} already exists, returning as CONFLICT", uniqueEntityId);
+					LOGGER.info("DataCompliance {} already exists, returning as CONFLICT", uniqueEntityId);
 					return new ResponseEntity<>(response, HttpStatus.CONFLICT);
 				}
 				requestDataComplianceVO.setLastModifiedDate(new Date());
@@ -184,7 +184,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 				if (mergedDataComplianceVO != null && mergedDataComplianceVO.getId() != null) {
 					response.setData(mergedDataComplianceVO);
 					response.setErrors(null);
-					LOGGER.debug("DataCompliance with id {} updated successfully", id);
+					LOGGER.info("DataCompliance with id {} updated successfully", id);
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				} else {
 					List<MessageDescription> messages = new ArrayList<>();
@@ -193,7 +193,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 					messages.add(message);
 					response.setData(requestDataComplianceVO);
 					response.setErrors(messages);
-					LOGGER.debug("DataCompliance with id {} cannot be edited. Failed with unknown internal error", id);
+					LOGGER.info("DataCompliance with id {} cannot be edited. Failed with unknown internal error", id);
 					return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 
@@ -203,7 +203,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 				notFoundmessage.setMessage("No DataCompliance found for given id. Update cannot happen");
 				notFoundmessages.add(notFoundmessage);
 				response.setErrors(notFoundmessages);
-				LOGGER.debug("No DataCompliance found for given id {} , update cannot happen.", id);
+				LOGGER.info("No DataCompliance found for given id {} , update cannot happen.", id);
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 
