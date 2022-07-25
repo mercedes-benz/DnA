@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "data-product-mfe.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+    - ports:
+        - port: {{ .Values.containerPort }}
+  podSelector:
+    matchLabels:
+      {{- include "data-product-mfe.selectorLabels" . | nindent 8 }}
+  policyTypes:
+    - Ingress
