@@ -688,7 +688,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				message.setMessage("Report already exists.");
 				messages.add(message);
 				reportResponseVO.setErrors(messages);
-				LOGGER.debug("Report {} already exists, returning as CONFLICT", uniqueProductName);
+				LOGGER.info("Report {} already exists, returning as CONFLICT", uniqueProductName);
 				return new ResponseEntity<>(reportResponseVO, HttpStatus.CONFLICT);
 			}
 			requestReportVO.setCreatedBy(this.userStore.getVO());
@@ -747,7 +747,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					if (mergedReportVO != null && mergedReportVO.getId() != null) {
 						response.setData(mergedReportVO);
 						response.setErrors(null);
-						LOGGER.debug("Report with id {} updated successfully", id);
+						LOGGER.info("Report with id {} updated successfully", id);
 						
 						try {
 							if(mergedReportVO.isPublish()) {
@@ -772,7 +772,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								members.addAll(memberVO.getDevelopers());
 								members.addAll(memberVO.getProductOwners());
 								CustomerVO customerVO = mergedReportVO.getCustomer();
-								if(customerVO!=null)
+								if(customerVO!=null && customerVO.getProcessOwners()!= null)
 									members.addAll(customerVO.getProcessOwners());
 								for(TeamMemberVO member : members) {
 									if(member!=null) {
@@ -789,7 +789,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								LOGGER.info("Published successfully event {} for report {} with message {}",eventType, resourceID, eventMessage);
 							}
 						}catch(Exception e) {
-							LOGGER.trace("Failed while publishing dashboard report update event msg. Exception is {} ", e.getMessage());
+							LOGGER.error("Failed while publishing dashboard report update event msg. Exception is {} ", e.getMessage());
 						}
 						
 						return new ResponseEntity<>(response, HttpStatus.OK);
@@ -800,7 +800,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						messages.add(message);
 						response.setData(requestReportVO);
 						response.setErrors(messages);
-						LOGGER.debug("Report with id {} cannot be edited. Failed with unknown internal error", id);
+						LOGGER.info("Report with id {} cannot be edited. Failed with unknown internal error", id);
 						return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				} else {
@@ -810,7 +810,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							"Not authorized to edit Report. Only user who created the Report or with admin role can edit.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					response.setErrors(notAuthorizedMsgs);
-					LOGGER.debug("Report with id {} cannot be edited. User not authorized", id);
+					LOGGER.info("Report with id {} cannot be edited. User not authorized", id);
 					return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
 				}
 			} else {
@@ -819,7 +819,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				notFoundmessage.setMessage("No Report found for given id. Update cannot happen");
 				notFoundmessages.add(notFoundmessage);
 				response.setErrors(notFoundmessages);
-				LOGGER.debug("No Report found for given id {} , update cannot happen.", id);
+				LOGGER.info("No Report found for given id {} , update cannot happen.", id);
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
