@@ -324,7 +324,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast ( data->'currentPhase' as text), count(*)   ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "", "", "",
 				" group by (data->'currentPhase') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -353,7 +353,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		Query q = getNativeQueryWithFilters(
 				" select cast (jsonb_array_elements(data->'locations') as text) , count(*) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "", "", "",
 				" group by jsonb_array_elements(data->'locations') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -386,7 +386,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast (data->'totalDataVolume' as text) , count(*)  ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "", "", "",
 				" group by (data->'totalDataVolume') ");
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -416,7 +416,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		Query q = getNativeQueryWithFilters(
 				" select sum(cast (data->'digitalValueDetails'->>'digitalValue' as decimal)) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "", "");
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "", "", "", "");
 		BigDecimal result = (BigDecimal) q.getSingleResult();
 		return result;
 	}
@@ -428,7 +428,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters("select count(*)  ", published, phases, dataVolumes, divisions, locations,
 				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, new ArrayList<>(),
-				divisionsAdmin, 0, 0, "productName", "asc",
+				divisionsAdmin, 0, 0, "", "",
 				" and jsonb_extract_path_text(data,'dnaNotebookId') is not null \n", "");
 		BigInteger result = (BigInteger) q.getSingleResult();
 		return result != null ? result.longValue() : 0;
@@ -441,7 +441,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters("select count(*) ", published, phases, dataVolumes, divisions, locations,
 				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, new ArrayList<>(),
-				divisionsAdmin, 0, 0, "productName", "asc", "", "");
+				divisionsAdmin, 0, 0, "", "", "", "");
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
@@ -488,7 +488,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				divisionsAdmin);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
-		if (sortBy != null && "".equalsIgnoreCase(sortBy)) {
+		if (sortBy != null && !"".equalsIgnoreCase(sortBy)) {
 			switch (sortBy) {
 			case "productName":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'productName')) ";
@@ -509,13 +509,13 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				sortQueryString = "";
 				break;
 			}
-			if ("desc".equalsIgnoreCase(sortOrder))
-				sortQueryString = sortQueryString + " desc ";
-			else
-				sortQueryString = sortQueryString + " asc ";
-
+			if (StringUtils.hasText(sortQueryString)) {
+				if ("desc".equalsIgnoreCase(sortOrder))
+					sortQueryString = sortQueryString + " desc ";
+				else
+					sortQueryString = sortQueryString + " asc ";
+			}
 			query = query + sortQueryString;
-
 		}
 		if (additionalPredicatesString != null && !"".equalsIgnoreCase(additionalPredicatesString))
 			query = query + " " + additionalPredicatesString + " \n";
@@ -864,7 +864,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		Query q = getNativeQueryWithFilters(
 				" select cast (id as text), cast (data->'productName'  as varchar), cast (data->'digitalValueDetails'->'valueCalculator'->'calculatedDigitalValue' as text) ",
 				published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
-				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc",
+				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "", "",
 				"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null ",
 				"");
 		ObjectMapper mapper = new ObjectMapper();
