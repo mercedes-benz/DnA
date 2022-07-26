@@ -113,7 +113,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		if (!ObjectUtils.isEmpty(divisionsAdmin)) {
 			//predicate for division Admin
 			String commaSeparateddivisionsAdmin = divisionsAdmin.stream().collect(Collectors.joining("','", "'", "'"));
-			divisionAdminsCondition = "(jsonb_extract_path_text(data,'division','id') in ("
+			divisionAdminsCondition = "(jsonb_extract_path_text(data,'division','name') in ("
 					+ commaSeparateddivisionsAdmin + "))";
 		}
 		if (userId != null) {
