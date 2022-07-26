@@ -73,11 +73,12 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return solutioncount
 	 */
 	Long getSolCount(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch DataSource Details of solutions

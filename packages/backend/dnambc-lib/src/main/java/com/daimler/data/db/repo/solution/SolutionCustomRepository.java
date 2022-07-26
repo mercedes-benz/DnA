@@ -106,6 +106,7 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param searchTerms
 	 * @param tags
 	 * @param relatedProducts
+	 * @param divisionsAdmin
 	 * @param offset
 	 * @param limit
 	 * @param sortBy
@@ -115,8 +116,8 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	List<SolutionNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, List<String> relatedProducts, int offset, int limit,
-			String sortBy, String sortOrder);
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin,
+			int offset, int limit, String sortBy, String sortOrder);
 
 	/**
 	 * To get SOlution count using Native query.
@@ -133,11 +134,12 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return solutionCount{Long}
 	 */
 	Long getCountUsingNativeQuery(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To get count of all the solutions which have Notebook Associated.
