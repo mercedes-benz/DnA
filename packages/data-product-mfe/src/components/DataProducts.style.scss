@@ -14,110 +14,43 @@
             }
         }
     }
+    .listHeader {
+        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        margin: 0px;
+        position: relative;
+        background-color: #0a0b0e;
 
-    .content {
-        background-color: #252a33;
-        padding: 0 0 0px 0px;
-        min-width: 518px;
-        .listHeader {
-            align-items: flex-start;
-            display: flex;
-            justify-content: space-between;
-            margin: 0px;
-            position: relative;
-            background-color: #0a0b0e;
-            min-height: 36px;
-            i {
-                font-size: var(--font-size-icon-content);
-            }
-            button {
-                background: none;
-                border: none;
-                color: #c0c8d0;
-                height: auto;
-                margin: 0px;
-                outline: none;
-                padding: 0 2px;
-                i {
-                    margin-top: 2px;
-                }
-                a {
-                    color: #c0c8d0;
-                }
-            }
-        }
-        .listHeaderContent {
-            display: flex;
-            align-items: flex-end;
-            justify-content: flex-end;
-            flex-direction: column;
-            padding-left: 0px;
-            padding-bottom: 14px;
-            padding-left: 0px;
-            padding-right: 0;
-            width: 100%;
-            div {
-                h6 {
-                    color: #8f969e;
-                    font-size: var(--font-size-tiny);
-                    margin-bottom: 10px;
-                }
-                h2 {
-                    color: #acb8c4;
-                    font-size: var(--font-size-medium);
-                    line-height: 19px;
-                }
-            }
-            i {
-                margin-top: -1px;
-            }
-        }
         i {
             font-size: var(--font-size-icon-content);
         }
-        .listContent {
-            min-height: 435px;
-            display: flex;
-            width: 100%;
-            flex-direction: column;
-            padding: 25px 31px 25px 38px;
-            align-items: flex-start;
-
-            p {
-                color: #979baf;
-                font-size: var(--font-size-default);
-                line-height: 17px;
-                margin-bottom: 20px;
-                margin-left: 0;
-                margin-top: 0;
-                text-align: left;
+        button {
+            background: none;
+            border: none;
+            color: #c0c8d0;
+            height: auto;
+            margin: 0px;
+            outline: none;
+            padding: 0 2px;
+            i {
+                margin-top: 2px;
             }
-            .subscriptionList {
-                width: 100%;
-            }
-            .subscriptionListEmpty {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-direction: column;
-                justify-content: center;
-                height: 300px;
-                position: relative;
-                border: 1px solid #383f49;
-                width: 100%;
-            }
-            .emptyProducts {
-                text-align: center;
-                margin-left: auto;
-                margin-right: auto;
-                margin-top: 20px;
-                margin-bottom: 20px;
-            }
-            button {
-                a {
-                    color: #fff;
-                }
+            a {
+                color: #c0c8d0;
             }
         }
+    }
+}
+.allDataproductContent {
+    margin-bottom: 15px;
+    flex: 1 auto;
+    position: relative;
+
+    .allDataproductCardviewContent {
+        flex-wrap: wrap;
+        display: flex;
+        justify-content: left;
+        margin-right: -30px;
     }
 }

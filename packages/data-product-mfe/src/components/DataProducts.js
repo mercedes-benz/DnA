@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Pagination from 'dna-container/Pagination';
 import { setDataProducts, setPagination } from './redux/dataProductSlice';
 import { GetDataProducts } from './redux/dataProduct.services';
+import DataProductCardItem from './DataProductCardItem';
 
 const DataProducts = () => {
   const dispatch = useDispatch();
@@ -56,50 +57,49 @@ const DataProducts = () => {
       <div className={classNames(Styles.wrapper)}>
         <div className={classNames(Styles.caption)}>
           <h3>Data Product Overview</h3>
-        </div>
-      </div>
-      <div className={classNames(Styles.content)}>
-        <div>
           <div className={classNames(Styles.listHeader)}>
-            <React.Fragment>
-              <div className={classNames(Styles.listHeaderContent)}>
-                {dataProducts?.length ? (
-                  <React.Fragment>
+            {dataProducts?.length ? (
+              <React.Fragment>
+                <Link to="create">
+                  <button className={dataProducts?.length === null ? Styles.btnHide : 'btn btn-primary'} type="button">
+                    <i className="icon mbc-icon plus" />
+                    <span>Provide Data Product</span>
+                  </button>
+                </Link>
+              </React.Fragment>
+            ) : null}
+          </div>
+        </div>
+        <div>
+          <div>
+            {dataProducts?.length === 0 ? (
+              <div className={classNames(Styles.content)}>
+                <div className={Styles.listContent}>
+                  <div className={Styles.emptyProducts}>
+                    <span>
+                      You don&apos;t have any data products at this time.
+                      <br /> Please create a new one.
+                    </span>
+                  </div>
+                  <div className={Styles.subscriptionListEmpty}>
+                    <br />
                     <Link to="create">
-                      <button
-                        className={dataProducts?.length === null ? Styles.btnHide : 'btn btn-primary'}
-                        type="button"
-                      >
-                        <i className="icon mbc-icon plus" />
+                      <button className={'btn btn-tertiary'} type="button">
                         <span>Provide Data Product</span>
                       </button>
                     </Link>
-                  </React.Fragment>
-                ) : null}
+                  </div>
+                </div>
               </div>
-            </React.Fragment>
-          </div>
-          <div className={Styles.listContent}>
-            {dataProducts?.length === 0 ? (
-              <>
-                <div className={Styles.emptyProducts}>
-                  <span>
-                    You don&apos;t have any data products at this time.
-                    <br /> Please create a new one.
-                  </span>
-                </div>
-                <div className={Styles.subscriptionListEmpty}>
-                  <br />
-                  <Link to="create">
-                    <button className={'btn btn-tertiary'} type="button">
-                      <span>Provide Data Product</span>
-                    </button>
-                  </Link>
-                </div>
-              </>
             ) : (
-              <div className={Styles.subscriptionList}>
-                {/* <DataProductList /> */}
+              <>
+                <div className={Styles.allDataproductContent}>
+                  <div className={classNames('cardSolutions', Styles.allDataproductCardviewContent)}>
+                    {dataProducts?.map((product, index) => {
+                      return <DataProductCardItem key={index} product={product} />;
+                    })}
+                  </div>
+                </div>
                 {dataProducts?.length ? (
                   <Pagination
                     totalPages={totalNumberOfPages}
@@ -110,7 +110,7 @@ const DataProducts = () => {
                     displayByPage={true}
                   />
                 ) : null}
-              </div>
+              </>
             )}
           </div>
         </div>

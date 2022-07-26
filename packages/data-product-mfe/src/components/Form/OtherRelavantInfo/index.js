@@ -7,8 +7,11 @@ import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { Envs } from '../../../Utility/envs';
+import { SetDataProducts } from '../../redux/dataProduct.services';
+import { useDispatch } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 
-const OtherRelevantInfo = ({ onSave }) => {
+const OtherRelevantInfo = ({ onSave, history }) => {
   const {
     register,
     handleSubmit,
@@ -21,6 +24,7 @@ const OtherRelevantInfo = ({ onSave }) => {
   const [showPublishModal, setPublishModal] = useState(false);
 
   const [touChecked, setTOUChecked] = useState(false);
+  const dispatch = useDispatch();
 
   const publishContent = (
     <div>
@@ -128,6 +132,8 @@ const OtherRelevantInfo = ({ onSave }) => {
           setPublishModal(false);
           setValue('tou', touChecked);
           console.log('Published data', watch());
+          dispatch(SetDataProducts(watch()));
+          history.push('/');
         }}
         onCancel={() => setPublishModal(false)}
         acceptButtonDisabled={!touChecked}
@@ -136,4 +142,4 @@ const OtherRelevantInfo = ({ onSave }) => {
   );
 };
 
-export default OtherRelevantInfo;
+export default withRouter(OtherRelevantInfo);
