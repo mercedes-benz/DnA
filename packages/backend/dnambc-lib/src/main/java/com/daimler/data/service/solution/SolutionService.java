@@ -46,14 +46,14 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	}
 
 	List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
+			String division, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder);
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin, int offset, int limit,
+			String sortBy, String sortOrder);
 
-	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes, String division,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category);
 
