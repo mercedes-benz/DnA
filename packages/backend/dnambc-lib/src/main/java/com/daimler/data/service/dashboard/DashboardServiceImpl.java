@@ -62,43 +62,49 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		return customRepo.getSolCountWithNotebook(published, phases, dataVolumes, divisions, locations, statuses,
-				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
 	}
 
 	@Override
 	public List<DatasourceWidgetVO> getSolDatasource(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
-		List<DatasourceWidgetVO> res = customRepo.getSolutionDataVolume(published, phases, dataVolumes, divisions,
-				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
-		return res;
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
+		return customRepo.getSolutionDataVolume(published, phases, dataVolumes, divisions,
+				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
+				divisionsAdmin);
 	}
 
 	@Override
 	public List<LocationWidgetVO> getSolLocation(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
-		List<LocationWidgetVO> res = customRepo.getSolutionLocations(published, phases, dataVolumes, divisions,
-				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
-		return res;
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
+		return customRepo.getSolutionLocations(published, phases, dataVolumes, divisions,
+				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
+				divisionsAdmin);
 	}
 
 	@Override
 	public List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		return customRepo.getSolMilestone(published, phases, dataVolumes, divisions, locations,
-				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
+				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
+				divisionsAdmin);
 	}
 
 	@Override
 	public BigDecimal getSolDigitalValue(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		return customRepo.getDigitalValuesSum(published, phases, dataVolumes, divisions, locations, statuses,
-				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
 	}
 
 	@Override
@@ -114,9 +120,10 @@ public class DashboardServiceImpl implements DashboardService {
 	public List<SolDigitalValuesummaryVO> getSolDigitalValueSummary(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		List<SolDigitalValueDTO> result = customRepo.getDigitalValueUsingNativeQuery(published, phases, dataVolumes,
-				divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
+				divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
+				divisionsAdmin);
 		SortedSet<SolDigitalValueDTO> digitalValueSortedSet = null;
 		Map<BigDecimal, SortedSet<SolDigitalValueDTO>> digitalValueSummaryTreeMap = new TreeMap<BigDecimal, SortedSet<SolDigitalValueDTO>>();
 		for (SolDigitalValueDTO dto : result) {
