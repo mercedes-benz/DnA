@@ -12,3 +12,14 @@ export const GetDataProducts = createAsyncThunk('products/GetDataProducts', asyn
     pagination,
   };
 });
+
+export const SetDataProducts = createAsyncThunk('products/SetDataProducts', async (data, { getState }) => {
+  const {
+    dataProducts: { pagination, dataProducts },
+  } = getState();
+
+  return await {
+    data: dataProducts.length > 0 ? [...dataProducts, ...data] : [data],
+    pagination,
+  };
+});
