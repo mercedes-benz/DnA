@@ -89,9 +89,8 @@ public class DashboardServiceImpl implements DashboardService {
 	public List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
 			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
-		List<MilestoneWidgetVO> res = customRepo.getSolMilestone(published, phases, dataVolumes, divisions, locations,
+		return customRepo.getSolMilestone(published, phases, dataVolumes, divisions, locations,
 				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
-		return res;
 	}
 
 	@Override
@@ -105,9 +104,10 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public Long getSolCount(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		return customRepo.getCountUsingNativeQuery(published, phases, dataVolumes, divisions, locations, statuses,
-				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags);
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
 	}
 
 	@Override

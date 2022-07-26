@@ -338,12 +338,16 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
+						
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -354,7 +358,7 @@ public class DashboardController implements DashboardApi {
 			Long totalCount = dashboardService.getSolCount(published, assembler.toList(phase),
 					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-					assembler.toList(tags));
+					assembler.toList(tags), divisionsAdmin);
 			SolCountWidgetResponseVO resVO = new SolCountWidgetResponseVO();
 			resVO.setTotalCount(totalCount.intValue());
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
