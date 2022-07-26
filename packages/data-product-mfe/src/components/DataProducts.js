@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import React from 'react';
 import Styles from './DataProducts.style.scss';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
 import { setDataProducts, setPagination } from './redux/dataProductSlice';
-import { GetDataProducts } from './redux/dataProduct.services';
+// import { GetDataProducts } from './redux/dataProduct.services';
 import DataProductCardItem from './DataProductCardItem';
 
 const DataProducts = () => {
@@ -17,9 +17,9 @@ const DataProducts = () => {
     pagination: { dataProductListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
   } = useSelector((state) => state.dataProducts);
 
-  useEffect(() => {
-    dispatch(GetDataProducts());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(GetDataProducts());
+  // }, [dispatch]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
