@@ -28,6 +28,7 @@
 package com.daimler.data.db.repo.userinfo;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
@@ -53,4 +54,12 @@ public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoN
 	 * @return total count {@code Long}
 	 */
 	public Long getCount(String searchTerm);
+	
+	/**
+	 * Retrieves an entity by its id.
+	 *
+	 * @param id must not be {@literal null}.
+	 * @return the entity with the given id or {@literal Optional#empty()} if none found.
+	 */
+	Optional<UserInfoNsql> findById(String id);
 }
