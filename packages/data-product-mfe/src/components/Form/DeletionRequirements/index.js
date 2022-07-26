@@ -16,8 +16,13 @@ const DeletionRequirements = ({ onSave }) => {
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  const validateTextArea = (v) =>
-    watch('deletionRequirement') == 'No' || watch('deletionRequirement') === null || v?.length > 0 || '*Missing entry';
+  const validateTextArea = (value) =>
+    watch('deletionRequirement') === '' ||
+    watch('deletionRequirement') === 'No' ||
+    value?.length > 0 ||
+    '*Missing entry';
+
+  const isTextAreaDisabled = watch('deletionRequirement') === '' || watch('deletionRequirement') === 'No';
 
   return (
     <>
@@ -71,9 +76,8 @@ const DeletionRequirements = ({ onSave }) => {
               <span className={classNames('error-message')}>{errors?.deletionRequirement?.message}</span>
             </div>
             <div
-              id="personalRelatedDataDescription"
               className={classNames(
-                'input-field-group include-error area',
+                `input-field-group include-error area ${isTextAreaDisabled ? 'disabled' : ''}`,
                 errors.deletionRequirementDescription ? 'error' : '',
               )}
             >
@@ -85,6 +89,7 @@ const DeletionRequirements = ({ onSave }) => {
                 type="text"
                 {...register('deletionRequirementDescription', {
                   validate: validateTextArea,
+                  disabled: isTextAreaDisabled,
                 })}
                 rows={50}
                 id="deletionRequirementDescription"

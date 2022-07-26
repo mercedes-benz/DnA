@@ -26,6 +26,11 @@ const protectedRoutes = [
     exact: true,
     path: '/create',
   },
+  {
+    component: Form,
+    exact: true,
+    path: '/edit/:id',
+  },
 ];
 
 const Routes = ({ user }) => {
