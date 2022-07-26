@@ -278,12 +278,15 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -299,16 +302,17 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 			if (tags != null && !"".equalsIgnoreCase(tags)) {
 				listOfTags = Arrays.asList(tags.split(","));
 			}
-			Long count = solutionService.getCount(published, phasesList, dataVolumesList, divisionsList, locationsList,
-					statusesList, useCaseType, userId, isAdmin, bookmarkedSolutions, searchTerms, listOfTags);
+			Long count = solutionService.getCount(published, phasesList, dataVolumesList, division, locationsList,
+					statusesList, useCaseType, userId, isAdmin, bookmarkedSolutions, searchTerms, listOfTags,
+					divisionsAdmin);
 			SolutionCollection solutionCollection = new SolutionCollection();
 
 			if (count < offset)
 				offset = 0;
 
 			List<SolutionVO> solutionVOListVO = solutionService.getAllWithFilters(published, phasesList,
-					dataVolumesList, divisionsList, locationsList, statusesList, useCaseType, userId, isAdmin,
-					bookmarkedSolutions, searchTerms, listOfTags, offset, limit, sortBy, sortOrder);
+					dataVolumesList, division, locationsList, statusesList, useCaseType, userId, isAdmin,
+					bookmarkedSolutions, searchTerms, listOfTags, divisionsAdmin, offset, limit, sortBy, sortOrder);
 			LOGGER.debug("Solutions fetched successfully");
 			if ("locations".equalsIgnoreCase(sortBy)) {
 				List<SolutionVO> sortedSolutionVOList = this.sortSolutionsBasedOnLocations(solutionVOListVO, sortOrder);

@@ -31,7 +31,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -100,6 +99,47 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return publishQuery;
 	}
 
+	private String getPublishPredicateString(Boolean published, String userId, Boolean isAdmin,
+			List<String> divisionsAdmin) {
+		String allTrueCondition = " (jsonb_extract_path_text(data,'publish') in ('true')) ";
+		String allFalseCondition = " (jsonb_extract_path_text(data,'publish') in ('false')) ";
+		String isCreatorOrTeamMember = null;
+		String userCreatedDraftsOnly = null;
+		String publishQuery = "";
+		if (userId != null) {
+			String isCreator = " lower(jsonb_extract_path_text(data,'createdBy','id')) like " + "'%"
+					+ userId.toLowerCase() + "%'";
+			String isTeamMember = " lower(jsonb_extract_path_text(data,'teamMembers')) like " + "'%"
+					+ userId.toLowerCase() + "%'";
+			isCreatorOrTeamMember = " ( " + isCreator + " or " + isTeamMember + " ) ";
+			userCreatedDraftsOnly = " ( " + allFalseCondition + " and " + isCreator + " or " + isTeamMember + " ) ";
+		}
+		String divisionAdminsCondition = null;
+		if (!ObjectUtils.isEmpty(divisionsAdmin)) {
+			String commaSeparateddivisionsAdmin = divisionsAdmin.stream().collect(Collectors.joining("','", "'", "'"));
+			divisionAdminsCondition = "(jsonb_extract_path_text(data,'division','id') in ("
+					+ commaSeparateddivisionsAdmin + "))";
+		}
+		if (published != null) {
+			if (published || isAdmin) {
+				String requestedPublishState = published ? allTrueCondition : allFalseCondition;
+				publishQuery = publishQuery + " and " + requestedPublishState;
+			}
+			if (!published && !isAdmin && userCreatedDraftsOnly != null) {
+				publishQuery = divisionAdminsCondition != null
+						? publishQuery + " and " + userCreatedDraftsOnly + " or " + divisionAdminsCondition
+						: publishQuery + " and " + userCreatedDraftsOnly;
+			}
+		} else if (!isAdmin && userCreatedDraftsOnly != null) {
+			String requestedPublishState = divisionAdminsCondition != null
+					? " and " + isCreatorOrTeamMember + " or " + divisionAdminsCondition
+					: " and " + isCreatorOrTeamMember;
+			publishQuery = StringUtils.hasText(publishQuery) ? publishQuery + requestedPublishState
+					: requestedPublishState;
+		}
+		return publishQuery;
+	}
+	
 	private String getSolutionTypePredicateString(String solutionType, String userId,
 			List<String> bookmarkedSolutions) {
 		if (solutionType != null && !"".equalsIgnoreCase(solutionType)) {
@@ -258,9 +298,9 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public String buildPredicateString(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
 			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
-			List<String> relatedProducts) {
+			List<String> relatedProducts, List<String> divisionsAdmin) {
 
-		return getPublishPredicateString(published, userId, isAdmin) + "\n" + getDivisionsPredicateString(divisions)
+		return getPublishPredicateString(published, userId, isAdmin,divisionsAdmin) + "\n" + getDivisionsPredicateString(divisions)
 				+ "\n" + getPhasesPredicateString(phases) + "\n" + getDataVolumesPredicateString(dataVolumes) + "\n"
 				+ getProjectStatusesPredicateString(statuses) + "\n" + getLocationsPredicateString(locations) + "\n"
 				+ getSearchTermsPredicateString(searchTerms) + "\n" + getTagsPredicateString(tags) + "\n"
@@ -271,10 +311,11 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast ( data->'currentPhase' as text), count(*)   ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
 				" group by (data->'currentPhase') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -298,15 +339,15 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public List<LocationWidgetVO> getSolutionLocations(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(
 				" select cast (jsonb_array_elements(data->'locations') as text) , count(*) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
 				" group by jsonb_array_elements(data->'locations') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
-
 		LocationWidgetVO vo = null;
 		List<LocationWidgetVO> convertedResults = new ArrayList<LocationWidgetVO>();
 		for (Object[] result : results) {
@@ -333,10 +374,10 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public List<DatasourceWidgetVO> getSolutionDataVolume(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast (data->'totalDataVolume' as text) , count(*)  ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
 				" group by (data->'totalDataVolume') ");
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -361,11 +402,12 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public BigDecimal getDigitalValuesSum(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(
 				" select sum(cast (data->'digitalValueDetails'->>'digitalValue' as decimal)) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), 0, 0, "productName", "asc", "", "");
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "", "");
 		BigDecimal result = (BigDecimal) q.getSingleResult();
 		return result;
 	}
@@ -373,10 +415,12 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters("select count(*)  ", published, phases, dataVolumes, divisions, locations,
-				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), 0,
-				0, "productName", "asc", " and jsonb_extract_path_text(data,'dnaNotebookId') is not null \n", "");
+				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, new ArrayList<>(),
+				divisionsAdmin, 0, 0, "productName", "asc",
+				" and jsonb_extract_path_text(data,'dnaNotebookId') is not null \n", "");
 		BigInteger result = (BigInteger) q.getSingleResult();
 		return result != null ? result.longValue() : 0;
 	}
@@ -384,10 +428,11 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public Long getCountUsingNativeQuery(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters("select count(*) ", published, phases, dataVolumes, divisions, locations,
-				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), 0,
-				0, "productName", "asc", "", "");
+				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, new ArrayList<>(),
+				divisionsAdmin, 0, 0, "productName", "asc", "", "");
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
@@ -396,11 +441,11 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public List<SolutionNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, List<String> relatedProducts, int offset, int limit,
-			String sortBy, String sortOrder) {
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin,
+			int offset, int limit, String sortBy, String sortOrder) {
 		Query q = getNativeQueryWithFilters("", published, phases, dataVolumes, divisions, locations, statuses,
-				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts, offset, limit,
-				sortBy, sortOrder, "", "");
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts, divisionsAdmin,
+				offset, limit, sortBy, sortOrder, "", "");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<SolutionNsql> convertedResults = results.stream().map(temp -> {
@@ -422,15 +467,16 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, List<String> relatedProducts, int offset, int limit,
-			String sortBy, String sortOrder, String additionalPredicatesString, String groupByString) {
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin,
+			int offset, int limit, String sortBy, String sortOrder, String additionalPredicatesString, String groupByString) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from solution_nsql";
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(published, phases, dataVolumes, divisions, locations,
-				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts);
+				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, relatedProducts,
+				divisionsAdmin);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (sortBy != null && "".equalsIgnoreCase(sortBy)) {
@@ -805,11 +851,11 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public List<SolDigitalValueDTO> getDigitalValueUsingNativeQuery(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(
 				" select cast (id as text), cast (data->'productName'  as varchar), cast (data->'digitalValueDetails'->'valueCalculator'->'calculatedDigitalValue' as text) ",
 				published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
-				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), 0, 0, "productName", "asc",
+				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc",
 				"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null ",
 				"");
 		ObjectMapper mapper = new ObjectMapper();
