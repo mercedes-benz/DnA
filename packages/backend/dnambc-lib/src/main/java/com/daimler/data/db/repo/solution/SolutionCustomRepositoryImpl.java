@@ -99,6 +99,9 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		return publishQuery;
 	}
 
+	/*
+	 * To build predicate for published and non published solution
+	 */
 	private String getPublishPredicateString(Boolean published, String userId, Boolean isAdmin,
 			List<String> divisionsAdmin) {
 		String allTrueCondition = " (jsonb_extract_path_text(data,'publish') in ('true')) ";
@@ -106,19 +109,29 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		String isCreatorOrTeamMember = null;
 		String userCreatedDraftsOnly = null;
 		String publishQuery = "";
-		if (userId != null) {
-			String isCreator = " lower(jsonb_extract_path_text(data,'createdBy','id')) like " + "'%"
-					+ userId.toLowerCase() + "%'";
-			String isTeamMember = " lower(jsonb_extract_path_text(data,'teamMembers')) like " + "'%"
-					+ userId.toLowerCase() + "%'";
-			isCreatorOrTeamMember = " ( " + isCreator + " or " + isTeamMember + " ) ";
-			userCreatedDraftsOnly = " ( " + allFalseCondition + " and " + isCreator + " or " + isTeamMember + " ) ";
-		}
 		String divisionAdminsCondition = null;
 		if (!ObjectUtils.isEmpty(divisionsAdmin)) {
+			//predicate for division Admin
 			String commaSeparateddivisionsAdmin = divisionsAdmin.stream().collect(Collectors.joining("','", "'", "'"));
 			divisionAdminsCondition = "(jsonb_extract_path_text(data,'division','id') in ("
 					+ commaSeparateddivisionsAdmin + "))";
+		}
+		if (userId != null) {
+			//predicate for creator
+			String isCreator = " lower(jsonb_extract_path_text(data,'createdBy','id')) like " + "'%"
+					+ userId.toLowerCase() + "%'";
+			//predicate for Team member
+			String isTeamMember = " lower(jsonb_extract_path_text(data,'teamMembers')) like " + "'%"
+					+ userId.toLowerCase() + "%'";
+			if (divisionAdminsCondition != null) {
+				//Adding division admins condition if available
+				isCreatorOrTeamMember = " ( " + isCreator + " or " + isTeamMember + " or " + divisionAdminsCondition
+						+ " ) ";
+			} else {
+				isCreatorOrTeamMember = " ( " + isCreator + " or " + isTeamMember + " ) ";
+			}
+			//Integrating predicate for unpublished/draft solution 
+			userCreatedDraftsOnly = " ( " + allFalseCondition + " and " + isCreatorOrTeamMember + " ) ";
 		}
 		if (published != null) {
 			if (published || isAdmin) {
@@ -126,14 +139,10 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				publishQuery = publishQuery + " and " + requestedPublishState;
 			}
 			if (!published && !isAdmin && userCreatedDraftsOnly != null) {
-				publishQuery = divisionAdminsCondition != null
-						? publishQuery + " and " + userCreatedDraftsOnly + " or " + divisionAdminsCondition
-						: publishQuery + " and " + userCreatedDraftsOnly;
+				publishQuery = publishQuery + " and " + userCreatedDraftsOnly;
 			}
 		} else if (!isAdmin && userCreatedDraftsOnly != null) {
-			String requestedPublishState = divisionAdminsCondition != null
-					? " and " + isCreatorOrTeamMember + " or " + divisionAdminsCondition
-					: " and " + isCreatorOrTeamMember;
+			String requestedPublishState = " and ( " + allTrueCondition + " or " + userCreatedDraftsOnly + " ) ";
 			publishQuery = StringUtils.hasText(publishQuery) ? publishQuery + requestedPublishState
 					: requestedPublishState;
 		}
