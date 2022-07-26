@@ -16,7 +16,7 @@ import BasicInformation from './BasicInformation';
 import ContactInformation from './ContactInformation';
 import Classification from './ClassificationAndConfidentiality';
 import PersonalRelatedData from './PersonalRelatedData';
-import TransNationalDataTransfer from './transNationalDataTransfer';
+import TransNationalDataTransfer from './TransNationalDataTransfer';
 import DataOriginating from './DataOriginating';
 import OtherRelevant from './OtherRelavantInfo';
 import DeletionRequirements from './DeletionRequirements';
@@ -60,7 +60,7 @@ const Form = ({ user }) => {
   const [subDivisions, setSubDivisions] = useState([]);
   const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
 
-  const elementRef = useRef(Object.keys(tabs).map(() => createRef()));
+  const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
 
   useEffect(() => {
     if (user?.roles?.length) {
@@ -74,7 +74,7 @@ const Form = ({ user }) => {
 
   useEffect(() => {
     const defaultValues = Object.values(tabs).reduce((acc, curr) => ({ ...acc, ...curr }), {});
-    Object.entries(defaultValues).map(([key, value]) => {
+    Object.entries(defaultValues)?.map(([key, value]) => {
       setValue(key, value); // setting default values
     });
   }, [setValue]);
@@ -265,7 +265,7 @@ const Form = ({ user }) => {
             reset(watch()); // to reset different states of the form.
             const defaultValues = watch(); // update api response to reset
             // defaultValues['personalRelatedDataDescription'] = 'sample code';
-            Object.entries(defaultValues).map(([key, value]) => {
+            Object.entries(defaultValues)?.map(([key, value]) => {
               setValue(key, value); // setting default values
             });
             setCurrentTab(showChangeAlert.switchingTab);

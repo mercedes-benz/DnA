@@ -85,7 +85,7 @@ module.exports = {
   },
   plugins: [
     new Dotenv({
-      path: process.env.NODE_ENV ? '../.env' : '../.docker.env',
+      path: process.env.NODE_ENV === 'development' ? '../.env' : '../.docker.env',
     }),
     new ESLintPlugin({
       extensions: ['js'],
