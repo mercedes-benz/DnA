@@ -14,6 +14,38 @@
             }
         }
     }
+    .content {
+        background-color: #252a33;
+        padding: 0 0 0px 0px;
+        min-width: 518px;
+        .listContent {
+            min-height: 435px;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            padding: 25px 31px 25px 38px;
+            align-items: flex-start;
+        }
+        .emptyProducts {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .subscriptionListEmpty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            justify-content: center;
+            height: 300px;
+            position: relative;
+            border: 1px solid #383f49;
+            width: 100%;
+        }
+    }
+
     .listHeader {
         align-items: flex-start;
         display: flex;
@@ -24,6 +56,7 @@
 
         i {
             font-size: var(--font-size-icon-content);
+            color: #00adef;
         }
         button {
             background: none;
@@ -38,6 +71,9 @@
             }
             a {
                 color: #c0c8d0;
+            }
+            &:hover {
+                color: #00adef;
             }
         }
     }
