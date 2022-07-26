@@ -1,5 +1,5 @@
 import { Data } from 'react-csv/components/CommonPropTypes';
-import { IAllSolutionsResultCSV, IDataSources, IFilterParams } from '../globals/types';
+import { IAllSolutionsResultCSV, IDataSources, IFilterParams, IPhasesItem, IRolloutDetail } from '../globals/types';
 import { ApiClient } from './ApiClient';
 import { Envs } from '../globals/Envs';
 import { getDivisionsQueryValue } from './utils';
@@ -38,6 +38,12 @@ export const getDataForCSV = (
     { label: 'Needed Roles/Skills(with FTE count)', key: 'neededRoles' },
     { label: 'Data Strategy Domain', key: 'dataStrategyDomain' },
     { label: 'Team', key: 'team' },
+    { label: 'Milestones-Kick-off', key: 'kickoff' },
+    { label: 'Milestones-Ideation', key: 'ideation' },
+    { label: 'Milestones-Concept Development / Proof of concept', key: 'conceptDevelopment' },
+    { label: 'Milestones-Pilot', key: 'pilot' },
+    { label: 'Milestones-Professionalization', key: 'professionalization' },
+    { label: 'Rollout Locations', key: 'rolloutLocations' },
     { label: 'DataSources', key: 'dataSources' },
     { label: 'TotalDataVolume', key: 'totalDataVolume' },
     { label: 'SolutionOnCloud ', key: 'solutionOnCloud' },
@@ -94,6 +100,12 @@ export const getDataForCSV = (
     { label: 'Needed Roles/Skills(with FTE count)', key: 'neededRoles' },
     { label: 'Data Strategy Domain', key: 'dataStrategyDomain' },
     { label: 'Team', key: 'team' },
+    { label: 'Milestones-Kick-off', key: 'kickoff' },
+    { label: 'Milestones-Ideation', key: 'ideation' },
+    { label: 'Milestones-Concept Development / Proof of concept', key: 'conceptDevelopment' },
+    { label: 'Milestones-Pilot', key: 'pilot' },
+    { label: 'Milestones-Professionalization', key: 'professionalization' },
+    { label: 'Rollout Locations', key: 'rolloutLocations' },
     { label: 'DataSources', key: 'dataSources' },
     { label: 'TotalDataVolume', key: 'totalDataVolume' },
     { label: 'SolutionOnCloud ', key: 'solutionOnCloud' },
@@ -232,11 +244,10 @@ export const getDataForCSV = (
             neededRoles:
               solution.skills && solution.skills.length > 0
                 ? solution.skills
-                    .map((item) =>
-                      item.neededSkill + '(' + item.requestedFTECount
-                        ? item.requestedFTECount.toString().replace('.', ',')
-                        : 'N/A' + ')',
-                    )
+                    .map((item) =>{
+                      if(Number(item.requestedFTECount) > 0)
+                      return item.neededSkill + '(' + item.requestedFTECount + ')';
+                    })
                     .join(', ')
                 : 'NA',
             dataStrategyDomain: solution.dataStrategyDomain ? sanitize(solution.dataStrategyDomain) : 'NA',
@@ -244,6 +255,30 @@ export const getDataForCSV = (
               solution.team && solution.team.length > 0
                 ? solution.team.map((member) => member.shortId).join(', ')
                 : 'NA',
+            kickoff: 
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+                ? setMilestonesPhases(solution.milestones.phases, 1)
+                : 'NA',
+            ideation: 
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+                ? setMilestonesPhases(solution.milestones.phases, 2)
+                : 'NA',   
+            conceptDevelopment:
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+                ? setMilestonesPhases(solution.milestones.phases, 3)
+                : 'NA',   
+            pilot:
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+                ? setMilestonesPhases(solution.milestones.phases, 4)
+                : 'NA',  
+            professionalization:
+              solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
+                ? setMilestonesPhases(solution.milestones.phases, 5)
+                : 'NA',        
+            rolloutLocations: 
+              solution.milestones && solution.milestones.rollouts && solution.milestones.rollouts.details.length > 0 
+                ? setRolloutLocations(solution.milestones.rollouts.details)
+                : 'NA',       
             dataSources:
               solution.dataSources && solution.dataSources.dataSources && solution.dataSources.dataSources.length > 0
                 ? setDataSources(solution.dataSources.dataSources)
@@ -374,6 +409,18 @@ export const sanitize = (text: string) => {
 
 export const setDataSources = (dataSources: IDataSources[]) => {
   const stringValsArr = dataSources.map((item: any) => item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
+  const dataValues = stringValsArr.join(', ');
+  return dataValues;
+};
+
+export const setMilestonesPhases = (phases: IPhasesItem[], phaseId: number) => {
+  const temVar = phases.filter((phase: IPhasesItem) => Number(phase.phase.id) === phaseId);
+  const dataValues = temVar[0] ? temVar[0].month + '-' + temVar[0].year + '|| {{' + temVar[0].description + '}} ' : '';
+  return dataValues;
+};
+
+export const setRolloutLocations = (locations: IRolloutDetail[]) => {
+  const stringValsArr = locations.map((location: IRolloutDetail) => location.location.name + ' (' + location.month + '-' + location.year + ') ');
   const dataValues = stringValsArr.join(', ');
   return dataValues;
 };
