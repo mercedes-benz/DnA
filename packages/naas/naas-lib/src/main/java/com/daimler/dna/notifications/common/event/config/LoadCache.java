@@ -28,6 +28,7 @@ public class LoadCache {
 	    cacheUpdater.init();
 	    log.info("Successfully completed loading messages from topic to users cache based on preferences");
 		}catch(Exception e) {
+			AvailabilityChangeEvent.publish(eventPublisher, this, ReadinessState.REFUSING_TRAFFIC);
 			log.error("Failed while loading messages from topic to users cache based on preferences, with exception : {} ",e.getMessage());
 		}
 	}
