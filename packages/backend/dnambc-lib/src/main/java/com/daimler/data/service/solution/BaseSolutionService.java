@@ -174,12 +174,12 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Override
 	@Transactional
 	public List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder) {
-		List<SolutionNsql> solutionEntities = customRepo.getAllWithFilters(published, phases, dataVolumes, divisions,
-				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, null,
-				offset, limit, sortBy, sortOrder);
+			String division, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin, int offset, int limit, String sortBy, String sortOrder) {
+		List<SolutionNsql> solutionEntities = customRepo.getAllWithFiltersUsingNativeQuery(published, phases,
+				dataVolumes, division, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
+				searchTerms, tags, null, divisionsAdmin, offset, limit, sortBy, sortOrder);
 		if (solutionEntities != null && !solutionEntities.isEmpty())
 			return solutionEntities.stream().map(n -> solutionAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -189,11 +189,12 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Override
 	@Transactional
 	public Long getCount(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
+			String division, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
-		return customRepo.getCount(published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId,
-				isAdmin, bookmarkedSolutions, searchTerms, tags);
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
+		return customRepo.getCountUsingNativeQuery(published, phases, dataVolumes, division,
+				locations, statuses, solutionType, userId, isAdmin,
+				bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
 	}
 
 	@Override
