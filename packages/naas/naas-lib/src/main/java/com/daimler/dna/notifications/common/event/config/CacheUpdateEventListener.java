@@ -96,7 +96,7 @@ public class CacheUpdateEventListener {
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
 	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
 	
-	@PostConstruct
+	//@PostConstruct
 	public void init() {
 
 		LOG.info("started updating cache from " + centralTopic);
