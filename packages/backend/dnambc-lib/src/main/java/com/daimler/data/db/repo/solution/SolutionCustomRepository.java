@@ -156,11 +156,12 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return count{Long}
 	 */
 	Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To get Sum of all the digital values of the solutions.
@@ -177,11 +178,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return sum{BigDecimal}
 	 */
 	BigDecimal getDigitalValuesSum(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To get Data volume of all the solutions.
@@ -198,11 +201,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<DatasourceWidgetVO>
 	 */
 	List<DatasourceWidgetVO> getSolutionDataVolume(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To get Location wise solutions
@@ -219,11 +224,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<LocationWidgetVO>
 	 */
 	List<LocationWidgetVO> getSolutionLocations(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To get Milestones of all the solutions.
@@ -240,11 +247,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<MilestoneWidgetVO>
 	 */
 	List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch Digital Value summary
@@ -261,10 +270,11 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<SolDigitalValueDTO>
 	 */
 	List<SolDigitalValueDTO> getDigitalValueUsingNativeQuery(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 }

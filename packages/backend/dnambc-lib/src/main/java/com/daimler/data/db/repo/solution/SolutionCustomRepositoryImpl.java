@@ -311,10 +311,11 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast ( data->'currentPhase' as text), count(*)   ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), new ArrayList<>(), 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
 				" group by (data->'currentPhase') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -338,11 +339,12 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public List<LocationWidgetVO> getSolutionLocations(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(
 				" select cast (jsonb_array_elements(data->'locations') as text) , count(*) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), new ArrayList<>(), 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
 				" group by jsonb_array_elements(data->'locations') ");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
@@ -372,10 +374,10 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public List<DatasourceWidgetVO> getSolutionDataVolume(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(" select cast (data->'totalDataVolume' as text) , count(*)  ", published,
 				phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), new ArrayList<>(), 0, 0, "productName", "asc", "",
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "",
 				" group by (data->'totalDataVolume') ");
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -400,11 +402,12 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public BigDecimal getDigitalValuesSum(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(
 				" select sum(cast (data->'digitalValueDetails'->>'digitalValue' as decimal)) ", published, phases,
 				dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
-				searchTerms, tags, new ArrayList<>(), new ArrayList<>(), 0, 0, "productName", "asc", "", "");
+				searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc", "", "");
 		BigDecimal result = (BigDecimal) q.getSingleResult();
 		return result;
 	}
@@ -412,10 +415,11 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	@Override
 	public Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags) {
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters("select count(*)  ", published, phases, dataVolumes, divisions, locations,
 				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, new ArrayList<>(),
-				new ArrayList<>(), 0, 0, "productName", "asc",
+				divisionsAdmin, 0, 0, "productName", "asc",
 				" and jsonb_extract_path_text(data,'dnaNotebookId') is not null \n", "");
 		BigInteger result = (BigInteger) q.getSingleResult();
 		return result != null ? result.longValue() : 0;
@@ -847,11 +851,11 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	public List<SolDigitalValueDTO> getDigitalValueUsingNativeQuery(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin) {
 		Query q = getNativeQueryWithFilters(
 				" select cast (id as text), cast (data->'productName'  as varchar), cast (data->'digitalValueDetails'->'valueCalculator'->'calculatedDigitalValue' as text) ",
 				published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId, isAdmin,
-				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), new ArrayList<>(), 0, 0, "productName", "asc",
+				bookmarkedSolutions, searchTerms, tags, new ArrayList<>(), divisionsAdmin, 0, 0, "productName", "asc",
 				"and jsonb_extract_path_text(data,'digitalValueDetails','valueCalculator','calculatedDigitalValue','year') is not null ",
 				"");
 		ObjectMapper mapper = new ObjectMapper();
