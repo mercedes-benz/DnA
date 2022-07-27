@@ -32,19 +32,19 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import com.daimler.data.db.jsonb.DataCompliance;
+import com.daimler.data.db.jsonb.EntityId;
 
 @Entity
-@Table(name = "datacompliance_nsql")
-public class DataComplianceNsql extends BaseEntity<DataCompliance> implements Serializable {
+@Table(name = "entityid_nsql")
+public class EntityIdNsql extends BaseEntity<EntityId> implements Serializable {
 
 	private static final long serialVersionUID = 4857908075537600169L;
 
-	public DataComplianceNsql() {
+	public EntityIdNsql() {
 		super();
 	}
 
-	public DataComplianceNsql(String id, DataCompliance data) {
+	public EntityIdNsql(String id, EntityId data) {
 		this.setId(id);
 		this.setData(data);
 	}

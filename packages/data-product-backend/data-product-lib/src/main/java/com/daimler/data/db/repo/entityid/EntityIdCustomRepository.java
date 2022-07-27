@@ -25,28 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.entities;
+package com.daimler.data.db.repo.entityid;
 
-import java.io.Serializable;
+import com.daimler.data.db.entities.EntityIdNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-
-import com.daimler.data.db.jsonb.DataCompliance;
-
-@Entity
-@Table(name = "datacompliance_nsql")
-public class DataComplianceNsql extends BaseEntity<DataCompliance> implements Serializable {
-
-	private static final long serialVersionUID = 4857908075537600169L;
-
-	public DataComplianceNsql() {
-		super();
-	}
-
-	public DataComplianceNsql(String id, DataCompliance data) {
-		this.setId(id);
-		this.setData(data);
-	}
+public interface EntityIdCustomRepository extends CommonDataRepository<EntityIdNsql, String> {
 
 }
