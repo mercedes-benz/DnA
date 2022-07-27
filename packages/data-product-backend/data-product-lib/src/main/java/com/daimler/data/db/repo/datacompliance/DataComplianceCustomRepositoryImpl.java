@@ -153,15 +153,15 @@ public class DataComplianceCustomRepositoryImpl extends CommonDataRepositoryImpl
 	private String getEntityIdPredicate(String entityId) {
 		if (StringUtils.hasText(entityId)) {
 			return "  and (lower(jsonb_extract_path_text(data,'entityId')) similar to "
-					+ entityId.replaceAll(REGEX, "\\\\$0").toLowerCase() + " ) ";
+					+ "'" + entityId.replaceAll(REGEX, "\\\\$0").toLowerCase() + "'" + " ) ";
 		}
 		return "";
 	}
 
 	private String getEntityNamePredicate(String entityName) {
 		if (StringUtils.hasText(entityName)) {
-			return "  and (lower(jsonb_extract_path_text(data,'entityId')) similar to "
-					+ entityName.replaceAll(REGEX, "\\\\$0").toLowerCase() + " ) ";
+			return "  and (lower(jsonb_extract_path_text(data,'entityName')) similar to "
+					+ "'" + entityName.replaceAll(REGEX, "\\\\$0").toLowerCase() + "'" + " ) ";
 		}
 		return "";
 	}
