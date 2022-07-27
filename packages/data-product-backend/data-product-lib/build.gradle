@@ -74,6 +74,21 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+    
+    entityid {
+        def entityidyaml = "${rootDir}/data-product-lib/src/main/resources/api/EntityId.yaml"
+        def entityidJson = "${rootDir}/data-product-lib/src/main/resources/api/EntityId.json"
+        inputFile = file(entityidyaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(entityidJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }    
         
 }
 
@@ -82,6 +97,8 @@ compileJava {
     dependsOn processResources
     dependsOn swaggerSources.datacompliance.code
     source "${swaggerSources.datacompliance.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.entityid.code
+    source "${swaggerSources.entityid.code.outputDir}/src/main/java"     
 }
 
 sourceSets {
@@ -92,6 +109,7 @@ sourceSets {
     }
     main {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.entityid.code.outputDir}/src/main/java" }
     }
 }
 
