@@ -25,22 +25,34 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.datacompliance;
+package com.daimler.data.service.entityid;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreatedBy {
+import com.daimler.data.assembler.EntityIdAssembler;
+import com.daimler.data.db.entities.EntityIdNsql;
+import com.daimler.data.db.repo.entityid.EntityIdCustomRepository;
+import com.daimler.data.db.repo.entityid.EntityIdRepository;
+import com.daimler.data.dto.entityid.EntityIdVO;
+import com.daimler.data.service.common.BaseCommonService;
 
-	private String id;
-	private String firstName;
-	private String lastName;
-	private String department;
-	private String email;
-	private String mobileNumber;
+@Service
+@SuppressWarnings(value = "unused")
+public class BaseEntityIdService extends BaseCommonService<EntityIdVO, EntityIdNsql, String>
+		implements EntityIdService {
+
+	@Autowired
+	private EntityIdAssembler entityIdAssembler;
+
+	@Autowired
+	private EntityIdCustomRepository entityIdCustomRepository;
+
+	@Autowired
+	private EntityIdRepository entityIdRepository;
+
+	public BaseEntityIdService() {
+		super();
+	}
 
 }
