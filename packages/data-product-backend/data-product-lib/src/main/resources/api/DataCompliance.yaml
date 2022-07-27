@@ -63,7 +63,7 @@ schemes:
 paths:
   # path to create, update, getAll data compliance network list
   #
-  #  supprorted http methods GET, PUT, POST
+  #  supported http methods GET, PUT, POST
   #
   # path example ../datacompliance
 
@@ -71,8 +71,8 @@ paths:
     get:
       tags:
         - "datacompliance"
-      summary: "Get all available data datacompliance network list."
-      description: "Get all available data datacompliance network list."
+      summary: "Get all available datacompliance network list."
+      description: "Get all available datacompliance network list."
       operationId: "getAll"
       parameters:
         - name: entityId
@@ -148,8 +148,8 @@ paths:
     post:
       tags:
         - "datacompliance"
-      summary: "Add a new data compliance record."
-      description: "Adds a new non existing data compliance record."
+      summary: "Add a new datacompliance record."
+      description: "Adds a new non existing datacompliance record."
       operationId: "create"
       parameters:
         - name: "dataComplianceRequestVO"
@@ -179,8 +179,8 @@ paths:
     put:
       tags:
         - "datacompliance"
-      summary: "Update existing data compliance record."
-      description: "Update an existing data compliance record."
+      summary: "Update existing datacompliance record."
+      description: "Update an existing datacompliance record."
       operationId: "update"
       parameters:
         - name: "dataComplianceRequestVO"
@@ -217,8 +217,8 @@ paths:
     delete:
       tags:
         - "datacompliance"
-      summary: "Delete data compliance record for a given Id."
-      description: "Delete data compliance record for a given identifier."
+      summary: "Delete datacompliance record for a given Id."
+      description: "Delete datacompliance record for a given identifier."
       operationId: "delete"
       parameters:
         - name: "id"
