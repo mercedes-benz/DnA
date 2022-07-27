@@ -39,7 +39,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DataComplianceNsql;
-import com.daimler.data.db.jsonb.datacompliance.DataCompliance;
+import com.daimler.data.db.jsonb.DataCompliance;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

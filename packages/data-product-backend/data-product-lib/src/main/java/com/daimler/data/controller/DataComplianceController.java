@@ -73,7 +73,7 @@ public class DataComplianceController implements DatacomplianceApi {
 	private DataComplianceAssembler dataComplianceAssembler;
 
 	@Override
-	@ApiOperation(value = "Add a new data compliance record.", nickname = "create", notes = "Adds a new non existing data compliance record.", response = DataComplianceResponseVO.class, tags = {
+	@ApiOperation(value = "Add a new datacompliance record.", nickname = "create", notes = "Adds a new non existing datacompliance record.", response = DataComplianceResponseVO.class, tags = {
 			"datacompliance", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of succes", response = DataComplianceResponseVO.class),
@@ -90,7 +90,7 @@ public class DataComplianceController implements DatacomplianceApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete data compliance record for a given Id.", nickname = "delete", notes = "Delete data compliance record for a given identifier.", response = GenericMessage.class, tags = {
+	@ApiOperation(value = "Delete datacompliance record for a given Id.", nickname = "delete", notes = "Delete datacompliance record for a given identifier.", response = GenericMessage.class, tags = {
 			"datacompliance", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
@@ -108,7 +108,7 @@ public class DataComplianceController implements DatacomplianceApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all available data datacompliance network list.", nickname = "getAll", notes = "Get all available data datacompliance network list.", response = DataComplianceCollection.class, tags = {
+	@ApiOperation(value = "Get all available datacompliance network list.", nickname = "getAll", notes = "Get all available datacompliance network list.", response = DataComplianceCollection.class, tags = {
 			"datacompliance", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of success or failure", response = DataComplianceCollection.class),
@@ -177,7 +177,7 @@ public class DataComplianceController implements DatacomplianceApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update existing data compliance record.", nickname = "update", notes = "Update an existing data compliance record.", response = DataComplianceResponseVO.class, tags = {
+	@ApiOperation(value = "Update existing datacompliance record.", nickname = "update", notes = "Update an existing datacompliance record.", response = DataComplianceResponseVO.class, tags = {
 			"datacompliance", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of succes", response = DataComplianceResponseVO.class),
