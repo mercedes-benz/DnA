@@ -25,28 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.entities;
+package com.daimler.data.db.jsonb;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.daimler.data.db.jsonb.DataCompliance;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class EntityId {
 
-@Entity
-@Table(name = "datacompliance_nsql")
-public class DataComplianceNsql extends BaseEntity<DataCompliance> implements Serializable {
-
-	private static final long serialVersionUID = 4857908075537600169L;
-
-	public DataComplianceNsql() {
-		super();
-	}
-
-	public DataComplianceNsql(String id, DataCompliance data) {
-		this.setId(id);
-		this.setData(data);
-	}
-
+	private String entityId;
+	private String entityName;
 }

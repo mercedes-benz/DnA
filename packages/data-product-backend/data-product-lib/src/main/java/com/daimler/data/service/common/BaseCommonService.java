@@ -116,13 +116,12 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 	@Override
 	public List<V> getAllSortedByUniqueLiteral(int limit, int offset, String uniqueLiteral,
 			CommonDataRepositoryImpl.SORT_TYPE sortOrder) {
-		if (StringUtils.hasText(uniqueLiteral)) {
-			List<T> entities = customRepo.findAllSortyByUniqueLiteral(limit, offset, uniqueLiteral, sortOrder);
-			return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
 
-		} else {
-			return null;
+		if (!StringUtils.hasText(uniqueLiteral)) {
+			uniqueLiteral = "id";
 		}
+		List<T> entities = customRepo.findAllSortyByUniqueLiteral(limit, offset, uniqueLiteral, sortOrder);
+		return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -165,8 +164,8 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 	}
 
 	@Override
-	public Long getCount(int limit, int offset) {
-		return customRepo.getCount(limit, offset);
+	public Long getCount() {
+		return jpaRepo.count();
 	}
 
 }

@@ -38,8 +38,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.db.entities.DataComplianceNsql;
-import com.daimler.data.db.jsonb.datacompliance.CreatedBy;
-import com.daimler.data.db.jsonb.datacompliance.DataCompliance;
+import com.daimler.data.db.jsonb.CreatedBy;
+import com.daimler.data.db.jsonb.DataCompliance;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.datacompliance.DataComplianceVO;
 
