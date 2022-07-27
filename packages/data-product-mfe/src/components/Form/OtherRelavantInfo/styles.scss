@@ -1,0 +1,26 @@
+@import "../Form.common.styles.scss";
+.termsOfUseContainer {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    margin-top: 15px;
+    .termsOfUseContent {
+        display: flex;
+        input {
+            visibility: hidden;
+        }
+        .termsOfUseText {
+            color: #c0c8d0;
+            font-size: var(--font-size-default);
+            max-width: 350px;
+            max-height: 100px;
+            margin: auto 0;
+        }
+    }
+}
+:global {
+    #data-product-tabs #tab-content-8 .mbc-cfm-modal-wrapper footer .btn-set button:first-child {
+        display: none;
+    }
+}
