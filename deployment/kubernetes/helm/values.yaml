@@ -2439,3 +2439,9 @@ redis:
 #subChart properties data-product-mfe
 data-product-mfe:
   enabled: true
+
+data-product-be:
+  enabled: true
+
+code-server:
+  enabled: true
