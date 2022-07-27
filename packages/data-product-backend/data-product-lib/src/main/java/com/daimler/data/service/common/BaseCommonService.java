@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
@@ -121,7 +122,10 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 			uniqueLiteral = "id";
 		}
 		List<T> entities = customRepo.findAllSortyByUniqueLiteral(limit, offset, uniqueLiteral, sortOrder);
-		return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
+		if(!ObjectUtils.isEmpty(entities)) {
+			return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
+		}
+		return null;
 	}
 
 	@Override
