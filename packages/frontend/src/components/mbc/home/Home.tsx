@@ -54,6 +54,13 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                         </span>
                       </Link>
                     </li>
+                    <li>
+                      <Link to="dataproduct">
+                        <span>
+                          Provide Data Product <i className="icon mbc-icon arrow small right" />
+                        </span>
+                      </Link>
+                    </li>
                   </ul>
                 </div>
               </div>
