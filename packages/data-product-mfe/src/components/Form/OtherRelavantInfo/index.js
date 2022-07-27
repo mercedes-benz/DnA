@@ -1,22 +1,57 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import Styles from '../Form.common.styles.scss';
+import Styles from './styles.scss';
 
 import { useFormContext } from 'react-hook-form';
 
 import InfoModal from 'dna-container/InfoModal';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import { Envs } from '../../../Utility/envs';
+import { SetDataProducts } from '../../redux/dataProduct.services';
+import { useDispatch } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 
-const OtherRelevantInfo = ({ onSave }) => {
+const OtherRelevantInfo = ({ onSave, history }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
     watch,
+    setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showPublishModal, setPublishModal] = useState(false);
+
+  const [touChecked, setTOUChecked] = useState(false);
+  const dispatch = useDispatch();
+
+  const publishContent = (
+    <div>
+      <h3>Publish Data Product</h3>
+      <div className={Styles.termsOfUseContainer}>
+        <div className={Styles.termsOfUseContent}>
+          <label className="checkbox">
+            <span className="wrapper">
+              <input
+                value={touChecked}
+                type="checkbox"
+                className="ff-only"
+                onChange={() => setTOUChecked(!touChecked)}
+                defaultChecked={false}
+              />
+            </span>
+            <div
+              className={classNames(Styles.termsOfUseText, 'mbc-scroll')}
+              dangerouslySetInnerHTML={{
+                __html: Envs.DATA_PRODUCT_TOU_HTML,
+              }}
+            ></div>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -71,7 +106,7 @@ const OtherRelevantInfo = ({ onSave }) => {
                   setPublishModal(true);
                 })}
               >
-                Publish
+                Publish Data Product
               </button>
             </div>
           </div>
@@ -88,25 +123,23 @@ const OtherRelevantInfo = ({ onSave }) => {
       )}
       <ConfirmModal
         title={''}
-        acceptButtonTitle="Confirm Publish"
-        cancelButtonTitle="Cancel"
+        acceptButtonTitle="Publish"
         showAcceptButton={true}
         showCancelButton={true}
         show={showPublishModal}
-        content={
-          <div>
-            <h3>Are you sure , you want to publish?</h3>
-          </div>
-        }
-        buttonAlignment="right"
-        onCancel={() => setPublishModal(false)}
+        content={publishContent}
         onAccept={() => {
           setPublishModal(false);
+          setValue('tou', touChecked);
           console.log('Published data', watch());
+          dispatch(SetDataProducts(watch()));
+          history.push('/');
         }}
+        onCancel={() => setPublishModal(false)}
+        acceptButtonDisabled={!touChecked}
       />
     </>
   );
 };
 
-export default OtherRelevantInfo;
+export default withRouter(OtherRelevantInfo);

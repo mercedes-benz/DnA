@@ -27,6 +27,8 @@ export interface IConfirmModalProps {
   onAccept?: () => void;
   /** action to be done on clicking Cancel button */
   onCancel?: () => void;
+  /** accept button disabled */
+  acceptButtonDisabled?: boolean;
 }
 /**
  * User Confirmation Modal
@@ -69,6 +71,7 @@ const ConfirmModal = (props: IConfirmModalProps) => (
               className={props.showAcceptButton ? 'btn btn-primary' : `${Styles.hide}`}
               type="submit"
               onClick={props.onAccept}
+              disabled={props?.acceptButtonDisabled}
             >
               {props.acceptButtonTitle}
             </button>

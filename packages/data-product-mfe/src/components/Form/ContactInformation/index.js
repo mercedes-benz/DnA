@@ -76,7 +76,6 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 <input
                   {...register('dateOfDataTransfer', {
                     required: '*Missing entry',
-                    maxLength: { value: 2, message: 'Max characters' },
                   })}
                   type="text"
                   className="input-field"
