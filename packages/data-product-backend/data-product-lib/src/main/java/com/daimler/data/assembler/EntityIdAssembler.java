@@ -25,31 +25,46 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.datacompliance;
+package com.daimler.data.assembler;
 
-import java.util.Date;
-import java.util.List;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.EntityIdNsql;
+import com.daimler.data.db.jsonb.EntityId;
+import com.daimler.data.dto.entityid.EntityIdVO;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Component
+public class EntityIdAssembler implements GenericAssembler<EntityIdVO, EntityIdNsql> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DataCompliance {
+	@Override
+	public EntityIdVO toVo(EntityIdNsql entity) {
+		EntityIdVO vo = null;
+		if (entity != null && entity.getData() != null) {
+			vo = new EntityIdVO();
+			EntityId entityId = entity.getData();
+			BeanUtils.copyProperties(entityId, vo);
+			vo.setId(entity.getId());
+		}
 
-	private String entityId;
-	private String entityName;
-	private List<String> localComplianceOfficer;
-	private List<String> localComplianceResponsible;
-	private List<String> dataProtectionCoordinator;
-	private List<String> localComplianceSpecialist;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
+		return vo;
+	}
+
+	@Override
+	public EntityIdNsql toEntity(EntityIdVO vo) {
+		EntityIdNsql entity = null;
+		if (vo != null) {
+			entity = new EntityIdNsql();
+			String id = vo.getId();
+			if (StringUtils.hasText(id)) {
+				entity.setId(id);
+			}
+			EntityId entityId = new EntityId();
+			BeanUtils.copyProperties(vo, entityId);
+			entity.setData(entityId);
+		}
+
+		return entity;
+	}
 }
