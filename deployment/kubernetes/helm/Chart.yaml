@@ -96,6 +96,11 @@ dependencies:
   repository: file://charts/data-product-be
   version: 0.1.0
   condition: data-product-be.enabled
+
+- name: code-server
+  repository: file://charts/code-server
+  version: 3.0.0
+  condition: code-server.enabled
   
 # A chart can be either an 'application' or a 'library' chart.
 #
