@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import Routes from './components/Routes';
+import Routes from './components/DataProductRoutes';
 import { createHashHistory } from 'history';
 
 import { Provider } from 'react-redux';
