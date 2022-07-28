@@ -43,6 +43,9 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
     if(props.editMode) {
       setEntity(props.entity);
     }
+    if(entity) {
+      console.log('');
+    }
   }, []);
 
   const suggestions = results.map((item: any, index: number) => {
