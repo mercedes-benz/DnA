@@ -135,19 +135,19 @@ const DataComplianceNetworkList:React.FC = () => {
     setAsortBy(asortBy2);
   };
   useEffect(() => {
-    ProgressIndicator.show();
+    setIsResultLoading(true);
     DataComplianceApiClient.getDataComplianceNetworkList(currentPageOffset, maxItemsPerPage, asortBy.name, asortBy.currentSortType)
       .then((res:any) => {
         setResults(res.records);
-        ProgressIndicator.hide();
+        setIsResultLoading(false);
       })
       .catch((err:any) => {
         Notification.show(err.message, 'alert');
-        ProgressIndicator.hide();
+        setIsResultLoading(false);
       });
   }, [asortBy, maxItemsPerPage, currentPageOffset]);
   useEffect(() => {
-    ProgressIndicator.show();
+    setIsResultLoading(true);
     DataComplianceApiClient.getDataComplianceNetworkList(0, 0, asortBy.name, asortBy.currentSortType)
       .then((res:any) => {
         const totalPages = Math.ceil(res.records.length / maxItemsPerPage);
@@ -159,11 +159,11 @@ const DataComplianceNetworkList:React.FC = () => {
             : currentPageNumber;
         setTotalNumberOfPages(totalPages);
         setCurrentPageNumber(currentPage);
-        ProgressIndicator.hide();
+        setIsResultLoading(false);
       })
       .catch((err:any) => {
         Notification.show(err.message, 'alert');
-        ProgressIndicator.hide();
+        setIsResultLoading(false);
       });
   }, [maxItemsPerPage, currentPageOffset]);
   
@@ -212,6 +212,7 @@ const DataComplianceNetworkList:React.FC = () => {
     setDpcs(tagItem.dataProtectionCoordinator);
     setLcss(tagItem.localComplianceSpecialist);
     setEntityToBeUpdated(tagItem.id);
+    console.log('tobeupdated:', tagItem.id);
     setEntityToBeUpdatedName(tagItem.entityName);
     setEntityIdError(null);
     setEntityNameError(null);
