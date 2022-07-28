@@ -25,7 +25,7 @@ const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
       )}
     >
       <label 
-        id={props.labelId !== undefined && props.labelId} 
+        id={props.labelId ? props.labelId : undefined} 
         htmlFor={props.controlId} 
         className="input-label"
       >
@@ -39,7 +39,7 @@ const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
         placeholder={props.placeholder}
         value={props.value}
         onChange={props.onChange}
-        onBlur={props.onBlur !== undefined ? props.onBlur : undefined}
+        onBlur={props.onBlur ? props.onBlur : undefined}
         required={props.required}
         maxLength={props.maxLength}
         autoComplete="off"
