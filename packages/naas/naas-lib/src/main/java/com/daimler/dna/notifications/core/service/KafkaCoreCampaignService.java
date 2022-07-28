@@ -27,14 +27,7 @@
 
 package com.daimler.dna.notifications.core.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +43,8 @@ import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
 import com.daimler.dna.notifications.common.consumer.KafkaDynamicConsumerService;
 import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
+import com.daimler.dna.notifications.common.event.config.RedisCacheUtil;
 import com.daimler.dna.notifications.common.producer.KafkaDynamicProducerService;
-import com.daimler.dna.notifications.common.util.CacheUtil;
 import com.daimler.dna.notifications.dto.NotificationVO;
 import com.mbc.dna.notifications.mailer.JMailer;
 
@@ -67,7 +60,7 @@ public class KafkaCoreCampaignService {
 	private KafkaDynamicConsumerService dynamicConsumer;
 
 	@Autowired
-	private CacheUtil cacheUtil;
+	private RedisCacheUtil cacheUtil;
 	
 	@Autowired
 	private DnaNotificationPreferenceClient userNotificationPreferencesClient;
@@ -106,7 +99,7 @@ public class KafkaCoreCampaignService {
 				if (StringUtils.hasText(user) && user != "null") {
 					if (cacheUtil.getCache(user) == null) {
 						LOGGER.info("Creating cache for user " + user);
-						cacheUtil.createCache(user);
+						cacheUtil.getCache(user);
 					}
 					UserNotificationPrefVO preferenceVO = userNotificationPreferencesClient.getUserNotificationPreferences(user);
 					boolean appNotificationPreferenceFlag = true;
@@ -186,6 +179,7 @@ public class KafkaCoreCampaignService {
 		dynamicProducer.sendMessage(dnaCentralTopicName, request);
 	}
 
+	/*
 	public List<String> getEventCategories(String userId) {
 		List<String> results = new ArrayList<>();
 		List<GenericEventRecord> allRecords = dynamicConsumer.consumeRecordsFromTopic(Arrays.asList(userId));
@@ -351,4 +345,5 @@ public class KafkaCoreCampaignService {
 			}
 		}
 	}
+	*/
 }
