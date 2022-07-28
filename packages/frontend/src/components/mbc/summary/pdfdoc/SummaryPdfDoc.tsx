@@ -534,7 +534,8 @@ const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, fi
       <View style={[styles.milestoneValueView, { opacity: canShowPhase ? 1 : 0 }]}>
         <Text style={[styles.sectionTitle, styles.setMarginTop15, styles.noMarginBottom]}>{phaseItem.phase.name}</Text>
         <Text>
-          {phaseItem.month >= 10 ? phaseItem.month : '0' + phaseItem.month}/{phaseItem.year}
+          {/* {phaseItem.month >= 10 ? phaseItem.month : '0' + phaseItem.month}/{phaseItem.year} */}
+          {phaseItem.month > 0 && phaseItem.year > 0 ? regionalForMonthAndYear(phaseItem.month+'/'+'01'+'/'+phaseItem.year):''}
         </Text>
       </View>
       {firstItem ? (
