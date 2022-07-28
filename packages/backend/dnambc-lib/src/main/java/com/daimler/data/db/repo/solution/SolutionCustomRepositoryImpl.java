@@ -503,7 +503,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'projectStatus','name')) ";
 				break;
 			case "digitalValue":
-				sortQueryString = " order by (jsonb_extract_path_text(data,'digitalValueDetails','digitalValue')) ";
+				sortQueryString = " order by (jsonb_extract_path(data,'digitalValueDetails','digitalValue')) ";
 				break;
 			default:
 				sortQueryString = "";
