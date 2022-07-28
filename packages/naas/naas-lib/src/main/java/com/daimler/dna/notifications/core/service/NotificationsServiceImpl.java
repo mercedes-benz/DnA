@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
-import com.daimler.dna.notifications.common.util.CacheUtil;
+import com.daimler.dna.notifications.common.event.config.RedisCacheUtil;
 import com.daimler.dna.notifications.dto.NotificationCollectionVO;
 import com.daimler.dna.notifications.dto.NotificationVO;
 
@@ -50,7 +50,7 @@ public class NotificationsServiceImpl implements NotificationsService {
 	private KafkaCoreCampaignService kafkaCoreService;
 
 	@Autowired
-	private CacheUtil cacheUtil;
+	private RedisCacheUtil cacheUtil;
 
 	/*
 	 * @Override public NotificationCollectionVO getAll( String userId, String
