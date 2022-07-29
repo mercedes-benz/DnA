@@ -6,7 +6,13 @@ import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
 
 const Classification = ({ onSave }) => {
-  const { register, handleSubmit, formState, watch, reset } = useFormContext();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    reset,
+  } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   return (
@@ -23,7 +29,7 @@ const Classification = ({ onSave }) => {
             <div
               className={classNames(
                 'input-field-group include-error area',
-                formState.errors.classificationOfTransferedData ? 'error' : '',
+                errors.classificationOfTransferedData ? 'error' : '',
               )}
             >
               <label
@@ -40,11 +46,12 @@ const Classification = ({ onSave }) => {
                 {...register('classificationOfTransferedData', { required: '*Missing entry' })}
                 rows={50}
               />
-              <span className={classNames('error-message')}>
-                {formState.errors?.classificationOfTransferedData?.message}
-              </span>
+              <span className={classNames('error-message')}>{errors?.classificationOfTransferedData?.message}</span>
             </div>
-            <div className={classNames('input-field-group include-error')} style={{ minHeight: '50px' }}>
+            <div
+              className={classNames(`input-field-group include-error ${errors?.confidentiality ? 'error' : ''}`)}
+              style={{ minHeight: '50px' }}
+            >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
                 Confidentiality <sup>*</sup>
               </label>
@@ -101,6 +108,7 @@ const Classification = ({ onSave }) => {
                   <span className="label">Secret</span>
                 </label>
               </div>
+              <span className={classNames('error-message')}>{errors?.confidentiality?.message}</span>
             </div>
           </div>
           <div className="btnContainer">

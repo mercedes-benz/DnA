@@ -19,40 +19,49 @@ const ItemTitle = ({ title, displayLine = true }) => {
 const BasicInformation = ({ onSave }) => {
   return (
     <>
-      <p>
-        At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est
-        Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
-        tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo
-        dolores et ea rebum. Stet clita kasd gubergren no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem
-        ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore
-        magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
-      </p>
-      <div className={Styles.itemContainer}>
-        <div className={Styles.items}>
-          <ItemTitle title="Step 1" />
-          At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus
-          est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+      <div className={Styles.wrapper}>
+        <div className={Styles.firstPanel}>
+          <div className={Styles.heading}>
+            <i className={'icon mbc-icon info'} />
+            <p>What is the purpose of this document?</p>
+          </div>
+          <p>
+            At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus
+            est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
+            eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et
+            justo duo dolores et ea rebum. Stet clita kasd gubergren no sea takimata sanctus est Lorem ipsum dolor sit
+            amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut
+            labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea
+            rebum.
+          </p>
+          <div className={Styles.itemContainer}>
+            <div className={Styles.items}>
+              <ItemTitle title="Step 1" />
+              At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
+              sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+            </div>
+            <div className={Styles.items}>
+              <ItemTitle title="Step 2" />
+              At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
+              sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+            </div>
+            <div className={Styles.items}>
+              <ItemTitle title="Step 3" />
+              At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
+              sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+            </div>
+            <div className={Styles.items}>
+              <ItemTitle title="Step 4" displayLine={false} />
+              At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
+              sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+            </div>
+          </div>
+          <div className="btnContainer">
+            <button className="btn btn-primary" type="button" onClick={onSave}>
+              Start
+            </button>
+          </div>
         </div>
-        <div className={Styles.items}>
-          <ItemTitle title="Step 2" />
-          At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus
-          est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
-        </div>
-        <div className={Styles.items}>
-          <ItemTitle title="Step 3" />
-          At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus
-          est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
-        </div>
-        <div className={Styles.items}>
-          <ItemTitle title="Step 4" displayLine={false} />
-          At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus
-          est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
-        </div>
-      </div>
-      <div className="btnContainer">
-        <button className="btn btn-primary" type="button" onClick={onSave}>
-          Start
-        </button>
       </div>
     </>
   );
