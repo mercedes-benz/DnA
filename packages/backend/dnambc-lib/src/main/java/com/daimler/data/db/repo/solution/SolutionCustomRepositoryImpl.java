@@ -192,7 +192,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	private String getProjectStatusesPredicateString(List<String> statuses) {
 		if (statuses != null && !statuses.isEmpty()) {
 			String commaSeparatedstatuses = statuses.stream().collect(Collectors.joining("','", "'", "'"));
-			return "  and ((jsonb_extract_path_text(data,'projectStatus','id') in (" + commaSeparatedstatuses + "))) ";
+			return " and ((jsonb_extract_path_text(data,'projectStatus','id') in (" + commaSeparatedstatuses + "))) ";
 		}
 		return "";
 	}
@@ -201,16 +201,16 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 		if (locations != null && !locations.isEmpty()) {
 			String commaSeparatedLocations = locations.stream().map(s -> "%\"" + s + "\"%")
 					.collect(Collectors.joining("|"));
-			String locationPredicate = "and (jsonb_extract_path_text(data,'locations') similar to '"
+			return " and (jsonb_extract_path_text(data,'locations') similar to '"
 					+ commaSeparatedLocations + "' )";
-			return locationPredicate;
 		}
 		return "";
 	}
 
 	private String getSearchTermsPredicateString(List<String> searchTerms) {
 		if (searchTerms != null && !searchTerms.isEmpty()) {
-			String delimiterSeparatedSearchTerms = searchTerms.stream().collect(Collectors.joining("|", "%", "%"));
+			String delimiterSeparatedSearchTerms = searchTerms.stream().map(String::toLowerCase)
+					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedSearchTerms = "'" + delimiterSeparatedSearchTerms + "'";
 			return "  and (" + "lower(jsonb_extract_path_text(data,'productName')) similar to "
 					+ delimiterSeparatedSearchTerms + " or " + "lower(jsonb_extract_path_text(data,'tags')) similar to "
@@ -220,6 +220,10 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'languages')) similar to " + delimiterSeparatedSearchTerms
 					+ " or " + "lower(jsonb_extract_path_text(data,'algorithms')) similar to "
+					+ delimiterSeparatedSearchTerms + " or "
+					+ "lower(jsonb_extract_path_text(data,'division')) similar to "
+					+ delimiterSeparatedSearchTerms + " or "
+					+ "lower(jsonb_extract_path_text(data,'skills')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'visualizations')) similar to "
 					+ delimiterSeparatedSearchTerms + " ) ";
