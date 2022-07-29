@@ -1,3 +1,13 @@
+@import "../Form.common.styles.scss";
+
+.heading {
+  display: flex;
+  font-size: var(--font-size-headline);
+  i {
+    color: #697582;
+  }
+}
+
 .itemContainer {
   display: flex;
   justify-content: space-between;
