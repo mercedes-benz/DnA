@@ -25,13 +25,17 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
 
   useEffect(() => {
     const id = watch('division');
-    if (id > 0 && !dirtyFields['subDivision']) {
+    if (id > 0) {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res.data);
+        (dirtyFields.division || dirtyFields.subDivision) && resetField('subDivision', { defaultValue: '0' });
         SelectBox.defaultSetup();
         ProgressIndicator.hide();
       });
+    } else {
+      resetField('subDivision', { defaultValue: '0' });
+      SelectBox.defaultSetup();
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watch('division')]);
@@ -120,7 +124,6 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                         required-error={'*Missing entry'}
                         {...register('division', {
                           validate: (value) => value !== '0' || '*Missing entry',
-                          onChange: () => resetField('subDivision'),
                         })}
                       >
                         <option id="divisionOption" value={0}>

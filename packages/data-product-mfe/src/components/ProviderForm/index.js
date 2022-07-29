@@ -8,7 +8,6 @@ import { hostServer } from '../../server/api';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
-// import SelectBox from 'dna-container/SelectBox';
 import ConfirmModal from 'dna-container/ConfirmModal';
 
 // Form Components
@@ -50,7 +49,7 @@ const tabs = {
   'other-information': { otherRelevantInfo: '' },
 };
 
-const Form = ({ user }) => {
+const ProviderForm = ({ user }) => {
   const [currentTab, setCurrentTab] = useState('basic-info');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
@@ -282,4 +281,4 @@ const Form = ({ user }) => {
     </FormProvider>
   );
 };
-export default Form;
+export default ProviderForm;
