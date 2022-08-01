@@ -11,6 +11,7 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
 import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import TextArea from '../../shared/textArea/TextArea';
 
 export interface ICustomerProps {
   customer: ICustomers;
@@ -202,30 +203,17 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             </div>
           </div>
           <div>
-            <div
-              id="customerComment"
-              className={classNames(
-                'input-field-group include-error area',
-                this.state.errors.comment?.length ? 'error' : '',
-              )}
-            >
-              <label id="customerCommentLabel" className="input-label" htmlFor="customerComment">
-                Comment
-              </label>
-              <textarea
-                className="input-field-area"
-                required={false}
-                rows={50}
-                id="customerComment"
-                name="comment"
-                value={this.state.customerInfo.comment}
-                onChange={this.handleChange}
-                onBlur={this.validateCustomerModal}
-              />
-              <span className={classNames('error-message', this.state.errors.comment?.length ? '' : 'hide')}>
-                {this.state.errors.comment}
-              </span>
-            </div>
+            <TextArea
+              controlId={'customerComment'}
+              name={'comment'}
+              labelId={'customerCommentLabel'}
+              label={'Comment'}
+              rows={50}
+              value={this.state.customerInfo.comment}
+              required={false}
+              onChange={this.handleChange}
+              onBlur={this.validateCustomerModal}
+            />
             {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''}
             <div className="btnConatiner">
               <button
