@@ -23,6 +23,8 @@ import Styles from './Description.scss';
 import Tags from '../../../formElements/tags/Tags';
 import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
+import TextBox from '../../shared/textBox/TextBox';
+import TextArea from '../../shared/textArea/TextArea';
 const classNames = cn.bind(Styles);
 
 export interface IDescriptionProps {
@@ -127,6 +129,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.productName = productName;
     // this.props.onStateChange();
+    if (productName === '' || productName === null) {
+      this.setState({ productNameError: '*Missing Entry' });
+    } else {
+      this.setState({ productNameError: '' });
+    }
     this.setState({
       productName,
     });
@@ -137,6 +144,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.productDescription = desc;
     // this.props.onStateChange();
+    if (desc === '' || desc === null) {
+      this.setState({ descriptionError: '*Missing Entry' });
+    } else {
+      this.setState({ descriptionError: '' });
+    }
     this.setState({
       description: desc,
     });
@@ -337,53 +349,30 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               <div className={classNames(Styles.formWrapper)}>
                 <div>
                   <div>
-                    <div
-                      className={classNames('input-field-group include-error', productNameError.length ? 'error' : '')}
-                    >
-                      <label id="reportNameLabel" htmlFor="reportNameInput" className="input-label">
-                        Report Name<sup>*</sup>
-                      </label>
-                      <input
-                        type="text"
-                        className="input-field"
-                        required={true}
-                        required-error={requiredError}
-                        id="reportNameInput"
-                        maxLength={200}
-                        placeholder="Type here"
-                        autoComplete="off"
-                        onChange={this.onProductNameOnChange}
-                        value={this.state.productName}
-                      />
-                      <span className={classNames('error-message', productNameError.length ? '' : 'hide')}>
-                        {productNameError}
-                      </span>
-                    </div>
+                    <TextBox
+                      type="text"
+                      controlId={'reportNameInput'}
+                      labelId={'reportNameLabel'}
+                      label={'Report Name'}
+                      placeholder={"Type here"}
+                      value={this.state.productName}
+                      errorText={productNameError}
+                      required={true}
+                      maxLength={200}
+                      onChange={this.onProductNameOnChange}
+                    />
                   </div>
                   <div>
-                    <div
-                      id="reportDecsription"
-                      className={classNames(
-                        'input-field-group include-error area',
-                        descriptionError.length ? 'error' : '',
-                      )}
-                    >
-                      <label id="reportDescriptionLabel" className="input-label" htmlFor="reportDecsriptionField">
-                        Description<sup>*</sup>
-                      </label>
-                      <textarea
-                        className="input-field-area"
-                        required={true}
-                        required-error={requiredError}
-                        rows={50}
-                        id="reportDecsriptionField"
-                        onChange={this.onDescChange}
-                        value={this.state.description}
-                      />
-                      <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
-                        {descriptionError}
-                      </span>
-                    </div>
+                    <TextArea
+                      controlId={'reportDecsriptionField'}
+                      labelId={'reportDescriptionLabel'}
+                      label={'Description'}
+                      rows={50}
+                      value={this.state.description}
+                      errorText={descriptionError}
+                      required={true}
+                      onChange={this.onDescChange}
+                    />
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout)}>
