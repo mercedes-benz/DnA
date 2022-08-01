@@ -1,13 +1,13 @@
-import cn from 'classnames';
 import React, { useState, forwardRef, useImperativeHandle, Ref } from 'react';
 import Styles from './NewSandbox.scss';
-const classNames = cn.bind(Styles);
 import { ApiClient } from '../../../services/ApiClient';
 
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { trackEvent } from '../../../services/utils';
 import { INotebookInfo } from '../../../globals/types';
+import TextBox from '../shared/textBox/TextBox';
+import TextArea from '../shared/textArea/TextArea';
 
 export interface INewSanboxProps {
   namePrefix: string;
@@ -75,7 +75,7 @@ const Newsandbox = forwardRef((props: INewSanboxProps, ref: Ref<INewSandBoxRef>)
         .catch((err) => err);
     }
   };
-  const requiredError = '*Missing entry';
+  // const requiredError = '*Missing entry';
 
   useImperativeHandle(ref, () => ({
     validateAndCreateSandBox() {
@@ -98,40 +98,29 @@ const Newsandbox = forwardRef((props: INewSanboxProps, ref: Ref<INewSandBoxRef>)
             </p>
           </>
         )}
-        <div className={classNames('input-field-group include-error', solutionNameErr.length ? 'error' : '')}>
-          <label id="solutionNameLabel" htmlFor="solutionNameInput" className="input-label">
-            Workspace Name<sup>*</sup>
-          </label>
-          <input
-            type="text"
-            className="input-field"
-            required={true}
-            required-error={requiredError}
-            id="solutionNameInput"
-            maxLength={200}
-            placeholder="Type here"
-            autoComplete="off"
-            onChange={solutionNameGet}
-            value={solutionName}
-          />
-          <span className={classNames('error-message', solutionNameErr.length ? '' : 'hide')}>{solutionNameErr}</span>
-        </div>
-        <div className={classNames('input-field-group include-error', descriptionErr.length ? 'error' : '')}>
-          <label id="descriptionLabel" htmlFor="descriptionInput" className="input-label">
-            Description<sup>*</sup>
-          </label>
-          <textarea
-            className="input-field-area small"
-            required={true}
-            required-error={requiredError}
-            id="descriptionInput"
-            maxLength={200}
-            autoComplete="off"
-            onChange={descriptionGet}
-            value={description}
-          />
-          <span className={classNames('error-message', descriptionErr.length ? 'aaa' : 'hide')}>{descriptionErr}</span>
-        </div>
+        <TextBox
+          type="text"
+          controlId={'solutionNameInput'}
+          labelId={'solutionNameLabel'}
+          label={'Workspace Name'}
+          placeholder={"Type here"}
+          value={solutionName}
+          errorText={solutionNameErr}
+          required={true}
+          maxLength={200}
+          onChange={solutionNameGet}
+        />
+        <TextArea
+          controlId={'descriptionInput'}
+          labelId={'descriptionLabel'}
+          label={'Description'}
+          value={description}
+          errorText={descriptionErr}
+          required={true}
+          maxlength={200}
+          onChange={descriptionGet}
+          small={true}
+        />
         {props.inComputeTab ? (
           <p className={Styles.computeInfo}>
             On Save &amp; Next new Notebook will be created and linked to this solution.
