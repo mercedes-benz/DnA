@@ -53,6 +53,13 @@ ingress:
   #    hosts:
   #      - code-server.example.loc
 
+
+ingressRoute:
+  enabled: false
+  host: code-server.example.loc
+  prefix: /user
+  certificateIssuer: cert
+
 # Optional additional arguments
 extraArgs: []
   # These are the arguments normally passed to code-server; run

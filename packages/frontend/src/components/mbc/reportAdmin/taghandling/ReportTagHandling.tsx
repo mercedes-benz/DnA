@@ -23,6 +23,7 @@ const classNames = cn.bind(Styles);
 // @ts-ignore
 import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
 import { debounce } from 'lodash';
+import TextBox from '../../shared/textBox/TextBox';
 // import { workerData } from 'worker_threads';
 
 export interface ITagHandlingState {
@@ -1185,31 +1186,18 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           {!this.state.dataFunctionNotEnable && (
             <React.Fragment>
               <div className={classNames(Styles.flexLayout)}>
-                <div
-                  className={classNames(
-                    'input-field-group include-error',
-                    dataWareHouseNameError.length ? 'error' : '',
-                  )}
-                >
-                  <label id="carlField" htmlFor="carlaInputField" className="input-label">
-                    Data warehouse<sup>*</sup>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    required={true}
-                    required-error={requiredError}
-                    id="carlaInputField"
-                    maxLength={200}
-                    placeholder="Type here"
-                    autoComplete="off"
-                    onChange={this.onDatawarehouseInuse}
-                    value={this.state.datawareHouseItems?.dataWarehouse}
-                  />
-                  <span className={classNames('error-message', dataWareHouseNameError.length ? '' : 'hide')}>
-                    {dataWareHouseNameError}
-                  </span>
-                </div>
+                <TextBox
+                  type="text"
+                  controlId={'carlaInputField'}
+                  labelId={'ApplicationName'}
+                  label={'Data warehouse'}
+                  placeholder={"Type here"}
+                  value={this.state.datawareHouseItems?.dataWarehouse}
+                  errorText={dataWareHouseNameError}
+                  required={true}
+                  maxLength={200}
+                  onChange={this.onDatawarehouseInuse}
+                />
               </div>
               <div className={classNames(Styles.flexLayout)}>
                 <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
