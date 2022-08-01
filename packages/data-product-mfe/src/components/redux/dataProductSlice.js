@@ -14,7 +14,7 @@ const dataProductsInitialState = {
   },
 };
 
-export const dataProductSlice = createSlice({
+export const provideDataProductSlice = createSlice({
   name: 'products',
   initialState: dataProductsInitialState,
   extraReducers: {
@@ -71,5 +71,5 @@ export const dataProductSlice = createSlice({
     },
   },
 });
-export const { setDataProducts, setPagination } = dataProductSlice.actions;
-export default dataProductSlice.reducer;
+export const { setDataProducts, setPagination } = provideDataProductSlice.actions;
+export default provideDataProductSlice.reducer;
