@@ -15,7 +15,7 @@ const DataProducts = () => {
   const {
     dataProducts,
     pagination: { dataProductListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
-  } = useSelector((state) => state.dataProducts);
+  } = useSelector((state) => state.provideDataProducts);
 
   // useEffect(() => {
   //   dispatch(GetDataProducts());

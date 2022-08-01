@@ -6,7 +6,8 @@ const Progress = React.lazy(() => import('dna-container/Progress'));
 const NotFoundPage = React.lazy(() => import('dna-container/NotFound'));
 const UnAuthorised = React.lazy(() => import('dna-container/UnAuthorised'));
 
-import Form from './Form/Form';
+import ProviderForm from './ProviderForm';
+import ConsumerForm from './ConsumerForm';
 
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../App';
@@ -22,14 +23,19 @@ const protectedRoutes = [
     path: '/',
   },
   {
-    component: Form,
+    component: ProviderForm,
     exact: true,
     path: '/create',
   },
   {
-    component: Form,
+    component: ProviderForm,
     exact: true,
     path: '/edit/:id',
+  },
+  {
+    component: ConsumerForm,
+    exact: true,
+    path: '/consume',
   },
 ];
 

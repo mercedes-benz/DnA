@@ -108,7 +108,8 @@ module.exports = {
       filename: 'remoteEntry.js',
       exposes: {
         './DataProduct': './src/App',
-        './Form': './src/components/Form/Form',
+        './ProviderForm': './src/components/ProviderForm',
+        './ConsumerForm': './src/components/ConsumerForm',
       },
       remotes: {
         'dna-container': `dna_container@[(window.DATA_PRODUCT_INJECTED_ENVIRONMENT && window.DATA_PRODUCT_INJECTED_ENVIRONMENT.CONTAINER_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
