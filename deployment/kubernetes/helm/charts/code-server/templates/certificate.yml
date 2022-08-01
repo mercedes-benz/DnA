@@ -1,3 +1,5 @@
+{{- $cert := lookup "cert-manager.io/v1" "Certificate" .Values.namespace "code-server" -}}
+{{- if not $cert -}}
 {{- if .Values.ingressRoute.enabled -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -12,4 +14,5 @@ spec:
  issuerRef:
   name: {{ .Values.ingressRoute.certificateIssuer }}
   kind: ClusterIssuer
+{{- end }}  
 {{- end }}  
