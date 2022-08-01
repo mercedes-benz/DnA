@@ -135,4 +135,12 @@ export const Envs = {
     getInjectedEnv('ENABLE_DATA_PRODUCT') !== undefined
       ? getInjectedEnv('ENABLE_DATA_PRODUCT')
       : EnvParser.parseBool(process.env.ENABLE_DATA_PRODUCT, false),
+  ENABLE_SAP_ANALYTICS_CLOUD:
+    getInjectedEnv('ENABLE_SAP_ANALYTICS_CLOUD') !== undefined
+      ? getInjectedEnv('ENABLE_SAP_ANALYTICS_CLOUD')
+      : EnvParser.parseBool(process.env.ENABLE_SAP_ANALYTICS_CLOUD, false),
+  SAP_ANALYTICS_CLOUD_URL:
+    getInjectedEnv('SAP_ANALYTICS_CLOUD_URL') !== undefined
+      ? getInjectedEnv('SAP_ANALYTICS_CLOUD_URL')
+      : EnvParser.parseBool(process.env.SAP_ANALYTICS_CLOUD_URL, false),
 };
