@@ -1,12 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
-import dataProductSlice from './components/redux/dataProductSlice';
+
+import provideDataProducts from './components/redux/dataProductSlice';
+import consumeDataProductSlice from './components/redux/consumeDataProductSlice';
+
 import logger from 'redux-logger';
 
 const isDev = process.env.NODE_ENV === 'development';
 
 export default configureStore({
   reducer: {
-    dataProducts: dataProductSlice,
+    provideDataProducts: provideDataProducts,
+    consumeDataProducts: consumeDataProductSlice,
   },
   middleware: (getDefaultMiddleware) =>
     isDev
