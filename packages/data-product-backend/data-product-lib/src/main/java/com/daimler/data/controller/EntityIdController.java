@@ -29,8 +29,6 @@ package com.daimler.data.controller;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,18 +37,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.entityid.EntityidsApi;
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.entityid.EntityIdCollection;
 import com.daimler.data.dto.entityid.EntityIdVO;
 import com.daimler.data.service.entityid.EntityIdService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -77,42 +72,11 @@ public class EntityIdController implements EntityidsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/entityids", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<EntityIdCollection> getAll(
-			@ApiParam(value = "page number from which listing of records should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			@ApiParam(value = "page size to limit the number of records. Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-			@ApiParam(value = "Sort records by a given variable like entityId, entityName", allowableValues = "entityId, entityName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort records based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+	public ResponseEntity<EntityIdCollection> getAll() {
 		try {
 			EntityIdCollection entityIdCollection = new EntityIdCollection();
-
-			int defaultLimit = 10;
-			if (offset == null || offset < 0)
-				offset = 0;
-			if (limit == null || limit < 0) {
-				limit = defaultLimit;
-			}
-			if (sortOrder != null && !sortOrder.equals("asc") && !sortOrder.equals("desc")) {
-				return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-			}
-			if (sortOrder == null) {
-				sortOrder = "asc";
-			}
-
-			Long count = entityIdService.getCount();
-			if (count < offset)
-				offset = 0;
-
-			List<EntityIdVO> entityIdList = null;
-			if (sortOrder.equals("asc")) {
-				entityIdList = entityIdService.getAllSortedByUniqueLiteral(limit, offset, sortBy,
-						CommonDataRepositoryImpl.SORT_TYPE.ASC);
-			} else if (sortOrder.equals(("desc"))) {
-				entityIdList = entityIdService.getAllSortedByUniqueLiteral(limit, offset, sortBy,
-						CommonDataRepositoryImpl.SORT_TYPE.DESC);
-			}
-
+			final List<EntityIdVO> entityIdList = entityIdService.getAll();
 			if (!ObjectUtils.isEmpty(entityIdList)) {
-				entityIdCollection.setTotalCount(count.intValue());
 				entityIdCollection.setRecords(entityIdList);
 				LOGGER.info("Returning all entityId details successfully");
 				return new ResponseEntity<>(entityIdCollection, HttpStatus.OK);
@@ -120,7 +84,6 @@ public class EntityIdController implements EntityidsApi {
 				LOGGER.info("No entityId details found");
 				return new ResponseEntity<>(entityIdCollection, HttpStatus.NO_CONTENT);
 			}
-
 		} catch (Exception e) {
 			LOGGER.error("Failed to fetch records with exception {} ", e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
