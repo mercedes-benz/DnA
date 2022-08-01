@@ -16,6 +16,7 @@ import  Modal from '../../../../formElements/modal/Modal';
 import Styles from './AddOrEditFactorModal.scss';
 import NumberFormat from 'react-number-format';
 import {thousandSeparator, decimalSeparator} from '../../../../../services/utils'
+import TextBox from '../../../shared/textBox/TextBox';
 
 const classNames = cn.bind(Styles);
 
@@ -506,50 +507,32 @@ export default class AddOrEditFactorModal extends React.Component<
         <div className={Styles.formWrapper}>
           <div className={Styles.flexLayout}>
             <div>
-              <div className={classNames('input-field-group include-error', descriptionError.length ? 'error' : '')}>
-                <label htmlFor="factorDescription" className="input-label">
-                  Description<sup>*</sup>
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  required={true}
-                  required-error={requiredError}
-                  id="factorDescription"
-                  name="description"
-                  placeholder="Type here"
-                  autoComplete="off"
-                  value={description}
-                  maxLength={200}
-                  onChange={this.textInputOnChange}
-                />
-                <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
-                  {descriptionError}
-                </span>
-              </div>
+              <TextBox
+                type="text"
+                controlId={'factorDescription'}
+                name={'description'}
+                label={'Description'}
+                placeholder={"Type here"}
+                value={description}
+                errorText={descriptionError}
+                required={true}
+                maxLength={200}
+                onChange={this.textInputOnChange}
+              />
             </div>
             <div>
-              <div>
-                <div className={classNames('input-field-group include-error', categoryError.length ? 'error' : '')}>
-                  <label htmlFor="factorCategory" className="input-label">
-                    Category<sup>*</sup>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    id="factorCategory"
-                    name="category"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    value={category}
-                    maxLength={100}
-                    onChange={this.textInputOnChange}
-                  />
-                  <span className={classNames('error-message', categoryError.length ? '' : 'hide')}>
-                    {categoryError}
-                  </span>
-                </div>
-              </div>
+              <TextBox
+                type="text"
+                controlId={'factorCategory'}
+                name={'category'}
+                label={'Category'}
+                placeholder={"Type here"}
+                value={category}
+                errorText={categoryError}
+                required={true}
+                maxLength={100}
+                onChange={this.textInputOnChange}
+              />
             </div>
           </div>
           <div className={Styles.flexLayout}>
@@ -591,25 +574,18 @@ export default class AddOrEditFactorModal extends React.Component<
               </div>
             </div>
             <div>
-              <div>
-                <div className={classNames('input-field-group include-error', sourceError.length ? 'error' : '')}>
-                  <label htmlFor="factorSource" className="input-label">
-                    Source<sup>*</sup>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    id="factorSource"
-                    name="source"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    value={source}
-                    maxLength={100}
-                    onChange={this.textInputOnChange}
-                  />
-                  <span className={classNames('error-message', sourceError.length ? '' : 'hide')}>{sourceError}</span>
-                </div>
-              </div>
+              <TextBox
+                type="text"
+                controlId={'factorSource'}
+                name={'source'}
+                label={'Source'}
+                placeholder={"Type here"}
+                value={source}
+                errorText={sourceError}
+                required={true}
+                maxLength={100}
+                onChange={this.textInputOnChange}
+              />
             </div>
           </div>
 
