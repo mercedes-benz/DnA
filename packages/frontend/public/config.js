@@ -47,6 +47,8 @@ window['INJECTED_ENVIRONMENT'] = {
     '(Recommended to use Short ID. To find Short ID use <a href="YOUR_TEAMS_INFO_URL" target="_blank" rel="noreferrer noopener">Teams</a>)',
   ENABLE_DATA_PRODUCT: true,
   DATA_PRODUCT_MFE_APP_URL: 'http://localhost:8084',
+  ENABLE_SAP_ANALYTICS_CLOUD: false,
+  SAP_ANALYTICS_CLOUD_URL: 'YOUR_SAP_ANALYTICS_CLOUD_URL',
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {
