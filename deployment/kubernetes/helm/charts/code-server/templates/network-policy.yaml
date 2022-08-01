@@ -6,7 +6,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      name: {{ include "code-server.name" . }}
+      app.kubernetes.io/name: {{ include "code-server.name" . }}
   ingress:
     - ports:
       - port: 8080
