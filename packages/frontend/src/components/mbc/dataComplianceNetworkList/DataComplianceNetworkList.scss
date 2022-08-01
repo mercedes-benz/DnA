@@ -51,6 +51,11 @@
   .modalContent {
     margin-top: 20px;
     font-size: var(--font-size-medium);
+
+    p {
+      margin: 0 auto;
+      max-width: 650px;
+    }
   }
 }
 
@@ -157,6 +162,12 @@
   width: 100%;
   text-align: center;
   z-index: 10;
+
+  p {
+    font-size: var(--font-size-medium);
+    padding: 0 60px;
+    margin-bottom: 30px;
+  }
 }
 
 thead {
