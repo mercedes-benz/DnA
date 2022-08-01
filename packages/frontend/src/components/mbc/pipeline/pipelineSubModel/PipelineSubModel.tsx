@@ -1,11 +1,11 @@
-import cn from 'classnames';
 import React, { useState } from 'react';
 import Styles from './PipelineSubModel.scss';
-const classNames = cn.bind(Styles);
 
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { MalwarescanApiClient } from '../../../../services/MalwarescanApiClient';
+import TextBox from '../../shared/textBox/TextBox';
+import TextArea from '../../shared/textArea/TextArea';
 
 export interface IPipelineSubModelProps {
   addAirflowSuccessFn: (action: String) => void;
@@ -65,46 +65,34 @@ export default function PipelineSubModel(props: IPipelineSubModelProps) {
     }
   };
   // Any updated happen
-  const requiredError = '*Missing entry';
+  // const requiredError = '*Missing entry';
   return (
     <React.Fragment>
       <div className={Styles.MalwarescanPopContent}>
         <br />
-        <div className={classNames('input-field-group include-error', solutionNameErr.length ? 'error' : '')}>
-          <label id="ApplicationName" htmlFor="ApplicationNameInput" className="input-label">
-            Application Name<sup>*</sup>
-          </label>
-          <input
-            type="text"
-            className="input-field"
-            required={true}
-            required-error={requiredError}
-            id="ApplicationNameInput"
-            maxLength={200}
-            placeholder="Type here"
-            autoComplete="off"
-            onChange={solutionNameGet}
-            value={solutionName}
-          />
-          <span className={classNames('error-message', solutionNameErr.length ? '' : 'hide')}>{solutionNameErr}</span>
-        </div>
-        <div className={classNames('input-field-group include-error', descriptionErr.length ? 'error' : '')}>
-          <label id="ApplicationDescription" htmlFor="ApplicationDescriptionInput" className="input-label">
-            Description<sup>*</sup>
-          </label>
-          <textarea
-            className="input-field-area small"
-            required={true}
-            required-error={requiredError}
-            id="ApplicationDescriptionInput"
-            maxLength={200}
-            autoComplete="off"
-            onChange={descriptionGet}
-            value={description}
-            placeholder="Type here"
-          />
-          <span className={classNames('error-message', descriptionErr.length ? '' : 'hide')}>{descriptionErr}</span>
-        </div>
+        <TextBox
+          type="text"
+          controlId={'ApplicationNameInput'}
+          labelId={'ApplicationName'}
+          label={'Application Name'}
+          placeholder={"Type here"}
+          value={solutionName}
+          errorText={solutionNameErr}
+          required={true}
+          maxLength={200}
+          onChange={solutionNameGet}
+        />
+        <TextArea
+          controlId={'ApplicationDescriptionInput'}
+          labelId={'ApplicationDescription'}
+          label={'Description'}
+          value={description}
+          errorText={descriptionErr}
+          required={true}
+          maxlength={200}
+          onChange={descriptionGet}
+          small={true}
+        />
         <div className={Styles.sandboxbtn}>
           <button className={'btn btn-tertiary'} onClick={addAPIkey}>
             Subscribe
