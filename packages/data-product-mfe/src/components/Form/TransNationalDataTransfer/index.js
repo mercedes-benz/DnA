@@ -11,8 +11,8 @@ const TransNationalDataTransfer = ({ onSave }) => {
     handleSubmit,
     formState: { errors },
     watch,
-    resetField,
     reset,
+    setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -71,8 +71,8 @@ const TransNationalDataTransfer = ({ onSave }) => {
                         {...register('transnationalDataTransfer', {
                           required: '*Missing entry',
                           onChange: () => {
-                            resetField('transnationalDataTransferNotWithinEU');
-                            resetField('LCOApprovedDataTransfer');
+                            setValue('transnationalDataTransferNotWithinEU', '');
+                            setValue('LCOApprovedDataTransfer', '');
                           },
                         })}
                         type="radio"
@@ -120,7 +120,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
                             return value;
                           },
                           onChange: () => {
-                            resetField('LCOApprovedDataTransfer');
+                            setValue('LCOApprovedDataTransfer', '');
                           },
                         })}
                         type="radio"

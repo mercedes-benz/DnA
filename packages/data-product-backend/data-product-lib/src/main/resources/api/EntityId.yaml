@@ -73,30 +73,7 @@ paths:
         - "entityids"
       summary: "Get all available entityIds"
       description: "Get all available entityIds"
-      operationId: "getAll"
-      parameters:                                   
-        - name: offset
-          in: query
-          description: page number from which listing of records should start. Offset. Example 2
-          required: false
-          type: integer
-        - name: limit
-          in: query
-          description: page size to limit the number of records. Example 15
-          required: false
-          type: integer
-        - name: sortBy
-          in: query
-          description: Sort records by a given variable like entityId, entityName
-          required: false
-          type: string
-          enum: [entityId, entityName]
-        - name: sortOrder
-          in: query
-          description: Sort records based on the given order, example asc,desc
-          required: false
-          type: string
-          enum: [asc,desc]               
+      operationId: "getAll"              
       responses:
         200:
           description: "Returns message of success or failure"
@@ -134,9 +111,6 @@ definitions:
     description: "Collection of records."
     type: object
     properties:
-      totalCount:
-        type: integer
-        description: "Total Record Count"
       records:
         type: array
         items:
