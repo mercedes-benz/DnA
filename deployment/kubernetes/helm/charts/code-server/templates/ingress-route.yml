@@ -1,0 +1,24 @@
+{{- if .Values.ingressRoute.enabled -}}
+{{- $fullName := include "code-server.fullname" . -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.ingressRoute.host }}`) && PathPrefix(`{{ .Values.ingressRoute.prefix }}`)
+      middlewares:
+        - name: {{ $fullName }}
+      services:
+        - name: {{ $fullName }}
+          port: http
+  tls:
+    domains:
+      - main: {{ .Values.ingressRoute.host }}
+    secretName: code-server-tls
+{{- end }}    

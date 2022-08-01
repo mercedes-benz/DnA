@@ -1,0 +1,11 @@
+{{- if .Values.ingressRoute.enabled -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+ name: {{ include "code-server.fullname" . }}
+ namespace: {{ .Values.namespace }}
+spec:
+ stripPrefix:
+  prefixes:
+   - {{ .Values.ingressRoute.prefix }}
+{{- end }}

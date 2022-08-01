@@ -1,0 +1,15 @@
+{{- if .Values.ingressRoute.enabled -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+ name: code-server
+ namespace: {{ .Values.namespace }}
+spec:
+ commonName: {{ .Values.ingressRoute.host }}
+ secretName: code-server-tls
+ dnsNames:
+  - {{ .Values.ingressRoute.host }}
+ issuerRef:
+  name: {{ .Values.ingressRoute.certificateIssuer }}
+  kind: ClusterIssuer
+{{- end }}  
