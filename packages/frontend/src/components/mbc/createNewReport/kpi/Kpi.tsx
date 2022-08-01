@@ -8,6 +8,7 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
 import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import TextArea from '../../shared/textArea/TextArea';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
@@ -173,30 +174,17 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             </div>
           </div>
           <div>
-            <div
-              id="reportKpiComment"
-              className={classNames(
-                'input-field-group include-error area',
-                this.state.errors.comment.length ? 'error' : '',
-              )}
-            >
-              <label id="reportKpiCommentLabel" className="input-label" htmlFor="reportKpiComment">
-                Comment
-              </label>
-              <textarea
-                className="input-field-area"
-                required={false}
-                rows={50}
-                id="reportKpiComment"
-                name="comment"
-                value={this.state.kpiInfo.comment}
-                onChange={this.handleChange}
-                onBlur={this.validateKpiModal}
-              />
-              <span className={classNames('error-message', this.state.errors.comment.length ? '' : 'hide')}>
-                {this.state.errors.comment}
-              </span>
-            </div>
+            <TextArea
+              controlId={'reportKpiComment'}
+              name={'comment'}
+              labelId={'reportKpiCommentLabel'}
+              label={'Comment'}
+              rows={50}
+              value={this.state.kpiInfo.comment}
+              required={false}
+              onChange={this.handleChange}
+              onBlur={this.validateKpiModal}
+            />
             {this.state.duplicateKpiAdded ? <span className={'error-message'}>KPI already exist</span> : ''}
             <div className="btnConatiner">
               <button
