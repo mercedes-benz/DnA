@@ -55,7 +55,7 @@ ingress:
 
 
 ingressRoute:
-  enabled: true
+  enabled: false
   host: code-server.example.loc
   prefix: /user
   certificateIssuer: cert
