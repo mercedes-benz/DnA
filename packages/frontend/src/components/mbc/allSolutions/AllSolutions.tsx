@@ -951,7 +951,9 @@ export default class AllSolutions extends React.Component<
       const typeFilterValue = this.state.projectTypes.find(
         (item) => item.id === this.state.queryParams.useCaseType.toString(),
       );
-      pageTitle = typeFilterValue ? typeFilterValue.name : 'Solutions';
+      pageTitle = (typeFilterValue ? typeFilterValue.name : 'Solutions') + ` (${solutionsCount})`;
+    } else {
+      pageTitle += ` (${solutionsCount})`;
     }
 
     return pageTitle;
