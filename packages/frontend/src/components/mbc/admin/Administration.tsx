@@ -36,7 +36,11 @@ export default class Administration extends React.Component<IAdministrationProps
     };
   }
   public componentDidMount() {
+    const isReportAdmin = this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN) !== undefined;
     Tabs.defaultSetup();
+    if(isReportAdmin){
+      this.setState({ currentTab: 'reporttaghandling'});
+    }
   }
 
   public render() {
