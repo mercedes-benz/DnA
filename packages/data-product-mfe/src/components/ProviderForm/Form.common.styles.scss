@@ -40,3 +40,7 @@
         min-width: 85px;
     }
 }
+.radioBtnsGrid {
+    display: grid;
+    grid-template-columns: 200px 200px;
+}

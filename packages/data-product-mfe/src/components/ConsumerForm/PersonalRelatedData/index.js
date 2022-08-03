@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import Styles from './styles.scss';
+import Styles from '../common.styles.scss';
 import { withRouter } from 'react-router-dom';
 
 import { useFormContext } from 'react-hook-form';
@@ -158,7 +158,7 @@ const PersonalRelatedData = ({ onSave, history }) => {
               <label className={classNames(Styles.inputLabel, 'input-label')}>
                 Legal basis for processing this personal related data? <sup>*</sup>
               </label>
-              <div className={Styles.legalOptionsRadioBtns}>
+              <div className={Styles.radioBtnsGrid}>
                 {legalBasisList?.map((item) => {
                   return (
                     <div key={item.id}>
