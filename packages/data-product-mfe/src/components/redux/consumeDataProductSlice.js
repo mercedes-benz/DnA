@@ -1,9 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getLegalBasis } from './consumeDataProduct.services';
+import { getClassificationTypes, getLegalBasis } from './consumeDataProduct.services';
 
 const consumerProductsInitialState = {
-  isLoading: false,
+  isLegalBasisListLoading: false,
   legalBasisList: [],
+  isClassificationTypesLoading: false,
+  classificationTypes: [],
 };
 
 export const consumeDataProductSlice = createSlice({
@@ -11,11 +13,18 @@ export const consumeDataProductSlice = createSlice({
   initialState: consumerProductsInitialState,
   extraReducers: {
     [getLegalBasis.pending]: (state) => {
-      state.isLoading = true;
+      state.isLegalBasisListLoading = true;
     },
     [getLegalBasis.fulfilled]: (state, action) => {
-      state.isLoading = false;
+      state.isLegalBasisListLoading = false;
       state.legalBasisList = action.payload.data;
+    },
+    [getClassificationTypes.pending]: (state) => {
+      state.isClassificationTypesLoading = true;
+    },
+    [getClassificationTypes.fulfilled]: (state, action) => {
+      state.isClassificationTypesLoading = false;
+      state.classificationTypes = action.payload.data;
     },
   },
 });
