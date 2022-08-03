@@ -155,6 +155,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
   };
   public componentDidMount() {
     this.setState({ isLoading: true });
+    ProgressIndicator.show();
     ApiClient.getUserRoles()
       .then((res) => {
         if (res) {
@@ -179,6 +180,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
 
     this.getUsers();
     this.getDivisions();
+    ProgressIndicator.hide();
   }
 
   public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
