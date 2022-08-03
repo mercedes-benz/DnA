@@ -32,7 +32,7 @@ const tabs = {
     complainceOfficer: '',
     planningIT: '',
   },
-  'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: '' },
+  'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: 'Public' },
   'personal-data': {
     personalRelatedData: '',
     personalRelatedDataDescription: '',
