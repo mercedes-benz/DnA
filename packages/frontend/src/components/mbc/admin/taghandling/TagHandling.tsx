@@ -129,7 +129,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       dropdownList.data.push({ id: 8, name: 'Division' });
       this.setState({
         categories: this.state.categories.concat(dropdownList.data),
-      });
+      },()=>{SelectBox.defaultSetup();});
     });
   }
 
@@ -303,7 +303,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       });
   };
   public async getResults(action: string) {
-    const showProgressIndicator = ['add', 'update', 'delete'].includes(action);
+    const showProgressIndicator = ['add', 'update', 'delete', 'list'].includes(action);
     const showContentLoader = ['reset', 'categoryChange', 'search', 'pagination'].includes(action);
 
     showProgressIndicator && ProgressIndicator.show();
@@ -395,9 +395,9 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     );
   }
   public async componentDidMount() {
-    SelectBox.defaultSetup();
+    // SelectBox.defaultSetup();
     this.setState({ isResultLoading: true });
-    await this.getResults('');
+    await this.getResults('list');
     this.setState({ isResultLoading: false });
   }
 

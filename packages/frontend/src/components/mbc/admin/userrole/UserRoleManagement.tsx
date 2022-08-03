@@ -155,13 +155,15 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
   };
   public componentDidMount() {
     this.setState({ isLoading: true });
+    ProgressIndicator.show();
     ApiClient.getUserRoles()
       .then((res) => {
         if (res) {
-          this.setState({ roles: res });
+          this.setState({ roles: res },()=>{
+            SelectBox.defaultSetup();
+          });
         }
         this.setState({ isLoading: false });
-        // SelectBox.defaultSetup();
       })
       .catch((error) => {
         this.setState(
@@ -178,6 +180,7 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
 
     this.getUsers();
     this.getDivisions();
+    ProgressIndicator.hide();
   }
 
   public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
