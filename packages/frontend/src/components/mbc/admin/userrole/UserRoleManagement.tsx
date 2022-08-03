@@ -158,10 +158,11 @@ export class UserRoleManagement extends React.Component<any, IUserRoleManagement
     ApiClient.getUserRoles()
       .then((res) => {
         if (res) {
-          this.setState({ roles: res });
+          this.setState({ roles: res },()=>{
+            SelectBox.defaultSetup();
+          });
         }
         this.setState({ isLoading: false });
-        // SelectBox.defaultSetup();
       })
       .catch((error) => {
         this.setState(
