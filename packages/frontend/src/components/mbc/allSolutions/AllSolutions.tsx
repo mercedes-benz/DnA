@@ -802,10 +802,12 @@ export default class AllSolutions extends React.Component<
         default:
           break;
       }
+      const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+      const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
       this.setState({ queryParams,
         currentPageOffset: 0,
         currentPageNumber: 1, }, () => {
-        this.getSolutions(true);
+        this.getSolutions(true, isDigitalValueContributionEnabled, isNotificationEnabled);
       });
     } 
     else if (window.location.href.indexOf('allsolutions') !== -1) {
@@ -851,7 +853,9 @@ export default class AllSolutions extends React.Component<
     
   };
 
-  protected getSolutions = (getPublished?: boolean) => {
+  protected getSolutions = (getPublished?: boolean, 
+    isDigitalValueContributionEnabled?: boolean, 
+    isNotificationEnabled?: boolean) => {
     const queryParams = this.state.queryParams;
     const locationIds = queryParams.location.join(',');
     const phaseIds = queryParams.phase.join(',');
@@ -874,6 +878,8 @@ export default class AllSolutions extends React.Component<
       this.state.sortBy.name,
       this.state.sortBy.currentSortType,
       getPublished,
+      isDigitalValueContributionEnabled,
+      isNotificationEnabled
     )
       .then((res) => {
         if (res) {
