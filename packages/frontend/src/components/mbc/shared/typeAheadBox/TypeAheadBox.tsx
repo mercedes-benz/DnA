@@ -1,6 +1,5 @@
 import cn from 'classnames';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { debounce } from 'lodash';
+import React, { useState, useEffect, useRef } from 'react';
 import Styles from './TypeAheadBox.scss';
 
 const classNames = cn.bind(Styles);
@@ -11,13 +10,8 @@ export interface IRowItemProps {
   list: any;
   defaultValue: string;
   onItemSelect: (entity:any) => void;
+  onError?: (error:boolean) => void;
   required: boolean;
-  
-  editMode?: boolean;
-  userId?: string;
-  entity?: string;
-  userAlreadyExists?: boolean;
-  resetUserAlreadyExists?: () => void;
 }
 
 const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
@@ -31,74 +25,70 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
 
   const searchInput = useRef(null);
   const suggestionContainer = useRef(null);
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [results, setResults] = useState([]);
   const [cursor, setCursor] = useState(-1);
-  const [entity, setEntity] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
   const [hideSuggestion, setHideSuggestion] = useState(true);
   const [showNoResultsError, setShowNoResultsError] = useState(false);
   const [errorText, setErrorText] = useState('');
+  const [isSelected, setIsSelected] = useState(false);
 
   useEffect(() => {
-    if(props.editMode) {
-      setEntity(props.entity);
+    setIsSelected(true);
+    if(props.defaultValue.length > 0) {
+      setSearchTerm(props.defaultValue);
+    } else {
+      setSearchTerm('');
     }
-    if(entity) {
-      console.log('');
-    }
-  }, []);
+  }, [props.defaultValue]);
 
-  const suggestions = results.map((item: any, index: number) => {
-    return (
-      <li
-        key={item.id}
-        onClick={() => onSuggestionItemClick(index)}
-        className={cursor === index ? Styles.active + ' active' : null}
-      >
-        {item.entityId} - {item.entityName}
-      </li>
-    );
-  });
-
+  useEffect(() => {
+    setSuggestions(props.list);
+  }, [props.list]);
+  
   const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
     setSearchTerm(event.currentTarget.value);
     setShowNoResultsError(false);
+    setIsSelected(false);
     if(event.currentTarget.value.length > 0) {
       setErrorText('');
+      props.onError(false);
     } else {
+      props.onError(true);
       setErrorText('*Missing Entry');
     }
   };
 
   useEffect(() => {
     if(searchTerm.length > 1) {
-      debouncedFetchUser(searchTerm);
+      console.log('suggestions');
+      console.log(suggestions);
+      const filteredResults = suggestions.filter((item:any) => {
+        const currentEntity = item.entityId + ' - ' + item.entityName;
+        return currentEntity.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+      setSuggestions(filteredResults);
+      setShowNoResultsError(filteredResults.length === 0 ? true : false);
+      setTimeout(() => {
+        setShowNoResultsError(false);
+      }, 3000);
+      setHideSuggestion(filteredResults.length === 0);
+      setCursor(-1);
     } else {
-      setResults([]);
+      console.log('oye');
+      console.log(props.list);
+      setSuggestions(props.list);
     }
   }, [searchTerm]);
 
-  const debouncedFetchUser = useCallback(debounce((searchTerm) => {
-    getTeamMembersInfoBySearchTerm(searchTerm);
-   }, 500), []);
-
-  const getTeamMembersInfoBySearchTerm = (searchTerm: string) => {
-    const filteredResults = props.list.filter((item:any) => {
-      const currentEntity = item.entityId + ' - ' + item.entityName;
-      return currentEntity.toLowerCase().includes(searchTerm.toLowerCase());
-    });
-    setResults(filteredResults);
-    setShowNoResultsError(filteredResults.length === 0 ? true : false);
-    setHideSuggestion(filteredResults.length === 0);
-    setCursor(-1);
-  };
-
   const onSuggestionItemClick = (id: number) => {
-    setSearchTerm(results[id].entityId + ' - ' + results[id].entityName);
+    setSearchTerm(suggestions[id].entityId + ' - ' + suggestions[id].entityName);
     setHideSuggestion(true);
+    setIsSelected(true);
     const entity = {
-      entityId: results[id].entityId,
-      entityName: results[id].entityName
+      entityId: suggestions[id].entityId,
+      entityName: suggestions[id].entityName
     }
     props.onItemSelect(entity);
   };
@@ -110,14 +100,14 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
     if (keyPressed === KEY_CODE.enter && query.length) {
       
       if(cursor === -1) {
-        console.log('cursor -1');
+        console.log('');
       } else {
         setHideSuggestion(true);
 
-        if (cursor !== -1 && results.length && !hideSuggestion) {
+        if (cursor !== -1 && suggestions.length && !hideSuggestion) {
           setShowNoResultsError(false);
           setCursor(-1);
-          setSearchTerm(results[cursor].entityId + ' - ' + results[cursor].entityName);
+          setSearchTerm(suggestions[cursor].entityId + ' - ' + suggestions[cursor].entityName);
         }
       }
     } else if (keyPressed === KEY_CODE.upArrow && cursor > 0) {
@@ -131,7 +121,7 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
           suggestionContainer.current.scrollTop = activeElem.offsetTop - activeElemHeight * 2;
         }
       }
-    } else if (keyPressed === KEY_CODE.downArrow && cursor < results.length - 1) {
+    } else if (keyPressed === KEY_CODE.downArrow && cursor < suggestions.length - 1) {
       setCursor((prevState) => (prevState + 1));
       const containerHeight = suggestionContainer.current.getBoundingClientRect().height;
       const activeElem = suggestionContainer.current.querySelector('li.active') as HTMLLIElement;
@@ -172,12 +162,24 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
           {showNoResultsError && 
             <p className={Styles.searchError}>No results found.</p>
           }
-          {!hideSuggestion && searchTerm.length > 0 ? (
+          {!hideSuggestion && searchTerm.length > 0 && !isSelected ? (
             <ul
               ref={suggestionContainer}
               className={Styles.suggestionList}
             >
-              {suggestions}
+              {
+                suggestions.map((item: any, index: number) => {
+                  return (
+                    <li
+                      key={item.id}
+                      onClick={() => onSuggestionItemClick(index)}
+                      className={cursor === index ? Styles.active + ' active' : null}
+                    >
+                      {item.entityId} - {item.entityName}
+                    </li>
+                  );
+                })
+              }
             </ul>
           ) : ''}
         </div>
