@@ -66,6 +66,7 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
                     removeTag={this.removeDataSource}
                     tags={this.props.dataSourcesTags}
                     showMissingEntryError={false}
+                    isDataSource={true}
                     {...this.props}
                   />
                 </div>
