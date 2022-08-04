@@ -33,6 +33,9 @@
   padding: 5px 15px;
   cursor: pointer;
   background: #383f49;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .active {
   background: #00adef !important;
