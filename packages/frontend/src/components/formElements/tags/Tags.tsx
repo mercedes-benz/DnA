@@ -20,6 +20,7 @@ export interface ITagsFieldProps {
   suggestionPopupHeight?: number;
   isDisabled?: boolean;
   removeTag?: (index: number) => void;
+  isDataSource?: boolean;
 }
 
 export interface ITagsFiledState {
@@ -66,9 +67,22 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
   public render() {
     const chips = this.state.chips?.map((chip: any, index: any) => {
       const canDelete = !this.props.fixedChips?.includes(chip);
+
+      let dsBadge:any = '';
+      if(this.props.isDataSource) {
+        const dataSource = this.props.tags.filter(ds => ds.name === chip);
+        if(dataSource.length === 1) {
+          if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
+            if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+              dsBadge = '(' + dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1) + ') ';
+            }
+          }
+        }
+      }
+
       return (
         <div className="chips" key={index}>
-          <label className="name">{chip}</label>
+          <label className="name">{this.props.isDataSource ? (dsBadge + chip) : chip}</label>
           {canDelete ? (
             <span
               className={`close-btn ${this.props.isDisabled ? 'disable' : ''}`}
@@ -94,7 +108,22 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           className={className}
           data-value={filteredTag.name}
         >
-          {this.props.suggestionRender ? this.props.suggestionRender(filteredTag) : filteredTag.name}
+         {this.props.suggestionRender ? this.props.suggestionRender(filteredTag) : filteredTag.name} 
+      
+         {
+          this.props.isDataSource &&
+            <span>
+              {filteredTag !== undefined && 
+                <>
+                  {
+                    (filteredTag.dataType !== null && filteredTag.source !== null) && 
+                    (filteredTag.dataType !== undefined && filteredTag.source !== undefined) &&
+                      <>({filteredTag.source + '-' + filteredTag.dataType.charAt(0).toUpperCase() + filteredTag.dataType.slice(1)})</>
+                  }
+                </>
+              }
+            </span>
+         }
         </div>
       );
     });
@@ -198,7 +227,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const userInput = target.value;
     const tags = this.props.tags;
     if (userInput) {
-      let filteredTags = tags?.filter((tag) => tag.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1);
+      let filteredTags = tags?.filter((tag:any) => tag.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1);
       if (filteredTags?.length === 0 && tags?.length) {
         filteredTags = [{ id: '0', name: 'No suggestions available' }];
       }
