@@ -471,11 +471,15 @@ export class ApiClient {
     sortBy: string,
     sortOrder: string,
     published?: boolean,
+    digitalvaluecontribution=false,
+    notebookavailable=false
   ): Promise<any> {
     let reqQuery = `location:"${locations}",phase:"${phases}",division:"${divisions}",projectStatus:"${status}",useCaseType:"${useCaseType}",dataVolume:"${dataVolumes}",tags:"${tags}",offset:${offset},limit:${limit},sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
     if (published) {
       reqQuery += `,published:${published}`;
     }
+    // reqQuery += `,digitalvaluecontribution:${digitalvaluecontribution}`;
+    // reqQuery += `,notebookavailable:${notebookavailable}`;
     const resQuery = `totalCount
       records {id,
         productName,
