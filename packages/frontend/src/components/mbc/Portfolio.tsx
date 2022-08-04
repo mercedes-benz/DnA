@@ -575,10 +575,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   </span>
                 </div>
                 <div className={classNames(Styles.portNavMore)}>
-                  <label className="hide">
+                  <label className="hidden">
                     <i className="icon mbc-icon listItem context" />
                   </label>
-                  <label className={classNames(Styles.portNav, 'hide')}>
+                  <label className={classNames(Styles.portNav)} onClick={this.onSummaryNotebookBtnClick}>
                     <i className="icon mbc-icon arrow small right" />
                   </label>
                 </div>
@@ -832,6 +832,15 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     if (parseFloat(this.state.digitalValueDataKPI) > 0) {
       trackEvent('Portfolio', 'View Solutions', 'From Digital Value KPI');
       history.push('/viewsolutions/digitalvaluecontribution');
+    } else {
+      Notification.show('No solutions available to view.', 'alert');
+    }
+  };
+
+  protected onSummaryNotebookBtnClick = () => {
+    if (Number(this.state.dnaNotebooksDataKPI) > 0) {
+      trackEvent('Portfolio', 'View Solutions', 'From Notebook KPI');
+      history.push('/viewsolutions/notebook');
     } else {
       Notification.show('No solutions available to view.', 'alert');
     }
