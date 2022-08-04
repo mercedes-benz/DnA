@@ -1,5 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
+import { Envs } from '../../../globals/Envs';
 import { ITag } from '../../../globals/types';
 import Styles from './Tags.scss';
 
@@ -68,13 +69,13 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const chips = this.state.chips?.map((chip: any, index: any) => {
       const canDelete = !this.props.fixedChips?.includes(chip);
 
-      let dsBadge:any = '';
+      let dsBadge:any = Envs.DNA_APPNAME_HEADER;
       if(this.props.isDataSource) {
         const dataSource = this.props.tags.filter(ds => ds.name === chip);
         if(dataSource.length === 1) {
           if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
             if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
-              dsBadge = '(' + dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1) + ') ';
+              dsBadge = '(' + dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1) + ')';
             }
           }
         }
@@ -82,7 +83,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       return (
         <div className="chips" key={index}>
-          <label className="name">{this.props.isDataSource ? (dsBadge + chip) : chip}</label>
+          <label className="name">{this.props.isDataSource ? <>{chip} <span className={Styles.badge}>{dsBadge}</span></> : chip}</label>
           {canDelete ? (
             <span
               className={`close-btn ${this.props.isDisabled ? 'disable' : ''}`}
@@ -112,13 +113,17 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       
          {
           this.props.isDataSource &&
-            <span>
+            <span className={Styles.badge}>
               {filteredTag !== undefined && 
                 <>
                   {
                     (filteredTag.dataType !== null && filteredTag.source !== null) && 
                     (filteredTag.dataType !== undefined && filteredTag.source !== undefined) &&
                       <>({filteredTag.source + '-' + filteredTag.dataType.charAt(0).toUpperCase() + filteredTag.dataType.slice(1)})</>
+                  }
+                  {
+                    (filteredTag.dataType === null && filteredTag.source === null) && 
+                      <>({Envs.DNA_APPNAME_HEADER})</>
                   }
                 </>
               }
