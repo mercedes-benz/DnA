@@ -123,6 +123,7 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
                             key={item.dataSource}
                             name={item.dataSource}
                             weightage={item.weightage}
+                            list={this.props.dataSourcesTags}
                             onWeightageChange={this.handleWeightageChange(index)}
                           />
                         ))
