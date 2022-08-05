@@ -262,6 +262,11 @@ definitions:
      type: array
      items: 
        $ref: "#/definitions/SubdivisionVO" 
+    changeLogs:
+      type: array
+      items:
+        $ref: "#/definitions/ChangeLogVO"
+        
   required:
      - name       
 
@@ -292,5 +297,70 @@ definitions:
   properties:
     data:
       description: "Request data containing division details to be created"
-      $ref: "#/definitions/DivisionVO"     
+      $ref: "#/definitions/DivisionVO"    
+      
+ ChangeLogVO:
+    type: object
+    description: "Describes a single change log record done on the solution"
+    properties:
+      changeDate:
+        type: string
+        format: date
+        description: "Date on which this change occurred"
+      modifiedBy:
+        description: "User who changed the value"
+        $ref: "#/definitions/TeamMemberVO"
+      fieldChanged:
+        type: string
+        description: "Describe the attribute that changed"
+      oldValue:
+        type: string
+        description: "Describes the old value of the changed attribute"
+      newValue:
+        type: string
+        description: "Describes the new value of the changed attribute"
+      changeDescription:
+        type: string
+        description: "Short Description on change/addition/removal of Digital Value" 
+        
+ TeamMemberVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+      userType:
+        type: string
+        description: "Internal or External"
+        enum: [internal, external]
+      firstName:
+        type: string
+        description: "First Name of the user"
+      #     pattern: '[a-zA-Z]+'
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      #     pattern: '[a-zA-Z]+'
+      department:
+        type: string
+        description: "Department of the user"
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      #     minLength: 10
+      #     maxLength: 10
+      #     pattern: ^[1-9]\d{9}$
+      company:
+        type: string
+        description: "Company name of the external member"
+      teamMemberPosition:
+        type: string
+        description: "Position of team member in project"
+#    required:
+#      - teamMemberPosition 
  
