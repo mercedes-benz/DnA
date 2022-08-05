@@ -12,6 +12,7 @@ export interface ITextBoxProps {
   placeholder: string;
   onChange: (e: React.FormEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FormEvent<HTMLInputElement>) => void;
+  onKeyUp?: (e: React.FormEvent<HTMLInputElement>) => void;
   value: string;
   errorText?: string;
 }
@@ -40,6 +41,7 @@ const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
         value={props.value}
         onChange={props.onChange}
         onBlur={props.onBlur ? props.onBlur : undefined}
+        onKeyUp={props.onKeyUp ? props.onKeyUp : undefined}
         required={props.required}
         maxLength={props.maxLength}
         autoComplete="off"
