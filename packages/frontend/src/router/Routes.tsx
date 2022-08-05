@@ -34,6 +34,7 @@ const CreateNewReport = React.lazy(() => import('../components/mbc/createNewRepo
 const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
 const UserSettings = React.lazy(() => import('../components/mbc/userSettings/userSettings'));
 const DataComplianceNetworkList = React.lazy(() => import('../components/mbc/dataComplianceNetworkList/DataComplianceNetworkList'));
+const CodeSpace = React.lazy(() => import('../components/mbc/codeSpace/CodeSpace'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -290,6 +291,13 @@ const protectedRoutes = [
     exact: false,
     path: '/datacompliancenetworklist',
     title: 'Data Compliance Network List',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CodeSpace,
+    exact: false,
+    path: '/codespace',
+    title: 'Code Space',
   },
 ];
 
