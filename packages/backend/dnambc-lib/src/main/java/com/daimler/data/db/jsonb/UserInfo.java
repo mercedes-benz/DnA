@@ -53,6 +53,7 @@ public class UserInfo implements Serializable {
 	List<UserInfoRole> roles;
 	List<UserFavoriteUseCase> favoriteUsecases;
 	private List<String> divisionAdmins;
+	String codeServerPassword;
 
 //    public UserInfo() {
 //        super();
