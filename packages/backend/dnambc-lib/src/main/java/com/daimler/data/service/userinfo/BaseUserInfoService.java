@@ -36,14 +36,18 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.application.config.CodeServerClient;
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserFavoriteUseCase;
+import com.daimler.data.db.jsonb.UserInfo;
 import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
 import com.daimler.data.db.repo.userinfo.UserInfoRepository;
@@ -81,6 +85,9 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	@Autowired
 	private KafkaProducerService kafkaProducer;
 
+	@Autowired
+	private CodeServerClient codeServerClient;
+	
 	public BaseUserInfoService() {
 		super();
 	}
@@ -313,5 +320,31 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	public UserInfoVO getById(String id) {
 		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
 		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
+	}
+	
+	@Override
+	@Transactional
+	public GenericMessage initializeCodeServer(String userId, String password) {
+		GenericMessage response = codeServerClient.createWorkbench(userId, password);
+		if(response!=null && "success".equalsIgnoreCase(response.getSuccess())){
+			logger.info("Workbench created successfully, saving workbench password for user {} in db.", userId);
+			try {
+			UserInfoNsql userinfo = customRepo.findById(userId).get();
+			UserInfo data = userinfo.getData();
+			data.setCodeServerPassword(password);
+			userinfo.setData(data);
+			customRepo.update(userinfo);
+			logger.info("Saved workbench password for user {} in db sucessfully.", userId);
+			}catch(Exception e) {
+				e.printStackTrace();
+				logger.error("Workbench created successfully, failed while saving workbench password for user {} in db with exception {} .", userId,e.getMessage());
+			}
+		}
+		return response;
+	}
+
+	@Override
+	public HttpStatus pollWorkBenchStatus(String userId) {
+		return codeServerClient.pollWorkBenchStatus(userId);
 	}
 }
