@@ -54,7 +54,6 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     }).catch((err: Error) => {
       Notification.show("Error in validating code space - " + err.message);
     });
-    Tooltip.defaultSetup();
   }, [])
 
   const toggleFullScreenMode = () => {
@@ -74,6 +73,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
     setShowNewCodeSpaceModal(!status);
     setCodeSpaceData(codeSpaceData);
+    Tooltip.defaultSetup();
   }
 
   const toggleProgressMessage = (show: boolean) => {
