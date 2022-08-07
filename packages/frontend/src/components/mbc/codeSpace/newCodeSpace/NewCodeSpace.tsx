@@ -1,16 +1,23 @@
-import React, { useState, forwardRef, useImperativeHandle, Ref } from 'react';
+import React, { useState } from 'react';
 import Styles from './NewCodeSpace.scss';
 import { ApiClient } from '../../../../services/ApiClient';
 
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+// @ts-ignore
+import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
+import SelectBox from '../../../formElements/SelectBox/SelectBox';
+
 import { trackEvent } from '../../../../services/utils';
 import TextBox from '../../shared/textBox/TextBox';
 import { ICodeSpaceData } from '../CodeSpace';
+import { useEffect } from 'react';
+import { IUserInfo } from '../../../../globals/types';
 
 export interface ICodeSpaceProps {
-  namePrefix: string;
+  user: IUserInfo;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
+  toggleProgressMessage?: (show: boolean) => void;
 }
 
 export interface ICodeSpaceRef {
@@ -21,7 +28,10 @@ export interface ICreateCodeSpaceData {
   password: string;
 }
 
-const NewCodeSpace = forwardRef((props: ICodeSpaceProps, ref: Ref<ICodeSpaceRef>) => {
+const NewCodeSpace = (props: ICodeSpaceProps) => {
+
+  const [recipeValues, setRecipeValues] = useState([]);
+  const recipes = [{ id: 'springboot', name: 'Spring Boot'}, { id: 'mean', name: 'MEAN Stack'}, { id: 'mern', name: 'MERN Stack'}];
 
   const [passwordError, setPasswordErr] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
@@ -29,6 +39,22 @@ const NewCodeSpace = forwardRef((props: ICodeSpaceProps, ref: Ref<ICodeSpaceRef>
     password: '',
     confirmPassword: '',
   });
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
+
+  const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues:string[] = [];
+    // this.props.onStateChange();
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        selectedValues.push(option.value);
+      });
+    }
+    setRecipeValues(selectedValues);
+  };
 
   const handlePasswordChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const passwordInputValue = evnt.currentTarget.value.trim();
@@ -42,29 +68,33 @@ const NewCodeSpace = forwardRef((props: ICodeSpaceProps, ref: Ref<ICodeSpaceRef>
     const passwordInputFieldName = evnt.currentTarget.name;
     //for password
     if (passwordInputFieldName === 'password') {
-      const uppercaseRegExp = /(?=.*?[A-Z])/;
-      const lowercaseRegExp = /(?=.*?[a-z])/;
+      // const uppercaseRegExp = /(?=.*?[A-Z])/;
+      // const lowercaseRegExp = /(?=.*?[a-z])/;
       const digitsRegExp = /(?=.*?[0-9])/;
-      const specialCharRegExp = /(?=.*?[#?!@$%^&*-])/;
+      // const specialCharRegExp = /(?=.*?[#?!@$%^&*-])/;
       const minLengthRegExp = /.{8,}/;
       const passwordLength = passwordInputValue.length;
-      const uppercasePassword = uppercaseRegExp.test(passwordInputValue);
-      const lowercasePassword = lowercaseRegExp.test(passwordInputValue);
+      // const uppercasePassword = uppercaseRegExp.test(passwordInputValue);
+      // const lowercasePassword = lowercaseRegExp.test(passwordInputValue);
       const digitsPassword = digitsRegExp.test(passwordInputValue);
-      const specialCharPassword = specialCharRegExp.test(passwordInputValue);
+      // const specialCharPassword = specialCharRegExp.test(passwordInputValue);
       const minLengthPassword = minLengthRegExp.test(passwordInputValue);
       let errMsg = '';
       if (passwordLength === 0) {
         errMsg = 'Password is empty';
-      } else if (!uppercasePassword) {
+      }
+      /*else if (!uppercasePassword) {
         errMsg = 'At least one Uppercase';
       } else if (!lowercasePassword) {
         errMsg = 'At least one Lowercase';
-      } else if (!digitsPassword) {
+      }*/
+      else if (!digitsPassword) {
         errMsg = 'At least one digit';
-      } else if (!specialCharPassword) {
+      } 
+      /*else if (!specialCharPassword) {
         errMsg = 'At least one Special Characters';
-      } else if (!minLengthPassword) {
+      }*/
+      else if (!minLengthPassword) {
         errMsg = 'At least minumum 8 characters';
       } else {
         errMsg = '';
@@ -84,17 +114,17 @@ const NewCodeSpace = forwardRef((props: ICodeSpaceProps, ref: Ref<ICodeSpaceRef>
     }
   };
   // User Name
-  const namePrefix = props.namePrefix;
+  const namePrefix = props.user.firstName;
+  const requiredError = '*Missing entry';
 
-  const validateDescriptionForm = () => {
+  const validateNewCodeSpaceForm = () => {
     let formValid = true;
-    const errorMissingEntry = '*Missing entry';
     if (passwordInput.password === '') {
-      setPasswordErr(errorMissingEntry);
+      setPasswordErr(requiredError);
       formValid = false;
     }
     if (passwordInput.confirmPassword === '') {
-      setConfirmPasswordError(errorMissingEntry);
+      setConfirmPasswordError(requiredError);
       formValid = false;
     }
     if (passwordError !== '' || confirmPasswordError !== '') {
@@ -103,31 +133,56 @@ const NewCodeSpace = forwardRef((props: ICodeSpaceProps, ref: Ref<ICodeSpaceRef>
     return formValid;
   };
 
+  let livelinessInterval:any = undefined;
+  const enableLivelinessCheck = () => {
+    clearInterval(livelinessInterval);
+    livelinessInterval = setInterval(() => {
+      ApiClient.getCodeSpace().then((res: any) => {
+        if(res.success === 'true') {
+          props.toggleProgressMessage(false);
+          ProgressIndicator.hide();
+          clearInterval(livelinessInterval);
+          props.isCodeSpaceCreationSuccess(true, { 
+            url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/`,
+            running: true,
+          });
+          Notification.show('Code space succesfully created.');
+        }
+      }).catch((err: Error) => {
+        clearInterval(livelinessInterval);
+        props.toggleProgressMessage(false);
+        ProgressIndicator.hide();
+        Notification.show("Error in validating code space - " + err.message, 'error');
+      });
+    }, 2000);
+  }
+
   const createCodeSpace = () => {
     const codeSpaceData = {
       password: passwordInput.password,
     };
-    if (validateDescriptionForm()) {
+    if (validateNewCodeSpaceForm()) {
       ProgressIndicator.show();
       ApiClient.createCodeSpace(codeSpaceData)
-        .then((response) => {
+        .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          ProgressIndicator.hide();
-          props.isCodeSpaceCreationSuccess(false, response.data);
+          if(res.success === 'Success') {
+            props.toggleProgressMessage(true);
+            enableLivelinessCheck();
+          } else {
+            props.toggleProgressMessage(false);
+            ProgressIndicator.hide();
+            Notification.show('Error in creating new code space. Please try again later.\n' + res.errors[0].message, 'error');
+          }
         })
         .catch((err: Error) => {
-          err
+          props.toggleProgressMessage(false);
+          ProgressIndicator.hide();
+          Notification.show('Error in creating new code space. Please try again later.\n' + err, 'error');
         });
     }
   };
-  // const requiredError = '*Missing entry';
-
-  useImperativeHandle(ref, () => ({
-    validateAndCreateCodeSpace() {
-      createCodeSpace();
-    },
-  }));
-
+  
   return (
     <React.Fragment>
       <div className={Styles.newCodeSpacePanel}>
@@ -139,6 +194,30 @@ const NewCodeSpace = forwardRef((props: ICodeSpaceProps, ref: Ref<ICodeSpaceRef>
         <p className={Styles.passwordInfo}>
           Note: Password should be minimum 8 chars in length and alpha numeric.
         </p>
+        <div
+          id="recipeContainer"
+          className="input-field-group"
+        >
+          <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
+            Select Recipe(s)<sup>(Coming Soon)</sup>
+          </label>
+          <div id="recipe" className="custom-select">
+            <select
+              id="recipeSelect"
+              multiple={true}
+              required={false}
+              required-error={requiredError}
+              onChange={onRecipeChange}
+              value={recipeValues}
+            >
+              {recipes.map((obj: any) => (
+                <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         <TextBox
           type="password"
           controlId={'codeSpacePasswordInput'}
@@ -175,6 +254,6 @@ const NewCodeSpace = forwardRef((props: ICodeSpaceProps, ref: Ref<ICodeSpaceRef>
       </div>
     </React.Fragment>
   );
-});
+};
 
 export default NewCodeSpace;
