@@ -43,8 +43,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
 
   useEffect(() => {
-    setLoading(false);
     ApiClient.getCodeSpace().then((res: any) => {
+      setLoading(false);
       const codeSpaceRunning = (res.success === 'true');
       setCodeSpaceData({
         ...codeSpaceData,
