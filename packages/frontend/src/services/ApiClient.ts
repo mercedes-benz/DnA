@@ -377,8 +377,12 @@ export class ApiClient {
   }
 
   // Create New Code Space
+  public static getCodeSpace() {
+    return this.get('users/code-server');
+  }
+
   public static createCodeSpace(data: ICreateCodeSpaceData) {
-    return this.post('codespace/create', data);
+    return this.post('users/code-server', data);
   }
 
   // Create New Sandbox
