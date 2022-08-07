@@ -9,7 +9,7 @@ import { Envs } from '../../../globals/Envs';
 import { IUserInfo } from '../../../globals/types';
 import { history } from '../../../router/History';
 import { trackEvent } from '../../../services/utils';
-// import { ApiClient } from '../../../services/ApiClient';
+import { ApiClient } from '../../../services/ApiClient';
 import Modal from '../../formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from '../../icons/fullScreenMode/FullScreenModeIcon';
@@ -19,6 +19,7 @@ import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
+import ProgressWithMessage from '../../../components/progressWithMessage/ProgressWithMessage';
 // import { HTTP_METHOD } from '../../../globals/constants';
 
 
@@ -33,31 +34,27 @@ export interface ICodeSpaceData {
 
 const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-    url: 'https://code-spaces.***REMOVED***/kamerao/?folder=/home/coder',
+    url: 'https://code-spaces.***REMOVED***/kamerao/',
     running: false
   });
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false);
+  const [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
 
   useEffect(() => {
     setLoading(false);
-    setCodeSpaceData({
-      ...codeSpaceData,
-      running: true
+    ApiClient.getCodeSpace().then((res: any) => {
+      const codeSpaceRunning = (res.success === 'true');
+      setCodeSpaceData({
+        ...codeSpaceData,
+        running: codeSpaceRunning
+      });
+      setShowNewCodeSpaceModal(!codeSpaceRunning);
+    }).catch((err: Error) => {
+      Notification.show("Error in validating code space - " + err.message);
     });
-    // setShowNewCodeSpaceModal(true);
-    // ApiClient.fetch(codeSpaceData.url, HTTP_METHOD.GET).then(() => {
-    //   setCodeSpaceData({
-    //     ...codeSpaceData,
-    //     running: true
-    //   });
-    // }).catch((err: Error) => {
-    //   setCodeSpaceData({
-    //     ...codeSpaceData,
-    //     running: true
-    //   });
-    // });
+    Tooltip.defaultSetup();
   }, [])
 
   const toggleFullScreenMode = () => {
@@ -74,11 +71,13 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
   };
 
-  const isCodeSpaceCreationSuccess = () => {
-    setCodeSpaceData({
-      ...codeSpaceData,
-      running: false
-    });
+  const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
+    setShowNewCodeSpaceModal(!status);
+    setCodeSpaceData(codeSpaceData);
+  }
+
+  const toggleProgressMessage = (show: boolean) => {
+    setIsApiCallTakeTime(show);
   }
 
   const onNewCodeSpaceModalCancel = () => {
@@ -102,7 +101,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <div className={Styles.navigation}>
                 {codeSpaceData.running && (
                   <div className={Styles.headerright}>
-                    <div tooltip-data="Open NewTab" className={Styles.OpenNewTab} onClick={openInNewtab}>
+                    <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                       <i className="icon mbc-icon arrow small right" />
                       <span> &nbsp; </span>
                     </div>
@@ -142,16 +141,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             show={showNewCodeSpaceModal}
             content={
               <NewCodeSpace
-                namePrefix={props.user.firstName}
+                user={props.user}
                 isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
+                toggleProgressMessage={toggleProgressMessage}
               />
             }
-            scrollableContent={false}
+            scrollableContent={true}
             onCancel={onNewCodeSpaceModalCancel}
           />
         ) : (
           ''
         )}
+      {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up to a minute....'} />}
       </div>
   );
 };
