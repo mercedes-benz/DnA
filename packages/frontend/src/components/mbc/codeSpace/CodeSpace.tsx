@@ -34,7 +34,7 @@ export interface ICodeSpaceData {
 
 const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-    url: 'https://code-spaces.***REMOVED***/kamerao/',
+    url: `https://code-spaces.***REMOVED***/${props.user.id.toLocaleLowerCase()}/`,
     running: false
   });
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
