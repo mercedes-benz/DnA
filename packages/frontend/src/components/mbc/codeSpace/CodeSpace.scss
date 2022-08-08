@@ -62,7 +62,7 @@
       }
       .nbtitle {
         padding-right: 30px;
-        max-width: 250px;
+        max-width: 350px;
         min-width: 210px;
       }
   
@@ -164,6 +164,7 @@
     iframe {
       height: 100%;
       width: 100%;
+      border: none;
       &.fullscreen {
         height: calc(100% - 60px);
       }
