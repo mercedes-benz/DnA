@@ -20,8 +20,8 @@ class AzureClient:
     authority_url = "https://login.microsoftonline.com/"
     graph_url = "https://graph.microsoft.com/"
 
-    graph_group_url = "https://graph.microsoft.com/v1.0/groups?$filter=startsWith(displayName, \'{}\')&$select=id,displayName"
-    graph_members_url = "https://graph.microsoft.com/v1.0/groups/{}/members?$select=displayName,userPrincipalName"
+    graph_group_url = "https://graph.microsoft.com/v1.0/groups?$filter=startsWith(displayName, \'{}\')&$select=id,displayName&$top=500"
+    graph_members_url = "https://graph.microsoft.com/v1.0/groups/{}/members?$select=displayName,userPrincipalName&$top=500"
 
     # Define a translation dict that specifies how each credential should
     # be named in the user's secrets
