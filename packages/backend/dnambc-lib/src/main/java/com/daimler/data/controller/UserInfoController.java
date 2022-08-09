@@ -300,7 +300,7 @@ public class UserInfoController implements UsersApi {
 
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
-		GenericMessage responseMessage = userInfoService.initializeCodeServer(userId, codeServerRequestVO.getPassword());
+		GenericMessage responseMessage = userInfoService.initializeCodeServer(userId, codeServerRequestVO.getPassword(),codeServerRequestVO.getRecipeId());
 		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	
 	}
