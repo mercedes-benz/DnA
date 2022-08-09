@@ -31,7 +31,13 @@ export interface ICreateCodeSpaceData {
 const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [recipeValues, setRecipeValues] = useState([]);
-  const recipes = [{ id: 'springboot', name: 'Spring Boot'}, { id: 'mean', name: 'MEAN Stack'}, { id: 'mern', name: 'MERN Stack'}];
+  const recipes = [
+    { id: 'dna', name: 'DnA Workspace' },
+    { id: 'chronos', name: 'CHRONOS Workspace' },
+    { id: 'springboot', name: 'Spring Boot Microservice' },
+    { id: 'mean', name: 'MEAN Stack' },
+    { id: 'mern', name: 'MERN Stack' },
+  ];
 
   const [passwordError, setPasswordErr] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
@@ -248,7 +254,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         />
         <div className={Styles.newCodeSpaceBtn}>
           <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
-              Start Code Space
+              Create Code Space
           </button>
         </div>
       </div>
