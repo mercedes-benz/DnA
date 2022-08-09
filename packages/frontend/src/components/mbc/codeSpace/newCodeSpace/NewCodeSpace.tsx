@@ -34,7 +34,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const recipes = [
     { id: 'dna', name: 'DnA Workspace' },
     { id: 'chronos', name: 'CHRONOS Workspace' },
-    { id: 'springboot', name: 'Spring Boot Microservices' },
+    { id: 'springboot', name: 'Spring Boot Microservice' },
     { id: 'mean', name: 'MEAN Stack' },
     { id: 'mern', name: 'MERN Stack' },
   ];
