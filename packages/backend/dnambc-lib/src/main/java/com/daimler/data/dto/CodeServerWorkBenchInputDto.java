@@ -12,5 +12,6 @@ public class CodeServerWorkBenchInputDto {
 	private String shortid;
 	private String password;
 	private String action;
+	private String type;
 	
 }

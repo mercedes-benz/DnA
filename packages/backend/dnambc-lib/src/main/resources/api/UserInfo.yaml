@@ -457,6 +457,9 @@ definitions:
   InitializeCodeServerRequestVO:
     type: object
     properties:
+      recipeId:
+        type: string
+        description: "Recipe Id, which says, what kind of workbench to be loaded. Ex- empty,ms-springboot,dna"
       password:
         type: string
         description: "Create Password, required to login to workbench of codeserver"
