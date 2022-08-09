@@ -176,6 +176,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           <div>
             <TextArea
               controlId={'reportKpiComment'}
+              containerId={'reportKpiComment'}
               name={'comment'}
               labelId={'reportKpiCommentLabel'}
               label={'Comment'}
