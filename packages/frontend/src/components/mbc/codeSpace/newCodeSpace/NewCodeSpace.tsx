@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
 import { ApiClient } from '../../../../services/ApiClient';
 
@@ -14,6 +15,8 @@ import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
 import { IUserInfo } from '../../../../globals/types';
 
+const classNames = cn.bind(Styles);
+
 export interface ICodeSpaceProps {
   user: IUserInfo;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
@@ -25,6 +28,7 @@ export interface ICodeSpaceRef {
 }
 
 export interface ICreateCodeSpaceData {
+  recipeId: string;
   password: string;
 }
 
@@ -32,13 +36,14 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [recipeValues, setRecipeValues] = useState([]);
   const recipes = [
-    { id: 'dna', name: 'DnA Workspace' },
-    { id: 'chronos', name: 'CHRONOS Workspace' },
-    { id: 'springboot', name: 'Spring Boot Microservice' },
-    { id: 'mean', name: 'MEAN Stack' },
-    { id: 'mern', name: 'MERN Stack' },
+    { id: 'ms-springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'dna', name: 'DnA Workspace (Coming Soon)' },
+    { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
+    { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
+    { id: 'mern', name: 'MERN Stack (Coming Soon)' },
   ];
 
+  const [recipeError, setRecipeError] = useState('');
   const [passwordError, setPasswordErr] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [passwordInput, setPasswordInput] = useState({
@@ -125,6 +130,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const validateNewCodeSpaceForm = () => {
     let formValid = true;
+    if (!recipeValues.length) {
+      setRecipeError(requiredError);
+      formValid = false;
+    }
     if (passwordInput.password === '') {
       setPasswordErr(requiredError);
       formValid = false;
@@ -165,6 +174,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const createCodeSpace = () => {
     const codeSpaceData = {
+      recipeId: recipeValues.join(''),
       password: passwordInput.password,
     };
     if (validateNewCodeSpaceForm()) {
@@ -202,20 +212,23 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         </p>
         <div
           id="recipeContainer"
-          className="input-field-group"
+          className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
         >
           <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
-            Select Recipe(s)<sup>(Coming Soon)</sup>
+            Code Recipe<sup>*</sup>
           </label>
           <div id="recipe" className="custom-select">
             <select
               id="recipeSelect"
-              multiple={true}
-              required={false}
+              multiple={false}
+              required={true}
               required-error={requiredError}
               onChange={onRecipeChange}
-              value={recipeValues}
+              value={recipeValues.join('')}
             >
+              <option id="defaultStatus" value={0}>
+                Select Code Recipe
+              </option>
               {recipes.map((obj: any) => (
                 <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
                   {obj.name}
@@ -223,6 +236,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               ))}
             </select>
           </div>
+          <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>
+            {recipeError}
+          </span>
         </div>
         <TextBox
           type="password"
