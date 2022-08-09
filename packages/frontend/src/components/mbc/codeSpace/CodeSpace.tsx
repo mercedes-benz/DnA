@@ -136,7 +136,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             title={''}
             showAcceptButton={false}
             showCancelButton={false}
-            modalWidth="500px"
+            modalWidth="600px"
             buttonAlignment="right"
             show={showNewCodeSpaceModal}
             content={
