@@ -324,8 +324,8 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	
 	@Override
 	@Transactional
-	public GenericMessage initializeCodeServer(String userId, String password) {
-		GenericMessage response = codeServerClient.createWorkbench(userId.toLowerCase(), password);
+	public GenericMessage initializeCodeServer(String userId, String password, String type) {
+		GenericMessage response = codeServerClient.createWorkbench(userId.toLowerCase(), password, type);
 		if(response!=null && "success".equalsIgnoreCase(response.getSuccess())){
 			logger.info("Workbench created successfully, saving workbench password for user {} in db.", userId);
 			try {

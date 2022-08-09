@@ -39,8 +39,24 @@ public class CodeServerClient {
 	
 	private static String workBenchCreateAction = "create";
 	
+	private static String workBenchDefaultType = "default";
+	private static String workBenchMsType = "microservice";
+	
 	@Autowired
 	RestTemplate restTemplate;
+	
+	private String mapRecipe(String recipeId) {
+		String type= workBenchDefaultType;
+		switch (recipeId) {
+		case "ms-springboot":
+			type = workBenchMsType;
+			break;
+		default:
+			type= workBenchDefaultType;
+			break;
+		}
+		return type;
+	}
 	
 	public HttpStatus pollWorkBenchStatus(String userId) {
 		
@@ -62,7 +78,7 @@ public class CodeServerClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public GenericMessage createWorkbench(String userId, String password) {
+	public GenericMessage createWorkbench(String userId, String password, String type) {
 		GenericMessage createRespone = new GenericMessage();
 		String status = "Failed";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -79,6 +95,10 @@ public class CodeServerClient {
 			inputDto.setAction(workBenchCreateAction);
 			inputDto.setPassword(password);
 			inputDto.setShortid(userId);
+			if(type==null) {
+				type = workBenchDefaultType;
+			}
+			inputDto.setType(this.mapRecipe(type));
 			createDto.setInputs(inputDto);
 			createDto.setRef(codeServerEnvRef);
 			
