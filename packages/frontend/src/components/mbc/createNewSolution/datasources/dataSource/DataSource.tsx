@@ -42,7 +42,11 @@ const DataSource = (props: IDataSourceProps) => {
       if(dataSource.length === 1) {
         if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
           if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
-            setBadge('(' + dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1) + ') ');
+            if(dataSource[0].dataType === "Not set") {
+              setBadge(dataSource[0].source);
+            } else {
+              setBadge(dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1));
+            }
           }
         }
       }
