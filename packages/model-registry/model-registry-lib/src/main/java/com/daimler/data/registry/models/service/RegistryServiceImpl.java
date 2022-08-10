@@ -29,6 +29,7 @@ package com.daimler.data.registry.models.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,9 @@ import com.daimler.data.dto.model.ModelRequestVO;
 import com.daimler.data.dto.model.ModelResponseVO;
 import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
+import com.daimler.data.registry.config.VaultConfig;
+import com.daimler.data.registry.dto.VaultGenericResponse;
+import com.daimler.data.registry.util.AppIdGenerator;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -63,6 +67,9 @@ public class RegistryServiceImpl implements RegistryService {
 
 	@Autowired
 	private MinioConfig minioConfig;
+
+	@Autowired
+	private VaultConfig vaultConfig;
 
 	@Autowired
 	private UserStore userStore;
@@ -126,6 +133,7 @@ public class RegistryServiceImpl implements RegistryService {
 		String modelName = modelRequestVO.getData().getModelName();
 		modelExternalUriVO.setModelName(modelName);
 		String uri = "";
+		String appId = "";
 		try {
 			String[] modelPath = modelName.split("/");
 			String[] userId = modelPath[0].split("-");
@@ -165,7 +173,26 @@ public class RegistryServiceImpl implements RegistryService {
 				modelResponseVO.setErrors(messages);
 				return new ResponseEntity<>(modelResponseVO, HttpStatus.NOT_FOUND);
 			}
+			appId = AppIdGenerator.encrypt(modelName);
+			String appKey = UUID.randomUUID().toString();
 			kubeClient.getUri(metaDataNamespace, metaDataName, backendServiceName, path);
+
+			VaultGenericResponse vaultResponse = vaultConfig.createAppKey(appId, appKey);
+			if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
+				LOGGER.info("AppId and AppKey created successfully");
+				modelExternalUriVO.setAppId(appId);
+				modelExternalUriVO.setAppKey(appKey);
+			} else {
+				LOGGER.error("Failed to create appId while exposing model {} ", modelName);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to create appId due to internal error");
+				messages.add(message);
+				modelResponseVO.setData(modelExternalUriVO);
+				modelResponseVO.setErrors(messages);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
 			modelExternalUriVO.setExternalUri(uri);
 			modelResponseVO.setData(modelExternalUriVO);
 			LOGGER.info("Model {} exposed successfully", modelName);
@@ -173,6 +200,9 @@ public class RegistryServiceImpl implements RegistryService {
 		} catch (ApiException ex) {
 			LOGGER.error("ApiException occurred while exposing model. Exception is {} ", ex.getResponseBody());
 			if (ex.getCode() == HttpStatus.CONFLICT.value()) {
+				String key = vaultConfig.getAppKey(appId);
+				modelExternalUriVO.setAppId(appId);
+				modelExternalUriVO.setAppKey(key);
 				modelExternalUriVO.setExternalUri(uri);
 				modelResponseVO.setData(modelExternalUriVO);
 				List<MessageDescription> messages = new ArrayList<>();

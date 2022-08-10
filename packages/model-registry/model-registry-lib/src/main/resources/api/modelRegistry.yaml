@@ -78,6 +78,12 @@ paths:
    summary: "Get all available models for requested user"
    description:  "Get all models for requested user."
    operationId: "getAll"
+   parameters:
+     - name: Authorization
+       in: header
+       description: Authorization token.
+       required: true
+       type: string   
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -109,6 +115,11 @@ paths:
       description: "create a external uri"
       operationId: "create"
       parameters:
+        - name: Authorization
+          in: header
+          description: Authorization token.
+          required: true
+          type: string        
         - name: "modelRequestVO"
           in: "body"
           description: "Request Body that contains data required for creating a external uri"
@@ -175,6 +186,12 @@ definitions:
       modelName:
         type: string
         description: "Name of the model"
+      appId:
+        type: string
+        description: "AppId to get access token"
+      appKey:
+        type: string
+        description: "Api key to get access token"
       externalUri:
         type: string
         description: "External Uri"              
