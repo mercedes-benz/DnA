@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -72,7 +73,8 @@ public class RegistryController implements ModelsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/models", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<ModelCollection> getAll() {
+	public ResponseEntity<ModelCollection> getAll(
+			@ApiParam(value = "Authorization token.", required = true) @RequestHeader(value = "Authorization", required = true) String authorization) {
 		return modelRegistryservice.getAllModels();
 	}
 
@@ -90,6 +92,7 @@ public class RegistryController implements ModelsApi {
 	@RequestMapping(value = "/model/externaluri", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<ModelResponseVO> create(
+			@ApiParam(value = "Authorization token.", required = true) @RequestHeader(value = "Authorization", required = true) String authorization,
 			@ApiParam(value = "Request Body that contains data required for creating a external uri", required = true) @Valid @RequestBody ModelRequestVO modelRequestVO) {
 		return modelRegistryservice.generateExternalUri(modelRequestVO);
 	}
