@@ -36,6 +36,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+ 
+  .badge {
+    border: 1px solid #d9dfe4;
+    color: #d9dfe4;
+  }
 }
 .active {
   background: #00adef !important;
@@ -65,4 +70,10 @@
   letter-spacing: 1px;
   margin-left: 4px;
   padding: 2px 4px;
+}
+.relativeScroll {
+  position: absolute;
+  bottom: -300px;
+  left: 0;
+  right: 0;
 }
