@@ -428,6 +428,8 @@ export interface IDataSources {
 export interface IDataSourceMaster {
   id: number;
   name?: string;
+  source?: string;
+  dataType: string;
 }
 
 export interface IPlatform {
@@ -1255,6 +1257,8 @@ export interface ITagResult {
   category: IFitlerCategory;
   datawareHouseItems?: IDatawarehouseInItem;
   subdivisions?: ISubDivision[];
+  source?: string;
+  dataType?: string;
 }
 export interface IRelatedProduct {
   id: string;
