@@ -282,8 +282,26 @@ const processDataValues = (values: any[]) => {
   return <Text>{dataValues}</Text>;
 };
 
-const processDataSourceValues = (values: any[]) => {
-  const stringValsArr = values.map((item: any) => item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
+const processDataSourceValues = (values: any[], dsList: any) => {
+  const stringValsArr = values.map((item: any) => { 
+    let dsBadge:any = Envs.DNA_APPNAME_HEADER;
+    if(dsList.length > 0) {
+      const dataSource = dsList.filter((ds:any) => ds.name === item.dataSource);
+      if(dataSource.length === 1) {
+        if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
+          if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+            if(dataSource[0].dataType === "Not set") {
+              dsBadge = dataSource[0].source;
+            } else {
+              dsBadge = dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1);
+            }
+          }
+        }
+      }
+      return (item.dataSource + ' (' + dsBadge + (item.weightage !== 0 ? (' - ' + item.weightage + '%') : '') + ')');
+    }
+    return (item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
+  });
   return processDataValues(stringValsArr);
 };
 
@@ -592,6 +610,7 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
 
 interface SummaryPdfDocProps {
   solution: ICreateNewSolutionData;
+  dataSources?: any;
   lastModifiedDate: string;
   createdDate: string;
   canShowTeams: boolean;
@@ -880,7 +899,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Data Sources</Text>
                     {props.solution.dataSources.dataSources && props.solution.dataSources.dataSources.length > 0 ? (
-                      processDataSourceValues(props.solution.dataSources.dataSources)
+                      processDataSourceValues(props.solution.dataSources.dataSources, props.dataSources)
                     ) : (
                       <Text>NA</Text>
                     )}
