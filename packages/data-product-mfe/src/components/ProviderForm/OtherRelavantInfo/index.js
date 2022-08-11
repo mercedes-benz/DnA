@@ -8,11 +8,9 @@ import InfoModal from 'dna-container/InfoModal';
 import ConfirmModal from 'dna-container/ConfirmModal';
 
 import { Envs } from '../../../Utility/envs';
-import { SetDataProducts } from '../../redux/dataProduct.services';
-import { useDispatch } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
-const OtherRelevantInfo = ({ onSave, history }) => {
+const OtherRelevantInfo = ({ onSave }) => {
   const {
     register,
     handleSubmit,
@@ -21,11 +19,10 @@ const OtherRelevantInfo = ({ onSave, history }) => {
     watch,
     setValue,
   } = useFormContext();
+
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showPublishModal, setPublishModal] = useState(false);
-
   const [touChecked, setTOUChecked] = useState(false);
-  const dispatch = useDispatch();
 
   const publishContent = (
     <div>
@@ -40,6 +37,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
                 className="ff-only"
                 onChange={() => setTOUChecked(!touChecked)}
                 defaultChecked={false}
+                checked={touChecked}
               />
             </span>
             <div
@@ -92,7 +90,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
                 className="btn btn-primary"
                 type="button"
                 onClick={handleSubmit((data) => {
-                  onSave();
+                  onSave(data);
                   reset(data, {
                     keepDirty: false,
                   });
@@ -130,11 +128,11 @@ const OtherRelevantInfo = ({ onSave, history }) => {
         show={showPublishModal}
         content={publishContent}
         onAccept={() => {
+          setValue('tou', true); // set tou to true;
+          setValue('publish', true); // set publish to true;
+          onSave(watch());
+          setTOUChecked(false);
           setPublishModal(false);
-          setValue('tou', touChecked);
-          console.log('Published data', watch());
-          dispatch(SetDataProducts(watch()));
-          history.push('/');
         }}
         onCancel={() => setPublishModal(false)}
         acceptButtonDisabled={!touChecked}
