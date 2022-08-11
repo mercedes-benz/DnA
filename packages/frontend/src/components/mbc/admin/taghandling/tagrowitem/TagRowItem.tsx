@@ -3,6 +3,7 @@ import cn from 'classnames';
 import * as React from 'react';
 
 import { ISubDivision, ITagResult } from '../../../../../globals/types';
+import { Envs } from '../../../../../globals/Envs';
 
 import Styles from './TagRowItem.scss';
 
@@ -18,15 +19,23 @@ export class TagRowItem extends React.Component<ITagRowItemProps, any> {
   constructor(props: any) {
     super(props);
   }
-
+  
   public render() {
     const tagItem = this.props.tagItem;
     const subdivisions = tagItem.subdivisions;
+    const isDataSource = tagItem.category.id === 2;
+
     return (
       <React.Fragment>
         <tr id={tagItem.id + ''} key={tagItem.id} className="data-row">
           <td className="wrap-text">
             {tagItem.name}
+            {isDataSource &&
+              <span className={Styles.badge}>
+                {tagItem.source === null ? Envs.DNA_APPNAME_HEADER : tagItem.source}
+                {tagItem.dataType === null || tagItem.dataType === "Not set" ? '' : '-' + tagItem.dataType.charAt(0).toUpperCase() + tagItem.dataType.slice(1)}
+              </span>
+            }
             {subdivisions && (
               <React.Fragment>
                 <br />
