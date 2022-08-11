@@ -62,8 +62,6 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
 
   useEffect(() => {
     if(searchTerm.length > 1) {
-      console.log('suggestions');
-      console.log(suggestions);
       const filteredResults = suggestions.filter((item:any) => {
         const currentEntity = item.entityId + ' - ' + item.entityName;
         return currentEntity.toLowerCase().includes(searchTerm.toLowerCase());
@@ -76,8 +74,6 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
       setHideSuggestion(filteredResults.length === 0);
       setCursor(-1);
     } else {
-      console.log('oye');
-      console.log(props.list);
       setSuggestions(props.list);
     }
   }, [searchTerm]);
