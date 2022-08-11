@@ -53,6 +53,17 @@
       justify-content: space-between;
       flex-grow: 1;
       color: #99a5b3;
+      flex-direction: column;
+      > div {
+        display: flex;
+        justify-content: space-between;
+        > div:first-child {
+          flex: 2;
+        }
+        > div:last-child {
+          flex: 1;
+        }
+      }
       ul {
         list-style-type: none;
         padding: 0;
