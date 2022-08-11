@@ -9,6 +9,7 @@ const classNames = cn.bind(Styles);
 export interface IRowItemProps {
   item: any;
   key: string;
+  isAdmin: boolean;
   showDeleteConfirmModal: (item: ITagResult) => void;
   showUpdateConfirmModal: (item: ITagResult) => void;
 }
@@ -16,6 +17,7 @@ export interface IRowItemProps {
 let isTouch = false;
 
 const RowItem:React.FC<IRowItemProps> = (props: IRowItemProps) => {
+
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false);
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState<boolean>(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState<number>(0);
@@ -109,31 +111,34 @@ const RowItem:React.FC<IRowItemProps> = (props: IRowItemProps) => {
       <td className="wrap-text">{item.localComplianceResponsible !== undefined && (item.localComplianceResponsible.length > 0 ? item.localComplianceResponsible.map((item:any) => item + '; ') : 'N/A')}</td>
       <td className="wrap-text">{item.dataProtectionCoordinator !== undefined && (item.dataProtectionCoordinator.length > 0 ? item.dataProtectionCoordinator.map((item:any) => item + '; ') : 'N/A')}</td>
       <td className="wrap-text">{item.localComplianceSpecialist !== undefined && (item.localComplianceSpecialist.length > 0 ? item.localComplianceSpecialist.map((item:any) => item + '; ') : 'N/A')}</td>
-      <td className={'wrap-text ' + classNames(Styles.actionLinksTD)}>
-        <div id={'card-' + item.id} className={Styles.actionMenus}>
-          <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
-            <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)} tooltip-data="More Action">
-              <i className="icon mbc-icon listItem context" />
-            </span>
-            <div
-              style={{
-                top: contextMenuOffsetTop + 'px',
-                left: contextMenuOffsetLeft + 'px',
-              }}
-              className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
-            >
-              <ul className="contextList">
-                <li className="contextListItem" onClick={onItemUpdate}>
-                  <span>Update</span>
-                </li>
-                <li className="contextListItem" onClick={onItemDelete}>
-                  <span>Delete</span>
-                </li>
-              </ul>
+      {
+        props.isAdmin &&
+          <td className={'wrap-text ' + classNames(Styles.actionLinksTD)}>
+            <div id={'card-' + item.id} className={Styles.actionMenus}>
+              <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
+                <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)} tooltip-data="More Action">
+                  <i className="icon mbc-icon listItem context" />
+                </span>
+                <div
+                  style={{
+                    top: contextMenuOffsetTop + 'px',
+                    left: contextMenuOffsetLeft + 'px',
+                  }}
+                  className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
+                >
+                  <ul className="contextList">
+                    <li className="contextListItem" onClick={onItemUpdate}>
+                      <span>Update</span>
+                    </li>
+                    <li className="contextListItem" onClick={onItemDelete}>
+                      <span>Delete</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </td>
+          </td>
+      }
     </tr>
   );
 }
