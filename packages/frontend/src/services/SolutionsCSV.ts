@@ -189,19 +189,19 @@ export const getDataForCSV = (
           const dataComplianceOBJ = Envs.ENABLE_DATA_COMPLIANCE ? {
             dataComplianceAddedLinks:
               solution.dataCompliance && solution.dataCompliance.links && solution.dataCompliance.links.length > 0
-                ? sanitize(solution.dataCompliance.links.map((link) => link.link).join(', '))
+                ? sanitize(solution.dataCompliance.links.map((link) => link.link).join('|'))
                 : 'NA',
             dataComplianceAttachedFiles:
               solution.dataCompliance &&
               solution.dataCompliance.attachments &&
               solution.dataCompliance.attachments.length > 0
-                ? solution.dataCompliance.attachments.map((attachment) => attachment.fileName).join(', ')
+                ? solution.dataCompliance.attachments.map((attachment) => attachment.fileName).join('|')
                 : 'NA',
             dataComplianceLocalComplianceOfficers:
               solution.dataCompliance &&
               solution.dataCompliance.complianceOfficers &&
               solution.dataCompliance.complianceOfficers.length > 0
-                ? solution.dataCompliance.complianceOfficers.map((team) => team.shortId).join(', ')
+                ? solution.dataCompliance.complianceOfficers.map((team) => team.shortId).join('|')
                 : 'NA',
             dataComplianceQuickCheck: solution.dataCompliance
               ? solution.dataCompliance.quickCheck
@@ -229,26 +229,26 @@ export const getDataForCSV = (
             name: solution.productName ? sanitize(solution.productName) : 'NA',
             phase: solution.currentPhase.name ? solution.currentPhase.name : 'NA',
             description: solution.description ? sanitize(solution.description) : 'NA',
-            tags: solution.tags && solution.tags.length > 0 ? sanitize(solution.tags.join(', ')) : 'NA',
+            tags: solution.tags && solution.tags.length > 0 ? sanitize(solution.tags.join('|')) : 'NA',
             division: solution.division?.name ? solution.division.name : 'NA',
             subdivision: solution.division?.subdivision ? solution.division.subdivision.name : 'NA',
             relatedProducts:
               solution.relatedProducts && solution.relatedProducts.length > 0
-                ? sanitize(solution.relatedProducts.join(', '))
+                ? sanitize(solution.relatedProducts.join('|'))
                 : 'NA',
             businessGoal:
               solution.businessGoals && solution.businessGoals.length > 0
-                ? sanitize(solution.businessGoals.join(', '))
+                ? sanitize(solution.businessGoals.join('|'))
                 : 'NA',
             status: solution.projectStatus.name ? solution.projectStatus.name : 'NA',
             attachedFiles:
               solution.attachments && solution.attachments.length > 0
-                ? solution.attachments.map((attachment) => attachment.fileName).join(', ')
+                ? solution.attachments.map((attachment) => attachment.fileName).join('|')
                 : 'NA',
             bookmarked: solution.bookmarked ? 'Yes' : 'No',
             location:
               solution.locations && solution.locations.length > 0
-                ? solution.locations.map((location) => location.name).join(', ')
+                ? solution.locations.map((location) => location.name).join('|')
                 : 'NA',
             expectedBenefits: solution.expectedBenefits ? sanitize(solution.expectedBenefits) : 'NA',
             businessNeed: solution.businessNeed ? sanitize(solution.businessNeed) : 'NA',
@@ -260,12 +260,12 @@ export const getDataForCSV = (
                       if(Number(item.requestedFTECount) > 0)
                       return item.neededSkill + '(' + item.requestedFTECount + ')';
                     })
-                    .join(', ')
+                    .join('|')
                 : 'NA',
             dataStrategyDomain: solution.dataStrategyDomain ? sanitize(solution.dataStrategyDomain) : 'NA',
             team:
               solution.team && solution.team.length > 0
-                ? solution.team.map((member) => member.shortId).join(', ')
+                ? solution.team.map((member) => member.shortId).join('|')
                 : 'NA',
             kickoff: 
               solution.milestones && solution.milestones.phases && solution.milestones.phases.length > 0 
@@ -305,19 +305,19 @@ export const getDataForCSV = (
               : 'NA',
             platform:
               solution.portfolio && solution.portfolio.platforms && solution.portfolio.platforms.length > 0
-                ? sanitize(solution.portfolio.platforms.map((platform) => platform.name).join(', '))
+                ? sanitize(solution.portfolio.platforms.map((platform) => platform.name).join('|'))
                 : 'NA',
             languages:
               solution.analytics && solution.analytics.languages && solution.analytics.languages.length > 0
-                ? sanitize(solution.analytics.languages.map((languages) => languages.name).join(', '))
+                ? sanitize(solution.analytics.languages.map((languages) => languages.name).join('|'))
                 : 'NA',
             modelsAlgorithms:
               solution.analytics && solution.analytics.algorithms && solution.analytics.algorithms.length > 0
-                ? sanitize(solution.analytics.algorithms.map((algorithm) => algorithm.name).join(', '))
+                ? sanitize(solution.analytics.algorithms.map((algorithm) => algorithm.name).join('|'))
                 : 'NA',
             visualization:
               solution.analytics && solution.analytics.visualizations && solution.analytics.visualizations.length > 0
-                ? sanitize(solution.analytics.visualizations.map((visualization) => visualization.name).join(', '))
+                ? sanitize(solution.analytics.visualizations.map((visualization) => visualization.name).join('|'))
                 : 'NA',
             gitRepository: solution.sharing ? solution.sharing.gitUrl : 'NA',
             results: solution.sharing && solution.sharing.result ? sanitize(solution.sharing.result.name) : 'NA',
@@ -332,7 +332,7 @@ export const getDataForCSV = (
               solution.digitalValue.projectControllers.length > 0
                 ? solution.digitalValue.projectControllers
                     .map((projectController) => projectController.shortId)
-                    .join(', ')
+                    .join('|')
                 : 'NA',
             calculatedDigitalValue:
               solution.digitalValue &&
@@ -396,13 +396,13 @@ export const getDataForCSV = (
               solution.digitalValue &&
               solution.digitalValue.attachments &&
               solution.digitalValue.attachments.length > 0
-                ? solution.digitalValue.attachments.map((attachment) => attachment.fileName).join(', ')
+                ? solution.digitalValue.attachments.map((attachment) => attachment.fileName).join('|')
                 : 'NA',
             digitalValuePermissions:
               solution.digitalValue &&
               solution.digitalValue.permissions &&
               solution.digitalValue.permissions.length > 0
-                ? solution.digitalValue.permissions.map((team) => team.shortId).join(', ')
+                ? solution.digitalValue.permissions.map((team) => team.shortId).join('|')
                 : 'NA',
             createdBy: solution.createdBy ? solution.createdBy.id : 'NA',
             createdDate: solution.createdDate ? solution.createdDate : 'NA',
@@ -439,18 +439,18 @@ export const setDataSources = (dataSources: IDataSources[], dsList: any) => {
     }
     return (item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
   });
-  const dataValues = stringValsArr.join(' | ');
+  const dataValues = stringValsArr.join('|');
   return dataValues;
 };
 
 export const setMilestonesPhases = (phases: IPhasesItem[], phaseId: number) => {
   const temVar = phases.filter((phase: IPhasesItem) => Number(phase.phase.id) === phaseId);
-  const dataValues = temVar[0] ? temVar[0].month + '-' + temVar[0].year + '|| {{' + temVar[0].description + '}} ' : '';
+  const dataValues = temVar[0] ? sanitize(temVar[0].month + '-' + temVar[0].year+'|'+temVar[0].description) : '';
   return dataValues;
 };
 
 export const setRolloutLocations = (locations: IRolloutDetail[]) => {
-  const stringValsArr = locations.map((location: IRolloutDetail) => location.location.name + ' (' + location.month + '-' + location.year + ') ');
-  const dataValues = stringValsArr.join(', ');
+  const stringValsArr = locations.map((location: IRolloutDetail) => location.location.name + '(' + location.month + '-' + location.year + ')');
+  const dataValues = stringValsArr.join('|');
   return dataValues;
 };
