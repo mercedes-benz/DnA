@@ -11,8 +11,9 @@ const DeletionRequirements = ({ onSave }) => {
     handleSubmit,
     formState: { errors },
     watch,
-    resetField,
+    clearErrors,
     reset,
+    setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -48,7 +49,10 @@ const DeletionRequirements = ({ onSave }) => {
                     <input
                       {...register('deletionRequirement', {
                         required: '*Missing entry',
-                        onChange: () => resetField('deletionRequirementDescription'),
+                        onChange: () => {
+                          clearErrors('deletionRequirementDescription');
+                          setValue('deletionRequirementDescription', '');
+                        },
                       })}
                       type="radio"
                       className="ff-only"
