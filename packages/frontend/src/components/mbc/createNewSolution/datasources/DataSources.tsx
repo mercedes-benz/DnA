@@ -67,6 +67,7 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
                     tags={this.props.dataSourcesTags}
                     showMissingEntryError={false}
                     isDataSource={true}
+                    suggestionPopupHeight={300}
                     {...this.props}
                   />
                 </div>

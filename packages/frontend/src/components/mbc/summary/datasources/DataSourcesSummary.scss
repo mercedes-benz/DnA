@@ -15,8 +15,10 @@
 }
 .row {
   display: inline-block;
+  line-break: unset;
   margin-top: 5px;
-  line-break: anywhere;
+  line-height: 24px;
+  word-break: break-word;
 }
 .row > div {
   display: block;
@@ -64,4 +66,23 @@ hr {
   margin-left: 30px;
   margin-right: 30px;
   background-color: #697582;
+}
+
+.badge {
+  border: 1px solid #697582;
+  border-radius: 2px;
+  color: #697582;
+  font-size: var(--font-size-icon-small);
+  letter-spacing: 1px;
+  margin-left: 4px;
+  margin-right: 4px;
+  padding: 2px 4px;
+  display: inline-block;
+  line-height: 14px;
+}
+
+.bold {
+  font-family: 'Roboto-Medium';
+  font-weight: bolder;
+  color: #707e8d;
 }
