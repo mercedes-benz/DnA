@@ -20,7 +20,7 @@ const DataOriginating = ({ onSave }) => {
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Identifiying Trans-national Data Transfer</h3>
+            <h3>Identifiying data originating from China</h3>
             <div className={Styles.infoIcon}>
               <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
             </div>
@@ -75,7 +75,7 @@ const DataOriginating = ({ onSave }) => {
               type="submit"
               disabled={isSubmitting}
               onClick={handleSubmit((data) => {
-                onSave();
+                onSave(data);
                 reset(data, {
                   keepDirty: false,
                 });

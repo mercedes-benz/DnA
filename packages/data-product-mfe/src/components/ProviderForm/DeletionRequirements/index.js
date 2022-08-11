@@ -102,7 +102,7 @@ const DeletionRequirements = ({ onSave }) => {
               className="btn btn-primary"
               type="submit"
               onClick={handleSubmit((data) => {
-                onSave();
+                onSave(data);
                 reset(data, {
                   keepDirty: false,
                 });
