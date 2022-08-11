@@ -31,7 +31,12 @@ const DataProductCardItem = ({ product, history }) => {
   return (
     <>
       <div className={Styles.dataProductCard}>
-        <div className={Styles.cardHead} onClick={() => history.push('/edit/id')}>
+        <div
+          className={Styles.cardHead}
+          onClick={() => {
+            /* navigate to summary page*/
+          }}
+        >
           <div className={Styles.cardHeadInfo}>
             <div>
               <div className={Styles.cardHeadTitle}>{product?.dataProductName}</div>
