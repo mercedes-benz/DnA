@@ -10,18 +10,22 @@ import { useFormContext } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import { useSelector } from 'react-redux';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }) => {
   const {
     register,
     formState: { errors, isSubmitting, dirtyFields },
     watch,
-    resetField,
     handleSubmit,
     trigger,
     reset,
+    setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const provideDataProducts = useSelector((state) => state.provideDataProducts);
+
+  const { division } = watch();
 
   useEffect(() => {
     const id = watch('division');
@@ -29,22 +33,34 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + id).then((res) => {
         setSubDivisions(res.data);
-        (dirtyFields.division || dirtyFields.subDivision) && resetField('subDivision', { defaultValue: '0' });
+        if (!dirtyFields.division && !dirtyFields.subDivision) {
+          setValue('subDivision', provideDataProducts.selectedDataProduct.subDivision);
+        } else {
+          setValue('subDivision', '0');
+        }
         SelectBox.defaultSetup();
         ProgressIndicator.hide();
       });
     } else {
-      resetField('subDivision', { defaultValue: '0' });
-      SelectBox.defaultSetup();
+      setSubDivisions([]);
+      if (dirtyFields.division) {
+        setValue('subDivision', '0');
+        SelectBox.defaultSetup();
+      }
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watch('division')]);
+  }, [division]);
 
   useEffect(() => {
     SelectBox.defaultSetup();
     reset(watch());
     //eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    // if division is set to "Choose", reset sub divison dropdown to empty list
+    division === '0' && SelectBox.defaultSetup();
+  }, [division, subDivisions.length]);
 
   return (
     <>
@@ -223,12 +239,11 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
               className="btn btn-primary"
               type="submit"
               disabled={isSubmitting}
-              onClick={handleSubmit((data) => {
-                console.log(data);
-                onSave();
-                reset(data, {
+              onClick={handleSubmit((values) => {
+                reset(values, {
                   keepDirty: false,
                 });
+                onSave(values);
               })}
             >
               Save & Next

@@ -10,7 +10,7 @@ import ProviderForm from './ProviderForm';
 import ConsumerForm from './ConsumerForm';
 
 import { ProtectedRoute } from './ProtectedRoutes';
-import { history } from '../App';
+import { history } from '../store';
 
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import SessionExpired from './SessionExpired';
