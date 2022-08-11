@@ -140,7 +140,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			DataProduct dataProduct = new DataProduct();
 			BeanUtils.copyProperties(vo, dataProduct);
 			dataProduct.setPublish(vo.isPublish());
-
+			dataProduct.setDataFromChina(vo.isDataFromChina());
 			if (Objects.nonNull(vo.getCreatedBy())) {
 				CreatedBy userDetails = new CreatedBy();
 				BeanUtils.copyProperties(vo.getCreatedBy(), userDetails);
@@ -174,21 +174,28 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				dataProduct.setClassificationConfidentiality(classificationConfidentiality);
 			}
 
-			if (vo.getPersonalRelatedData() != null) {
+			PersonalRelatedDataVO personalRelatedDataVO = vo.getPersonalRelatedData();
+			if (personalRelatedDataVO != null) {
 				PersonalRelatedData personalRelatedData = new PersonalRelatedData();
-				BeanUtils.copyProperties(vo.getPersonalRelatedData(), personalRelatedData);
+				BeanUtils.copyProperties(personalRelatedDataVO, personalRelatedData);
+				personalRelatedData.setPersonalRelatedData(personalRelatedDataVO.isPersonalRelatedData());
 				dataProduct.setPersonalRelatedData(personalRelatedData);
 			}
 
-			if (vo.getTransnationalDataTransfer() != null) {
+			TransnationalDataTransferVO transnationalDataTransferVO = vo.getTransnationalDataTransfer();
+			if (transnationalDataTransferVO != null) {
 				TransnationalDataTransfer transnationalDataTransfer = new TransnationalDataTransfer();
-				BeanUtils.copyProperties(vo.getTransnationalDataTransfer(), transnationalDataTransfer);
+				transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
+				transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
+				transnationalDataTransfer.setApproved(transnationalDataTransferVO.getApproved());
 				dataProduct.setTransnationalDataTransfer(transnationalDataTransfer);
 			}
 
-			if (vo.getDeletionRequirement() != null) {
+			DeletionRequirementVO deletionRequirementVO = vo.getDeletionRequirement();
+			if (deletionRequirementVO != null) {
 				DeletionRequirement deletionRequirement = new DeletionRequirement();
-				BeanUtils.copyProperties(vo.getDeletionRequirement(), deletionRequirement);
+				deletionRequirement.setDeletionRequirements(deletionRequirementVO.isDeletionRequirements());
+				deletionRequirement.setDescription(deletionRequirementVO.getDescription());
 				dataProduct.setDeletionRequirement(deletionRequirement);
 			}
 
