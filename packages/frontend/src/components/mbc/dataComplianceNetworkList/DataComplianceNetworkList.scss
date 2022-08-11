@@ -34,9 +34,14 @@
     h3 {
       padding: 0 38px;
     }
-    tr th:last-child {
+    tr th.actionLinksTD {
       text-align: right !important;
-      padding-right: 38px;
+      padding-right: 30px;
+
+      label {
+        display: flex;
+        justify-content: flex-end;
+      }
     }
   }
 }
@@ -74,6 +79,13 @@
       cursor: pointer;
     }
   }
+}
+
+.changeLogContainer {
+  height: 440px;
+  position: relative;
+  background-color: #252a33;
+  width: 100%;
 }
 
 .addItemButton {
