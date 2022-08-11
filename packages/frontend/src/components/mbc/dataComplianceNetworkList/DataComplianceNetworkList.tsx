@@ -3,7 +3,7 @@ import cn from 'classnames';
 import Pagination from '../pagination/Pagination';
 import Styles from './DataComplianceNetworkList.scss';
 import { ISortField } from '../allSolutions/AllSolutions';
-import { IDataComplianceRequest, IEntity, ITag } from '../../../globals/types';
+import { IChangeLogData, IDataComplianceRequest, IEntity, IRole, ITag, IUserInfo } from '../../../globals/types';
 import RowItem from './rowItem/RowItem';
 import ConfirmModal from '../../../components/formElements/modal/confirmModal/ConfirmModal';
 import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
@@ -11,13 +11,41 @@ import TextBox from '../shared/textBox/TextBox';
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 import Spinner from '../shared/spinner/Spinner';
-import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
+import { SESSION_STORAGE_KEYS, USER_ROLE } from '../../../globals/constants';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import TypeAheadBox from '../shared/typeAheadBox/TypeAheadBox';
 import Tags from '../../../components/formElements/tags/Tags';
 import { DataComplianceApiClient } from '../../../services/DataComplianceApiClient';
 import { validateEmail } from '../../../utils/Validation';
+// import { regionalDateAndTimeConversionSolution } from '../../../services/utils';
+
+const MOCK = [
+  {
+    changeDate: 'oye',
+    modifiedBy: {
+      firstName: 'DEMO',
+      lastName: 'USER',
+      userType: 'admin',
+    },
+    fieldChanged: 'something',
+    oldValue: 'oye',
+    newValue: 'oye',
+    changeDescription: 'oye',
+  },
+  {
+    changeDate: 'oye',
+    modifiedBy: {
+      firstName: 'DEMO',
+      lastName: 'USER',
+      userType: 'admin',
+    },
+    fieldChanged: 'something',
+    oldValue: 'oye',
+    newValue: 'oye',
+    changeDescription: 'oye',
+  }
+];
 
 export interface IEntityItem {
   id?: string;
@@ -25,9 +53,16 @@ export interface IEntityItem {
   entityName: string;
 }
 
+export interface IDataComplianceNetworkListProps {
+  user: IUserInfo;
+}
+
 const classNames = cn.bind(Styles);
 
-const DataComplianceNetworkList:React.FC = () => {
+const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (props:IDataComplianceNetworkListProps) => {
+
+  const isAdmin = props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined;
+  // const isAdmin = false;
 
   const [loading, setLoading] = useState(false);
 
@@ -53,6 +88,9 @@ const DataComplianceNetworkList:React.FC = () => {
 
   const [entityList, setEntityList] = useState<IEntityItem[]>([]);
   const [selectedEntityError, setSelectedEntityError] = useState(false);
+
+  const [showChangeLog, setShowChangeLog] = useState(false);
+  const [changeLogs, setChangeLogs] = useState<IChangeLogData[]>([]);
   
   const [entity, setEntity] = useState<IEntity>({
     id: '',
@@ -164,6 +202,8 @@ const DataComplianceNetworkList:React.FC = () => {
     .catch((err:any) => {
       console.log(err);
     });
+
+    setChangeLogs(MOCK);
   }, []);
 
   const getDataComplianceNetworkList = () => {
@@ -385,8 +425,6 @@ const DataComplianceNetworkList:React.FC = () => {
     let formValid = true;
     let errorMessage = 'Please fill Entity ID and Entity Name';
     if(entitySearch) {
-      console.log('entitySearch');
-      console.log('selectedError: ', selectedEntityError);
       if(selectedEntityError) {
         errorMessage = 'Please select entity';
         formValid = false;
@@ -394,7 +432,6 @@ const DataComplianceNetworkList:React.FC = () => {
         formValid = true;
       }
     } else {
-      console.log('entity manual');
       if(entity.entityId.length > 0) {
         setEntityIdError(null);
       } else {
@@ -659,27 +696,30 @@ const DataComplianceNetworkList:React.FC = () => {
               disabled={loading}
             />
           </div>
-          <div
-            className={classNames(
-              Styles.addItemButton,
-              loading ? Styles.disabledAddItemBtn : '',
-            )}
-          >
-            <button onClick={onEntityFormModalOpen}>
-              <i className="icon mbc-icon plus" />
-              <span>Add New Entity</span>
-            </button>
-          </div>
+          {
+            isAdmin &&
+              <div
+                className={classNames(
+                  Styles.addItemButton,
+                  loading ? Styles.disabledAddItemBtn : '',
+                )}
+              >
+                <button onClick={onEntityFormModalOpen}>
+                  <i className="icon mbc-icon plus" />
+                  <span>Add New Entity</span>
+                </button>
+              </div>
+          }
           <div className={Styles.addItemButton}>
-            <button>
+            <button onClick={() => setShowChangeLog(prev => !prev)}>
               <i className="icon mbc-icon link" />
-              <span>See Change Log</span>
+              <span>{showChangeLog ? 'Hide Change Log' : 'See Change Log'}</span>
             </button>
           </div>
         </div>
         { loading && <Spinner /> }
         { !loading && dataComplianceNetworkList.length === 0 && <div className={Styles.tagIsEmpty}>There is no list available</div> }
-        { !loading && dataComplianceNetworkList.length > 0 && 
+        { !loading && !showChangeLog && dataComplianceNetworkList.length > 0 && 
           <div className={Styles.tablePanel}>
             <table className="ul-table">
               <thead>
@@ -734,9 +774,12 @@ const DataComplianceNetworkList:React.FC = () => {
                         Local Compliance Support / Specialist (LCS)
                     </label>
                   </th>
-                  <th>
-                    <label>Action</label>
-                  </th>
+                  {
+                    isAdmin &&
+                      <th className={Styles.actionLinksTD}>
+                        <label>Action</label>
+                      </th>
+                  }
                 </tr>
               </thead>
               <tbody>
@@ -746,6 +789,7 @@ const DataComplianceNetworkList:React.FC = () => {
                       <RowItem
                         item={result}
                         key={result.id}
+                        isAdmin={isAdmin}
                         showDeleteConfirmModal={showDeleteConfirmModal}
                         showUpdateConfirmModal={showUpdateConfirmModal}
                       />
@@ -766,6 +810,51 @@ const DataComplianceNetworkList:React.FC = () => {
             }
           </div>
         }
+        { !loading && showChangeLog &&
+          <div className={Styles.changeLogContainer}>
+            <div className={Styles.tablePanel}>
+              <table className="ul-table solutions">
+                <thead>
+                  <tr className="header-row">
+                    <th>
+                      <label>
+                          Change Date
+                      </label>
+                    </th>
+                    <th>
+                      <label>
+                          Modified By
+                      </label>
+                    </th>
+                    <th>
+                      <label>
+                          Change Description
+                      </label>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {changeLogs
+                    ? changeLogs.map((data: IChangeLogData, index: number) => {
+                        return (
+                          <tr key={index} className="data-row">
+                            <td className="wrap-text">
+                              {/* {regionalDateAndTimeConversionSolution(data.changeDate)} */}
+                              {data.changeDate}
+                            </td>
+                            <td className="wrap-text">
+                              {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
+                            </td>
+                            <td className="wrap-text">{data.changeDescription}</td>
+                          </tr>
+                        );
+                      })
+                    : ''}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
         <ConfirmModal
           title="Delete Entity"
           acceptButtonTitle="Delete"
@@ -777,13 +866,16 @@ const DataComplianceNetworkList:React.FC = () => {
           onCancel={onCancelDeleteChanges}
           onAccept={onAcceptDeleteChanges}
         />
-        <InfoModal
-          title={updateMode ? 'Update Entity' : 'Add New Entity'}
-          modalWidth={'35vw'}
-          show={showEntityFormModal}
-          content={entityFormModalContent}
-          onCancel={onShowEntityFormModalCancel}
-        />
+        {
+          showEntityFormModal &&
+            <InfoModal
+              title={updateMode ? 'Update Entity' : 'Add New Entity'}
+              modalWidth={'35vw'}
+              show={showEntityFormModal}
+              content={entityFormModalContent}
+              onCancel={onShowEntityFormModalCancel}
+            />
+        }
       </div>
     </div>
   );
