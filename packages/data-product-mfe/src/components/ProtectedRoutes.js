@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom';
 
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import { hostServer } from '../server/api';
-import { history } from '../App';
+import { history } from '../store';
 
 import { LocalWrapper } from './LocalWrapper';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
