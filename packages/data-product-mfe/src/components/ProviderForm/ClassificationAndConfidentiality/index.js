@@ -91,8 +91,7 @@ const Classification = ({ onSave }) => {
               className="btn btn-primary"
               type="submit"
               onClick={handleSubmit((data) => {
-                console.log(data);
-                onSave();
+                onSave(data);
                 reset(data, {
                   keepDirty: false,
                   keepSubmitCount: false,
