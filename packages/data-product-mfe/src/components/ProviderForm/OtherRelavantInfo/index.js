@@ -36,7 +36,6 @@ const OtherRelevantInfo = ({ onSave }) => {
                 type="checkbox"
                 className="ff-only"
                 onChange={() => setTOUChecked(!touChecked)}
-                defaultChecked={false}
                 checked={touChecked}
               />
             </span>
