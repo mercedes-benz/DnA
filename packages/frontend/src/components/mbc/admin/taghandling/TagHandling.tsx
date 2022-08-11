@@ -158,7 +158,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       .then((res1) => {
         if (res1) {
           res1.forEach((ds) => {
-            results.push({ category: this.state.dataSourceCategory, id: ds.id + '', name: ds.name });
+            results.push({ category: this.state.dataSourceCategory, id: ds.id + '', name: ds.name, dataType: ds.dataType, source: ds.source });
           });
         }
       })

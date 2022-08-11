@@ -75,7 +75,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         if(dataSource.length === 1) {
           if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
             if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
-              dsBadge = '(' + dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1) + ')';
+              if(dataSource[0].dataType === "Not set") {
+                dsBadge = dataSource[0].source;
+              } else {
+                dsBadge = dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1);
+              }
             }
           }
         }
@@ -117,13 +121,17 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
               {filteredTag !== undefined && 
                 <>
                   {
-                    (filteredTag.dataType !== null && filteredTag.source !== null) && 
-                    (filteredTag.dataType !== undefined && filteredTag.source !== undefined) &&
-                      <>({filteredTag.source + '-' + filteredTag.dataType.charAt(0).toUpperCase() + filteredTag.dataType.slice(1)})</>
+                    (filteredTag.dataType !== null && filteredTag.source !== null) && (
+                      (filteredTag.dataType !== undefined && filteredTag.source !== undefined) && (
+                        (filteredTag.dataType === "Not set") ?
+                          <>{filteredTag.source}</> :
+                          <>{filteredTag.source + '-' + filteredTag.dataType.charAt(0).toUpperCase() + filteredTag.dataType.slice(1)}</>
+                      )
+                    )
                   }
                   {
                     (filteredTag.dataType === null && filteredTag.source === null) && 
-                      <>({Envs.DNA_APPNAME_HEADER})</>
+                      <>{Envs.DNA_APPNAME_HEADER}</>
                   }
                 </>
               }
@@ -188,7 +196,15 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
               {suggestions}
             </div>
           ) : (
-            suggestions
+            <div
+              className={classNames('mbc-scroll', Styles.relativeScroll)}
+              style={{
+                overflowY: 'auto',
+                ...(this.props.suggestionPopupHeight && { height: this.props.suggestionPopupHeight }),
+              }}
+            >
+              {suggestions}
+            </div>
           )
         ) : (
           <span className={classNames('error-message', this.props.showMissingEntryError ? '' : 'hide')}>
