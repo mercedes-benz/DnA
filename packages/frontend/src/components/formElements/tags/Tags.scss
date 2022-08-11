@@ -73,7 +73,8 @@
 }
 .relativeScroll {
   position: absolute;
-  bottom: -300px;
   left: 0;
   right: 0;
+  z-index: 9;
+  max-height: 300px;
 }
