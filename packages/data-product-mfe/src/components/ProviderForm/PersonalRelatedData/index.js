@@ -15,7 +15,8 @@ const PersonalRelatedData = ({ onSave }) => {
     formState: { errors },
     reset,
     watch,
-    resetField,
+    clearErrors,
+    setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -55,9 +56,14 @@ const PersonalRelatedData = ({ onSave }) => {
                       {...register('personalRelatedData', {
                         required: '*Missing entry',
                         onChange: () => {
-                          resetField('personalRelatedDataDescription');
-                          resetField('personalRelatedDataPurpose');
-                          resetField('personalRelatedDataLegalBasis');
+                          clearErrors([
+                            'personalRelatedDataDescription',
+                            'personalRelatedDataPurpose',
+                            'personalRelatedDataLegalBasis',
+                          ]);
+                          setValue('personalRelatedDataDescription', '');
+                          setValue('personalRelatedDataPurpose', '');
+                          setValue('personalRelatedDataLegalBasis', '');
                         },
                       })}
                       type="radio"
