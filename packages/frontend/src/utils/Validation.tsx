@@ -1,6 +1,6 @@
 export function validateMobileNumber(val: string) {
   // Only + and number should be allowed
-  const str = /^\+[0-9]*$/; // eslint-disable-line
+  const str = /^\+[0-9 ]*$/; // eslint-disable-line
   const match = str.test(val) || !val ? true : false;
   if (!match) {
     return false;
