@@ -31,19 +31,7 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
 
   const division = serializeDivisionSubDivision(divisions, values);
 
-  const requestBody = {
-    contactInformation: {
-      appId: values.planningIT,
-      dataTransferDate: new Date(),
-      department: values.department,
-      division,
-      localComplianceOfficer: values.complainceOfficer,
-      name: values.name,
-    },
-    dataProductName: values.productName,
-    openSegments: values.openSegments,
-    publish: values.publish || false,
-  };
+  const requestBody = serializeFormData(values, division);
 
   try {
     const res = await dataProductsApi.createDataProduct(requestBody);

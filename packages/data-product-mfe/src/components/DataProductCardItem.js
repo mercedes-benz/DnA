@@ -23,6 +23,7 @@ const DataProductCardItem = ({ product, history }) => {
     ProgressIndicator.show();
     dataProductsApi.deleteDataProduct(product.id).then(() => {
       dispatch(GetDataProducts());
+      setShowDeleteModal(false);
     });
   };
   const deleteDataProductClose = () => {
