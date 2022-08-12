@@ -34,7 +34,7 @@ export interface ICodeSpaceData {
 
 const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-    url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/`,
+    url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/?folder=/home/coder/projects/demo`,
     running: false
   });
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
@@ -101,6 +101,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <div className={Styles.navigation}>
                 {codeSpaceData.running && (
                   <div className={Styles.headerright}>
+                    <div>
+                      <button className='btn secondary'>Deploy</button>
+                    </div>
                     <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                       <i className="icon mbc-icon arrow small right" />
                       <span> &nbsp; </span>
