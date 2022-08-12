@@ -41,6 +41,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false);
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
+  const [showCodeDeployModal, setShowCodeDeployModal] = useState<boolean>(false);
 
   useEffect(() => {
     ApiClient.getCodeSpace().then((res: any) => {
@@ -85,78 +86,108 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     history.goBack();
   }
 
+  const onShowCodeDeployModal = () => {
+    setShowCodeDeployModal(true);
+  }
+
+  const onCodeDeployModalCancel = () => {
+    setShowCodeDeployModal(false);
+  }
+
+  const onAcceptCodeDeploy =() => {
+    Notification.show('This feature will be enabled soon.', 'warning');
+  }
+
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
-        {codeSpaceData.running &&
-          <React.Fragment>
-            <div className={Styles.nbheader}>
-              <div className={Styles.headerdetails}>
-                <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
-                <div className={Styles.nbtitle}>
-                  <h2>
-                    {props.user.firstName}&apos;s Code Space 
-                  </h2>
-                </div>
+      {codeSpaceData.running && (
+        <React.Fragment>
+          <div className={Styles.nbheader}>
+            <div className={Styles.headerdetails}>
+              <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
+              <div className={Styles.nbtitle}>
+                <h2>{props.user.firstName}&apos;s Code Space</h2>
               </div>
-              <div className={Styles.navigation}>
-                {codeSpaceData.running && (
-                  <div className={Styles.headerright}>
-                    <div>
-                      <button className='btn secondary'>Deploy</button>
-                    </div>
-                    <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
-                      <i className="icon mbc-icon arrow small right" />
-                      <span> &nbsp; </span>
-                    </div>
-                    <div onClick={toggleFullScreenMode}>
-                      <FullScreenModeIcon fsNeed={fullScreenMode} />
-                    </div>
+            </div>
+            <div className={Styles.navigation}>
+              {codeSpaceData.running && (
+                <div className={Styles.headerright}>
+                  <div>
+                    <button className="btn btn-secondary" onClick={onShowCodeDeployModal}>Deploy</button>
                   </div>
+                  <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
+                    <i className="icon mbc-icon arrow small right" />
+                    <span> &nbsp; </span>
+                  </div>
+                  <div onClick={toggleFullScreenMode}>
+                    <FullScreenModeIcon fsNeed={fullScreenMode} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className={Styles.codeSpaceContent}>
+            {
+              <div className={Styles.codeSpace}>
+                {loading ? (
+                  <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
+                    <div className="progress infinite" />
+                  </div>
+                ) : (
+                  codeSpaceData.running && (
+                    <div className={Styles.codespaceframe}>
+                      <iframe
+                        className={fullScreenMode ? Styles.fullscreen : ''}
+                        src={codeSpaceData.url}
+                        title="Code Space"
+                      />
+                    </div>
+                  )
                 )}
               </div>
-            </div>
-            <div className={Styles.codeSpaceContent}>
-              {
-                <div className={Styles.codeSpace}>
-                  {loading ? (
-                    <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
-                      <div className="progress infinite" />
-                    </div>
-                  ) : (
-                    codeSpaceData.running && (
-                      <div className={Styles.codespaceframe}>
-                        <iframe className={fullScreenMode ? Styles.fullscreen : ''} src={codeSpaceData.url} title="Code Space"/>
-                      </div>
-                    )
-                  )}
-                </div>
-              }
-            </div>
-          </React.Fragment>
-        }
-        {!codeSpaceData.running ? (
-          <Modal
-            title={''}
-            showAcceptButton={false}
-            showCancelButton={false}
-            modalWidth="600px"
-            buttonAlignment="right"
-            show={showNewCodeSpaceModal}
-            content={
-              <NewCodeSpace
-                user={props.user}
-                isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
-                toggleProgressMessage={toggleProgressMessage}
-              />
             }
-            scrollableContent={true}
-            onCancel={onNewCodeSpaceModalCancel}
-          />
-        ) : (
-          ''
-        )}
+          </div>
+        </React.Fragment>
+      )}
+      {!codeSpaceData.running && showNewCodeSpaceModal && (
+        <Modal
+          title={''}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth="600px"
+          buttonAlignment="right"
+          show={showNewCodeSpaceModal}
+          content={
+            <NewCodeSpace
+              user={props.user}
+              isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
+              toggleProgressMessage={toggleProgressMessage}
+            />
+          }
+          scrollableContent={true}
+          onCancel={onNewCodeSpaceModalCancel}
+        />
+      )}
+      {showCodeDeployModal && (
+        <Modal
+          title={'Deploy Code (Coming Soon)'}
+          showAcceptButton={true}
+          acceptButtonTitle={'Deploy'}
+          cancelButtonTitle={'Cancel'}
+          onAccept={onAcceptCodeDeploy}
+          showCancelButton={true}
+          modalWidth="500px"
+          buttonAlignment="center"
+          show={showCodeDeployModal}
+          content={
+            <p>The code from your workspace will be deployed and is run in a container and you will get the access url after the deployment.</p>
+          }
+          scrollableContent={false}
+          onCancel={onCodeDeployModalCancel}
+        />
+      )}
       {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up to a minute....'} />}
-      </div>
+    </div>
   );
 };
 
