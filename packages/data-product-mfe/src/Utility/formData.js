@@ -11,6 +11,7 @@ export const serializeFormData = (values, division) => {
       },
       id: values.id,
       dataProductName: values.productName,
+      dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
       openSegments: values.openSegments,
       publish: false,
     };
