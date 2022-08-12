@@ -181,7 +181,7 @@
     margin: 0;
     background-color: #252a33;
     .headerdetails {
-      width: calc(100% - 90px);
+      width: 100%;
     }
     .nbheader {
       height: 60px;
@@ -196,6 +196,7 @@
       .headerright {
         top: 11px !important;
         right: 15px !important;
+        display: flex;
   
         .OpenNewTab {
           display: none;
@@ -212,7 +213,7 @@
         height: 40px;
       }
       .nbtitle {
-        width: calc(100% - 200px);
+        width: 100%;
         text-align: center;
         h2 {
           color: #acb8c4;
