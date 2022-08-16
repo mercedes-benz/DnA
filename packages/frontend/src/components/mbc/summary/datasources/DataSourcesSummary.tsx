@@ -134,7 +134,7 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
                       <div id="dataSourcesTags">
                         <label className="input-label summary">Data Sources</label>
                         <br />
-                        <div className={classNames(Styles.row)}>{dsChips}</div>
+                        <div className={classNames(Styles.row)}>{this.props.dsList.length > 0 ? dsChips : 'NA'}</div>
                       </div>
                       <div id="totalDataVolume">
                         <label className="input-label summary">Total Data Volume</label>
