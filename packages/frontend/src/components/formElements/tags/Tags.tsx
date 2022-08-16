@@ -69,16 +69,20 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const chips = this.state.chips?.map((chip: any, index: any) => {
       const canDelete = !this.props.fixedChips?.includes(chip);
 
-      let dsBadge:any = Envs.DNA_APPNAME_HEADER;
-      if(this.props.isDataSource) {
-        const dataSource = this.props.tags.filter(ds => ds.name === chip);
-        if(dataSource.length === 1) {
-          if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
-            if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
-              if(dataSource[0].dataType === "Not set") {
+      let dsBadge: any = Envs.DNA_APPNAME_HEADER;
+      if (this.props.isDataSource) {
+        const dataSource = this.props.tags.filter((ds) => ds.name === chip);
+        if (dataSource.length === 1) {
+          if (dataSource[0].source !== null && dataSource[0].dataType !== null) {
+            if (dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+              if (dataSource[0].dataType === 'Not set') {
                 dsBadge = dataSource[0].source;
               } else {
-                dsBadge = dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1);
+                dsBadge =
+                  dataSource[0].source +
+                  '-' +
+                  dataSource[0].dataType.charAt(0).toUpperCase() +
+                  dataSource[0].dataType.slice(1);
               }
             }
           }
@@ -87,7 +91,15 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
 
       return (
         <div className="chips" key={index}>
-          <label className="name">{this.props.isDataSource ? <>{chip} <span className={Styles.badge}>{dsBadge}</span></> : chip}</label>
+          <label className="name">
+            {this.props.isDataSource ? (
+              <>
+                {chip} <span className={Styles.badge}>{dsBadge}</span>
+              </>
+            ) : (
+              chip
+            )}
+          </label>
           {canDelete ? (
             <span
               className={`close-btn ${this.props.isDisabled ? 'disable' : ''}`}
@@ -113,30 +125,31 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           className={className}
           data-value={filteredTag.name}
         >
-         {this.props.suggestionRender ? this.props.suggestionRender(filteredTag) : filteredTag.name} 
-      
-         {
-          this.props.isDataSource &&
+          {this.props.suggestionRender ? this.props.suggestionRender(filteredTag) : filteredTag.name}
+
+          {this.props.isDataSource && (
             <span className={Styles.badge}>
-              {filteredTag !== undefined && 
+              {filteredTag !== undefined && (
                 <>
-                  {
-                    (filteredTag.dataType !== null && filteredTag.source !== null) && (
-                      (filteredTag.dataType !== undefined && filteredTag.source !== undefined) && (
-                        (filteredTag.dataType === "Not set") ?
-                          <>{filteredTag.source}</> :
-                          <>{filteredTag.source + '-' + filteredTag.dataType.charAt(0).toUpperCase() + filteredTag.dataType.slice(1)}</>
-                      )
-                    )
-                  }
-                  {
-                    (filteredTag.dataType === null && filteredTag.source === null) && 
-                      <>{Envs.DNA_APPNAME_HEADER}</>
-                  }
+                  {filteredTag.dataType !== null &&
+                    filteredTag.source !== null &&
+                    filteredTag.dataType !== undefined &&
+                    filteredTag.source !== undefined &&
+                    (filteredTag.dataType === 'Not set' ? (
+                      <>{filteredTag.source}</>
+                    ) : (
+                      <>
+                        {filteredTag.source +
+                          '-' +
+                          filteredTag.dataType.charAt(0).toUpperCase() +
+                          filteredTag.dataType.slice(1)}
+                      </>
+                    ))}
+                  {filteredTag.dataType === null && filteredTag.source === null && <>{Envs.DNA_APPNAME_HEADER}</>}
                 </>
-              }
+              )}
             </span>
-         }
+          )}
         </div>
       );
     });
@@ -226,7 +239,10 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         this.updateChips(target.value);
       }
     } else {
-      this.setState({ userInput: '', filteredTags: [] });
+      this.setState({
+        userInput: '',
+        filteredTags: [],
+      });
     }
 
     this.setState({ isFocused: false });
@@ -248,7 +264,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     const userInput = target.value;
     const tags = this.props.tags;
     if (userInput) {
-      let filteredTags = tags?.filter((tag:any) => tag.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1);
+      let filteredTags = tags?.filter((tag: any) => tag.name.toLowerCase().indexOf(userInput.toLowerCase()) > -1);
       if (filteredTags?.length === 0 && tags?.length) {
         filteredTags = [{ id: '0', name: 'No suggestions available' }];
       }
@@ -368,7 +384,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       this.setState({
         chips,
         filteredTags: [],
-        activeSuggestionIndex: 0,
+        activeSuggestionIndex: -1,
       });
     }
   };
