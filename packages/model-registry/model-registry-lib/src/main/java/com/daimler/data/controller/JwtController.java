@@ -94,8 +94,7 @@ public class JwtController implements JwtApi {
 		VaultGenericResponse vaultResponse = vaultConfig.validateAppKey(appId, appKey);
 		if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
 			LOGGER.info("AppId and AppKey validated successfully");
-			UserInfo userInfo = this.userStore.getUserInfo();
-			String jwt = JWTGenerator.generateJWT(userInfo, appId);
+			String jwt = JWTGenerator.generateJWT(appId);
 			response.setToken(jwt);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else {
