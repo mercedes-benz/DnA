@@ -29,6 +29,7 @@ package com.daimler.data.registry.models.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,11 +44,15 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.model.ModelCollection;
-import com.daimler.data.dto.model.ModelExternalUriVO;
+import com.daimler.data.dto.model.ModelExternalUrlVO;
 import com.daimler.data.dto.model.ModelRequestVO;
 import com.daimler.data.dto.model.ModelResponseVO;
+import com.daimler.data.kong.client.KongClient;
 import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
+import com.daimler.data.registry.config.VaultConfig;
+import com.daimler.data.registry.dto.VaultGenericResponse;
+import com.daimler.data.registry.util.AppIdGenerator;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -65,7 +70,13 @@ public class RegistryServiceImpl implements RegistryService {
 	private MinioConfig minioConfig;
 
 	@Autowired
+	private VaultConfig vaultConfig;
+
+	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private KongClient kongClient;
 
 	@Value("${model.host}")
 	private String host;
@@ -120,12 +131,14 @@ public class RegistryServiceImpl implements RegistryService {
 	}
 
 	@Override
-	public ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO) {
+	public ResponseEntity<ModelResponseVO> generateExternalUrl(ModelRequestVO modelRequestVO) {
 		ModelResponseVO modelResponseVO = new ModelResponseVO();
-		ModelExternalUriVO modelExternalUriVO = new ModelExternalUriVO();
+		ModelExternalUrlVO modelExternalUrlVO = new ModelExternalUrlVO();
 		String modelName = modelRequestVO.getData().getModelName();
-		modelExternalUriVO.setModelName(modelName);
-		String uri = "";
+		modelExternalUrlVO.setModelName(modelName);
+		String url = "";
+		String appId = "";
+		String dataToEncrypt = "";
 		try {
 			String[] modelPath = modelName.split("/");
 			String[] userId = modelPath[0].split("-");
@@ -135,7 +148,7 @@ public class RegistryServiceImpl implements RegistryService {
 				MessageDescription message = new MessageDescription();
 				message.setMessage("Given modelName is invalid");
 				messages.add(message);
-				modelResponseVO.setData(modelExternalUriVO);
+				modelResponseVO.setData(modelExternalUrlVO);
 				modelResponseVO.setErrors(messages);
 				return new ResponseEntity<>(modelResponseVO, HttpStatus.BAD_REQUEST);
 			}
@@ -151,13 +164,14 @@ public class RegistryServiceImpl implements RegistryService {
 			}
 
 			String path = "/v1/models/" + backendServiceName + ":predict";
+			dataToEncrypt = path;
 
 			backendServiceName += "-" + backendServiceSuffix;
 
-			uri = "https://" + host + path;
+			url = "https://" + host + path;
 			V1Service service = kubeClient.getModelService(metaDataNamespace, backendServiceName);
 			if (service == null) {
-				modelResponseVO.setData(modelExternalUriVO);
+				modelResponseVO.setData(modelExternalUrlVO);
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("Error while getting service details for given model");
@@ -165,16 +179,50 @@ public class RegistryServiceImpl implements RegistryService {
 				modelResponseVO.setErrors(messages);
 				return new ResponseEntity<>(modelResponseVO, HttpStatus.NOT_FOUND);
 			}
-			kubeClient.getUri(metaDataNamespace, metaDataName, backendServiceName, path);
-			modelExternalUriVO.setExternalUri(uri);
-			modelResponseVO.setData(modelExternalUriVO);
+			appId = AppIdGenerator.encrypt(dataToEncrypt);
+			String appKey = UUID.randomUUID().toString();
+
+			// create service , route and attachJwtPluginToService
+			String kongServiceName = "kfp-service-" + metaDataName;
+			String kongServiceUrl = "http://" + backendServiceName + "." + metaDataNamespace + ".svc.cluster.local"
+					+ path;
+			String kongRoutePaths = "/model-serving" + path;
+
+			boolean serviceStatus = kongClient.createService(kongServiceName, kongServiceUrl);
+			boolean routeStatus = kongClient.createRoute(kongRoutePaths, kongServiceName);
+			boolean attachStatus = kongClient.attachJwtPluginToService(kongServiceName);
+
+			if (serviceStatus && routeStatus && attachStatus) {
+				kubeClient.getUrl(metaDataNamespace, metaDataName, backendServiceName, path);
+			}
+			VaultGenericResponse vaultResponse = vaultConfig.createAppKey(appId, appKey);
+			if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
+				LOGGER.info("AppId and AppKey created successfully");
+				modelExternalUrlVO.setAppId(appId);
+				modelExternalUrlVO.setAppKey(appKey);
+			} else {
+				LOGGER.error("Failed to create appId while exposing model {} ", modelName);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("Failed to create appId due to internal error");
+				messages.add(message);
+				modelResponseVO.setData(modelExternalUrlVO);
+				modelResponseVO.setErrors(messages);
+				return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			modelExternalUrlVO.setExternalUrl(url);
+			modelResponseVO.setData(modelExternalUrlVO);
 			LOGGER.info("Model {} exposed successfully", modelName);
 			return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
 		} catch (ApiException ex) {
 			LOGGER.error("ApiException occurred while exposing model. Exception is {} ", ex.getResponseBody());
 			if (ex.getCode() == HttpStatus.CONFLICT.value()) {
-				modelExternalUriVO.setExternalUri(uri);
-				modelResponseVO.setData(modelExternalUriVO);
+				String key = vaultConfig.getAppKey(appId);
+				modelExternalUrlVO.setAppId(appId);
+				modelExternalUrlVO.setAppKey(key);
+				modelExternalUrlVO.setExternalUrl(url);
+				modelResponseVO.setData(modelExternalUrlVO);
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage(ex.getResponseBody());
@@ -182,7 +230,7 @@ public class RegistryServiceImpl implements RegistryService {
 				modelResponseVO.setErrors(messages);
 				return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
 			} else if (ex.getCode() == HttpStatus.FORBIDDEN.value()) {
-				modelResponseVO.setData(modelExternalUriVO);
+				modelResponseVO.setData(modelExternalUrlVO);
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage(ex.getResponseBody());
@@ -190,7 +238,7 @@ public class RegistryServiceImpl implements RegistryService {
 				modelResponseVO.setErrors(messages);
 				return new ResponseEntity<>(modelResponseVO, HttpStatus.FORBIDDEN);
 			} else {
-				modelResponseVO.setData(modelExternalUriVO);
+				modelResponseVO.setData(modelExternalUrlVO);
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage(ex.getMessage());
@@ -205,7 +253,7 @@ public class RegistryServiceImpl implements RegistryService {
 			MessageDescription message = new MessageDescription();
 			message.setMessage(e.getMessage());
 			messages.add(message);
-			modelResponseVO.setData(modelExternalUriVO);
+			modelResponseVO.setData(modelExternalUrlVO);
 			modelResponseVO.setErrors(messages);
 			return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
