@@ -5,6 +5,12 @@
     cursor: pointer;
   }
 
+  &.feedback {
+    a {
+      text-decoration: none !important;
+    }
+  }
+
   &.forPortfolio {
     padding: 0;
   }
