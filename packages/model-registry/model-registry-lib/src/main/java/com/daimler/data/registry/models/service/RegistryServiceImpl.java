@@ -164,12 +164,13 @@ public class RegistryServiceImpl implements RegistryService {
 				backendServiceName = backendServiceName.substring(0, backendServiceName.length() - 1);
 			}
 
-			String path = "/v1/models/" + backendServiceName + ":predict";
+			String kongPath = "/v1/models/" + backendServiceName + ":predict";
+			String path = "/model-serving/v1/models/" + backendServiceName + ":predict";
 			dataToEncrypt = path;
 
 			backendServiceName += "-" + backendServiceSuffix;
 
-			url = "https://" + host + path;
+			url = "https://" + host +  path;
 			V1Service service = kubeClient.getModelService(metaDataNamespace, backendServiceName);
 			if (service == null) {
 				modelResponseVO.setData(modelExternalUrlVO);
@@ -186,8 +187,8 @@ public class RegistryServiceImpl implements RegistryService {
 			// create service , route and attachJwtPluginToService
 			String kongServiceName = "kfp-service-" + metaDataName;
 			String kongServiceUrl = "http://" + backendServiceName + "." + metaDataNamespace + ".svc.cluster.local"
-					+ path;
-			String kongRoutePaths = "/model-serving" + path;
+					+ kongPath;
+			String kongRoutePaths = path;
 
 			boolean serviceStatus = kongClient.createService(kongServiceName, kongServiceUrl);
 			boolean routeStatus = kongClient.createRoute(kongRoutePaths, kongServiceName);
