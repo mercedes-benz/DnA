@@ -25,18 +25,37 @@
  * LICENSE END 
  */
 
-package com.daimler.data.registry.models.service;
+package com.daimler.data.registry.util;
 
-import org.springframework.http.ResponseEntity;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import com.daimler.data.dto.model.ModelCollection;
-import com.daimler.data.dto.model.ModelRequestVO;
-import com.daimler.data.dto.model.ModelResponseVO;
+import com.daimler.data.registry.models.service.RegistryServiceImpl;
 
-public interface RegistryService {
+@Component
+public class AppIdGenerator {
 
-	ResponseEntity<ModelCollection> getAllModels();
+	private static Logger LOGGER = LoggerFactory.getLogger(RegistryServiceImpl.class);
 
-	ResponseEntity<ModelResponseVO> generateExternalUrl(ModelRequestVO modelRequestVO);
+	private static String SECRET_KEY;
 
+	@Value("${hmac.secret.key}")
+	public void setSecretKey(String secretKey) {
+		SECRET_KEY = secretKey;
+	}
+
+	public static String encrypt(String dataToEncrypt) {
+		String algorithm = "HmacMD5";
+		try {
+			String hmac = new HmacUtils(algorithm, SECRET_KEY).hmacHex(dataToEncrypt);
+			return hmac;
+		} catch (Exception e) {
+			LOGGER.error("Error while encrypting: {}", e.getMessage());
+			return null;
+		}
+
+	}
 }
