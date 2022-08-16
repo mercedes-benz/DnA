@@ -30,10 +30,17 @@ const deleteDataProduct = (id) => {
   });
 };
 
+const getDataComplianceList = (offset, limit, sortBy, sortOrder) => {
+  return server.get(`datacompliance?offset=${offset}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
+    data: {},
+  });
+};
+
 export const dataProductsApi = {
   getAllDataProducts,
   createDataProduct,
   updateDataProduct,
   deleteDataProduct,
   getDataProductById,
+  getDataComplianceList,
 };
