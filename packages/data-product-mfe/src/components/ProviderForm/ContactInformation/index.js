@@ -79,9 +79,10 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
         return item;
       });
       setComplianceOfficerList(res.data);
+      if (watch('complainceOfficer').length) setComplianceOfficer(watch('complainceOfficer'));
       ProgressIndicator.hide();
     });
-  }, []);
+  }, [watch]);
 
   return (
     <>
@@ -221,52 +222,6 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 />
                 <span className={classNames('error-message')}>{errors.department?.message}</span>
               </div>
-              <div className={classNames('input-field-group include-error', errors.complainceOfficer ? 'error' : '')}>
-                {/* <label id="complainceOfficerLabel" htmlFor="complainceOfficerInput" className="input-label">
-                  Corresponding Compliance Officer / Responsible (LCO/LCR) <sup>*</sup>
-                </label> */}
-                {/* <input
-                  {...register('complainceOfficer', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="complainceOfficerInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
-                /> */}
-                <Controller
-                  control={control}
-                  name="complainceOfficer"
-                  rules={{ required: '*Missing entry' }}
-                  render={({ field }) =>
-                    console.log(field) || (
-                      <Tags
-                        title={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
-                        max={10}
-                        chips={complianceOfficer}
-                        tags={complianceOfficerList.records}
-                        setTags={(selectedTags) => {
-                          setComplianceOfficer(selectedTags);
-                          field.onChange(selectedTags);
-                        }}
-                        suggestionRender={(item) => (
-                          <div className={Styles.optionContainer}>
-                            <span className={Styles.optionText}>Entity ID: {item?.entityId}</span>
-                            <span className={Styles.optionText}>Entiry Name: {item?.entityName}</span>
-                            <span className={Styles.optionText}>LCO: {item?.name}</span>
-                          </div>
-                        )}
-                        isMandatory={true}
-                        showMissingEntryError={errors.complainceOfficer?.message}
-                        disableOnBlurAdd={true}
-                        suggestionPopupHeight={120}
-                        // isDisabled={!bucketInfo.accessInfo.permission?.write}
-                      />
-                    )
-                  }
-                />
-                {/* <span className={classNames('error-message')}>{errors.complainceOfficer?.message}</span> */}
-              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
@@ -283,6 +238,36 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                   autoComplete="off"
                 />
                 <span className={classNames('error-message')}>{errors.planningIT?.message}</span>
+              </div>
+              <div className={classNames('input-field-group include-error', errors.complainceOfficer ? 'error' : '')}>
+                <Controller
+                  control={control}
+                  name="complainceOfficer"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <Tags
+                      title={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
+                      max={1}
+                      chips={complianceOfficer}
+                      tags={complianceOfficerList.records}
+                      setTags={(selectedTags) => {
+                        setComplianceOfficer(selectedTags);
+                        field.onChange(selectedTags);
+                      }}
+                      suggestionRender={(item) => (
+                        <div className={Styles.optionContainer}>
+                          <span className={Styles.optionText}>Entity ID: {item?.entityId}</span>
+                          <span className={Styles.optionText}>Entiry Name: {item?.entityName}</span>
+                          <span className={Styles.optionText}>LCO: {item?.name}</span>
+                        </div>
+                      )}
+                      isMandatory={true}
+                      showMissingEntryError={errors.complainceOfficer?.message}
+                      disableOnBlurAdd={true}
+                      suggestionPopupHeight={120}
+                    />
+                  )}
+                />
               </div>
             </div>
           </div>
