@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -72,12 +73,13 @@ public class RegistryController implements ModelsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/models", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<ModelCollection> getAll() {
+	public ResponseEntity<ModelCollection> getAll(
+			@ApiParam(value = "Authorization token.", required = true) @RequestHeader(value = "Authorization", required = true) String authorization) {
 		return modelRegistryservice.getAllModels();
 	}
 
 	@Override
-	@ApiOperation(value = "create a external uri.", nickname = "create", notes = "create a external uri", response = ModelResponseVO.class, tags = {
+	@ApiOperation(value = "create a external url.", nickname = "create", notes = "create a external url", response = ModelResponseVO.class, tags = {
 			"models", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Returns message of succes", response = ModelResponseVO.class),
@@ -87,11 +89,12 @@ public class RegistryController implements ModelsApi {
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 409, message = "Conflict", response = ModelResponseVO.class),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/model/externaluri", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/model/externalurl", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
 	public ResponseEntity<ModelResponseVO> create(
-			@ApiParam(value = "Request Body that contains data required for creating a external uri", required = true) @Valid @RequestBody ModelRequestVO modelRequestVO) {
-		return modelRegistryservice.generateExternalUri(modelRequestVO);
+			@ApiParam(value = "Authorization token.", required = true) @RequestHeader(value = "Authorization", required = true) String authorization,
+			@ApiParam(value = "Request Body that contains data required for creating a external url", required = true) @Valid @RequestBody ModelRequestVO modelRequestVO) {
+		return modelRegistryservice.generateExternalUrl(modelRequestVO);
 	}
 
 }
