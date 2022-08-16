@@ -98,7 +98,7 @@ public class KubernetesClient {
 		return null;
 	}
 
-	public void getUri(String metaDataNamespace, String metaDataName, String backendServiceName, String path)
+	public void getUrl(String metaDataNamespace, String metaDataName, String backendServiceName, String path)
 			throws ApiException {
 		V1Ingress ingress = new V1Ingress();
 		V1ObjectMeta metaData = new V1ObjectMeta();
