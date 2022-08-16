@@ -79,7 +79,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
         return item;
       });
       setComplianceOfficerList(res.data);
-      if (watch('complainceOfficer').length) setComplianceOfficer(watch('complainceOfficer'));
+      if (watch('complainceOfficer')?.length) setComplianceOfficer(watch('complainceOfficer'));
       ProgressIndicator.hide();
     });
   }, [watch]);
