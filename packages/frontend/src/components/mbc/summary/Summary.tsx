@@ -417,6 +417,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     this.setup();
   }
   public async componentDidMount() {
+    ApiClient.getDataSources()
+      .then((res) => {
+        this.setState({ dataSources: res }, () => {});
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
     this.setup();
     Tabs.defaultSetup();
     document.getElementById('header').classList.add('nav-header-bg-trans');
@@ -441,14 +448,6 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
             : (sol.bookmarked = false);
         }
         this.setState({ solution: sol }, () => {});
-      })
-      .catch((error) => {
-        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
-
-    ApiClient.getDataSources()
-      .then((res) => {
-        this.setState({ dataSources: res }, () => {});
       })
       .catch((error) => {
         this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
