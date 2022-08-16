@@ -109,6 +109,9 @@ public class BaseStorageService implements StorageService {
 	@Value("${storage.termsOfUse.uri}")
 	private String storageTermsOfUseUri;
 	
+	@Value("${storage.connect.host}")
+	private String storageConnectHost;
+	
 	@Value("${minio.clientApi}")
 	private String minioClientApi;
 	
@@ -616,9 +619,9 @@ public class BaseStorageService implements StorageService {
 				userVO.setSecretKey(secretKey);
 				// Setting permission
 				userVO.setPermission(dnaMinioClient.getBucketPermission(bucketName, userId));
-				Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser, bucketName, null);
-				userVO.setUri(bucketConnectionUri.get(ConstantsUtility.URI));
-				userVO.setHostName(bucketConnectionUri.get(ConstantsUtility.HOSTNAME));
+				//Map<String, String> bucketConnectionUri = dnaMinioClient.getUri(currentUser,bucketName, null);
+				userVO.setUri(storageConnectHost+"/buckets/"+bucketName);
+				userVO.setHostName(storageConnectHost);
 				responseVO.setUserVO(userVO);
 
 				// To get connected dataiku projects from database
