@@ -11,6 +11,8 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../../common/modules/uilab/js/src/notification';
+
 import { useSelector } from 'react-redux';
 import { dataProductsApi } from '../../../apis/dataproducts.api';
 
@@ -73,15 +75,24 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
 
   useEffect(() => {
     ProgressIndicator.show();
-    dataProductsApi.getDataComplianceList(0, 0, 'entityId', 'asc').then((res) => {
-      res.data?.records?.map((item) => {
-        item['name'] = item.localComplianceOfficer.toString();
-        return item;
+    dataProductsApi
+      .getDataComplianceList(0, 0, 'entityId', 'asc')
+      .then((res) => {
+        res.data?.records?.map((item) => {
+          item['name'] = item.localComplianceOfficer.toString();
+          return item;
+        });
+        setComplianceOfficerList(res.data);
+        if (watch('complainceOfficer')?.length) setComplianceOfficer(watch('complainceOfficer'));
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          e.response?.data?.errors?.[0]?.message || 'Error while fethcing data compliance officers list.',
+          'alert',
+        );
       });
-      setComplianceOfficerList(res.data);
-      if (watch('complainceOfficer')?.length) setComplianceOfficer(watch('complainceOfficer'));
-      ProgressIndicator.hide();
-    });
   }, [watch]);
 
   return (
