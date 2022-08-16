@@ -102,17 +102,17 @@ paths:
     500:
      description: "Internal error"
      
-# path to create external uri to access model
+# path to create external url to access model
 #  supported http methods POST
 #
-# path example ../model/externaluri
+# path example ../model/externalurl
 
- /model/externaluri:
+ /model/externalurl:
     post:
       tags:
         - "models"
-      summary: "create a external uri."
-      description: "create a external uri"
+      summary: "create a external url."
+      description: "create a external url"
       operationId: "create"
       parameters:
         - name: Authorization
@@ -122,7 +122,7 @@ paths:
           type: string        
         - name: "modelRequestVO"
           in: "body"
-          description: "Request Body that contains data required for creating a external uri"
+          description: "Request Body that contains data required for creating a external url"
           required: true
           schema:
             $ref: "#/definitions/ModelRequestVO"    
@@ -180,7 +180,7 @@ definitions:
     required:
       - modelName 
       
- ModelExternalUriVO:
+ ModelExternalUrlVO:
     type: object
     properties:
       modelName:
@@ -192,15 +192,15 @@ definitions:
       appKey:
         type: string
         description: "Api key to get access token"
-      externalUri:
+      externalUrl:
         type: string
-        description: "External Uri"              
+        description: "External Url"              
       
  ModelResponseVO:
     type: object
     properties:
       data:
-        $ref: "#/definitions/ModelExternalUriVO"
+        $ref: "#/definitions/ModelExternalUrlVO"
       errors:
         type: array
         items:
