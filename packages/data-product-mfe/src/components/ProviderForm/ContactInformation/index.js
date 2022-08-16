@@ -30,7 +30,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
-  const { division } = watch();
+  const { division, complianceOfficer: selectedcomplianceOfficer } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
@@ -83,7 +83,6 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
           return item;
         });
         setComplianceOfficerList(res.data);
-        if (watch('complainceOfficer')?.length) setComplianceOfficer(watch('complainceOfficer'));
         ProgressIndicator.hide();
       })
       .catch((e) => {
@@ -93,7 +92,14 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
           'alert',
         );
       });
-  }, [watch]);
+    //eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    if (selectedcomplianceOfficer?.length) {
+      setComplianceOfficer(selectedcomplianceOfficer);
+    }
+  }, [selectedcomplianceOfficer]);
 
   return (
     <>
@@ -250,10 +256,10 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 />
                 <span className={classNames('error-message')}>{errors.planningIT?.message}</span>
               </div>
-              <div className={classNames('input-field-group include-error', errors.complainceOfficer ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>
                 <Controller
                   control={control}
-                  name="complainceOfficer"
+                  name="complianceOfficer"
                   rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <Tags
@@ -273,7 +279,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                         </div>
                       )}
                       isMandatory={true}
-                      showMissingEntryError={errors.complainceOfficer?.message}
+                      showMissingEntryError={errors.complianceOfficer?.message}
                       disableOnBlurAdd={true}
                       suggestionPopupHeight={120}
                     />
