@@ -25,18 +25,17 @@
  * LICENSE END 
  */
 
-package com.daimler.data.registry.models.service;
+package com.daimler.data.registry.dto;
 
-import org.springframework.http.ResponseEntity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.daimler.data.dto.model.ModelCollection;
-import com.daimler.data.dto.model.ModelRequestVO;
-import com.daimler.data.dto.model.ModelResponseVO;
-
-public interface RegistryService {
-
-	ResponseEntity<ModelCollection> getAllModels();
-
-	ResponseEntity<ModelResponseVO> generateExternalUrl(ModelRequestVO modelRequestVO);
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class VaultGenericResponse {
+	private String status;
+	private String message;
+	private VaultDTO data;
 }

@@ -67,6 +67,9 @@ public class JWTAuthenticationFilter implements Filter {
 	@Value("${dna.dnaAuthEnable}")
 	private boolean dnaAuthEnable;
 
+	@Value("#{'${jwt.secret.byPassUrl}'.split(';')}")
+	private List<String> byPassUrl;
+
 	private UserStore userStore;
 
 	@Autowired
@@ -79,27 +82,48 @@ public class JWTAuthenticationFilter implements Filter {
 		HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
 		String requestUri = httpRequest.getRequestURI();
 		log.debug("Intercepting Request to validate JWT:" + requestUri);
-		String jwt = httpRequest.getHeader("Authorization");
-		if (!StringUtils.hasText(jwt)) {
-			log.error("Request UnAuthorized,No JWT available");
-			forbidResponse(servletResponse);
-			return;
-		} else {
-			Claims claims = JWTGenerator.decodeJWT(jwt);
-			log.trace("Claims:" + claims.toString());
-			String userId = (String) claims.get("id");
-			if (claims == null) {
-				log.error("Invalid  JWT!");
-				HttpServletResponse response = (HttpServletResponse) servletResponse;
-				response.reset();
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		if (!byPassUrl.stream().anyMatch(requestUri::contains)) {
+			String jwt = httpRequest.getHeader("Authorization");
+			if (!StringUtils.hasText(jwt)) {
+				log.error("Request UnAuthorized,No JWT available");
+				forbidResponse(servletResponse);
 				return;
 			} else {
-				if (dnaAuthEnable) {
-					JSONObject res = dnaAuthClient.verifyLogin(jwt);
-					if (res != null) {
+				Claims claims = JWTGenerator.decodeJWT(jwt);
+				log.trace("Claims:" + claims.toString());
+				String userId = (String) claims.get("id");
+				if (claims == null) {
+					log.error("Invalid  JWT!");
+					HttpServletResponse response = (HttpServletResponse) servletResponse;
+					response.reset();
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					return;
+				} else {
+					if (dnaAuthEnable) {
+						JSONObject res = dnaAuthClient.verifyLogin(jwt);
+						if (res != null) {
+							try {
+								setUserDetailsToStore(res);
+								filterChain.doFilter(servletRequest, servletResponse);
+							} finally {
+								// Otherwise when a previously used container thread is used, it will have the
+								// old user id set and
+								// if for some reason this filter is skipped, userStore will hold an unreliable
+								// value
+								this.userStore.clear();
+							}
+
+						} else {
+							log.error("Request UnAuthorized,No JWT available");
+							forbidResponse(servletResponse);
+							return;
+						}
+
+					} else {
 						try {
-							setUserDetailsToStore(res);
+							log.debug(
+									"Request validation successful, set request user details in the store for further access");
+							setUserDetailsToStore(claims);
 							filterChain.doFilter(servletRequest, servletResponse);
 						} finally {
 							// Otherwise when a previously used container thread is used, it will have the
@@ -108,29 +132,13 @@ public class JWTAuthenticationFilter implements Filter {
 							// value
 							this.userStore.clear();
 						}
-
-					} else {
-						log.error("Request UnAuthorized,No JWT available");
-						forbidResponse(servletResponse);
-						return;
 					}
 
-				} else {
-					try {
-						log.debug(
-								"Request validation successful, set request user details in the store for further access");
-						setUserDetailsToStore(claims);
-						filterChain.doFilter(servletRequest, servletResponse);
-					} finally {
-						// Otherwise when a previously used container thread is used, it will have the
-						// old user id set and
-						// if for some reason this filter is skipped, userStore will hold an unreliable
-						// value
-						this.userStore.clear();
-					}
 				}
-
 			}
+		} else {
+			log.debug("Request is exempted from validation");
+			filterChain.doFilter(servletRequest, servletResponse);
 		}
 
 	}
