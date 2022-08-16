@@ -38,8 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.daimler.data.application.auth.UserStore.UserInfo;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
@@ -58,6 +56,8 @@ public class JWTGenerator {
 
 	private static int TOKEN_EXPIRY;
 
+	private static String KID;
+
 	@Value("${jwt.secret.key}")
 	public void setSecretKey(String secretKey) {
 		SECRET_KEY = secretKey;
@@ -68,16 +68,15 @@ public class JWTGenerator {
 		TOKEN_EXPIRY = tokenExpiry;
 	}
 
-	public static String generateJWT(UserInfo userInfo, String appId) {
+	@Value("${jwt.secret.kid}")
+	public void setKid(String kid) {
+		KID = kid;
+	}
 
+	public static String generateJWT(String appId) {
 		final Map<String, Object> tokenData = new HashMap<>();
-		tokenData.put("id", userInfo.getId());
-		tokenData.put("firstName", userInfo.getFirstName());
-		tokenData.put("lastName", userInfo.getLastName());
-		tokenData.put("email", userInfo.getEmail());
+		tokenData.put("kid", KID);
 		tokenData.put("nounce", Math.random());
-		tokenData.put("mobileNumber", userInfo.getMobileNumber());
-		tokenData.put("department", userInfo.getDepartment());
 		tokenData.put("appId", appId);
 		final JwtBuilder jwtBuilder = Jwts.builder();
 		jwtBuilder.setClaims(tokenData);
