@@ -37,7 +37,7 @@ const tabs = {
     division: '0',
     subDivision: '0',
     department: '',
-    complainceOfficer: '',
+    complianceOfficer: '',
     planningIT: '',
   },
   'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: 'Public' },
