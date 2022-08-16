@@ -41,7 +41,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -76,12 +75,13 @@ public class KongClientImpl implements KongClient {
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Kong service:{} created successfully", serviceName);
 					return true;
 				}
 			}
 		} catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
-				LOGGER.info("Service:{} already exists", serviceName);
+				LOGGER.info("Kong service:{} already exists", serviceName);
 				return true;
 			}
 			throw ex;
@@ -106,7 +106,8 @@ public class KongClientImpl implements KongClient {
 			ResponseEntity<String> routes = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
 			if (routes != null && routes.hasBody() && routes.getStatusCode() == HttpStatus.OK) {
 				JSONArray array = (JSONArray) new JSONObject(routes.getBody()).getJSONArray("data");
-				if (array != null  && !array.isEmpty()) {
+				if (array != null && !array.isEmpty()) {
+					LOGGER.info("Route already exist for service:{}", serviceName);
 					return true;
 				}
 			}
@@ -122,6 +123,7 @@ public class KongClientImpl implements KongClient {
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Route created successfully for service:{}", serviceName);
 					return true;
 				}
 			}
@@ -153,6 +155,7 @@ public class KongClientImpl implements KongClient {
 			if (response != null && response.hasBody()) {
 				HttpStatus statusCode = response.getStatusCode();
 				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("Jwt plugin attached successfully to service: {}", serviceName);
 					return true;
 				}
 			}
