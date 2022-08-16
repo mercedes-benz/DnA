@@ -1,3 +1,5 @@
+import { regionalDateAndTimeConversionSolution } from './utils';
+
 export const serializeFormData = (values, division) => {
   if (values.openSegments.length === 1 && values.openSegments.includes('ContactInformation')) {
     return {
@@ -59,7 +61,7 @@ export const deserializeFormData = (item) => {
     id: item.id,
     name: item.contactInformation.name,
     planningIT: item.contactInformation.appId,
-    dateOfDataTransfer: item.contactInformation.dataTransferDate,
+    dateOfDataTransfer: regionalDateAndTimeConversionSolution(item.contactInformation.dataTransferDate),
     department: item.contactInformation.department,
     division: item.contactInformation.division.id,
     subDivision: item.contactInformation.division.subdivision.id || '0',
