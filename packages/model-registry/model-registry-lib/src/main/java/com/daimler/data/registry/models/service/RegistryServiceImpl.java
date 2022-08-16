@@ -138,6 +138,7 @@ public class RegistryServiceImpl implements RegistryService {
 		modelExternalUrlVO.setModelName(modelName);
 		String url = "";
 		String appId = "";
+		String appKey = "";
 		String dataToEncrypt = "";
 		try {
 			String[] modelPath = modelName.split("/");
@@ -163,12 +164,13 @@ public class RegistryServiceImpl implements RegistryService {
 				backendServiceName = backendServiceName.substring(0, backendServiceName.length() - 1);
 			}
 
-			String path = "/v1/models/" + backendServiceName + ":predict";
+			String kongPath = "/v1/models/" + backendServiceName + ":predict";
+			String path = "/model-serving/v1/models/" + backendServiceName + ":predict";
 			dataToEncrypt = path;
 
 			backendServiceName += "-" + backendServiceSuffix;
 
-			url = "https://" + host + path;
+			url = "https://" + host +  path;
 			V1Service service = kubeClient.getModelService(metaDataNamespace, backendServiceName);
 			if (service == null) {
 				modelResponseVO.setData(modelExternalUrlVO);
@@ -180,35 +182,35 @@ public class RegistryServiceImpl implements RegistryService {
 				return new ResponseEntity<>(modelResponseVO, HttpStatus.NOT_FOUND);
 			}
 			appId = AppIdGenerator.encrypt(dataToEncrypt);
-			String appKey = UUID.randomUUID().toString();
+			appKey = UUID.randomUUID().toString();
 
 			// create service , route and attachJwtPluginToService
 			String kongServiceName = "kfp-service-" + metaDataName;
 			String kongServiceUrl = "http://" + backendServiceName + "." + metaDataNamespace + ".svc.cluster.local"
-					+ path;
-			String kongRoutePaths = "/model-serving" + path;
+					+ kongPath;
+			String kongRoutePaths = path;
 
 			boolean serviceStatus = kongClient.createService(kongServiceName, kongServiceUrl);
 			boolean routeStatus = kongClient.createRoute(kongRoutePaths, kongServiceName);
 			boolean attachStatus = kongClient.attachJwtPluginToService(kongServiceName);
 
 			if (serviceStatus && routeStatus && attachStatus) {
+				VaultGenericResponse vaultResponse = vaultConfig.createAppKey(appId, appKey);
+				if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
+					LOGGER.info("AppId and AppKey created successfully");
+					modelExternalUrlVO.setAppId(appId);
+					modelExternalUrlVO.setAppKey(appKey);
+				} else {
+					LOGGER.error("Failed to create appId while exposing model {} ", modelName);
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Failed to create appId due to internal error");
+					messages.add(message);
+					modelResponseVO.setData(modelExternalUrlVO);
+					modelResponseVO.setErrors(messages);
+					return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
 				kubeClient.getUrl(metaDataNamespace, metaDataName, backendServiceName, path);
-			}
-			VaultGenericResponse vaultResponse = vaultConfig.createAppKey(appId, appKey);
-			if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-				LOGGER.info("AppId and AppKey created successfully");
-				modelExternalUrlVO.setAppId(appId);
-				modelExternalUrlVO.setAppKey(appKey);
-			} else {
-				LOGGER.error("Failed to create appId while exposing model {} ", modelName);
-				List<MessageDescription> messages = new ArrayList<>();
-				MessageDescription message = new MessageDescription();
-				message.setMessage("Failed to create appId due to internal error");
-				messages.add(message);
-				modelResponseVO.setData(modelExternalUrlVO);
-				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 			modelExternalUrlVO.setExternalUrl(url);
@@ -218,9 +220,8 @@ public class RegistryServiceImpl implements RegistryService {
 		} catch (ApiException ex) {
 			LOGGER.error("ApiException occurred while exposing model. Exception is {} ", ex.getResponseBody());
 			if (ex.getCode() == HttpStatus.CONFLICT.value()) {
-				String key = vaultConfig.getAppKey(appId);
 				modelExternalUrlVO.setAppId(appId);
-				modelExternalUrlVO.setAppKey(key);
+				modelExternalUrlVO.setAppKey(appKey);
 				modelExternalUrlVO.setExternalUrl(url);
 				modelResponseVO.setData(modelExternalUrlVO);
 				List<MessageDescription> messages = new ArrayList<>();
