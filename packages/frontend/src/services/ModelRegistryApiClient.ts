@@ -33,6 +33,6 @@ export class ModelRegistryApiClient {
     return this.get('models');
   }
   public static createExternalURI(model: any) {
-    return this.post('model/externaluri', model);
+    return this.post('model/externalurl', model);
   }
 }
