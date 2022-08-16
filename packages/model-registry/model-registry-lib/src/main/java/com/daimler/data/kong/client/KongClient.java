@@ -25,18 +25,13 @@
  * LICENSE END 
  */
 
-package com.daimler.data.registry.models.service;
+package com.daimler.data.kong.client;
 
-import org.springframework.http.ResponseEntity;
+public interface KongClient {
 
-import com.daimler.data.dto.model.ModelCollection;
-import com.daimler.data.dto.model.ModelRequestVO;
-import com.daimler.data.dto.model.ModelResponseVO;
+	public boolean createService(String name, String url);
 
-public interface RegistryService {
+	public boolean createRoute(String path, String serviceName);
 
-	ResponseEntity<ModelCollection> getAllModels();
-
-	ResponseEntity<ModelResponseVO> generateExternalUrl(ModelRequestVO modelRequestVO);
-
+	public boolean attachJwtPluginToService(String serviceName);
 }
