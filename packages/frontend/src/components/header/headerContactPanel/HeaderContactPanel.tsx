@@ -20,6 +20,8 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
   const contactModalContent = <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>;
   const [showContactModal, setShowContactModal] = useState<boolean>(false);
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
+  const enableAppFeedback = Envs.ENABLE_APP_FEEDBACK;
+  const appFeedbackExternalUrl = Envs.APP_FEEDBACK_EXTERNAL_URL;
 
   useEffect(() => {
     eventClenUp();
@@ -79,6 +81,13 @@ export default function HeaderContactPanel(props: IHeaderContactPanelProps) {
           {/* {getTranslatedLabel('Licences')} */}
           Licences
         </li>
+        {enableAppFeedback && (
+          <li>
+            <a target="_blank" rel="noreferrer" href={appFeedbackExternalUrl}>
+              Feedback
+            </a>
+          </li>
+        )}
       </ul>
       <InfoModal
         title={showContactModal ? 'Contact Us' : 'About'}
