@@ -2,10 +2,25 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: model-registry-service
+    
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: ${VAULT_SCHEME:http}
+      authentication: ${VAULT_AUTHENTICATION:TOKEN}
+      token: ${VAULT_TOKEN:***REMOVED***}
+      mountpath: ${VAULT_MOUNTPATH:secret}
+      vaultpath: ${VAULT_PATH:dna/modelregistry}
+      kv:
+       enabled: true     
 
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  
+kong:
+  uri: ${KONG_URI:XXXXXX}
   
 model:  
   host: ${HOST:XXXXXX}
@@ -21,6 +36,13 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:XXXXXX}
+    tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
+    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/models/jwt}
+    kid: ${JWT_SECRET_KID:XXXXX}
+    
+hmac:
+  secret:
+    key: ${HMAC_SECRET_KEY:XXXXX}
     
 minio:
   models.bucketname: ${MINIO_MODELS_BUCKETNAME:XXXXX}
