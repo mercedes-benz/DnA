@@ -1,16 +1,18 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import Styles from '../Form.common.styles.scss';
+import Styles from './styles.scss';
 
 // components from container app
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
+import Tags from 'dna-container/Tags';
 
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { useSelector } from 'react-redux';
+import { dataProductsApi } from '../../../apis/dataproducts.api';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }) => {
   const {
@@ -21,11 +23,18 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     trigger,
     reset,
     setValue,
+    control,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
   const { division } = watch();
+
+  const [complianceOfficerList, setComplianceOfficerList] = useState({
+    records: [],
+    totalCount: 0,
+  });
+  const [complianceOfficer, setComplianceOfficer] = useState([]);
 
   useEffect(() => {
     const id = watch('division');
@@ -61,6 +70,18 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     // if division is set to "Choose", reset sub divison dropdown to empty list
     division === '0' && SelectBox.defaultSetup();
   }, [division, subDivisions.length]);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    dataProductsApi.getDataComplianceList(0, 0, 'entityId', 'asc').then((res) => {
+      res.data?.records?.map((item) => {
+        item['name'] = item.localComplianceOfficer.toString();
+        return item;
+      });
+      setComplianceOfficerList(res.data);
+      ProgressIndicator.hide();
+    });
+  }, []);
 
   return (
     <>
@@ -201,10 +222,10 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 <span className={classNames('error-message')}>{errors.department?.message}</span>
               </div>
               <div className={classNames('input-field-group include-error', errors.complainceOfficer ? 'error' : '')}>
-                <label id="complainceOfficerLabel" htmlFor="complainceOfficerInput" className="input-label">
+                {/* <label id="complainceOfficerLabel" htmlFor="complainceOfficerInput" className="input-label">
                   Corresponding Compliance Officer / Responsible (LCO/LCR) <sup>*</sup>
-                </label>
-                <input
+                </label> */}
+                {/* <input
                   {...register('complainceOfficer', { required: '*Missing entry' })}
                   type="text"
                   className="input-field"
@@ -212,8 +233,39 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                   maxLength={200}
                   placeholder="Type here"
                   autoComplete="off"
+                /> */}
+                <Controller
+                  control={control}
+                  name="complainceOfficer"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) =>
+                    console.log(field) || (
+                      <Tags
+                        title={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
+                        max={10}
+                        chips={complianceOfficer}
+                        tags={complianceOfficerList.records}
+                        setTags={(selectedTags) => {
+                          setComplianceOfficer(selectedTags);
+                          field.onChange(selectedTags);
+                        }}
+                        suggestionRender={(item) => (
+                          <div className={Styles.optionContainer}>
+                            <span className={Styles.optionText}>Entity ID: {item?.entityId}</span>
+                            <span className={Styles.optionText}>Entiry Name: {item?.entityName}</span>
+                            <span className={Styles.optionText}>LCO: {item?.name}</span>
+                          </div>
+                        )}
+                        isMandatory={true}
+                        showMissingEntryError={errors.complainceOfficer?.message}
+                        disableOnBlurAdd={true}
+                        suggestionPopupHeight={120}
+                        // isDisabled={!bucketInfo.accessInfo.permission?.write}
+                      />
+                    )
+                  }
                 />
-                <span className={classNames('error-message')}>{errors.complainceOfficer?.message}</span>
+                {/* <span className={classNames('error-message')}>{errors.complainceOfficer?.message}</span> */}
               </div>
             </div>
             <div className={Styles.flexLayout}>
