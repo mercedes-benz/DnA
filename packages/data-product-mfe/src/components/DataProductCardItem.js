@@ -66,13 +66,16 @@ const DataProductCardItem = ({ product, history }) => {
             </div>
           </div>
         </div>
-        <div className={Styles.btnGrp}>
-          <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.id}`)}>
-            <i className="icon mbc-icon edit"></i>
-          </button>
-          <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-            <i className="icon delete"></i>
-          </button>
+        <div className={Styles.cardFooter}>
+          <div>{!product?.publish && <span className={Styles.draftIndicator}>DRAFT</span>}</div>
+          <div className={Styles.btnGrp}>
+            <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.id}`)}>
+              <i className="icon mbc-icon edit"></i>
+            </button>
+            <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+              <i className="icon delete"></i>
+            </button>
+          </div>
         </div>
       </div>
       <ConfirmModal

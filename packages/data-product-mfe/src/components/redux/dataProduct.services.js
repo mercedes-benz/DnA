@@ -32,16 +32,18 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
   const division = serializeDivisionSubDivision(divisions, values);
 
   const requestBody = serializeFormData(values, division);
-
+  ProgressIndicator.show();
   try {
     const res = await dataProductsApi.createDataProduct(requestBody);
     onSave();
     const data = deserializeFormData(res?.data?.data);
+    ProgressIndicator.hide();
     return {
       data,
       pagination,
     };
   } catch (e) {
+    ProgressIndicator.hide();
     Notification.show(e?.response?.data?.errors[0]?.message, 'alert');
     return rejectWithValue(e?.response?.data?.errors[0]?.message);
   }
@@ -56,9 +58,10 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
 
   const division = serializeDivisionSubDivision(divisions, values);
   const requestBody = serializeFormData(values, division);
-
+  ProgressIndicator.show();
   try {
     const res = await dataProductsApi.updateDataProduct(requestBody);
+    ProgressIndicator.hide();
     onSave();
     const data = deserializeFormData(res?.data?.data);
     if (values.publish) {
@@ -69,6 +72,7 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
       pagination,
     };
   } catch (e) {
+    ProgressIndicator.hide();
     Notification.show(e?.response?.data?.errors[0]?.message, 'alert');
     return rejectWithValue(e?.response?.data?.errors[0]?.message);
   }
