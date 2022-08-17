@@ -81,7 +81,7 @@ public class JWTGenerator {
 		final JwtBuilder jwtBuilder = Jwts.builder();
 		jwtBuilder.setClaims(tokenData);
 		jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY * 60 * 1000));
-		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS512, SECRET_KEY).compact();
+		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
 		return token;
 	}
 

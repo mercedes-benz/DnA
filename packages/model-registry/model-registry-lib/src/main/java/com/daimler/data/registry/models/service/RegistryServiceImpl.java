@@ -167,7 +167,8 @@ public class RegistryServiceImpl implements RegistryService {
 			String kongPath = "/v1/models/" + backendServiceName + ":predict";
 			String path = "/model-serving/v1/models/" + backendServiceName + ":predict";
 			dataToEncrypt = path;
-
+            String kongBackendService = backendServiceName;
+			
 			backendServiceName += "-" + backendServiceSuffix;
 
 			url = "https://" + host +  path;
@@ -186,7 +187,7 @@ public class RegistryServiceImpl implements RegistryService {
 
 			// create service , route and attachJwtPluginToService
 			String kongServiceName = "kfp-service-" + metaDataName;
-			String kongServiceUrl = "http://" + backendServiceName + "." + metaDataNamespace + ".svc.cluster.local"
+			String kongServiceUrl = "http://" + kongBackendService + "." + metaDataNamespace + ".svc.cluster.local"
 					+ kongPath;
 			String kongRoutePaths = path;
 
