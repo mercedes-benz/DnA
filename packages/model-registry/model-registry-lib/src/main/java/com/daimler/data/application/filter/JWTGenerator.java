@@ -33,6 +33,7 @@ import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,6 +75,7 @@ public class JWTGenerator {
 	}
 
 	public static String generateJWT(String appId) {
+		byte[] bytesEncoded = Base64.encodeBase64(SECRET_KEY.getBytes());
 		final Map<String, Object> tokenData = new HashMap<>();
 		tokenData.put("kid", KID);
 		tokenData.put("nounce", Math.random());
@@ -81,7 +83,7 @@ public class JWTGenerator {
 		final JwtBuilder jwtBuilder = Jwts.builder();
 		jwtBuilder.setClaims(tokenData);
 		jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY * 60 * 1000));
-		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
+		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS256, new String(bytesEncoded)).compact();
 		return token;
 	}
 
