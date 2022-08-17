@@ -66,7 +66,7 @@ public class CodeServerClient {
 			headers.set("Content-Type", "application/json");
 			
 			HttpEntity entity = new HttpEntity<>(headers);
-			String url = codeServerBaseUri+"/"+userId+"/login";
+			String url = codeServerBaseUri+"/"+userId+"/default/login";
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				LOGGER.info("Success while polling codeServer workbench status for user {} ", userId);
