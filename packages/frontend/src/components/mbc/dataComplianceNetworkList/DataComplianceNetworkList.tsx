@@ -286,7 +286,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
     if(searchText.length > 0) {
       setDataComplianceNetworkList(filteredResults);
     } else {
-      // getDataComplianceNetworkList();
+      getDataComplianceNetworkList();
       setCurrentPageOffset(0);
     }
   }
