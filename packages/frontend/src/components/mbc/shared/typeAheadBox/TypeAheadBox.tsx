@@ -12,6 +12,7 @@ export interface IRowItemProps {
   onItemSelect: (entity:any) => void;
   onError?: (error:boolean) => void;
   required: boolean;
+  entityError?: boolean;
 }
 
 const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
@@ -31,7 +32,7 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
   const [suggestions, setSuggestions] = useState([]);
   const [hideSuggestion, setHideSuggestion] = useState(true);
   const [showNoResultsError, setShowNoResultsError] = useState(false);
-  const [errorText, setErrorText] = useState('');
+  const [errorText, setErrorText] = useState(null);
   const [isSelected, setIsSelected] = useState(false);
 
   useEffect(() => {
@@ -44,6 +45,12 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
   }, [props.defaultValue]);
 
   useEffect(() => {
+    if(props.entityError) {
+      setErrorText('*Missing Entry');
+    }
+  }, [props.entityError]);
+  
+  useEffect(() => {
     setSuggestions(props.list);
   }, [props.list]);
   
@@ -53,9 +60,7 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
     setIsSelected(false);
     if(event.currentTarget.value.length > 0) {
       setErrorText('');
-      props.onError(false);
     } else {
-      props.onError(true);
       setErrorText('*Missing Entry');
     }
   };
