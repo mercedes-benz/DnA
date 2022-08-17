@@ -76,11 +76,13 @@ public class JWTGenerator {
 	public static String generateJWT(String appId) {
 		final Map<String, Object> tokenData = new HashMap<>();
 		tokenData.put("kid", KID);
-		tokenData.put("nounce", Math.random());
+		//tokenData.put("nounce", Math.random());
 		tokenData.put("appId", appId);
 		final JwtBuilder jwtBuilder = Jwts.builder();
 		jwtBuilder.setClaims(tokenData);
 		jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY * 60 * 1000));
+		log.info("kid :{}",KID);
+		log.info("Secret :{}",SECRET_KEY);
 		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
 		return token;
 	}
