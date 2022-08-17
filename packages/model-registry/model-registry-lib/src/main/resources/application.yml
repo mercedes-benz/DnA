@@ -39,6 +39,7 @@ jwt:
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
     byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/models/jwt}
     kid: ${JWT_SECRET_KID:XXXXX}
+    token: ${JWT_TOKEN:XXXX}
     
 hmac:
   secret:
