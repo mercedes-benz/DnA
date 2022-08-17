@@ -158,7 +158,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           ProgressIndicator.hide();
           clearInterval(livelinessInterval);
           props.isCodeSpaceCreationSuccess(true, { 
-            url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/demo`,
+            url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
             running: true,
           });
           Notification.show('Code space succesfully created.');
