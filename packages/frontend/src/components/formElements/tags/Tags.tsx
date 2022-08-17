@@ -125,7 +125,11 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           className={className}
           data-value={filteredTag.name}
         >
-          {this.props.suggestionRender ? this.props.suggestionRender(filteredTag) : filteredTag.name}
+          {this.props.suggestionRender
+            ? filteredTag.id === '0'
+              ? filteredTag.name
+              : this.props.suggestionRender(filteredTag)
+            : filteredTag.name}
 
           {this.props.isDataSource && (
             <span className={Styles.badge}>
