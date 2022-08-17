@@ -167,11 +167,11 @@ public class RegistryServiceImpl implements RegistryService {
 			String kongPath = "/v1/models/" + backendServiceName + ":predict";
 			String path = "/model-serving/v1/models/" + backendServiceName + ":predict";
 			dataToEncrypt = path;
-            String kongBackendService = backendServiceName;
-			
-			backendServiceName += "-" + backendServiceSuffix;
+			String kongBackendService = backendServiceName;
 
-			url = "https://" + host +  path;
+			backendServiceName += "-" + backendServiceSuffix;
+			
+			url = "https://" + host + path;
 			V1Service service = kubeClient.getModelService(metaDataNamespace, backendServiceName);
 			if (service == null) {
 				modelResponseVO.setData(modelExternalUrlVO);
@@ -211,7 +211,7 @@ public class RegistryServiceImpl implements RegistryService {
 					modelResponseVO.setErrors(messages);
 					return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 				}
-				kubeClient.getUrl(metaDataNamespace, metaDataName, backendServiceName, path);
+				//kubeClient.getUrl(metaDataNamespace, metaDataName, backendServiceName, path);
 			}
 
 			modelExternalUrlVO.setExternalUrl(url);
