@@ -40,10 +40,10 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
 
   useEffect(() => {
     const id = watch('division');
-    if (id > 0) {
+    if (id > '0') {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + id).then((res) => {
-        setSubDivisions(res.data);
+        setSubDivisions(res?.data || []);
         if (!dirtyFields.division && !dirtyFields.subDivision) {
           setValue('subDivision', provideDataProducts.selectedDataProduct.subDivision);
         } else {
