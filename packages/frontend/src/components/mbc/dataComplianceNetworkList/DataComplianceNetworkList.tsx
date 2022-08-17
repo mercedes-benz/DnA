@@ -22,28 +22,28 @@ import { validateEmail } from '../../../utils/Validation';
 
 const MOCK = [
   {
-    changeDate: 'oye',
+    changeDate: '02/02/2022',
     modifiedBy: {
       firstName: 'DEMO',
       lastName: 'USER',
       userType: 'admin',
     },
     fieldChanged: 'something',
-    oldValue: 'oye',
-    newValue: 'oye',
-    changeDescription: 'oye',
+    oldValue: 'lorem ipsum',
+    newValue: 'lorem ipsum',
+    changeDescription: 'lorem ipsum',
   },
   {
-    changeDate: 'oye',
+    changeDate: '04/04/2022',
     modifiedBy: {
       firstName: 'DEMO',
       lastName: 'USER',
       userType: 'admin',
     },
     fieldChanged: 'something',
-    oldValue: 'oye',
-    newValue: 'oye',
-    changeDescription: 'oye',
+    oldValue: 'lorem ipsum',
+    newValue: 'lorem ipsum',
+    changeDescription: 'lorem ipsum',
   }
 ];
 
@@ -62,7 +62,6 @@ const classNames = cn.bind(Styles);
 const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (props:IDataComplianceNetworkListProps) => {
 
   const isAdmin = props.user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN) !== undefined;
-  // const isAdmin = false;
 
   const [loading, setLoading] = useState(false);
 
@@ -87,7 +86,6 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
   const [showEntityFormModal, setShowEntityFormModal] = useState(false);
 
   const [entityList, setEntityList] = useState<IEntityItem[]>([]);
-  const [selectedEntityError, setSelectedEntityError] = useState(false);
 
   const [showChangeLog, setShowChangeLog] = useState(false);
   const [changeLogs, setChangeLogs] = useState<IChangeLogData[]>([]);
@@ -125,6 +123,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
   /* error states */
   const [entityIdError, setEntityIdError] = useState('');
   const [entityNameError, setEntityNameError] = useState('');
+  const [entityError, setEntityError] = useState(false);
   const [lcoError, setLcoError] = useState(false);
   const [lcrError, setLcrError] = useState(false);
   const [dpcError, setDpcError] = useState(false);
@@ -287,7 +286,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
     if(searchText.length > 0) {
       setDataComplianceNetworkList(filteredResults);
     } else {
-      getDataComplianceNetworkList();
+      // getDataComplianceNetworkList();
       setCurrentPageOffset(0);
     }
   }
@@ -400,10 +399,6 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
   const onEntitySelect = (entity:any) => {
     setEntity((prev) => ({...prev, entityId: entity.entityId, entityName: entity.entityName}));
   }
-  const onEntitySelectError = (error: boolean) => {
-    setSelectedEntityError(error);
-    console.log('error:', error);
-  }
   const resetEntity = () => {
     setEntity({
       ...entity,
@@ -415,7 +410,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
       localComplianceSpecialist: [] as string[],
     });
 
-    setSelectedEntityError(false);
+    setEntityError(false);
     setEntityIdError(null);
     setEntityNameError(null);
 
@@ -425,11 +420,10 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
     let formValid = true;
     let errorMessage = 'Please fill Entity ID and Entity Name';
     if(entitySearch) {
-      if(selectedEntityError) {
+      if(entity.entityId.length === 0 && entity.entityName.length === 0) {
         errorMessage = 'Please select entity';
         formValid = false;
-      } else {
-        formValid = true;
+        setEntityError(true);
       }
     } else {
       if(entity.entityId.length > 0) {
@@ -556,39 +550,39 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
         <button className={Styles.btnSwitch} onClick={() => setEntitySearch(!entitySearch)}>{ entitySearch ? 'Add New Entity' : 'Back to Search' }</button>
         { entitySearch ? 
             <>
-                <TypeAheadBox
-                  label={'Entity'}
-                  placeholder={"Search Entity ID or Entity Name"}
-                  list={entityList}
-                  defaultValue={updateMode ? entity.entityId + ' - ' + entity.entityName : ''}
-                  onItemSelect={onEntitySelect}
-                  required={true}
-                  onError={onEntitySelectError}
-                />
+              <TypeAheadBox
+                label={'Entity'}
+                placeholder={"Search Entity ID or Entity Name"}
+                list={entityList}
+                defaultValue={updateMode ? entity.entityId + ' - ' + entity.entityName : ''}
+                onItemSelect={onEntitySelect}
+                required={true}
+                entityError={entityError}
+              />
             </> : 
             <>
-             <TextBox
-               type="text"
-               controlId={'entity-id'}
-               label={'Entity ID'}
-               placeholder={"Type here"}
-               value={entity.entityId}
-               errorText={entityIdError}
-               required={true}
-               maxLength={200}
-               onChange={onChangeEntityId}
-             />
-             <TextBox
-               type="text"
-               controlId={'entity-name'}
-               label={'Entity Name'}
-               placeholder={"Type here"}
-               value={entity.entityName}
-               errorText={entityNameError}
-               required={true}
-               maxLength={200}
-               onChange={onChangeEntityName}
-             />
+              <TextBox
+                type="text"
+                controlId={'entity-id'}
+                label={'Entity ID'}
+                placeholder={"Type here"}
+                value={entity.entityId}
+                errorText={entityIdError}
+                required={true}
+                maxLength={200}
+                onChange={onChangeEntityId}
+              />
+              <TextBox
+                type="text"
+                controlId={'entity-name'}
+                label={'Entity Name'}
+                placeholder={"Type here"}
+                value={entity.entityName}
+                errorText={entityNameError}
+                required={true}
+                maxLength={200}
+                onChange={onChangeEntityName}
+              />
            </>
         }
         <div className={Styles.tagControl}>
