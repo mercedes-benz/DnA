@@ -114,6 +114,7 @@ kubectl create ns naas
 kubectl create ns dashboard
 kubectl create ns vault
 kubectl create ns storage
+kubectl create ns airflow
 ```
 <h4>values.yaml</h4>
 
