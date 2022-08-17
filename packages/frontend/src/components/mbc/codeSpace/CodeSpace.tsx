@@ -28,13 +28,19 @@ export interface ICodeSpaceProps {
 }
 
 export interface ICodeSpaceData {
+  id?: string;
+  name?: string;
+  recipe?: string;
+  environment?: string;
+  deployed?: boolean;
+  createdDate?: string;
   url: string;
   running: boolean;
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-    url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/?folder=/home/coder/projects/demo`,
+    url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/demo`,
     running: false
   });
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
