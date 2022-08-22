@@ -59,7 +59,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       });
       setShowNewCodeSpaceModal(!codeSpaceRunning);
     }).catch((err: Error) => {
-      Notification.show("Error in validating code space - " + err.message);
+      Notification.show("Error in validating code space - " + err.message, 'alert');
     });
   }, [])
 
@@ -158,9 +158,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       {!codeSpaceData.running && showNewCodeSpaceModal && (
         <Modal
           title={''}
+          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth="600px"
+          modalWidth="800px"
           buttonAlignment="right"
           show={showNewCodeSpaceModal}
           content={
