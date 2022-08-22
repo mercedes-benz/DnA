@@ -303,6 +303,20 @@ const protectedRoutes = [
     path: '/codespace',
     title: 'Code Space',
   },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: AllCodeSpaces,
+    exact: false,
+    path: '/codespaces',
+    title: 'Your Code Spaces',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: ChronosComponent,
+    exact: false,
+    path: '/chronos',
+    title: 'Chronos',
+  },
 ];
 
 export const routes = [...publicRoutes, ...protectedRoutes];
