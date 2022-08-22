@@ -166,6 +166,7 @@ const base = {
         // object key is used to import
         'storage-mfe': `storage_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.STORAGE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
         'data-product-mfe': `data_product_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_PRODUCT_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'chronos-mfe': `chronos_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CHRONOS_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...packageJson.dependencies,

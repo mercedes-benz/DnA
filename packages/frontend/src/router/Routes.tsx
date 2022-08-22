@@ -33,13 +33,16 @@ const AllReports = React.lazy(() => import('../components/mbc/allReports/AllRepo
 const CreateNewReport = React.lazy(() => import('../components/mbc/createNewReport/CreateNewReport'));
 const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
 const UserSettings = React.lazy(() => import('../components/mbc/userSettings/userSettings'));
-const DataComplianceNetworkList = React.lazy(() => import('../components/mbc/dataComplianceNetworkList/DataComplianceNetworkList'));
+const DataComplianceNetworkList = React.lazy(
+  () => import('../components/mbc/dataComplianceNetworkList/DataComplianceNetworkList'),
+);
 const CodeSpace = React.lazy(() => import('../components/mbc/codeSpace/CodeSpace'));
 const AllCodeSpaces = React.lazy(() => import('../components/mbc/codeSpace/AllCodeSpaces'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
+const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -306,6 +309,13 @@ const protectedRoutes = [
     exact: false,
     path: '/codespaces',
     title: 'Your Code Spaces',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: ChronosComponent,
+    exact: false,
+    path: '/chronos',
+    title: 'Chronos',
   },
 ];
 
