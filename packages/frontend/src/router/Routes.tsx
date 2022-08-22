@@ -37,6 +37,7 @@ const DataComplianceNetworkList = React.lazy(
   () => import('../components/mbc/dataComplianceNetworkList/DataComplianceNetworkList'),
 );
 const CodeSpace = React.lazy(() => import('../components/mbc/codeSpace/CodeSpace'));
+const AllCodeSpaces = React.lazy(() => import('../components/mbc/codeSpace/AllCodeSpaces'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
@@ -301,13 +302,6 @@ const protectedRoutes = [
     exact: false,
     path: '/codespace',
     title: 'Code Space',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: ChronosComponent,
-    exact: false,
-    path: '/chronos',
-    title: 'Chronos',
   },
 ];
 

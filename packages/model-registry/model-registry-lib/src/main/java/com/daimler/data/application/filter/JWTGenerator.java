@@ -59,7 +59,7 @@ public class JWTGenerator {
 
 	private static String KID;
 
-	@Value("${jwt.secret.token}")
+	@Value("${jwt.secret.key}")
 	public void setSecretKey(String secretKey) {
 		SECRET_KEY = secretKey;
 	}
