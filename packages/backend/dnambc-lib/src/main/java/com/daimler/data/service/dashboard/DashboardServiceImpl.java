@@ -73,9 +73,8 @@ public class DashboardServiceImpl implements DashboardService {
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
 			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
 			List<String> divisionsAdmin) {
-		return customRepo.getSolutionDataVolume(published, phases, dataVolumes, divisions,
-				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
-				divisionsAdmin);
+		return customRepo.getSolutionDataVolume(published, phases, dataVolumes, divisions, locations, statuses,
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
 	}
 
 	@Override
@@ -83,9 +82,8 @@ public class DashboardServiceImpl implements DashboardService {
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
 			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
 			List<String> divisionsAdmin) {
-		return customRepo.getSolutionLocations(published, phases, dataVolumes, divisions,
-				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
-				divisionsAdmin);
+		return customRepo.getSolutionLocations(published, phases, dataVolumes, divisions, locations, statuses,
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
 	}
 
 	@Override
@@ -93,9 +91,8 @@ public class DashboardServiceImpl implements DashboardService {
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
 			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
 			List<String> divisionsAdmin) {
-		return customRepo.getSolMilestone(published, phases, dataVolumes, divisions, locations,
-				statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags,
-				divisionsAdmin);
+		return customRepo.getSolMilestone(published, phases, dataVolumes, divisions, locations, statuses, solutionType,
+				userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
 	}
 
 	@Override
@@ -113,7 +110,7 @@ public class DashboardServiceImpl implements DashboardService {
 			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
 			List<String> divisionsAdmin) {
 		return customRepo.getCountUsingNativeQuery(published, phases, dataVolumes, divisions, locations, statuses,
-				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin);
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin, false, false);
 	}
 
 	@Override
