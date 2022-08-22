@@ -34,8 +34,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.daimler.data.dto.model.ModelCollection;
-
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.Result;
@@ -58,7 +56,7 @@ public class MinioConfig {
 		return minioClient;
 	}
 
-	public ModelCollection getModels(MinioClient client, String userId) throws Exception {
+	public List<String> getModels(MinioClient client, String userId) throws Exception {
 		List<String> models = new ArrayList<>();
 		String patternMatch = minioModelsPatternPrefix + userId.toLowerCase();
 		log.info("Pattern used to identify user specific object is {} ", patternMatch);
@@ -75,9 +73,7 @@ public class MinioConfig {
 				}
 			}
 		}
-		ModelCollection collection = new ModelCollection();
-		collection.setData(models);
-		return collection;
+		return models;
 	}
 
 }
