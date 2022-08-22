@@ -62,6 +62,11 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
       setErrorText('');
     } else {
       setErrorText('*Missing Entry');
+      const entity = {
+        entityId: '',
+        entityName: ''
+      }
+      props.onItemSelect(entity);
     }
   };
 
