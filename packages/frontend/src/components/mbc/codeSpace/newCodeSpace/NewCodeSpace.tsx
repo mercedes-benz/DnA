@@ -34,6 +34,9 @@ export interface ICreateCodeSpaceData {
 
 const NewCodeSpace = (props: ICodeSpaceProps) => {
 
+  const [projectName, setProjectName] = useState('');
+  const [projectNameError, setProjectNameError] = useState('');
+  const [environment, setEnvironment] = useState('dhc-cass');
   const [recipeValues, setRecipeValues] = useState([]);
   const recipes = [
     { id: 'ms-springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
@@ -51,9 +54,32 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     confirmPassword: '',
   });
 
+  const requiredError = '*Missing entry';
+
   useEffect(() => {
     SelectBox.defaultSetup();
   }, []);
+
+  const sanitizedRepositoryName = (name: string) => { 
+    return name.replace(/[^\w.-]/g, '-');
+  } 
+
+  const onProjectNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
+    setProjectName(projectNameVal);
+    const noSpaceNoSpecialChars = (/[A-Za-z0-9_.-]/).test(projectNameVal);
+    setProjectNameError(
+      !noSpaceNoSpecialChars
+        ? projectNameVal.length
+          ? 'Invalid name - Space and Special Chars not allowed'
+          : requiredError
+        : '',
+    );
+  }
+
+  const onEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    setEnvironment(evnt.currentTarget.value.trim());
+  };
 
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -126,11 +152,16 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
   // User Name
   const namePrefix = props.user.firstName;
-  const requiredError = '*Missing entry';
+
+  console.log(environment);
 
   const validateNewCodeSpaceForm = () => {
     let formValid = true;
-    if (!recipeValues.length) {
+    if (!projectName.length) {
+      setProjectNameError(requiredError);
+      formValid = false;
+    }
+    if (recipeValues[0] === '0') {
       setRecipeError(requiredError);
       formValid = false;
     }
@@ -142,7 +173,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setConfirmPasswordError(requiredError);
       formValid = false;
     }
-    if (passwordError !== '' || confirmPasswordError !== '') {
+    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '') {
       formValid = false;
     }
     return formValid;
@@ -167,7 +198,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         clearInterval(livelinessInterval);
         props.toggleProgressMessage(false);
         ProgressIndicator.hide();
-        Notification.show("Error in validating code space - " + err.message, 'error');
+        Notification.show("Error in validating code space - " + err.message, 'alert');
       });
     }, 2000);
   }
@@ -188,13 +219,13 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();
-            Notification.show('Error in creating new code space. Please try again later.\n' + res.errors[0].message, 'error');
+            Notification.show('Error in creating new code space. Please try again later.\n' + res.errors[0].message, 'alert');
           }
         })
         .catch((err: Error) => {
           props.toggleProgressMessage(false);
           ProgressIndicator.hide();
-          Notification.show('Error in creating new code space. Please try again later.\n' + err, 'error');
+          Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
         });
     }
   };
@@ -204,12 +235,60 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       <div className={Styles.newCodeSpacePanel}>
         <div className={Styles.addicon}> &nbsp; </div>
         <h3>Hello {namePrefix}, Create your Code Space</h3>
-        <p>
-          Protect your code space with the password of your own.
-        </p>
-        <p className={Styles.passwordInfo}>
-          Note: Password should be minimum 8 chars in length and alpha numeric.
-        </p>
+        <p>Protect your code space with the password of your own.</p>
+        {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
+        <div className={Styles.flexLayout}>
+          <div>
+            <TextBox
+              type="text"
+              controlId={'productNameInput'}
+              labelId={'productNameLabel'}
+              label={'Project Name'}
+              placeholder={'Type here'}
+              value={projectName}
+              errorText={projectNameError}
+              required={true}
+              maxLength={100}
+              onChange={onProjectNameOnChange}
+            />
+          </div>
+          <div>
+            <div id="environmentContainer" className={classNames('input-field-group include-error')}>
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Evironment<sup>*</sup>
+              </label>
+              <div className={Styles.pIIField}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value={'dhc-caas'}
+                      name="environment"
+                      onChange={onEnvironmentChange}
+                      checked={true}
+                    />
+                  </span>
+                  <span className="label">DHC CaaS</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="azure"
+                      name="environment"
+                      onChange={onEnvironmentChange}
+                      checked={false}
+                      disabled={true}
+                    />
+                  </span>
+                  <span className="label">Azure (Coming Soon)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
         <div
           id="recipeContainer"
           className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
@@ -236,41 +315,45 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               ))}
             </select>
           </div>
-          <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>
-            {recipeError}
-          </span>
+          <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
         </div>
-        <TextBox
-          type="password"
-          controlId={'codeSpacePasswordInput'}
-          name="password"
-          labelId={'codeSpacePasswordLabel'}
-          label={'Code Space Password'}
-          placeholder={"Type here"}
-          value={passwordInput.password}
-          errorText={passwordError}
-          required={true}
-          maxLength={20}
-          onChange={handlePasswordChange}
-          onKeyUp={handleValidation}
-        />
-        <TextBox
-          type="password"
-          controlId={'codeSpaceConfirmPasswordInput'}
-          name="confirmPassword"
-          labelId={'codeSpaceConfirmPasswordLabel'}
-          label={'Confirm Code Space Password'}
-          placeholder={"Type here"}
-          value={passwordInput.confirmPassword}
-          errorText={confirmPasswordError}
-          required={true}
-          maxLength={20}
-          onChange={handlePasswordChange}
-          onKeyUp={handleValidation}
-        />
+        <div className={Styles.flexLayout}>
+          <div>
+            <TextBox
+              type="password"
+              controlId={'codeSpacePasswordInput'}
+              name="password"
+              labelId={'codeSpacePasswordLabel'}
+              label={'Code Space Password (min 8 chars & alpha numeric)'}
+              placeholder={'Type here'}
+              value={passwordInput.password}
+              errorText={passwordError}
+              required={true}
+              maxLength={20}
+              onChange={handlePasswordChange}
+              onKeyUp={handleValidation}
+            />
+          </div>
+          <div>
+            <TextBox
+              type="password"
+              controlId={'codeSpaceConfirmPasswordInput'}
+              name="confirmPassword"
+              labelId={'codeSpaceConfirmPasswordLabel'}
+              label={'Confirm Code Space Password'}
+              placeholder={'Type here'}
+              value={passwordInput.confirmPassword}
+              errorText={confirmPasswordError}
+              required={true}
+              maxLength={20}
+              onChange={handlePasswordChange}
+              onKeyUp={handleValidation}
+            />
+          </div>
+        </div>
         <div className={Styles.newCodeSpaceBtn}>
           <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
-              Create Code Space
+            Create Code Space
           </button>
         </div>
       </div>

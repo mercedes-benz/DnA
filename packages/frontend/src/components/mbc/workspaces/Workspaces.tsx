@@ -46,7 +46,7 @@ const Workspaces = () => {
         }
         <Tile
           title={'My Code Space'}
-          route={'/codespace'}
+          route={'/codespaces'}
           isEnabled={true}
         />
       </div>
