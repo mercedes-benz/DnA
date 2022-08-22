@@ -1,0 +1,4 @@
+window['CHRONOS_INJECTED_ENVIRONMENT'] = {
+  CONTAINER_APP_URL: 'http://localhost:9090',
+  CHRONOS_API_BASEURL: '',
+};
