@@ -49,16 +49,12 @@ const Services = () => {
           route={'/storage'}
           isEnabled={enableStorageService}
         />
-        <Tile
-          title={'My Model Registry'}
-          route={'/modelregistry'}
-          isEnabled={enableMyModelRegistryService}
-        />
+        <Tile title={'My Model Registry'} route={'/modelregistry'} isEnabled={enableMyModelRegistryService} />
         <Tile
           title={'Chronos Forecasting'}
           background={chronosforecasting}
           bgPosition={'center'}
-          route={'/chronosforecasting'}
+          route={'/chronos'}
           isEnabled={enableChronosForecastingService}
         />
       </div>
