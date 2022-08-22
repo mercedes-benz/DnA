@@ -142,4 +142,8 @@ export const Envs = {
       ? getInjectedEnv('ENABLE_APP_FEEDBACK')
       : EnvParser.parseBool(process.env.ENABLE_APP_FEEDBACK, false),
   APP_FEEDBACK_EXTERNAL_URL: getInjectedEnv('APP_FEEDBACK_EXTERNAL_URL') || process.env.APP_FEEDBACK_EXTERNAL_URL,
+  ENABLE_CHRONOS_FORECASTING_SERVICE:
+    getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
 };
