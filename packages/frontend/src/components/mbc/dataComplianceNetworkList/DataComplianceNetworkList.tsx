@@ -18,6 +18,7 @@ import TypeAheadBox from '../shared/typeAheadBox/TypeAheadBox';
 import Tags from '../../../components/formElements/tags/Tags';
 import { DataComplianceApiClient } from '../../../services/DataComplianceApiClient';
 import { validateEmail } from '../../../utils/Validation';
+import { debounce } from 'lodash';
 // import { regionalDateAndTimeConversionSolution } from '../../../services/utils';
 
 const MOCK = [
@@ -67,8 +68,8 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
 
   const [sortBy, setSortBy] = useState<ISortField>({
     name: 'entityId',
-    currentSortType: 'asc',
-    nextSortType: 'desc',
+    currentSortType: 'desc',
+    nextSortType: 'asc',
   });
 
   /* Pagination */
@@ -77,6 +78,8 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
   
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [dataComplianceNetworkList, setDataComplianceNetworkList] = useState([]);
 
   const [showDeleteEntityConfirmModal, setShowDeleteEntityConfirmModal] = useState(false);
@@ -124,54 +127,54 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
   const [entityIdError, setEntityIdError] = useState('');
   const [entityNameError, setEntityNameError] = useState('');
   const [entityError, setEntityError] = useState(false);
-  const [lcoError, setLcoError] = useState(false);
-  const [lcrError, setLcrError] = useState(false);
-  const [dpcError, setDpcError] = useState(false);
-  const [lcsError, setLcsError] = useState(false);
+  const [localComplianceOfficerError, setLocalComplianceOfficerError] = useState(false);
+  const [localComplianceResponsibleError, setLocalComplianceResponsibleError] = useState(false);
+  const [dataProtectionCoordinatorError, setDataProtectionCoordinatorError] = useState(false);
+  const [localComplianceSpecialistError, setLocalComplianceSpecialistError] = useState(false);
 
   const [entitySearch, setEntitySearch] = useState(true);
 
   /* Email Validation */
-  const setLcoIds = (arr: string[]) => {
-    setLcoError(false);
+  const setLocalComplianceOfficer = (arr: string[]) => {
+    setLocalComplianceOfficerError(false);
     arr.map(item => {
       if(validateEmail(item)) {
         return item;
       } else {
-        setLcoError(true);
+        setLocalComplianceOfficerError(true);
       }
     });
     setEntity({...entity, localComplianceOfficer: arr});
   };
-  const setLcrIds = (arr: string[]) => {
-    setLcrError(false);
+  const setLocalComplianceResponsible = (arr: string[]) => {
+    setLocalComplianceResponsibleError(false);
     arr.map(item => {
       if(validateEmail(item)) {
         return item;
       } else {
-        setLcrError(true);
+        setLocalComplianceResponsibleError(true);
       }
     });
     setEntity({...entity, localComplianceResponsible: arr});
   };
-  const setDpcsIds = (arr: string[]) => {
-    setDpcError(false);
+  const setDataProtectionCoordinator = (arr: string[]) => {
+    setDataProtectionCoordinatorError(false);
     arr.map(item => {
       if(validateEmail(item)) {
         return item;
       } else {
-        setDpcError(true);
+        setDataProtectionCoordinatorError(true);
       }
     });
     setEntity({...entity, dataProtectionCoordinator: arr});
   };
-  const setLcssIds = (arr: string[]) => {
-    setLcsError(false);
+  const setLocalComplianceSpecialist = (arr: string[]) => {
+    setLocalComplianceSpecialistError(false);
     arr.map(item => {
       if(validateEmail(item)) {
         return item;
       } else {
-        setLcsError(true);
+        setLocalComplianceSpecialistError(true);
       }
     });
     setEntity({...entity, localComplianceSpecialist: arr});
@@ -180,20 +183,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
   useEffect(() => {
     Tooltip.defaultSetup();
     setLoading(true)
-    DataComplianceApiClient.getDataComplianceNetworkList(0, 0, 'entityId', 'asc')
-      .then((res:any) => {
-        if(res.records) {
-          setDataComplianceNetworkList(res.records);
-        } else {
-          setDataComplianceNetworkList([]);
-        }
-        setLoading(false);
-      })
-      .catch((err:any) => {
-        Notification.show(err.message, 'alert');
-        setLoading(false);
-      });
-
+    setData();
     DataComplianceApiClient.getEntityList(0, 0, 'entityId', 'asc')
     .then((res:any) => {
       setEntityList(res.records);
@@ -205,22 +195,83 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
     setChangeLogs(MOCK);
   }, []);
 
-  const getDataComplianceNetworkList = () => {
-    DataComplianceApiClient.getDataComplianceNetworkList(0, 0, 'entityId', 'asc')
+  const setData = async() => {
+    await getResults('');
+  }
+
+  /* getResults */
+  const getResults = async(action: string) => {
+    const showProgressIndicator = ['add', 'update', 'delete'].includes(action);
+    const showContentLoader = ['reset', 'categoryChange', 'search', 'pagination'].includes(action);
+
+    showProgressIndicator && ProgressIndicator.show();
+    showContentLoader && setLoading(true);
+
+    let results: any[] = [];
+    
+    await DataComplianceApiClient.getDataComplianceNetworkList(0, 0, 'entityId', 'asc')
       .then((res:any) => {
         if(res.records) {
-          setDataComplianceNetworkList(res.records);
-        } else {
-          setDataComplianceNetworkList([]);
+          results = [...res.records];
         }
-        setLoading(false);
       })
       .catch((err:any) => {
         Notification.show(err.message, 'alert');
-        setLoading(false);
+        setDataComplianceNetworkList([]);
       });
-  }
 
+    if(searchTerm) {
+      results = results.filter((result) => {
+        const localComplianceOfficers = result.localComplianceOfficer.toString();
+        const localComplianceResponsibles = result.localComplianceResponsible.toString();
+        const dataProtectionCoordinators = result.dataProtectionCoordinator.toString();
+        const localComplianceSpecialists = result.localComplianceSpecialist.toString();
+        return result.entityName.toLowerCase().includes(searchTerm) || result.entityId.toLowerCase().includes(searchTerm) ||
+                localComplianceOfficers.includes(searchTerm) || localComplianceResponsibles.includes(searchTerm) || dataProtectionCoordinators.includes(searchTerm)
+                || localComplianceSpecialists.includes(searchTerm);
+      });
+    }
+
+    if(sortBy) {
+      if (sortBy.name === 'entityId') {
+        results = results.sort((a: any, b: any) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.entityId.toLowerCase() === b.entityId.toLowerCase() ? 0 : -1;
+          } else {
+            return a.entityId.toLowerCase() === b.entityId.toLowerCase() ? -1 : 0;
+          }
+        });
+      } else if (sortBy.name === 'entityName') {
+        results = results.sort((a: any, b: any) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.entityName.toLowerCase() === b.entityName.toLowerCase() ? 0 : -1;
+          } else {
+            return a.entityName.toLowerCase() === b.entityName.toLowerCase() ? -1 : 0;
+          }
+        });
+      }
+    }
+
+    setDataComplianceNetworkList(
+      results.slice(
+        currentPageOffset > results.length ? 0 : currentPageOffset,
+        currentPageOffset + maxItemsPerPage < results.length
+          ? currentPageOffset + maxItemsPerPage
+          : results.length
+      )
+    );
+    setTotalNumberOfPages(Math.ceil(results.length / maxItemsPerPage));
+    setCurrentPageNumber(
+      currentPageNumber > Math.ceil(results.length / maxItemsPerPage)
+        ? Math.ceil(results.length / maxItemsPerPage) > 0
+          ? Math.ceil(results.length / maxItemsPerPage)
+          : 1
+        : currentPageNumber
+    );
+    showProgressIndicator && ProgressIndicator.hide();
+    showContentLoader && setLoading(false);
+  }
+  
   /* Sort */
   const sortEntities = (propName: string, sortOrder: string) => {
     const tempSortBy: ISortField = {
@@ -231,74 +282,31 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
     setSortBy(tempSortBy);
   };
   useEffect(() => {
-    setLoading(true);
-    DataComplianceApiClient.getDataComplianceNetworkList(currentPageOffset, maxItemsPerPage, sortBy.name, sortBy.currentSortType)
-      .then((res:any) => {
-        if(res.records) {
-          setDataComplianceNetworkList(res.records);
-        } else {
-          setDataComplianceNetworkList([]);
-        }
-        setLoading(false);
-      })
-      .catch((err:any) => {
-        Notification.show(err.message, 'alert');
-        setLoading(false);
-      });
-  }, [sortBy, maxItemsPerPage, currentPageOffset]);
+    getResults('sort');
+  }, [sortBy]);
+  
   useEffect(() => {
-    setLoading(true);
-    DataComplianceApiClient.getDataComplianceNetworkList(0, 0, sortBy.name, sortBy.currentSortType)
-      .then((res:any) => {
-        if(res.records) {
-          const totalPages = Math.ceil(res.records.length / maxItemsPerPage);
-          const currentPage =
-            currentPageNumber > Math.ceil(res.records.length / maxItemsPerPage)
-              ? Math.ceil(res.records.length / maxItemsPerPage) > 0
-                ? Math.ceil(res.records.length / maxItemsPerPage)
-                : 1
-              : currentPageNumber;
-          setTotalNumberOfPages(totalPages);
-          setCurrentPageNumber(currentPage);
-          setLoading(false);
-        } else {
-          setDataComplianceNetworkList([]);
-        }
-      })
-      .catch((err:any) => {
-        Notification.show(err.message, 'alert');
-        setLoading(false);
-      });
-  }, [maxItemsPerPage, currentPageOffset]);
+    getResults('pagination');
+  }, [maxItemsPerPage, currentPageOffset, currentPageNumber]);
   
   /* Search */
-  const onSearchTextChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const searchText = e.currentTarget.value.toLowerCase();
-    const filteredResults = dataComplianceNetworkList.filter((result) => {
-      const localComplianceOfficers = result.localComplianceOfficer.toString();
-      const localComplianceResponsibles = result.localComplianceResponsible.toString();
-      const dataProtectionCoordinators = result.dataProtectionCoordinator.toString();
-      const localComplianceSpecialists = result.localComplianceSpecialist.toString();
-      return result.entityName.toLowerCase().includes(searchText) || result.entityId.toLowerCase().includes(searchText) ||
-              localComplianceOfficers.includes(searchText) || localComplianceResponsibles.includes(searchText) || dataProtectionCoordinators.includes(searchText)
-              || localComplianceSpecialists.includes(searchText);
-    });
-    if(searchText.length > 0) {
-      setDataComplianceNetworkList(filteredResults);
-    } else {
-      getDataComplianceNetworkList();
-      setCurrentPageOffset(0);
-    }
-  }
+  useEffect(() => {
+    getResults('search');
+  }, [searchTerm]);
+  const onSearchTextChange = debounce((e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const searchText = input.value.toLowerCase();
+    setSearchTerm(searchText);
+  }, 500);
 
   /* Pagination */
   const onPaginationPreviousClick = () => {
     const currentPageNum = currentPageNumber - 1;
-    const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
-    setCurrentPageNumber(currentPageNum);
-    setCurrentPageOffset(currentPageOffset);
-  };
-  const onPaginationNextClick = () => {
+      const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
+      setCurrentPageNumber(currentPageNum);
+      setCurrentPageOffset(currentPageOffset);
+    };
+    const onPaginationNextClick = () => {
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
     setCurrentPageNumber(currentPageNumber + 1);
     setCurrentPageOffset(currentPageOffset);
@@ -373,20 +381,29 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
   const updateConfirmModalOverlayUpdate = () => {
     let formValid = true;
     let errorMessage = 'Please fill Entity ID and Entity Name';
-    
-    if(entity.entityId.length > 0) {
-      setEntityIdError(null);
+
+    if(entitySearch) {
+      if(entity.entityId.length === 0 && entity.entityName.length === 0) {
+        errorMessage = 'Please select entity';
+        formValid = false;
+        setEntityError(true);
+      }
     } else {
-      setEntityIdError('*Missing entry');
-      formValid = false;
+      if(entity.entityId.length > 0) {
+        setEntityIdError(null);
+      } else {
+        setEntityIdError('*Missing entry');
+        formValid = false;
+      }
+      if(entity.entityName.length > 0) {
+        setEntityNameError(null);
+      } else {
+        setEntityNameError('*Missing entry');
+        formValid = false;
+      }
     }
-    if(entity.entityName.length > 0) {
-      setEntityNameError(null);
-    } else {
-      setEntityNameError('*Missing entry');
-      formValid = false;
-    }
-    if(lcoError || lcrError || dpcError || lcsError) {
+
+    if(localComplianceOfficerError || localComplianceResponsibleError || dataProtectionCoordinatorError || localComplianceSpecialistError) {
       formValid = false;
       errorMessage = 'Please enter emails in correct format';
     }
@@ -439,7 +456,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
         formValid = false;
       }
     }
-    if(lcoError || lcrError || dpcError || lcsError) {
+    if(localComplianceOfficerError || localComplianceResponsibleError || dataProtectionCoordinatorError || localComplianceSpecialistError) {
       formValid = false;
       errorMessage = 'Please enter emails in correct format';
     }
@@ -458,7 +475,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
       }
       DataComplianceApiClient.saveDataComplianceNetworkList(data)
         .then((response:any) => {
-          getDataComplianceNetworkList();
+          getResults('add');
           ProgressIndicator.hide();
           Notification.show('Legal entity saved successfully.');
           resetEntity();
@@ -554,7 +571,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
                 label={'Entity'}
                 placeholder={"Search Entity ID or Entity Name"}
                 list={entityList}
-                defaultValue={updateMode ? entity.entityId + ' - ' + entity.entityName : ''}
+                defaultValue={(updateMode && entity.entityId.length > 0 && entity.entityName.length > 0) ? entity.entityId + ' - ' + entity.entityName : ''}
                 onItemSelect={onEntitySelect}
                 required={true}
                 entityError={entityError}
@@ -590,48 +607,48 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
             title={'Local Compliance Officer (LCO)'}
             max={100}
             chips={entity.localComplianceOfficer}
-            setTags={setLcoIds}
+            setTags={setLocalComplianceOfficer}
             tags={dummyTags}
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { lcoError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          { localComplianceOfficerError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
         </div>
         <div className={Styles.tagControl}>
           <Tags
             title={'Local Compliance Responsible (LCR)'}
             max={100}
             chips={entity.localComplianceResponsible}
-            setTags={setLcrIds}
+            setTags={setLocalComplianceResponsible}
             tags={dummyTags}
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { lcrError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          { localComplianceResponsibleError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
         </div>
         <div className={Styles.tagControl}>
           <Tags
             title={'Data Protection Coordinator (DPC)'}
             max={100}
             chips={entity.dataProtectionCoordinator}
-            setTags={setDpcsIds}
+            setTags={setDataProtectionCoordinator}
             tags={dummyTags}
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { dpcError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          { dataProtectionCoordinatorError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
         </div>
         <div className={Styles.tagControl}>
           <Tags
             title={'Local Compliance Support / Specialist (LCS)'}
             max={100}
             chips={entity.localComplianceSpecialist}
-            setTags={setLcssIds}
+            setTags={setLocalComplianceSpecialist}
             tags={dummyTags}
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { lcsError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          { localComplianceSpecialistError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
         </div>
         <div className={Styles.addBtn}>
           <button
@@ -646,8 +663,7 @@ const DataComplianceNetworkList:React.FC<IDataComplianceNetworkListProps> = (pro
       {updateConfirmModalOverlay && (
         <div className={Styles.updateModelOverlayContent}>
           <p>
-            Updating &lt;&lt;{entity.entityName ? entity.entityName : ''}&gt;&gt; would also update all the associated
-            solutions. <br /> Do you want to proceed?
+            Do you want to proceed with updating &lt;&lt;{entity.entityName ? entity.entityName : ''}&gt;&gt;?
           </p>
           <div>
             <button
