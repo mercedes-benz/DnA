@@ -1,10 +1,12 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Styles from './styles.scss';
 
 import { useFormContext } from 'react-hook-form';
 
 import InfoModal from 'dna-container/InfoModal';
+import { useDispatch, useSelector } from 'react-redux';
+import { getLegalBasis } from '../../redux/consumeDataProduct.services';
 
 const PersonalRelatedData = ({ onSave }) => {
   const {
@@ -12,8 +14,22 @@ const PersonalRelatedData = ({ onSave }) => {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    clearErrors,
+    setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+
+  const dispatch = useDispatch();
+  const { legalBasisList } = useSelector((state) => state.consumeDataProducts);
+
+  const isValid = (value) =>
+    !watch('personalRelatedData') || watch('personalRelatedData') === 'No' || value?.length > 0 || '*Missing entry';
+  const isDisabled = !watch('personalRelatedData') || watch('personalRelatedData') === 'No';
+
+  useEffect(() => {
+    dispatch(getLegalBasis());
+  }, [dispatch]);
 
   return (
     <>
@@ -37,7 +53,19 @@ const PersonalRelatedData = ({ onSave }) => {
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('personalRelatedData', { required: '*Missing entry' })}
+                      {...register('personalRelatedData', {
+                        required: '*Missing entry',
+                        onChange: () => {
+                          clearErrors([
+                            'personalRelatedDataDescription',
+                            'personalRelatedDataPurpose',
+                            'personalRelatedDataLegalBasis',
+                          ]);
+                          setValue('personalRelatedDataDescription', '');
+                          setValue('personalRelatedDataPurpose', '');
+                          setValue('personalRelatedDataLegalBasis', '');
+                        },
+                      })}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedData"
@@ -66,6 +94,7 @@ const PersonalRelatedData = ({ onSave }) => {
               className={classNames(
                 'input-field-group include-error area',
                 errors.personalRelatedDataDescription ? 'error' : '',
+                isDisabled ? 'disabled' : '',
               )}
             >
               <label
@@ -78,7 +107,7 @@ const PersonalRelatedData = ({ onSave }) => {
               <textarea
                 className="input-field-area"
                 type="text"
-                {...register('personalRelatedDataDescription', { required: '*Missing entry' })}
+                {...register('personalRelatedDataDescription', { required: '*Missing entry', disabled: isDisabled })}
                 rows={50}
                 id="personalRelatedDataDescription"
               />
@@ -89,6 +118,7 @@ const PersonalRelatedData = ({ onSave }) => {
               className={classNames(
                 'input-field-group include-error area',
                 errors.personalRelatedDataPurpose ? 'error' : '',
+                isDisabled ? 'disabled' : '',
               )}
             >
               <label id="personalRelatedDataPurposeLabel" className="input-label" htmlFor="personalRelatedDataPurpose">
@@ -97,7 +127,7 @@ const PersonalRelatedData = ({ onSave }) => {
               <textarea
                 className="input-field-area"
                 type="text"
-                {...register('personalRelatedDataPurpose', { required: '*Missing entry' })}
+                {...register('personalRelatedDataPurpose', { required: '*Missing entry', disabled: isDisabled })}
                 rows={50}
                 id="personalRelatedDataPurpose"
               />
@@ -105,90 +135,37 @@ const PersonalRelatedData = ({ onSave }) => {
             </div>
             <div
               className={classNames(
-                `input-field-group include-error ${errors?.personalRelatedDataLegalBasis ? 'error' : ''}`,
+                'input-field-group include-error',
+                errors?.personalRelatedDataLegalBasis ? 'error' : '',
+                isDisabled ? 'disabled' : '',
               )}
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
                 Original legal basis for processing this personal related data? <sup>*</sup>
               </label>
-              <div className={Styles.radioButtons}>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('personalRelatedDataLegalBasis', { required: '*Missing entry' })}
-                      type="radio"
-                      className="ff-only"
-                      name="personalRelatedDataLegalBasis"
-                      value="Consent"
-                    />
-                  </span>
-                  <span className="label">Consent</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('personalRelatedDataLegalBasis', { required: '*Missing entry' })}
-                      type="radio"
-                      className="ff-only"
-                      name="personalRelatedDataLegalBasis"
-                      value="Vital interest"
-                    />
-                  </span>
-                  <span className="label">Vital interest</span>
-                </label>
-              </div>
-              <div className={Styles.radioButtons}>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('personalRelatedDataLegalBasis', { required: '*Missing entry' })}
-                      type="radio"
-                      className="ff-only"
-                      name="personalRelatedDataLegalBasis"
-                      value="Contract fulfillment"
-                    />
-                  </span>
-                  <span className="label">Contract fulfillment</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('personalRelatedDataLegalBasis', { required: '*Missing entry' })}
-                      type="radio"
-                      className="ff-only"
-                      name="personalRelatedDataLegalBasis"
-                      value="Public interests"
-                    />
-                  </span>
-                  <span className="label">Public interests</span>
-                </label>
-              </div>
-              <div className={Styles.radioButtons}>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('personalRelatedDataLegalBasis', { required: '*Missing entry' })}
-                      type="radio"
-                      className="ff-only"
-                      name="personalRelatedDataLegalBasis"
-                      value="Legal obligation"
-                    />
-                  </span>
-                  <span className="label">Legal obligation</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('personalRelatedDataLegalBasis', { required: '*Missing entry' })}
-                      type="radio"
-                      className="ff-only"
-                      name="personalRelatedDataLegalBasis"
-                      value="Legitimate interests"
-                    />
-                  </span>
-                  <span className="label">Legitimate interests</span>
-                </label>
+              <div className={Styles.radioBtnsGrid}>
+                {legalBasisList?.map((item) => {
+                  return (
+                    <div key={item.id}>
+                      <label className={classNames('radio', isDisabled ? 'disabled' : '')}>
+                        <span className="wrapper">
+                          <input
+                            {...register('personalRelatedDataLegalBasis', {
+                              validate: isValid,
+                              disabled: isDisabled,
+                            })}
+                            type="radio"
+                            className="ff-only"
+                            name="personalRelatedDataLegalBasis"
+                            value={item.name}
+                          />
+                        </span>
+                        <span className="label">{item.name}</span>
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
               <span className={classNames('error-message')}>{errors?.personalRelatedDataLegalBasis?.message}</span>
             </div>
@@ -198,7 +175,7 @@ const PersonalRelatedData = ({ onSave }) => {
               className="btn btn-primary"
               type="submit"
               onClick={handleSubmit((data) => {
-                onSave();
+                onSave(data);
                 reset(data, {
                   keepDirty: false,
                 });

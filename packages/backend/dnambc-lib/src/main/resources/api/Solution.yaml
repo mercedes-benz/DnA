@@ -125,7 +125,19 @@ paths:
           in: query
           description: tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
           required: false
-          type: string       
+          type: string 
+        - name: hasDigitalValue
+          in: query
+          description: Filtering solutions based on digital value, values true or false
+          required: false
+          type: boolean
+          default: false
+        - name: hasNotebook
+          in: query
+          description: Filtering solutions based on notebook value, values true or false
+          required: false
+          type: boolean
+          default: false                
         - name: offset
           in: query
           description: page number from which listing of solutions should start. Offset. Example 2

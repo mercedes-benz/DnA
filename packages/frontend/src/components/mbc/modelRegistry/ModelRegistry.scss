@@ -18,14 +18,14 @@
   .infoIcon {
     padding-bottom: 5px;
     text-align: right;
-    
+
     .iconsmd {
       color: #8c8787;
       cursor: pointer;
       font-size: var(--font-size-icon-medium);
       margin-right: -1px;
     }
-  } 
+  }
 
   .content {
     background-color: #252a33;
@@ -104,7 +104,6 @@
                   color: #00adef;
                 }
               }
-              
             }
             i {
               cursor: pointer;
@@ -122,7 +121,7 @@
             }
           }
         }
-        
+
         thead {
           th {
             padding-left: 15px;
@@ -133,7 +132,6 @@
             &:first-child {
               padding-left: 38px;
             }
-            
           }
         }
 
@@ -153,12 +151,14 @@
             width: 100%;
             color: #697582;
             display: flex;
-            justify-content: flex-start;  
+            justify-content: flex-start;
             position: absolute;
             bottom: 0;
             white-space: pre;
 
-            .expireOn, .lastUsed, .usageCount {
+            .expireOn,
+            .lastUsed,
+            .usageCount {
               flex: 1;
             }
             .expireOn {
@@ -171,10 +171,10 @@
               font-family: Roboto-Medium;
               font-weight: 400;
             }
-            .expireOnValue{
+            .expireOnValue {
               text-align: left;
             }
-            .lastUsedOnValue{
+            .lastUsedOnValue {
               text-align: left;
             }
           }
@@ -255,6 +255,40 @@
   width: 500px;
 }
 
+.modalContent {
+  table {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 15px;
+    tr {
+      max-width: 370px;
+      height: 0px !important;
+      td:nth-child(1) {
+        min-width: 75px;
+      }
+    }
+    .keys {
+      min-width: 260px;
+      text-align: left;
+      padding-left: 15px;
+    }
+    .visibilityIcon {
+      margin-right: 5px;
+      margin-left: 5px;
+      cursor: pointer;
+      color: #00adef;
+      font-size: var(--font-size-tiny) !important;
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+  .copyIcon {
+    cursor: pointer;
+    float: right;
+  }
+}
+
 i {
   &:hover {
     color: #fff;
@@ -265,7 +299,7 @@ i {
   display: block;
   font-size: var(--font-size-medium);
   padding-top: 5px;
-  color:  #00adef;
+  color: #00adef;
 
   > i {
     margin-left: 5px;
@@ -277,5 +311,3 @@ i {
     text-decoration: none;
   }
 }
-
-  

@@ -27,18 +27,19 @@
 
 package com.daimler.data.graphql;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import com.daimler.data.controller.SolutionController;
 import com.daimler.data.dto.solution.SolutionCollection;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.service.solution.SolutionService;
 import com.daimler.data.service.userinfo.UserInfoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
 
 @Component
 public class SolutionQuery implements GraphQLQueryResolver {
@@ -58,11 +59,12 @@ public class SolutionQuery implements GraphQLQueryResolver {
 	}
 
 	public SolutionCollection getSolutions(Boolean published, String division, String location, String phase,
-			String dataVolume, String projectstatus, String useCaseType, String searchTerm, String tags, int offset,
-			int limit, String sortBy, String sortOrder) {
+			String dataVolume, String projectstatus, String useCaseType, String searchTerm, String tags,
+			Boolean hasDigitalValue, Boolean hasNotebook, int offset, int limit, String sortBy, String sortOrder) {
 
 		ResponseEntity<SolutionCollection> solutions = solutionController.getAll(published, location, division, phase,
-				dataVolume, projectstatus, useCaseType, searchTerm, tags, offset, limit, sortBy, sortOrder);
+				dataVolume, projectstatus, useCaseType, searchTerm, tags, hasDigitalValue, hasNotebook, offset, limit,
+				sortBy, sortOrder);
 
 		if (solutions != null && solutions.getBody() != null) {
 			return solutions.getBody();

@@ -122,7 +122,7 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 			uniqueLiteral = "id";
 		}
 		List<T> entities = customRepo.findAllSortyByUniqueLiteral(limit, offset, uniqueLiteral, sortOrder);
-		if(!ObjectUtils.isEmpty(entities)) {
+		if (!ObjectUtils.isEmpty(entities)) {
 			return entities.stream().map(n -> assembler.toVo(n)).collect(Collectors.toList());
 		}
 		return null;
