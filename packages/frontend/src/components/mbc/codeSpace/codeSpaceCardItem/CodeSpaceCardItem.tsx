@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
@@ -17,7 +18,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const deleteCodeSpaceContent = (
     <div>
-      <h3>Are you sure you want to delete {codeSpace.name} Code Space? </h3>
+      <h3>Are you sure you want to delete {codeSpace.name} Code Space?</h3>
     </div>
   );
 
@@ -46,9 +47,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           }}
         >
           <div className={Styles.cardHeadInfo}>
-            <div>
-              <div className={Styles.cardHeadTitle} onClick={onCardNameClick}>{codeSpace?.name}</div>
-              <div className="btn btn-text forward arrow"></div>
+            <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
+              {codeSpace?.name}
             </div>
           </div>
         </div>
@@ -68,13 +68,17 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.createdDate)}</div>
             </div>
             <div>
+              <div>Last Deployed on</div>
+              <div>{regionalDateAndTimeConversionSolution(codeSpace?.lastDeployedDate)}</div>
+            </div>
+            <div>
               <div>Code Space ID</div>
               <div>{codeSpace.id}</div>
             </div>
           </div>
         </div>
         <div className={Styles.cardFooter}>
-          <div>{codeSpace.deployed && <span className={Styles.draftIndicator}>Deployed</span>}</div>
+          <div>{codeSpace.deployed && <><span className={Styles.deployedIndicator}>Deployed</span><a href="#" className={Styles.deployedLink}><i className="icon mbc-icon new-tab"/></a></>}</div>
           <div className={Styles.btnGrp}>
             <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
               <i className="icon mbc-icon edit"></i>
