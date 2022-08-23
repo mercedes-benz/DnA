@@ -40,9 +40,6 @@ import org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBac
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
 
-import com.daimler.data.registry.dto.VaultDTO;
-import com.daimler.data.registry.dto.VaultGenericResponse;
-
 @Configuration
 public class VaultConfig {
 
@@ -71,20 +68,25 @@ public class VaultConfig {
 	 * 
 	 * @param appId
 	 * @param appKey
-	 * @return VaultAdapterGenericResponse
+	 * @return String
 	 */
-	public VaultGenericResponse createAppKey(String appId, String appKey) {
+	public String createAppKey(String appId, String appKey) {
 		try {
 			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(),
 					new TokenAuthentication(vaultToken));
+			VaultResponse response = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPath);
+			if (response != null && response.getData() != null && response.getData().get(appId) != null) {
+				LOGGER.info("AppKey already exists for appID {} ,", appId);
+				return response.getData().get(appId).toString();
+			}
 			Map<String, String> secMap = new HashMap<String, String>();
 			secMap.put(appId, appKey);
 			vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).patch(vaultPath, secMap);
 			LOGGER.info("In createAppKey, App Key created successfully for appId {} ", appId);
-			return new VaultGenericResponse("200", "App key created successfully", new VaultDTO(appId, appKey));
+			return appKey;
 		} catch (Exception e) {
 			LOGGER.error("Error occured {} while creating appkey for appId {} ", e.getMessage(), appId);
-			return new VaultGenericResponse("500", e.getMessage(), null);
+			throw e;
 		}
 	}
 
@@ -95,56 +97,18 @@ public class VaultConfig {
 	 * 
 	 * @param appId
 	 * @param appKey
-	 * @return VaultAdapterGenericResponse
+	 * @return VaultResponse
 	 */
-	public VaultGenericResponse validateAppKey(String appId, String appKey) {
+	public VaultResponse validateAppKey(String appId, String appKey) {
 		try {
 			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(),
 					new TokenAuthentication(vaultToken));
-			VaultResponse vaultresponse = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPath);
-			if (vaultresponse != null && vaultresponse.getData() != null && vaultresponse.getData().get(appId) != null
-					&& vaultresponse.getData().get(appId).equals(appKey)) {
-				LOGGER.debug("In validateAppKey, App key is valid for appID {} , returning", appId);
-				return new VaultGenericResponse("200", "Valid app key", new VaultDTO(appId, appKey));
-			} else {
-				LOGGER.debug("In validateAppKey, Invalid App key for appId {} , returning", appId);
-				return new VaultGenericResponse("404", "Invalid app key", null);
-			}
-
+			return vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPath);
 		} catch (Exception e) {
 			LOGGER.error("In validateAppKey, Error occured {} while validating appKey for appId {} ", e.getMessage(),
 					appId);
-			return new VaultGenericResponse("500", e.getMessage(), null);
+			throw e;
 		}
-	}
-
-	/**
-	 * Return data<k,v> from {@code path}
-	 * 
-	 * @param appId
-	 * @return String
-	 */
-	public String getAppKey(String appId) {
-		try {
-			VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(),
-					new TokenAuthentication(vaultToken));
-			VaultResponse response = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2).get(vaultPath);
-			return (String) response.getData().get(appId);
-		} catch (Exception e) {
-			LOGGER.error("In getAppKey, Error occured while fetching App Key for appID {} Error is {}", appId,
-					e.getMessage());
-			return null;
-		}
-	}
-
-	/**
-	 * Return vault Path where value will be written
-	 * 
-	 * @param appId
-	 * @return
-	 */
-	private String vaultPathUtility(String appId) {
-		return vaultPath + "/" + appId;
 	}
 
 	/**
