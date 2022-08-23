@@ -1,0 +1,259 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : Workspace.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  ***REMOVED***
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+
+
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Code-server Workspace Service"
+host: "localhost:7979"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "code-server"
+    description: "This service is used to maintain code-server workspaces information."
+
+schemes:
+  - "https"
+
+paths:
+
+  # Fetch all valid userinfo or by intent
+  #
+  #  supprorted http methods GET, POST and DELETE
+  #
+  # path example ../workspaces
+
+  /workspaces:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get status of codeServer workbench intialization status for given user."
+      description:  "Get status of codeServer workbench intialization status for given user."
+      operationId: "pollUserWorkBenchStatus"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+    post:
+      tags:
+        - "code-server"
+      summary: "Initialize/Create Workbench for user in code-server."
+      description: "Create Workbench for user in code-server with given password"
+      operationId: "initializeCodeServer"
+      parameters:
+        - name: "codeServerRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/InitializeCodeServerRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    
+                    
+definitions:
+
+  CodeServerWorkspaceVO:
+    type: object
+    properties:
+      id: 
+        type: string
+        description: "Unique technical ID of workspace"
+      name:
+        type: string
+        description: "Name of the workspace"
+      description:
+        type: string
+        description: "description of the workspace"
+      owner:
+        type: string
+        description: "User ID of the workspace owner"
+      recipeId:
+        type: string
+        description: "RecipeId of the workspace. Ex: Springboot Microservice"
+      intiatedOn:
+        type: string
+        format: date
+        description: "Date on which workspace is created" 
+      lastDeployedOn:
+        type: string
+        format: date
+        description: "Date of last deployment"
+      environment:
+        type: string
+        enum: [Development, Test]    
+      cloudServiceProvider:
+        type: string
+        enum: [DHC-CaaS]
+        description: "Cloud services provider. Ex: DHC-CaaS"
+      ramSize:
+        type: string
+        enum: [1,2]
+        description: "RAM size needed"
+      ramMetrics:
+        type: string
+        enum: [GB]
+        description: "Metrics of RAM"
+      cpuCapacity:
+        type: string
+        enum: [1]
+        description: "CPU capacity required"
+      operatingSystem:
+        type: string
+        enum: [Debian-OS-11]
+        description: "Operating system required"
+      required:
+        -name
+        -recipeId
+        -environment
+        -ramSize
+          
+  BindingResult:
+    type: object
+
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "message"
+  
+  InitializeWorkspaceRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/CodeServerWorkspaceVO"
+      password:
+        type: string
+        description: "Create Password, required to login to workbench of codeserver"
+      required:
+       - password     
+       - data
+       
+         
+  InitializeCodeServerRequestVO:
+    type: object
+    properties:
+      recipeId:
+        type: string
+        description: "Recipe Id, which says, what kind of workbench to be loaded. Ex- empty,ms-springboot,dna"
+      password:
+        type: string
+        description: "Create Password, required to login to workbench of codeserver"
+    required:
+      - password
+      
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user" 
+ 
+ 
