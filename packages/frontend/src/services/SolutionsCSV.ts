@@ -340,9 +340,9 @@ export const getDataForCSV = (
               solution.digitalValue.valueCalculator.calculatedDigitalValue
                 ? 'valueAt: ' +
                   solution.digitalValue.valueCalculator.calculatedDigitalValue.valueAt +
-                  ', year: ' +
+                  '|year: ' +
                   solution.digitalValue.valueCalculator.calculatedDigitalValue.year +
-                  ', value: ' +
+                  '|value: ' +
                   solution.digitalValue.valueCalculator.calculatedDigitalValue.value +
                   '€'
                 : 'NA',
@@ -352,7 +352,7 @@ export const getDataForCSV = (
               solution.digitalValue.valueCalculator.costFactorSummary
                 ? 'year: ' +
                   solution.digitalValue.valueCalculator.costFactorSummary.year +
-                  ', value: ' +
+                  '|value: ' +
                   solution.digitalValue.valueCalculator.costFactorSummary.value +
                   '€'
                 : 'NA',
@@ -362,7 +362,7 @@ export const getDataForCSV = (
               solution.digitalValue.valueCalculator.valueFactorSummary
                 ? 'year: ' +
                   solution.digitalValue.valueCalculator.valueFactorSummary.year +
-                  ', value: ' +
+                  '|value: ' +
                   solution.digitalValue.valueCalculator.valueFactorSummary.value +
                   '€'
                 : 'NA',
