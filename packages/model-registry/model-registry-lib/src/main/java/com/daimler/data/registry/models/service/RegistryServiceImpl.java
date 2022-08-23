@@ -55,7 +55,6 @@ import com.daimler.data.kong.client.KongClient;
 import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
 import com.daimler.data.registry.config.VaultConfig;
-import com.daimler.data.registry.dto.VaultGenericResponse;
 import com.daimler.data.registry.util.AppIdGenerator;
 
 import io.kubernetes.client.openapi.ApiException;
@@ -140,17 +139,12 @@ public class RegistryServiceImpl implements RegistryService {
 		List<String> availableModelList = new ArrayList<>();
 		V1ServiceList v1ServiceList = kubeClient.getModelService(namespace);
 		if (v1ServiceList != null && !ObjectUtils.isEmpty(v1ServiceList.getItems())) {
-			LOGGER.info("models : {}", models);
 			List<String> serviceNameList = v1ServiceList.getItems().stream().map(item -> item.getMetadata().getName())
 					.collect(Collectors.toList());
-			LOGGER.info("service : {}", serviceNameList);
 			Map<String, String> modelNameMap = models.stream()
 					.collect(Collectors.toMap(Function.identity(), item -> getServiceName(item.split("/"))));
-			LOGGER.info("map1 : {}", modelNameMap);
 			modelNameMap.values().retainAll(serviceNameList);
-			LOGGER.info("map2 : {}", modelNameMap);
 			availableModelList = modelNameMap.keySet().stream().collect(Collectors.toList());
-			LOGGER.info("result : {}", availableModelList);
 		}
 		return availableModelList;
 	}
@@ -204,27 +198,24 @@ public class RegistryServiceImpl implements RegistryService {
 			boolean attachStatus = kongClient.attachJwtPluginToService(kongServiceName);
 
 			if (serviceStatus && routeStatus && attachStatus) {
-				VaultGenericResponse vaultResponse = vaultConfig.createAppKey(appId, appKey);
-				if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-					LOGGER.info("AppId and AppKey created successfully");
+				String key = vaultConfig.createAppKey(appId, appKey);
+				if (StringUtils.hasText(key)) {
 					modelExternalUrlVO.setAppId(appId);
-					modelExternalUrlVO.setAppKey(appKey);
-				} else {
-					LOGGER.error("Failed to create appId while exposing model {} ", modelName);
-					List<MessageDescription> messages = new ArrayList<>();
-					MessageDescription message = new MessageDescription();
-					message.setMessage("Failed to create appId due to internal error");
-					messages.add(message);
+					modelExternalUrlVO.setAppKey(key);
+					modelExternalUrlVO.setExternalUrl(url);
 					modelResponseVO.setData(modelExternalUrlVO);
-					modelResponseVO.setErrors(messages);
-					return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+					LOGGER.info("Model {} exposed successfully", modelName);
+					return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
 				}
 			}
-
-			modelExternalUrlVO.setExternalUrl(url);
+			LOGGER.error("Error while exposing model {} ", modelName);
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to expose model due to internal error");
+			messages.add(message);
 			modelResponseVO.setData(modelExternalUrlVO);
-			LOGGER.info("Model {} exposed successfully", modelName);
-			return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
+			modelResponseVO.setErrors(messages);
+			return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			LOGGER.error("Exception occurred:{} while exposing model {} ", e.getMessage(), modelName);
 			List<MessageDescription> messages = new ArrayList<>();
