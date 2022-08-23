@@ -66,6 +66,8 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
                     removeTag={this.removeDataSource}
                     tags={this.props.dataSourcesTags}
                     showMissingEntryError={false}
+                    isDataSource={true}
+                    suggestionPopupHeight={300}
                     {...this.props}
                   />
                 </div>
@@ -122,6 +124,7 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
                             key={item.dataSource}
                             name={item.dataSource}
                             weightage={item.weightage}
+                            list={this.props.dataSourcesTags}
                             onWeightageChange={this.handleWeightageChange(index)}
                           />
                         ))

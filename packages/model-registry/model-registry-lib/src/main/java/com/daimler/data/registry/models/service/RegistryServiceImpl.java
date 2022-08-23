@@ -29,6 +29,10 @@ package com.daimler.data.registry.models.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,20 +41,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.model.ModelCollection;
-import com.daimler.data.dto.model.ModelExternalUriVO;
+import com.daimler.data.dto.model.ModelExternalUrlVO;
 import com.daimler.data.dto.model.ModelRequestVO;
 import com.daimler.data.dto.model.ModelResponseVO;
+import com.daimler.data.kong.client.KongClient;
 import com.daimler.data.registry.config.KubernetesClient;
 import com.daimler.data.registry.config.MinioConfig;
+import com.daimler.data.registry.config.VaultConfig;
+import com.daimler.data.registry.util.AppIdGenerator;
 
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.minio.MinioClient;
 
 @Service
@@ -65,13 +73,16 @@ public class RegistryServiceImpl implements RegistryService {
 	private MinioConfig minioConfig;
 
 	@Autowired
+	private VaultConfig vaultConfig;
+
+	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private KongClient kongClient;
 
 	@Value("${model.host}")
 	private String host;
-
-	@Value("${model.backendServiceSuffix}")
-	private String backendServiceSuffix;
 
 	@Value("${minio.endpoint}")
 	private String endpoint;
@@ -90,15 +101,20 @@ public class RegistryServiceImpl implements RegistryService {
 			String userId = currentUser != null ? currentUser.getId() : "";
 			if (StringUtils.hasText(userId)) {
 				MinioClient minioClient = minioConfig.getMinioClient(endpoint, accessKey, secretKey);
-				modelCollection = minioConfig.getModels(minioClient, userId);
-				if (modelCollection != null && modelCollection.getData() != null
-						&& !modelCollection.getData().isEmpty()) {
-					LOGGER.info("returning successfully with models");
-					return new ResponseEntity<>(modelCollection, HttpStatus.OK);
-				} else {
-					LOGGER.info("returning empty no models found");
-					return new ResponseEntity<>(modelCollection, HttpStatus.NO_CONTENT);
+				List<String> results = minioConfig.getModels(minioClient, userId);
+				if (!ObjectUtils.isEmpty(results)) {
+					String[] modelPath = results.get(0).split("/");
+					String namespace = modelPath[0];
+					List<String> finalModels = getAvailableModelList(namespace, results);
+					if (!ObjectUtils.isEmpty(finalModels)) {
+						modelCollection.setData(finalModels);
+						LOGGER.info("returning successfully with models");
+						return new ResponseEntity<>(modelCollection, HttpStatus.OK);
+					}
 				}
+				LOGGER.info("returning empty no models found");
+				return new ResponseEntity<>(modelCollection, HttpStatus.NO_CONTENT);
+
 			} else {
 				LOGGER.error("UserId  is null or empty");
 				List<MessageDescription> messages = new ArrayList<>();
@@ -119,93 +135,94 @@ public class RegistryServiceImpl implements RegistryService {
 		}
 	}
 
+	private List<String> getAvailableModelList(String namespace, List<String> models) throws ApiException {
+		List<String> availableModelList = new ArrayList<>();
+		V1ServiceList v1ServiceList = kubeClient.getModelService(namespace);
+		if (v1ServiceList != null && !ObjectUtils.isEmpty(v1ServiceList.getItems())) {
+			List<String> serviceNameList = v1ServiceList.getItems().stream().map(item -> item.getMetadata().getName())
+					.collect(Collectors.toList());
+			Map<String, String> modelNameMap = models.stream()
+					.collect(Collectors.toMap(Function.identity(), item -> getServiceName(item.split("/"))));
+			modelNameMap.values().retainAll(serviceNameList);
+			availableModelList = modelNameMap.keySet().stream().collect(Collectors.toList());
+		}
+		return availableModelList;
+	}
+
+	private String getServiceName(String[] modelPath) {
+		String serviceName = "";
+		for (int i = 1; i < modelPath.length - 1; i++) {
+			serviceName += modelPath[i] + "-";
+		}
+		if (StringUtils.hasText(serviceName)) {
+			serviceName = serviceName.substring(0, serviceName.length() - 1);
+		}
+		return serviceName;
+	}
+
 	@Override
-	public ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO) {
+	public ResponseEntity<ModelResponseVO> generateExternalUrl(ModelRequestVO modelRequestVO) {
 		ModelResponseVO modelResponseVO = new ModelResponseVO();
-		ModelExternalUriVO modelExternalUriVO = new ModelExternalUriVO();
+		ModelExternalUrlVO modelExternalUrlVO = new ModelExternalUrlVO();
 		String modelName = modelRequestVO.getData().getModelName();
-		modelExternalUriVO.setModelName(modelName);
-		String uri = "";
+		modelExternalUrlVO.setModelName(modelName);
+
 		try {
 			String[] modelPath = modelName.split("/");
-			String[] userId = modelPath[0].split("-");
-			if (modelPath.length < 2 || userId.length != 2) {
+			String namespace = modelPath[0];
+
+			if (modelPath.length < 2 || namespace.split("-").length != 2) {
 				LOGGER.debug("ModelName :  {} is invalid ", modelName);
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("Given modelName is invalid");
 				messages.add(message);
-				modelResponseVO.setData(modelExternalUriVO);
+				modelResponseVO.setData(modelExternalUrlVO);
 				modelResponseVO.setErrors(messages);
 				return new ResponseEntity<>(modelResponseVO, HttpStatus.BAD_REQUEST);
 			}
-			String metaDataNamespace = modelPath[0];
-			String metaDataName = userId[1];
-			String backendServiceName = "";
-			for (int i = 1; i < modelPath.length - 1; i++) {
-				metaDataName += "-" + modelPath[i];
-				backendServiceName += modelPath[i] + "-";
-			}
-			if (StringUtils.hasText(backendServiceName)) {
-				backendServiceName = backendServiceName.substring(0, backendServiceName.length() - 1);
-			}
 
-			String path = "/v1/models/" + backendServiceName + ":predict";
+			String userId = namespace.split("-")[1];
+			String serviceName = getServiceName(modelPath);
+			String kongServiceName = userId + "-" + serviceName;
+			String kongServiceUrl = "http://" + serviceName + "." + namespace + ".svc.cluster.local/v1/models/"
+					+ serviceName + ":predict";
+			String kongRoutePaths = "/model-serving/v1/models/" + serviceName + ":predict";
+			String url = "https://" + host + kongRoutePaths;
+			String appId = AppIdGenerator.encrypt(kongServiceName);
+			String appKey = UUID.randomUUID().toString();
 
-			backendServiceName += "-" + backendServiceSuffix;
+			// create service , route and attachJwtPluginToService
+			boolean serviceStatus = kongClient.createService(kongServiceName, kongServiceUrl);
+			boolean routeStatus = kongClient.createRoute(kongRoutePaths, kongServiceName);
+			boolean attachStatus = kongClient.attachJwtPluginToService(kongServiceName);
 
-			uri = "https://" + host + path;
-			V1Service service = kubeClient.getModelService(metaDataNamespace, backendServiceName);
-			if (service == null) {
-				modelResponseVO.setData(modelExternalUriVO);
-				List<MessageDescription> messages = new ArrayList<>();
-				MessageDescription message = new MessageDescription();
-				message.setMessage("Error while getting service details for given model");
-				messages.add(message);
-				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.NOT_FOUND);
+			if (serviceStatus && routeStatus && attachStatus) {
+				String key = vaultConfig.createAppKey(appId, appKey);
+				if (StringUtils.hasText(key)) {
+					modelExternalUrlVO.setAppId(appId);
+					modelExternalUrlVO.setAppKey(key);
+					modelExternalUrlVO.setExternalUrl(url);
+					modelResponseVO.setData(modelExternalUrlVO);
+					LOGGER.info("Model {} exposed successfully", modelName);
+					return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
+				}
 			}
-			kubeClient.getUri(metaDataNamespace, metaDataName, backendServiceName, path);
-			modelExternalUriVO.setExternalUri(uri);
-			modelResponseVO.setData(modelExternalUriVO);
-			LOGGER.info("Model {} exposed successfully", modelName);
-			return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
-		} catch (ApiException ex) {
-			LOGGER.error("ApiException occurred while exposing model. Exception is {} ", ex.getResponseBody());
-			if (ex.getCode() == HttpStatus.CONFLICT.value()) {
-				modelExternalUriVO.setExternalUri(uri);
-				modelResponseVO.setData(modelExternalUriVO);
-				List<MessageDescription> messages = new ArrayList<>();
-				MessageDescription message = new MessageDescription();
-				message.setMessage(ex.getResponseBody());
-				messages.add(message);
-				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.OK);
-			} else if (ex.getCode() == HttpStatus.FORBIDDEN.value()) {
-				modelResponseVO.setData(modelExternalUriVO);
-				List<MessageDescription> messages = new ArrayList<>();
-				MessageDescription message = new MessageDescription();
-				message.setMessage(ex.getResponseBody());
-				messages.add(message);
-				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.FORBIDDEN);
-			} else {
-				modelResponseVO.setData(modelExternalUriVO);
-				List<MessageDescription> messages = new ArrayList<>();
-				MessageDescription message = new MessageDescription();
-				message.setMessage(ex.getMessage());
-				messages.add(message);
-				modelResponseVO.setErrors(messages);
-				return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-
+			LOGGER.error("Error while exposing model {} ", modelName);
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to expose model due to internal error");
+			messages.add(message);
+			modelResponseVO.setData(modelExternalUrlVO);
+			modelResponseVO.setErrors(messages);
+			return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			LOGGER.error("Exception occurred:{} while exposing model {} ", e.getMessage(), modelName);
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
 			message.setMessage(e.getMessage());
 			messages.add(message);
-			modelResponseVO.setData(modelExternalUriVO);
+			modelResponseVO.setData(modelExternalUrlVO);
 			modelResponseVO.setErrors(messages);
 			return new ResponseEntity<>(modelResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}

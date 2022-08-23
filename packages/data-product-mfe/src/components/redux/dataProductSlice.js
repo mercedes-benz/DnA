@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants';
-import { GetDataProducts, SetDataProducts } from './dataProduct.services';
+import { GetDataProducts, SetDataProducts, UpdateDataProducts } from './dataProduct.services';
 
 const dataProductsInitialState = {
   dataProducts: [],
@@ -12,6 +12,8 @@ const dataProductsInitialState = {
     currentPageNumber: 1,
     maxItemsPerPage: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
   },
+  selectedDataProduct: {},
+  divisions: [],
 };
 
 export const provideDataProductSlice = createSlice({
@@ -29,7 +31,7 @@ export const provideDataProductSlice = createSlice({
       state.dataProducts = modifiedData;
       state.isLoading = false;
       state.errors = '';
-      state.pagination.dataProductListResponse = action.payload.data.data;
+      state.pagination.dataProductListResponse = action.payload.data;
       state.pagination.totalNumberOfPages = totalNumberOfPages;
       state.pagination.currentPageNumber = 1;
     },
@@ -42,26 +44,36 @@ export const provideDataProductSlice = createSlice({
       state.isLoading = true;
     },
     [SetDataProducts.fulfilled]: (state, action) => {
-      const totalNumberOfPages = Math.ceil(action.payload.data?.length / action.payload.pagination.maxItemsPerPage);
-      const modifiedData = action.payload.data
-        ? action.payload.data.slice(0, action.payload.pagination.maxItemsPerPage)
-        : [];
-      state.dataProducts = modifiedData;
       state.isLoading = false;
+      state.selectedDataProduct = action.payload?.data;
       state.errors = '';
-      state.pagination.dataProductListResponse = action.payload.data;
-      state.pagination.totalNumberOfPages = totalNumberOfPages;
-      state.pagination.currentPageNumber = 1;
     },
     [SetDataProducts.rejected]: (state, action) => {
-      state.dataProducts = [];
+      state.isLoading = false;
+      state.errors = action.payload;
+    },
+    [UpdateDataProducts.pending]: (state) => {
+      state.isLoading = true;
+    },
+    [UpdateDataProducts.fulfilled]: (state, action) => {
+      state.isLoading = false;
+      state.selectedDataProduct = action.payload.data;
+      state.errors = '';
+    },
+    [UpdateDataProducts.rejected]: (state, action) => {
       state.isLoading = false;
       state.errors = action.payload;
     },
   },
   reducers: {
+    setDivisionList: (state, action) => {
+      state.divisions = action.payload;
+    },
     setDataProducts: (state, action) => {
       state.dataProducts = action.payload;
+    },
+    setDataProduct: (state, action) => {
+      state.selectedDataProduct = action.payload;
     },
     setPagination: (state, action) => {
       state.pagination = {
@@ -71,5 +83,6 @@ export const provideDataProductSlice = createSlice({
     },
   },
 });
-export const { setDataProducts, setPagination } = provideDataProductSlice.actions;
+
+export const { setDivisionList, setDataProducts, setDataProduct, setPagination } = provideDataProductSlice.actions;
 export default provideDataProductSlice.reducer;
