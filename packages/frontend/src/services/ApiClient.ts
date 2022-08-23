@@ -488,8 +488,8 @@ export class ApiClient {
     if (published) {
       reqQuery += `,published:${published}`;
     }
-    // reqQuery += `,digitalvaluecontribution:${digitalvaluecontribution}`;
-    // reqQuery += `,notebookavailable:${notebookavailable}`;
+    reqQuery += `,hasDigitalValue:${digitalvaluecontribution}`;
+    reqQuery += `,hasNotebook:${notebookavailable}`;
     const resQuery = `totalCount
       records {id,
         productName,
