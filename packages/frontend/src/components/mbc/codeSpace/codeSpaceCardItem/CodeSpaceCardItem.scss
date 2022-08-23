@@ -19,21 +19,14 @@
       padding: 15px 20px;
       cursor: pointer;
       margin-top: 35px;
-
-      > div {
-        display: flex;
-        justify-content: space-between;
-      }
       .cardHeadTitle {
         font-size: var(--font-size-headline);
         line-height: 23px;
-        position: relative;
         word-break: break-word;
         padding-right: 10px;
         padding-bottom: 5px;
-      }
-      a {
-        text-decoration: none;
+        width: 100%;
+        text-align: left;
       }
     }
 
@@ -76,14 +69,20 @@
       }
     }
   }
-  .draftIndicator {
+  .deployedIndicator {
     padding: 2px 8px;
-    border: 1px solid #697582;
-    color: #697582;
+    border: 1px solid #0AE6AB;
+    color: #0AE6AB;
     font-size: var(--font-size-icon-small);
     letter-spacing: 1px;
     border-radius: 2px;
     margin-left: 20px;
+  }
+
+  .deployedLink {
+    text-decoration: none;
+    margin-left: 15px;
+    vertical-align: sub;
   }
 }
 .cardFooter {
@@ -97,12 +96,12 @@
 .btnGrp {
   display: flex;
   justify-content: flex-end;
+  font-size: var(--font-size-medium);
   button {
     background-color: transparent;
     border: 0;
     color: #99a5b3;
     float: right;
-    font-size: 12px;
     margin-right: 20px;
     outline: 0;
     padding: 0;
