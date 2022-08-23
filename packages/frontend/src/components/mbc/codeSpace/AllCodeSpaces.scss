@@ -94,13 +94,13 @@
       margin: 0 15px 15px 0;
       min-width: 250px;
       position: relative;
-      border: 1px solid #252a33;
+      border: 1px solid #383F49;
       cursor: pointer;
 
       .addicon {
-        top: calc(50% - 40px);
-        width: 80px;
-        height: 80px;
+        top: calc(50% - 31px);
+        width: 63px;
+        height: 63px;
         border: 1px solid #fff;
         border-radius: 50%;
         position: relative;
@@ -112,7 +112,7 @@
           position: absolute;
           width: 50%;
           height: 1px;
-          background-color: #008abf;
+          background-color: #00ADEF;
           left: 25%;
           transform: rotate(90deg);
         }
@@ -121,7 +121,7 @@
           position: absolute;
           width: 50%;
           height: 1px;
-          background-color: #008abf;
+          background-color: #00ADEF;
           left: 25%;
           margin: 0 auto;
           transform: rotate(180deg);
