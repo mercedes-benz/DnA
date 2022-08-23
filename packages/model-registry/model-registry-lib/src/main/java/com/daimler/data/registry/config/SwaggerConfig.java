@@ -74,15 +74,15 @@ public class SwaggerConfig {
 				.description("Content-Type").query(q -> q.defaultValue("application/json"))
 				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
 				.build();
-
-		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
-				.description("Authorization header").query(q -> q.defaultValue(defaultAuthToken))
-				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
-				.build();
+//
+//		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
+//				.description("Authorization header").query(q -> q.defaultValue(defaultAuthToken))
+//				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
+//				.build();
 
 		List<RequestParameter> params = new ArrayList<>();
 		params.add(contentTypeParamBuilder);
-		params.add(authParamBuilder);
+//		params.add(authParamBuilder);
 
 		return new Docket(DocumentationType.SWAGGER_2).select()
 				.apis(RequestHandlerSelectors.basePackage("com.daimler.data.controller")).paths(PathSelectors.any())

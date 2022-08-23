@@ -53,6 +53,20 @@
       justify-content: space-between;
       flex-grow: 1;
       color: #99a5b3;
+      flex-direction: column;
+      > div {
+        display: flex;
+        justify-content: space-between;
+        &:not(:last-child) {
+          margin-bottom: 10px;
+        }
+        > div:first-child {
+          flex: 2;
+        }
+        > div:last-child {
+          flex: 1;
+        }
+      }
       ul {
         list-style-type: none;
         padding: 0;
@@ -62,8 +76,24 @@
       }
     }
   }
+  .draftIndicator {
+    padding: 2px 8px;
+    border: 1px solid #697582;
+    color: #697582;
+    font-size: var(--font-size-icon-small);
+    letter-spacing: 1px;
+    border-radius: 2px;
+    margin-left: 20px;
+  }
 }
-
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  div:first-child {
+    margin: 7px 0px;
+  }
+}
 .btnGrp {
   display: flex;
   justify-content: flex-end;

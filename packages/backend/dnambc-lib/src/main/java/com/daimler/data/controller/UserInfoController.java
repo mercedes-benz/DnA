@@ -48,12 +48,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.userinfo.UsersApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.config.CodeServerClient;
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.BookmarkRequestVO;
 import com.daimler.data.dto.userinfo.BookmarkResponseVO;
+import com.daimler.data.dto.userinfo.InitializeCodeServerRequestVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRequestVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
@@ -80,6 +85,9 @@ public class UserInfoController implements UsersApi {
 	
 	@Autowired
 	private UserInfoAssembler userinfoAssembler;
+
+	@Autowired
+	private UserStore userStore;
 
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
@@ -284,6 +292,32 @@ public class UserInfoController implements UsersApi {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> initializeCodeServer(
+			@Valid InitializeCodeServerRequestVO codeServerRequestVO) {
+
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		GenericMessage responseMessage = userInfoService.initializeCodeServer(userId, codeServerRequestVO.getPassword(),codeServerRequestVO.getRecipeId());
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> pollUserWorkBenchStatus() {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		HttpStatus responseStatus = userInfoService.pollWorkBenchStatus(userId);
+		GenericMessage responseMessage = new GenericMessage();
+		if(responseStatus.is2xxSuccessful()) {
+			responseMessage.setSuccess("true");
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}else {
+			responseMessage.setSuccess("false");
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}
 	}
 
 }

@@ -7,6 +7,7 @@ import malwarescan from '../../../assets/images/Malware_Scan.jpg';
 import datapipeline from '../../../assets/images/Data_Pipeline.jpg';
 import mlpipeline from '../../../assets/images/ML_Pipeline.jpg';
 import mystorage from '../../../assets/images/My_Storage.jpg';
+import chronosforecasting from '../../../assets/images/Chronos_Forecasting.jpg';
 
 const Services = () => {
   const enableMalwareScanService = Envs.ENABLE_MALWARE_SCAN_SERVICE;
@@ -15,6 +16,7 @@ const Services = () => {
   const enableMLPipelineService = Envs.ENABLE_ML_PIPELINE_SERVICE;
   const enableStorageService = Envs.ENABLE_STORAGE_SERVICE;
   const mLPipelineUrl = enableMLPipelineService ? Envs.ML_PIPELINE_URL : '#/comingsoon';
+  const enableChronosForecastingService = Envs.ENABLE_CHRONOS_FORECASTING_SERVICE;
 
   return (
     <MainPanel title={'Services'}>
@@ -47,10 +49,13 @@ const Services = () => {
           route={'/storage'}
           isEnabled={enableStorageService}
         />
+        <Tile title={'My Model Registry'} route={'/modelregistry'} isEnabled={enableMyModelRegistryService} />
         <Tile
-          title={'My Model Registry'}
-          route={'/modelregistry'}
-          isEnabled={enableMyModelRegistryService}
+          title={'Chronos Forecasting'}
+          background={chronosforecasting}
+          bgPosition={'center'}
+          route={'/chronos'}
+          isEnabled={enableChronosForecastingService}
         />
       </div>
     </MainPanel>
