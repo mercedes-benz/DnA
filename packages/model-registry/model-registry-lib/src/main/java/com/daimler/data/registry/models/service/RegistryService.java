@@ -37,6 +37,6 @@ public interface RegistryService {
 
 	ResponseEntity<ModelCollection> getAllModels();
 
-	ResponseEntity<ModelResponseVO> generateExternalUri(ModelRequestVO modelRequestVO);
+	ResponseEntity<ModelResponseVO> generateExternalUrl(ModelRequestVO modelRequestVO);
 
 }

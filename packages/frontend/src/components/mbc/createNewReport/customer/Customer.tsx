@@ -205,6 +205,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           <div>
             <TextArea
               controlId={'customerComment'}
+              containerId={'customerComment'}
               name={'comment'}
               labelId={'customerCommentLabel'}
               label={'Comment'}

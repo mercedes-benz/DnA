@@ -365,6 +365,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                   <div>
                     <TextArea
                       controlId={'reportDecsriptionField'}
+                      containerId={'reportDecsription'}
                       labelId={'reportDescriptionLabel'}
                       label={'Description'}
                       rows={50}

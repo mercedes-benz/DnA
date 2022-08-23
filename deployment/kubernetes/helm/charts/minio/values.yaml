@@ -134,6 +134,8 @@ tls:
 extraEnvVars:
     - name: MINNIO_LOG_LEVEL
       value: DEBUG
+    - name: MINIO_PROMETHEUS_URL
+      value: "http://i3-monitoring-prometheus-server.i3-monitoring.svc.cluster.local"
 ## @param extraEnvVarsCM ConfigMap with extra environment variables
 ##
 extraEnvVarsCM: ""

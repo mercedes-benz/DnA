@@ -837,6 +837,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                 <div className={this.state.statusValue.id === '0' || this.state.statusValue.id === '1' ? 'hide' : ''}>
                   <TextArea
                     controlId={'onHoldReason'}
+                    containerId={'holdContainer'}
                     labelId={'onHoldLabel'}
                     label={'Reason of "On hold" / "Closed"'}
                     rows={50}
@@ -850,6 +851,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                 <div>
                   <TextArea
                     controlId={'description'}
+                    containerId={'descriptionContainer'}
                     labelId={'descriptionLabel'}
                     label={'Description'}
                     rows={50}
@@ -863,6 +865,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                 <div>
                   <TextArea
                     controlId={'businessNeed'}
+                    containerId={'businessNeedContainer'}
                     labelId={'businessNeedLabel'}
                     label={'Business Need'}
                     rows={50}
@@ -876,6 +879,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                 <div>
                   <TextArea
                     controlId={'benefits'}
+                    containerId={'benefitsContainer'}
                     labelId={'benefitsLabel'}
                     label={'Expected Benefits'}
                     rows={50}

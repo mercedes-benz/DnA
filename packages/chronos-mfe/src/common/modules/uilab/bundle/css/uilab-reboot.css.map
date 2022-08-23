@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../scss/uilab-reboot.scss","uilab-reboot.css"],"names":[],"mappings":"AAAA;EACE,kBAAkB;ACCpB","file":"uilab-reboot.css","sourcesContent":[".rebbot {\n  text-align: center;\n}\n",".rebbot {\n  text-align: center;\n}\n\n/*# sourceMappingURL=uilab-reboot.css.map */"]}

@@ -6,7 +6,7 @@ const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS
 
 export const baseURL = Envs.DATA_PRODUCT_API_BASEURL
   ? Envs.DATA_PRODUCT_API_BASEURL
-  : `http://${window.location.hostname}:7175/api`;
+  : `http://${window.location.hostname}:7184/api`;
 
 const headers = {
   Accept: 'application/json',

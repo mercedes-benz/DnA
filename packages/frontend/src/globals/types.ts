@@ -113,6 +113,8 @@ export interface IProjectType {
 export interface ITag {
   id: string;
   name: string;
+  dataType?: null | string;
+  source?: null | string;
 }
 
 export interface IDigiUsecase extends IUsecase {
@@ -426,6 +428,8 @@ export interface IDataSources {
 export interface IDataSourceMaster {
   id: number;
   name?: string;
+  source?: string;
+  dataType: string;
 }
 
 export interface IPlatform {
@@ -779,7 +783,7 @@ export interface ICreateNewSolutionRequest {
   data: ICreateNewSolution;
 }
 export interface IDataComplianceRequest {
-  data: ILegalEntity;
+  data: IEntity;
 }
 export interface ICreateNewReportRequest {
   data: ICreateNewReport;
@@ -842,7 +846,7 @@ export interface INeededRoleObject {
   toDate: string;
 }
 
-export interface ILegalEntity {
+export interface IEntity {
   dataProtectionCoordinator: string[];
   entityId: string;
   entityName: string;
@@ -1253,6 +1257,8 @@ export interface ITagResult {
   category: IFitlerCategory;
   datawareHouseItems?: IDatawarehouseInItem;
   subdivisions?: ISubDivision[];
+  source?: string;
+  dataType?: string;
 }
 export interface IRelatedProduct {
   id: string;
