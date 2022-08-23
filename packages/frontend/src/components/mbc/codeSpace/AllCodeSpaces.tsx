@@ -49,6 +49,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           environment: 'DHC CaaS',
           deployed: true,
           createdDate: '2022-05-17T12:15:36.606+00:00',
+          lastDeployedDate: '2022-05-20T12:15:36.606+00:00',
           url: 'sample',
           running: true,
         }
@@ -107,7 +108,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       <div className={classNames(Styles.wrapper)}>
         <div className={classNames(Styles.caption)}>
           <h3>Code Spaces Overview</h3>
-          <div className={classNames(Styles.listHeader)}>
+          <div className={classNames(Styles.listHeader, 'hide')}>
             {codeSpaces?.length ? (
               <>
                 <button

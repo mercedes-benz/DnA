@@ -34,6 +34,7 @@ export interface ICodeSpaceData {
   environment?: string;
   deployed?: boolean;
   createdDate?: string;
+  lastDeployedDate?: string;
   url: string;
   running: boolean;
 }
@@ -119,7 +120,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
                   <div>
-                    <button className="btn btn-secondary" onClick={onShowCodeDeployModal}>Deploy</button>
+                    <button className="btn btn-secondary" onClick={onShowCodeDeployModal}>(Re)Deploy</button>
                   </div>
                   <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                     <i className="icon mbc-icon arrow small right" />
