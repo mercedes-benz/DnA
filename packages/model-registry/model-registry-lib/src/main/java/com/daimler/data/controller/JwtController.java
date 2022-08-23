@@ -37,19 +37,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.vault.support.VaultResponse;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.jwt.JwtApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.filter.JWTGenerator;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.jwt.JwtResponseVO;
 import com.daimler.data.registry.config.VaultConfig;
-import com.daimler.data.registry.dto.VaultGenericResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -64,9 +62,6 @@ import io.swagger.annotations.ApiResponses;
 public class JwtController implements JwtApi {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(JwtController.class);
-
-	@Autowired
-	private UserStore userStore;
 
 	@Autowired
 	private VaultConfig vaultConfig;
@@ -86,26 +81,36 @@ public class JwtController implements JwtApi {
 	public ResponseEntity<JwtResponseVO> generateToken(
 			@ApiParam(value = "appId to generate token.", required = true) @RequestHeader(value = "appId", required = true) String appId,
 			@ApiParam(value = "appKey to generate token", required = true) @RequestHeader(value = "appKey", required = true) String appKey) {
-
 		JwtResponseVO response = new JwtResponseVO();
-		if (!StringUtils.hasText(appId) || !StringUtils.hasText(appKey)) {
-			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-		}
-		VaultGenericResponse vaultResponse = vaultConfig.validateAppKey(appId, appKey);
-		if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-			LOGGER.info("AppId and AppKey validated successfully");
-			String jwt = JWTGenerator.generateJWT(appId);
-			response.setToken(jwt);
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		} else {
-			LOGGER.info("AppId or AppKey is invalid");
+		try {
+			if (!StringUtils.hasText(appId) || !StringUtils.hasText(appKey)) {
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
+			VaultResponse vaultResponse = vaultConfig.validateAppKey(appId, appKey);
+			if (vaultResponse != null && vaultResponse.getData() != null && vaultResponse.getData().get(appId) != null
+					&& vaultResponse.getData().get(appId).equals(appKey)) {
+				LOGGER.info("AppKey is valid for appID {}", appId);
+				String jwt = JWTGenerator.generateJWT(appId);
+				response.setToken(jwt);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				LOGGER.info("Invalid AppKey for appId {}", appId);
+				List<MessageDescription> messages = new ArrayList<>();
+				MessageDescription message = new MessageDescription();
+				message.setMessage("AppId or AppKey is invalid");
+				messages.add(message);
+				response.setErrors(messages);
+				return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			}
+
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred: {} while generating jwt token", e.getMessage());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
-			message.setMessage("AppId or AppKey is invalid");
+			message.setMessage(e.getMessage());
 			messages.add(message);
 			response.setErrors(messages);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
 }
