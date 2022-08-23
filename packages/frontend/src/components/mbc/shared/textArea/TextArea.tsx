@@ -14,13 +14,14 @@ export interface ITextAreaProps {
   value: string;
   errorText?: string;
   small?: boolean;
+  containerId?: string;
 }
 
 const TextArea:React.FC<ITextAreaProps> = (props: ITextAreaProps) => {
   const isSmall = props.small !== undefined ? props.small : undefined;
   return (
     <div
-      id="customerComment"
+      id={props.containerId}
       className={classNames(
         'input-field-group include-error',
         !isSmall && 'area',

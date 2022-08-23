@@ -52,6 +52,7 @@ export interface ISummaryState {
   dnaNotebookEnabled: boolean;
   dnaDataIkuProjectEnabled: boolean;
   notebookAndDataIkuNotEnabled: boolean;
+  dataSources: any;
 }
 export interface IAllSolutionsListItem {
   id?: string;
@@ -105,7 +106,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           logoDetails: null,
           dataStrategyDomain: '',
           requestedFTECount: 0,
-          additionalResource: ''
+          additionalResource: '',
         },
         openSegments: [],
         team: { team: [] },
@@ -196,6 +197,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       dnaNotebookEnabled: false,
       dnaDataIkuProjectEnabled: false,
       notebookAndDataIkuNotEnabled: true,
+      dataSources: ''
     };
   }
 
@@ -242,6 +244,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
         solution={this.state.solution}
+        dataSources={this.state.dataSources}
         lastModifiedDate={this.state.solution.lastModifiedDate}
         createdDate={this.state.solution.createdDate}
         canShowTeams={this.state.canShowTeams}
@@ -365,6 +368,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         portfolio={this.state.solution.portfolio}
                         analytics={this.state.solution.analytics}
                         sharing={this.state.solution.sharing}
+                        dsList={this.state.dataSources}
                       />
                     )}
                     {canShowComplianceSummary ? (
@@ -413,6 +417,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     this.setup();
   }
   public async componentDidMount() {
+    ApiClient.getDataSources()
+      .then((res) => {
+        this.setState({ dataSources: res }, () => {});
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
     this.setup();
     Tabs.defaultSetup();
     document.getElementById('header').classList.add('nav-header-bg-trans');

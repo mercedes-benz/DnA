@@ -57,3 +57,14 @@
     }
   }
 }
+
+.badge {
+  border: 1px solid #697582;
+  border-radius: 2px;
+  color: #697582;
+  font-size: var(--font-size-icon-small);
+  letter-spacing: 1px;
+  margin-left: 4px;
+  padding: 2px 4px;
+  float: right;
+}

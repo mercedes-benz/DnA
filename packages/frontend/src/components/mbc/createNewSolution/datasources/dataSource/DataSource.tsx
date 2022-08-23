@@ -3,16 +3,20 @@ import React, { useState, useEffect } from 'react';
 import ReactSlider from 'react-slider';
 import NumberFormat from 'react-number-format';
 import Styles from './DataSource.scss';
+import { ITag } from '../../../../../globals/types';
+import { Envs } from '../../../../../globals/Envs';
 
 export interface IDataSourceProps {
   name: string;
   weightage: number;
+  list?: ITag[];
   onWeightageChange: (index: number) => void;
 }
 
 const DataSource = (props: IDataSourceProps) => {
 
   const [sliderValue, setSliderValue] = useState(props.weightage);
+  const [badge, setBadge] = useState<any>(Envs.DNA_APPNAME_HEADER);
 
   const handleSliderValueChange = (val: any) => {
     setSliderValue(val);
@@ -33,13 +37,31 @@ const DataSource = (props: IDataSourceProps) => {
   };
 
   useEffect(() => {
+    if(props.list) {
+      const dataSource = props.list.filter(ds => ds.name === props.name);
+      if(dataSource.length === 1) {
+        if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
+          if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+            if(dataSource[0].dataType === "Not set") {
+              setBadge(dataSource[0].source);
+            } else {
+              setBadge(dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1));
+            }
+          }
+        }
+      }
+    }
+  }, []);
+  
+
+  useEffect(() => {
     props.onWeightageChange(sliderValue);
   }, [sliderValue]);
 
   return (
     <tr>
       <td>
-          {props.name}
+        {props.name}<span className={Styles.badge}>{badge}</span>
       </td>
       <td>
         <div className={Styles.sliderContainer}>

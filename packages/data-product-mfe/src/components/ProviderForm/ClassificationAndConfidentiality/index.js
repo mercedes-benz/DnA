@@ -1,19 +1,27 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Styles from '../Form.common.styles.scss';
 
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
+import { useDispatch, useSelector } from 'react-redux';
+import { getClassificationTypes } from '../../redux/consumeDataProduct.services';
 
 const Classification = ({ onSave }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     reset,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+
+  const dispatch = useDispatch();
+  const { classificationTypes } = useSelector((state) => state.consumeDataProducts);
+
+  useEffect(() => {
+    dispatch(getClassificationTypes());
+  }, [dispatch]);
 
   return (
     <>
@@ -55,58 +63,25 @@ const Classification = ({ onSave }) => {
               <label className={classNames(Styles.inputLabel, 'input-label')}>
                 Confidentiality <sup>*</sup>
               </label>
-              <div className={Styles.radioBtns}>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('confidentiality')}
-                      type="radio"
-                      className="ff-only"
-                      name="confidentiality"
-                      value="Public"
-                      defaultChecked={watch('confidentiality') === 'Public'}
-                    />
-                  </span>
-                  <span className="label">Public</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('confidentiality', { required: '*Missing entry' })}
-                      type="radio"
-                      className="ff-only"
-                      name="confidentiality"
-                      value="Confidential"
-                    />
-                  </span>
-                  <span className="label">Confidential</span>
-                </label>
-              </div>
-              <div>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('confidentiality')}
-                      type="radio"
-                      className="ff-only"
-                      name="confidentiality"
-                      value="Internal"
-                    />
-                  </span>
-                  <span className="label">Internal</span>
-                </label>
-                <label className={'radio'}>
-                  <span className="wrapper">
-                    <input
-                      {...register('confidentiality')}
-                      type="radio"
-                      className="ff-only"
-                      name="confidentiality"
-                      value="Secret"
-                    />
-                  </span>
-                  <span className="label">Secret</span>
-                </label>
+              <div className={Styles.radioBtnsGrid}>
+                {classificationTypes?.map((item) => {
+                  return (
+                    <div key={item.id}>
+                      <label className={'radio'}>
+                        <span className="wrapper">
+                          <input
+                            {...register('confidentiality')}
+                            type="radio"
+                            className="ff-only"
+                            name="confidentiality"
+                            value={item.name}
+                          />
+                        </span>
+                        <span className="label">{item.name}</span>
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
               <span className={classNames('error-message')}>{errors?.confidentiality?.message}</span>
             </div>
@@ -116,8 +91,7 @@ const Classification = ({ onSave }) => {
               className="btn btn-primary"
               type="submit"
               onClick={handleSubmit((data) => {
-                console.log(data);
-                onSave();
+                onSave(data);
                 reset(data, {
                   keepDirty: false,
                   keepSubmitCount: false,

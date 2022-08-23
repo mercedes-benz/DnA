@@ -49,6 +49,10 @@ window['INJECTED_ENVIRONMENT'] = {
   DATA_PRODUCT_MFE_APP_URL: 'http://localhost:8084',
   ENABLE_SAP_ANALYTICS_CLOUD: false,
   SAP_ANALYTICS_CLOUD_URL: 'YOUR_SAP_ANALYTICS_CLOUD_URL',
+  ENABLE_APP_FEEDBACK: false,
+  APP_FEEDBACK_EXTERNAL_URL: 'YOUR_APP_FEEDBACK_EXTERNAL_URL',
+  ENABLE_CHRONOS_FORECASTING_SERVICE: true,
+  CHRONOS_MFE_APP_URL: 'http://localhost:8085',
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {
@@ -67,4 +71,9 @@ window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
   DATA_GOVERNANCE_HTML_FOR_CHINA_DATA:
     '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="#" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
   DATA_PRODUCT_TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>',
+};
+
+window['CHRONOS_INJECTED_ENVIRONMENT'] = {
+  CONTAINER_APP_URL: 'http://localhost:9090',
+  CHRONOS_API_BASEURL: '',
 };
