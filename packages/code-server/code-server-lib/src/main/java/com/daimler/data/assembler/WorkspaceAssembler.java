@@ -27,24 +27,41 @@
 
 package com.daimler.data.assembler;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 
 @Component
 public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceVO, CodeServerWorkspaceNsql> {
 
 	@Override
-	public CodeServerWorkspaceVO toVo(CodeServerWorkspaceNsql e) {
-		// TODO Auto-generated method stub
-		return null;
+	public CodeServerWorkspaceVO toVo(CodeServerWorkspaceNsql entity) {
+		CodeServerWorkspaceVO vo = new CodeServerWorkspaceVO();
+		if(entity!=null) {
+			vo.setId(entity.getId());
+			CodeServerWorkspace data = entity.getData();
+			if(data!=null) {
+				BeanUtils.copyProperties(data, vo);
+			}
+		}
+		return vo;
 	}
 
 	@Override
 	public CodeServerWorkspaceNsql toEntity(CodeServerWorkspaceVO vo) {
-		// TODO Auto-generated method stub
-		return null;
+		CodeServerWorkspaceNsql entity = null;
+		if(vo!=null) {
+			entity = new CodeServerWorkspaceNsql();
+			CodeServerWorkspace data = new CodeServerWorkspace();
+			BeanUtils.copyProperties(vo,data);
+			entity.setData(data);
+			if (vo.getId() != null)
+				entity.setId(vo.getId());
+		}
+		return entity;
 	}
 
 	
