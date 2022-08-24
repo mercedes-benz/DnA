@@ -763,6 +763,8 @@ export class ApiClient {
     sortOrder: string,
     published: boolean,
     searchKey: string,
+    digitalvaluecontribution=false,
+    notebookavailable=false
   ): Promise<any> {
     let reqQuery = `location:"${locations}",phase:"${phases}",division:"${divisions}",projectStatus:"${status}",useCaseType:"${useCaseType}",dataVolume:"${dataVolumes}",tags:"${tags}",offset:0,limit:0,sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
     if (published) {
@@ -771,6 +773,8 @@ export class ApiClient {
     if (searchKey) {
       reqQuery = `searchTerm:"${searchKey}",offset:0,limit:0`;
     }
+    reqQuery += `,hasDigitalValue:${digitalvaluecontribution}`;
+    reqQuery += `,hasNotebook:${notebookavailable}`;
     const resQuery = `totalCount
       records {id,
         productName,
