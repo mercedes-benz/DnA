@@ -65,9 +65,9 @@ schemes:
 
 paths:
 
-# Fetch all valid datavolumes or by intent
+# create, update and getAll division
 #
-#  supprorted http methods GET, POST and DELETE 
+# supported http methods GET, POST
 #
 # path example ../divisions
 
@@ -104,10 +104,103 @@ paths:
     500:
      description: "Internal error"
 
-
-# Fetch all valid datavolumes or by intent
+  post:
+   tags:
+    - "divisions"
+   summary: "Add a new division."
+   description: "Add a new non existing division which is used in providing solution."
+   operationId: "create"
+   parameters:
+    - name: "divisionRequestVO" 
+      in: "body" 
+      description: "Request body that contains data required for creating a new division" 
+      required: true
+      schema:
+       $ref: "#/definitions/DivisionRequestVO"
+   responses:
+    201:
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/DivisionResponseVO"
+    400:
+     description: "Bad Request"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+  put:
+    tags:
+    - "divisions"
+    summary: "Update the division identified by given ID."
+    description:  "Update the division identified by given ID"
+    operationId: "update"
+    parameters:
+      - name: "divisionRequestVO"
+        in: "body" 
+        description: "Request Body that contains data required for updating division." 
+        required: true
+        schema:
+         $ref: "#/definitions/DivisionRequestVO"    
+    responses:
+      200:
+       description: "Successfully updated."
+       schema:
+         $ref: "#/definitions/DivisionResponseVO"
+      400:
+       description: "Bad Request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      405:
+       description: "Method not allowed"
+      500:
+       description: "Internal error"       
+     
+# path to delete existing division
 #
-#  supprorted http methods GET, POST and DELETE 
+#  supported http method DELETE
+#
+# path examples----
+#   DELETE    .../divisions/xxx
+
+ /divisions/{id}:
+  delete:
+    tags:
+    - "divisions"
+    summary: "Deletes the division identified by given ID."
+    description:  "Deletes the division identified by given ID"
+    operationId: "delete"
+    parameters:
+      - name: "id"
+        in: "path"
+        description: "Id of the division"
+        required: true
+        type: "string"
+    responses:
+      200:
+       description: "Successfully deleted."
+       schema:
+         $ref: "#/definitions/GenericMessage"
+      400:
+       description: "Bad request"
+      401:
+       description: "Request does not have sufficient credentials."
+      403:
+       description: "Request is not authorized."
+      404:
+       description: "Invalid id, record not found."
+      500:
+       description: "Internal error" 
+     
+# Fetch all valid subdivisions or by intent
+#
+#  supported http methods GET, POST and DELETE 
 #
 # path example ../subdivisions
 
@@ -145,6 +238,16 @@ paths:
 
 
 definitions:
+ DivisionResponseVO:
+   type: object
+   properties:
+     data:
+       $ref: "#/definitions/DivisionVO"
+     errors:
+       type: array
+       items:
+         $ref: "#/definitions/MessageDescription"
+         
  DivisionVO:
   type: object
   properties: 
@@ -154,19 +257,25 @@ definitions:
     name:
      type: string
      description: "Name of the Division"
+     minLength: 1
     subdivisions:
      type: array
      items: 
        $ref: "#/definitions/SubdivisionVO" 
-#     minLength: 1
-#     pattern: '[a-zA-Z\s]+'
-#  required:
-#     - name
+    changeLogs:
+      type: array
+      items:
+        $ref: "#/definitions/ChangeLogVO"
+        
+  required:
+     - name       
+
  DivisionCollection: 
   description: "Collection of Division."
   type: array
   items: 
      $ref: "#/definitions/DivisionVO"
+ 
  SubdivisionVO:
   type: object
   properties: 
@@ -176,13 +285,82 @@ definitions:
     name:
      type: string
      description: "Name of the SubDivision"
-#     minLength: 1
-#     pattern: '[a-zA-Z\s]+'
-#  required:
-#     - name
+
  SubdivisionCollection: 
   description: "Collection of SubDivision."
   type: array
   items: 
      $ref: "#/definitions/SubdivisionVO"
+     
+ DivisionRequestVO:
+  type: object
+  properties:
+    data:
+      description: "Request data containing division details to be created"
+      $ref: "#/definitions/DivisionVO"    
+      
+ ChangeLogVO:
+    type: object
+    description: "Describes a single change log record done on the solution"
+    properties:
+      changeDate:
+        type: string
+        format: date
+        description: "Date on which this change occurred"
+      modifiedBy:
+        description: "User who changed the value"
+        $ref: "#/definitions/TeamMemberVO"
+      fieldChanged:
+        type: string
+        description: "Describe the attribute that changed"
+      oldValue:
+        type: string
+        description: "Describes the old value of the changed attribute"
+      newValue:
+        type: string
+        description: "Describes the new value of the changed attribute"
+      changeDescription:
+        type: string
+        description: "Short Description on change/addition/removal of Digital Value" 
+        
+ TeamMemberVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+      userType:
+        type: string
+        description: "Internal or External"
+        enum: [internal, external]
+      firstName:
+        type: string
+        description: "First Name of the user"
+      #     pattern: '[a-zA-Z]+'
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      #     pattern: '[a-zA-Z]+'
+      department:
+        type: string
+        description: "Department of the user"
+      #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      #     minLength: 10
+      #     maxLength: 10
+      #     pattern: ^[1-9]\d{9}$
+      company:
+        type: string
+        description: "Company name of the external member"
+      teamMemberPosition:
+        type: string
+        description: "Position of team member in project"
+#    required:
+#      - teamMemberPosition 
  

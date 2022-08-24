@@ -3,6 +3,7 @@
     justify-content: space-between;
     margin: 40px;
     padding: 50px 30px;
+    flex-wrap: wrap;
     > div {
       width: calc(50% - 7px);
     }
@@ -16,7 +17,7 @@
         width: calc(33% - 7px);
       }
     }
-    .optionsList{
-        margin: 25px 0;
+    >.moduleWrapper{
+      margin-top: 20px;
     }
 }

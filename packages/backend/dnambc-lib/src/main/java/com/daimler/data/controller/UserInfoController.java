@@ -27,27 +27,50 @@
 
 package com.daimler.data.controller;
 
-import com.daimler.data.api.userinfo.UsersApi;
-import com.daimler.data.controller.exceptions.*;
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
-import com.daimler.data.dto.solution.SolutionVO;
-import com.daimler.data.dto.userinfo.*;
-import com.daimler.data.service.userinfo.UserInfoService;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.daimler.data.api.userinfo.UsersApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.config.CodeServerClient;
+import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.userinfo.BookmarkRequestVO;
+import com.daimler.data.dto.userinfo.BookmarkResponseVO;
+import com.daimler.data.dto.userinfo.InitializeCodeServerRequestVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRequestVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
+import com.daimler.data.dto.userinfo.UsersCollection;
+import com.daimler.data.service.userinfo.UserInfoService;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "UserInfo API", tags = { "users" })
@@ -55,8 +78,16 @@ import java.util.NoSuchElementException;
 @Slf4j
 public class UserInfoController implements UsersApi {
 
+	private static Logger logger = LoggerFactory.getLogger(UserInfoController.class);
+	
 	@Autowired
 	private UserInfoService userInfoService;
+	
+	@Autowired
+	private UserInfoAssembler userinfoAssembler;
+
+	@Autowired
+	private UserStore userStore;
 
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
@@ -72,15 +103,16 @@ public class UserInfoController implements UsersApi {
 	@RequestMapping(value = "/users", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<UsersCollection> getAll(
+			@ApiParam(value = "searchTerm to filter users. SearchTerm is a keywords which are used to search userId,name and email of users. Example \"DEMOUSER, DEMO, demouser@email\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
 			@ApiParam(value = "page size to limit the number of solutions, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "Sort users based on given column, example name") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
-			@ApiParam(value = "Sort users based on given order, example asc,desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+			@ApiParam(value = "Sort users based on given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		try {
 			int defaultLimit = 10;
-			if (offset == null)
+			if (offset == null || offset < 0)
 				offset = 0;
-			if (limit == null || limit == 0) {
+			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
 
@@ -90,17 +122,12 @@ public class UserInfoController implements UsersApi {
 			if (sortOrder == null) {
 				sortOrder = "asc";
 			}
-			List<UserInfoVO> usersInfo = null;
-			if (sortOrder.equals("asc")) {
-				usersInfo = userInfoService.getAllSortedByUniqueLiteral(limit, offset, sortBy,
-						CommonDataRepositoryImpl.SORT_TYPE.ASC);
-			} else if (sortOrder.equals(("desc"))) {
-				usersInfo = userInfoService.getAllSortedByUniqueLiteral(limit, offset, sortBy,
-						CommonDataRepositoryImpl.SORT_TYPE.DESC);
-			}
-			Long count = userInfoService.getCount(limit, offset);
+			logger.info("Fetching user information with given identifier.");
+			List<UserInfoVO> usersInfo = userInfoService.getAllWithFilters(searchTerm, limit, offset, sortBy, sortOrder);
+			
+			Long count = userInfoService.getCountWithFilters(searchTerm);
 			UsersCollection usersCollection = new UsersCollection();
-			if (usersInfo != null && usersInfo.size() > 0) {
+			if (!ObjectUtils.isEmpty(usersInfo)) {
 				usersCollection.setRecords(usersInfo);
 				usersCollection.setTotalCount(count.intValue());
 				log.debug("returning all users details");
@@ -185,6 +212,8 @@ public class UserInfoController implements UsersApi {
 			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
 				UserInfoVO userInfoVO = userRequestVO.getData();
 				UserInfoVO currentUserData = userInfoService.getById(userInfoVO.getId());
+				//To set key existing data if missing in request
+				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
 				if (!rolesUpdated(userRequestVO, currentUserData)) {
 					userInfoVO.setToken(currentUserData.getToken());
 				} else {
@@ -263,6 +292,32 @@ public class UserInfoController implements UsersApi {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> initializeCodeServer(
+			@Valid InitializeCodeServerRequestVO codeServerRequestVO) {
+
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		GenericMessage responseMessage = userInfoService.initializeCodeServer(userId, codeServerRequestVO.getPassword(),codeServerRequestVO.getRecipeId());
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	
+	}
+
+	@Override
+	public ResponseEntity<GenericMessage> pollUserWorkBenchStatus() {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		HttpStatus responseStatus = userInfoService.pollWorkBenchStatus(userId);
+		GenericMessage responseMessage = new GenericMessage();
+		if(responseStatus.is2xxSuccessful()) {
+			responseMessage.setSuccess("true");
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}else {
+			responseMessage.setSuccess("false");
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}
 	}
 
 }

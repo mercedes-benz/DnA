@@ -32,6 +32,8 @@ import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent } from '..
 import { InfoList } from '../../../formElements/modal/infoModal/InfoList';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
+import TextBox from '../../shared/textBox/TextBox';
+import TextArea from '../../shared/textArea/TextArea';
 
 const classNames = cn.bind(Styles);
 
@@ -223,6 +225,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.productName = productName;
     // this.props.onStateChange();
+    if (productName === '' || productName === null) {
+      this.setState({ productNameError: '*Missing Entry' });
+    } else {
+      this.setState({ productNameError: '' });
+    }
     this.setState({
       productName,
     });
@@ -233,6 +240,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.description = desc;
     // this.props.onStateChange();
+    if (desc === '' || desc === null) {
+      this.setState({ descriptionError: '*Missing Entry' });
+    } else {
+      this.setState({ descriptionError: '' });
+    }
     this.setState({
       description: desc,
     });
@@ -243,6 +255,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.reasonForHoldOrClose = reasonForHoldOrClose;
     // this.props.onStateChange();
+    if (reasonForHoldOrClose === '' ||reasonForHoldOrClose === null) {
+      this.setState({ onHoldError: '*Missing Entry' });
+    } else {
+      this.setState({ onHoldError: '' });
+    }
     this.setState({
       reasonForHoldOrClose,
     });
@@ -253,6 +270,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.expectedBenefits = expectedBenefits;
     // this.props.onStateChange();
+    if (expectedBenefits === '' || expectedBenefits === null) {
+      this.setState({ expectedBenefitsError: '*Missing Entry' });
+    } else {
+      this.setState({ expectedBenefitsError: '' });
+    }
     this.setState({
       expectedBenefits,
     });
@@ -263,6 +285,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.businessNeeds = businessNeeds;
     // this.props.onStateChange();
+    if (businessNeeds === '' || businessNeeds === null) {
+      this.setState({ businessNeedsError: '*Missing Entry' });
+    } else {
+      this.setState({ businessNeedsError: '' });
+    }
     this.setState({
       businessNeeds,
     });
@@ -510,36 +537,18 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               <div className={classNames(Styles.formWrapper)}>
                 <div className={classNames(Styles.flexLayout)}>
                   <div>
-                    <div>
-                      <div>
-                        <div
-                          className={classNames(
-                            'input-field-group include-error',
-                            productNameError.length ? 'error' : '',
-                          )}
-                        >
-                          <label id="productNameLabel" htmlFor="productNameInput" className="input-label">
-                            Solution Name<sup>*</sup>
-                          </label>
-                          <input
-                            type="text"
-                            className="input-field"
-                            required={true}
-                            required-error={requiredError}
-                            id="productNameInput"
-                            maxLength={200}
-                            placeholder="Type here"
-                            autoComplete="off"
-                            onChange={this.onProductNameOnChange}
-                            value={this.state.productName}
-                            // value={this.state.productName}
-                          />
-                          <span className={classNames('error-message', productNameError.length ? '' : 'hide')}>
-                            {productNameError}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    <TextBox
+                      type="text"
+                      controlId={'productNameInput'}
+                      labelId={'productNameLabel'}
+                      label={'Solution Name'}
+                      placeholder={"Type here"}
+                      value={this.state.productName}
+                      errorText={productNameError}
+                      required={true}
+                      maxLength={200}
+                      onChange={this.onProductNameOnChange}
+                    />
                     <div>
                       <div>
                         <div
@@ -826,102 +835,59 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                 </div>
 
                 <div className={this.state.statusValue.id === '0' || this.state.statusValue.id === '1' ? 'hide' : ''}>
-                  <div
-                    id="holdContainer"
-                    className={classNames('input-field-group include-error area', onHoldError.length ? 'error' : '')}
-                  >
-                    <label id="onHoldLabel" className="input-label" htmlFor="onHoldReason">
-                      Reason of "On hold" / "Closed"*<sup>*</sup>
-                    </label>
-                    <textarea
-                      className="input-field-area"
-                      required={true}
-                      required-error={requiredError}
-                      rows={50}
-                      id="onHoldReason"
-                      onChange={this.onHoldChange}
-                      value={this.state.reasonForHoldOrClose}
-                    />
-                    <span className={classNames('error-message', onHoldError.length ? '' : 'hide')}>{onHoldError}</span>
-                  </div>
+                  <TextArea
+                    controlId={'onHoldReason'}
+                    containerId={'holdContainer'}
+                    labelId={'onHoldLabel'}
+                    label={'Reason of "On hold" / "Closed"'}
+                    rows={50}
+                    value={this.state.reasonForHoldOrClose}
+                    errorText={onHoldError}
+                    required={true}
+                    onChange={this.onHoldChange}
+                  />
                 </div>
 
                 <div>
-                  <div
-                    id="descriptionContainer"
-                    className={classNames(
-                      'input-field-group include-error area',
-                      descriptionError.length ? 'error' : '',
-                    )}
-                  >
-                    <label id="descriptionLabel" className="input-label" htmlFor="description">
-                      Description:<sup>*</sup>
-                    </label>
-                    <textarea
-                      className="input-field-area"
-                      required={true}
-                      required-error={requiredError}
-                      rows={50}
-                      id="description"
-                      onChange={this.onDescChange}
-                      value={this.state.description}
-                    />
-                    <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
-                      {descriptionError}
-                    </span>
-                  </div>
+                  <TextArea
+                    controlId={'description'}
+                    containerId={'descriptionContainer'}
+                    labelId={'descriptionLabel'}
+                    label={'Description'}
+                    rows={50}
+                    value={this.state.description}
+                    errorText={descriptionError}
+                    required={true}
+                    onChange={this.onDescChange}
+                  />
                 </div>
 
                 <div>
-                  <div
-                    id="businessNeedContainer"
-                    className={classNames(
-                      'input-field-group include-error area',
-                      businessNeedsError.length ? 'error' : '',
-                    )}
-                  >
-                    <label id="businessNeedLabel" className="input-label" htmlFor="businessNeed">
-                      Business Need:<sup>*</sup>
-                    </label>
-                    <textarea
-                      className="input-field-area"
-                      required={true}
-                      required-error={requiredError}
-                      rows={50}
-                      id="businessNeed"
-                      onChange={this.onBusinessNeedChange}
-                      value={this.state.businessNeeds}
-                    />
-                    <span className={classNames('error-message', businessNeedsError.length ? '' : 'hide')}>
-                      {businessNeedsError}
-                    </span>
-                  </div>
+                  <TextArea
+                    controlId={'businessNeed'}
+                    containerId={'businessNeedContainer'}
+                    labelId={'businessNeedLabel'}
+                    label={'Business Need'}
+                    rows={50}
+                    value={this.state.businessNeeds}
+                    errorText={businessNeedsError}
+                    required={true}
+                    onChange={this.onBusinessNeedChange}
+                  />
                 </div>
 
                 <div>
-                  <div
-                    id="benefitsContainer"
-                    className={classNames(
-                      'input-field-group include-error area',
-                      expectedBenefitsError.length ? 'error' : '',
-                    )}
-                  >
-                    <label id="benefitsLabel" className="input-label" htmlFor="benefits">
-                      Expected Benefits:<sup>*</sup>
-                    </label>
-                    <textarea
-                      className="input-field-area"
-                      required={true}
-                      required-error={requiredError}
-                      rows={50}
-                      id="benefits"
-                      onChange={this.onBenefitChange}
-                      value={this.state.expectedBenefits}
-                    />
-                    <span className={classNames('error-message', expectedBenefitsError.length ? '' : 'hide')}>
-                      {expectedBenefitsError}
-                    </span>
-                  </div>
+                  <TextArea
+                    controlId={'benefits'}
+                    containerId={'benefitsContainer'}
+                    labelId={'benefitsLabel'}
+                    label={'Expected Benefits'}
+                    rows={50}
+                    value={this.state.expectedBenefits}
+                    errorText={expectedBenefitsError}
+                    required={true}
+                    onChange={this.onBenefitChange}
+                  />
                 </div>
               </div>
             </div>

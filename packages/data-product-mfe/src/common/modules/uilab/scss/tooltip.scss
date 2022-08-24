@@ -1,0 +1,15 @@
+.tooltip {
+  position: absolute;
+  z-index: 999999;
+  box-shadow: 0 2px 15px 3px rgba(0,0,0,0.08);
+  background-color: #ffffff;
+  padding: 16px 30px;
+  color: #383F49;
+  font-size: 13px;
+  line-height: 18px;
+  opacity: 0;
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1) 0s;
+  &.show {
+    opacity: 1;
+  }
+}

@@ -57,8 +57,8 @@ repositories {
 group 'com.daimler.data'
 version = releaseVersion
 
-sourceCompatibility = 1.14
-targetCompatibility = 1.14
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 //__________________________________________________________//
@@ -489,22 +489,7 @@ swaggerSources {
             //dependsOn validation
         }
     }
-	appSubscription {
-        def appSubscriptionYaml = "${rootDir}/dnambc-lib/src/main/resources/api/AppSubscription.yaml"
-        def appSubscriptionJson = "${rootDir}/dnambc-lib/src/main/resources/api/AppSubscription.json"
-        inputFile = file(appSubscriptionYaml)
-
-        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
-
-        code {
-            language = 'spring'
-            configFile = file(appSubscriptionJson)
-            rawOptions = ['--ignore-file-override', ignoreFile]
-
-            components = ['models', 'apis']
-            //dependsOn validation
-        }
-    }
+    
     dataiku {
         def dataikuYaml = "${rootDir}/dnambc-lib/src/main/resources/api/Dataiku.yaml"
         def dataikuJson = "${rootDir}/dnambc-lib/src/main/resources/api/Dataiku.json"
@@ -602,8 +587,6 @@ compileJava {
     source "${swaggerSources.notebook.code.outputDir}/src/main/java"
 	dependsOn swaggerSources.itsmmgame.code
     source "${swaggerSources.itsmmgame.code.outputDir}/src/main/java"
-	dependsOn swaggerSources.appSubscription.code
-    source "${swaggerSources.appSubscription.code.outputDir}/src/main/java"
     dependsOn swaggerSources.dataiku.code
     source "${swaggerSources.dataiku.code.outputDir}/src/main/java"
     dependsOn swaggerSources.dashboard.code
@@ -644,7 +627,6 @@ sourceSets {
         java { srcDirs += "${swaggerSources.logoDetails.code.outputDir}/src/main/java" }
 		java { srcDirs += "${swaggerSources.notebook.code.outputDir}/src/main/java"}
 		java { srcDirs += "${swaggerSources.itsmmgame.code.outputDir}/src/main/java"}
-		java { srcDirs += "${swaggerSources.appSubscription.code.outputDir}/src/main/java"}
 		java { srcDirs += "${swaggerSources.dataiku.code.outputDir}/src/main/java"}	
 		java { srcDirs += "${swaggerSources.dashboard.code.outputDir}/src/main/java"}
 		java { srcDirs += "${swaggerSources.skill.code.outputDir}/src/main/java"}
@@ -755,7 +737,7 @@ dependencies {
 
 
     implementation group: 'org.json', name: 'json', version: '20190722'
-
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
     implementation('ch.qos.logback:logback-classic:1.2.3')
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
@@ -823,7 +805,6 @@ dependencies {
 	//implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
 	
 	// https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-vault-config
-	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.0.3'
 	
 	//Matomo tracking 
 	// https://mvnrepository.com/artifact/org.piwik.java.tracking/matomo-java-tracker

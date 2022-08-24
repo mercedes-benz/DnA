@@ -1,68 +1,322 @@
 version: "3.5"
 services:
-  result-frontend:
-    image: dna-frontend
+  app-frontend:
+    image: dna/app-frontend
+    container_name: app-frontend
     build:
       context: ../packages/frontend/
       dockerfile: ../../deployment/dockerfiles/app/result-frontend.Dockerfile
-    environment:
-      - PROJECTSMO_BACKEND_HOST=result-backend
-      - PROJECTSMO_FRONTEND_OIDC_DISABLED=true
-      - PROJECTSMO_FRONTEND_API_BASEURL=http://localhost:7171/api
-      - PROJECTSMO_ENABLE_INTERNAL_USER_INFO=false
-      - PROJECTSMO_ENABLE_DATA_COMPLIANCE=false
-      - PROJECTSMO_ENABLE_REPORTS=false
-      - PROJECTSMO_ENABLE_JUPYTER_WORKSPACE=false
-      - PROJECTSMO_ENABLE_DATAIKU_WORKSPACE=false
-      - PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE=false
-      - PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE=false
-      - PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE=false
-      - PROJECTSMO_ENABLE_STORAGE_SERVICE=false
-      - PROJECTSMO_STORAGE_MFE_APP_URL=http://localhost:8083
-      - PROJECTSMO_DNA_COMPANY_NAME=Company_Name
-      - PROJECTSMO_DEPLOY_VERSION=0.91
-      - PROJECTSMO_DNA_APPNAME_HEADER=DnA App
-      - PROJECTSMO_DNA_APPNAME_HOME=Data and Analytics
-      - PROJECTSMO_DNA_CONTACTUS_HTML=<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
-      - PROJECTSMO_DNA_BRAND_LOGO_URL=/images/branding/logo-brand.png
-      - PROJECTSMO_DNA_APP_LOGO_URL=/images/branding/logo-app-white.png
+    volumes:
+      - ../packages/frontend/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf
     ports:
-      - "8080:3000"
+      - 8080:3000
+    depends_on:
+      - app-backend
+      - dashboard-backend  
+      - naas-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
 
-  result-backend:
-    image: dna-backend
+  app-db:
+    image: bitnami/postgresql:11.14.0-debian-10-r28
+    container_name: app-db
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    volumes:
+      - ./kubernetes/helm/charts/bitnami-postgresql/files/docker-entrypoint-initdb.d/01-update-script.sql:/docker-entrypoint-initdb.d/01-updatescript.sql
+    ports:
+      - 5432:5432
+
+  app-backend:
+    image: dna/app-backend
+    container_name: app-backend
     build:
       context: ../packages/backend/
       dockerfile: ../../deployment/dockerfiles/app/result-backend.Dockerfile
     environment:
-      - API_DB_URL=jdbc:postgresql://db:5432/db
+      - API_DB_URL=jdbc:postgresql://app-db:5432/db
+      - API_DB_USER=postgres
+      - API_DB_PASS=postgres
+      - CORS_ORIGIN_URL=http://*
       - OIDC_DISABLED=true
+      - JWT_SECRET_KEY=
+      - INACTIVE_SOLUTION_DURATION_YRS=2
       - JUPYTER_NOTEBOOK=false
       - DATAIKU=false
       - ITSMM=false
       - ATTACHMENT_MALWARE_SCAN=false
+      - AVSCAN_URI=http://malware-backend:8181
+      - AVSCAN_UPLOAD_API=/api/v1/scan/upload
+      - AVSCAN_APP_ID=
+      - AVSCAN_API_KEY=
       - DRD_INTERNAL_USER_ENABLED=false
+      - S3_EP_URL=http://minio:9000
+      - S3_BUCKET_NAME=dna
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
+      - S3_MAX_PARALLEL_UPLOADTHREADS=20
+      - S3_MIN_FILESIZE=1024
+      - S3_MAX_FILESIZE=5242880
+      - NAAS_BROKER=broker:29092
+      - LOGGING_ENVIRONMENT=DEV
+      - LOGGING_PATH=/tmp/app/logs/
+      - JWT_TOKEN_EXPIRY_TIME_IN_MIN=90
+      - DASHBOARD_URI=http://dashboard-backend:7173
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public
     depends_on:
-      - db
+      - app-db
+      - vault
+      - broker
     ports:
-      - "7171:7171"
+      - 7171:7171
     deploy:
       restart_policy:
         condition: on-failure
-        delay: 5s
         max_attempts: 3
-        window: 30s
 
-  db:
-    image: postgres:10
-    restart: on-failure
+  dashboard-backend:
+    image: dna/dashboard-backend
+    container_name: dashboard-backend
+    build:
+      context: ../packages/dashboard-backend/
+      dockerfile: ../../deployment/dockerfiles/dashboard/dashboard-backend.Dockerfile
     environment:
-      - "POSTGRES_USER=admin"
-      - "POSTGRES_PASSWORD=admin"
-      - "POSTGRES_DB=db"
-    # Init db on startup
-    volumes:
-      - ./kubernetes/helm/charts/app/files/localdb-init/schema-creation.sql:/docker-entrypoint-initdb.d/02-schema-creation.sql
-      - ./kubernetes/helm/charts/app/files/localdb-init/schema-data.sql:/docker-entrypoint-initdb.d/02-schema-data.sql
+      - API_DB_URL=jdbc:postgresql://app-db:5432/dashboard
+      - API_DB_USER=dashboard
+      - API_DB_PASS=dashboard
+      - DNA_URI=http://app-backend:7171
+      - CORS_ORIGIN_URL=http://*
+      - DNA_AUTH_ENABLE=true
+      - LOGGING_ENVIRONMENT=DEV
+      - LOGGING_PATH=/tmp/dashboard/logs/
+      - JWT_SECRET_KEY=
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public
+      - NAAS_BROKER=broker:29092
+    depends_on:
+      - app-db
     ports:
-      - "5432:5432"
+      - 7173:7173
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  malware-backend:
+    image: dna/malware-backend
+    container_name: malware-backend
+    build:
+      context: ../packages/malware-scanner/
+      dockerfile: ../../deployment/dockerfiles/clamav/clamav-service.Dockerfile
+    environment:
+      - CLAMAV_BACKEND_URL=clamav
+      - CLAMAV_BACKEND_PORT=3310
+      - MAX_FILE_SIZE=3000MB
+      - MAX_REQUEST_SIZE=3000MB
+      - API_REQUEST_LIMIT=20
+      - WITH_IN=2
+      - RESTRICTED_URL_PATTERN=.*
+      - TIME_UNIT=seconds
+      - LOGGING_ENVIRONMENT=DEV
+      - LOGGING_PATH=/tmp/clamav/log
+      - API_DB_URL=jdbc:postgresql://app-db:5432/malware
+      - API_DB_USER=malware 
+      - API_DB_PASS=malware123
+      - CORS_ORIGIN_URL=http://*
+      - DNA_AUTH_ENABLE=true
+      - DNA_UNSUBSCRIBE_MALWARE_SCAN_API=/api/malwarescan/unsubscribe/    
+      - DNA_URI=http://app-backend:7171  
+      - DNA_VERIFY_LOGIN_API=/api/verifyLogin
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public
+      - JWT_SECRET_KEY=
+      - NAAS_BROKER=broker:29092
+      - VAULT_HOST=vault
+      - VAULT_PORT=8200
+      - VAULT_SCHEME=http
+      - VAULT_AUTHENTICATION=TOKEN
+      - VAULT_TOKEN=myroot
+      - VAULT_MOUNTPATH=secret      
+    depends_on:
+      - clamav
+      - app-db
+    ports:
+      - 8181:8181
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  vault:
+    image: vault
+    container_name: vault
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=myroot    
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - 8200:8200
+
+  clamav:
+    image: mkodockx/docker-clamav:stretch-slim
+    container_name: clamav
+    ports:
+      - 3310:3310
+
+  naas-backend:
+    image: dna/naas-backend
+    container_name: naas-backend
+    build:
+      context: ../packages/naas/
+      dockerfile: ../../deployment/dockerfiles/naas/naas-backend.Dockerfile
+    environment:
+      - API_DB_URL=jdbc:postgresql://app-db:5432/db
+      - API_DB_USER=postgres
+      - API_DB_PASS=postgres
+      - CORS_ORIGIN_URL=http://*      
+      - DNA_URI=http://app-backend:7171
+      - DNA_AUTH_ENABLE=true
+      - JWT_SECRET_KEY=
+      - DNA_USER_NOTIFICATION_PREF_GET_URI=/api/notification-preferences
+      - NAAS_BROKER=broker:29092
+      - NAAS_CENTRAL_TOPIC=dnaCentralEventTopic
+      - NAAS_CENTRALREAD_TOPIC=dnaCentralReadTopic
+      - NAAS_CENTRALDELTE_TOPIC=dnaCentralDeleteTopic
+      - MAX_POLL_RECORDS=5000
+      - POLL_TIME=5000
+      - LOGGING_ENVIRONMENT=DEV
+      - LOGGING_PATH=/tmp/naas/logs/
+      - DNA_MAIL_SERVER_PORT=25
+      - DNA_MAIL_SERVER_HOST=
+      - DNA_NOTIFICATION_SENDER_EMAIL=
+    depends_on:
+      - app-backend
+      - broker
+    ports:
+      - 7272:7272
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: broker
+    ports:
+      - 29092:29092
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  
+  storage-frontend:
+    image: dna/storage-frontend
+    container_name: storage-frontend
+    build:
+      context: ../packages/storage-mfe/
+      dockerfile: ../../deployment/dockerfiles/storageService/storage-mfe.Dockerfile
+    volumes:
+      - ../packages/storage-mfe/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf
+    ports:
+      - 8083:3000
+    depends_on:
+      - storage-backend
+      - app-frontend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  storage-backend:
+    image: dna/storage-backend
+    container_name: storage-backend
+    build:
+      context: ../packages/storage-backend/
+      dockerfile: ../../deployment/dockerfiles/storageService/storage-be.Dockerfile
+    environment:
+      - MAX_FILE_SIZE=3000MB
+      - MAX_REQUEST_SIZE=3000MB
+      - VAULT_HOST=vault
+      - VAULT_PORT=8200
+      - VAULT_SCHEME=http
+      - VAULT_AUTHENTICATION=TOKEN
+      - VAULT_TOKEN=myroot
+      - VAULT_MOUNTPATH=secret
+      - VAULT_PATH=dna/minio
+      - DNA_URI=http://app-backend:7171
+      - DNA_AUTH_ENABLE=true
+      - JWT_SECRET_KEY=
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ADMIN_ACCESS_KEY=minioadmin
+      - MINIO_ADMIN_SECRET_KEY=minioadmin
+      - MINIO_POLICY_VERSION=2012-10-17
+      - MINIO_CLIENT_API=http://minio:9000
+      - LOGGING_ENVIRONMENT=DEV
+      - ATTACHMENT_MALWARE_SCAN=false
+      - API_DB_USER=storage
+      - API_DB_PASS=storage123
+      - API_DB_URL=jdbc:postgresql://app-db:5432/storage
+      - NAAS_BROKER=broker:29092
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public      
+      - CORS_ORIGIN_URL=http://*      
+    ports:
+      - 7175:7175
+    depends_on:
+      - minio
+      - vault
+      - broker
+      - app-backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
+  minio:
+    image: minio/minio:latest
+    command: server /export --console-address ":9001"
+    ports:
+     - 9000:9000
+     - 9001:9001
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc rm -r --force myminio/dna;
+      /usr/bin/mc mb myminio/dna;
+      exit 0;
+      "

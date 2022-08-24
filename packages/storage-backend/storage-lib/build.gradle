@@ -1,0 +1,201 @@
+buildscript {
+    ext {
+        springBootVersion = "2.4.4"
+        releaseVersion = "1.0.0"
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+    }
+    dependencies {		
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+		classpath("gradle.plugin.org.hidetake:gradle-swagger-generator-plugin:2.18.2")
+		classpath("org.apache.maven.plugins:maven-dependency-plugin:3.1.2")
+    }
+
+}
+
+
+plugins {
+    // the plugins DSL is replacing apply plugin over time for Java-plugins. It is therefore favoured over the legacy "apply plugin:" approach
+    id "java"
+    id "eclipse"
+    id "jacoco"
+}
+
+apply plugin: "io.spring.dependency-management"
+apply plugin: "org.springframework.boot"
+apply plugin: "maven-publish"
+apply plugin: "org.hidetake.swagger.generator"
+
+repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		  url "https://repo.eclipse.org/content/groups/releases"
+		}
+}
+
+group 'com.daimler.dna.storage'
+version = releaseVersion
+
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
+tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+
+//__________________________________________________________//
+//_____________________ SWAGGER CONFIGURATION ______________//
+swaggerSources {
+
+    storage {
+        def storageyaml = "${rootDir}/storage-lib/src/main/resources/api/Storage.yaml"
+        def storageJson = "${rootDir}/storage-lib/src/main/resources/api/Storage.json"
+        inputFile = file(storageyaml)
+
+        def ignoreFile = "${rootDir}/storage-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(storageJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+        
+    lov {
+        def lovYaml = "${rootDir}/storage-lib/src/main/resources/api/Lov.yaml"
+        def lovJson = "${rootDir}/storage-lib/src/main/resources/api/Lov.json"
+        inputFile = file(lovYaml)
+        def ignoreFile = "${rootDir}/storage-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(lovJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+           }
+      }    
+        
+}
+
+
+compileJava {
+    dependsOn processResources
+    dependsOn swaggerSources.storage.code
+    source "${swaggerSources.storage.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.lov.code
+    source "${swaggerSources.lov.code.outputDir}/src/main/java"
+}
+
+sourceSets {
+    unitTest {
+        java { srcDir 'src/test/groovy' }
+        resources { srcDir 'src/test/resources' }
+        compileClasspath += sourceSets.main.runtimeClasspath
+    }
+    main {
+        java { srcDirs += "${swaggerSources.storage.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.lov.code.outputDir}/src/main/java"}
+    }
+}
+
+dependencies {
+	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
+    
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
+
+	//2nd level caching dependency 
+	implementation 'org.springframework.boot:spring-boot-starter-cache:2.4.3'
+    implementation group: 'net.sf.ehcache', name: 'ehcache', version: '2.10.4'
+
+    implementation group: 'org.json', name: 'json', version: '20190722'
+
+    implementation('ch.qos.logback:logback-classic:1.2.3')
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'jul-to-slf4j', version: '1.7.30'
+    implementation group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.30'
+
+    implementation('ch.qos.logback:logback-core:1.2.3')
+    implementation 'io.swagger:swagger-annotations:1.6.2'
+    
+    swaggerCodegen 'io.swagger:swagger-codegen-cli:2.4.20'
+    
+   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
+	implementation('org.springframework.boot:spring-boot-starter-aop')
+
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    
+	implementation('org.apache.tomcat.embed:tomcat-embed-jasper:10.0.5')
+
+    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '3.0.0'
+	
+    implementation('io.springfox:springfox-swagger-ui:2.9.2')
+
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+
+    implementation 'org.projectlombok:lombok:1.18.22'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.3'
+    
+    implementation("io.minio:minio:8.3.6")
+    // https://mvnrepository.com/artifact/io.minio/minio-admin
+	implementation group: 'io.minio', name: 'minio-admin', version: '8.3.6'
+	
+	 implementation("com.squareup.okhttp3:okhttp") {
+        version {
+            strictly '4.9.0'
+        }
+    }
+    
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
+
+    implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
+
+	// https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
+    
+    
+    // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-vault-config
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.0.3'
+	
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+    testImplementation(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}") {
+        exclude(module: 'commons-logging')
+    }
+	
+    testImplementation(
+            'org.junit.jupiter:junit-jupiter-api:5.8.0-M1',
+			'org.apache.ant:ant-junit:1.10.9',
+            'info.cukes:cucumber-java:1.2.5',
+            'info.cukes:cucumber-junit:1.2.5',
+            'org.glassfish:javax.json:1.0.4',
+            'javax.json:javax.json-api:1.0'
+    )
+
+	implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.908')
+    implementation 'com.amazonaws:aws-java-sdk-s3'
+    
+	repositories {
+        mavenLocal()
+        mavenCentral()
+		gradlePluginPortal()
+		maven {
+		  url "https://plugins.gradle.org/m2/"
+		}
+    }
+
+}

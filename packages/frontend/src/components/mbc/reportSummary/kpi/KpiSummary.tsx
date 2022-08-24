@@ -71,7 +71,9 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                       </div>
                       <div className={Styles.commentSection}>
                         <label className="input-label summary">Comment</label>
-                        <p>{kpi.comment}</p>
+                        <p>
+                          <pre className={Styles.commentPre}>{kpi.comment}</pre>
+                        </p>
                       </div>
                       {this.props.kpis?.length > 1 && <hr className="divider1" />}
                     </div>

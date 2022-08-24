@@ -1,7 +1,15 @@
 spring:
+  mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: notification-service
-  
+  cache:
+    type: redis
+  redis:
+    host: ${REDIS_HOST:XXXX}
+    port: ${REDIS_PORT:XXXX}
+    user: ${REDIS_ROOT_USER:XXXX}
+    password: ${REDIS_ROOT_PASSWORD:XXXX}
+
   mail:
     host: ${DNA_MAIL_SERVER_HOST:XXXX}
     port: ${DNA_MAIL_SERVER_PORT:XXXX}
@@ -13,9 +21,9 @@ spring:
       mail:
         transport.protocol: smtp
         smtp:
-          auth: true
-          starttls.enabled: true
-          starttls.required: true
+          auth: false
+          starttls.enabled: false
+          starttls.required: false
         
   datasource:
     platform: postgres
@@ -64,8 +72,6 @@ kafka:
     
 server:
   port: 7272
-  servlet:
-    context-path: /naas
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
@@ -77,6 +83,7 @@ dna:
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}  
 # token: ${DNA_AUTH_API_TOKEN:XXXX}
   user.notificationPreferences.get.api: ${DNA_USER_NOTIFICATION_PREF_GET_URI:/api/notification-preferences}
+  user.info.get.api: ${DNA_USER_INFO_GET_URI:/api/users}
   notification.senderEmail: ${DNA_NOTIFICATION_SENDER_EMAIL:system@dna-naas}
   
 jwt:
@@ -84,8 +91,10 @@ jwt:
     key: ${JWT_SECRET_KEY:XXXXX}
 
 #NAAS Authentication ends
-management.endpoints.web.exposure.include: loggers
+management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:xxxx}
 

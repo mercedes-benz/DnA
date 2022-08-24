@@ -41,7 +41,7 @@ import ReportListRowItem from './reportListRowItem/ReportListRowItem';
 import { getQueryParameterByName } from '../../../services/Query';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import ReportCardItem from './reportCardItem/ReportCardItem';
-import { trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/ReportsCSV';
 
 import ReportsFilter from '../filters/ReportsFilter';
@@ -601,50 +601,7 @@ export default class AllReports extends React.Component<
     const processOwners = queryParams.processOwners?.join(',');
     const productOwners = queryParams.productOwners?.join(',');
     const departments = queryParams.departments?.join(',');
-    let divisionIds = queryParams.division?.join(',');
-
-    if (queryParams.division?.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempString = '{' + item + ',[]}';
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.subDivision?.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      let hasEmpty = false; // To find none selected in sub division since its not mandatory
-      const emptySubDivId = 'EMPTY';
-      distinctSelectedDivisions?.forEach((item) => {
-        const tempSubdiv = queryParams.subDivision?.map((value) => {
-          const tempArray = value.split('-');
-          const subDivId = tempArray[0];
-          if (subDivId === emptySubDivId) {
-            hasEmpty = true;
-          }
-          if (item === tempArray[1]) {
-            return subDivId;
-          }
-        });
-
-        if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
-          tempSubdiv.unshift(emptySubDivId);
-        }
-
-        let tempString = '';
-
-        if (tempSubdiv?.length === 0) {
-          tempString += '{' + item + ',[]}';
-        } else {
-          tempString += '{' + item + ',[' + tempSubdiv?.filter((div) => div) + ']}';
-        }
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
+    const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
 
     ReportsApiClient.getReportsByGraphQL(
       divisionIds,
@@ -747,6 +704,8 @@ export default class AllReports extends React.Component<
     let userId = '';
     if (report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(report?.description?.division?.name)) {
+      userId = userInfo.id;       
     }
     // else if (report.createdBy) {
     //   userId = report.createdBy.id;

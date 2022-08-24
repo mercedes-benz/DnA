@@ -33,7 +33,9 @@
       header {
         padding-right: 40px;
         color: #dee3e8;
-
+        h4 {
+          min-height: 15px;
+        }
         h4 > i {
           height: 55px;
           width: 55px;
@@ -53,7 +55,7 @@
         color: #c0c8d0;
         padding: 0;
         top: 20px;
-        right: 24px;
+        right: 25.5px;
         outline: none;
 
         &:hover {

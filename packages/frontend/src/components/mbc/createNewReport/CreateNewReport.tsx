@@ -15,6 +15,7 @@ import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { ApiClient } from '../../../services/ApiClient';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import { trackEvent } from '../../../services/utils';
+import { parseMessage } from '../../../utils/ParseMissingField';
 
 // @ts-ignore
 import * as _ from 'lodash';
@@ -61,7 +62,6 @@ import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import { serializeReportRequestBody } from './utility/Utility';
 import { USER_ROLE } from '../../../globals/constants';
 import { TeamMemberType } from '../../../globals/Enums';
-import { Envs } from '../../../globals/Envs';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewReportState {
@@ -197,7 +197,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     InputFields.defaultSetup();
     ProgressIndicator.show();
 
-    ReportsApiClient.getCreateNewReportData(Envs.OIDC_DISABLED, this.props.user.id).then((response) => {
+    ReportsApiClient.getCreateNewReportData().then((response) => {
       if (response) {
         const dataSources = response[0].data;
         const departments = response[1].data;
@@ -217,10 +217,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const subSystems: ISubSystems[] = response[15].data;
         const divisions: IDivision[] = response[16];
         const departmentTags: IDepartment[] = response[17].data;
-        const creatorInfo = Envs.OIDC_DISABLED ? this.props.user : response[18];
+        const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
-          email: creatorInfo.email || creatorInfo.eMail,
+          email: creatorInfo.eMail,
           firstName: creatorInfo.firstName,
           shortId: creatorInfo.id,
           lastName: creatorInfo.lastName,
@@ -272,6 +272,30 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     });
   }
 
+  protected setupEditReportData(
+    subDivisions: ISubDivision[],
+    response: ICreateNewReportResult,
+    report: ICreateNewReport,
+    resetChildComponents: () => void | null,
+  ) {
+    this.setState(
+      {
+        subDivisions,
+        response,
+        report,
+      },
+      () => {
+        this.setOpenTabs(report.openSegments);
+        SelectBox.defaultSetup();
+        ProgressIndicator.hide();
+        resetChildComponents();
+        this.setState({
+          currentState: JSON.parse(JSON.stringify(report)),
+        });
+      },
+    );
+  }
+
   public async getReportById(resetChildComponents?: () => void | null) {
     let { id } = getParams();
     if ((id == null || id === '') && this.state.response.data != null) {
@@ -296,7 +320,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               isReportAdmin !== undefined ||
               isProductOwner !== undefined ||
               // user.id === (res.createdBy ? res.createdBy.id : '')
-              res.members.admin.find((teamMember) => teamMember.shortId === user.id) !== undefined
+              res.members.admin.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
+              (user?.divisionAdmins && user?.divisionAdmins.includes(res?.description?.division?.name))
             ) {
               const response = this.state.response;
               const {
@@ -319,7 +344,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               );
               report.description.status = statuses?.filter((item: any) => item.name === res.description.status);
               report.description.frontendTechnologies = frontEndTechnologies?.filter(
-                (item: any) => res.description.frontendTechnologies.indexOf(item.name) > -1,
+                (item: any) => res.description.frontendTechnologies?.indexOf(item.name) > -1,
               );
               report.description.designGuideImplemented = designGuideImplemented?.filter(
                 (item: any) => item.name === res.description.designGuideImplemented,
@@ -328,7 +353,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 (item: any) => res.description.agileReleaseTrains?.indexOf(item.name) > -1,
               );
               report.description.integratedPortal = integratedPortals?.filter(
-                (item: any) => res.description.integratedPortal.indexOf(item.name) > -1,
+                (item: any) => res.description.integratedPortal?.indexOf(item.name) > -1,
               );
               report.description.tags = res.description.tags;
               report.description.division = res.description.division;
@@ -352,27 +377,19 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.members.admin = res.members.admin || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
-              ApiClient.getSubDivisions(res.description.division.id).then((subDivisions) => {
-                if (!subDivisions.length) {
-                  subDivisions = [{ id: '0', name: 'None' }];
-                }
-                this.setState(
-                  {
-                    subDivisions,
-                    response,
-                    report,
-                  },
-                  () => {
-                    this.setOpenTabs(report.openSegments);
-                    SelectBox.defaultSetup();
-                    ProgressIndicator.hide();
-                    resetChildComponents();
-                    this.setState({
-                      currentState: JSON.parse(JSON.stringify(report)),
-                    });
-                  },
-                );
-              });
+              let subDivisions: ISubDivision[] = [{ id: '0', name: 'None' }];
+              const divisionId = res.description.division?.id;
+              if (divisionId) {
+                ApiClient.getSubDivisions(res.description.division.id)
+                  .then((subDivResponse) => {
+                    subDivisions = subDivResponse;
+                  })
+                  .finally(() => {
+                    this.setupEditReportData(subDivisions, response, report, resetChildComponents);
+                  });
+              } else {
+                this.setupEditReportData(subDivisions, response, report, resetChildComponents);
+              }
             } else {
               ProgressIndicator.hide();
               history.replace('/unauthorised');
@@ -739,11 +756,19 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             error.message,
           );
           if (fieldsMissing) {
+            const tempArr = error.message.split('data.');
+            tempArr.splice(0,1);
+            tempArr.forEach((element: string) => {
+              this.showErrorNotification(parseMessage(element));
+            });
+            
             this.setState({
               fieldsMissing,
             });
           }
-          this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          else {
+            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+          }
         });
     } else {
       serializeReportRequestBody(requestBody);

@@ -12,6 +12,7 @@ declare global {
   interface Window {
     INJECTED_ENVIRONMENT?: any;
     NOTIFICATION_POLL_ID?: any;
+    STORAGE_INJECTED_ENVIRONMENT?: any;
   }
 }
 
@@ -21,6 +22,13 @@ const getInjectedEnv = (key: string) => {
   }
   return undefined;
 };
+
+const getStorageInjectedEnv = (key: string) => {
+  if (window.STORAGE_INJECTED_ENVIRONMENT) {
+    return window.STORAGE_INJECTED_ENVIRONMENT[key];
+  }
+  return undefined;
+}
 
 // You have to go via this or directly use the process.env
 // BUT using in direct statements like === will result in direct expansion in builds this means the variable is lost
@@ -32,6 +40,15 @@ export const Envs = {
       : EnvParser.parseBool(process.env.OIDC_DISABLED, true),
 
   API_BASEURL: getInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
+  DATA_PIPELINES_API_BASEURL: getInjectedEnv('DATA_PIPELINES_API_BASEURL') || process.env.DATA_PIPELINES_API_BASEURL,
+  DATA_PIPELINES_APP_BASEURL: getInjectedEnv('DATA_PIPELINES_APP_BASEURL') || process.env.DATA_PIPELINES_APP_BASEURL,
+  NOTIFICATIONS_API_BASEURL: getInjectedEnv('NOTIFICATIONS_API_BASEURL') || process.env.NOTIFICATIONS_API_BASEURL,
+  DASHBOARD_API_BASEURL: getInjectedEnv('DASHBOARD_API_BASEURL') || process.env.DASHBOARD_API_BASEURL,
+  NOTEBOOK_API_BASEURL: getInjectedEnv('NOTEBOOK_API_BASEURL') || process.env.NOTEBOOK_API_BASEURL,
+  STORAGE_API_BASEURL: getStorageInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
+  MALWARESCAN_API_BASEURL: getInjectedEnv('MALWARESCAN_API_BASEURL') || process.env.MALWARESCAN_API_BASEURL,
+  MODEL_REGISTRY_API_BASEURL: getInjectedEnv('MODEL_REGISTRY_API_BASEURL') || process.env.MODEL_REGISTRY_API_BASEURL,
+  DATA_COMPLIANCE_API_BASEURL: getInjectedEnv('DATA_COMPLIANCE_API_BASEURL') || process.env.DATA_COMPLIANCE_API_BASEURL,
   NODE_ENV: getInjectedEnv('NODE_ENV') || process.env.NODE_ENV,
   CLIENT_IDS: getInjectedEnv('CLIENT_IDS') || process.env.CLIENT_IDS,
   OIDC_PROVIDER: getInjectedEnv('OIDC_PROVIDER') || process.env.OIDC_PROVIDER || 'INTERNAL',
@@ -84,6 +101,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_PIPELINE_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_DATA_PIPELINE_SERVICE, false),
+  ENABLE_MY_MODEL_REGISTRY_SERVICE:
+    getInjectedEnv('ENABLE_MY_MODEL_REGISTRY_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_MY_MODEL_REGISTRY_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_MY_MODEL_REGISTRY_SERVICE, false),
   ENABLE_STORAGE_SERVICE:
     getInjectedEnv('ENABLE_STORAGE_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_STORAGE_SERVICE')
@@ -105,4 +126,24 @@ export const Envs = {
     getInjectedEnv('ENABLE_NOTIFICATION') !== undefined
       ? getInjectedEnv('ENABLE_NOTIFICATION')
       : EnvParser.parseBool(process.env.ENABLE_NOTIFICATION, false),
+  STORAGE_TOU_HTML: getStorageInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
+  INTERNAL_USER_TEAMS_INFO: getInjectedEnv('INTERNAL_USER_TEAMS_INFO') || process.env.INTERNAL_USER_TEAMS_INFO,
+  ENABLE_DATA_PRODUCT:
+    getInjectedEnv('ENABLE_DATA_PRODUCT') !== undefined
+      ? getInjectedEnv('ENABLE_DATA_PRODUCT')
+      : EnvParser.parseBool(process.env.ENABLE_DATA_PRODUCT, false),
+  ENABLE_SAP_ANALYTICS_CLOUD:
+    getInjectedEnv('ENABLE_SAP_ANALYTICS_CLOUD') !== undefined
+      ? getInjectedEnv('ENABLE_SAP_ANALYTICS_CLOUD')
+      : EnvParser.parseBool(process.env.ENABLE_SAP_ANALYTICS_CLOUD, false),
+  SAP_ANALYTICS_CLOUD_URL: getInjectedEnv('SAP_ANALYTICS_CLOUD_URL') || process.env.SAP_ANALYTICS_CLOUD_URL,
+  ENABLE_APP_FEEDBACK:
+    getInjectedEnv('ENABLE_APP_FEEDBACK') !== undefined
+      ? getInjectedEnv('ENABLE_APP_FEEDBACK')
+      : EnvParser.parseBool(process.env.ENABLE_APP_FEEDBACK, false),
+  APP_FEEDBACK_EXTERNAL_URL: getInjectedEnv('APP_FEEDBACK_EXTERNAL_URL') || process.env.APP_FEEDBACK_EXTERNAL_URL,
+  ENABLE_CHRONOS_FORECASTING_SERVICE:
+    getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
 };

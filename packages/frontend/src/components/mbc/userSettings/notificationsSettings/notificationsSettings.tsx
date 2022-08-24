@@ -11,236 +11,173 @@ import cn from 'classnames';
 const classNames = cn.bind(Styles);
 
 export interface INotificationSettings {
-    user: IUserInfo;
+  user: IUserInfo;
 }
-
 
 const NotificationsSettings = (props: INotificationSettings) => {
+  const [notificationPreferences, setNotificationPreferences] = useState<INoticationModules>();
 
-    const [enableSystemNotificationForSolutions, setEnableSystemNotificationForSolutions] = useState(true);
-    const [enableEmailNotificationForSolutions, setEnableEmailNotificationForSolutions] = useState(false);
+  const [tempNotificationPreferences, setTempNotificationPreferences] = useState<any>();
 
-    const [enableSystemNotificationForNotebooks, setEnableSystemNotificationForNotebooks] = useState(true);
-    const [enableEmailNotificationForNotebooks, setEnableEmailNotificationForNotebooks] = useState(false);
-    
-    const [notificationPreferences, setNotificationPreferences] = useState<INoticationModules>();
-    
-    
+  useEffect(() => {
+    ProgressIndicator.show();
+    ApiClient.getNotificationPreferences(props?.user?.id).then((res) => {
+      if (res) {
+        setNotificationPreferences(res);
+        migrateResponseToLocalObject(res);
+      }
+      ProgressIndicator.hide();
+    });
+  }, []);
+  useEffect(() => {}, [tempNotificationPreferences]);
 
-    useEffect(() => {
-        ProgressIndicator.show();
-        ApiClient.getNotificationPreferences(props?.user?.id)
-        .then((res) => {
-          if (res) {
-            setNotificationPreferences(res);
-          }
-            ProgressIndicator.hide();
-        }) 
-    },[])
-    useEffect(() => {    
-        if(notificationPreferences){
-            const solutionModules = notificationPreferences?.solutionNotificationPref;                          
-            setEnableSystemNotificationForSolutions(solutionModules['enableAppNotifications']);                    
-            setEnableEmailNotificationForSolutions(solutionModules['enableEmailNotifications']);
-            
-            const notebookModules = notificationPreferences?.notebookNotificationPref;            
-            setEnableSystemNotificationForNotebooks(notebookModules['enableAppNotifications']);                    
-            setEnableEmailNotificationForNotebooks(notebookModules['enableEmailNotifications']);
-                    
-        }     
-    }, [notificationPreferences]);
+  /*********************************************************************************************************
+   *********    Following function is converting response object in array object for     *******************
+   *********    displaying module automatically in screen                                *******************
+   *********************************************************************************************************/
 
-
-    const onChangeEmailNotificationForSolution = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEnableEmailNotificationForSolutions(e.target.checked);
-        const target = notificationPreferences?.solutionNotificationPref;
-        target['enableEmailNotifications'] = e.target.checked;
-        setNotificationPreferences(notificationPreferences);
-        const messageForNotification = e.target.checked ? 'Enabled Email Notification Successfully' : 'Disabled Email Notification Successfully';
-        callToUpdatePreference(messageForNotification);
+  const migrateResponseToLocalObject = (res: any) => {
+    const tempArr = [];
+    for (const x in res) {
+      if (typeof res[x] === 'object' && res[x] !== null) {
+        const temp = { module: '', title: '', enableAppNotifications: true, enableEmailNotifications: false };
+        temp.module = x;
+        temp.enableAppNotifications = res[x].enableAppNotifications ? res[x].enableAppNotifications : true;
+        temp.enableEmailNotifications = res[x].enableEmailNotifications ? res[x].enableEmailNotifications : false;
+        switch (x) {
+          case 'solutionNotificationPref':
+            temp.title = 'Configure Notifications for Solutions';
+            break;
+          case 'notebookNotificationPref':
+            temp.title = 'Configure Notifications for Notebooks';
+            break;
+          case 'persistenceNotificationPref':
+            temp.title = 'Configure Notifications for Storage';
+            break;
+          case 'dashboardNotificationPref':
+            temp.title = 'Configure Notifications for Dashboard';
+            break;
+        }
+        tempArr.push(temp);
+      }
     }
+    setTempNotificationPreferences(tempArr);
+  };
 
-    const onChangeEmailNotificationForNotebook = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEnableEmailNotificationForNotebooks(e.target.checked);
-        const target = notificationPreferences?.notebookNotificationPref;
-        target['enableEmailNotifications'] = e.target.checked;
-        setNotificationPreferences(notificationPreferences);
-        const messageForNotification = e.target.checked ? 'Enabled Email Notification Successfully' : 'Disabled Email Notification Successfully';
-        callToUpdatePreference(messageForNotification);
+  const onChangeEmailNotificationForSolution = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.solutionNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
+  const onChangeEmailNotificationForNotebook = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.notebookNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
+  const onChangeEmailNotificationForDashboard = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.dashboardNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
+  const onChangeEmailNotificationForPersistence = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.persistenceNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
+  const callToUpdatePreference = (message: string) => {
+    ProgressIndicator.show();
+    ApiClient.enableEmailNotifications(notificationPreferences)
+      .then((res) => {
+        migrateResponseToLocalObject(res);
+        Notification.show(message);
+        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        Notification.show('Something went wrong', 'alert');
+        ProgressIndicator.hide();
+      });
+  };
+
+  /*********************************************************************************************************
+   *********    Following function is deciding which function to call for update     ***********************
+   *********************************************************************************************************/
+
+  const callToCommonFunctionOnChange = (moduleName: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    switch (moduleName) {
+      case 'solutionNotificationPref':
+        onChangeEmailNotificationForSolution(e);
+        break;
+      case 'notebookNotificationPref':
+        onChangeEmailNotificationForNotebook(e);
+        break;
+      case 'persistenceNotificationPref':
+        onChangeEmailNotificationForPersistence(e);
+        break;
+      case 'dashboardNotificationPref':
+        onChangeEmailNotificationForDashboard(e);
+        break;
     }
+  };
 
-    const callToUpdatePreference = (message: string) => {
-        ProgressIndicator.show();
-        ApiClient.enableEmailNotifications(notificationPreferences).then(
-            res => {
-                Notification.show(message);
-                ProgressIndicator.hide();
-            }
-        ).catch(
-            err => {
-                Notification.show('Something went wrong', 'alert');
-                ProgressIndicator.hide();
-            }
-        )
-    }
-
-
-    return (
-        <React.Fragment>
-            <div className={Styles.wrapper}>  
-                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                    <div id="optionList-1">
-                        <label className="input-label summary">Configure Notifications for Solutions</label>
-                        <br />
-                        <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    checked={enableSystemNotificationForSolutions}
-                                    disabled
-                                    />
-                                </span>
-                                <span className="label">
-                                    App Notification
-                                </span>
-                            </label>
-                        </div>
-                        <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    checked={enableEmailNotificationForSolutions}
-                                    onChange={onChangeEmailNotificationForSolution}
-                                    />
-                                </span>
-                                <span className="label">
-                                    Email
-                                </span>
-                            </label>
-                        </div>
-                        {/* <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    // checked={this.state.datacompliance.quickCheck}
-                                    // onChange={this.onChangeOfQuickCheck}
-                                    />
-                                </span>
-                                <span className="label">
-                                    Option 3
-                                </span>
-                            </label>
-                        </div> */}
-                    </div>
-                    <div id="optionList-2">
-                        <label className="input-label summary">Configure Notifications for Notebooks</label>
-                        <br />
-                        <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    checked={enableSystemNotificationForNotebooks}
-                                    disabled
-                                    />
-                                </span>
-                                <span className="label">
-                                    App Notification
-                                </span>
-                            </label>
-                        </div>
-                        <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    checked={enableEmailNotificationForNotebooks}
-                                    onChange={onChangeEmailNotificationForNotebook}
-                                    />
-                                </span>
-                                <span className="label">
-                                    Email
-                                </span>
-                            </label>
-                        </div>
-                        {/* <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    // checked={this.state.datacompliance.quickCheck}
-                                    // onChange={this.onChangeOfQuickCheck}
-                                    />
-                                </span>
-                                <span className="label">
-                                    Option 3
-                                </span>
-                            </label>
-                        </div> */}
-                    </div>
-                    <div id="optionList-3">
-                        {/* <label className="input-label summary">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi scelerisque vulputate dictum</label>
-                        <br />
-                        <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    // checked={this.state.datacompliance.quickCheck}
-                                    // onChange={this.onChangeOfQuickCheck}
-                                    />
-                                </span>
-                                <span className="label">
-                                    Option 1
-                                </span>
-                            </label>
-                        </div>
-                        <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    // checked={this.state.datacompliance.quickCheck}
-                                    // onChange={this.onChangeOfQuickCheck}
-                                    />
-                                </span>
-                                <span className="label">
-                                    Option 2
-                                </span>
-                            </label>
-                        </div>
-                        <div className={Styles.optionsList}>
-                            <label className="checkbox">
-                                <span className="wrapper">
-                                    <input
-                                    type="checkbox"
-                                    className="ff-only"
-                                    // checked={this.state.datacompliance.quickCheck}
-                                    // onChange={this.onChangeOfQuickCheck}
-                                    />
-                                </span>
-                                <span className="label">
-                                    Option 3
-                                </span>
-                            </label>
-                        </div> */}
-                    </div>
+  return (
+    <React.Fragment>
+      <div className={Styles.wrapper}>
+        <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+          {tempNotificationPreferences?.map((item: any, index: number) => {
+            return (
+              <div id={'optionList-' + index} key={index} className={Styles.moduleWrapper}>
+                <label className="input-label summary">{item.title}</label>
+                <br />
+                <div className={Styles.optionsList}>
+                  <label className="checkbox">
+                    <span className="wrapper">
+                      <input type="checkbox" className="ff-only" checked={item.enableAppNotifications} disabled />
+                    </span>
+                    <span className="label">App Notification</span>
+                  </label>
                 </div>
-            </div>
-        </React.Fragment>
-    )
-
-}
+                <div className={Styles.optionsList}>
+                  <label className="checkbox">
+                    <span className="wrapper">
+                      <input
+                        type="checkbox"
+                        className="ff-only"
+                        checked={item.enableEmailNotifications}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          callToCommonFunctionOnChange(item.module, e)
+                        }
+                      />
+                    </span>
+                    <span className="label">Email</span>
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </React.Fragment>
+  );
+};
 
 export default NotificationsSettings;

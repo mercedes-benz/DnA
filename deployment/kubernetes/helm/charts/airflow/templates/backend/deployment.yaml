@@ -10,11 +10,22 @@ spec:
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}         
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}        
       initContainers:
         - name: git-clone-init
           image: {{ .Values.backend.image }}
@@ -30,9 +41,15 @@ spec:
         - name: {{ .Chart.Name }}-backend-rest
           image: {{ .Values.backend.image }}
           imagePullPolicy: Always
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}
           env:
-            - name: AUTH_SERVER_URI
+            - name: DNA_URI
               value: {{ .Values.backend.apiUrl }}
+            - name: DNA_AUTH_ENABLE
+              value: {{ .Values.backend.dnaAuthEnable | quote }}              
             - name: OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -103,6 +120,7 @@ spec:
               value: {{ .Values.backend.flywayBaselineVersion | quote }}
             - name: FLYWAY_SCHEMA
               value: {{ .Values.backend.flywaySchema | quote }}
+          {{- end }} 
           ports:
             - containerPort: {{ .Values.backend.containerPort }}
               name: api-http
@@ -117,6 +135,24 @@ spec:
           volumeMounts:
             - mountPath: /git
               name: dag-repo
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.livenessProbe.path }}
+              port: {{ .Values.probes.livenessProbe.port }}
+              
+          readinessProbe:
+            # initialDelaySeconds: 120
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.readinessProbe.path }}
+              port: {{ .Values.probes.readinessProbe.port }}    
       securityContext:
         runAsUser: 1000
         fsGroup: 1000

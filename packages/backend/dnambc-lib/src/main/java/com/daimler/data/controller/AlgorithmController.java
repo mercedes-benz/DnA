@@ -27,19 +27,11 @@
 
 package com.daimler.data.controller;
 
-import com.daimler.data.api.algorithm.AlgorithmsApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.controller.exceptions.*;
-import com.daimler.data.dto.algorithm.AlgorithmCollection;
-import com.daimler.data.dto.algorithm.AlgorithmRequestVO;
-import com.daimler.data.dto.algorithm.AlgorithmVO;
-import com.daimler.data.dto.solution.CreatedByVO;
-import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.daimler.data.dto.userinfo.UserRoleVO;
-import com.daimler.data.service.algorithm.AlgorithmService;
-import com.daimler.data.service.userinfo.UserInfoService;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,9 +40,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.List;
+import com.daimler.data.api.algorithm.AlgorithmsApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.algorithm.AlgorithmCollection;
+import com.daimler.data.dto.algorithm.AlgorithmRequestVO;
+import com.daimler.data.dto.algorithm.AlgorithmVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
+import com.daimler.data.service.algorithm.AlgorithmService;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Algorithm API", tags = { "algorithms" })
@@ -135,7 +144,12 @@ public class AlgorithmController implements AlgorithmsApi {
 					}
 				}
 			}
+			AlgorithmVO algorithm = algorithmService.getById(id);
+			String algoName = algorithm != null ? algorithm.getName() : "";
+			String userName = algorithmService.currentUserName(currentUser);
+			String eventMessage = "Algorithm " + algoName + " has been deleted by Admin " + userName;
 			algorithmService.deleteAlgorithm(id);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.debug("Algorithm {} deleted successfully", id);

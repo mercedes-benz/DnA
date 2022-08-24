@@ -45,8 +45,8 @@ repositories {
 group 'com.daimler.dna.dashboard'
 version = releaseVersion
 
-sourceCompatibility = 1.14
-targetCompatibility = 1.14
+sourceCompatibility = 1.17
+targetCompatibility = 1.17
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 
 //__________________________________________________________//
@@ -132,6 +132,21 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+    
+    division {
+        def divisionyaml = "${rootDir}/dashboard-lib/src/main/resources/api/Division.yaml"
+        def divisionJson = "${rootDir}/dashboard-lib/src/main/resources/api/Division.json"
+        inputFile = file(divisionyaml)
+
+        def ignoreFile = "${rootDir}/dashboard-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(divisionJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }    
         
 }
 
@@ -149,7 +164,9 @@ compileJava {
     dependsOn swaggerSources.datawarehouse.code
     source "${swaggerSources.datawarehouse.code.outputDir}/src/main/java"
     dependsOn swaggerSources.userwidgetpreference.code
-    source "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java"         
+    source "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.division.code
+    source "${swaggerSources.division.code.outputDir}/src/main/java"            
 }
 
 sourceSets {
@@ -165,6 +182,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datawarehouse.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }
     }
 }
 
@@ -175,6 +193,10 @@ dependencies {
     implementation group: 'org.json', name: 'json', version: '20190722'
 
     implementation('ch.qos.logback:logback-classic:1.2.3')
+    
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
 
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
     implementation group: 'org.slf4j', name: 'jcl-over-slf4j', version: '1.7.30'

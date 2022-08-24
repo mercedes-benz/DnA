@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import "./css-custom-properties.css";
 
 /* Uilab dark theme overrides and New Icons override SCSS */
@@ -36,7 +37,8 @@
     color: #00adef;
   }
 
-  a.wrapper-link, a.wrapper-link:hover {
+  a.wrapper-link,
+  a.wrapper-link:hover {
     color: inherit;
     text-decoration: none;
   }
@@ -184,11 +186,11 @@
   }
 
   .text-center {
-    text-align: center!important;
+    text-align: center !important;
   }
 
   .default-cursor {
-    cursor: default!important;
+    cursor: default !important;
   }
 
   /* Header */
@@ -218,7 +220,7 @@
       background-color: #383f49;
       color: #c0c8d0;
       font-size: var(--font-size-default);
-    } 
+    }
   }
 
   /* Button */
@@ -354,14 +356,14 @@
     min-width: 40px;
   }
 
-  .checkbox .wrapper input[type=checkbox]:disabled::after,
-  .checkbox .wrapper input[type=radio]:disabled::after,
-  .legend .wrapper input[type=checkbox]:disabled::after,
-  .legend .wrapper input[type=radio]:disabled::after,
-  .radio .wrapper input[type=checkbox]:disabled::after,
-  .radio .wrapper input[type=radio]:disabled::after,
-  .switch .wrapper input[type=checkbox]:disabled::after,
-  .switch .wrapper input[type=radio]:disabled::after {
+  .checkbox .wrapper input[type="checkbox"]:disabled::after,
+  .checkbox .wrapper input[type="radio"]:disabled::after,
+  .legend .wrapper input[type="checkbox"]:disabled::after,
+  .legend .wrapper input[type="radio"]:disabled::after,
+  .radio .wrapper input[type="checkbox"]:disabled::after,
+  .radio .wrapper input[type="radio"]:disabled::after,
+  .switch .wrapper input[type="checkbox"]:disabled::after,
+  .switch .wrapper input[type="radio"]:disabled::after {
     opacity: 0.5;
   }
 
@@ -660,31 +662,30 @@
         opacity: 0.4;
       }
       .select-selected {
-        &:not(.multiple)>.label {
+        &:not(.multiple) > .label {
           visibility: hidden;
-            &::after {
-              content: 'Choose';
-              top: 8px;
-              background: transparent !important;
-              @include select-disabled();
-            }
+          &::after {
+            content: "Choose";
+            top: 8px;
+            background: transparent !important;
+            @include select-disabled();
+          }
         }
         &.multiple {
           .values {
             visibility: hidden;
             &::after {
-              content: 'All';
+              content: "All";
               top: 0px;
               @include select-disabled();
             }
           }
           .checkbox.checked {
-            input[type='checkbox']::after {
+            input[type="checkbox"]::after {
               background: none;
             }
-          } 
+          }
         }
-          
       }
     }
   }
@@ -701,10 +702,22 @@
     border-color: #697582;
   }
 
-  .checkbox, .radio, .switch, .legend {
+  .checkbox.error .wrapper input[type="checkbox"]::after {
+    border-color: #e84d47;
+  }
+
+  .checkbox,
+  .radio,
+  .switch,
+  .legend {
     .label {
       font-size: var(--font-size-default);
     }
+  }
+
+  .radio .wrapper input[type="radio"]:disabled::after,
+  .radio.disabled {
+    cursor: not-allowed;
   }
 
   /* Tabs */
@@ -745,7 +758,12 @@
   }
 
   /* Table */
-  .ul-table, .expanstion-table {
+  .ul-table,
+  .expanstion-table {
+    tr th label {
+      color: #99a5b3;
+      margin: 0;
+    }
     .sortable-column-header {
       color: #99a5b3;
       font-size: var(--font-size-smallest);
@@ -777,6 +795,9 @@
       padding: 2px 16px 0 5.75px;
       &:hover {
         background-color: #1c2026 !important;
+      }
+      &.disable {
+        background-color: transparent !important;
       }
     }
 
@@ -815,6 +836,7 @@
       margin-bottom: 0;
 
       li {
+        text-align: left;
         &:last-child {
           margin-bottom: 0;
         }
@@ -1245,7 +1267,6 @@
   }
   /* ACE Editor overrideEnd */
 
-
   /* Common Scroll Style */
   .mbc-scroll {
     overflow-y: auto;
@@ -1268,6 +1289,7 @@
   .mbc-scroll::-webkit-scrollbar {
     display: block;
     width: 5px;
+    height: 5px;
   }
   body::-ms-scrollbar-thumb,
   .mbc-scroll::-ms-scrollbar-thumb {

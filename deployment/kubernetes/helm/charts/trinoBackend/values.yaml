@@ -1,0 +1,105 @@
+# Default values for i3postgresql.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: trino
+image: ""
+imagePullPolicy: Always
+imagePullSecret: 
+  name: harbor-pull-secrets
+
+secret:
+  name: trinoBackend-secrets
+  minioSecretKey: ""
+  trinoPassword: ""
+  jwtKey: ""
+envs:
+  - name: MINIO_SECRETKEY
+    valueFrom:
+      secretKeyRef:
+        key: minio.secretkey
+        name: ""
+  - name: TRINO_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: trino.password
+        name: ""
+  - name: JWT_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        key: jwt.secret.key
+        name: ""
+  - name: DNA_URI
+    value: http://dna-app-backend-service.dna.svc.cluster.local:80
+  - name: DNA_AUTH_ENABLE
+    value: "false" 
+  - name: MINIO_BASEURI
+    value: my-release-minio.minio.svc.cluster.local:9000
+  - name: MINIO_ACCESSKEY
+    value: admin
+  - name: TRINO_BASEURI
+    value: ""
+  - name: TRINO_USER
+    value: ""
+  - name: TRINO_CATALOG
+    value: ""
+  - name: SWAGGER_HEADER_AUTH
+    value: ""
+  - name: CORS_ORIGIN_URL
+    value: ""
+  - name: LOGGING_ENVIRONMENT
+    value: ""
+  - name: LOGGING_PATH
+    value: /var/log
+
+containerPort: 7174
+
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1000Mi"
+    cpu: "500m"
+
+probes:
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  periodSeconds: 20
+  failureThreshold: 3
+  livenessProbe:
+    path: /actuator/health/liveness
+    port: api
+      
+  readinessProbe:
+    path: /actuator/health/readiness
+    port: api
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/trinoService'
+    vault.hashicorp.com/agent-inject-template-envvar: | 
+      {{- with secret "kv/dna/kubernetesSecret/trinoService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+  saName: "default"
+  jarName: "trino-backend-lib*.jar"
+

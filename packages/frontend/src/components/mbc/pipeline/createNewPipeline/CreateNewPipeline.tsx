@@ -8,6 +8,7 @@ import {
   IPipelineProjectDag,
   IPipelineProjectDetail,
   IError,
+  IUserInfo,
 } from '../../../../globals/types';
 import Styles from './CreateNewPipeline.scss';
 // @ts-ignore
@@ -36,7 +37,11 @@ import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
 import ProgressWithMessage from '../../../../components/progressWithMessage/ProgressWithMessage';
 import { Envs } from '../../../../globals/Envs';
 
-const CreateNewPipeline = () => {
+interface ICreateNewPipelineProps {
+  user: IUserInfo;
+}
+
+const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
   const { id } = getParams();
   const [collabaration, setCollabaration] = useState(false);
   const [codeEditor, setCodeEditor] = useState(false);
@@ -288,7 +293,15 @@ const CreateNewPipeline = () => {
         }
       });
     });
-    if (!isError) {
+
+    const isCreator = props.user.id === collaborators.shortId;
+
+    if (isCreator) {
+      Notification.show(
+        `${collaborators.firstName} ${collaborators.lastName} is a creator. Creator can't be added as collaborator.`,
+        'warning',
+      );
+    } else if (!isError) {
       modDagList[0].collaborators.push(collabarationData);
       setIsLoad(false);
       setDagsList([...dagsList]);

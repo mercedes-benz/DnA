@@ -55,7 +55,7 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                           </div>
                           <div className={Styles.commentSection}>
                             <label className="input-label summary">Comment</label>
-                            <p>{customer.comment}</p>
+                            <p><pre className={Styles.commentPre}>{customer.comment}</pre></p>
                           </div>
                           {(this.props.customers.customerDetails?.length > 1 ||
                             this.props.customers.processOwners?.length) && <hr className="divider1" />}

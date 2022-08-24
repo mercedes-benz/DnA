@@ -27,25 +27,18 @@
 
 package com.daimler.data.controller;
 
-import com.daimler.data.api.solution.ChangelogsApi;
-import com.daimler.data.api.solution.SolutionsApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.assembler.SolutionAssembler;
-import com.daimler.data.controller.exceptions.*;
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.solution.*;
-import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
-import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.daimler.data.dto.userinfo.UserRoleVO;
-import com.daimler.data.service.notebook.NotebookService;
-import com.daimler.data.service.solution.SolutionService;
-import com.daimler.data.service.userinfo.UserInfoService;
-import com.daimler.data.util.ConstantsUtility;
-import com.google.gson.Gson;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,19 +46,53 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.daimler.data.api.solution.ChangelogsApi;
+import com.daimler.data.api.solution.MalwarescanApi;
+import com.daimler.data.api.solution.SolutionsApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.assembler.SolutionAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.SolutionChangeLogCollectionVO;
+import com.daimler.data.dto.solution.SolutionCollection;
+import com.daimler.data.dto.solution.SolutionDigitalValueVO;
+import com.daimler.data.dto.solution.SolutionLocationVO;
+import com.daimler.data.dto.solution.SolutionProjectStatusVO;
+import com.daimler.data.dto.solution.SolutionRequestVO;
+import com.daimler.data.dto.solution.SolutionResponseVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.solution.ValueCalculatorVO;
+import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
+import com.daimler.data.service.solution.SolutionService;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.util.ConstantsUtility;
+import com.google.gson.Gson;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Solution API", tags = { "solutions" })
 @RequestMapping("/api")
 @Slf4j
 @SuppressWarnings(value = "unused")
-public class SolutionController implements SolutionsApi, ChangelogsApi {
+public class SolutionController implements SolutionsApi, ChangelogsApi, MalwarescanApi {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SolutionController.class);
 
@@ -170,6 +197,8 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 			@ApiParam(value = "ID of useCaseType of solutions. 1.MyBookmarks or 2.MySolutions , Example 1", allowableValues = "1, 2") @Valid @RequestParam(value = "useCaseType", required = false) String useCaseType,
 			@ApiParam(value = "searchTerm to filter solutions. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
 			@ApiParam(value = "searchTerm to filter solutions. Example Java,R") @Valid @RequestParam(value = "tags", required = false) String tags,
+			@ApiParam(value = "Filtering solutions based on digital value, values true or false", defaultValue = "false") @Valid @RequestParam(value = "hasDigitalValue", required = false, defaultValue = "false") Boolean hasDigitalValue,
+			@ApiParam(value = "Filtering solutions based on notebook value, values true or false", defaultValue = "false") @Valid @RequestParam(value = "hasNotebook", required = false, defaultValue = "false") Boolean hasNotebook,
 			@ApiParam(value = "page number from which listing of solutions should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of solutions, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
 			@ApiParam(value = "Sort solutions by a given variable like name, phase, division, location or status") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
@@ -251,12 +280,15 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -272,16 +304,18 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 			if (tags != null && !"".equalsIgnoreCase(tags)) {
 				listOfTags = Arrays.asList(tags.split(","));
 			}
-			Long count = solutionService.getCount(published, phasesList, dataVolumesList, divisionsList, locationsList,
-					statusesList, useCaseType, userId, isAdmin, bookmarkedSolutions, searchTerms, listOfTags);
+			Long count = solutionService.getCount(published, phasesList, dataVolumesList, division, locationsList,
+					statusesList, useCaseType, userId, isAdmin, bookmarkedSolutions, searchTerms, listOfTags,
+					divisionsAdmin, hasDigitalValue, hasNotebook);
 			SolutionCollection solutionCollection = new SolutionCollection();
 
 			if (count < offset)
 				offset = 0;
 
 			List<SolutionVO> solutionVOListVO = solutionService.getAllWithFilters(published, phasesList,
-					dataVolumesList, divisionsList, locationsList, statusesList, useCaseType, userId, isAdmin,
-					bookmarkedSolutions, searchTerms, listOfTags, offset, limit, sortBy, sortOrder);
+					dataVolumesList, division, locationsList, statusesList, useCaseType, userId, isAdmin,
+					bookmarkedSolutions, searchTerms, listOfTags, divisionsAdmin, hasDigitalValue, hasNotebook, offset,
+					limit, sortBy, sortOrder);
 			LOGGER.debug("Solutions fetched successfully");
 			if ("locations".equalsIgnoreCase(sortBy)) {
 				List<SolutionVO> sortedSolutionVOList = this.sortSolutionsBasedOnLocations(solutionVOListVO, sortOrder);
@@ -357,20 +391,31 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 	@Override
 	public ResponseEntity<SolutionVO> getById(String id) {
 		Boolean isAdmin = false;
+		Boolean isDivisionAdmin = false;
+		List<String> divisionAdmins = new ArrayList<>();
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		if (userId != null && !"".equalsIgnoreCase(userId)) {
 			UserInfoVO userInfoVO = userInfoService.getById(userId);
 			if (userInfoVO != null) {
+				divisionAdmins = userInfoVO.getDivisionAdmins();
 				List<UserRoleVO> userRoles = userInfoVO.getRoles();
-				if (userRoles != null && !userRoles.isEmpty())
+				if (userRoles != null && !userRoles.isEmpty()) {
+					// To check for Admin
 					isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+					// To check for divisionAdmin
+					isDivisionAdmin = userRoles.stream().anyMatch(n -> "DivisionAdmin".equals(n.getName()));
+				}
 			}
 		}
 		SolutionVO solutionVO = solutionService.getById(id);
 		if (solutionVO != null) {
-			if (!isAdmin)
+			// To check if divisionAdmin has access of solution division
+			isDivisionAdmin = isDivisionAdmin && !ObjectUtils.isEmpty(divisionAdmins)
+					&& divisionAdmins.contains(solutionVO.getDivision().getName());
+			if (Boolean.FALSE.equals(isAdmin) && Boolean.FALSE.equals(isDivisionAdmin)) {
 				solutionVO = solutionAssembler.maskDigitalValue(solutionVO, userId, false);
+			}
 			LOGGER.debug("Solution {} fetched successfully", id);
 			return new ResponseEntity<>(solutionVO, HttpStatus.OK);
 		} else {
@@ -425,10 +470,15 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 					if (userInfoVO != null) {
 						List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
 						if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+							boolean isDivisionAdmin = userRoleVOs.stream()
+									.anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
+									&& !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins()) && userInfoVO
+											.getDivisionAdmins().contains(existingSolutionVO.getDivision().getName());
 							boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
 							boolean isTeamMember = existingSolutionVO.getTeam().stream()
 									.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-							if (userId == null || (!userId.equalsIgnoreCase(creatorId) && !isAdmin) && !isTeamMember) {
+							if (userId == null || (!userId.equalsIgnoreCase(creatorId) && !isAdmin && !isDivisionAdmin)
+									&& !isTeamMember) {
 								List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 								MessageDescription notAuthorizedMsg = new MessageDescription();
 								notAuthorizedMsg.setMessage(
@@ -525,7 +575,6 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Solution ID to be deleted", required = true) @PathVariable("id") String id) {
-
 		try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
@@ -535,12 +584,16 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
 					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isDivisionAdmin = userRoleVOs.stream()
+								.anyMatch(n -> "DivisionAdmin".equalsIgnoreCase(n.getName()))
+								&& !ObjectUtils.isEmpty(userInfoVO.getDivisionAdmins())
+								&& userInfoVO.getDivisionAdmins().contains(solution.getDivision().getName());
 						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
 						String createdBy = solution.getCreatedBy() != null ? solution.getCreatedBy().getId() : null;
 						boolean isOwner = (createdBy != null && createdBy.equals(userId));
 						boolean isTeamMember = solution.getTeam().stream()
 								.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-						if (!isAdmin && !isOwner && !isTeamMember) {
+						if (!isAdmin && !isOwner && !isTeamMember && !isDivisionAdmin) {
 							MessageDescription notAuthorizedMsg = new MessageDescription();
 							notAuthorizedMsg.setMessage(
 									"Not authorized to delete solution. Only the solution owner or an admin can delete the solution.");
@@ -589,6 +642,24 @@ public class SolutionController implements SolutionsApi, ChangelogsApi {
 			return new ResponseEntity<>(new SolutionChangeLogCollectionVO(), HttpStatus.NO_CONTENT);
 		}
 
+	}
+
+	@Override
+	@ApiOperation(value = "Unsubscribe Malware Scan for a given solutionId", nickname = "unsubscribeMalwareScan", notes = "Unsubscribe Malware Scan for a given solutionId", response = GenericMessage.class, tags = {
+			"solutions", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/malwarescan/unsubscribe/{solutionId}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<GenericMessage> unsubscribeMalwareScan(
+			@ApiParam(value = "Solution ID", required = true) @PathVariable("solutionId") String solutionId) {
+		return solutionService.malwareScanUnsubscribe(solutionId);
 	}
 
 }
