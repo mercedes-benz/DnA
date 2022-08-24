@@ -166,7 +166,8 @@ export const getDataForCSV = (
       console.log(error.message);
     });
 
-
+  const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+  const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
   ApiClient.exportDatatoCSV(
     locationIds,
     phaseIds,
@@ -179,6 +180,8 @@ export const getDataForCSV = (
     sortType,
     enablePortfolioSolutionsView,
     searchKey,
+    isDigitalValueContributionEnabled,
+    isNotificationEnabled
   ).then((resCSV) => {
     if (resCSV) {
       const solutionsCSV = resCSV.data
