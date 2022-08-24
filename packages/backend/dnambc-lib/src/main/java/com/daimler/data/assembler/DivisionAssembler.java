@@ -27,19 +27,29 @@
 
 package com.daimler.data.assembler;
 
-import com.daimler.data.db.entities.DivisionNsql;
-import com.daimler.data.db.jsonb.Division;
-import com.daimler.data.db.jsonb.SubDivision;
-import com.daimler.data.dto.divisions.DivisionVO;
-import com.daimler.data.dto.divisions.SubdivisionVO;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.TreeSet;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.daimler.data.db.entities.DivisionNsql;
+import com.daimler.data.db.jsonb.Division;
+import com.daimler.data.db.jsonb.SubDivision;
+import com.daimler.data.db.jsonb.solution.ChangeLogs;
+import com.daimler.data.db.jsonb.solution.SolutionTeamMember;
+import com.daimler.data.dto.divisions.DivisionVO;
+import com.daimler.data.dto.divisions.SubdivisionVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.solution.TeamMemberVO;
+import com.daimler.data.dto.solution.TeamMemberVO.UserTypeEnum;
 
 @Component
 public class DivisionAssembler implements GenericAssembler<DivisionVO, DivisionNsql> {
@@ -60,6 +70,25 @@ public class DivisionAssembler implements GenericAssembler<DivisionVO, DivisionN
 				}
 			}
 			divisionVO.setSubdivisions(subdivisionVOs);
+			List<ChangeLogs> changeLogsList = entity.getData().getChangeLogs();
+			if (changeLogsList != null && !changeLogsList.isEmpty()) {
+				List<ChangeLogVO> changeLogVOList = new ArrayList<>();
+				for (ChangeLogs changeLogs : changeLogsList) {
+					ChangeLogVO changeLogVO = new ChangeLogVO();
+					BeanUtils.copyProperties(changeLogs, changeLogVO);
+					if (null != changeLogs.getModifiedBy()) {
+						TeamMemberVO teamMemberVO = new TeamMemberVO();
+						BeanUtils.copyProperties(changeLogs.getModifiedBy(), teamMemberVO);
+						if (StringUtils.hasText(changeLogs.getModifiedBy().getUserType())) {
+							teamMemberVO
+									.setUserType(UserTypeEnum.valueOf(changeLogs.getModifiedBy().getUserType()));
+						}
+						changeLogVO.setModifiedBy(teamMemberVO);
+					}
+					changeLogVOList.add(changeLogVO);
+				}
+				divisionVO.setChangeLogs(changeLogVOList);
+			}
 		}
 		return divisionVO;
 	}
@@ -70,13 +99,56 @@ public class DivisionAssembler implements GenericAssembler<DivisionVO, DivisionN
 		if (Objects.nonNull(vo)) {
 			divisionNsql = new DivisionNsql();
 			Division division = new Division();
-			division.setName(vo.getName());
+			division.setName(vo.getName().toUpperCase());
+			if (!ObjectUtils.isEmpty(vo.getSubdivisions())) {
+				List<SubDivision> subdivisions = new ArrayList<SubDivision>();
+				subdivisions = vo.getSubdivisions().stream().map(n -> toSubDivision(n)).collect(Collectors.toList());
+				List<SubDivision> uniqueSubDivision = subdivisions.stream().collect(Collectors.collectingAndThen(
+						Collectors.toCollection(() -> new TreeSet<>(subdivisionComp)), ArrayList::new));
+				division.setSubdivisions(uniqueSubDivision);
+			}
+			List<ChangeLogVO> changeLogVOList = vo.getChangeLogs();
+			List<ChangeLogs> changeLogsList = new ArrayList<>();
+			if (null != changeLogVOList && !changeLogVOList.isEmpty()) {
+				changeLogsList = changeLogVOList.stream().map(n -> toChangeLogsJson(n))
+						.collect(Collectors.toList());
+				division.setChangeLogs(changeLogsList);
+			}
+			
 			divisionNsql.setData(division);
-			if (vo.getId() != null)
+			if (StringUtils.hasText(vo.getId())) {
 				divisionNsql.setId(vo.getId());
+			}
+
 		}
 		return divisionNsql;
 	}
+
+	private ChangeLogs toChangeLogsJson(ChangeLogVO changeLogVO) {
+		ChangeLogs changeLogs = new ChangeLogs();
+		if (null != changeLogVO) {
+			BeanUtils.copyProperties(changeLogVO, changeLogs);
+			if (null != changeLogVO.getModifiedBy()) {
+				SolutionTeamMember solutionTeamMember = new SolutionTeamMember();
+				BeanUtils.copyProperties(changeLogVO.getModifiedBy(), solutionTeamMember);
+				if (!StringUtils.isEmpty(changeLogVO.getModifiedBy().getUserType()))
+					solutionTeamMember.setUserType(changeLogVO.getModifiedBy().getUserType().name());
+				changeLogs.setModifiedBy(solutionTeamMember);
+			}
+		}
+		return changeLogs;
+	}
+	
+	private Comparator<SubDivision> subdivisionComp = new Comparator<SubDivision>() {
+		@Override
+		public int compare(SubDivision s1, SubDivision s2) {
+			if (s2.getName().equals(s1.getName())) {
+				return 0;
+			} else {
+				return 1;
+			}
+		}
+	};
 
 	public List<SubdivisionVO> toSubDivisionVoList(DivisionNsql entity) {
 		List<SubdivisionVO> subdivisionsVo = new ArrayList<>();
@@ -107,8 +179,12 @@ public class DivisionAssembler implements GenericAssembler<DivisionVO, DivisionN
 		SubDivision subdivision = null;
 		if (subdivisionVo != null) {
 			subdivision = new SubDivision();
-			subdivision.setId(subdivisionVo.getId());
-			subdivision.setName(subdivisionVo.getName());
+			if (StringUtils.hasText(subdivisionVo.getId())) {
+				subdivision.setId(subdivisionVo.getId());
+			} else {
+				subdivision.setId(UUID.randomUUID().toString());
+			}
+			subdivision.setName(subdivisionVo.getName().toUpperCase());
 		}
 		return subdivision;
 	}

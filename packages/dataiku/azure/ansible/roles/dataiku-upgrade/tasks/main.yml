@@ -5,6 +5,10 @@
     manager: "auto"
   tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
 
+- name: "Load all gathered facts"
+  setup:
+  tags: [ dss-upgrade-production, dss-upgrade-training, dss-upgrade-automation ]
+  
 - name: "Check if Azure CLI is installed"
   fail: msg='Please Install Azure Cli'
   when: "'azure-cli' not in ansible_facts.packages"

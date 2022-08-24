@@ -19,8 +19,12 @@ const path = require('path'),
   packageName = camelCase(packageJson.name.replace(/@/, '-').replace(/\//, '-')),
   version = packageJson.version.toLowerCase().trim(),
   NodePolyfillPlugin = require('node-polyfill-webpack-plugin'),
-  title = packageJson.config.title || packageName;
-ESLintPlugin = require('eslint-webpack-plugin');
+  title = packageJson.config.title || packageName,
+  ESLintPlugin = require('eslint-webpack-plugin');
+(ExternalTemplateRemotesPlugin = require('./ExternalTemplateRemotesPlugin')),
+  (MFE_URL = process.env.ENV_FILE ? '${STORAGE_MFE_APP_URL}' : 'http://localhost:8083');
+
+const { ModuleFederationPlugin } = webpack.container;
 
 const base = {
   name: 'devConfig',
@@ -140,6 +144,46 @@ const base = {
       extensions: ['tsx'],
       fix: true,
     }),
+    new ModuleFederationPlugin({
+      name: 'dna_container',
+      filename: 'remoteEntry.js',
+      exposes: {
+        './Progress': './src/components/progress/Progress.tsx',
+        './InfoModal': './src/components/formElements/modal/infoModal/InfoModal.tsx',
+        './Modal': './src/components/formElements/modal/Modal.tsx',
+        './ConfirmModal': './src/components/formElements/modal/confirmModal/ConfirmModal.tsx',
+        './Pagination': './src/components/mbc/pagination/Pagination.tsx',
+        './Header': './src/components/header/Header.tsx',
+        './MainNavigation': './src/components/mainNavigation/MainNavigation.tsx',
+        './Footer': './src/components/mbc/footer/Footer.tsx',
+        './NotFound': './src/router/NotFoundPage.tsx',
+        './UnAuthorised': './src/router/UnAuthorised.tsx',
+        './AddUser': './src/components/mbc/addUser/AddUser.tsx',
+        './SelectBox': './src/components/formElements/SelectBox/SelectBox.ts',
+        './Tags': './src/components/formElements/tags/Tags',
+      },
+      remotes: {
+        // object key is used to import
+        'storage-mfe': `storage_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.STORAGE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'data-product-mfe': `data_product_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_PRODUCT_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'chronos-mfe': `chronos_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CHRONOS_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+      },
+      shared: {
+        ...packageJson.dependencies,
+        react: { singleton: true, eager: true, requiredVersion: packageJson.dependencies.react },
+        'react-dom': {
+          singleton: true,
+          eager: true,
+          requiredVersion: packageJson.dependencies['react-dom'],
+        },
+        'react-router-dom': {
+          singleton: true,
+          eager: true,
+          requiredVersion: packageJson.dependencies['react-router-dom'],
+        },
+      },
+    }),
+    new ExternalTemplateRemotesPlugin(),
   ],
   resolve: {
     alias: {

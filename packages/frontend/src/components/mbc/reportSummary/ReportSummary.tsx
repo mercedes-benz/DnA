@@ -354,6 +354,8 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
     let userId = '';
     if (this.state.report.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = this.state.report.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(this.state.report?.description?.division?.name)) { 
+      userId = userInfo.id;
     }
     // else if (this.state.report.createdBy) {
     //   userId = this.state.report.createdBy.id;

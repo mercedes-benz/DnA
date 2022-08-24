@@ -80,7 +80,7 @@ const DataikuInfo = forwardRef((props: IDataikuInfoProps, ref: Ref<IDataikuInfoR
               </h6>
               <label>
                 Created on {getDateFromTimestamp(dataikuInfo.creationTag?.lastModifiedOn, '.')} by{' '}
-                {dataikuInfo.creationTag?.lastModifiedBy.login}
+                {dataikuInfo.ownerDisplayName || dataikuInfo.ownerLogin}
               </label>
               <div className={Styles.projectCardDesc}>{dataikuInfo.shortDesc}</div>
               <span className={Styles.closeICon} onClick={removeProject}>

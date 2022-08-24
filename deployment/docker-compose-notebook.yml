@@ -1,32 +1,38 @@
-version: "2.1"
+version: "3.5"
 services:
-  result-notebook:
-    image: ${IMAGE_RESULT_NOTEBOOK:-pyspark-custom-notebook}
+  pyspark-notebook-base:
+    image: pyspark-notebook-base:latest
     build:
-      context: ./dockerfiles/notebooks
-      dockerfile: $PWD/dockerfiles/notebooks/dev/singleuser-notebook-base.Dockerfile
-      # args:
-      #   http_proxy: "$HTTP_PROXY"
-      #   https_proxy: "$HTTPS_PROXY"
-      #   no_proxy: "$NO_PROXY"
+      context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
+      dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-base.Dockerfile
+
+  pyspark-notebook-default:
+    image: ${IMAGE_DEFAULT_NOTEBOOK:-pyspark-notebook-default}
+    build:
+      context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
+      dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-default.Dockerfile
+    depends_on:
+      - pyspark-notebook-base
+   
+  pyspark-notebook-tensorflow:
+    image: ${IMAGE_TENSORFLOW_NOTEBOOK:-pyspark-notebook-tensorflow}
+    build:
+      context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
+      dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/singleuser-notebook-tensorflow.Dockerfile
+      args:
+        defaultimage: ${IMAGE_DEFAULT_NOTEBOOK:-pyspark-notebook-default}
+    depends_on:
+      - pyspark-notebook-default
   
   result-configurable-httpproxy:
     image: ${IMAGE_RESULT_CONFIGPROXY:-configurable-http-proxy}
     build:
-      context: ./dockerfiles/notebooks
-      dockerfile: $PWD/dockerfiles/notebooks/dev/configurableHttpProxy.Dockerfile
-      # args:
-      #   http_proxy: "$HTTP_PROXY"
-      #   https_proxy: "$HTTPS_PROXY"
-      #   no_proxy: "$NO_PROXY"   
+      context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
+      dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/configurableHttpProxy.Dockerfile
 
   result-hub:
     image: ${IMAGE_RESULT_HUB:-jupyterhub}
     build:
-      context: ./dockerfiles/notebooks
-      dockerfile: $PWD/dockerfiles/notebooks/dev/jupyterhub.Dockerfile
-      # args:
-      #   http_proxy: "$HTTP_PROXY"
-      #   https_proxy: "$HTTPS_PROXY"
-      #   no_proxy: "$NO_PROXY"
+      context: ./dockerfiles/notebooks/${FOLDER_PATH:-}
+      dockerfile: $PWD/dockerfiles/notebooks/${FOLDER_PATH:-}/jupyterhub.Dockerfile
   

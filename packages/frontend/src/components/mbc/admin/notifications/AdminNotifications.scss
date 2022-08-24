@@ -1,0 +1,61 @@
+.mainPanel {
+    margin-bottom: 15px;
+    padding: 0px 40px 30px 40px;
+    .textAreaContainer {
+        margin-top: 30px;
+        background: #252a33;
+    }
+    .submitBtn {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 15px;
+    }
+    .infoIcon {
+        float: right;
+        font-size: var(--font-size-icon-medium);
+        i {
+            cursor: pointer;
+            color: #697582;
+
+            &:hover {
+                color: #00adef;
+            }
+        }
+    }
+}
+.TOUSection {
+    margin-top: 25px;
+    background: #252a33;
+    .BtnContainer {
+        margin-top: 30px;
+        button {
+            font-size: var(--font-size-default);
+        }
+    }
+}
+
+.sectionBreak {
+    background: #1c2026;
+    height: 15px;
+}
+
+.markdownTable {
+    margin-top: 25px;
+    width: 60vw;
+    thead {
+        tr th {
+            text-align: center !important;
+            border: 1px solid #383f49;
+            padding: 10px;
+        }
+    }
+    tbody {
+        tr td {
+            text-align: left !important;
+            max-width: 350px;
+            word-break: break-word;
+            border: 1px solid #383f49;
+            padding: 0px 10px;
+        }
+    }
+}

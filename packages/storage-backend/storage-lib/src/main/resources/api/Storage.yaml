@@ -1,0 +1,967 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : Storage.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  RAHUL
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core dna storage Service"
+host: "localhost:7175"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "storage"
+   description: "This service is used to maintain dna storage."
+
+schemes:
+- "https"
+
+paths:
+  # path to create,update bucket and fetch all valid buckets for user
+  #
+  #  supprorted http methods GET, POST, PUT
+  #
+  # path example ../buckets
+ /buckets:
+  post:
+   tags:
+    - "storage"
+   summary: "Create new Bucket"
+   description: "New Bucket will be created with this api"
+   operationId: "createBucket"
+   parameters:
+    - name: "bucketRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data to create a new bucket" 
+      required: true
+      schema:
+       $ref: "#/definitions/BucketRequestVO"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+     
+  get:
+   tags:
+    - "storage"
+   summary: "get Buckets"
+   description: "Get bucket with this api"
+   operationId: "getAllBuckets"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/BucketCollectionVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketCollectionVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"     
+
+  put:
+   tags:
+    - "storage"
+   summary: "Update existing Bucket"
+   description: "Bucket will be updated with this api"
+   operationId: "updateBucket"
+   parameters:
+    - name: "bucketRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data to update an existing bucket" 
+      required: true
+      schema:
+       $ref: "#/definitions/BucketRequestVO"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"     
+  
+  # path to delete an empty bucket
+  #
+  #  supprorted http methods GET, DELETE
+  #
+  # path example ../buckets/{bucketName}
+ /buckets/{bucketName}:
+  get:
+    tags:
+     - "storage"
+    summary: "Get bucket by name."
+    description:  "Get bucket identified by bucketName."
+    operationId: "getByBucketName"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name which need to be fetched." 
+       required: true
+       type: string
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/BucketVo"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"    
+  
+  delete:
+    tags:
+     - "storage"
+    summary: "Delete bucket."
+    description:  "Delete bucket identified by bucketName."
+    operationId: "deleteBucket"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name which need to be deleted." 
+       required: true
+       type: string
+     - name: live
+       in: query
+       description: "If requested data from live(Production) or training dataiku environment" 
+       required: false
+       type: boolean
+       default: true       
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"  
+  
+  # path to upload objects to bucket
+  #
+  #  supprorted http methods POST
+  #
+  # path example ../buckets/{bucketName}/upload
+ /buckets/{bucketName}/upload:
+  post:
+   tags:
+    - "storage"
+   summary: "Upload object to Bucket"
+   description: "File will be uploaded to Bucket with this api"
+   operationId: "objectUpload"
+   consumes:
+         - multipart/form-data
+   parameters:
+    - in: formData
+      name: file
+      type: file
+      description: The file to upload.
+      required: true 
+    - name: bucketName
+      in: path
+      description: "Bucket name where file to be uploaded." 
+      required: true
+      type: string
+    - name: prefix
+      in: query
+      description: "Bucket path where file to be uploaded." 
+      required: true
+      type: string   
+#    - name: "fileDetails" 
+#      in: "body" 
+#      description: "Request Body that contains details about collaborator,bucket and path where file to be uploaded" 
+#      required: true
+#      schema:
+#       $ref: "#/definitions/FileUploadRequestVO"
+      
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"
+
+  # path to get objects associated with Bucket name
+  #
+  #  supprorted http methods GET, DELETE 
+  #
+  # path example ../buckets/{bucketName}/objects
+ /buckets/{bucketName}/objects:
+   get:
+    tags:
+     - "storage"
+    summary: "Get Objects associated with Bucket name."
+    description:  "Get Objects for a given Bucket."
+    operationId: "getBucketObjects"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name for which object to be fetch." 
+       required: true
+       type: string
+     - name: prefix
+       in: query
+       description: "Path for which object need to be fetch." 
+       required: false
+       type: string   
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/BucketObjectResponseWrapperVO"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"
+      
+   delete:
+    tags:
+     - "storage"
+    summary: "Delete object of bucket."
+    description:  "Delete Object of bucket in given path."
+    operationId: "deleteBucketObjects"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name in which object to be deleted." 
+       required: true
+       type: string
+     - name: prefix
+       in: query
+       description: "Path of object which need to be deleted." 
+       required: true
+       type: string   
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"      
+      
+  # path to get objects metadata
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/{bucketName}/objects/metadata
+ /buckets/{bucketName}/objects/metadata:
+   get:
+    tags:
+     - "storage"
+    summary: "Get Objects associated with Bucket name."
+    description:  "Get Objects for a given Bucket."
+    operationId: "getObjectContent"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name for which object to be fetch." 
+       required: true
+       type: string
+     - name: prefix
+       in: query
+       description: "Object path for which metadata need to be fetch." 
+       required: true
+       type: string   
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       #$ref: "#/definitions/ObjectMetadataWrapperVO"
+       $ref: "#/definitions/ByteArrayResource"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"      
+      
+  # path to refresh user
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/user/refresh
+ /buckets/user/refresh:
+   get:
+    tags:
+     - "storage"
+    summary: "Refresh user access."
+    description:  "Refresh user credential."
+    operationId: "userRefresh"
+    parameters:
+     - name: userId
+       in: query
+       description: "UserId for which credentials to be refreshed." 
+       required: false
+       type: string
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/UserRefreshWrapperVO"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"           
+      
+  # path to get connection details of bucket for user
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/connect
+ /buckets/{bucketName}/connect:
+   get:
+    tags:
+     - "storage"
+    summary: "Get connection details."
+    description:  "Get connection details of given path for user."
+    operationId: "getConnection"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name for which details to be fetch." 
+       required: true
+       type: string
+     - name: userId
+       in: query
+       description: "UserId for which credentials to be fetched." 
+       required: false
+       type: string
+     - name: prefix
+       in: query
+       description: "Bucket Path for which connection uri be fetch." 
+       required: false
+       type: string  
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/ConnectionResponseWrapperVO"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"       
+      
+  # path to refresh Cache
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/cache/refresh
+ /buckets/cache/refresh:
+   get:
+    tags:
+     - "storage"
+    summary: "Refresh cache."
+    description:  "Refresh cache."
+    operationId: "cacheRefresh"
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"    
+      
+  # path to migrate existing bucket info of minio to storage database
+  #
+  #  supprorted http methods GET
+  #
+  # path example ../buckets/migrate
+ /buckets/migrate:
+   get:
+    tags:
+     - "storage"
+    summary: "MIgrate buckets to storage db."
+    description:  "MIgrate buckets."
+    operationId: "bucketMigrate"
+    responses:
+     200:
+      description: "Returns message of succes or failure"
+      schema:
+       $ref: "#/definitions/GenericMessage"
+     204:
+      description: "Fetch complete, no content found."
+     400:
+      description: "Bad request."
+     401:
+      description: "Request does not have sufficient credentials."
+     403:
+      description: "Request is not authorized."
+     405:
+      description: "Method not allowed"
+     500:
+      description: "Internal error"        
+      
+  # path to post bucket connection details to dataiku
+  #
+  #  supprorted http methods POST
+  #
+  # path example ../buckets/dataiku/connect
+ /buckets/dataiku/connect:
+  post:
+   tags:
+    - "storage"
+   summary: "Create dataiku connection for bucket"
+   description: "Connection for bucket with dataiku projects will get created by this api"
+   operationId: "createDataikuConnection"
+   parameters:
+    - name: live
+      in: query
+      description: "If requested data from live(Production) or training dataiku environment" 
+      required: false
+      type: boolean
+      default: true 
+    - name: "connectionRequestVO" 
+      in: "body" 
+      description: "Request Body that contains data to create connection for bucket with dataiku projects." 
+      required: true
+      schema:
+       $ref: "#/definitions/ConnectionRequestVO"
+   responses:
+    200: 
+     description: "Returns message of succes or failure " 
+     schema:
+       $ref: "#/definitions/GenericMessage"
+    400:
+     description: "Bad Request"
+     schema:
+       $ref: "#/definitions/BucketResponseWrapperVO"
+    401:
+     description: "Request does not have sufficient credentials."
+    403:
+     description: "Request is not authorized."
+    405:
+     description: "Method not allowed"
+    500:
+     description: "Internal error"        
+     
+definitions:
+     
+ ObjectMetadataWrapperVO:
+  type: object
+  description: "Object metadata wrapper."
+  properties:
+    data:
+      $ref: "#/definitions/ObjectMetadataVO"
+    warnings:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"
+    errors:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"   
+     
+ ObjectMetadataVO:
+  type: object
+  description: "Object metadata."
+  properties:
+    objectName:
+     type: string
+     description: "Object name."
+    objectContent:
+     description: "Object content."
+     $ref: "#/definitions/ByteArrayResource"
+     
+     
+ BucketObjectResponseWrapperVO:
+  type: object
+  description: "Collection of objects inside a bucket."
+  properties:
+    data:
+      description: "Bucket's object response."
+      $ref: "#/definitions/BucketObjectResponseVO"
+    warnings:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"
+    errors:
+      type: array
+      items:
+        $ref: "#/definitions/MessageDescription"   
+ 
+ BucketObjectResponseVO:
+  type: object
+  description: "object list"
+  properties: 
+    bucketObjects:
+     description: "List of objects."
+     type: array
+     items:
+       $ref: "#/definitions/BucketObjectVO"
+    bucketPermission:
+     description: "Permission for the bucket."
+     $ref: "#/definitions/PermissionVO"   
+ 
+ BucketObjectVO:
+  type: object
+  description: "object list"
+  properties: 
+    etag:
+     description: "etag."
+     type: string
+    objectName:
+     description: "etag."
+     type: string
+    lastModified:
+     description: "lastModified."
+     type: string
+    owner:
+     description: "owner."
+     type: string
+    size:
+     description: "size."
+     type: integer
+     format: int64    
+    storageClass:
+     description: "storageClass."
+     type: string 
+    isLatest:
+     description: "isLatest."
+     type: boolean 
+    versionId:
+     description: "versionId."
+     type: string 
+    isDir:
+     description: "isDir."
+     type: boolean
+    userMetadata:
+     description: "isDir."
+     type: boolean     
+ 
+ BucketVo:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Id of the Bucket."
+      bucketName:
+        type: string
+        description: "Defines the Bucket name."
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/UserVO"
+      description:
+        type: string
+        description: "Description for the Bucket."
+      piiData:
+        type: boolean
+        description: "If Bucket contains personally identifiable information."
+      termsOfUse:
+        type: boolean
+        description: "If user agreeing on terms of use agreement for Bucket."
+      classificationType:
+        type: string
+        description: Classification type for bucket.
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      updatedBy:
+        $ref: "#/definitions/CreatedByVO"
+      permission:
+        $ref: "#/definitions/PermissionVO"      
+            
+    required:
+      - bucketName
+ 
+#Project Request VO
+ BucketRequestVO:
+   type: object
+   description: "Bucket create request model definition"
+   properties:
+     data:
+       $ref: "#/definitions/BucketVo"
+ 
+ BucketResponseWrapperVO:
+   type: object
+   properties:
+      status:
+        type: string
+        description: Overrall status
+      data:
+        $ref: "#/definitions/BucketVo"
+      bucketAccessinfo:     
+        $ref: "#/definitions/UserVO"        
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"     
+         
+ BucketCollectionVO:
+   type: object
+   properties:      
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/BucketVo"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"  
+         
+ BucketResponseVO:
+   type: object
+   properties:
+      bucketName:
+        type: string
+        description: Bucket Name
+      creationDate:
+        type: string
+        description: Creation date of bucket
+      permission:
+        $ref: "#/definitions/PermissionVO"        
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/UserVO"     
+         
+ UserVO:
+    type: object
+    properties:
+      accesskey:
+        type: string
+        description: Access key of the user
+      secretKey:
+        type: string
+        description: Secret Key of the user
+      uri:
+        type: string
+        description: uri of the object/bucket
+      hostName:
+        type: string
+        description: Host name followed by port for bucket location      
+      permission:
+        $ref: "#/definitions/PermissionVO"
+      firstName:
+        type: string
+        description: First name of the user
+      lastName:
+        type: string
+        description: Last name of the user
+      department:
+        type: string
+        description: Department of the user
+      email:
+        type: string
+        description: Email of the user
+      mobileNumber:  
+        type: string
+        description: Mobile number of the user  
+ 
+ PermissionVO:
+   type: object
+   properties:
+     read:
+       type: boolean
+       description: If user has read permission
+     write:
+       type: boolean
+       description: If user has write permission  
+       
+ UserRefreshWrapperVO:
+   type: object
+   properties:
+      status:
+        type: string
+        description: Overrall status      
+      data:
+        $ref: "#/definitions/UserVO"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+ 
+ FileDetailsVO:
+    type: object
+    properties:
+      fileName:
+        type: string
+        description: Defines the File Name
+      uploadPath:
+        type: string
+        description: Defines the file upload path
+      bucketName:
+        type: string
+        description: Bucket name where file to be uploaded
+      users:
+        type: array
+        items:
+          $ref: "#/definitions/UserVO"
+ 
+ FileUploadRequestVO:
+   type: object
+   description: "Bucket create request model definition"
+   properties:
+     data:
+       $ref: "#/definitions/FileDetailsVO" 
+ 
+ BindingResult:
+  type: object
+  
+ GenericMessage:
+  type: object
+  properties:
+    success:
+      type: string
+    errors:
+      type: array
+      items: 
+        $ref: "#/definitions/MessageDescription"
+  
+ MessageDescription:
+  type: object
+  properties:
+    message: 
+      type: string
+      description: "error message"
+ 
+ CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user" 
+        
+ ConnectionVO:
+    type: object
+    properties:
+      bucketName:
+        type: string
+        description: "Name of bucket"
+      dataikuProjects:
+        type: array
+        items:
+          type: string 
+        #items: 
+        #  $ref: "#/definitions/ProjectVO"
+        
+ ConnectionRequestVO:
+   type: object
+   description: "Connection creation request model definition"
+   properties:
+     data:
+       $ref: "#/definitions/ConnectionVO"       
+        
+ ProjectVO:
+    type: object
+    properties:
+      projectKey:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"        
+ 
+ ConnectionResponseWrapperVO:
+   type: object
+   properties:
+      status:
+        type: string
+        description: Overrall status      
+      data:
+        $ref: "#/definitions/ConnectionResponseVO"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription" 
+ 
+ ConnectionResponseVO:
+   type: object
+   properties:
+      dataikuProjects:
+        type: array
+        items:
+          type: string       
+      userVO:
+        $ref: "#/definitions/UserVO" 
+ 

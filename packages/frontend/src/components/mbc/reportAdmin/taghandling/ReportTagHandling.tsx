@@ -22,6 +22,8 @@ import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils
 const classNames = cn.bind(Styles);
 // @ts-ignore
 import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
+import { debounce } from 'lodash';
+import TextBox from '../../shared/textBox/TextBox';
 // import { workerData } from 'worker_threads';
 
 export interface ITagHandlingState {
@@ -80,6 +82,8 @@ export interface ITagHandlingState {
   descriptiondepartement: IFitlerCategory;
   tagsList: IFitlerCategory;
   updateConfirmModelOverlay: boolean;
+  dropdownTouched: boolean;
+  isResultLoading: boolean;
 }
 
 export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
@@ -240,6 +244,8 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       singleDataSource: '',
       datawerehouseinuse: '',
       updateConfirmModelOverlay: false,
+      dropdownTouched: false,
+      isResultLoading: false,
     };
   }
   protected onDatawarehouseInuse = (e: React.FormEvent<HTMLInputElement>) => {
@@ -712,7 +718,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
             addNewItem: false,
           },
           () => {
-            this.getResults();
+            this.getResults('add');
             this.showNotification('New Item Added Successfully!');
             this.setState({
               itemToAdd: '',
@@ -749,7 +755,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
             addNewItem: false,
           },
           () => {
-            this.getResults();
+            this.getResults('add');
             this.showNotification('New Item Added Successfully!');
             ProgressIndicator.hide();
           },
@@ -790,7 +796,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
             },
           }),
           () => {
-            this.getResults();
+            this.getResults('update');
             this.showNotification('Item Updated Successfully!');
             ProgressIndicator.hide();
           },
@@ -805,7 +811,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           () => {
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
             ProgressIndicator.hide();
-            this.getResults();
+            this.getResults('update');
           },
         );
       });
@@ -833,7 +839,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
               },
               () => {
                 this.showNotification('Item Updated Successfully!');
-                this.getResults();
+                this.getResults('update');
                 ProgressIndicator.hide();
               },
             );
@@ -848,7 +854,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           },
           () => {
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-            this.getResults();
+            this.getResults('update');
             ProgressIndicator.hide();
           },
         );
@@ -860,8 +866,8 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const handleSuccess = () => {
       this.setState({ showDeleteTagModal: false }, () => {
         this.showNotification('Tag deleted successfully');
-        this.getResults();
-        ProgressIndicator.hide();
+        this.getResults('delete');
+        // ProgressIndicator.hide();
       });
     };
     const handleFailure = () => {
@@ -879,8 +885,13 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       });
   };
 
-  public async getResults() {
-    ProgressIndicator.show();
+  public async getResults(action: string) {
+    const showProgressIndicator = ['add', 'update', 'delete'].includes(action);
+    const showContentLoader = ['reset', 'categoryChange', 'search', 'pagination'].includes(action);
+
+    showProgressIndicator && ProgressIndicator.show();
+    showContentLoader && this.setState({ isResultLoading: true });
+
     let results: ITagResult[] = [];
     const filterCategory = this.state.currentFilterCategory;
     switch (filterCategory.id) {
@@ -998,28 +1009,31 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
             : this.state.currentPageNumber,
       },
       () => {
-        ProgressIndicator.hide();
+        showProgressIndicator && ProgressIndicator.hide();
+        showContentLoader && this.setState({ isResultLoading: false });
       },
     );
   }
   public async componentDidMount() {
     SelectBox.defaultSetup();
-    // await this.getResults();
     InputFields.defaultSetup();
+    this.setState({ isResultLoading: true });
+    await this.getResults('');
+    this.setState({ isResultLoading: false });
   }
 
-  public onSearchInput = (e: React.FormEvent<HTMLInputElement>) => {
-    ProgressIndicator.show();
-    const searchText = e.currentTarget.value;
+  public onSearchInput = debounce((e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const searchText = input.value;
     this.setState({ searchText }, () => {
-      this.getResults();
-      ProgressIndicator.hide();
+      this.getResults('search');
     });
-  };
+  }, 500);
+
   public onCategoryChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
 
-    if (selectedOptions.length) {
+    if (this.state.dropdownTouched && selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
         this.setState(
           {
@@ -1035,7 +1049,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                 dataFunctionNotEnable: true,
               });
             }
-            this.getResults();
+            this.getResults(option.value === '0' ? 'reset' : 'categoryChange');
           },
         );
       });
@@ -1052,7 +1066,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         sortBy,
       },
       () => {
-        this.getResults();
+        this.getResults('sort');
       },
     );
   };
@@ -1172,31 +1186,18 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           {!this.state.dataFunctionNotEnable && (
             <React.Fragment>
               <div className={classNames(Styles.flexLayout)}>
-                <div
-                  className={classNames(
-                    'input-field-group include-error',
-                    dataWareHouseNameError.length ? 'error' : '',
-                  )}
-                >
-                  <label id="carlField" htmlFor="carlaInputField" className="input-label">
-                    Data warehouse<sup>*</sup>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    required={true}
-                    required-error={requiredError}
-                    id="carlaInputField"
-                    maxLength={200}
-                    placeholder="Type here"
-                    autoComplete="off"
-                    onChange={this.onDatawarehouseInuse}
-                    value={this.state.datawareHouseItems?.dataWarehouse}
-                  />
-                  <span className={classNames('error-message', dataWareHouseNameError.length ? '' : 'hide')}>
-                    {dataWareHouseNameError}
-                  </span>
-                </div>
+                <TextBox
+                  type="text"
+                  controlId={'carlaInputField'}
+                  labelId={'ApplicationName'}
+                  label={'Data warehouse'}
+                  placeholder={"Type here"}
+                  value={this.state.datawareHouseItems?.dataWarehouse}
+                  errorText={dataWareHouseNameError}
+                  required={true}
+                  maxLength={200}
+                  onChange={this.onDatawarehouseInuse}
+                />
               </div>
               <div className={classNames(Styles.flexLayout)}>
                 <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
@@ -1350,7 +1351,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         <div className={Styles.wrapper}>
           <div className={Styles.searchPanel}>
             <div>
-              <div className="input-field-group search-field">
+              <div className={`input-field-group search-field ${this.state.isResultLoading ? 'disabled' : ''}`}>
                 <label id="searchLabel" className="input-label" htmlFor="searchInput">
                   Search Entries
                 </label>
@@ -1363,16 +1364,20 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                   placeholder="Type here"
                   autoComplete="off"
                   onChange={this.onSearchInput}
+                  disabled={!this.state.searchText && this.state.isResultLoading}
                 />
               </div>
             </div>
             <div>
-              <div id="statusContainer" className="input-field-group">
+              <div id="statusContainer" className={`input-field-group ${this.state.isResultLoading ? 'disabled' : ''}`}>
                 <label id="statusLabel" className="input-label" htmlFor="statusSelect">
                   Filter by
                 </label>
                 <div className={Styles.customContainer}>
-                  <div className="custom-select">
+                  <div
+                    className={`custom-select ${this.state.isResultLoading ? 'disabled' : ''}`}
+                    onFocus={() => this.setState({ dropdownTouched: true })}
+                  >
                     <select id="filterBy" onChange={this.onCategoryChange}>
                       {/* {this.state.categories && */}
                       {this.state.itemCategories.map((category: IFitlerCategory) => (
@@ -1388,7 +1393,12 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
             </div>
             <div>
               <div>
-                <div className={Styles.addItemButton}>
+                <div
+                  className={classNames(
+                    Styles.addItemButton,
+                    this.state.isResultLoading ? Styles.disabledAddItemBtn : '',
+                  )}
+                >
                   <button onClick={this.onAddItemModalOpen}>
                     <i className="icon mbc-icon plus" />
                     <span>Add New Item</span>
@@ -1431,54 +1441,60 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
               </div>
             </div>
           </div>
-          {resultData.length === 0 ? (
-            <div className={Styles.tagIsEmpty}>There is no tag available</div>
+          {!this.state.isResultLoading ? (
+            resultData.length === 0 ? (
+              <div className={Styles.tagIsEmpty}>There is no tag available</div>
+            ) : (
+              <div className={Styles.tablePanel}>
+                <table className="ul-table users">
+                  <thead>
+                    <tr className="header-row">
+                      <th onClick={this.sortTags.bind(null, 'name', this.state.sortBy.nextSortType)}>
+                        <label
+                          className={
+                            'sortable-column-header ' +
+                            (this.state.sortBy.name === 'name' ? this.state.sortBy.currentSortType : '')
+                          }
+                        >
+                          <i className="icon sort" />
+                          Name
+                        </label>
+                      </th>
+                      <th onClick={this.sortTags.bind(null, 'category', this.state.sortBy.nextSortType)}>
+                        <label
+                          className={
+                            'sortable-column-header ' +
+                            (this.state.sortBy.name === 'category' ? this.state.sortBy.currentSortType : '')
+                          }
+                        >
+                          <i className="icon sort" />
+                          Category
+                        </label>
+                      </th>
+                      <th>
+                        <label>Action</label>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>{resultData}</tbody>
+                </table>
+                {this.state.results.length ? (
+                  <Pagination
+                    totalPages={this.state.totalNumberOfPages}
+                    pageNumber={this.state.currentPageNumber}
+                    onPreviousClick={this.onPaginationPreviousClick}
+                    onNextClick={this.onPaginationNextClick}
+                    onViewByNumbers={this.onViewByPageNum}
+                    displayByPage={true}
+                  />
+                ) : (
+                  ''
+                )}
+              </div>
+            )
           ) : (
-            <div className={Styles.tablePanel}>
-              <table className="ul-table users">
-                <thead>
-                  <tr className="header-row">
-                    <th onClick={this.sortTags.bind(null, 'name', this.state.sortBy.nextSortType)}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
-                          (this.state.sortBy.name === 'name' ? this.state.sortBy.currentSortType : '')
-                        }
-                      >
-                        <i className="icon sort" />
-                        Name
-                      </label>
-                    </th>
-                    <th onClick={this.sortTags.bind(null, 'category', this.state.sortBy.nextSortType)}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
-                          (this.state.sortBy.name === 'category' ? this.state.sortBy.currentSortType : '')
-                        }
-                      >
-                        <i className="icon sort" />
-                        Category
-                      </label>
-                    </th>
-                    <th>
-                      <label className={'sortable-column-header'}>Action</label>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>{resultData}</tbody>
-              </table>
-              {this.state.results.length ? (
-                <Pagination
-                  totalPages={this.state.totalNumberOfPages}
-                  pageNumber={this.state.currentPageNumber}
-                  onPreviousClick={this.onPaginationPreviousClick}
-                  onNextClick={this.onPaginationNextClick}
-                  onViewByNumbers={this.onViewByPageNum}
-                  displayByPage={true}
-                />
-              ) : (
-                ''
-              )}
+            <div className={classNames('text-center', Styles.spinner)}>
+              <div className="progress infinite" />
             </div>
           )}
           <ConfirmModal
@@ -1571,7 +1587,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const currentPageNumber = this.state.currentPageNumber - 1;
     const currentPageOffset = (currentPageNumber - 1) * this.state.maxItemsPerPage;
     this.setState({ currentPageNumber, currentPageOffset }, () => {
-      this.getResults();
+      this.getResults('pagination');
     });
   };
 
@@ -1580,7 +1596,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const currentPageOffset = currentPageNumber * this.state.maxItemsPerPage;
     currentPageNumber = currentPageNumber + 1;
     this.setState({ currentPageNumber, currentPageOffset }, () => {
-      this.getResults();
+      this.getResults('pagination');
     });
   };
 
@@ -1595,7 +1611,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const currentPageOffset = 0;
     const maxItemsPerPage = pageNum;
     this.setState({ currentPageOffset, maxItemsPerPage, currentPageNumber: 1 }, () => {
-      this.getResults();
+      this.getResults('pagination');
     });
   };
 

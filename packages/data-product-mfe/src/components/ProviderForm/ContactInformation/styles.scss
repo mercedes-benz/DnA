@@ -1,0 +1,12 @@
+@import "../Form.common.styles.scss";
+.optionContainer {
+    display: flex;
+    flex-direction: column;
+    .optionTitle {
+        color: #d9dfe4;
+    }
+    .optionText {
+        color: #c0c8d0;
+        font-size: var(--font-size-small);
+    }
+}

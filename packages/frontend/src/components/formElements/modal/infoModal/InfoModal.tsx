@@ -31,7 +31,7 @@ const InfoModal = (props: IInfoModalProps) => {
   return (
     <Modal
       title={props.title}
-      hiddenTitle={props.hiddenTitle}      
+      hiddenTitle={props.hiddenTitle}
       modalWidth={props.modalWidth}
       showAcceptButton={false}
       showCancelButton={false}

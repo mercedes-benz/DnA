@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "storage-mfe.labels" . | nindent 4 }}
+    
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -14,7 +15,16 @@ spec:
     metadata:
       labels:
         {{- include "storage-mfe.selectorLabels" . | nindent 8 }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}        
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}    
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -22,13 +32,22 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       volumes:
-        - name: {{ include "storage-mfe.fullname" . }}
+        - name: {{ include "storage-mfe.fullname" . }}-ngnix
           configMap:
             name: {{ include "storage-mfe.fullname" . }}
+        {{- if not .Values.vaultInjector.enable }} 
+        - name: {{ include "storage-mfe.fullname" . }}-configjs
+          configMap:
+            name: {{ include "storage-mfe.fullname" . }}  
+        {{- end }}           
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ["cp /vault/secrets/config.js /usr/share/nginx/html/config.js && nginx -c /opt/bitnami/nginx/conf/nginx.conf -g 'daemon off;'"]
+          {{- end }}            
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
@@ -48,10 +67,11 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ include "storage-mfe.fullname" . }}
-              mountPath: /etc/nginx/nginx.conf
+            - name: {{ include "storage-mfe.fullname" . }}-ngnix
+              mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
-          {{- with .Values.envs }}
-          env:
-          {{- toYaml . | nindent 12 }}
-          {{- end }}      
+            {{- if not .Values.vaultInjector.enable }}               
+            - name: {{ include "storage-mfe.fullname" . }}-configjs
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js  
+            {{- end }}               

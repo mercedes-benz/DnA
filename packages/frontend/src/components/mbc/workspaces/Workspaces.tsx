@@ -1,63 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import Styles from './Workspaces.scss';
-import { history } from '../../../router/History';
 import { Envs } from '../../../globals/Envs';
+import Tile from '../shared/tile/Tile';
+import MainPanel from '../shared/mainPanel/MainPanel';
+import jupyter from '../../../assets/images/Jupyter.png';
+import dataiku from '../../../assets/images/Dataiku.png';
+import sap from '../../../assets/images/Sap.png';
 
 const Workspaces = () => {
   const [enableJupiyterNoteWorkspace, setEnableJupiyterNoteWorkspace] = useState(true);
-  const [ENABLE_DATAIKU_WORKSPACE, setENABLE_DATAIKU_WORKSPACE] = useState(true);
+  const [enableDataikuWorkspace, setEnableDataikuWorkspace] = useState(true);
+  const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
+  const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
 
   useEffect(() => {
     setEnableJupiyterNoteWorkspace(Envs.ENABLE_JUPYTER_WORKSPACE);
-    setENABLE_DATAIKU_WORKSPACE(Envs.ENABLE_DATAIKU_WORKSPACE);
+    setEnableDataikuWorkspace(Envs.ENABLE_DATAIKU_WORKSPACE);
   });
 
-  const jupyterNav = () => {
-    if (enableJupiyterNoteWorkspace) {
-      history.push('/notebook');
-    } else {
-      history.push('/comingsoon');
-    }
-  };
-  const dataIkuNav = () => {
-    if (ENABLE_DATAIKU_WORKSPACE) {
-      history.push('/mydataiku');
-    } else {
-      history.push('/comingsoon');
-    }
-  };
   return (
-    <div className={Styles.mainPanel}>
-      <div className={Styles.wrapper}>
-        <div className={Styles.caption}>
-          <h3>Workspaces</h3>
-        </div>
-        <div className={Styles.content}>
-          <div className={Styles.Workspaces}>
-            <div className={Styles.WorkspacesNavigation} onClick={jupyterNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
-              <div className={Styles.WorkspacesNavigationTitle}>
-                <span> Jupyter Notebook {!enableJupiyterNoteWorkspace && <label> ( Coming Soon ) </label>} </span>
-                <span>
-                  {' '}
-                  <i className="icon mbc-icon arrow small right "></i>
-                </span>
-              </div>
-            </div>
-            <div className={Styles.WorkspacesNavigation} onClick={dataIkuNav}>
-              <div className={Styles.WorkspacesNavigationVisual}></div>
-              <div className={Styles.WorkspacesNavigationTitle}>
-                <span> Dataiku {!ENABLE_DATAIKU_WORKSPACE && <label> ( Coming Soon ) </label>}</span>
-                <span>
-                  {' '}
-                  <i className="icon mbc-icon arrow small right "></i>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+    <MainPanel title={'Workspaces'}>
+      <div className={Styles.Workspaces}>
+        <Tile
+          title={'Jupyter Notebook'}
+          background={jupyter}
+          bgPosition={'center'}
+          route={'/notebook'}
+          isEnabled={enableJupiyterNoteWorkspace}
+        />
+        <Tile
+          title={'Dataiku'}
+          background={dataiku}
+          bgPosition={'center'}
+          route={'/mydataiku'}
+          isEnabled={enableDataikuWorkspace}
+        />
+        { enableSapAnalyticsCloud &&
+          <Tile
+            title={'SAP Analytics Cloud'}
+            background={sap}
+            bgPosition={'center'}
+            link={sapAnalyticsUrl}
+            isEnabled={enableSapAnalyticsCloud}
+          />
+        }
+        <Tile
+          title={'My Code Space'}
+          route={'/codespaces'}
+          isEnabled={true}
+        />
       </div>
-    </div>
+    </MainPanel>
   );
 };
 

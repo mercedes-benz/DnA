@@ -92,6 +92,21 @@ hr {
   word-wrap: break-word;
 }
 
+.draftIndicator {
+  padding: 2px 8px;
+  border: 1px solid #697582;
+  color: #697582;
+  font-size: var(--font-size-icon-small);
+  letter-spacing: 1px;
+  border-radius: 2px;
+  margin-left: 15px;
+}
+
+.solutionPre{
+  white-space: pre-wrap;
+  font-family: "Roboto-Medium";  
+}
+
 .wrapper {
   background: #252a33 !important;
 

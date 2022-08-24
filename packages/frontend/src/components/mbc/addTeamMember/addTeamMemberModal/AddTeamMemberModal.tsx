@@ -7,10 +7,11 @@ import { ITeams } from '../../../../globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 // @ts-ignore
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
-import  Modal from '../../../formElements/modal/Modal';
+import Modal from '../../../formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
 import { Envs } from '../../../../globals/Envs';
 import * as Validation from '../../../../utils/Validation';
+import TeamSearch from '../../teamSearch/TeamSearch';
 
 const classNames = cn.bind(Styles);
 
@@ -20,6 +21,8 @@ export interface IAddTeamMemberModalProps {
   showAddTeamMemberModal: boolean;
   teamMember: ITeams;
   showOnlyInteral?: boolean;
+  hideTeamPosition?: boolean;
+  teamPositionNotRequired?: boolean;
   onAddTeamMemberModalCancel: () => void;
   onUpdateTeamMemberList: (teamMemberObj: ITeams) => void;
   validateMemebersList?: (teamMemberObj: ITeams) => boolean;
@@ -55,10 +58,11 @@ export interface IAddTeamMemberModalState {
   teamPosition: string;
   teamPositionError: string;
   isEmailValid: boolean;
+  showUserAlreadyExistsError: boolean;
 }
 
 export default class AddTeamMemberModal extends React.Component<IAddTeamMemberModalProps, IAddTeamMemberModalState> {
-  constructor(props: any) {
+  constructor(props: IAddTeamMemberModalProps) {
     super(props);
     this.state = {
       belongingInternal: true,
@@ -90,6 +94,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       teamPosition: '',
       teamPositionError: null,
       isEmailValid: true,
+      showUserAlreadyExistsError: false,
     };
     this.validateMobile = this.validateMobile.bind(this);
     this.validateEmailID = this.validateEmailID.bind(this);
@@ -98,7 +103,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   public render() {
     const requiredError = '*Missing entry';
     const teamPositionInternalError = this.state.teamPositionInternalError || '';
-    const userIdInternalError = this.state.userIdInternalError || '';
+    // const userIdInternalError = this.state.userIdInternalError || '';
     const companyExternalError = this.state.companyExternalError || '';
     const teamPositionExternalError = this.state.teamPositionExternalError || '';
 
@@ -113,11 +118,11 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
 
     const {
       belongingInternal,
-      userIdInternal,
+      // userIdInternal,
       teamPositionInternal,
       teamPositionExternal,
       companyExternal,
-      teamMemberObj,
+      // teamMemberObj,
       firstName,
       lastName,
       mobileNumber,
@@ -126,6 +131,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       department,
       shortID,
       teamPosition,
+      showUserAlreadyExistsError,
     } = this.state;
 
     const addTeamMemberModalContent: React.ReactNode = (
@@ -171,95 +177,50 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
             </div>
           )}
           <div className={belongingInternal ? Styles.internalWrapper : 'hide'}>
-            <div
-              className={classNames('input-field-group include-error', teamPositionInternalError.length ? 'error' : '')}
-            >
-              <label htmlFor="teamPositionInternal" className="input-label">
-                Team Position (e.g. IT)<sup>*</sup>
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                required={true}
-                required-error={requiredError}
-                id="teamPositionInternal"
-                name="teamPositionInternal"
-                placeholder="Type here"
-                autoComplete="off"
-                value={teamPositionInternal}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
-              <span className={classNames('error-message', teamPositionInternalError.length ? '' : 'hide')}>
-                {teamPositionInternalError}
-              </span>
-            </div>
-            <div>
-              <div className={classNames(Styles.flexLayout, Styles.searchWrapper)}>
-                <div
-                  className={classNames('input-field-group include-error', userIdInternalError.length ? 'error' : '')}
-                >
-                  <label htmlFor="userIdInternal" className="input-label">
-                    User-ID<sup>*</sup>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    id="userIdInternal"
-                    name="userIdInternal"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    value={userIdInternal}
-                    maxLength={100}
-                    onKeyDown={this.onSearchKeyDown}
-                    onChange={this.textInputOnChange}
-                  />
-                  <span className={Styles.clearSearch} onClick={this.onSearchClearIconClick}>
-                    <i className={classNames('icon mbc-icon close circle', userIdInternal.length ? '' : 'hide')} />
-                  </span>
-                  <span className={classNames('error-message', userIdInternalError.length ? '' : 'hide')}>
-                    {userIdInternalError}
-                  </span>
-                </div>
-                <div>
-                  <button
-                    className="btn btn-primary"
-                    type="button"
-                    disabled={userIdInternal.length ? false : true}
-                    onClick={this.onSearchClick}
-                  >
-                    Search
-                  </button>
-                </div>
+            {!this.props.hideTeamPosition ? (
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  teamPositionInternalError.length ? 'error' : '',
+                )}
+              >
+                <label htmlFor="teamPositionInternal" className="input-label">
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
+                  id="teamPositionInternal"
+                  name="teamPositionInternal"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  value={teamPositionInternal}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', teamPositionInternalError.length ? '' : 'hide')}>
+                  {teamPositionInternalError}
+                </span>
               </div>
-              <span className={classNames('error-message', this.state.showNotFoundError ? '' : 'hide')}>
-                User details not found. Please provide valid User-ID.
-              </span>
-              {typeof this.props.validateMemebersList === 'function' &&
-              this.props.validateMemebersList(this.state.teamMemberObj) &&
-              !this.props.editMode ? (
-                <span className={classNames('error-message')}>User already added.</span>
-              ) : null}
-            </div>
-            <div className={classNames(Styles.flexLayout, Styles.actionWrapper, teamMemberObj.shortId ? '' : 'hide')}>
-              <div className={classNames(Styles.userInfoWrapper)}>
-                <div>
-                  <i className="icon mbc-icon check circle inline" />
-                </div>
-                <div>
-                  <p className={classNames(Styles.userDetails)}>
-                    {teamMemberObj.firstName} {teamMemberObj.lastName} <br />
-                    AD ID: {teamMemberObj.shortId} | Email: {teamMemberObj.email} <br />
-                    Department: {teamMemberObj.department} | Mobile Number: {teamMemberObj.mobileNumber}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <button className="btn btn-primary" onClick={this.addTeamMember} type="button">
-                  Save
-                </button>
-              </div>
-            </div>
+            ) : (
+              ''
+            )}
+            <TeamSearch
+              label={
+                <>
+                  Find User<sup>*</sup>{' '}
+                  <span dangerouslySetInnerHTML={{__html: Envs.INTERNAL_USER_TEAMS_INFO}}></span>
+                </>
+              }
+              editMode={this.props.editMode}
+              teamMemberObj={this.props.teamMember}
+              onAddTeamMember={this.addMemberFromTeamSearch}
+              userAlreadyExists={showUserAlreadyExistsError}
+              resetUserAlreadyExists={this.resetUserAlreadyExists}
+              btnText="Save"
+            />
           </div>
           <div className={!belongingInternal ? Styles.externalWrapper : 'hide'}>
             <div className={Styles.flexLayout}>
@@ -480,28 +441,31 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
           </div>
 
           <div className={Styles.flexLayout}>
-            <div className={classNames('input-field-group include-error', teamPositionError.length ? 'error' : '')}>
-              <label htmlFor="teamPosition" className="input-label">
-                Team Position (e.g. IT)<sup>*</sup>
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                required={true}
-                required-error={requiredError}
-                id="teamPosition"
-                name="teamPosition"
-                placeholder="Type here"
-                autoComplete="off"
-                value={teamPosition}
-                maxLength={200}
-                onChange={this.textInputOnChange}
-              />
-              <span className={classNames('error-message', teamPositionError.length ? '' : 'hide')}>
-                {teamPositionError}
-              </span>
-            </div>
-
+            {!this.props.hideTeamPosition ? (
+              <div className={classNames('input-field-group include-error', teamPositionError.length ? 'error' : '')}>
+                <label htmlFor="teamPosition" className="input-label">
+                  Team Position (e.g. IT){!this.props.teamPositionNotRequired ? <sup>*</sup> : ''}
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required={!this.props.teamPositionNotRequired ? true : false}
+                  required-error={!this.props.teamPositionNotRequired ? requiredError : ''}
+                  id="teamPosition"
+                  name="teamPosition"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  value={teamPosition}
+                  maxLength={200}
+                  onChange={this.textInputOnChange}
+                />
+                <span className={classNames('error-message', teamPositionError.length ? '' : 'hide')}>
+                  {teamPositionError}
+                </span>
+              </div>
+            ) : (
+              ''
+            )}
             <div className={classNames('input-field-group include-error', mobileNumberError.length ? 'error' : '')}>
               <label htmlFor="mobileNumber" className="input-label">
                 Mobile No.<sup>*</sup>
@@ -515,7 +479,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                 name="mobileNumber"
                 placeholder="+49123456"
                 autoComplete="off"
-                value={mobileNumber}
+                value={mobileNumber === "null" ? "" : mobileNumber}
                 maxLength={15}
                 onChange={this.validateMobile}
               />
@@ -681,6 +645,44 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
     }
   };
 
+  protected addMemberFromTeamSearch = (teamMemberObj: ITeams) => {
+    const teamMember: ITeams = teamMemberObj;
+    const belongingInternal = teamMember.userType === TeamMemberType.INTERNAL;
+    if (belongingInternal && this.validateInternalTeamMemberFormTeamSearch(teamMemberObj)) {
+      teamMember.teamMemberPosition = this.state.teamPositionInternal;
+      this.props.onUpdateTeamMemberList(teamMember);
+    }
+  };
+
+  protected validateInternalTeamMemberFormTeamSearch = (teamMemberObj: ITeams) => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+
+    if (this.state.teamPositionInternal === '' && !this.props.hideTeamPosition && !this.props.teamPositionNotRequired) {
+      this.setState({ teamPositionInternalError: errorMissingEntry });
+      formValid = false;
+    }
+
+    if (teamMemberObj.shortId === '') {
+      this.setState({ userIdInternalError: errorMissingEntry });
+      formValid = false;
+    }
+
+    if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
+      const isDuplicate = this.props.validateMemebersList(teamMemberObj);
+      if (isDuplicate) {
+        this.setState({ showUserAlreadyExistsError: true });
+        formValid = false;
+      }
+    }
+
+    return formValid;
+  };
+
+  protected resetUserAlreadyExists = () => {
+    this.setState({ showUserAlreadyExistsError: false });
+  };
+
   protected addTeamMemberForFoss = () => {
     const teamMember: ITeams = this.state.teamMemberObj;
     let proceedSave = false;
@@ -743,7 +745,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
 
-    if (this.state.teamPositionInternal === '') {
+    if (this.state.teamPositionInternal === '' && !this.props.hideTeamPosition && !this.props.teamPositionNotRequired) {
       this.setState({ teamPositionInternalError: errorMissingEntry });
       formValid = false;
     }
@@ -781,52 +783,106 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   protected validateInternalTeamMemberFormForFoss = () => {
     let formValid = true;
     if (Envs.OIDC_PROVIDER === 'INTERNAL') {
-      if (
-        this.state.teamPosition === '' ||
-        this.state.teamPosition === null ||
-        this.state.shortID === '' ||
-        this.state.shortID === null ||
-        this.state.company === '' ||
-        this.state.company === null ||
-        this.state.department === '' ||
-        this.state.department === null ||
-        this.state.firstName === '' ||
-        this.state.firstName === null ||
-        this.state.lastName === '' ||
-        this.state.lastName === null ||
-        this.state.email === '' ||
-        this.state.email === null ||
-        this.state.mobileNumber === '' ||
-        this.state.mobileNumber === null ||
-        !this.state.isEmailValid
-      ) {
-        formValid = false;
+      if(this.props.hideTeamPosition) {
+        if (
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === "null" ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === "null" ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.email === '' ||
+          this.state.email === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === "null" ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
+      } else {
+        if (
+          this.state.teamPosition === '' ||
+          this.state.teamPosition === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === "null" ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === "null" ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.email === '' ||
+          this.state.email === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === "null" ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
       }
-
+      
       ['shortID', 'email', 'firstName', 'lastName', 'company', 'department', 'teamPosition', 'mobileNumber'].map(
         (field) => this.formFieldsErrorValidation(field),
       );
     } else {
-      if (
-        this.state.teamPosition === '' ||
-        this.state.teamPosition === null ||
-        this.state.company === '' ||
-        this.state.company === null ||
-        this.state.department === '' ||
-        this.state.department === null ||
-        this.state.firstName === '' ||
-        this.state.firstName === null ||
-        this.state.lastName === '' ||
-        this.state.lastName === null ||
-        this.state.shortID === '' ||
-        this.state.shortID === null ||
-        this.state.mobileNumber === '' ||
-        this.state.mobileNumber === null ||
-        !this.state.isEmailValid
-      ) {
-        formValid = false;
+      if(this.props.hideTeamPosition) {
+        if (
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === "null" ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === "null" ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === "null" ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
+      } else {
+        if (
+          this.state.teamPosition === '' ||
+          this.state.teamPosition === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === "null" ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === "null" ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === "null" ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
       }
-
+      
       ['shortID', 'teamPosition', 'company', 'department', 'firstName', 'lastName', 'mobileNumber'].map((field) =>
         this.formFieldsErrorValidation(field),
       );
@@ -881,7 +937,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'company':
         {
-          if (this.state.company === '' || this.state.company === null) {
+          if (this.state.company === '' || this.state.company === null || this.state.company === "null") {
             this.setState({ companyError: errorMissingEntry });
           } else {
             this.setState({ companyError: '' });
@@ -890,7 +946,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'department':
         {
-          if (this.state.department === '' || this.state.department === null) {
+          if (this.state.department === '' || this.state.department === null || this.state.department === "null") {
             this.setState({ departmentError: errorMissingEntry });
           } else {
             this.setState({ departmentError: '' });
@@ -899,7 +955,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'teamPosition':
         {
-          if (this.state.teamPosition === '' || this.state.teamPosition === null) {
+          if ((this.state.teamPosition === '' || this.state.teamPosition === null) && !this.state.teamPosition) {
             this.setState({ teamPositionError: errorMissingEntry });
           } else {
             this.setState({ teamPositionError: '' });
@@ -908,7 +964,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'mobileNumber':
         {
-          if (this.state.mobileNumber === '' || this.state.mobileNumber === null) {
+          if (this.state.mobileNumber === '' || this.state.mobileNumber === null || this.state.mobileNumber === "null") {
             this.setState({ mobileNumberError: errorMissingEntry });
           } else {
             this.setState({ mobileNumberError: '' });

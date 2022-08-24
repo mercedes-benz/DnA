@@ -7,11 +7,6 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const prodMode = process.env.build === 'prod';
 const packageJson = require(path.resolve(process.cwd(), 'package.json'));
 const htmlWebpackMultiBuildPlugin = require('html-webpack-multi-build-plugin');
-const ESLintPlugin = require('eslint-webpack-plugin');
-const webpack = require('webpack');
-
-const { ModuleFederationPlugin } = webpack.container;
-const MFE_URL = process.env.ENV_FILE ? '${PROJECTSMO_STORAGE_MFE_APP_URL}' : 'http://localhost:8083';
 
 const prodConfig = {
   name: 'ProdConfig',
@@ -54,44 +49,6 @@ const prodConfig = {
   plugins: [
     new CleanWebpackPlugin(),
     new htmlWebpackMultiBuildPlugin(),
-    new ESLintPlugin({
-      extensions: ['tsx'],
-      fix: true,
-    }),
-    new ModuleFederationPlugin({
-      name: 'dna_container',
-      filename: 'remoteEntry.js',
-      exposes: {
-        './Progress': './src/components/progress/Progress.tsx',
-        './InfoModal': './src/components/formElements/modal/infoModal/InfoModal.tsx',
-        './Modal': './src/components/formElements/modal/Modal.tsx',
-        './ConfirmModal': './src/components/formElements/modal/confirmModal/ConfirmModal.tsx',
-        './Pagination': './src/components/mbc/pagination/Pagination.tsx',
-        './Header': './src/components/header/Header.tsx',
-        './MainNavigation': './src/components/mainNavigation/MainNavigation.tsx',
-        './Footer': './src/components/mbc/footer/Footer.tsx',
-        './NotFound': './src/router/NotFoundPage.tsx',
-        './UnAuthorised': './src/router/UnAuthorised.tsx',
-        './AddUser': './src/components/mbc/pipeline/createNewPipeline/addUser/AddUser.tsx',
-      },
-      remotes: {
-        'storage-mfe': `storage_mfe@${MFE_URL}/remoteEntry.js`,
-      },
-      shared: {
-        ...packageJson.dependencies,
-        react: { singleton: true, eager: true, requiredVersion: packageJson.dependencies.react },
-        'react-dom': {
-          singleton: true,
-          eager: true,
-          requiredVersion: packageJson.dependencies['react-dom'],
-        },
-        'react-router-dom': {
-          singleton: true,
-          eager: true,
-          requiredVersion: packageJson.dependencies['react-router-dom'],
-        },
-      },
-    }),
   ],
   optimization: {
     minimizer: [
@@ -105,7 +62,7 @@ const prodConfig = {
       new optimizeCSSAssetsPlugin({}),
     ],
     splitChunks: {
-      chunks: 'all',
+      chunks: 'async',
     },
     concatenateModules: true,
   },

@@ -50,27 +50,37 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.ReportAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ReportNsql;
 import com.daimler.data.db.jsonb.report.CustomerDetails;
 import com.daimler.data.db.jsonb.report.DataWarehouse;
+import com.daimler.data.db.jsonb.report.Division;
 import com.daimler.data.db.jsonb.report.KPI;
 import com.daimler.data.db.jsonb.report.SingleDataSource;
+import com.daimler.data.db.jsonb.report.Subdivision;
 import com.daimler.data.db.repo.report.ReportCustomRepository;
 import com.daimler.data.db.repo.report.ReportRepository;
 import com.daimler.data.dto.datawarehouse.DataWarehouseInUseVO;
 import com.daimler.data.dto.department.DepartmentVO;
+import com.daimler.data.dto.divisions.DivisionReportVO;
 import com.daimler.data.dto.report.CreatedByVO;
+import com.daimler.data.dto.report.CustomerVO;
+import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
 import com.daimler.data.dto.report.ProductOwnerCollection;
 import com.daimler.data.dto.report.ReportResponseVO;
 import com.daimler.data.dto.report.ReportVO;
+import com.daimler.data.dto.report.SubdivisionVO;
 import com.daimler.data.dto.report.TeamMemberVO;
+import com.daimler.data.dto.solution.UserInfoVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.department.DepartmentService;
 import com.daimler.data.service.tag.TagService;
+import com.daimler.data.util.ConstantsUtility;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.jsonwebtoken.lang.Strings;
 
@@ -88,6 +98,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	private ReportAssembler reportAssembler;
 
@@ -95,6 +108,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	private ReportRepository reportRepository;
 
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
+	
 	public BaseReportService() {
 		super();
 	}
@@ -325,6 +341,14 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								itr.remove();
 							}
 						}
+					}
+				} else if (category.equals(CATEGORY.DIVISION)) {
+					Division reportdivision = reportNsql.getData().getDescription().getDivision();
+					if (Objects.nonNull(reportdivision) && StringUtils.hasText(reportdivision.getId())
+							&& reportdivision.getId().equals(name)) {
+						reportdivision.setName(null);
+						reportdivision.setId(null);
+						reportdivision.setSubdivision(null);
 					}
 				}
 				reportCustomRepository.update(reportNsql);
@@ -583,6 +607,36 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							}
 						}
 					}
+				} else if (category.equals(CATEGORY.DIVISION)) {
+					Division reportdivision = reportNsql.getData().getDescription().getDivision();
+					DivisionReportVO divisionVO = (DivisionReportVO) updateObject;
+					if (Objects.nonNull(reportdivision) && StringUtils.hasText(reportdivision.getId())
+							&& reportdivision.getId().equals(divisionVO.getId())) {
+						reportdivision.setName(divisionVO.getName().toUpperCase());
+						Subdivision subdivision = reportdivision.getSubdivision();
+						List<SubdivisionVO> subdivisionlist = divisionVO.getSubdivisions();
+						if (Objects.nonNull(subdivision)) {
+							if (ObjectUtils.isEmpty(subdivisionlist)) {
+								reportdivision.setSubdivision(null);
+							} else {
+								boolean exists = false;
+								for (SubdivisionVO value : subdivisionlist) {
+									if (StringUtils.hasText(value.getId())
+											&& value.getId().equals(subdivision.getId())) {
+										Subdivision subdiv = new Subdivision();
+										subdiv.setId(value.getId());
+										subdiv.setName(value.getName().toUpperCase());
+										reportdivision.setSubdivision(subdiv);
+										exists = true;
+										break;
+									}
+								}
+								if (!exists) {
+									reportdivision.setSubdivision(null);
+								}
+							}
+						}
+					}
 				}
 				reportCustomRepository.update(reportNsql);
 			});
@@ -634,7 +688,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				message.setMessage("Report already exists.");
 				messages.add(message);
 				reportResponseVO.setErrors(messages);
-				LOGGER.debug("Report {} already exists, returning as CONFLICT", uniqueProductName);
+				LOGGER.info("Report {} already exists, returning as CONFLICT", uniqueProductName);
 				return new ResponseEntity<>(reportResponseVO, HttpStatus.CONFLICT);
 			}
 			requestReportVO.setCreatedBy(this.userStore.getVO());
@@ -693,7 +747,51 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					if (mergedReportVO != null && mergedReportVO.getId() != null) {
 						response.setData(mergedReportVO);
 						response.setErrors(null);
-						LOGGER.debug("Report with id {} updated successfully", id);
+						LOGGER.info("Report with id {} updated successfully", id);
+						
+						try {
+							if(mergedReportVO.isPublish()) {
+								CreatedByVO modifyingUser = this.userStore.getVO();
+								String eventType = "Dashboard-Report Update";
+								String resourceID = mergedReportVO.getId();
+								String reportName = mergedReportVO.getProductName();
+								String publishingUserId = "dna_system";
+								String publishingUserName = "";
+								if(modifyingUser!=null) {
+									publishingUserId = modifyingUser.getId();
+									publishingUserName = modifyingUser.getFirstName() + " " + modifyingUser.getLastName();
+									if(publishingUserName==null || "".equalsIgnoreCase(publishingUserName))
+										publishingUserName = publishingUserId;
+								}
+								List<String> membersId = new ArrayList<>();
+								List<String> membersEmail = new ArrayList<>();
+								MemberVO memberVO = mergedReportVO.getMembers();
+								
+								List<TeamMemberVO> members = new ArrayList<>();
+								members.addAll(memberVO.getAdmin());
+								members.addAll(memberVO.getDevelopers());
+								members.addAll(memberVO.getProductOwners());
+								CustomerVO customerVO = mergedReportVO.getCustomer();
+								if(customerVO!=null && customerVO.getProcessOwners()!= null)
+									members.addAll(customerVO.getProcessOwners());
+								for(TeamMemberVO member : members) {
+									if(member!=null) {
+										String memberId = member.getShortId()!= null ? member.getShortId() : "";
+										if(!membersId.contains(memberId)) {
+											membersId.add(memberId);
+											String emailId = member.getEmail()!= null ? member.getEmail() : "";
+											membersEmail.add(emailId);
+										}
+									}
+								}
+								String eventMessage = "Dashboard report " + reportName + " has been updated by " + publishingUserName;
+								kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true, membersId,membersEmail,null);
+								LOGGER.info("Published successfully event {} for report {} with message {}",eventType, resourceID, eventMessage);
+							}
+						}catch(Exception e) {
+							LOGGER.error("Failed while publishing dashboard report update event msg. Exception is {} ", e.getMessage());
+						}
+						
 						return new ResponseEntity<>(response, HttpStatus.OK);
 					} else {
 						List<MessageDescription> messages = new ArrayList<>();
@@ -702,7 +800,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						messages.add(message);
 						response.setData(requestReportVO);
 						response.setErrors(messages);
-						LOGGER.debug("Report with id {} cannot be edited. Failed with unknown internal error", id);
+						LOGGER.info("Report with id {} cannot be edited. Failed with unknown internal error", id);
 						return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				} else {
@@ -712,7 +810,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							"Not authorized to edit Report. Only user who created the Report or with admin role can edit.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					response.setErrors(notAuthorizedMsgs);
-					LOGGER.debug("Report with id {} cannot be edited. User not authorized", id);
+					LOGGER.info("Report with id {} cannot be edited. User not authorized", id);
 					return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
 				}
 			} else {
@@ -721,7 +819,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				notFoundmessage.setMessage("No Report found for given id. Update cannot happen");
 				notFoundmessages.add(notFoundmessage);
 				response.setErrors(notFoundmessages);
-				LOGGER.debug("No Report found for given id {} , update cannot happen.", id);
+				LOGGER.info("No Report found for given id {} , update cannot happen.", id);
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
@@ -745,7 +843,15 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	private boolean canProceedToEdit(ReportVO existingReportVO) {
 		boolean canProceed = false;
 		boolean hasAdminAccess = this.userStore.getUserInfo().hasAdminAccess();
+		// To fetch user info from dna-backend by id
+		UserInfoVO userInfoVO = dnaAuthClient.userInfoById(this.userStore.getUserInfo().getId());
+		// To check if user having DivisionAdmin role and division is same as Report
+		boolean isDivisionAdmin = userInfoVO.getRoles().stream()
+				.anyMatch(n -> ConstantsUtility.DIVISION_ADMIN.equals(n.getName()))
+				&& userInfoVO.getDivisionAdmins().contains(existingReportVO.getDescription().getDivision().getName());
 		if (hasAdminAccess) {
+			canProceed = true;
+		} else if (isDivisionAdmin) {
 			canProceed = true;
 		} else {
 			CreatedByVO currentUser = this.userStore.getVO();

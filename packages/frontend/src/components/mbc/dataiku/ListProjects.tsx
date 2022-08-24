@@ -179,7 +179,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       );
     });
 
-    const contentForDetails = (
+    const contentForDetails =  this.state.showDetailsModal && (
       <React.Fragment>
         <h4>{this.state.projectData.name}</h4>
         <p className={Styles.projectDescription}>{this.state.projectData.shortDesc}</p>
@@ -190,7 +190,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
                 Created On
               </label>
               <br />
-              {this.state.projectData.creationTag
+              {this.state.projectData?.creationTag?.lastModifiedOn
                 ? getDateFromTimestamp(this.state.projectData.creationTag.lastModifiedOn)
                 : '-NA-'}
             </div>
@@ -219,7 +219,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
                 Owner Name
               </label>
               <br />
-              {this.state.projectData.ownerDisplayName ? this.state.projectData.ownerDisplayName : '-NA-'}
+              {this.state.projectData.ownerDisplayName ? this.state.projectData.ownerDisplayName : (this.state.projectData.ownerLogin || '-NA-')}
             </div>
             <br />
             <br />

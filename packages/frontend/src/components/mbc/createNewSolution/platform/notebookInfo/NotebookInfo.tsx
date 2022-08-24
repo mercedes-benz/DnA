@@ -66,7 +66,7 @@ const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookIn
             <div className={Styles.jupeterCardContent}>
               <h6>{notebookInfo.name}</h6>
               <label>
-                Created on {getDateFromTimestamp(notebookInfo.createdOn, '.')} by {props.userFirstName}
+                Created on {getDateFromTimestamp(notebookInfo.createdOn, '.')} by {notebookInfo.createdBy.firstName}
               </label>
               <div className={Styles.JuperterCardDesc}>{notebookInfo.description}</div>
               {restrictNotebookLink && (

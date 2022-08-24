@@ -3,20 +3,37 @@ import { IconAttention } from '../../../../components/icons/IconAttention';
 import Styles from './ConfirmModal.scss';
 
 export interface IConfirmModalProps {
+  /** title of the modal */
   title: string;
+  /** content to be displayed within the modal */
   content: string | React.ReactNode;
+  /**  show/hide the modal */
   show: boolean;
+  /**  show Accept button */
   showAcceptButton: boolean;
+  /**  show Cancel button */
   showCancelButton: boolean;
+  /** Label of the Accept button */
   acceptButtonTitle?: string;
+  /** Label of the Cancel button */
   cancelButtonTitle?: string;
+  /** should the content be scrollable */
   scrollableContent?: boolean;
+  /** show removal confirmation modal */
   removalConfirmation?: boolean;
+  /** show Icons */
   showIcon?: boolean;
+  /** action to be done on clicking Accept button */
   onAccept?: () => void;
+  /** action to be done on clicking Cancel button */
   onCancel?: () => void;
+  /** accept button disabled */
+  acceptButtonDisabled?: boolean;
 }
-
+/**
+ * User Confirmation Modal
+ * @visibleName Confirm Modal
+ */
 const ConfirmModal = (props: IConfirmModalProps) => (
   <div className={props.show ? 'mbc-cfm-modal-wrapper' : Styles.hide}>
     <div className={'mbc-cfm-modal'}>
@@ -54,6 +71,7 @@ const ConfirmModal = (props: IConfirmModalProps) => (
               className={props.showAcceptButton ? 'btn btn-primary' : `${Styles.hide}`}
               type="submit"
               onClick={props.onAccept}
+              disabled={props?.acceptButtonDisabled}
             >
               {props.acceptButtonTitle}
             </button>

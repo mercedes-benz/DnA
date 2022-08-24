@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
 import { IconTick } from '../../../../components/icons/IconTick';
-import { IPortfolio, INotebookInfo, IUserInfo, IDataiku } from '../../../../globals/types';
+import { IPortfolio, INotebookInfo, IDataiku } from '../../../../globals/types';
 import Styles from './PlatformSummary.scss';
 const classNames = cn.bind(Styles);
 import { getDateFromTimestamp } from '../../../../services/utils';
@@ -14,7 +14,6 @@ export interface ITeamProps {
   dnaNotebookEnabled: boolean;
   dnaDataIkuProjectEnabled: boolean;
   notebookAndDataIkuNotEnabled: boolean;
-  user: IUserInfo;
 }
 
 export default function PlatformSummary(props: ITeamProps) {
@@ -73,7 +72,9 @@ export default function PlatformSummary(props: ITeamProps) {
                             (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                           '.',
                         )}{' '}
-                        by {props.user.firstName}
+                        by{' '}
+                        {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
+                          (props.dnaDataIkuProjectEnabled && (props.dataIkuInfo.ownerDisplayName || props.dataIkuInfo.ownerLogin))}
                       </label>
                       <div className={Styles.JuperterCardDesc}>
                         {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||

@@ -9,7 +9,10 @@ import Styles from '../Notifications.scss';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
+import { markdownParser } from '../../../../utils/MarkdownParser';
 // import { getDateFromTimestamp, getDateDifferenceFromTodayUsingGetDate } from '../../../../services/utils';
+import { regionalDateAndTimeConversion } from '../../../../services/utils';
+
 const classNames = cn.bind(Styles);
 
 export interface INotificationDetailsProps {
@@ -133,53 +136,54 @@ const NotificationListItem = (props: INotificationDetailsProps) => {
       </tr> */}
       <tr
         key={item.id}
-        
-        className={classNames('data-row', item.isRead === 'false' ? Styles.unreadMessage : '')}
+        onClick={onRowClick}
+        className={classNames('data-row', Styles.notificationRow, item.isRead === 'false' ? Styles.unreadMessage : '')}
       >
         <td>
           <div className={Styles.notificationMessage}>
-            <label
-              className={classNames('checkbox', Styles.checkboxItem)}
-              onClick={(event: React.FormEvent<HTMLElement>) => stopPropagation(event)}
-            >
-              <span className="wrapper">
-                <input
-                  type="checkbox"
-                  className="ff-only"
-                  id={'checkbox-' + item.id}
-                  checked={
-                    props.checkedAll ||
-                    isChecked ||
-                    (isAvaialableInWithExceptionArray && !props.currentItemNotToBeDeleted)
-                  }
-                  onChange={(event: React.FormEvent<HTMLInputElement>) => {
-                    onChangeCheck(event);
-                  }}
-                />
-              </span>
-              {' '}
-            </label>
-            <p className={classNames('label', Styles.checkboxItemLabel, Styles.notificationMessage)} onClick={onRowClick}>
-                {item.message}{' '}
-            </p>
+            {item.eventType !== 'Announcement' ? (
+              <label
+                className={classNames('checkbox', Styles.checkboxItem)}
+                onClick={(event: React.FormEvent<HTMLElement>) => stopPropagation(event)}
+              >
+                <span className="wrapper">
+                  <input
+                    type="checkbox"
+                    className="ff-only"
+                    id={'checkbox-' + item.id}
+                    checked={
+                      props.checkedAll ||
+                      isChecked ||
+                      (isAvaialableInWithExceptionArray && !props.currentItemNotToBeDeleted)
+                    }
+                    onChange={(event: React.FormEvent<HTMLInputElement>) => {
+                      onChangeCheck(event);
+                    }}
+                  />
+                </span>{' '}
+              </label>
+            ) : null}
+            <span
+              className={classNames(Styles.notificationMessage)}
+              dangerouslySetInnerHTML={{ __html: markdownParser(item.message) }}
+            />
           </div>
         </td>
         <td className={classNames(Styles.notificationCategory)}>
           <div className={Styles.elementToMove}>{item.eventType}</div>
         </td>
         <td className={classNames(Styles.notificationDate)}>
-          <div className={Styles.elementToMove}>{item.dateTime}</div>          
-        </td>  
+          <div className={Styles.elementToMove}>{regionalDateAndTimeConversion(item.dateTime)}</div>
+        </td>
         <td className={classNames(Styles.columnMarkAsRead)}>
           {item.isRead === 'false' ? (
             <div className={Styles.markAsRead} onClick={(event: React.FormEvent<HTMLElement>) => markAsRead(event)}>
-              <i tooltip-data='Mark as read' className={'icon mbc-icon visibility-show'} />
+              <i tooltip-data="Mark as read" className={'icon mbc-icon visibility-show'} />
               {/* &nbsp; Mark as read */}
             </div>
           ) : (
             ''
-          )
-          }
+          )}
         </td>
       </tr>
     </React.Fragment>

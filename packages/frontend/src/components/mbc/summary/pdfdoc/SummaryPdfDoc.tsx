@@ -50,10 +50,15 @@ import {
   IValueFactor,
   IValueRampUp,
   INeededRoleObject,
+  IUserInfo,
+  INotebookInfo,
+  IDataiku,
 } from '../../../../globals/types';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
 import { Envs } from '../../../../globals/Envs';
-import { getDateTimeFromTimestamp } from '../../../../services/utils';
+import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
+import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
+import {IntlProvider, FormattedNumber} from 'react-intl';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -277,6 +282,29 @@ const processDataValues = (values: any[]) => {
   return <Text>{dataValues}</Text>;
 };
 
+const processDataSourceValues = (values: any[], dsList: any) => {
+  const stringValsArr = values.map((item: any) => { 
+    let dsBadge:any = Envs.DNA_APPNAME_HEADER;
+    if(dsList.length > 0) {
+      const dataSource = dsList.filter((ds:any) => ds.name === item.dataSource);
+      if(dataSource.length === 1) {
+        if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
+          if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+            if(dataSource[0].dataType === "Not set") {
+              dsBadge = dataSource[0].source;
+            } else {
+              dsBadge = dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1);
+            }
+          }
+        }
+      }
+      return (item.dataSource + ' (' + dsBadge + (item.weightage !== 0 ? (' - ' + item.weightage + '%') : '') + ')');
+    }
+    return (item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
+  });
+  return processDataValues(stringValsArr);
+};
+
 const processDataValuesFromObj = (values: any[]) => {
   const stringValsArr = values.map((item: any) => item.name);
   return processDataValues(stringValsArr);
@@ -367,7 +395,13 @@ const costDrivers = (costFactors: ICostFactor[]) => {
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Value</Text>
-            <Text>{costFactor.value}&euro;</Text>
+            <Text>
+              {costFactor.value ?
+                <IntlProvider locale={navigator.language} defaultLocale="en">
+                  <FormattedNumber value={Number(costFactor.value)} />
+                </IntlProvider>
+              : '' }&euro;
+            </Text>
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Source</Text>
@@ -379,7 +413,13 @@ const costDrivers = (costFactors: ICostFactor[]) => {
           {costFactor.rampUp.map((item: any, rampIndex: number) => (
             <View key={rampIndex} style={styles.rampUpContainer}>
               <Text>{item.year}</Text>
-              <Text>{item.value}&euro;</Text>
+              <Text>
+                {item.value ?
+                  <IntlProvider locale={navigator.language} defaultLocale="en">
+                    <FormattedNumber value={Number(item.value)} />
+                  </IntlProvider>
+                : '' }&euro;
+              </Text>
             </View>
           ))}
         </View>
@@ -405,7 +445,13 @@ const valueDrivers = (valueFactors: IValueFactor[]) => {
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Value</Text>
-            <Text>{valueFactor.value}&euro;</Text>
+            <Text>
+              {valueFactor.value ?
+                <IntlProvider locale={navigator.language} defaultLocale="en">
+                  <FormattedNumber value={Number(valueFactor.value)} />
+                </IntlProvider>
+              : '' }&euro;
+            </Text>
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Source</Text>
@@ -417,8 +463,20 @@ const valueDrivers = (valueFactors: IValueFactor[]) => {
           {valueFactor.rampUp.map((item: any, rampIndex: number) => (
             <View key={rampIndex} style={styles.rampUpContainer}>
               <Text>{item.year}</Text>
-              <Text>{item.percent}%</Text>
-              <Text>{item.value}&euro;</Text>
+              <Text>
+                {item.percent ?
+                  <IntlProvider locale={navigator.language} defaultLocale="en">
+                    <FormattedNumber value={Number(item.percent)} />
+                  </IntlProvider>
+                : '' }%
+              </Text>
+              <Text>
+                {item.value ?
+                  <IntlProvider locale={navigator.language} defaultLocale="en">
+                    <FormattedNumber value={Number(item.value)} />
+                  </IntlProvider>
+                : '' }&euro;
+              </Text>
             </View>
           ))}
         </View>
@@ -433,8 +491,20 @@ const digitalValue = (items: IValueRampUp[]) => {
     return (
       <View key={index} style={styles.rampUpContainer}>
         <Text>{item.year}</Text>
-        <Text>{item.percent}%</Text>
-        <Text>{item.value}&euro;</Text>
+        <Text>
+          {item.percent ?
+            <IntlProvider locale={navigator.language} defaultLocale="en">
+              <FormattedNumber value={Number(item.percent)} />
+            </IntlProvider>
+          : '' }%
+        </Text>
+        <Text>
+          {item.value ?
+            <IntlProvider locale={navigator.language} defaultLocale="en">
+              <FormattedNumber value={Number(item.value)} />
+            </IntlProvider>
+          : '' }&euro;
+        </Text>
       </View>
     );
   });
@@ -482,7 +552,8 @@ const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, fi
       <View style={[styles.milestoneValueView, { opacity: canShowPhase ? 1 : 0 }]}>
         <Text style={[styles.sectionTitle, styles.setMarginTop15, styles.noMarginBottom]}>{phaseItem.phase.name}</Text>
         <Text>
-          {phaseItem.month >= 10 ? phaseItem.month : '0' + phaseItem.month}/{phaseItem.year}
+          {/* {phaseItem.month >= 10 ? phaseItem.month : '0' + phaseItem.month}/{phaseItem.year} */}
+          {phaseItem.month > 0 && phaseItem.year > 0 ? regionalForMonthAndYear(phaseItem.month+'/'+'01'+'/'+phaseItem.year):''}
         </Text>
       </View>
       {firstItem ? (
@@ -527,14 +598,39 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
     return (
       <View key={index} style={styles.rampUpContainer}>
         <Text>{neededRole.neededSkill}</Text>
-        <Text>{neededRole.requestedFTECount ? neededRole.requestedFTECount.toString().replace('.', ',') : 'N/A'}</Text>
+        <Text>
+          <IntlProvider locale={navigator.language} defaultLocale="en">
+            {neededRole.requestedFTECount ? <FormattedNumber value={Number(neededRole.requestedFTECount)} /> : 'N/A'}
+          </IntlProvider>
+        </Text>
       </View>
     );
   });
 };
 
-export const SummaryPdfDoc = (props: any) => (
+interface SummaryPdfDocProps {
+  solution: ICreateNewSolutionData;
+  dataSources?: any;
+  lastModifiedDate: string;
+  createdDate: string;
+  canShowTeams: boolean;
+  canShowPlatform: boolean;
+  canShowMilestones: boolean;
+  canShowDataSources: boolean;
+  canShowDigitalValue: string;
+  canShowComplianceSummary: number | boolean;
+  user: IUserInfo;
+  noteBookInfo: INotebookInfo;
+  dataIkuInfo: IDataiku;
+  dnaNotebookEnabled: boolean;
+  dnaDataIkuProjectEnabled: boolean;
+  notebookAndDataIkuNotEnabled: boolean;
+  children?: any;
+}
+export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
+  // @ts-ignore
   <Document>
+    {/* @ts-ignore */}
     <Page style={styles.page} wrap={true}>
       <View style={styles.view}>
         <Text style={styles.title}>{props.solution.description.productName}</Text>
@@ -557,11 +653,11 @@ export const SummaryPdfDoc = (props: any) => (
         <View style={styles.flexLayout} wrap={false}>
           <View style={[styles.flexCol2, styles.firstCol]}>
             <Text style={styles.sectionTitle}>Division</Text>
-            <Text>{props.solution.description.division.name}</Text>
+            <Text>{props.solution.description.division?.name || 'NA'}</Text>
           </View>
           <View style={styles.flexCol2}>
             <Text style={styles.sectionTitle}>Sub Division</Text>
-            <Text>{props.solution.description.division.subdivision.name}</Text>
+            <Text>{props.solution.description.division?.subdivision?.name || 'NA'}</Text>
           </View>
           <View style={styles.flexCol2}>
             <Text style={styles.sectionTitle}>Status</Text>
@@ -585,7 +681,9 @@ export const SummaryPdfDoc = (props: any) => (
           </View>
           <View style={[styles.flexCol2, styles.wideCol]}>
             <Text style={styles.sectionTitle}>Register support of additional resources</Text>
-            <Text>{props.solution.description.additionalResource ? props.solution.description.additionalResource : 'N/A'}</Text>
+            <Text>
+              {props.solution.description.additionalResource ? props.solution.description.additionalResource : 'N/A'}
+            </Text>
           </View>
         </View>
         <View style={styles.flexLayout} wrap={false}>
@@ -654,7 +752,7 @@ export const SummaryPdfDoc = (props: any) => (
 
         {props.canShowPlatform && (
           <View wrap={false}>
-            <View style={[styles.flexCol4, styles.firstCol]}>
+            <View>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Compute</Text>
             </View>
             <View style={styles.flexLayout}>
@@ -706,7 +804,9 @@ export const SummaryPdfDoc = (props: any) => (
                                   (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                                 '.',
                               )}{' '}
-                              by {props.user.firstName}
+                              by{' '}
+                              {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
+                                (props.dnaDataIkuProjectEnabled && (props.dataIkuInfo.ownerDisplayName || props.dataIkuInfo.ownerLogin))}
                             </Text>
                             <Text>
                               {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
@@ -762,7 +862,22 @@ export const SummaryPdfDoc = (props: any) => (
           <View wrap={false}>
             <Text style={[styles.subTitle, styles.setMarginTop]}>Milestones</Text>
             <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones)}</View>
-            <View style={styles.seperatorLine} />
+            {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.length > 0 ?  
+            <View>
+              <Text style={[styles.subTitle, styles.setMarginTop]}>Rollout Locations</Text>
+              <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 25, marginTop: 25 }}>
+                { props.solution.milestones?.rollouts?.details.map((rollout, index) => {
+                  return (
+                    <Text key={index}>
+                      {rollout.location.name}({rollout.month > 0 && rollout.year > 0 ? regionalForMonthAndYear(rollout.month+'/'+'01'+'/'+rollout.year):''})
+                      { index <= props.solution.milestones.rollouts.details.length-2 ? ', ' : '' }
+                    </Text>
+                  );
+                })}
+              </View>
+              <View style={styles.seperatorLine} />
+            </View>
+            : ''} 
           </View>
         ) : (
           <View />
@@ -784,7 +899,7 @@ export const SummaryPdfDoc = (props: any) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Data Sources</Text>
                     {props.solution.dataSources.dataSources && props.solution.dataSources.dataSources.length > 0 ? (
-                      processDataValues(props.solution.dataSources.dataSources)
+                      processDataSourceValues(props.solution.dataSources.dataSources, props.dataSources)
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -1025,7 +1140,12 @@ export const SummaryPdfDoc = (props: any) => (
                     props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
                       props.solution.digitalValue.valueCalculator.calculatedDigitalValue.year +
                       ' (' +
-                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value +
+                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ?
+                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                         <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value)} />
+                      </IntlProvider>
+                      : ''
+                       +
                       '€' +
                       ')'
                     ) : (
@@ -1049,7 +1169,14 @@ export const SummaryPdfDoc = (props: any) => (
                     {props.solution.digitalValue.valueCalculator &&
                     props.solution.digitalValue.valueCalculator.costFactorSummary &&
                     props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
-                      <Text> {props.solution.digitalValue.valueCalculator.costFactorSummary.value}&euro; </Text>
+                      <Text> {
+                        props.solution.digitalValue.valueCalculator.costFactorSummary.value ?
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.costFactorSummary.value)} />
+                          </IntlProvider>
+                        : ''                        
+                        }&euro; 
+                      </Text>
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -1071,7 +1198,15 @@ export const SummaryPdfDoc = (props: any) => (
                     {props.solution.digitalValue.valueCalculator &&
                     props.solution.digitalValue.valueCalculator.valueFactorSummary &&
                     props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
-                      <Text> {props.solution.digitalValue.valueCalculator.valueFactorSummary.value}&euro; </Text>
+                      <Text> 
+                        { 
+                        props.solution.digitalValue.valueCalculator.valueFactorSummary.value ?
+                          <IntlProvider locale={navigator.language} defaultLocale="en">
+                            <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.valueFactorSummary.value)} />
+                          </IntlProvider>
+                        : ''                        
+                        }&euro;
+                      </Text>
                     ) : (
                       <Text>NA</Text>
                     )}

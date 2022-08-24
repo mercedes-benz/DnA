@@ -27,19 +27,11 @@
 
 package com.daimler.data.controller;
 
-import com.daimler.data.api.visualization.VisualizationsApi;
-import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.controller.exceptions.*;
-import com.daimler.data.dto.solution.CreatedByVO;
-import com.daimler.data.dto.userinfo.UserInfoVO;
-import com.daimler.data.dto.userinfo.UserRoleVO;
-import com.daimler.data.dto.visualization.VisualizationCollection;
-import com.daimler.data.dto.visualization.VisualizationRequestVO;
-import com.daimler.data.dto.visualization.VisualizationVO;
-import com.daimler.data.service.userinfo.UserInfoService;
-import com.daimler.data.service.visualization.VisualizationService;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,9 +40,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.List;
+import com.daimler.data.api.visualization.VisualizationsApi;
+import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UserRoleVO;
+import com.daimler.data.dto.visualization.VisualizationCollection;
+import com.daimler.data.dto.visualization.VisualizationRequestVO;
+import com.daimler.data.dto.visualization.VisualizationVO;
+import com.daimler.data.service.userinfo.UserInfoService;
+import com.daimler.data.service.visualization.VisualizationService;
+import com.daimler.data.util.ConstantsUtility;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Visualization API", tags = { "visualizations" })
@@ -84,18 +93,20 @@ public class VisualizationController implements VisualizationsApi {
 			VisualizationVO existingvisualizationVO = visualizationService.getByUniqueliteral("name",
 					requestvisualizationVO.getName());
 			if (existingvisualizationVO != null && existingvisualizationVO.getName() != null) {
-				log.info("visualization {} already exists, creation failed",requestvisualizationVO.getName());
+				log.info("visualization {} already exists, creation failed", requestvisualizationVO.getName());
 				return new ResponseEntity<>(existingvisualizationVO, HttpStatus.CONFLICT);
 			}
 			requestvisualizationVO.setId(null);
 			VisualizationVO visualizationVO = visualizationService.create(requestvisualizationVO);
 			if (visualizationVO != null && visualizationVO.getId() != null) {
-				log.info("New visualization {} created successfully with id {}",requestvisualizationVO.getName(),visualizationVO.getId());
+				log.info("New visualization {} created successfully with id {}", requestvisualizationVO.getName(),
+						visualizationVO.getId());
 				return new ResponseEntity<>(visualizationVO, HttpStatus.CREATED);
 			} else
 				return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
-			log.error("Failed to create new visualization {} , exception msg {}",requestvisualizationVO.getName(),e.getLocalizedMessage());
+			log.error("Failed to create new visualization {} , exception msg {}", requestvisualizationVO.getName(),
+					e.getLocalizedMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
@@ -134,7 +145,12 @@ public class VisualizationController implements VisualizationsApi {
 					}
 				}
 			}
+			VisualizationVO visualization = visualizationService.getById(id);
+			String visualizationName = visualization != null ? visualization.getName() : "";
+			String userName = visualizationService.currentUserName(currentUser);
+			String eventMessage = "Visualization  " + visualizationName + " has been deleted by Admin " + userName;
 			visualizationService.deleteVisualization(id);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Visualiztion with id {} deleted successfully", id);
@@ -148,7 +164,7 @@ public class VisualizationController implements VisualizationsApi {
 			errorMessage.addErrors(invalidMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			log.error("Failed to delete visualization with id {}, exception msg {} ",id,e.getLocalizedMessage());
+			log.error("Failed to delete visualization with id {}, exception msg {} ", id, e.getLocalizedMessage());
 			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);

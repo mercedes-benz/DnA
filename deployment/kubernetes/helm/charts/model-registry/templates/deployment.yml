@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "model-registry.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "model-registry.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "model-registry.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "model-registry.selectorLabels" . | nindent 8 }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name | quote }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets.name | quote }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}          
+          {{- with .Values.envs }}
+          env:
+          {{- toYaml . | nindent 12 }}
+          {{- end }} 
+          {{- end }} 
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

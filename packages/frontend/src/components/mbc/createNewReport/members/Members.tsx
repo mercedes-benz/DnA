@@ -40,6 +40,8 @@ export interface IMembersState {
     productOwner: string;
     admin: string;
   };
+  hideTeamPosition: boolean;
+  teamPositionNotRequired: boolean;
 }
 
 export interface IAttachmentResponse {
@@ -87,6 +89,8 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         productOwner: '',
         admin: '',
       },
+      hideTeamPosition: true,
+      teamPositionNotRequired: true
     };
   }
 
@@ -238,11 +242,13 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         {this.state.showAddTeamMemberModal && (
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
-            modalTitleText={this.state.addTeamMemberInController ? 'controller' : 'team member'}
+            modalTitleText={'team member'}
             showOnlyInteral={true}
             editMode={this.state.editTeamMember}
             showAddTeamMemberModal={this.state.showAddTeamMemberModal}
             teamMember={this.state.teamMemberObj}
+            hideTeamPosition={this.state.hideTeamPosition}
+            teamPositionNotRequired={this.state.teamPositionNotRequired}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
             validateMemebersList={this.validateMembersList}
@@ -259,17 +265,17 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
     }
   };
   protected addDeveloperMember = () => {
-    this.setState({ addTeamMemberInController: false, addAdminInController: false }, () => {
+    this.setState({ addTeamMemberInController: false, addAdminInController: false, hideTeamPosition: false }, () => {
       this.showAddTeamMemberModalView();
     });
   };
   protected addProductOwnerMember = () => {
-    this.setState({ addTeamMemberInController: true }, () => {
+    this.setState({ addTeamMemberInController: true, hideTeamPosition: false }, () => {
       this.showAddTeamMemberModalView();
     });
   };
   protected addAdminMember = () => {
-    this.setState({ addAdminInController: true, addTeamMemberInController: false }, () => {
+    this.setState({ addAdminInController: true, addTeamMemberInController: false, hideTeamPosition: true }, () => {
       this.showAddTeamMemberModalView();
     });
   };
@@ -299,19 +305,19 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
   }
 
   protected onControllerTeamMemberEdit = (index: number) => {
-    this.setState({ addTeamMemberInController: true, addAdminInController: false }, () => {
+    this.setState({ addTeamMemberInController: true, addAdminInController: false, hideTeamPosition: false }, () => {
       this.onTeamMemberEdit(index);
     });
   };
 
   protected onAdminEdit = (index: number) => {
-    this.setState({ addAdminInController: true, addTeamMemberInController: false }, () => {
+    this.setState({ addAdminInController: true, addTeamMemberInController: false, hideTeamPosition: true }, () => {
       this.onTeamMemberEdit(index);
     });
   };
 
   protected onSharingTeamMemberEdit = (index: number) => {
-    this.setState({ addTeamMemberInController: false, addAdminInController: false }, () => {
+    this.setState({ addTeamMemberInController: false, addAdminInController: false, hideTeamPosition: false }, () => {
       this.onTeamMemberEdit(index);
     });
   };

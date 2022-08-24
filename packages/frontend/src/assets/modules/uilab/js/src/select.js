@@ -14,6 +14,7 @@ class Select {
     let a;
     let b;
     let c;
+    const itemsToBeDisabled = [];
     /* Look for any elements with the class 'custom-select': */
     const x = document.querySelectorAll('.custom-select');
     for (i = 0; i < x.length; i++) {
@@ -58,6 +59,9 @@ class Select {
 
         const optionLabel = selElmnt.options[j].innerHTML;
         const optionValue = selElmnt.options[j].value;
+        if (selElmnt.options[j].hasAttribute('disabled')) {
+          itemsToBeDisabled.push(selElmnt.options[j].value);
+        }
         if (isMultiSelect) {
           c.innerHTML =
             '<label class="checkbox"><span class="wrapper"><input type="checkbox" data-index="' +
@@ -93,7 +97,10 @@ class Select {
           }
 
           c.innerHTML = optionLabel;
-
+          if (itemsToBeDisabled.includes(optionLabel)) {
+            c.setAttribute('class', 'disabled');
+            c.style.cssText = 'cursor:not-allowed;color: #99A5B3;pointer-events:none;opacity:0.5';
+          }
           c.addEventListener('click', function () {
             /* When an item is clicked, update the original select box,
             and the selected item: */

@@ -79,6 +79,11 @@ paths:
       description:  "Get all users. This endpoints will be used to Get all valid available user maintenance records."
       operationId: "getAll"
       parameters:
+        - name: searchTerm
+          in: query
+          description: searchTerm to filter users. SearchTerm is a keywords which are used to search userId,name and email of users. Example "DEMOUSER, DEMO, demouser@email"
+          required: false
+          type: string      
         - name: limit
           in: query
           description: page size to limit the number of solutions, Example 15
@@ -99,6 +104,7 @@ paths:
           description: Sort users based on given order, example asc,desc
           required: false
           type: string
+          enum: [asc, desc]
       responses:
         201:
           description: "Returns message of success or failure"
@@ -246,6 +252,63 @@ paths:
         500:
           description: "Internal error"
 
+  /users/code-server:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get status of codeServer workbench intialization status for given user."
+      description:  "Get status of codeServer workbench intialization status for given user."
+      operationId: "pollUserWorkBenchStatus"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+    post:
+      tags:
+        - "code-server"
+      summary: "Initialize/Create Workbench for user in code-server."
+      description: "Create Workbench for user in code-server with given password"
+      operationId: "initializeCodeServer"
+      parameters:
+        - name: "codeServerRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/InitializeCodeServerRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    
+                    
 definitions:
   UserInfoVO:
     type: object
@@ -289,6 +352,11 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/UserRoleVO"
+      divisionAdmins:
+        description: "List of divisions for which user has access as part of DivisionAdmin role."
+        type: array
+        items:
+          type: string    
       #  required:
       #     - firstName
 
@@ -368,7 +436,13 @@ definitions:
   GenericMessage:
     type: object
     properties:
+      success:
+        type: string
       errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
@@ -378,5 +452,17 @@ definitions:
     properties:
       message:
         type: string
-        description: "error message"
+        description: "message"
+        
+  InitializeCodeServerRequestVO:
+    type: object
+    properties:
+      recipeId:
+        type: string
+        description: "Recipe Id, which says, what kind of workbench to be loaded. Ex- empty,ms-springboot,dna"
+      password:
+        type: string
+        description: "Create Password, required to login to workbench of codeserver"
+    required:
+      - password
  

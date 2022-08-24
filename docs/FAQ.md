@@ -88,3 +88,20 @@ Before enabling the WSL engine, please verify wsl engine is installed on your sy
 2. From the Docker menu, select **Settings** >**General**.
 3. Select the **Use WSL 2 based engine** check box.
 4. Click **Apply & Restart**.
+
+#### 4. Readiness probe error in vault -- Seal Type shamir Initialized true Sealed
+
+Error: "Readiness probe failed: Key Value --- ----- Seal Type shamir Initialized true Sealed true Total Shares 5 Threshold 3 Unseal Progress 0/3 Unseal Nonce n/a Version 1.10.0 Storage Type file HA Enabled false"
+
+    For this you need to unseal the vault.
+        ```
+        $kubectk exec vault-0 -n vault -- vault operator init
+        ```
+            (# The output will contain one root key and 5 sample keys)
+            (# use any 3 keys out of the 5 sample keys  in the below commands to unseal the vault)
+            (# Update the root key value in vault.secret.roottoken parameter in the values.yaml )
+        ```
+        $kubectl exec vault-0 -n vault  -- vault operator unseal key1
+        $kubectl exec vault-0 -n vault  -- vault operator unseal key2
+        $kubectl exec vault-0 -n vault  -- vault operator unseal key3
+        ```

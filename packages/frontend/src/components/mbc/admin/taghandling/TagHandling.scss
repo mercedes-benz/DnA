@@ -7,6 +7,7 @@
     flex: 1 auto;
     .searchPanel {
       display: flex;
+      align-items: center;
       > div {
         margin-right: 25px;
       }
@@ -19,6 +20,10 @@
     }
     h3 {
       padding: 0 38px;
+    }
+    tr th:last-child {
+      padding-right: 38px !important;
+      text-align: right !important;
     }
   }
 }
@@ -36,7 +41,7 @@
   }
 }
 
-.tagIsEmpty{
+.tagIsEmpty {
   display: flex;
   flex-direction: column;
   height: 440px;
@@ -45,10 +50,79 @@
   background-color: #252a33;
   text-align: center;
   width: calc(100% - 40px);
-  .linkStyle{
+  .linkStyle {
     color: #00adef;
-    &:hover{
+    &:hover {
       cursor: pointer;
     }
+  }
+}
+
+.addItemButton {
+  margin-top: 13px;
+  button {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: #c0c8d0;
+    vertical-align: middle;
+    i {
+      vertical-align: top;
+      margin-right: 10px;
+      color: #00adef;
+    }
+    span {
+      color: #99a5b3;
+    }
+    &:hover span {
+      text-decoration: underline;
+    }
+  }
+  i {
+    width: auto;
+    height: auto;
+    margin-right: 19px;
+  }
+}
+.disabledAddItemBtn {
+  cursor: default !important;
+  pointer-events: none;
+  button {
+    i {
+      color: #697582 !important;
+      span {
+        color: #697582 !important;
+      }
+    }
+  }
+}
+.updateModelOverlayContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #252a33;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  text-align: center;
+}
+.infoPopup {
+  max-width: 490px;
+}
+.addBtn {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.spinner {
+  min-height: 50vh;
+  > div {
+    position: absolute;
+    top: 50%;
   }
 }
