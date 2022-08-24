@@ -27,10 +27,24 @@
 
 package com.daimler.data.service.workspace;
 
-import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.service.common.CommonService;
+import java.util.List;
 
-public interface WorkspaceService extends CommonService<CodeServerWorkspaceVO, CodeServerWorkspaceNsql, String> {
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+
+public interface WorkspaceService {
+
+	InitializeWorkspaceResponseVO create(CodeServerWorkspaceVO vo, String password);
+
+	GenericMessage deleteById(String id);
+
+	CodeServerWorkspaceVO getById(String id);
+	
+	List<CodeServerWorkspaceVO> getAll(String userId,int offset,int limit);
+	
+	CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value);
+
+	GenericMessage deployWorspace(String id);
 
 }
