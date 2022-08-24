@@ -1,0 +1,7 @@
+version: "2.1"
+services:
+  chronos-mfe:
+    image: ${IMAGE_STORAGE_MFE:-chronos_mfe}
+    build:
+      context: ../../../packages/chronos-mfe/
+      dockerfile: $PWD/chronos-mfe.Dockerfile
