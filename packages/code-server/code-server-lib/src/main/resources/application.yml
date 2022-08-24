@@ -44,7 +44,8 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 codeServer:
-  gitjob.uri: ${CODE_SERVER_GITJOB_URI:XXXX}
+  gitjob.deployuri: ${CODE_SERVER_GITJOB_DEPLOY_URI:XXXX}
+  gitjob.manageuri: ${CODE_SERVER_GITJOB_MANAGE_URI:XXXX}
   git.pat: ${CODE_SERVER_GIT_PIT:XXXX}
   base.uri: ${CODE_BASE_URI:XXXX}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
