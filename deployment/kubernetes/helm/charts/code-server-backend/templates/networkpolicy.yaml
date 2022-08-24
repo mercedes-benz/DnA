@@ -9,4 +9,4 @@ spec:
         - port: 7979
   podSelector:
     matchLabels:
-      {{- include "code-server-backend.fullname" . | nindent 8 }}
+      {{- include "code-server-backend.selectorLabels" . | nindent 8 }}
