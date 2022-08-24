@@ -42,6 +42,7 @@ public class ConstantsUtility {
 	public static final String NONE_VALUE = "None";
 	public static final String OPEN = "OPEN";
 	public static final String DELETED = "DELETED";
+	public static final String SOLUTION_MDM=  "Solution MDM";
 
 	// S3 Path to upload logo
 	public static final String S3_PATH_TO_UPLOAD_LOGO = "logos/";

@@ -1,4 +1,4 @@
-FROM node:14.18.2 as base
+FROM node:16.14.2 as base
 
 # Building the frontend
 WORKDIR /usr/src/packages/storage-mfe
@@ -11,20 +11,11 @@ RUN yarn build:docker
 #use non-root nginx
 FROM bitnami/nginx:latest
 
-USER root
 WORKDIR /usr/share/nginx/html
-
 USER 0
-
+RUN rm -rf /usr/share/nginx/html/*
 COPY --from=base /usr/src/packages/storage-mfe/dist .
-COPY nginx.conf /etc/nginx/nginx.conf
-
-COPY docker-start.sh .
-COPY envsubst /usr/local/bin
-RUN chmod +x /usr/local/bin/envsubst
-RUN chmod +x docker-start.sh
+COPY nginx.conf /opt/bitnami/nginx/conf/nginx.conf
 RUN chmod -R g+rwX /usr/share/nginx/html
-CMD bash docker-start.sh
-USER 1001
-
 EXPOSE 3000
+USER 1001

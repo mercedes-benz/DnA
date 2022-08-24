@@ -8,6 +8,7 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
 import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import TextArea from '../../shared/textArea/TextArea';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
@@ -173,30 +174,18 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             </div>
           </div>
           <div>
-            <div
-              id="reportKpiComment"
-              className={classNames(
-                'input-field-group include-error area',
-                this.state.errors.comment.length ? 'error' : '',
-              )}
-            >
-              <label id="reportKpiCommentLabel" className="input-label" htmlFor="reportKpiComment">
-                Comment<sup>*</sup>
-              </label>
-              <textarea
-                className="input-field-area"
-                required={true}
-                rows={50}
-                id="reportKpiComment"
-                name="comment"
-                value={this.state.kpiInfo.comment}
-                onChange={this.handleChange}
-                onBlur={this.validateKpiModal}
-              />
-              <span className={classNames('error-message', this.state.errors.comment.length ? '' : 'hide')}>
-                {this.state.errors.comment}
-              </span>
-            </div>
+            <TextArea
+              controlId={'reportKpiComment'}
+              containerId={'reportKpiComment'}
+              name={'comment'}
+              labelId={'reportKpiCommentLabel'}
+              label={'Comment'}
+              rows={50}
+              value={this.state.kpiInfo.comment}
+              required={false}
+              onChange={this.handleChange}
+              onBlur={this.validateKpiModal}
+            />
             {this.state.duplicateKpiAdded ? <span className={'error-message'}>KPI already exist</span> : ''}
             <div className="btnConatiner">
               <button
@@ -306,7 +295,9 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                               </label>
                               <div className="expansion-panel-content">
                                 <div className={Styles.kpiCollContent}>
-                                  <div className={Styles.kpiDesc}>{kpi.comment}</div>
+                                  <div className={Styles.kpiDesc}>
+                                    <pre className={Styles.commentPre}>{kpi.comment}</pre>
+                                  </div>
                                   <div className={Styles.kpiBtnGrp}>
                                     <button
                                       className={'btn btn-primary'}
@@ -651,10 +642,11 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     if (this.state.errors.kpiLink) {
       formValid = false;
     }
-    if (!this.state.kpiInfo.comment) {
-      errors.comment = errorMissingEntry;
-      formValid = false;
-    } else {
+    // if (!this.state.kpiInfo.comment) {
+    //   errors.comment = errorMissingEntry;
+    //   formValid = false;
+    // } 
+    else {
       errors.comment = '';
     }
     setTimeout(() => {

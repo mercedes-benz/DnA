@@ -28,6 +28,7 @@ app:
       naas_centraldelte_topic: dnaCentralDeleteTopic
       loggingPath: /tmp/naas/log
       loggingEnvironment: dev
+      corsOriginUrl: ""
   resources:
     requests:
       memory: "512Mi"
@@ -36,13 +37,51 @@ app:
       memory: "1000Mi"
       cpu: "500m"
 
+  probes:
+    initialDelaySeconds: 180
+    timeoutSeconds: 10
+    periodSeconds: 30
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: api
+    
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: api
+      
+
 image:
   pullPolicy: Always
 
 ingress:
+  enabled: true
   host: ""
+
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
 
 imagePullSecret: 
   name: harbor-pull-secrets
-cert:
-  certManager: ""
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/naasService'
+    vault.hashicorp.com/agent-inject-template-envvar: | 
+      {{- with secret "kv/dna/kubernetesSecret/naasService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+  saName: "default"
+  jarName: "naas-lib*.jar"  

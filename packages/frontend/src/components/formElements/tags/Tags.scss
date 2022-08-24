@@ -33,6 +33,14 @@
   padding: 5px 15px;
   cursor: pointer;
   background: #383f49;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+ 
+  .badge {
+    border: 1px solid #d9dfe4;
+    color: #d9dfe4;
+  }
 }
 .active {
   background: #00adef !important;
@@ -41,4 +49,32 @@
   .tagParent {
     border-color: #e84d47;
   }
+}
+.tagParentDisabled {
+  border: none !important;
+}
+.tagParentDisabledFocus {
+  border-color: transparent !important;
+  &::after {
+    content: "You have read only permission";
+    color: #acb8c4;
+    font-size: var(--font-size-small);
+  }
+}
+
+.badge {
+  border: 1px solid #697582;
+  border-radius: 2px;
+  color: #697582;
+  font-size: var(--font-size-icon-small);
+  letter-spacing: 1px;
+  margin-left: 4px;
+  padding: 2px 4px;
+}
+.relativeScroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 9;
+  max-height: 300px;
 }

@@ -1,50 +1,23 @@
-import cn from 'classnames';
+// import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
 import Button from '../../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progress-indicator';
 import { IUserDetails } from '../../../../../globals/types';
-import { ApiClient } from '../../../../../services/ApiClient';
 // @ts-ignore
 import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
-import Styles from './AddUser.scss';
 
-const classNames = cn.bind(Styles);
+import TeamSearch from '../../../../mbc/teamSearch/TeamSearch';
+import { Envs } from '../../../../../globals/Envs';
 
 export interface IAddUserProps {
   getCollabarators: (teamMemberObj: IUserDetails, dagId: string) => void;
   dagId: string;
 }
-export interface IAddUserState {
-  belongingInternal: boolean;
-  teamPositionInternal: string;
-  teamPositionInternalError: string;
-  userIdInternal: string;
-  userIdInternalError: string;
-  companyExternal: string;
-  companyExternalError: string;
-  teamPositionExternal: string;
-  teamPositionExternalError: string;
-  showNotFoundError: boolean;
-  teamMemberError: string;
-}
-export default class AddUser extends React.Component<IAddUserProps, IAddUserState> {
+export default class AddUser extends React.Component<IAddUserProps> {
   constructor(props: any) {
     super(props);
-    this.state = {
-      belongingInternal: true,
-      teamPositionInternal: '',
-      teamPositionInternalError: null,
-      userIdInternal: '',
-      userIdInternalError: null,
-      companyExternal: '',
-      companyExternalError: null,
-      teamPositionExternal: '',
-      teamPositionExternalError: null,
-      showNotFoundError: false,
-      teamMemberError: null,
-    };
   }
 
   public componentDidMount() {
@@ -52,97 +25,28 @@ export default class AddUser extends React.Component<IAddUserProps, IAddUserStat
   }
 
   public render() {
-    const {
-      userIdInternal,
-      // userIdInternalError,
-    } = this.state;
-
     return (
-      <div id="teamsModalDiv" className={classNames(Styles.firstPanel, Styles.addCollabarionUserAdd)}>
-        <div className={Styles.formWrapper}>
-          <div>
-            <div>
-              <div className={classNames(Styles.flexLayout, Styles.searchWrapper)}>
-                <div className={classNames('input-field-group')}>
-                  <label htmlFor="userIdInternal" className="input-label">
-                    Add Collaborator
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    id="userIdInternal"
-                    name="userIdInternal"
-                    placeholder="Please Enter EMEA ID / Short ID"
-                    autoComplete="off"
-                    value={userIdInternal}
-                    maxLength={100}
-                    onKeyDown={this.onSearchKeyDown}
-                    onChange={this.textInputOnChange}
-                  />
-                  <span className={Styles.clearSearch} onClick={this.onSearchClearIconClick}>
-                    <i className={classNames('icon mbc-icon close circle', userIdInternal.length ? '' : 'hide')} />
-                  </span>
-                  {/* <span className={classNames('error-message', userIdInternalError.length ? '' : 'hide')}>
-                    {userIdInternalError}
-                  </span> */}
-                </div>
-                <div>
-                  <button className="btn btn-primary" type="button" onClick={this.onSearchClick}>
-                    Add User
-                  </button>
-                </div>
-              </div>
-              <span className={classNames('error-message', this.state.showNotFoundError ? '' : 'hide')}>
-                User details not found. Please provide valid User-ID.
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <TeamSearch
+        label={
+          <>
+            Find Collaborator<sup>*</sup>{' '}
+            <span dangerouslySetInnerHTML={{__html: Envs.INTERNAL_USER_TEAMS_INFO}}></span>
+          </>
+        }
+        onAddTeamMember={this.addMemberFromTeamSearch}
+        btnText="Add User"
+      />
     );
   }
-  protected onSearchClearIconClick = () => {
-    this.setState({ userIdInternal: '' });
-  };
-  protected onSearchClick = () => {
-    const seachUserId = this.state.userIdInternal;
-    ProgressIndicator.show();
-    ApiClient.getDRDUserInfo(seachUserId)
-      .then((data: any) => {
-        const teamMemberObj: IUserDetails = {
-          department: data.department,
-          email: data.email,
-          firstName: data.firstName,
-          shortId: data.id,
-          lastName: data.lastName,
-        };
-        this.setState({
-          showNotFoundError: false,
-        });
-        this.props.getCollabarators(teamMemberObj, this.props.dagId);
-        this.setState({ userIdInternal: '' });
-        ProgressIndicator.hide();
-      })
-      .catch(() => {
-        ProgressIndicator.hide();
-        this.setState({
-          showNotFoundError: true,
-        });
-      });
-  };
-  protected onSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const keyPressed = event.which;
-    if (keyPressed === 13) {
-      this.onSearchClick();
-    }
-  };
-
-  protected textInputOnChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const name: string = e.currentTarget.name;
-    const value: string = e.currentTarget.value;
-    this.setState((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+  protected addMemberFromTeamSearch = (teamMember: any) => {
+    const teamMemberObj: IUserDetails = {
+      department: teamMember.department,
+      email: teamMember.email,
+      firstName: teamMember.firstName,
+      shortId: teamMember.shortId,
+      lastName: teamMember.lastName,
+      mobileNumber: teamMember.mobileNumber,
+    };
+    this.props.getCollabarators(teamMemberObj, this.props.dagId);
   };
 }

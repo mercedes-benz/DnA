@@ -18,13 +18,24 @@ spring:
     hibernate:
       ddl-auto: none
 
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
+          
   datasource:
     platform: postgres
     url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dashboard}
     username: ${API_DB_USER:admin}
     password: ${API_DB_PASS:admin}
     driverClassName: org.postgresql.Driver
-      
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic
+          
 dna:
   uri: ${DNA_URI:xxxx}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}        
@@ -41,15 +52,15 @@ graphql:
 
 server:
   port: 7173
-  servlet:
-    context-path: /dashboards
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
-management.endpoints.web.exposure.include: loggers
+management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
 
 logging:
   service:

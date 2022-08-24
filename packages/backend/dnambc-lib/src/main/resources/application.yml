@@ -1,7 +1,12 @@
 spring:
   application:
     name: dna-backend-service
-
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}
+    
   jpa:
     database: POSTGRESQL
     show-sql: false
@@ -32,17 +37,7 @@ spring:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:localhost:9092}
-    vault:
-      host: ${VAULT_HOST:localhost}
-      port: ${VAULT_PORT:8200}
-      scheme: ${VAULT_SCHEME:http}
-      authentication: ${VAULT_AUTHENTICATION:TOKEN}
-      token: ${VAULT_TOKEN:***REMOVED***}
-      mountpath: ${VAULT_MOUNTPATH:secret}
-      vaultpath: ${VAULT_PATH:dnambc/avscan}
-      kv:
-       enabled: true    
+          brokers: ${NAAS_BROKER:localhost:9092}   
 
 
 kafka:
@@ -58,6 +53,11 @@ dna:
       internal-user-enabled: ${DRD_INTERNAL_USER_ENABLED:false}
   user:
     role: ${USER_ROLE:Admin}
+  #Access token to access datasource bulk create from external source
+  dataSource:
+     bulkCreate:
+        api:
+           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:***REMOVED***} 
       
 graphql:
   servlet:
@@ -71,10 +71,6 @@ server:
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
-
-
-
-
 
 oidc:
   provider: ${OIDC_PROVIDER:OKTA}
@@ -93,7 +89,7 @@ oidc:
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:xxxxxx}
-    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences}
+    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/api/login;/api/verifyLogin;/api/itsmmgame;/api/task-data;/api/warmup-data;/api/subscription/validate;/api/notification-preferences;/api/datasources/bulk}
     tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
 
 drd:
@@ -141,16 +137,30 @@ dataiku:
   training:
     uri: ${DATAIKU_TRAINING_URI:xxxxx}
     apiKey: ${DATAIKU_TRAINING_API_KEY:xxxxx}
-    adminGroup: ${DATAIKU_TRAINING_ADMIN_GROUP:xxxxx}    
-  
+    adminGroup: ${DATAIKU_TRAINING_ADMIN_GROUP:xxxxx} 
+    
+dashboard:
+  uri: ${DASHBOARD_URI:xxxxx}       
+    
+codeServer:
+  gitjob.uri: ${CODE_SERVER_GITJOB_URI:XXXX}
+  git.pat: ${CODE_SERVER_GIT_PIT:XXXX}
+  base.uri: ${CODE_BASE_URI:XXXX}
+  env.ref: ${CODE_SERVER_GIT_ENVREF:XXXX}
+      
 avscan:
   uri: ${AVSCAN_URI:xxxxx}
   appid: ${AVSCAN_APP_ID:xxxxx}
   apiKey: ${AVSCAN_API_KEY:xxxxx} 
+  subscriptionProvisionApi: ${AVSCAN_SUBSCRIPTION_PROVISION_API:/api/subscription/provision}
+  scanApi: ${AVSCAN_UPLOAD_API:/api/v1/scan/upload}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
-management.endpoints.web.exposure.include: loggers
+management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
 
 logging:
   service:
@@ -164,6 +174,7 @@ logging:
           controller.ItsmmGameController: DEBUG
     org.springframework.boot.autoconfigure.logging: INFO
     com.daimler.data.controller.ItsmmGameController: DEBUG
+    com.daimler.data.application.logging.ApplicationLoggingAspect: DEBUG
     org:
       springframework:
         web:

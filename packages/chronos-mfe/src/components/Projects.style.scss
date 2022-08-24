@@ -1,0 +1,120 @@
+.mainPanel {
+    padding: 72px 184px 30px 114px;
+
+    .wrapper {
+        width: 100%;
+        .caption {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0px;
+            margin-bottom: 10px;
+            h3 {
+                color: #dee3e8;
+            }
+        }
+    }
+    .content {
+        background-color: #252a33;
+        padding: 0 0 0px 0px;
+        min-width: 518px;
+        .listContent {
+            min-height: 435px;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            padding: 25px 31px 25px 38px;
+            align-items: flex-start;
+        }
+        .emptyProducts {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .subscriptionListEmpty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            justify-content: center;
+            height: 300px;
+            position: relative;
+            border: 1px solid #383f49;
+            width: 100%;
+        }
+    }
+
+    .listHeader {
+        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        margin: 0px;
+        position: relative;
+        background-color: #0a0b0e;
+
+        i {
+            font-size: var(--font-size-icon-content);
+            color: #00adef;
+        }
+        button {
+            background: none;
+            border: none;
+            color: #c0c8d0;
+            height: auto;
+            margin: 0px;
+            outline: none;
+            padding: 0 2px;
+            i {
+                margin-top: 2px;
+            }
+            a {
+                color: #c0c8d0;
+            }
+            &:hover {
+                color: #00adef;
+            }
+        }
+    }
+}
+.allProjectContent {
+    margin-bottom: 15px;
+    flex: 1 auto;
+    position: relative;
+
+    .allProjectCardviewContent {
+        flex-wrap: wrap;
+        display: flex;
+        justify-content: left;
+        margin-right: -30px;
+    }
+}
+.content {
+    .formGroup {
+        padding: 25px 38px;
+        .permissionField {
+            display: flex;
+            margin-left: -10px;
+            input[type="checkbox"]::after {
+                border: none;
+            }
+        }
+        .checkBoxDisable {
+            pointer-events: none;
+            opacity: 0.5;
+            cursor: default;
+        }
+        .flexLayout {
+            display: flex;
+            justify-content: space-between;
+            > div {
+                width: calc(50% - 30px);
+            }
+        }
+    }
+}
+.btnContainer {
+    display: flex;
+    justify-content: flex-end;
+}

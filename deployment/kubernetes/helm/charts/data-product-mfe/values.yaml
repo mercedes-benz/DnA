@@ -1,0 +1,94 @@
+# Default values for data-product-mfe.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace: data-product
+configJs: |
+    window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
+      CONTAINER_APP_URL: "http://localhost:9090",
+      API_BASEURL: "http://localhost:7171/api",
+      DATA_PRODUCT_API_BASEURL: "http://localhost:7175/data-product/api",
+      DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="https://localhost" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
+      DATA_PRODUCT_TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>'
+    };
+
+replicaCount: 1
+
+image:
+  repository: "data-product-mfe"
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets:
+  - name: harbor-pull-secret
+
+nameOverride: ""
+fullnameOverride: "data-product-mfe"
+
+podSecurityContext:
+  runAsUser: 1001
+
+containerPort: 4000
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  annotations:
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+    - hosts:
+      - chart-example.local
+      secretName: my-tls-secret
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'data-product'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/kubernetesSecret/dataProductMFE'
+    vault.hashicorp.com/agent-inject-file-configjs: "config.js"
+    vault.hashicorp.com/agent-inject-template-configjs: | 
+      {{- with secret "kv/dna/kubernetesSecret/dataProductMFE" -}}
+          window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}   
+  saName: "default"

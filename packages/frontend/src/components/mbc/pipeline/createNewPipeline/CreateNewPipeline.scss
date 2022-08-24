@@ -33,7 +33,7 @@
         margin-bottom: 15px;
         i {
           margin-top: -11px;
-          color: #008abf;
+          color: #00ADEF;
         }
       }
       h6 {
@@ -149,6 +149,10 @@
             .dagGrpListItemPanel {
               width: 100%;
               border-bottom: 0;
+              
+              > div:first-child > label + div {
+                min-height: 302px;
+              }
               .dagGrpListItemexpansionPanel {
                 border-top: 0px solid #697582;
               }
@@ -260,10 +264,8 @@
                     width: 85%;
                     input {
                       opacity: unset !important;
-                      position: absolute !important;
+                      position: unset!important;
                       z-index: unset !important;
-                      width: 98%;
-                      margin-top: 2px;
                     }
                     .userExistedError {
                       color: #e84d47;

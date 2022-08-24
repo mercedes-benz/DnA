@@ -61,16 +61,24 @@
   }
 }
 
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 7px);
+  }
+}
+
 .modalContent {
   margin-top: 60px;
   font-size: var(--font-size-sub-headline);
   .roleContent {
     margin-top: 30px;
-    width: 25%;
+    margin-bottom: 30px;
   }
 }
 
-.userIsEmpty{
+.userIsEmpty {
   display: flex;
   flex-direction: column;
   height: 440px;
@@ -79,11 +87,19 @@
   background-color: #252a33;
   text-align: center;
   width: calc(100% - 40px);
-  .linkStyle{
+  .linkStyle {
     color: #00adef;
-    &:hover{
+    &:hover {
       cursor: pointer;
     }
+  }
+}
+
+.spinner {
+  min-height: 50vh;
+  > div {
+    position: absolute;
+    top: 50%;
   }
 }
 
@@ -93,7 +109,8 @@
     margin-top: 10px;
 
     th.actionColumn {
-      width: 60px;
+      text-align: right;
+      padding-right: 38px;
     }
 
     .data-row td {

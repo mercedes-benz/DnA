@@ -18,6 +18,7 @@ import {
   IRollout,
   IRolloutDetail,
 } from '../../../../globals/types';
+import { regionalForMonthAndYear } from '../../../../services/utils';
 // import { ApiClient } from '../../../../services/ApiClient';
 import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
@@ -212,7 +213,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
   constructor(props: IMilestonesProps) {
     super(props);
     this.state = {
-      milestonesList: this.props.milestones,
+      milestonesList: JSON.parse(JSON.stringify(this.props.milestones)),
       showMilestonesModal: false,
       cancelChanges: false,
       years: [
@@ -860,7 +861,8 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                       <div>{this.mileStoneIcons[index]}</div>
                       <div className={classNames(Styles.phase, showPhase ? '' : 'hide')}>{milestone.phase.name}</div>
                       <div className={Styles.monthYear}>
-                        {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year}
+                        {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
+                        {milestone.month > 0 && milestone.year > 0 ? regionalForMonthAndYear(milestone.month+'/'+'01'+'/'+milestone.year):''}
                       </div>
                     </div>
                     <div
@@ -943,6 +945,22 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                 </button>
               </div>
             </div>
+            {this.state.milestones?.rollouts?.details && this.state.milestones?.rollouts?.details.length > 0 ?
+              <div>
+                <h3>Rollout Locations</h3>
+                <br/>
+                <div className={classNames(Styles.rolloutLocationsList)}>
+                  { this.state.milestones?.rollouts?.details.map((rollout, index) => {
+                    return (
+                      <span key={index}>
+                        {rollout.location.name}({rollout.month > 0 && rollout.year > 0 ? regionalForMonthAndYear(rollout.month+'/'+'01'+'/'+rollout.year):''})
+                        { index <= this.state.milestones.rollouts.details.length-2 ? ', ' : '' }
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            : ''}
           </div>
           <div className={classNames(milestonesErrorMessage.length ? '' : 'hide')}>
             <span className="error-message">{milestonesErrorMessage}</span>
@@ -1012,6 +1030,7 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
         showMilestonesModal: false,
         milestones,
         currentMilestoneIndex: -1,
+        milestonesList: JSON.parse(JSON.stringify(milestones)),
       });
       this.props.modifyMileStones(milestones, this.state.currentPhase);
     }

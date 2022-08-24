@@ -11,6 +11,7 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from '../../../../globals/Enums';
 import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import TextArea from '../../shared/textArea/TextArea';
 
 export interface ICustomerProps {
   customer: ICustomers;
@@ -202,30 +203,18 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             </div>
           </div>
           <div>
-            <div
-              id="customerComment"
-              className={classNames(
-                'input-field-group include-error area',
-                this.state.errors.comment?.length ? 'error' : '',
-              )}
-            >
-              <label id="customerCommentLabel" className="input-label" htmlFor="customerComment">
-                Comment<sup>*</sup>
-              </label>
-              <textarea
-                className="input-field-area"
-                required={true}
-                rows={50}
-                id="customerComment"
-                name="comment"
-                value={this.state.customerInfo.comment}
-                onChange={this.handleChange}
-                onBlur={this.validateCustomerModal}
-              />
-              <span className={classNames('error-message', this.state.errors.comment?.length ? '' : 'hide')}>
-                {this.state.errors.comment}
-              </span>
-            </div>
+            <TextArea
+              controlId={'customerComment'}
+              containerId={'customerComment'}
+              name={'comment'}
+              labelId={'customerCommentLabel'}
+              label={'Comment'}
+              rows={50}
+              value={this.state.customerInfo.comment}
+              required={false}
+              onChange={this.handleChange}
+              onBlur={this.validateCustomerModal}
+            />
             {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''}
             <div className="btnConatiner">
               <button
@@ -348,7 +337,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                               </label>
                               <div className="expansion-panel-content">
                                 <div className={Styles.customerCollContent}>
-                                  <div className={Styles.customerDesc}>{customer.comment}</div>
+                                  <div className={Styles.customerDesc}>
+                                    <pre className={Styles.commentPre}>
+                                      {customer.comment}
+                                    </pre>
+                                  </div>
                                   <div className={Styles.customerBtnGrp}>
                                     <button
                                       className={'btn btn-primary'}
@@ -425,16 +418,18 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           scrollableContent={false}
           onCancel={this.addCustomerModelClose}
         />
-        <AddTeamMemberModal
-          ref={this.addTeamMemberModalRef}
-          modalTitleText={'Process Owner'}
-          showOnlyInteral={true}
-          editMode={this.state.editTeamMember}
-          showAddTeamMemberModal={this.state.showAddTeamMemberModal}
-          teamMember={this.state.teamMemberObj}
-          onUpdateTeamMemberList={this.updateTeamMemberList}
-          onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
-        />
+        { this.state.showAddTeamMemberModal && (
+          <AddTeamMemberModal
+            ref={this.addTeamMemberModalRef}
+            modalTitleText={'Process Owner'}
+            showOnlyInteral={true}
+            editMode={this.state.editTeamMember}
+            showAddTeamMemberModal={this.state.showAddTeamMemberModal}
+            teamMember={this.state.teamMemberObj}
+            onUpdateTeamMemberList={this.updateTeamMemberList}
+            onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
+          />
+        )}
         <ConfirmModal
           title="Delete Customer"
           acceptButtonTitle="Delete"
@@ -696,10 +691,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       errors.ressort = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.comment) {
-      errors.comment = errorMissingEntry;
-      formValid = false;
-    } else {
+    // if (!this.state.customerInfo.comment) {
+    //   errors.comment = errorMissingEntry;
+    //   formValid = false;
+    // } 
+    else {
       errors.comment = '';
     }
     setTimeout(() => {

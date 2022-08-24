@@ -106,6 +106,7 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param searchTerms
 	 * @param tags
 	 * @param relatedProducts
+	 * @param divisionsAdmin
 	 * @param offset
 	 * @param limit
 	 * @param sortBy
@@ -115,8 +116,8 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	List<SolutionNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, List<String> relatedProducts, int offset, int limit,
-			String sortBy, String sortOrder);
+			List<String> searchTerms, List<String> tags, List<String> relatedProducts, List<String> divisionsAdmin,
+			Boolean hasDigitalValue, Boolean hasNotebook, int offset, int limit, String sortBy, String sortOrder);
 
 	/**
 	 * To get SOlution count using Native query.
@@ -133,11 +134,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return solutionCount{Long}
 	 */
 	Long getCountUsingNativeQuery(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin,
+			Boolean hasDigitalValue, Boolean hasNotebook);
 
 	/**
 	 * To get count of all the solutions which have Notebook Associated.
@@ -154,11 +157,12 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return count{Long}
 	 */
 	Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To get Sum of all the digital values of the solutions.
@@ -175,11 +179,12 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return sum{BigDecimal}
 	 */
 	BigDecimal getDigitalValuesSum(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To get Data volume of all the solutions.
@@ -196,11 +201,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<DatasourceWidgetVO>
 	 */
 	List<DatasourceWidgetVO> getSolutionDataVolume(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To get Location wise solutions
@@ -217,11 +224,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<LocationWidgetVO>
 	 */
 	List<LocationWidgetVO> getSolutionLocations(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To get Milestones of all the solutions.
@@ -238,11 +247,13 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<MilestoneWidgetVO>
 	 */
 	List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch Digital Value summary
@@ -259,10 +270,11 @@ public interface SolutionCustomRepository extends CommonDataRepository<SolutionN
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<SolDigitalValueDTO>
 	 */
 	List<SolDigitalValueDTO> getDigitalValueUsingNativeQuery(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 }

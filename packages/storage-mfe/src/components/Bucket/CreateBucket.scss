@@ -4,14 +4,59 @@
   .content {
     .formGroup {
       padding: 25px 38px;
-      .inputGrp {
-        display: inline-flex;
+      .bucketNameInputField {
+        input:read-only {
+          border: none;
+          margin-left: -10px;
+        }
       }
-      .inputLabel {
-        min-width: 100px;
-        margin-right: 30px;
-        margin-top: auto;
-        margin-bottom: auto;
+      .infoIcon {
+        font-size: var(--font-size-icon-medium);
+        margin-left: 5px;
+        margin-top: -9px;
+        position: absolute;
+        right: 0;
+        i {
+          cursor: pointer;
+          color: #697582;
+
+          &:hover {
+            color: #00adef;
+          }
+        }
+      }
+      .dataClassificationField {
+        margin-left: -12px;
+      }
+      .permissionField {
+        display: flex;
+        margin-left: -10px;
+        input[type="checkbox"]::after {
+          border: none;
+        }
+      }
+      .pIIField {
+        margin-left: -12px;
+      }
+      .termsOfUseContainer {
+        display: flex;
+        flex-direction: column;
+        margin-top: 20px;
+        min-height: 56px;
+        .termsOfUseContent {
+          display: flex;
+          margin-left: -10px;
+          .termsOfUseText {
+            margin-top: auto;
+            margin-bottom: auto;
+            color: #c0c8d0;
+            sup {
+              float: right;
+              top: -12px;
+              right: -8px;
+            }
+          }
+        }
       }
     }
   }
@@ -35,17 +80,11 @@
     font-size: var(--font-size-smallest);
     border: 1px solid #383f49;
     margin-top: 12px;
-    padding: 0 12px;
+    padding: 20px 12px 0;
     .bucketColContentListAdd {
       margin: 13px auto;
       width: 90%;
-      input {
-        opacity: unset !important;
-        position: absolute !important;
-        z-index: unset !important;
-        width: 98%;
-        margin-top: 2px;
-      }
+    
       .userExistedError {
         color: #e84d47;
         padding: 4px 0;
@@ -66,6 +105,9 @@
         padding-bottom: 15px;
         border-bottom: 1px solid #383f49;
         .collUserTitleCol {
+          &:first-child {
+            max-width: 150px;
+          }
           flex: 1;
           font-size: var(--font-size-smallest);
           padding-right: 12px;
@@ -80,22 +122,15 @@
         overflow: auto;
         height: 80px;
         width: 100%;
-        &::-webkit-scrollbar-thumb {
-          background: #00adef;
-          border-radius: 10px;
-        }
-        &::-webkit-scrollbar-track {
-          background: #293f55;
-        }
-        &::-webkit-scrollbar {
-          width: 5px;
-        }
         .collUserContentRow {
           display: flex;
           align-items: center;
           justify-content: space-between;
           width: 100%;
           .collUserTitleCol {
+            &:first-child {
+              max-width: 150px;
+            }
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -159,20 +194,15 @@
   justify-content: flex-end;
   margin-top: 20px;
 }
-
-:global {
-  .mbc-modal {
-    h4 {
-      margin-bottom: 30px;
-    }
-  }
-  .tabs-panel {
-    .tabs-content-wrapper {
-      margin-top: 15px;
-      pre {
-        margin-left: 15px;
-        margin-bottom: 0;
-      }
-    }
+.backBtn {
+  position: relative;
+  top: 75px;
+  margin: 0 0 15px 114px;
+}
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 30px);
   }
 }

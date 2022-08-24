@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "data-product-mfe.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "data-product-mfe.labels" . | nindent 4 }}
+    
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "data-product-mfe.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "data-product-mfe.selectorLabels" . | nindent 8 }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}        
+    spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}    
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: {{ include "data-product-mfe.fullname" . }}-ngnix
+          configMap:
+            name: {{ include "data-product-mfe.fullname" . }}
+        {{- if not .Values.vaultInjector.enable }} 
+        - name: {{ include "data-product-mfe.fullname" . }}-configjs
+          configMap:
+            name: {{ include "data-product-mfe.fullname" . }}  
+        {{- end }}           
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ["cp /vault/secrets/config.js /usr/share/nginx/html/config.js && nginx -c /opt/bitnami/nginx/conf/nginx.conf -g 'daemon off;'"]
+          {{- end }}           
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http               
+          readinessProbe:
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: http           
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ include "data-product-mfe.fullname" . }}-ngnix
+              mountPath: /opt/bitnami/nginx/conf/nginx.conf
+              subPath: nginx.conf
+            {{- if not .Values.vaultInjector.enable }}               
+            - name: {{ include "data-product-mfe.fullname" . }}-configjs
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js  
+            {{- end }}               

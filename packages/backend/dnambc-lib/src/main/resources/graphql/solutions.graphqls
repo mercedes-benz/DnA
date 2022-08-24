@@ -44,7 +44,8 @@ type SolutionVO {
 
 type Query {
     solutions(published: Boolean,division: String,location: String,phase: String,dataVolume: String,
-    projectStatus: String, useCaseType: String, searchTerm: String,tags: String, offset: Int, limit: Int, sortBy: String,
+    projectStatus: String, useCaseType: String, searchTerm: String,tags: String,
+    hasDigitalValue: Boolean, hasNotebook: Boolean, offset: Int, limit: Int, sortBy: String,
     sortOrder: String): SolutionCollection!
     solution(string: ID):SolutionVO
     bookmarkedSolutions(userId: String): SolutionCollection!
@@ -256,8 +257,13 @@ type SubDivision{
     name: String
 }
 type SolutionDatasourceVO{
-    dataSources: [String],
+    dataSources: [DataSourceSummaryVO],
     dataVolume: DataVolumeVO
+}
+
+type DataSourceSummaryVO{
+	dataSource: String,
+	weightage: Int
 }
 
 type DataVolumeVO{

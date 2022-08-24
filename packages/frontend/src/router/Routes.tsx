@@ -21,6 +21,7 @@ const Portfolio = React.lazy(() => import('../components/mbc/Portfolio'));
 const SearchResults = React.lazy(() => import('../components/mbc/searchResults/SearchResults'));
 const Summary = React.lazy(() => import('../components/mbc/summary/Summary'));
 const MalwareScanService = React.lazy(() => import('../components/mbc/malwareScanService/MalwareScanService'));
+const ModelRegistry = React.lazy(() => import('../components/mbc/modelRegistry/ModelRegistry'));
 const Notifications = React.lazy(() => import('../components/mbc/notification/Notifications'));
 const Pipeline = React.lazy(() => import('../components/mbc/pipeline/Pipeline'));
 const Workspaces = React.lazy(() => import('../components/mbc/workspaces/Workspaces'));
@@ -32,11 +33,24 @@ const AllReports = React.lazy(() => import('../components/mbc/allReports/AllRepo
 const CreateNewReport = React.lazy(() => import('../components/mbc/createNewReport/CreateNewReport'));
 const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
 const UserSettings = React.lazy(() => import('../components/mbc/userSettings/userSettings'));
+const DataComplianceNetworkList = React.lazy(
+  () => import('../components/mbc/dataComplianceNetworkList/DataComplianceNetworkList'),
+);
+const CodeSpace = React.lazy(() => import('../components/mbc/codeSpace/CodeSpace'));
+const AllCodeSpaces = React.lazy(() => import('../components/mbc/codeSpace/AllCodeSpaces'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
+const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
+const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 
-const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
+const UserAndAdminRole = [
+  USER_ROLE.USER,
+  USER_ROLE.EXTENDED,
+  USER_ROLE.ADMIN,
+  USER_ROLE.REPORTADMIN,
+  USER_ROLE.DIVISIONADMIN,
+];
 const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 
 const publicRoutes = [
@@ -106,6 +120,13 @@ const protectedRoutes = [
     exact: false,
     path: '/malwarescanservice',
     title: 'Malware Scan Service',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: ModelRegistry,
+    exact: false,
+    path: '/modelregistry',
+    title: 'Model Registry',
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -260,6 +281,41 @@ const protectedRoutes = [
     exact: false,
     path: '/storage',
     title: 'Storage',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataProductComponent,
+    exact: false,
+    path: '/dataproduct',
+    title: 'Data Product',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataComplianceNetworkList,
+    exact: false,
+    path: '/datacompliancenetworklist',
+    title: 'Data Compliance Network List',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: CodeSpace,
+    exact: false,
+    path: '/codespace',
+    title: 'Code Space',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: AllCodeSpaces,
+    exact: false,
+    path: '/codespaces',
+    title: 'Your Code Spaces',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: ChronosComponent,
+    exact: false,
+    path: '/chronos',
+    title: 'Chronos',
   },
 ];
 

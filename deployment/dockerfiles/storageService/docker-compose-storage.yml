@@ -1,12 +1,13 @@
 version: "2.1"
 services:
   storage-mfe:
-    image: ${STORAGE_MFE:-storage_mfe}
+    image: ${IMAGE_STORAGE_MFE:-storage_mfe}
     build:
       context: ../../../packages/storage-mfe/
       dockerfile: $PWD/storage-mfe.Dockerfile
-    environment:
-      - PROJECTSMO_CONTAINER_APP_URL=""
-      - PROJECTSMO_FRONTEND_API_BASEURL=""
-    ports:
-      - 9000:3000
+  
+  storage-be:
+    image: ${IMAGE_STORAGE_BE:-storage_be}
+    build:
+      context: ../../../packages/storage-backend/
+      dockerfile: $PWD/storage-be.Dockerfile
