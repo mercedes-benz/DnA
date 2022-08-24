@@ -6,8 +6,10 @@ appName: airflow
 namespace: airflow
 imagePullSecret: 
   name: harbor-pull-secrets
-cert:
-  certManager: ""
+airflowIngressRoute:
+  enabled: false
+airflowMiddleware:
+  enabled: false 
 backend:
   image: ""
   imagePullPolicy: Always
@@ -21,9 +23,9 @@ backend:
     oidcClientID: ""
     oidcClientSecret: ""
   containerPort: 7171
-  host: ""
   crossOriginUrl: ""
   apiUrl: ""
+  dnaAuthEnable: true
   oidcInfoUrl: "" 
   oidcIntrospectionUrl: "" 
   oidcRevocationUrl: "" 
@@ -42,7 +44,28 @@ backend:
   flywayBaselineOnMigrate: ""
   flywayBaselineVersion: ""
   flywaySchema: ""
-
+##Ingress for airflow backend service
+ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+##Ingress for airflow application
+airflow:
+  ingress:
+  enabled: true
+  host: ""
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
+    
 pullSecretData: 
 secret:
   gitUserName: ""
@@ -190,3 +213,34 @@ Storage:
   storageClass: cinder-retain
   accessModes: ReadWriteOnce
   size: 5Gi
+
+probes:
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+  livenessProbe:
+    path: /airflow/actuator/health/liveness
+    port: api-http
+    
+  readinessProbe:
+    path: /airflow/actuator/health/readiness
+    port: api-http
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/airflowService'
+    vault.hashicorp.com/agent-inject-template-envvar: | 
+      {{- with secret "kv/dna/kubernetesSecret/airflowService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+  saName: "default"
+  jarName: "airflow-backend-lib*.jar"  

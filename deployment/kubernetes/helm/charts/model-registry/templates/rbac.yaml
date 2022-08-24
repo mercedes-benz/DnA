@@ -1,0 +1,33 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "model-registry.fullname" . }}-cr
+  labels:
+    component: {{ include "model-registry.fullname" . }}
+rules:
+  - apiGroups: ["*"]       # "" indicates the core API group
+    resources: ["pods","nodes","endpoints","secrets", "ingresses","services"]
+    verbs: ["get", "watch", "list", "create", "update", "delete"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "model-registry.fullname" . }}-crb
+  labels:
+    component: {{ include "model-registry.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "model-registry.fullname" . }}-sa
+    namespace: {{ .Values.namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "model-registry.fullname" . }}-cr
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "model-registry.fullname" . }}-sa
+  namespace: {{ .Values.namespace }}
+  labels:
+    component: {{ include "model-registry.fullname" . }}

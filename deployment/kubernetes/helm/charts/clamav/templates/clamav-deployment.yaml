@@ -26,7 +26,15 @@ spec:
             - containerPort: 3310
               name: api
               protocol: TCP
-          resources: {}
+
+   
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory | quote }}
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.resources.limits.memory | quote }}
+              cpu: {{ .Values.resources.limits.cpu | quote }}
           # volumeMounts:
           #   - mountPath: /var/lib/clamav
           #     name: avdata
@@ -53,7 +61,7 @@ spec:
         #     initialDelaySeconds: 20
         #     timeoutSeconds: 2
       securityContext:
-        runAsUser: 1000
+        runAsUser: {{ .Values.securityContext.runasUser }}
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret.name }}
       # volumes:

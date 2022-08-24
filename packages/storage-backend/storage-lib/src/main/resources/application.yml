@@ -1,0 +1,118 @@
+spring:
+  application:
+    name: dna-storage-service
+    
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+    baselineVersion: ${FLYWAY_BASELINEVERSION:0}
+    schemas: ${FLYWAY_SCHEMA:public}      
+    
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: none
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:postgresql://localhost:5432/db}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
+    driverClassName: org.postgresql.Driver
+       
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:3000MB}
+      max-request-size: ${MAX_REQUEST_SIZE:3000MB}
+    
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: ${VAULT_SCHEME:http}
+      authentication: ${VAULT_AUTHENTICATION:TOKEN}
+      token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
+      mountpath: ${VAULT_MOUNTPATH:secret}
+      vaultpath: ${VAULT_PATH:dna}
+      kv:
+       enabled: true  
+
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic      
+dna:
+  uri: ${DNA_URI:XXXXXX}
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  feature:
+     attachmentMalwareScan: ${ATTACHMENT_MALWARE_SCAN:false}
+  malwareScan:
+     appId: ${MALWARE_SCANNER_APP_ID:xxxxx}
+     apiKey: ${MALWARE_SCANNER_API_KEY:xxxxx}
+     uri: ${MALWARE_SCANNER_URI:XXXXXX}
+      
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:XXXXXX}
+server:
+  port: 7175
+
+#Cors Filter origin Domains  
+allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
+
+storage:
+  termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://xxxxx}
+  connect.host: ${STORAGE_CONNECT_HOST:http://xxxxxxx}
+ 
+minio:
+  clientApi: ${MINIO_CLIENT_API:http://localhost:9000}
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  accessKey: ${MINIO_ROOT_USER:XXXXXX} 
+  secretKey: ${MINIO_ROOT_PASSWORD:XXXXXX}
+  version: ${MINIO_POLICY_VERSION:2012-10-17}
+
+# For dataiku connection  
+dataiku:
+  connectionsUriPath: ${DATAIKU_CONNECTION_URI_PATH:/admin/connections}
+  projectsUriPath: ${DATAIKU_PROJECTS_URI_PATH:/projects/}
+  projectPermissionUriPath: ${DATAIKU_PERMISSION_URI_PATH:/permissions}
+  production:
+    uri: ${DATAIKU_PROD_URI:XXXXXX}
+    apiKey: ${DATAIKU_PROD_API_KEY:XXXXXX}
+  training:
+    uri: ${DATAIKU_TRAINING_URI:XXXXXX}
+    apiKey: ${DATAIKU_TRAINING_API_KEY:XXXXXX}  
+
+swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+management.endpoints.web.exposure.include: loggers,health
+management.endpoint.loggers.enabled: true
+management.endpoint.health.probes.enabled: true
+management.endpoint.health.show-details: always
+
+logging:
+  service:
+    environment: ${LOGGING_ENVIRONMENT:DEV}
+    path: ${LOGGING_PATH:/var/log}
+  level:
+    com:
+      daimler:
+        data:
+          application: INFO
+    org.springframework.boot.autoconfigure.logging: INFO
+    org:
+      springframework:
+        web:
+          client:
+            RestTemplate: INFO

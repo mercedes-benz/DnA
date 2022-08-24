@@ -1,0 +1,208 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : parquetTrino.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+  
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core parquet Trino service"
+host: "localhost:7575"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "trino"
+   description: "This service is used to upload parquet files, read, process, create trino statements and execute."
+
+schemes:
+- "https"
+
+paths:
+
+#  supported http methods POST
+#
+# path example ../parquet
+
+ /parquet:
+    post:
+      tags:
+        - "trino"
+      summary: "Parquet upload to process and execute statements in trino"
+      description: "Parquet upload to process and execute statements in trino"
+      operationId: "upload"
+      parameters:
+        - name: "parquetUploadRequestVO"
+          in: "body"
+          description: "Request Body that contains location of parquet file in s3 minio buckets"
+          required: true
+          schema:
+            $ref: "#/definitions/ParquetUploadRequestVO"    
+      responses:
+        200:
+          description: "Returns message of succes"
+          schema:
+            $ref: "#/definitions/ParquetUploadResponseVO"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/ParquetUploadResponseVO"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"      
+
+ # Path to delete parquet file and associated trino schema and table
+ # path example ../parquet/bucket1/folder1/file1.parquet
+# /parquet/{filepath}:
+#     delete:
+#      tags:
+#        - "trino"
+#      summary: "Delete parquet at given filepath and delete associated trino schema and table."
+#      description: "Delete parquet and associated trino for a given identifier."
+#      operationId: "delete"
+#      parameters:
+#        - name: "filepath"
+#          in: "path"
+#          description: "Solution ID to be deleted"
+#          required: true
+#          type: "string"
+#      responses:
+#        201:
+#          description: "Returns message of success or failure"
+#          schema:
+#            $ref: "#/definitions/GenericMessage"
+#        400:
+#          description: "Bad request."
+#        401:
+#          description: "Request does not have sufficient credentials."
+#        403:
+#          description: "Request is not authorized."
+#        405:
+#          description: "Method not allowed"
+#        500:
+#          description: "Internal error"     
+
+definitions:
+ 
+ ParquetUploadRequestVO:
+    type: object
+    properties:
+      sourceBucket:
+        type: string
+        description: "Name of source bucket in which parquet file is present Ex: bucket1"
+      sourceParquetPath:
+        type: string
+        description: "Path location of parquet file in given bucket Ex: /folder1/file.parquet"
+      schemaName:
+        type: string
+        description: "Name of new schema to be created"
+      tableName:
+        type: string
+        description: "Name of new table to be created"
+    required:
+      - sourceBucket
+      - sourceParquetPath
+      - schemaName
+      - tableName
+      
+ ParquetUploadResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/TrinoCreateResponseVO"
+      message:
+        $ref: "#/definitions/GenericMessage"                     
+  
+ TrinoCreateResponseVO:
+    type: object
+    properties:
+      createSchemaResult:
+        $ref: "#/definitions/ExecuteStatementResponseVO"
+      createTableResult:
+        $ref: "#/definitions/ExecuteStatementResponseVO"
+
+ ExecuteStatementResponseVO:
+    type: object
+    properties:
+      id:
+        type: string
+      infoUrl:
+        type: string  
+      state:
+        type: string
+                  
+ GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+ MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "error message" 
+ 

@@ -104,10 +104,10 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
     props.onClose();
   };
 
-  // const navigateToSettings = (event: React.MouseEvent<HTMLElement>) => {
-  //   history.push(`/usersettings`);
-  //   props.onClose();
-  // };
+  const navigateToSettings = (event: React.MouseEvent<HTMLElement>) => {
+    history.push(`/usersettings`);
+    props.onClose();
+  };
 
   // const navigateToMyProfile = (event: React.MouseEvent<HTMLElement>) => {
   //   history.push(`/profile`);
@@ -129,7 +129,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
         {enableAdmin && (
           <li onClick={navigateToAdministration}>{getTranslatedLabel('Administration')}</li>
         )}
-        {/* <li onClick={navigateToSettings}>{getTranslatedLabel('Settings')}</li> */}
+        <li onClick={navigateToSettings}>{getTranslatedLabel('Settings')}</li>
         <li onClick={onLogout}>{getTranslatedLabel('LogoutButton')}</li>
       </ul>
     </div>

@@ -8,6 +8,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { ITeams } from '../../../../globals/types';
 import TeamMemberListItem from './teamMemberListItem/TeamMemberListItem';
 import Styles from './TeamSummary.scss';
+import {IntlProvider, FormattedNumber} from 'react-intl'
 
 const classNames = cn.bind(Styles);
 
@@ -54,7 +55,9 @@ export default class TeamSummary extends React.Component<ITeamProps, any> {
                         return (
                           <div key={item.neededSkill + index} id={item.neededSkill + index}>
                             {item.neededSkill}:{' '}
-                            {item.requestedFTECount ? item.requestedFTECount.toString().replace('.', ',') : 'N/A'}
+                            <IntlProvider locale={navigator.language} defaultLocale="en">
+                              {item.requestedFTECount ? <FormattedNumber value={Number(item.requestedFTECount)} /> : 'N/A'}
+                            </IntlProvider>
                           </div>
                         );
                       })

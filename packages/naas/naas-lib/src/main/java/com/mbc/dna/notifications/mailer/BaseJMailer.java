@@ -71,7 +71,7 @@ public class BaseJMailer implements JMailer {
 	        boolean html = true;
 	        helper.setText("<p>Hi</p>"
 	        		+ "<br/>Message Details: <br/>"
-	        		+ "<p> " + msgTxt + " </p>"
+	        		+ msgTxt
 	        		+ "<p> You received this auto generated email from DNA as per preferences set. For more details check application. </p>", html);
 	         
 	        javaMailSender.send(message);

@@ -34,9 +34,12 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserInfo implements Serializable {
 
 	private static final long serialVersionUID = 4606219323373826458L;
@@ -49,6 +52,8 @@ public class UserInfo implements Serializable {
 
 	List<UserInfoRole> roles;
 	List<UserFavoriteUseCase> favoriteUsecases;
+	private List<String> divisionAdmins;
+	String codeServerPassword;
 
 //    public UserInfo() {
 //        super();

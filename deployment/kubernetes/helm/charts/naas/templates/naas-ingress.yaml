@@ -1,14 +1,13 @@
+{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Chart.Name }}-service-ingress
   namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: {{ .Values.cert.certManager }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   rules:
     - host: {{ .Values.ingress.host }}
@@ -19,34 +18,10 @@ spec:
                 name: {{ .Chart.Name }}-backend-service
                 port: 
                   name: api-http
-            path: /naas/api
+            path: /
             pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port:
-                  name: api-http
-            path: /naas/swagger-ui.html
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port: 
-                  name: api-http
-            path: /naas/swagger-resources
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port:
-                  name: api-http
-            path: /naas/v2/api-docs
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Chart.Name }}-backend-service
-                port:
-                  name: api-http
-            path: /naas/webjars
-            pathType: Prefix
-
+  tls:
+    - hosts:
+      - {{ .Values.ingress.host }}
+      secretName: naas-tls       
+ {{- end }}

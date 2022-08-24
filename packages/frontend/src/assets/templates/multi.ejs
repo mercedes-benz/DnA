@@ -7,6 +7,16 @@
         <meta<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>>
       <% } %>
     <% } %>
+    <script type="text/javascript">
+      document.write('<script type="text/javascript" src="config.js?'+ (new Date()).getTime()+'"><\/script>');
+    </script>
+    <!-- <script type="text/javascript">
+      (function() {
+        var u="config.js?" + (new Date()).getTime();
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.type='text/javascript'; g.src=u; s.parentNode.insertBefore(g,s);
+      })();
+    </script> -->
     <%= htmlWebpackPlugin.tags.headTags %>
     <style>
       .progress {

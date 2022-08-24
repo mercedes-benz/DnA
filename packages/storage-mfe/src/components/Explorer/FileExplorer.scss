@@ -14,14 +14,110 @@
     }
   }
 }
+
+.formGroup {
+  padding: 25px 0px;
+  .inputGrp {
+    display: inline-flex;
+    .inputLabel {
+      min-width: 115px;
+      margin-right: 30px;
+      margin-top: auto;
+      margin-bottom: auto;
+      font-size: var(--font-size-default);
+    }
+  }
+  .folderPath {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 15px !important;
+    white-space: pre;
+    .folderPathLabel {
+      color: #acb8c4 !important;
+    }
+  }
+}
+
+.previewImg {
+  margin-top: 20px;
+  max-height: 425px;
+}
+
+.backBtn {
+  position: relative;
+  top: 75px;
+  margin: 0 0 15px 114px;
+}
+
+.pdfPwdContainer {
+  display: flex;
+  i {
+    margin-left: 10px;
+    margin-top: 10px;
+  }
+}
+
+.pwdLabel {
+  color: #acb8c4 !important;
+}
+
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 30px);
+  }
+}
+
+.publishDetails {
+  color: #acb8c4;
+  margin: 35px 35px 0;
+  overflow-y: auto;
+  label {
+    font-weight: bold;
+  }
+  tr > td {
+    padding-right: 15px;
+    &:last-child::before {
+      content: ":";
+      margin-right: 5px;
+    }
+  }
+  i {
+    font-size: var(--font-size-icon-small);
+  }
+}
+
 :global {
-  .content {
+  #storagePreview {
+    margin-top: 20px;
+    .ace_cursor-layer {
+      opacity: 0;
+    }
+  }
+  .explorer-content {
+    min-width: 630px;
     .chonky-chonkyRoot {
       background-color: #252a33;
       min-width: 500px;
       height: 400px;
       font-family: "Roboto-Regular" !important;
-      width: 71vw;
+      padding: 25px 31px 25px 38px;
+      border: none;
+      border-radius: 0;
+    }
+    .chonky-navbarWrapper {
+      padding-bottom: 12px;
+    }
+    .chonky-toolbarWrapper {
+      padding-bottom: 7px;
+      button[title="Publish to Trino"]:disabled > span:after {
+        content: "( Select parquet file )";
+        position: absolute;
+        top: 15px;
+        left: 31px;
+        font-size: var(--font-size-tiny);
+      }
     }
     .chonky-activeButton {
       color: #00adef !important;
@@ -47,25 +143,53 @@
     .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
       border-color: #697582;
     }
+    .chonky-gridContainer {
+      div[class*="selectionIndicator"] {
+        background: #00adef !important;
+      }
+      div[class*="focusIndicator"] {
+        box-shadow: none;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #00adef;
+        border-radius: 10px;
+      }
+      &::-webkit-scrollbar-track {
+        background: #293f55;
+      }
+      &::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+    }
     div[class*="gridFileEntryPreview"] {
       font-size: var(--font-size-default) !important;
       div[class*="folderBackSideMid"],
       div[class*="folderBackSideTop"],
       div[class*="folderFrontSide"] {
-        background-color: #697582;
+        box-shadow: none !important;
       }
       &[class*="previewFile-d"] {
-        background-color: #c0c8d0;
+        box-shadow: none !important;
       }
     }
+
+    div[class*="gridFileEntry"][data-chonky-file-id*="PublishedParquet"] {
+      div[class*="gridFileEntryName"] {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    }
+
     div[class*="gridFileEntryName"] {
       font-size: var(--font-size-default) !important;
       color: #acb8c4;
     }
     div[class*="listFileEntry"] {
       font-size: var(--font-size-default) !important;
-      div[class*="listFileEntryIcon"] {
-        color: #acb8c4;
+      div[class*="listFileEntryProperty"] {
+        text-align: right;
       }
     }
 
@@ -77,6 +201,33 @@
     }
     div[class*="listContainer"] {
       color: #acb8c4 !important;
+      div[class*="selectionIndicator"] {
+        background: #00adef !important;
+      }
+      div[class*="focusIndicator"] {
+        box-shadow: none;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #00adef;
+        border-radius: 10px;
+      }
+      &::-webkit-scrollbar-track {
+        background: #293f55;
+      }
+      &::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+    }
+    .MuiPaper-rounded {
+      border-radius: 0;
+      .MuiList-root.MuiMenu-list.chonky-contextMenuList {
+        background: #383f49;
+        min-width: 185px;
+        .chonky-browserMenuTooltip {
+          display: none;
+        }
+      }
     }
   }
   .MuiMenuItem-root.chonky-baseButton {
@@ -95,20 +246,22 @@
       }
     }
   }
-  .formGroup {
-    padding: 25px 0px;
-    .inputGrp {
-      display: inline-flex;
-      .inputLabel {
-        min-width: 100px;
-        margin-right: 30px;
-        margin-top: auto;
-        margin-bottom: auto;
-        &.folderPath {
-          margin-right: 0;
-          font-size: var(--font-size-default);
+  .MuiPopover-root:nth-last-child(1) {
+    .MuiPaper-root.MuiPopover-paper {
+      .chonky-dropdownList {
+        // show hidden files options
+        li.MuiListItem-gutters:nth-child(4) {
+          display: none;
         }
       }
+    }
+  }
+  #pdfDoc {
+    height: 65vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    .pdf-doc-page {
+      margin-bottom: 5px;
     }
   }
 }

@@ -52,6 +52,7 @@ export interface ISummaryState {
   dnaNotebookEnabled: boolean;
   dnaDataIkuProjectEnabled: boolean;
   notebookAndDataIkuNotEnabled: boolean;
+  dataSources: any;
 }
 export interface IAllSolutionsListItem {
   id?: string;
@@ -105,7 +106,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
           logoDetails: null,
           dataStrategyDomain: '',
           requestedFTECount: 0,
-          additionalResource: ''
+          additionalResource: '',
         },
         openSegments: [],
         team: { team: [] },
@@ -196,6 +197,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       dnaNotebookEnabled: false,
       dnaDataIkuProjectEnabled: false,
       notebookAndDataIkuNotEnabled: true,
+      dataSources: ''
     };
   }
 
@@ -237,11 +239,12 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     const canShowDigitalValue =
       canShowDescription &&
       (isAdmin !== undefined || userInfo.id === this.checkUserCanViewDigitalValue(userInfo)) &&
-      this.state.solution.digitalValue.maturityLevel;
+      this.state.solution?.digitalValue?.maturityLevel;
 
     const pdfContent = canShowDescription ? (
       <SummaryPdfDoc
         solution={this.state.solution}
+        dataSources={this.state.dataSources}
         lastModifiedDate={this.state.solution.lastModifiedDate}
         createdDate={this.state.solution.createdDate}
         canShowTeams={this.state.canShowTeams}
@@ -339,6 +342,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                       onDelete={this.onDeleteSolution}
                       updateBookmark={this.updateBookmark}
                       onExportToPDFDocument={pdfContent}
+                      isPublished={this.state.solution.publish}
                     />
 
                     {this.state.canShowPlatform && (
@@ -349,7 +353,6 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         dnaNotebookEnabled={this.state.dnaNotebookEnabled}
                         dnaDataIkuProjectEnabled={this.state.dnaDataIkuProjectEnabled}
                         notebookAndDataIkuNotEnabled={this.state.notebookAndDataIkuNotEnabled}
-                        user={this.props.user}
                       />
                     )}
                     {this.state.canShowTeams && (
@@ -365,6 +368,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                         portfolio={this.state.solution.portfolio}
                         analytics={this.state.solution.analytics}
                         sharing={this.state.solution.sharing}
+                        dsList={this.state.dataSources}
                       />
                     )}
                     {canShowComplianceSummary ? (
@@ -413,6 +417,13 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     this.setup();
   }
   public async componentDidMount() {
+    ApiClient.getDataSources()
+      .then((res) => {
+        this.setState({ dataSources: res }, () => {});
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
     this.setup();
     Tabs.defaultSetup();
     document.getElementById('header').classList.add('nav-header-bg-trans');
@@ -582,8 +593,10 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
     let userId = '';
     if (this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-    } else if (this.state.solution.createdBy) {
+    } else if (this.state.solution?.createdBy?.id === userInfo.id) {
       userId = this.state.solution.createdBy.id;
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)) {
+      userId = userInfo.id;  
     } else {
       userId = '';
     }
@@ -608,6 +621,8 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       } else if (this.state.solution.createdBy) {
         userId = this.state.solution.createdBy.id;
       }
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)) {
+      userId = userInfo.id;  
     } else {
       userId = '';
     }

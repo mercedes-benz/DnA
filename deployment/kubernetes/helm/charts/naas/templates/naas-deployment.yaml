@@ -14,11 +14,24 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}        
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}     
       containers:
         - name: {{ .Chart.Name }}-service
           image: {{ .Values.app.backend.image }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}          
           env:
             - name: API_DB_URL
               value: {{ .Values.app.backend.config.api_db_url  }} 
@@ -63,6 +76,9 @@ spec:
                 secretKeyRef:
                   key: jwt.secret.key
                   name: {{ .Values.app.backend.secrets.name }}
+            - name: CORS_ORIGIN_URL
+              value: {{ .Values.app.backend.config.corsOriginUrl }}
+          {{- end }}  
           ports:
             - containerPort: 7272
               name: api
@@ -74,6 +90,25 @@ spec:
             limits:
               memory: {{ .Values.app.resources.limits.memory }}
               cpu: {{ .Values.app.resources.limits.cpu }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.app.probes.livenessProbe.path }}
+              port: {{ .Values.app.probes.livenessProbe.port }}
+              
+          readinessProbe:
+            # initialDelaySeconds: 180
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.app.probes.periodSeconds }}
+            failureThreshold: {{ .Values.app.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.app.probes.readinessProbe.path }}
+              port: {{ .Values.app.probes.readinessProbe.port }}  
+
           # volumeMounts:
           #   - mountPath: /var/lib/clamav
           #     name: avdata

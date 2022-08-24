@@ -11,7 +11,7 @@
   }
 
   .formWrapper {
-    margin: 60px 70px 0;
+    margin: 35px 35px 0;
   }
 
   .tagsWrapper {
@@ -74,10 +74,10 @@
 }
 
 .addTeamMemberModal {
-  min-height: 350px;
+  min-height: 500px;
   min-width: 650px;
   max-width: 850px;
-  max-height: 400px;
+  max-height: 457px;
 
   .searchWrapper {
     > div {
@@ -107,7 +107,8 @@
       }
 
       &:last-child {
-        margin-top: 32px;
+        margin-top: 20px;
+        margin-bottom: 0;
       }
     }
   }
@@ -152,4 +153,96 @@
   .saveButton{
     float: right;
   }
+}
+
+
+.searchPanel {
+  position: relative;
+  flex: 1 auto;
+  
+  .searchInputField {
+    background: none;
+    border: none;
+    border-bottom: 1px solid #697582;
+    font-size: var(--font-size-default);
+    padding-right: 40px;
+    margin-right: -20px;
+    height: 40px;
+    color: #c0c8d0;
+    outline: none;
+    width: 100%;
+    opacity: 1;
+    transition: opacity 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+    visibility: visible;
+    letter-spacing: 0.5px;
+
+    &:focus {
+      border-color: #00adef;
+    }
+
+    &.hide {
+      opacity: 0;
+      visibility: hidden;
+      transition: visibility 0ms;
+      transition-delay: 100ms;
+    }
+  }
+
+  > button {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    color: #c0c8d0;
+    font-size: var(--font-size-icon-medium);
+    position: absolute;
+    top: 3px;
+
+    &:disabled i {
+      color: #57626e;
+    }
+
+    &:hover {
+      color: #ffffff;
+      transition: color 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+    }
+
+    > i {
+      vertical-align: sub;
+      font-size: var(--font-size-icon-nav);
+      &.active:hover {
+        color: #00adef;
+      }
+    }
+  }
+
+  .suggestionList {
+    list-style-type: none;
+    max-height: 159px;
+    margin-top: 5px;
+    padding: 0;
+    overflow: auto;
+    > li {
+      padding: 10px 20px;
+      background-color: #383f49;
+      &:hover {
+        cursor: pointer;
+        background-color: #252a33;
+      }
+      &.active {
+        background-color: #252a33;
+      }
+    }
+  }
+}
+
+.searchError {
+  background-color: #383f49;
+  padding: 10px 20px;
+  margin-top: 5px;
+  color: #E84D47;
+  font-size: 12px;
+  line-height: 12px;
+  font-family: 'Roboto-Medium';
 }

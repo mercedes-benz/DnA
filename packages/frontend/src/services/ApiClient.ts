@@ -1,4 +1,5 @@
 /* tslint:disable:no-console */
+import { ICreateCodeSpaceData } from '../components/mbc/codeSpace/newCodeSpace/NewCodeSpace';
 import 'whatwg-fetch';
 import { HTTP_METHOD, SESSION_STORAGE_KEYS } from '../globals/constants';
 import { Envs } from '../globals/Envs';
@@ -32,9 +33,9 @@ import {
   IVisualization,
   IWidgetsResponse,
   INotebookInfo,
-  ISubsription,
-  ISubsriptionExpiryObjectData,
   INoticationModules,
+  IManageDivision,
+  IManageDivisionRequest,
 } from '../globals/types';
 import { Pkce } from './Pkce';
 
@@ -222,6 +223,22 @@ export class ApiClient {
     return this.get(`app-version`);
   }
 
+  public static getDivisions(): Promise<IManageDivision[]> {
+    return this.get('divisions');
+  }
+
+  public static postDivision(data: IManageDivisionRequest): Promise<IManageDivision[]> {
+    return this.post('divisions', data);
+  }
+
+  public static putDivision(data: IManageDivisionRequest): Promise<IManageDivision[]> {
+    return this.put('divisions', data);
+  }
+
+  public static deleteDivision(id: string): Promise<any> {
+    return this.delete(`divisions/${id}`);
+  }
+
   public static getSubDivisions(divisionId: string): Promise<ISubDivision[]> {
     return this.get('subdivisions/' + divisionId);
   }
@@ -318,24 +335,6 @@ export class ApiClient {
       this.get('lov/strategicrelevances'),
     ]);
   }
-  public static getCreateNewReportData(): Promise<any[]> {
-    return Promise.all([
-      this.get('locations'),
-      this.get('divisions'),
-      this.get('project-statuses'),
-      this.get('phases'),
-      this.get('tags'),
-      this.get('languages'),
-      this.get('results'),
-      this.get('algorithms'),
-      this.get('visualizations'),
-      this.get('datasources'),
-      this.get('datavolumes'),
-      this.get('platforms'),
-      this.get('relatedproducts'),
-      this.get('project-statuses'),
-    ]);
-  }
 
   public static getFiltersMasterData(): Promise<any[]> {
     return Promise.all([
@@ -355,7 +354,7 @@ export class ApiClient {
       res.forEach((division: any) => {
         division.subdivisions.forEach((subdiv: ISubDivisionSolution) => {
           subdiv.division = division.id;
-          subdiv.id = subdiv.id + '-' + division.id;
+          subdiv.id = subdiv.id + '@-@' + division.id;
           tempSubDivision.push(subdiv);
         });
       });
@@ -369,12 +368,21 @@ export class ApiClient {
       res.forEach((division: any) => {
         division.subdivisions.forEach((subdiv: ISubDivisionSolution) => {
           subdiv.division = division.id;
-          subdiv.id = subdiv.id + '-' + division.id;
+          subdiv.id = subdiv.id + '@-@' + division.id;
           tempSubDivisions.push(subdiv);
         });
       });
       return Promise.all(tempSubDivisions);
     });
+  }
+
+  // Create New Code Space
+  public static getCodeSpace() {
+    return this.get('users/code-server');
+  }
+
+  public static createCodeSpace(data: ICreateCodeSpaceData) {
+    return this.post('users/code-server', data);
   }
 
   // Create New Sandbox
@@ -396,40 +404,6 @@ export class ApiClient {
   public static createNewReport(data: ICreateNewReportRequest): Promise<ICreateNewReportResult> {
     return this.post('solutions', data);
   }
-  public static generateNewApiKey(data: ISubsription) {
-    return this.post('subscription', data);
-  }
-  public static getMalwarescanSubscriList() {
-    return this.get('subscription/');
-  }
-  public static getMalwarescanSubscriListWithPagination(limit: number, offset: number) {
-    return this.get('subscription?limit=' + limit + '&offset=' + offset);
-  }
-  public static getMalwarescanSubscriListAdmin(
-    limit: number,
-    offset: number,
-    sortBy: string,
-    sortOrder: string,
-    searchTerm: string,
-  ) {
-    let paramToPass =
-      'subscription?admin=true&limit=' + limit + '&offset=' + offset + '&sortBy=' + sortBy + '&sortOrder=' + sortOrder;
-    if (searchTerm == null) {
-      paramToPass += '&searchTerm=' + '';
-    } else {
-      paramToPass += '&searchTerm=' + searchTerm;
-    }
-    return this.get(paramToPass);
-  }
-  public static getRefreshApiKey(appId: String) {
-    return this.get('subscription/' + appId + '/refresh/');
-  }
-  public static deleteCurrentMalwareservice(id: String) {
-    return this.delete('subscription/' + id);
-  }
-  public static saveExpiry(data: ISubsriptionExpiryObjectData) {
-    return this.put('subscription', data);
-  }
 
   public static getDataikuProjectsList(live: boolean): Promise<any> {
     return this.get(`dataiku/projects?live=${live}`);
@@ -448,6 +422,10 @@ export class ApiClient {
 
   public static getDRDUserInfo(adId: string): Promise<any> {
     return this.get(`userinfo/${adId}`);
+  }
+
+  public static getUsersBySearchTerm(searchTerm: string): Promise<any> {	
+    return this.get(`users?searchTerm=${searchTerm}&offset=0&limit=0`);	
   }
 
   public static getAllSolutions(queryUrl?: string): Promise<ICreateNewSolution[]> {
@@ -719,7 +697,7 @@ export class ApiClient {
     if (locations != '') reqQuery += `location=${locations}&`;
     if (phases != '') reqQuery += `phase=${phases}&`;
     if (divisions != '') reqQuery += `division=${encodeURIComponent(divisions)}&`;
-    if (status != '') reqQuery += `projectStatus=${status}&`;
+    if (status != '') reqQuery += `projectstatus=${status}&`;
     if (useCaseType != '') reqQuery += `useCaseType=${useCaseType}&`;
     if (tagSearch != '') reqQuery += `tags=${tagSearch}&`;
 
@@ -843,7 +821,10 @@ export class ApiClient {
           teamMemberPosition
         },
         dataSources {
-          dataSources,
+          dataSources {
+            dataSource,
+            weightage
+          },
           dataVolume {
             id,
             name

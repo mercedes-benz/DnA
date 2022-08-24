@@ -2,14 +2,16 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 namespace: storage
-envs:
-#Add new env as array value with name/value field. Keep one tab indentation.
-  - name: PROJECTSMO_CONTAINER_APP_URL
-    value: ""
-  - name: PROJECTSMO_FRONTEND_API_BASEURL
-    value: ""  
+configJs: |
+    window["STORAGE_INJECTED_ENVIRONMENT"]={
+      CONTAINER_APP_URL: "http://localhost:9090",
+      API_BASEURL: "http://localhost:7171/api",
+      STORAGE_API_BASEURL: "http://localhost:7175/storage/api",
+      TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+      ENABLE_DATA_CLASSIFICATION_SECRET: false
+    };
 conf:
-  storageBackendUrl: ""
+  storageBackendUrl: http://storage-be.storage.svc.cluster.local:80
 replicaCount: 1
 
 image:
@@ -66,3 +68,27 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-configjs: 'kv/dna/kubernetesSecret/storageMFE'
+    vault.hashicorp.com/agent-inject-file-configjs: "config.js"
+    vault.hashicorp.com/agent-inject-template-configjs: | 
+      {{- with secret "kv/dna/kubernetesSecret/storageMFE" -}}
+          window["STORAGE_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}   
+  saName: "default"

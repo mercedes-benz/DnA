@@ -237,7 +237,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           businessGoalsList: [],
           dataStrategyDomain: '',
           requestedFTECount: 0,
-          additionalResource: ''
+          additionalResource: '',
         },
         openSegments: [],
         team: { team: [] },
@@ -288,7 +288,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
         publish: false,
         neededRoles: [],
         createdDate: '',
-        lastModifiedDate: ''
+        lastModifiedDate: '',
       },
       // stateChanged: false,
       currentState: null,
@@ -388,6 +388,32 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
     });
   }
 
+  protected setupEditSolutionData(
+    subDivisions: ISubDivision[],
+    response: ICreateNewSolutionResult,
+    solution: ICreateNewSolutionData,
+    resetChildComponents: () => void | null,
+  ) {
+    this.setState(
+      {
+        subDivisions,
+        response,
+        solution,
+      },
+      () => {
+        this.setOpenTabs(solution.openSegments);
+        SelectBox.defaultSetup();
+        ProgressIndicator.hide();
+        resetChildComponents();
+        this.setState({
+          // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.solution)))),
+          // currentStateHash: JSON.stringify(this.state.solution),
+          currentState: JSON.parse(JSON.stringify(solution)),
+        });
+      },
+    );
+  }
+
   public async getSolutionById(resetChildComponents?: () => void | null) {
     let { id } = getParams();
     if ((id == null || id === '') && this.state.response.data != null) {
@@ -405,7 +431,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             if (
               isAdmin !== undefined ||
               user.id === (res.createdBy ? res.createdBy.id : '') ||
-              res.team.find((teamMember) => teamMember.shortId === user.id) !== undefined
+              res.team.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
+              (user?.divisionAdmins && user?.divisionAdmins.includes(res?.division?.name))
             ) {
               const response = this.state.response;
               response.data = res;
@@ -443,29 +470,19 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
               solution.datacompliance = res.dataCompliance;
               solution.openSegments = res.openSegments;
               solution.publish = res.publish;
-              ApiClient.getSubDivisions(res.division.id).then((subDivisions) => {
-                if (!subDivisions.length) {
-                  subDivisions = [{ id: '0', name: 'None' }];
-                }
-                this.setState(
-                  {
-                    subDivisions,
-                    response,
-                    solution,
-                  },
-                  () => {
-                    this.setOpenTabs(solution.openSegments);
-                    SelectBox.defaultSetup();
-                    ProgressIndicator.hide();
-                    resetChildComponents();
-                    this.setState({
-                      // currentStateHash: btoa(unescape(encodeURIComponent(JSON.stringify(this.state.solution)))),
-                      // currentStateHash: JSON.stringify(this.state.solution),
-                      currentState: JSON.parse(JSON.stringify(solution)),
-                    });
-                  },
-                );
-              });
+              let subDivisions: ISubDivision[] = [{ id: '0', name: 'None' }];
+              const divisionId = res.division?.id;
+              if (divisionId) {
+                ApiClient.getSubDivisions(divisionId)
+                  .then((subDivResponse) => {
+                    subDivisions = subDivResponse;
+                  })
+                  .finally(() => {
+                    this.setupEditSolutionData(subDivisions, response, solution, resetChildComponents);
+                  });
+              } else {
+                this.setupEditSolutionData(subDivisions, response, solution, resetChildComponents);
+              }  
             } else {
               ProgressIndicator.hide();
               history.replace('/unauthorised');

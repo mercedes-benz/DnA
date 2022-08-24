@@ -1,6 +1,6 @@
 {
   "name": "dna-web",
-  "version": "3.0.0",
+  "version": "3.0.2",
   "description": "Web Frontend for DnA@MBC based on Digital Design System(UILab)",
   "license": "MIT",
   "author": {
@@ -29,7 +29,7 @@
       "https": false,
       "publicPath": "/"
     },
-    "publicPath": ""
+    "publicPath": "auto"
   },
   "scripts": {
     "test": "jest",
@@ -44,7 +44,9 @@
     "build:multi": "node --max_old_space_size=4096 node_modules/.bin/webpack --env build=multi",
     "build:docker": "node --max_old_space_size=4096 node_modules/.bin/webpack --env build=multi --env ENV_FILE=.docker.env",
     "clean": "rimraf dist && rimraf coverage",
-    "build:win": "webpack --config ./webpack.config.js --env build=multi"
+    "build:win": "webpack --config ./webpack.config.js --env build=multi",
+    "styleguide": "styleguidist server",
+    "styleguide:build": "styleguidist build"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -63,15 +65,20 @@
   "dependencies": {
     "@react-pdf/renderer": "^2.0.15",
     "ace-builds": "^1.4.12",
+    "cors": "^2.8.5",
     "popper.js": "^1.16.1",
     "rc-upload": "4.3.2",
-    "react": "^17.0.2",
+    "react": "17.0.2",
     "react-ace": "^9.4.3",
     "react-csv": "^2.0.3",
     "react-dnd": "^14.0.2",
     "react-dnd-html5-backend": "^14.0.0",
-    "react-dom": "^17.0.2",
+    "react-dom": "17.0.2",
+    "react-intl": "^5.25.1",
+    "react-number-format": "^4.9.3",
     "react-simple-maps": "^2.3.0",
+    "react-slider": "^2.0.1",
+    "react-styleguidist": "^11.2.0",
     "react-tooltip": "^4.2.18",
     "recharts": "^2.0.9",
     "sass": "^1.35.0",
@@ -147,6 +154,7 @@
     "postcss-sorting": "^6.0.0",
     "prettier": "^2.3.1",
     "process": "^0.11.10",
+    "react-docgen-typescript": "^2.2.2",
     "react-docgen-typescript-loader": "^3.7.2",
     "react-hot-loader": "^4.13.0",
     "react-router-dom": "^5.2.0",
@@ -169,5 +177,9 @@
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.8.0",
     "whatwg-fetch": "^3.0.0"
+  },
+  "resolutions": {
+    "@types/react": "17.0.11",
+    "@types/react-dom": "17.0.7"
   }
 }

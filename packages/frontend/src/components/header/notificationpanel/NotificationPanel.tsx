@@ -1,7 +1,9 @@
 import cn from 'classnames';
 import * as React from 'react';
+import { markdownParser } from '../../../utils/MarkdownParser';
 import { history } from '../../../router/History';
 import Styles from './NotificationPanel.scss';
+import { regionalDateAndTimeConversionSolution } from '../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -55,35 +57,57 @@ export class NotificationPanel extends React.Component<IHeaderNotificationPanelP
     const { notifications } = this.state;
     return (
       <div
-        className={classNames((this.props.show) ? Styles.NotificationPanelContentesection : 'hide')}
+        className={classNames(this.props.show ? Styles.NotificationPanelContentesection : 'hide')}
         ref={this.connectContainer}
       >
         <div className={Styles.uparrow} />
-        {notifications? notifications.length > 0 ? 
-        (
-          <div>
-            <div className={classNames(Styles.NotificationContenWrraper, 'mbc-scroll')}>
-              {notifications
-                ? notifications.map((item: any) => {
-                    return (
-                      <div key={item.id} className={Styles.NotificationPanelContent}>
-                        {/* <i className="icon mbc-icon home" /> */}
-                        <div className={Styles.notificationDetails}>
-                          {/* <span>16.08.2021 / 16:33 </span> */}
-                          <span>{item.dateTime} </span>
-                          <label>
-                            {/* 2 days left to <b>provision</b> your dummy solution{' '} */}
-                            {item.message}
-                          </label>
+        {notifications ? (
+          notifications?.length > 0 ? (
+            <div>
+              <div className={classNames(Styles.NotificationContenWrraper, 'mbc-scroll')}>
+                {notifications
+                  ? notifications.map((item: any) => {
+                      return (
+                        <div key={item.id} className={Styles.NotificationPanelContent}>
+                          {/* <i className="icon mbc-icon home" /> */}
+                          <div className={Styles.notificationDetails}>
+                            {/* <span>16.08.2021 / 16:33 </span> */}
+                            <span>{regionalDateAndTimeConversionSolution(item.dateTime)} </span>
+                            <label
+                              dangerouslySetInnerHTML={{
+                                __html: markdownParser(item.message),
+                              }}
+                            />
+                          </div>
+                          <div className={classNames(Styles.closeIcon, 'hide')}>
+                            <i className="icon mbc-icon close thin" />{' '}
+                          </div>
                         </div>
-                        <div className={classNames(Styles.closeIcon,'hide')}>
-                          <i className="icon mbc-icon close thin" />{' '}
-                        </div>
-                      </div>
-                    );
-                  })
-                : ''}
+                      );
+                    })
+                  : ''}
+              </div>
+              <div className={Styles.showAllNotificationLink}>
+                <span onClick={this.showMoreNotifications}>
+                  {' '}
+                  Show More <i className="icon mbc-icon arrow right small " />{' '}
+                </span>
+              </div>
             </div>
+          ) : (
+            <div>
+              <div className={Styles.noData}>There are no unread notifications</div>
+              <div className={Styles.showAllNotificationLink}>
+                <span onClick={this.showMoreNotifications}>
+                  {' '}
+                  Show More <i className="icon mbc-icon arrow right small " />{' '}
+                </span>
+              </div>
+            </div>
+          )
+        ) : (
+          <div>
+            <div className={Styles.noData}>There are no unread notifications</div>
             <div className={Styles.showAllNotificationLink}>
               <span onClick={this.showMoreNotifications}>
                 {' '}
@@ -91,18 +115,7 @@ export class NotificationPanel extends React.Component<IHeaderNotificationPanelP
               </span>
             </div>
           </div>
-        )
-        :(
-        <div className={Styles.noData}>
-          There are no unread notifications
-        </div>
-        )
-        :(
-        <div className={Styles.noData}>
-          There are no unread notifications
-        </div>
         )}
-        
       </div>
     );
   }

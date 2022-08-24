@@ -29,47 +29,6 @@ export function getDropDownData() {
               });
 
               const dataVolumes: IDataVolume[] = response[4];
-
-              // let newQueryParams = queryParams;
-              // if (portfolioFilterValues) {
-              //   newQueryParams = portfolioFilterValues;
-              //   if (newQueryParams.status.includes('0')) {
-              //     newQueryParams.status = [];
-              //   }
-              //   if (newQueryParams.useCaseType.includes('0')) {
-              //     newQueryParams.useCaseType = [];
-              //   }
-              //   // Solved the issue on tag if user has already values in session
-              //   if (!newQueryParams.tag) {
-              //     newQueryParams.tag = [];
-              //   }
-              //   const selectedValues: ITag[] = [];
-              //   newQueryParams.tag.forEach((a: any) => {
-              //     const tag: ITag = { id: null, name: null };
-              //     tag.id = a;
-              //     tag.name = a;
-              //     selectedValues.push(tag);
-              //   });
-              //   // this.setState({tags: newQueryParams.tag});
-              // } else {
-              //   newQueryParams.phase = phases.map((phase: IPhase) => {
-              //     return phase.id;
-              //   });
-              //   newQueryParams.division = divisions.map((division: IDivision) => {
-              //     return division.id;
-              //   });
-              //   newQueryParams.subDivision = subDivisions.map((subDivision: ISubDivisionSolution) => {
-              //     return subDivision.id;
-              //   });
-              //   newQueryParams.location = locations.map((location: ILocation) => {
-              //     return location.id;
-              //   });
-              //   newQueryParams.status = [];
-              //   newQueryParams.useCaseType = [];
-              //   newQueryParams.tag = [];
-              // }
-
-              // this.setState({locations, divisions, subDivisions, projectStatuses, phases, dataVolumes, tagValues});
               resolve({ locations, divisions, subDivisions, projectStatuses, phases, dataVolumes, tagValues });
             })
             .catch((error: Error) => {

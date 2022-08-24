@@ -2,8 +2,8 @@ import { Envs, } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
 
-const baseUrl = Envs.API_BASEURL
-  ? `airflow/${Envs.API_BASEURL}`
+const baseUrl = Envs.DATA_PIPELINES_API_BASEURL
+  ? Envs.DATA_PIPELINES_API_BASEURL
   : `http://${window.location.hostname}:7172/airflow/api`;
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;

@@ -4,6 +4,8 @@ import InfoModal from '../../../../components/formElements/modal/infoModal/InfoM
 // @ts-ignore
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 // @ts-ignore
+import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
+// @ts-ignore
 import ImgCostDriver from '../../../../assets/images/cost-driver-info.png';
 // @ts-ignore
 import ImgMaturityLevel from '../../../../assets/images/maturity-level-info.png';
@@ -32,6 +34,7 @@ import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMembe
 import AddOrEditFactorModal from './addOrEditFactorModal/AddOrEditFactorModal';
 import Styles from './DigitalValue.scss';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import {IntlProvider, FormattedNumber} from 'react-intl';
 
 const classNames = cn.bind(Styles);
 
@@ -60,6 +63,7 @@ export interface IDigitalValueState {
   editTeamMember: boolean;
   editTeamMemberIndex: number;
   contollerTeamMembers: ITeams[];
+  isControllerMember: boolean;
   sharingTeamMembers: ITeams[];
   teamMemberObj: ITeams;
   addTeamMemberInController: boolean;
@@ -115,6 +119,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
       commentValueError: '',
       commentValue: '',
       showAddTeamMemberModal: false,
+      isControllerMember: false,
       editTeamMember: false,
       editTeamMemberIndex: -1,
       contollerTeamMembers: [],
@@ -380,7 +385,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                   </p>
                   <div className={Styles.addIconButtonWrapper}>
                     <IconAvatarNew className={Styles.buttonIcon} />
-                    <button id="AddControllerBtn" onClick={this.addControllerMember}>
+                    <button id="AddControllerBtn" onClick={() => { this.setState({ isControllerMember: true }); this.addControllerMember(); }}>
                       <i className="icon mbc-icon plus" />
                       <span>Add controller (optional)</span>
                     </button>
@@ -432,7 +437,12 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                   </div>
                                   <div>
                                     <label>Value</label>
-                                    <div>{item.value}&euro;</div>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                      </IntlProvider>
+                                      &euro;
+                                    </div>
                                   </div>
                                   <div>
                                     <label>Source</label>
@@ -452,7 +462,12 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                         return (
                                           <div className={Styles.rampUpItem} key={indexVal}>
                                             <strong>{cost.year}</strong>
-                                            <div>{cost.value}&euro;</div>
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {cost.value ? <FormattedNumber value={Number(cost.value)} /> : ''}
+                                              </IntlProvider>
+                                              &euro;
+                                            </div>
                                           </div>
                                         );
                                       })}
@@ -547,7 +562,12 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                   </div>
                                   <div>
                                     <label>Value</label>
-                                    <div>{item.value}&euro;</div>
+                                    <div>
+                                      <IntlProvider locale={navigator.language} defaultLocale="en">
+                                        {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                      </IntlProvider>
+                                      &euro;
+                                    </div>
                                   </div>
                                   <div>
                                     <label>Source</label>
@@ -567,8 +587,18 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                         return (
                                           <div className={Styles.rampUpItem} key={indexVal}>
                                             <strong>{valueDriver.year}</strong>
-                                            <div>{valueDriver.percent}%</div>
-                                            <div>{valueDriver.value}&euro;</div>
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
+                                              </IntlProvider>
+                                              %
+                                            </div>
+                                            <div>
+                                              <IntlProvider locale={navigator.language} defaultLocale="en">
+                                                {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                              </IntlProvider>
+                                              &euro;
+                                            </div>
                                           </div>
                                         );
                                       })}
@@ -681,7 +711,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                 <div>
                   <div className={classNames('input-field-group')}>
                     <label id="benefitRelevanceSelectLabel" htmlFor="benefitRelevanceSelect" className="input-label">
-                      Benefit Relevance<sup>*</sup>
+                      Benefit Realization Risk<sup>*</sup>
                     </label>
                     <div id="benefitRelevance" className="custom-select">
                       <select
@@ -768,7 +798,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
               <div>
                 <div className={Styles.addIconButtonWrapper}>
                   <IconAvatarNew className={Styles.buttonIcon} />
-                  <button onClick={this.addTeamMember}>
+                  <button onClick={() => { this.setState({ isControllerMember: false }); this.addTeamMember(); }}>
                     <i className="icon mbc-icon plus" />
                     <span>Add share / permission to team member</span>
                   </button>
@@ -810,6 +840,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
+            validateMemebersList={this.validateMembersList}
           />
         )}
         {this.state.showAddOrEditFactorModal && (
@@ -938,6 +969,18 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     this.setState({ addTeamMemberInController: false }, () => {
       this.showAddTeamMemberModalView();
     });
+  };
+
+  protected validateMembersList = (teamMemberObj: ITeams) => {
+    if(this.state.isControllerMember) {
+      let duplicateMember = false;
+      duplicateMember = this.state.contollerTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+      return duplicateMember;
+    } else {
+      let duplicateMember = false;
+      duplicateMember = this.state.sharingTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+      return duplicateMember;
+    }
   };
 
   protected getCommentButtonContent(commentValue: string) {
@@ -1414,6 +1457,7 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
     }
     this.setState({ showAddOrEditFactorModal: true }, () => {
       this.addOrEditFactorModalRef.current.setFactorData(this.state.factorItem, isEditMode);
+      InputFields.defaultSetup();
     });
   };
 

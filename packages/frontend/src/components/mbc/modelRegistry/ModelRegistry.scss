@@ -1,0 +1,313 @@
+.mainPanel {
+  padding: 72px 184px 30px 114px;
+
+  .wrapper {
+    width: 100%;
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 10px;
+      h3 {
+        color: #dee3e8;
+      }
+    }
+  }
+
+  .infoIcon {
+    padding-bottom: 5px;
+    text-align: right;
+
+    .iconsmd {
+      color: #8c8787;
+      cursor: pointer;
+      font-size: var(--font-size-icon-medium);
+      margin-right: -1px;
+    }
+  }
+
+  .content {
+    background-color: #252a33;
+    padding: 25px 0;
+
+    .NoModels {
+      padding: 0 32px;
+
+      .header {
+        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        margin: 0 0 9px 0;
+        position: relative;
+
+        p {
+          color: #979baf;
+          width: 80%;
+          text-align: left;
+          line-height: 17px;
+          margin-bottom: 10px;
+          margin-left: 0px;
+        }
+
+        .iconsmd {
+          color: #8c8787;
+          cursor: pointer;
+          font-size: var(--font-size-icon-medium);
+          position: absolute;
+          right: -6px;
+          top: -17px;
+        }
+      }
+
+      .modelsList {
+        position: relative;
+        border-bottom: 0px solid #383f49;
+
+        .apiKey {
+          min-width: 300px;
+          width: 300px;
+          font-size: var(--font-size-small);
+          line-height: 14px;
+          position: relative;
+          i {
+            cursor: pointer;
+          }
+          .appIdDiv {
+            width: max-content;
+          }
+          .appIdParentDiv {
+            display: flex;
+            align-items: center;
+            /*width: 275px;*/
+            width: max-content;
+            .refreshedKey {
+              min-width: 240px;
+            }
+            i {
+              font-size: var(--font-size-icon);
+              cursor: pointer;
+            }
+            div {
+              display: flex;
+              .copyAppIdDisable {
+                opacity: 0.4;
+                cursor: default;
+                pointer-events: none;
+              }
+              .showAppId {
+                cursor: pointer;
+                margin-left: 0;
+                color: #00adef;
+                font-size: var(--font-size-small);
+                &:hover {
+                  color: #00adef;
+                }
+              }
+            }
+            i {
+              cursor: pointer;
+            }
+            .refreshedKeyIcon {
+              width: 40px;
+              display: flex;
+              justify-content: flex-end;
+              align-items: center;
+              .visiblityshow {
+                font-size: var(--font-size-tiny);
+                margin-right: 7px;
+                margin-top: -2px;
+              }
+            }
+          }
+        }
+
+        thead {
+          th {
+            padding-left: 15px;
+            &:last-child {
+              padding-right: 30px;
+              text-align: right;
+            }
+            &:first-child {
+              padding-left: 38px;
+            }
+          }
+        }
+
+        td {
+          font-size: var(--font-size-default);
+          padding-left: 15px;
+          word-break: break-all;
+          line-height: 16px;
+
+          &:first-child {
+            padding-left: 38px;
+          }
+
+          .usage {
+            font-size: var(--font-size-smallest);
+            margin: 5px 0;
+            width: 100%;
+            color: #697582;
+            display: flex;
+            justify-content: flex-start;
+            position: absolute;
+            bottom: 0;
+            white-space: pre;
+
+            .expireOn,
+            .lastUsed,
+            .usageCount {
+              flex: 1;
+            }
+            .expireOn {
+              min-width: 170px;
+            }
+            .lastUsed {
+              min-width: 145px;
+            }
+            .metaLabel {
+              font-family: Roboto-Medium;
+              font-weight: 400;
+            }
+            .expireOnValue {
+              text-align: left;
+            }
+            .lastUsedOnValue {
+              text-align: left;
+            }
+          }
+        }
+
+        .actionMenus {
+          text-align: right;
+
+          .actionBtn {
+            background-color: unset;
+            border: unset;
+            padding: 0 20px;
+            color: #99a5b3;
+            font-size: var(--font-size-small);
+
+            &:hover {
+              color: #00adef;
+
+              > span {
+                text-decoration: underline;
+              }
+            }
+          }
+        }
+      }
+
+      tbody {
+        tr {
+          position: relative;
+          height: 100px;
+          &:hover {
+            background-color: #20242b;
+          }
+        }
+      }
+
+      .modelsContent {
+        min-height: 325px;
+        margin: 0 -32px;
+
+        .modelsListEmpty {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          height: 300px;
+          position: relative;
+          border: 1px solid #383f49;
+          margin: 0 32px;
+
+          .addNewBtn {
+            line-height: 40px;
+            color: #ffffff;
+
+            &:hover {
+              color: #ffffff;
+            }
+          }
+        }
+
+        button {
+          a {
+            color: #fff;
+          }
+        }
+
+        .textCenter {
+          text-align: center;
+          color: #979baf;
+          line-height: 17px;
+        }
+      }
+    }
+  }
+}
+
+.infoPopup {
+  width: 500px;
+}
+
+.modalContent {
+  table {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 15px;
+    tr {
+      max-width: 370px;
+      height: 0px !important;
+      td:nth-child(1) {
+        min-width: 75px;
+      }
+    }
+    .keys {
+      min-width: 260px;
+      text-align: left;
+      padding-left: 15px;
+    }
+    .visibilityIcon {
+      margin-right: 5px;
+      margin-left: 5px;
+      cursor: pointer;
+      color: #00adef;
+      font-size: var(--font-size-tiny) !important;
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+  .copyIcon {
+    cursor: pointer;
+    float: right;
+  }
+}
+
+i {
+  &:hover {
+    color: #fff;
+  }
+}
+
+.externalURI {
+  display: block;
+  font-size: var(--font-size-medium);
+  padding-top: 5px;
+  color: #00adef;
+
+  > i {
+    margin-left: 5px;
+    cursor: pointer;
+    color: #d9dfe4;
+  }
+
+  &:hover > i {
+    text-decoration: none;
+  }
+}

@@ -16,6 +16,7 @@ import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal'
 import { InputFields } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
 import { InfoList } from '../../../formElements/modal/infoModal/InfoList';
 import { RolesInfoList } from '../../../../globals/constants';
+import NumberFormat from 'react-number-format';
 
 const classNames = cn.bind(Styles);
 
@@ -131,7 +132,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
     });
   }
 
-  public render() {
+  public render() {     
     const teamMembersList = this.state.teamMembers.map((member: ITeams, index: number) => {
       return (
         <TeamMemberListItem
@@ -243,22 +244,18 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
                                     <td>{item.neededSkill}</td>
                                     <td>
                                       <div>
-                                        <input
-                                          type="text"
-                                          className={classNames('input-field', Styles.fteField)}
-                                          // required={true}
-                                          // required-error={requiredError}
-                                          id={'numberOfRequestedFTE-' + index}
-                                          maxLength={200}
-                                          placeholder="0.0"
-                                          autoComplete="off"
-                                          onChange={this.onFTEChange.bind(this)}
-                                          name="requestedFTECount"
-                                          value={
-                                            item.requestedFTECount != null
-                                              ? item.requestedFTECount.toString().replace('.', ',')
-                                              : '0'
-                                          }
+                                        {/* @ts-ignore */}
+                                        <NumberFormat
+                                            className={classNames('input-field', Styles.fteField)}
+                                            id={'numberOfRequestedFTE-' + index}
+                                            name="requestedFTECount"
+                                            value={                                              
+                                              new Intl.NumberFormat(navigator.language).format(Number(item.requestedFTECount))
+                                            }
+                                            thousandSeparator={false}
+                                            decimalScale={2}
+                                            decimalSeparator={navigator.language == 'de-DE' || navigator.language == 'de' || navigator.language == 'DE' ? "," : "."}
+                                            onValueChange={(values, sourceInfo) => this.handleChange(values,sourceInfo)}
                                         />
                                       </div>
                                     </td>
@@ -298,6 +295,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
             teamMember={this.state.teamMemberObj}
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
+            validateMemebersList={this.validateMembersList}
           />
         )}
         {this.state.showAddNeededRoleModal && (
@@ -439,6 +437,12 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
         this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
       },
     );
+  };
+
+  protected validateMembersList = (teamMemberObj: ITeams) => {
+    let duplicateMember = false;
+    duplicateMember = this.state.teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    return duplicateMember;
   };
 
   protected onTeamsSubmit = () => {
@@ -594,27 +598,45 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
     }
   }
 
-  protected onFTEChange(e: React.FormEvent<HTMLInputElement>) {
-    const name: string = e.currentTarget.name;
-    const regex = /^[0-9]\d*(((,\d{3}){1})?(\.\d{0,2})?)$/;
-    const valRecieved: string = e.currentTarget.value;
-    const tmepVal = valRecieved.toString().replace(',', '.');
-    if (regex.test(tmepVal) || tmepVal === '') {
-      const value: any = tmepVal !== null && tmepVal !== '' ? tmepVal : 0;
-      const index = Number(e.currentTarget.id.split('-')[1]);
-      const { roleCountFieldList } = this.state;
-      roleCountFieldList.forEach((item, itemIndex) => {
-        if (index === itemIndex) {
-          item[name] = value;
-        }
-        return item;
-      });
-      this.setState({ roleCountFieldList },()=>{
-        const tempTeamsObj = {team: this.state.teamMembers}
-        this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
-      });
-    }
-  }
+  // protected onFTEChange(e: React.FormEvent<HTMLInputElement>) {
+  //   const name: string = e.currentTarget.name;
+  //   const regex = /^[0-9]\d*(((,\d{3}){1})?(\.\d{0,2})?)$/;
+  //   const valRecieved: string = e.currentTarget.value;
+  //   const tmepVal = valRecieved.toString().replace(',', '.');
+  //   if (regex.test(tmepVal) || tmepVal === '') {
+  //     const value: any = tmepVal !== null && tmepVal !== '' ? tmepVal : 0;
+  //     const index = Number(e.currentTarget.id.split('-')[1]);
+  //     const { roleCountFieldList } = this.state;
+  //     roleCountFieldList.forEach((item, itemIndex) => {
+  //       if (index === itemIndex) {
+  //         item[name] = value;
+  //       }
+  //       return item;
+  //     });
+  //     this.setState({ roleCountFieldList },()=>{
+  //       const tempTeamsObj = {team: this.state.teamMembers}
+  //       this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
+  //     });
+  //   }
+  // }
+
+  protected handleChange = (values: any, sourceInfo: any) => {
+    const { value } = values;
+    const name: string = sourceInfo?.event?.target?.name;
+    const tempVal: any = value !== null && value !== '' ? value : 0;
+    const index = Number(sourceInfo?.event?.target?.id.split('-')[1]);
+    const { roleCountFieldList } = this.state;
+    roleCountFieldList.forEach((item, itemIndex) => {
+      if (index === itemIndex) {
+        item[name] = tempVal;
+      }
+      return item;
+    });
+    this.setState({ roleCountFieldList },()=>{
+      const tempTeamsObj = {team: this.state.teamMembers}
+      this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
+    });
+  };
 
   protected changeDotWithComma = (text: any) => {
     return text.replace('.', ',');

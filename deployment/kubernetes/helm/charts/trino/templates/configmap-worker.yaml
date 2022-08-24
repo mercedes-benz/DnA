@@ -1,0 +1,107 @@
+{{- if gt (int .Values.server.workers) 0 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.worker" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: worker
+data:
+  node.properties: |
+    node.environment={{ .Values.server.node.environment }}
+    node.data-dir={{ .Values.server.node.dataDir }}
+    plugin.dir={{ .Values.server.node.pluginDir }}
+  {{- range $configValue := .Values.additionalNodeProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  jvm.config: |
+    -server
+    -Xmx{{ .Values.server.jvm.maxHeapSize }}
+    -XX:+{{ .Values.server.jvm.gcMethod.type }}
+    -XX:G1HeapRegionSize={{ .Values.server.jvm.gcMethod.g1.heapRegionSize }}
+    -XX:+UseGCOverheadLimit
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    -Djdk.attach.allowAttachSelf=true
+    -XX:-UseBiasedLocking
+    -XX:ReservedCodeCacheSize=512M
+    -XX:PerMethodRecompilationCutoff=10000
+    -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.nio.maxCachedBufferSize=2000000
+  {{- range $configValue := .Values.additionalJVMConfig }}
+    {{ $configValue }}
+  {{- end }}
+
+  config.properties: |
+    coordinator=false
+    http-server.http.port={{ .Values.service.port }}
+    query.max-memory={{ .Values.server.config.query.maxMemory }}
+    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
+    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
+    discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
+  {{- range $configValue := .Values.additionalConfigProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  #exchange-manager.properties: |
+          #exchange-manager.name={{ .Values.server.exchangeManager.name }}
+    # exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+    #{{- range $configValue := .Values.additionalExchangeManagerProperties }}
+  #{{ $configValue }}
+    #  {{- end }}
+
+  log.properties: |
+    io.trino={{ .Values.server.log.trino.level }}
+  {{- range $configValue := .Values.additionalLogProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  access-rules.json: |
+    {
+
+            "catalogs": [
+
+                {
+
+                    "user": "immuta",
+
+                    "catalog": ".*",
+
+                    "allow": "all"
+
+                },
+
+                {
+
+                    "catalog": "immuta",
+
+                    "allow": "read-only"
+
+                },
+
+                {
+
+                    "catalog": "system",
+
+                    "allow": "read-only"
+
+                }
+
+            ]
+
+        }
+
+  #{{- if .Values.immuta.enabled }}
+  #event-listener.properties: |
+  #  event-listener.name={{ .Values.immuta.listenerName }}
+  #  immuta.endpoint={{ .Values.immuta.endpoint }}
+  #  immuta.apikey={{ .Values.immuta.apiKey }}
+  #  immuta.catalogs=immuta
+  #{{- end }}
+{{- end }}

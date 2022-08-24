@@ -27,12 +27,15 @@
 
 package com.daimler.data.service.userinfo;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.CommonService;
-
-import java.util.List;
 
 public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql, String> {
 
@@ -57,4 +60,40 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 	public Boolean isAdmin(String userId);
 
 	boolean isLoggedIn(final String id);
+
+	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs);
+	
+	/**
+	 * To get all records with given identifier
+	 * 
+	 * @param searchTerm
+	 * @param limit
+	 * @param offset
+	 * @param sortBy
+	 * @param sortOrder
+	 * @return users information {@code List<UserInfoVO>}
+	 */
+	List<UserInfoVO> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy, String sortOrder);
+	
+	/**
+	 * To get total count with given identifier
+	 * 
+	 * @param searchTerm
+	 * @return count {@code Long}
+	 */
+	Long getCountWithFilters(String searchTerm);
+
+	GenericMessage initializeCodeServer(String userId, String password, String type);
+
+	HttpStatus pollWorkBenchStatus(String userId);
+	
+	/**
+	 * To update/remove divisions from a user having role DivisionAdmin
+	 * if division value got updated/deleted then associated user should also get updated accordingly
+	 * 
+	 * @param divisionOldValue
+	 * @param divisionNewValue
+	 */
+	public void updateDivisionForUserRole(String divisionOldValue, String divisionNewValue);
 }

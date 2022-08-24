@@ -6,10 +6,13 @@ const Dotenv = require('dotenv-webpack');
 const path = require('path');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
+const fs = require('fs');
+const copyWebpackPlugin = require('copy-webpack-plugin');
+const ExternalTemplateRemotesPlugin = require("./ExternalTemplateRemotesPlugin");
 
 const CONTAINER_APP_URL = process.env.CONTAINER_APP_URL ? process.env.CONTAINER_APP_URL : 'http://localhost:9090';
 
-module.exports = {
+const base = {
   mode: 'development',
   devtool: 'inline-source-map',
   devServer: {
@@ -86,6 +89,15 @@ module.exports = {
         ],
         exclude: [path.resolve(__dirname, path.join('.', 'src'))],
       },
+      {
+        test: /config.js/,
+        use: [
+          {
+            loader: 'raw-loader',
+          },
+        ],
+        include: [path.resolve(__dirname, path.join('.', 'public'))],
+      }
     ],
   },
   plugins: [
@@ -115,7 +127,7 @@ module.exports = {
         './Bucket': './src/App',
       },
       remotes: {
-        'dna-container': `dna_container@${CONTAINER_APP_URL}/remoteEntry.js`,
+        'dna-container': `dna_container@[(window.STORAGE_INJECTED_ENVIRONMENT && window.STORAGE_INJECTED_ENVIRONMENT.CONTAINER_APP_URL || '${CONTAINER_APP_URL}')]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...deps,
@@ -132,9 +144,20 @@ module.exports = {
         },
       },
     }),
+    new ExternalTemplateRemotesPlugin(),
     new HtmlWebpackPlugin({
       template: './public/index.html',
       favicon: './src/appIcon/logo.png',
     }),
   ],
 };
+
+//copy config file part of build
+if (fs.existsSync(path.join(process.cwd(), 'public'))) {
+  base.plugins.push(
+    new copyWebpackPlugin({ patterns: [{ from: 'public/config.js', toType: 'dir' }] }),
+  );
+}
+
+
+module.exports = base;

@@ -55,10 +55,6 @@
                                 font-size: 9px;
                             }
                         }
-                        &:nth-child(4) {
-                            min-width: 180px;
-                            word-break: break-all;
-                        }
                         i {
                             right: 0;
                         }
@@ -74,6 +70,7 @@
                     justify-content: space-between;
                     width: 100%;
                     color: #99a5b3;
+                    margin-bottom: 5px;
                     div {
                         &:last-child {
                             display: flex;
@@ -95,9 +92,6 @@
                         i {
                             font-size: var(--font-size-icon-small);
                             right: 0;
-                        }
-                        &:nth-child(4) {
-                            word-break: break-all;
                         }
                         .actionBtn {
                             background-color: transparent;
@@ -123,7 +117,6 @@
                         .bucketTileCaption {
                             border-bottom: 1px solid #383f49;
                             padding: 9px 0;
-                            margin-bottom: 3px;
                         }
                         .noPermission {
                             color: #e84d47;
@@ -206,16 +199,16 @@
 .expansionLabel {
     .bucketTile {
         .bucketTitleCol {
-            &:nth-child(2) {
-                padding-left: 19px;
-            }
-            &:nth-child(3) {
-                min-width: 180px;
-                padding-left: 19px;
+            &:not(:first-child):not(:last-child) {
+                padding-left: 25px;
             }
         }
     }
 }
 .noCollaborators {
     font-size: var(--font-size-smallest);
+}
+
+.expansionpanelFirstCol {
+    max-width: 150px;
 }

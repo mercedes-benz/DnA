@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
           name: {{ include "airflow.name" . }}
+          namespace: {{ .Values.namespace }}
       annotations:
         checksum/configmap-git-sync: {{ include (print $.Template.BasePath "/configmap-git-sync.yaml") . | sha256sum }}
         checksum/configmap-git-sync-known-hosts: {{ include (print $.Template.BasePath "/configmap-git-sync-known-hosts.yaml") . | sha256sum }}

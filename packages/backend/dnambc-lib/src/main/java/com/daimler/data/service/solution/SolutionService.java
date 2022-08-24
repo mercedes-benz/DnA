@@ -27,34 +27,49 @@
 
 package com.daimler.data.service.solution;
 
+import java.util.Calendar;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.SolutionNsql;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.service.common.CommonService;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-
 public interface SolutionService extends CommonService<SolutionVO, SolutionNsql, String> {
 
 	enum TAG_CATEGORY {
-		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL;
+		TAG, DS, PLATFORM, LANG, ALGO, VISUALIZATION, RELATEDPRODUCT, SKILL, DIVISION;
 	}
 
 	List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder);
+			String division, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin, Boolean hasDigitalValue, Boolean hasNotebook, int offset, int limit,
+			String sortBy, String sortOrder);
 
-	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes, String division,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin,
+			Boolean hasDigitalValue, Boolean hasNotebook);
 
 	void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category);
 
 	void deleteInActiveSolutionsOlderThan(Calendar startDate);
 
 	List<ChangeLogVO> getChangeLogsBySolutionId(String id);
+
+	/**
+	 * update each solution.
+	 * 
+	 * @param oldValue
+	 * @param newValue
+	 * @param category
+	 * @param updateObject
+	 */
+	void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject);
+
+	ResponseEntity<GenericMessage> malwareScanUnsubscribe(String solutionId);
 }
