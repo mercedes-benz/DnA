@@ -1,63 +1,84 @@
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { BucketList } from './BucketList';
 import Styles from './Buckets.scss';
 
-import Tooltip from '../../common/modules/uilab/js/src/tooltip';
-import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
-
 // import from DNA Container
-import Modal from 'dna-container/Modal';
 import Pagination from 'dna-container/Pagination';
 
-const AllBuckets = () => {
-  const bucketList = useSelector((state) => state.bucket.bucketList);
+import { bucketActions } from './redux/bucket.actions';
 
-  const [modal, setModal] = useState(false);
-  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [maxItemsPerPage, setMaxItemsPerPage] = useState(
-    parseInt(sessionStorage.getItem('paginationMaxItemsPerPage'), 10) || 15,
-  );
-  const [bucketProjectListResponse, setBucketListResponse] = useState([]);
+/**
+ * List all buckets corresponding to the user
+ * @visibleName All Buckets
+ */
+const AllBuckets = () => {
+  const dispatch = useDispatch();
+  const {
+    bucketList,
+    pagination: { bucketListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
+  } = useSelector((state) => state.bucket);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
-    const modifiedData = bucketProjectListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    setBucketListResponse([...modifiedData]);
-    setCurrentPageNumber(currentPageNumberTemp);
+    const modifiedData = bucketListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
+    dispatch({
+      type: 'BUCKET_DATA',
+      payload: modifiedData,
+    });
+    dispatch({
+      type: 'SET_PAGINATION',
+      payload: {
+        currentPageNumber: currentPageNumberTemp,
+      },
+    });
   };
   const onPaginationNextClick = () => {
     let currentPageNumberTemp = currentPageNumber;
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
     currentPageNumberTemp = currentPageNumber + 1;
-    const modifiedData = bucketProjectListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    setBucketListResponse([...modifiedData]);
-    setCurrentPageNumber(currentPageNumberTemp);
+    const modifiedData = bucketListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
+    dispatch({
+      type: 'BUCKET_DATA',
+      payload: modifiedData,
+    });
+    dispatch({
+      type: 'SET_PAGINATION',
+      payload: {
+        currentPageNumber: currentPageNumberTemp,
+      },
+    });
   };
   const onViewByPageNum = (pageNum) => {
-    setMaxItemsPerPage(pageNum);
-    setCurrentPageNumber(1);
-    const totalNumberOfPages = Math.ceil(bucketProjectListResponse.length / pageNum);
-    setTotalNumberOfPages(totalNumberOfPages);
-    const modifiedData = bucketProjectListResponse.slice(0, pageNum);
-    setBucketListResponse([...modifiedData]);
+    const totalNumberOfPages = Math.ceil(bucketListResponse?.length / pageNum);
+    const modifiedData = bucketListResponse.slice(0, pageNum);
+    dispatch({
+      type: 'BUCKET_DATA',
+      payload: modifiedData,
+    });
+    dispatch({
+      type: 'SET_PAGINATION',
+      payload: {
+        totalNumberOfPages,
+        maxItemsPerPage: pageNum,
+        currentPageNumber: 1,
+      },
+    });
   };
 
   useEffect(() => {
-    ExpansionPanel.defaultSetup();
-    Tooltip.defaultSetup();
-  }, []);
+    dispatch(bucketActions.getBucketList());
+  }, [dispatch, maxItemsPerPage]);
 
   return (
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.caption)}>
-            <h3>{bucketList?.length ? 'List of Buckets' : 'Buckets'}</h3>
+            <h3>{'My Storage'}</h3>
           </div>
         </div>
         <div className={classNames(Styles.content)}>
@@ -65,12 +86,12 @@ const AllBuckets = () => {
             <div className={classNames(Styles.listHeader)}>
               <React.Fragment>
                 <div className={classNames(Styles.listHeaderContent)}>
-                  {bucketList.length ? (
+                  {bucketList?.length ? (
                     <React.Fragment>
                       <Link to="createBucket">
                         <button className={bucketList === null ? Styles.btnHide : 'btn btn-primary'} type="button">
                           <i className="icon mbc-icon plus" />
-                          <span>Create New Bucket</span>
+                          <span>Add New Bucket</span>
                         </button>
                       </Link>
                     </React.Fragment>
@@ -81,19 +102,24 @@ const AllBuckets = () => {
             <div className={Styles.listContent}>
               {bucketList?.length === 0 ? (
                 <>
+                  <div className={Styles.emptyBuckets}>
+                    <span>
+                      You don&apos;t have any storage accounts at this time.
+                      <br /> Please create a new one.
+                    </span>
+                  </div>
                   <div className={Styles.subscriptionListEmpty}>
-                    <span>You dont have any storage accounts at this time, please create one</span>
                     <br />
                     <Link to="createBucket">
                       <button className={'btn btn-tertiary'} type="button">
-                        <span>Create New Bucket</span>
+                        <span>Create a Storage Bucket</span>
                       </button>
                     </Link>
                   </div>
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <BucketList bucketList={bucketList} />
+                  <BucketList />
                   {bucketList?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
@@ -110,16 +136,6 @@ const AllBuckets = () => {
           </div>
         </div>
       </div>
-      {modal && (
-        <Modal
-          title="Create A New Bucket"
-          show={modal}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'60%'}
-          onCancel={() => setModal(false)}
-        />
-      )}
     </>
   );
 };

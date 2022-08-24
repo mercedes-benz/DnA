@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,8 +254,12 @@ public class LoginController {
 					ObjectMapper mapper = new ObjectMapper();
 					List roles = (List) claims.get("digiRole");
 					String role = null;
+					List<String> divisions = (List<String>) claims.get("divisionAdmins");
+					String divisionAdmins = null;
 					try {
 						role = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(roles.toArray())
+								.replaceAll("\n", "");
+						divisionAdmins = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(divisions)
 								.replaceAll("\n", "");
 					} catch (JsonProcessingException e) {
 						return new ResponseEntity<String>("{\"errmsg\": \"Error Parsing JWT!\"}",
@@ -264,8 +269,8 @@ public class LoginController {
 							+ "\",\"loggedIn\":\"Y\",\"data\":{\"roles\":" + role + ",\"department\":\""
 							+ claims.get("department") + "\",\"eMail\":\"" + claims.get("email") + "\",\"firstName\":\""
 							+ claims.get("firstName") + "\",\"lastName\":\"" + claims.get("lastName") + "\",\"id\":\""
-							+ claims.get("id") + "\",\"mobileNumber\":\"" + claims.get("mobileNumber") + "\"}}",
-							HttpStatus.OK);
+							+ claims.get("id") + "\",\"mobileNumber\":\"" + claims.get("mobileNumber")
+							+ "\",\"divisionAdmins\":" + divisionAdmins + "}}", HttpStatus.OK);
 				} else {
 					return new ResponseEntity<String>("{\"errmsg\": \"Invalid JWT!\"}", HttpStatus.BAD_REQUEST);
 				}
@@ -348,22 +353,25 @@ public class LoginController {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			UserInfo userInfo = mapper.readValue(response.getBody(), UserInfo.class);
-			UserInfoVO userVO = null;
-			try {
-				userVO = userInfoService.getById(userInfo.getId());
-			} catch (NoSuchElementException e) {
-				log.info("User not found, adding the user " + userInfo.getId());
+			LOGGER.info("Fetching user:{} from database.",userId);
+			UserInfoVO userVO = userInfoService.getById(userInfo.getId());
+			if(Objects.isNull(userVO)){
+				LOGGER.info("User not found, adding the user:{}",userInfo.getId());
+				LOGGER.debug("Setting default role as 'User' for: {}",userInfo.getId());
 				UserRoleNsql roleEntity = userRoleService.getRoleUser();
 				UserInfoRole userRole = new UserInfoRole();
 				userRole.setId(roleEntity.getId());
 				userRole.setName(roleEntity.getData().getName());
 				List<UserInfoRole> userRoleList = new ArrayList<>();
 				userRoleList.add(userRole);
+				//Setting entity to add new user
 				UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 				userEntity.setIsLoggedIn("Y");
+				LOGGER.debug("Onboarding new user:{}",userId);
 				userInfoService.addUser(userEntity);
 				userVO = userInfoAssembler.toVo(userEntity);
 			}
+
 			List<UserRoleVO> rolesVO = userVO.getRoles();
 			List<UserRole> userRoles = userInfoAssembler.toUserRoles(rolesVO);
 			List<UserRole> existingRoles = userInfo.getDigiRole();
@@ -371,32 +379,34 @@ public class LoginController {
 				existingRoles.addAll(userRoles);
 				userInfo.setDigiRole(existingRoles);
 			}
+			userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
 			return userInfo;
 		} catch (IOException e) {
 			log.error(e.getMessage());
 			return null;
 		}
 	}
-
+	
 	private UserInfo fetchOKTAUserInfo(String accessToken, String userId) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers.set("Authorization", "Bearer " + accessToken);
-		HttpEntity<String> request = new HttpEntity<String>(headers);
-
+		HttpEntity<String> request = new HttpEntity<>(headers);
+		LOGGER.info("Fetching user:{} from database.",userId);
 		ResponseEntity<String> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, String.class);
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			UserInfo userInfo = mapper.readValue(response.getBody(), UserInfo.class);
 			UserInfoVO userVO = null;
-			try {
-				userVO = userInfoService.getById(userInfo.getEmail());
-			} catch (NoSuchElementException e) {
-				log.info("User not found, adding the user " + userInfo.getEmail());
+			LOGGER.info("Fetching user information from db.");
+			userVO = userInfoService.getById(userInfo.getEmail());
+			if(Objects.isNull(userVO)) {
+				LOGGER.info("User not found, adding the user:{} ", userInfo.getEmail());
 				UserRoleNsql roleEntity = userRoleService.getRoleUser();
 				UserInfoRole userRole = new UserInfoRole();
 				userRole.setId(roleEntity.getId());
 				userRole.setName(roleEntity.getData().getName());
+				LOGGER.debug("Setting default role as 'Admin' for: {}",userInfo.getId());
 				if ("Admin".equalsIgnoreCase(USER_ROLE)) {
 					userRole.setId("3");
 					userRole.setName("Admin");
@@ -406,6 +416,7 @@ public class LoginController {
 				UserInfoNsql userEntity = userInfoAssembler.toEntity(userInfo, userRoleList);
 				userEntity.setId(userInfo.getEmail());
 				userEntity.setIsLoggedIn("Y");
+				LOGGER.debug("Onboarding new user:{}",userId);
 				userInfoService.addUser(userEntity);
 				userVO = userInfoAssembler.toVo(userEntity);
 			}
@@ -416,6 +427,7 @@ public class LoginController {
 				existingRoles.addAll(userRoles);
 				userInfo.setDigiRole(existingRoles);
 			}
+			userInfo.setDivisionAdmins(userVO.getDivisionAdmins());
 			return userInfo;
 		} catch (IOException e) {
 			log.error(e.getMessage());
@@ -515,6 +527,7 @@ public class LoginController {
 		private String mobileNumber;
 		private String department;
 		private List<UserRole> digiRole;
+		private List<String> divisionAdmins;
 
 		private String sub;
 		private boolean email_verified;

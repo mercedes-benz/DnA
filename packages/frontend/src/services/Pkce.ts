@@ -116,8 +116,8 @@ export class Pkce {
   }
 
   public static getLogoutUrl = () => {
-    if (process.env.OAUTH2_LOGOUT_URL) {
-      return process.env.OAUTH2_LOGOUT_URL;
+    if (Envs.OAUTH2_LOGOUT_URL) {
+      return Envs.OAUTH2_LOGOUT_URL;
     }
 
     console.warn('No logout url for' + window.location.hostname);
@@ -183,8 +183,8 @@ export class Pkce {
   }
 
   protected static getClientId = () => {
-    if (process.env.CLIENT_IDS) {
-      return process.env.CLIENT_IDS;
+    if (Envs.CLIENT_IDS) {
+      return Envs.CLIENT_IDS;
     }
 
     console.warn('No clientId for ' + window.location.hostname);
@@ -192,8 +192,8 @@ export class Pkce {
   };
 
   protected static getRedirectUrl = () => {
-    if (process.env.REDIRECT_URLS) {
-      return process.env.REDIRECT_URLS;
+    if (Envs.REDIRECT_URLS) {
+      return Envs.REDIRECT_URLS;
     }
 
     console.warn('No redirect url for' + window.location.hostname);
@@ -201,8 +201,8 @@ export class Pkce {
   };
 
   protected static getLoginAuthUrl = () => {
-    if (process.env.OAUTH2_AUTH_URL) {
-      return process.env.OAUTH2_AUTH_URL;
+    if (Envs.OAUTH2_AUTH_URL) {
+      return Envs.OAUTH2_AUTH_URL;
     }
 
     console.warn('No auth url for' + window.location.hostname);
@@ -210,8 +210,8 @@ export class Pkce {
   };
 
   protected static getLoginRevokeUrl = () => {
-    if (process.env.OAUTH2_REVOKE_URL) {
-      return process.env.OAUTH2_REVOKE_URL;
+    if (Envs.OAUTH2_REVOKE_URL) {
+      return Envs.OAUTH2_REVOKE_URL;
     }
 
     console.warn('No revoke url for' + window.location.hostname);
@@ -219,8 +219,8 @@ export class Pkce {
   };
 
   protected static getLoginTokenUrl = () => {
-    if (process.env.OAUTH2_TOKEN_URL) {
-      return process.env.OAUTH2_TOKEN_URL;
+    if (Envs.OAUTH2_TOKEN_URL) {
+      return Envs.OAUTH2_TOKEN_URL;
     }
 
     console.warn('No token url for' + window.location.hostname);

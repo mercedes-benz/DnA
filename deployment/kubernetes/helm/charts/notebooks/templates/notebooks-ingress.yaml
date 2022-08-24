@@ -1,15 +1,13 @@
----
+{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: notebooks-ingress
   namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: {{ .Values.cert.certManager}}
+    {{- toYaml . | nindent 4}}
+  {{- end }}
 spec:
   rules:
     - host: {{ .Values.ingress.host }}
@@ -20,5 +18,10 @@ spec:
                 name: proxy-public
                 port:
                   name: http
-            path: /notebooks
+            path: /
             pathType: Prefix
+  tls:
+    - hosts:
+      - {{ .Values.ingress.host }}
+      secretName: notebook-tls         
+{{- end }}

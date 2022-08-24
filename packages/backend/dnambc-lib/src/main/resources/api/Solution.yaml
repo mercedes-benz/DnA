@@ -125,7 +125,19 @@ paths:
           in: query
           description: tags to filter solutions. tags is comma seperated search keywords which are used to search Tags and ProductName of solutions. Example "BAT, java"
           required: false
-          type: string       
+          type: string 
+        - name: hasDigitalValue
+          in: query
+          description: Filtering solutions based on digital value, values true or false
+          required: false
+          type: boolean
+          default: false
+        - name: hasNotebook
+          in: query
+          description: Filtering solutions based on notebook value, values true or false
+          required: false
+          type: boolean
+          default: false                
         - name: offset
           in: query
           description: page number from which listing of solutions should start. Offset. Example 2
@@ -331,7 +343,43 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"         
+          description: "Internal error"  
+          
+  # Unsubscribe Malware Scan for a given solutionId
+  #
+  #  Supported http methods PUT
+  #
+  # path example ../malwarescan/unsubscribe/{solutionId}
+  /malwarescan/unsubscribe/{solutionId}:
+    put:
+      tags:
+        - "solutions"
+      summary: "Unsubscribe Malware Scan for a given solutionId"
+      description: "Unsubscribe Malware Scan for a given solutionId"
+      operationId: "unsubscribeMalwareScan"
+      parameters:
+        - name: "solutionId"
+          in: "path"
+          description: "Solution ID"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"                 
 
 definitions:
   SolutionVO:
@@ -500,11 +548,21 @@ definitions:
       dataSources:
         type: array
         items:
-          type: string
+          $ref: "#/definitions/DataSourceSummaryVO"
       #     pattern: '^[^\W_]+(?: [^\W_]+)*$'
       dataVolume:
         $ref: "#/definitions/DataVolumeVO"
         description: "DataVolume size for this DataSource"
+         
+  DataSourceSummaryVO:
+    type: object
+    properties:      
+      dataSource:
+        type: string
+        description: "Data source name"
+      weightage:
+        type: number
+        description: "Weightage of data source in %"
 
   MilestoneVO:
     type: object

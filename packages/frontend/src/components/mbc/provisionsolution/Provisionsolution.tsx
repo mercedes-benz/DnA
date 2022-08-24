@@ -310,6 +310,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         });
       });
     }
+    ProgressIndicator.show();
     ApiClient.getCreateNewSolutionData().then((response) => {
       if (response) {
         const locations = response[0];
@@ -378,6 +379,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           },
           () => {
             SelectBox.defaultSetup();
+            ProgressIndicator.hide();
           },
         );
       }

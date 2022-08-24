@@ -186,7 +186,7 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
             {!solution.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
           <td className="wrap-text">{solution.currentPhase ? solution.currentPhase.name : ''}</td>
-          <td>{solution.division.name}</td>
+          <td>{solution.division?.name || 'N/A'}</td>
           {this.props.showDigitalValue ? (
             <td>
               {solution.digitalValue && solution.digitalValue.digitalValue

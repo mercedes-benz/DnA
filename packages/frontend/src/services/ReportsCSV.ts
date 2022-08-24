@@ -1,6 +1,7 @@
 import { Data } from 'react-csv/components/CommonPropTypes';
 import { IAllReportsResultCSV, IReportFilterParams } from '../globals/types';
 import { ReportsApiClient } from './ReportsApiClient';
+import { getDivisionsQueryValue } from './utils';
 
 export const getDataForCSV = (
   queryParams: IReportFilterParams,
@@ -44,44 +45,8 @@ export const getDataForCSV = (
   let processOwners = queryParams.processOwners?.join(',');
   let productOwners = queryParams.productOwners?.join(',');
   let departments = queryParams.departments?.join(',');
+  const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
 
-  let divisionIds = queryParams.division.join(',');
-
-  if (queryParams.division.length > 0) {
-    const distinctSelectedDivisions = queryParams.division;
-    const tempArr: any[] = [];
-    distinctSelectedDivisions.forEach((item) => {
-      const tempString = '{' + item + ',[]}';
-      tempArr.push(tempString);
-    });
-    divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-  }
-
-  if (queryParams.subDivision.length > 0) {
-    const distinctSelectedDivisions = queryParams.division;
-    const tempArr: any[] = [];
-    distinctSelectedDivisions.forEach((item) => {
-      const tempSubdiv = queryParams.subDivision.map((value) => {
-        const tempArray = value.split('-');
-        if (item === tempArray[1]) {
-          return tempArray[0];
-        }
-      });
-      let tempString = '';
-
-      if (tempSubdiv.length === 0) {
-        tempString += '{' + item + ',[]}';
-      } else {
-        tempString += '{' + item + ',[' + tempSubdiv?.filter((div) => div) + ']}';
-      }
-
-      tempArr.push(tempString);
-    });
-    divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-  }
-  if (queryParams.division.length === 0) {
-    divisionIds = '';
-  }
   if (queryParams.agileReleaseTrains.length === numberOfSelectedArts) {
     agileReleaseTrains = '';
   }

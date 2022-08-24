@@ -61,6 +61,7 @@ export interface INotebookInfo {
   name: string;
   description: string;
   createdOn?: string;
+  createdBy?: IUserInfo;
 }
 export interface INotebookInfoSolutionId {
   name: string;
@@ -112,6 +113,8 @@ export interface IProjectType {
 export interface ITag {
   id: string;
   name: string;
+  dataType?: null | string;
+  source?: null | string;
 }
 
 export interface IDigiUsecase extends IUsecase {
@@ -292,6 +295,7 @@ export interface IUserInfo {
   department: string;
   favoriteUsecases?: IUserFavoriteUseCase[];
   roles?: IRole[];
+  divisionAdmins?: string[];
 }
 export interface IUserRequestVO {
   data: IUserInfo;
@@ -378,6 +382,16 @@ export interface IDivision {
   name: string;
 }
 
+export interface IManageDivisionRequest {
+  data: IManageDivision;
+}
+
+export interface IManageDivision {
+  id: string;
+  name: string;
+  subdivisions: ISubDivision[];
+}
+
 export interface IDivisionFilterPreference {
   id: string;
   name: string;
@@ -402,13 +416,20 @@ export interface IKpi {
 }
 
 export interface IDataSource {
-  dataSources?: string[];
+  dataSources?: IDataSources[];
   dataVolume?: IDataVolume;
+}
+
+export interface IDataSources {
+  dataSource: string;
+  weightage: number;
 }
 
 export interface IDataSourceMaster {
   id: number;
   name?: string;
+  source?: string;
+  dataType: string;
 }
 
 export interface IPlatform {
@@ -761,6 +782,9 @@ export interface IDataikuCheckListItem {
 export interface ICreateNewSolutionRequest {
   data: ICreateNewSolution;
 }
+export interface IDataComplianceRequest {
+  data: IEntity;
+}
 export interface ICreateNewReportRequest {
   data: ICreateNewReport;
 }
@@ -820,6 +844,20 @@ export interface INeededRoleObject {
   neededSkill: string;
   requestedFTECount: string;
   toDate: string;
+}
+
+export interface IEntity {
+  dataProtectionCoordinator: string[];
+  entityId: string;
+  entityName: string;
+  localComplianceOfficer: string[];
+  localComplianceResponsible: string[];
+  localComplianceSpecialist: string[];
+  createdDate?: string;
+  id?: string;
+  lastModifiedDate?: string;
+  createdBy?: IUserInfo;
+  modifiedBy?: IUserInfo;
 }
 
 export interface IAllSolutionsListItemCSV {
@@ -1016,12 +1054,14 @@ export interface IFilterPreferences {
 
 
 export interface INoticationModules {  
-  solutionNotificationPref: INoticationEnableDisable;
-  notebookNotificationPref: INoticationEnableDisable;
+  solutionNotificationPref: INotificationEnableDisable;
+  notebookNotificationPref: INotificationEnableDisable;
+  dashboardNotificationPref: INotificationEnableDisable;
+  persistenceNotificationPref: INotificationEnableDisable;
   userId: string;
 }
 
-export interface INoticationEnableDisable {
+export interface INotificationEnableDisable {
   enableAppNotifications: boolean;
   enableEmailNotifications: boolean;
 }
@@ -1216,6 +1256,9 @@ export interface ITagResult {
   name: string;
   category: IFitlerCategory;
   datawareHouseItems?: IDatawarehouseInItem;
+  subdivisions?: ISubDivision[];
+  source?: string;
+  dataType?: string;
 }
 export interface IRelatedProduct {
   id: string;

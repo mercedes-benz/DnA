@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "dna-mbc",
-  "version": "3.0.0",
+  "version": "3.0.2",
   "main": "index.js",
   "workspaces": [
     "packages/*"
@@ -16,6 +16,7 @@
     "start:web+backend": "concurrently \"yarn start:backend\" \"yarn start:airflow_backend\" \"yarn start:dashboard_backend\" \"yarn start:web\" ",
 	  "start:airflow_backend": "cd packages/airflow-backend && ./gradlew bootRun",
     "start:web": "cd packages/frontend && yarn start",
+    "start:storage-mfe": "cd packages/storage-mfe && yarn start",
     "start:legacy": "cd packages/frontend && yarn start:legacy",
     "start:backend": "cd packages/backend && ./gradlew bootRun",
     "start:db+swagger": "cd deployment && docker-compose -f docker-compose-local-db+swagger.yml up -d",
@@ -26,6 +27,7 @@
     "lint": "cd packages/frontend && eslint src/**/*.{ts,tsx} --ignore-pattern \"/**/*.{d.ts,js}\" --ignore-pattern \"./deployment/dockerfiles/kubeflow/*\"",
     "lint:fix": "yarn run lint --fix --max-warnings=0",
     "start:dashboard_backend": "cd packages/dashboard-backend && ./gradlew bootRun",
+    "start:storage_backend": "cd packages/storage-backend && ./gradlew bootRun",
     "pre-commit": "lint-staged"
   },
   "lint-staged": {

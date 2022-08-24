@@ -8,7 +8,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { history } from '../../../../router/History';
 import { IDescriptionRequest } from '../../createNewSolution/description/Description';
 import AttachmentsListItem from '../datacompliance/attachments/AttachmentsListItems';
-import { getDateTimeFromTimestamp } from '../../../../services/utils';
+import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import Styles from './DescriptionSummary.scss';
 
 const classNames = cn.bind(Styles);
@@ -18,6 +18,7 @@ export interface IDescriptionSummaryProps {
   description: IDescriptionRequest;
   canEdit: boolean;
   bookmarked: boolean;
+  isPublished: boolean;
   createdDate?: string;
   lastModifiedDate?: string;
   onEdit: (solutionId: string) => void;
@@ -200,26 +201,48 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     </li>
                   )}
                   <li className="contextListItem">
-                    <PDFDownloadLink
-                      document={this.props.onExportToPDFDocument}
-                      className={Styles.pdfLink}
-                      fileName={`${pdfFileName}.pdf`}
-                    >
-                      {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
-                    </PDFDownloadLink>
+                    {// @ts-ignore
+                      <PDFDownloadLink
+                        document={this.props.onExportToPDFDocument}
+                        className={Styles.pdfLink}
+                        fileName={`${pdfFileName}.pdf`}
+                      >
+                        {(doc: any) => (doc.loading ? 'Loading...' : 'Export to PDF')}
+                      </PDFDownloadLink>
+                    }
                   </li>
                 </ul>
               </div>
             </div>
             <h3 id="productName">{description.productName}</h3>
             <span className={Styles.description}>Solution Summary</span>
+            {!this.props.isPublished && <span className={Styles.draftIndicator}>DRAFT</span>}
             <div className={Styles.firstPanel}>
               <div className={Styles.formWrapper}>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="productDescription">
                     <label className="input-label summary">Description</label>
-                    <br />
-                    <div className={Styles.solutionDescription}>{description.description}</div>
+                    <br />                    
+                    <div className={Styles.solutionDescription}>
+                      <pre className={Styles.solutionPre}>
+                        {description.description}
+                      </pre>
+                    </div>
+                    
+                    {/* <div
+                      id="descriptionContainer"
+                      className={classNames(
+                        'input-field-group include-error area'
+                      )}
+                    >
+                      <textarea
+                        className="input-field-area"
+                        rows={50}
+                        id="description"
+                        value={description.description}
+                      />
+                    </div> */}
+                    
                   </div>
                   <div id="tags">
                     <label className="input-label summary">Tags</label>
@@ -237,7 +260,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {description.division.name}
+                    {description.division?.name || 'N/A'}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>
@@ -293,12 +316,12 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="createdAt">
                     <label className="input-label summary">Created On</label>
                     <br />
-                    {this.props.createdDate ? getDateTimeFromTimestamp(this.props.createdDate) : '-'}
+                    {this.props.createdDate ? regionalDateAndTimeConversionSolution(this.props.createdDate) : '-'}
                   </div>
                   <div id="lastModifiedAt">
                     <label className="input-label summary">Last Modified On</label>
                     <br />
-                    {this.props.lastModifiedDate ? getDateTimeFromTimestamp(this.props.lastModifiedDate) : '-'}
+                    {this.props.lastModifiedDate ? regionalDateAndTimeConversionSolution(this.props.lastModifiedDate) : '-'}
                   </div>
                 </div>
                 <hr className="divider1" />
@@ -306,12 +329,16 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                   <div id="expectedBenefits">
                     <label className="input-label summary">Expected Benefits</label>
                     <br />
-                    <div> {description.expectedBenefits}</div>
+                    <div> 
+                      <pre className={Styles.solutionPre}>{description.expectedBenefits}</pre>
+                    </div>
                   </div>
                   <div id="businessNeeds">
                     <label className="input-label summary">Business Need</label>
                     <br />
-                    <div> {description.businessNeeds}</div>
+                    <div> 
+                      <pre className={Styles.solutionPre}>{description.businessNeeds}</pre>
+                    </div>
                   </div>
                 </div>
                 {description.status.id === '4' || description.status.id === '5' ? (

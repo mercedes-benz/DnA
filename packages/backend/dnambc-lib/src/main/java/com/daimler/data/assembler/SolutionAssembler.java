@@ -27,24 +27,23 @@
 
 package com.daimler.data.assembler;
 
-import com.daimler.data.db.entities.SolutionNsql;
-import com.daimler.data.db.jsonb.SubDivision;
-import com.daimler.data.db.jsonb.solution.*;
-import com.daimler.data.dto.algorithm.AlgorithmVO;
-import com.daimler.data.dto.attachment.FileDetailsVO;
-import com.daimler.data.dto.datavolume.DataVolumeVO;
-import com.daimler.data.dto.language.LanguageVO;
-import com.daimler.data.dto.platform.PlatformVO;
-import com.daimler.data.dto.result.ResultVO;
-import com.daimler.data.dto.solution.*;
-import com.daimler.data.dto.solution.TeamMemberVO.UserTypeEnum;
-import com.daimler.data.dto.visualization.VisualizationVO;
-import com.daimler.data.util.ConstantsUtility;
-import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
-import com.google.common.collect.MapDifference.ValueDifference;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,22 +52,90 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import com.daimler.data.db.entities.SolutionNsql;
+import com.daimler.data.db.jsonb.SubDivision;
+import com.daimler.data.db.jsonb.solution.AssessmentDetails;
+import com.daimler.data.db.jsonb.solution.CalculatedDigitalValue;
+import com.daimler.data.db.jsonb.solution.ChangeLogs;
+import com.daimler.data.db.jsonb.solution.CostDriver;
+import com.daimler.data.db.jsonb.solution.CostFactorSummary;
+import com.daimler.data.db.jsonb.solution.CreatedBy;
+import com.daimler.data.db.jsonb.solution.CurrentPhase;
+import com.daimler.data.db.jsonb.solution.Factor;
+import com.daimler.data.db.jsonb.solution.FileDetails;
+import com.daimler.data.db.jsonb.solution.LogoDetails;
+import com.daimler.data.db.jsonb.solution.RampUpYear;
+import com.daimler.data.db.jsonb.solution.SkillSummary;
+import com.daimler.data.db.jsonb.solution.Solution;
+import com.daimler.data.db.jsonb.solution.SolutionAlgorithm;
+import com.daimler.data.db.jsonb.solution.SolutionComplianceLink;
+import com.daimler.data.db.jsonb.solution.SolutionDataCompliance;
+import com.daimler.data.db.jsonb.solution.SolutionDataVolume;
+import com.daimler.data.db.jsonb.solution.SolutionDatasource;
+import com.daimler.data.db.jsonb.solution.SolutionDigitalValue;
+import com.daimler.data.db.jsonb.solution.SolutionDivision;
+import com.daimler.data.db.jsonb.solution.SolutionLanguage;
+import com.daimler.data.db.jsonb.solution.SolutionLocation;
+import com.daimler.data.db.jsonb.solution.SolutionMilestone;
+import com.daimler.data.db.jsonb.solution.SolutionPhase;
+import com.daimler.data.db.jsonb.solution.SolutionPlatform;
+import com.daimler.data.db.jsonb.solution.SolutionProjectStatus;
+import com.daimler.data.db.jsonb.solution.SolutionResult;
+import com.daimler.data.db.jsonb.solution.SolutionRollOut;
+import com.daimler.data.db.jsonb.solution.SolutionRollOutDetail;
+import com.daimler.data.db.jsonb.solution.SolutionTeamMember;
+import com.daimler.data.db.jsonb.solution.SolutionVisualization;
+import com.daimler.data.db.jsonb.solution.ValueCalculator;
+import com.daimler.data.db.jsonb.solution.ValueDriver;
+import com.daimler.data.db.jsonb.solution.ValueFactorSummary;
+import com.daimler.data.dto.algorithm.AlgorithmVO;
+import com.daimler.data.dto.attachment.FileDetailsVO;
+import com.daimler.data.dto.datavolume.DataVolumeVO;
+import com.daimler.data.dto.language.LanguageVO;
+import com.daimler.data.dto.platform.PlatformVO;
+import com.daimler.data.dto.result.ResultVO;
+import com.daimler.data.dto.solution.AssessmentDetailsVO;
+import com.daimler.data.dto.solution.CalculatedDigitalValueVO;
+import com.daimler.data.dto.solution.CalculatedValueRampUpYearVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.solution.CostFactorSummaryVO;
+import com.daimler.data.dto.solution.CostFactorVO;
+import com.daimler.data.dto.solution.CostRampUpYearVO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.DataSourceSummaryVO;
+import com.daimler.data.dto.solution.LinkVO;
+import com.daimler.data.dto.solution.LogoDetailsVO;
+import com.daimler.data.dto.solution.MilestoneVO;
+import com.daimler.data.dto.solution.SkillSummaryVO;
+import com.daimler.data.dto.solution.SolutionAnalyticsVO;
+import com.daimler.data.dto.solution.SolutionCollection;
+import com.daimler.data.dto.solution.SolutionCurrentPhase;
+import com.daimler.data.dto.solution.SolutionDataComplianceVO;
+import com.daimler.data.dto.solution.SolutionDataSourceVO;
+import com.daimler.data.dto.solution.SolutionDigitalValueVO;
+import com.daimler.data.dto.solution.SolutionDivisionVO;
+import com.daimler.data.dto.solution.SolutionLocationVO;
+import com.daimler.data.dto.solution.SolutionMilestonePhaseVO;
+import com.daimler.data.dto.solution.SolutionPhaseVO;
+import com.daimler.data.dto.solution.SolutionPortfolioVO;
+import com.daimler.data.dto.solution.SolutionProjectStatusVO;
+import com.daimler.data.dto.solution.SolutionRolloutDetailsVO;
+import com.daimler.data.dto.solution.SolutionRolloutPhaseVO;
+import com.daimler.data.dto.solution.SolutionSharingVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.solution.TeamMemberVO;
+import com.daimler.data.dto.solution.TeamMemberVO.UserTypeEnum;
+import com.daimler.data.dto.solution.ValueCalculatorVO;
+import com.daimler.data.dto.solution.ValueFactorSummaryVO;
+import com.daimler.data.dto.solution.ValueFactorVO;
+import com.daimler.data.dto.solution.ValueRampUpYearVO;
+import com.daimler.data.dto.visualization.VisualizationVO;
+import com.daimler.data.util.ConstantsUtility;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.MapDifference.ValueDifference;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 @Component
 public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionNsql> {
@@ -211,8 +278,9 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			SolutionDataSourceVO datasourcesVO = new SolutionDataSourceVO();
 			List<SolutionDatasource> datasources = solution.getDataSources();
 			if (datasources != null && !datasources.isEmpty()) {
-				List<String> datasourceNames = datasources.stream().map(n -> n.getName()).collect(Collectors.toList());
-				datasourcesVO.setDataSources(datasourceNames);
+				List<DataSourceSummaryVO> datasourcesSummary = datasources.stream().map(n -> toDataSourceSummaryVO(n))
+						.toList();
+				datasourcesVO.setDataSources(datasourcesSummary);
 			}
 			SolutionDataVolume dataVolume = solution.getTotalDataVolume();
 			DataVolumeVO dataVolumeVO = new DataVolumeVO();
@@ -515,21 +583,35 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			solutionPortfolioVO.setDnaDataikuProjectId(solution.getDataikuProjectKey());
 			solutionPortfolioVO.setDnaSubscriptionAppId(solution.getDnaSubscriptionAppId());
 			vo.setPortfolio(solutionPortfolioVO);
-			
-			//Setting SkillSummaryVO
-			if(!ObjectUtils.isEmpty(solution.getSkills())) {
-				List<SkillSummaryVO> skillsVO  = solution.getSkills().stream().map(n -> toSkillSummaryVO(n))
+
+			// Setting SkillSummaryVO
+			if (!ObjectUtils.isEmpty(solution.getSkills())) {
+				List<SkillSummaryVO> skillsVO = solution.getSkills().stream().map(n -> toSkillSummaryVO(n))
 						.collect(Collectors.toList());
 				vo.setSkills(skillsVO);
 			}
-			
+
 			vo.setId(entity.getId());
 		}
 		return vo;
 	}
 
 	/*
-	 * To convert SkillSummary to SkillSummaryVO 
+	 * To convert SolutionDatasource to DataSourceSummaryVO
+	 */
+	private DataSourceSummaryVO toDataSourceSummaryVO(SolutionDatasource solutionDatasource) {
+		DataSourceSummaryVO dataSourceSummaryVO = null;
+		if (solutionDatasource != null) {
+			dataSourceSummaryVO = new DataSourceSummaryVO();
+			dataSourceSummaryVO.setDataSource(solutionDatasource.getName());
+			dataSourceSummaryVO.setWeightage(
+					solutionDatasource.getWeightage() != null ? solutionDatasource.getWeightage() : BigDecimal.ZERO);
+		}
+		return dataSourceSummaryVO;
+	}
+	
+	/*
+	 * To convert SkillSummary to SkillSummaryVO
 	 * 
 	 */
 	private SkillSummaryVO toSkillSummaryVO(SkillSummary skillSummary) {
@@ -540,7 +622,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 		}
 		return skillSummaryVO;
 	}
-	
+
 	private TeamMemberVO toTeamMemberVO(SolutionTeamMember teamMember) {
 		TeamMemberVO teamMemberVO = new TeamMemberVO();
 		if (teamMember != null) {
@@ -831,14 +913,12 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 			List<SolutionDatasource> datasources = new ArrayList<>();
 			SolutionDataVolume totalDataVolume = new SolutionDataVolume();
 			if (dataSourcesVO != null) {
-				List<String> datasourcesNames = dataSourcesVO.getDataSources();
-				if (datasourcesNames != null && !datasourcesNames.isEmpty()) {
-					datasources = datasourcesNames.stream().map(n -> {
-						SolutionDatasource dataSource = new SolutionDatasource();
-						dataSource.setName(n);
-						return dataSource;
-					}).collect(Collectors.toList());
-				}
+				List<DataSourceSummaryVO > datasourcesNames = dataSourcesVO.getDataSources();
+				Optional.ofNullable(datasourcesNames).ifPresent(l -> l.forEach(dataSourceSummaryVO -> {
+					SolutionDatasource solutionDatasource = new SolutionDatasource();
+					solutionDatasource = this.toSolutionDatasource(dataSourceSummaryVO);
+					datasources.add(solutionDatasource);
+				}));
 				DataVolumeVO dataVolumeVO = dataSourcesVO.getDataVolume();
 				if (dataVolumeVO != null)
 					BeanUtils.copyProperties(dataVolumeVO, totalDataVolume);
@@ -1074,14 +1154,13 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 				}
 				solution.setPlatforms(platforms);
 			}
-			
-			//Setting SkillSummary
-			if(!ObjectUtils.isEmpty(vo.getSkills())) {
+
+			// Setting SkillSummary
+			if (!ObjectUtils.isEmpty(vo.getSkills())) {
 				List<SkillSummary> skills = vo.getSkills().stream().map(n -> toSkillSummary(n))
 						.collect(Collectors.toList());
 				solution.setSkills(skills);
 			}
-			
 
 			entity.setData(solution);
 		}
@@ -1089,17 +1168,30 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	}
 
 	/*
+	 * To convert 
+	 */
+	private SolutionDatasource toSolutionDatasource(DataSourceSummaryVO vo) {
+		SolutionDatasource solutionDatasource = null;
+		if (vo != null) {
+			solutionDatasource = new SolutionDatasource();
+			solutionDatasource.setName(vo.getDataSource());
+			solutionDatasource.setWeightage(vo.getWeightage());
+		}
+		return solutionDatasource;
+	}
+	
+	/*
 	 * Converting SkillSummaryVO to SkillSummary (vo to entity)
 	 */
 	private SkillSummary toSkillSummary(SkillSummaryVO skillSummaryVO) {
 		SkillSummary skillSummary = null;
-		if(skillSummaryVO!=null) {
+		if (skillSummaryVO != null) {
 			skillSummary = new SkillSummary();
 			BeanUtils.copyProperties(skillSummaryVO, skillSummary);
 		}
 		return skillSummary;
 	}
-	
+
 	public SolutionCollection applyBookMarkflag(List<SolutionVO> solutionVOListVO, List<String> bookmarkedSolutions,
 			String userId) {
 		if (solutionVOListVO != null && solutionVOListVO.size() > 0) {
@@ -1447,7 +1539,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 
 		return request;
 	}
-	
+
 	/**
 	 * Simple GSON based json objects compare and difference provider
 	 * 
@@ -1456,8 +1548,7 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 	 * @param currentUser
 	 * @return
 	 */
-	public List<ChangeLogVO> jsonObjectCompare(Object request, Object existing,
-			CreatedByVO currentUser) {
+	public List<ChangeLogVO> jsonObjectCompare(Object request, Object existing, CreatedByVO currentUser) {
 		Gson gson = new Gson();
 		Type type = new TypeToken<Map<String, Object>>() {
 		}.getType();
@@ -1577,6 +1668,16 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 		return Stream.of(entry);
 	}
 
+	private String toHumanReadableFormat(String raw) {
+		if (raw != null) {
+			String seperated = raw.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])",
+					"(?<=[^A-Z])(?=[A-Z])", "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+			String formatted = Character.toUpperCase(seperated.charAt(0)) + seperated.substring(1);
+			return formatted;
+		} else
+			return raw;
+	}
+
 	/**
 	 * toChangeDescription convert given keyString to changeDescription
 	 * 
@@ -1595,36 +1696,39 @@ public class SolutionAssembler implements GenericAssembler<SolutionVO, SolutionN
 		if (keySet.length > 0) {
 			fieldValue = ConstantsUtility.staticMap.get(keySet[0]) != null ? ConstantsUtility.staticMap.get(keySet[0])
 					: keySet[0];
+			fieldValue = toHumanReadableFormat(fieldValue);
 			changeDescription.append(fieldValue + ": ");
 		}
+		boolean flag = false;
 		for (int i = (keySet.length - 1), index = keySet.length; i >= 0; i--) {
-			if (keySet[i].matches("[0-9]")) {
+			if (!keySet[i].matches("[0-9]") && !flag) {
+				String keySetField = ConstantsUtility.staticMap.get(keySet[i]) != null
+						? ConstantsUtility.staticMap.get(keySet[i])
+						: keySet[i];
+				changeDescription.append(toHumanReadableFormat(keySetField));
+				flag = true;
+			} else if (keySet[i].matches("[0-9]")) {
 				indexValue = Integer.parseInt(keySet[i]) + 1;
 				at = " at index " + String.valueOf(indexValue);
 				index = i;
-			} else if (i == (keySet.length - 1)) {
-				changeDescription.append(
-						ConstantsUtility.staticMap.get(keySet[i]) != null ? ConstantsUtility.staticMap.get(keySet[i])
-								: keySet[i]);
 			} else {
-				changeDescription.append(" of "
-						+ (ConstantsUtility.staticMap.get(keySet[i]) != null ? ConstantsUtility.staticMap.get(keySet[i])
-								: keySet[i]));
+				String keySetField = (ConstantsUtility.staticMap.get(keySet[i]) != null
+						? ConstantsUtility.staticMap.get(keySet[i])
+						: keySet[i]);
+				changeDescription.append(" of " + toHumanReadableFormat(keySetField));
 			}
-
 			if (StringUtils.hasText(at) && index != i) {
-				// changeDescription.append(at);
-				changeDescription.append(" " + String.valueOf(indexValue));
+				changeDescription.append(at);
 				at = null;
 			}
 
 		}
 		if (!StringUtils.hasText(fromValue)) {
-			changeDescription.append(" as `" + toValue + "` added ");
+			changeDescription.append(" `" + toValue + "` added . ");
 		} else if (!StringUtils.hasText(toValue)) {
-			changeDescription.append(" as `" + fromValue + "` removed ");
+			changeDescription.append(" `" + fromValue + "` removed . ");
 		} else {
-			changeDescription.append(" changed from `" + fromValue + "` to `" + toValue + "`");
+			changeDescription.append(" changed from `" + fromValue + "` to `" + toValue + "` .");
 		}
 
 		return changeDescription.toString();

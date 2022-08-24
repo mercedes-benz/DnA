@@ -24,10 +24,12 @@ class SelectBox {
     Array.from(selectBoxes).forEach((selectBox) => {
       // const selectItemVisible: Element = selectBox.querySelector('.select-selected');
       selectBox.setAttribute('tabIndex', '0');
-      selectBox.removeEventListener('focus', this.focusSelectBox);
-      selectBox.addEventListener('focus', this.focusSelectBox);
-      selectBox.removeEventListener('blur', this.blurSelectBox);
-      selectBox.addEventListener('blur', this.blurSelectBox);
+      selectBox.removeEventListener('focus', this.focusSelectBox, true);
+      selectBox.addEventListener('focus', this.focusSelectBox, true);
+      selectBox.removeEventListener('blur', this.blurSelectBox, true);
+      selectBox.addEventListener('blur', this.blurSelectBox, true);
+      selectBox.removeEventListener('mouseup', this.mousedownSelectBox);
+      selectBox.addEventListener('mouseup', this.mousedownSelectBox);
       const selectItemElements: NodeListOf<Element> = selectBox.querySelectorAll('.select-items');
       Array.from(selectItemElements).forEach((item) => {
         const selectElement: HTMLSelectElement = item.parentNode.querySelector('select');
@@ -53,11 +55,11 @@ class SelectBox {
 
           allCheckBox.tabIndex = -1;
 
-          allCheckBox.removeEventListener('focus', this.focusSelectBox);
-          allCheckBox.addEventListener('focus', this.focusSelectBox);
+          // allCheckBox.removeEventListener('focus', this.focusSelectBox);
+          // allCheckBox.addEventListener('focus', this.focusSelectBox);
 
-          allCheckBox.removeEventListener('blur', this.blurSelectBox);
-          allCheckBox.addEventListener('blur', this.blurSelectBox);
+          // allCheckBox.removeEventListener('blur', this.blurSelectBox);
+          // allCheckBox.addEventListener('blur', this.blurSelectBox);
 
           const labelValues: string[] = [];
 
@@ -73,11 +75,11 @@ class SelectBox {
 
             optionCheckBox.tabIndex = -1;
 
-            optionCheckBox.removeEventListener('focus', this.focusSelectBox);
-            optionCheckBox.addEventListener('focus', this.focusSelectBox);
+            // optionCheckBox.removeEventListener('focus', this.focusSelectBox);
+            // optionCheckBox.addEventListener('focus', this.focusSelectBox);
 
-            optionCheckBox.removeEventListener('blur', this.blurSelectBox);
-            optionCheckBox.addEventListener('blur', this.blurSelectBox);
+            // optionCheckBox.removeEventListener('blur', this.blurSelectBox);
+            // optionCheckBox.addEventListener('blur', this.blurSelectBox);
           });
 
           if (labelValues.length) {
@@ -137,7 +139,13 @@ class SelectBox {
           }
           selectedOption = item.querySelector(`div:nth-child(${selectElement.selectedIndex + 1}`);
           if (selectedOption) {
-            selectedOption.classList.add('same-as-selected');
+            const selectedLabel = item.parentNode.querySelector('div.select-selected span').textContent;
+            Array.from(item.parentNode.querySelector(`div.select-items`)?.childNodes)?.forEach((item:Element) => {
+              if (item.textContent === selectedLabel) {
+                item.classList.add('same-as-selected')
+              }
+            })
+            // selectedOption.classList.add('same-as-selected');
           }
           // console.log(item.querySelector(`div:nth-child(${selectElement.selectedIndex + 1}`));
         }
@@ -155,15 +163,6 @@ class SelectBox {
       element.remove();
       elementIndex++;
     }
-    // const selectElements: HTMLCollectionOf<Element> = document.getElementsByClassName('select-selected');
-    // Array.from(selectElements).forEach((element) => {
-    //   element.remove();
-    // });
-
-    // const selectItemElements: HTMLCollectionOf<Element> = document.getElementsByClassName('select-items');
-    // Array.from(selectItemElements).forEach((element) => {
-    //   element.remove();
-    // });
   }
 
   protected static dispatchReactOnChangeEvent(selectElement: HTMLSelectElement) {
@@ -189,17 +188,15 @@ class SelectBox {
 
     let showError = selectElem.selectedIndex === 0;
     if (selectElem.multiple) {
-      if (e.currentTarget.tagName === 'INPUT') {
+      if (e.currentTarget.tagName === 'INPUT' || e.currentTarget.classList.contains('custom-select')) {
         showError = selectElem.selectedIndex === -1;
+      } else if (fieldGroupDiv.classList.contains('error')) {
+        showError = true;
       } else if (showError) {
         showError = false;
-      } else {
-        showError = selectElem.selectedIndex === -1;
       }
-
       SelectBox.setClearDDLSearchTimeout(fieldGroupDiv);
     }
-
     if (selectElem.hasAttribute('required') && showError) {
       fieldGroupDiv.classList.add('error');
 
@@ -220,6 +217,21 @@ class SelectBox {
         fieldGroupDiv.removeChild(errorMsgElem);
       }
     }
+  }
+
+  protected static mousedownSelectBox(e: any) {
+    setTimeout(() => {
+      const fieldGroupDiv = e.target.closest('.input-field-group');
+      const selectElem = fieldGroupDiv.querySelector('select');
+      const canClearError = selectElem.multiple ? selectElem.selectedIndex >= 0 :  selectElem.selectedIndex > 0;
+      if (canClearError) {
+        const errorMsgElem = fieldGroupDiv.querySelector('.error-message');
+        fieldGroupDiv.classList.remove('error');
+        if (errorMsgElem) {
+          fieldGroupDiv.removeChild(errorMsgElem);
+        }
+      }
+    }, 10);
   }
 
   protected static setClearDDLSearchTimeout(wrapperElem: any) {

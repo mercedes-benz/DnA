@@ -104,6 +104,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
               const userHasAccess = roles.find((userRole) => userRole.id === allowedRole);
               return userHasAccess;
             }) ? (
+              /* @ts-ignore */
               <ErrorBoundary>
                 <Layout user={this.state.user} {...props}>
                   <Component {...props} user={this.state.user} />

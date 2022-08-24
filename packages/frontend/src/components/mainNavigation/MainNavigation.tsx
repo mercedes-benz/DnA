@@ -201,7 +201,7 @@ export default class MainNavigation extends React.Component<IMainNavigationProps
             );
           })}
         </ul> */}
-        <ul className="nav-list">
+        <ul className="nav-list mbc-scroll sub">
           {navItems.map((navItem, index) => {
             return navItem.subNavItems ? (
               <li

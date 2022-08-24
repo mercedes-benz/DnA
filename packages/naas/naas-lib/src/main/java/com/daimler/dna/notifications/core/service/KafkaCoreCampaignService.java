@@ -27,14 +27,7 @@
 
 package com.daimler.dna.notifications.core.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +35,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
 import com.daimler.dna.notifications.common.consumer.KafkaDynamicConsumerService;
 import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
 import com.daimler.dna.notifications.common.event.config.GenericEventRecord;
+import com.daimler.dna.notifications.common.event.config.RedisCacheUtil;
 import com.daimler.dna.notifications.common.producer.KafkaDynamicProducerService;
-import com.daimler.dna.notifications.common.util.CacheUtil;
 import com.daimler.dna.notifications.dto.NotificationVO;
 import com.mbc.dna.notifications.mailer.JMailer;
 
@@ -65,7 +60,7 @@ public class KafkaCoreCampaignService {
 	private KafkaDynamicConsumerService dynamicConsumer;
 
 	@Autowired
-	private CacheUtil cacheUtil;
+	private RedisCacheUtil cacheUtil;
 	
 	@Autowired
 	private DnaNotificationPreferenceClient userNotificationPreferencesClient;
@@ -76,7 +71,14 @@ public class KafkaCoreCampaignService {
 	@Value("${kafka.centralTopic.name}")
 	private String dnaCentralTopicName;
 	
+	@Value("${dna.uri}")
+	private String dnaBaseUri;
 	
+	private static String SOLUTION_NOTIFICATION_KEY = "Solution";
+	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
+	private static String STORAGE_NOTIFICATION_KEY = "Storage";
+	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
+	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -91,23 +93,32 @@ public class KafkaCoreCampaignService {
 		if (message != null) {
 			List<String> users = message.getSubscribedUsers();
 			List<String> usersEmails = message.getSubscribedUsersEmail();
+			String publishingUser = message.getPublishingUser();
 			int userListPivot = 0;
 			for (String user : users) {
 				if (StringUtils.hasText(user) && user != "null") {
 					if (cacheUtil.getCache(user) == null) {
 						LOGGER.info("Creating cache for user " + user);
-						cacheUtil.createCache(user);
+						cacheUtil.getCache(user);
 					}
 					UserNotificationPrefVO preferenceVO = userNotificationPreferencesClient.getUserNotificationPreferences(user);
 					boolean appNotificationPreferenceFlag = true;
 					boolean emailNotificationPreferenceFlag = false;
-					if(message.getEventType().contains("Solution")) {
+					if(message.getEventType().contains(SOLUTION_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getSolutionNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getSolutionNotificationPref().isEnableEmailNotifications();
 					}
-					if(message.getEventType().contains("Notebook")) {
+					if(message.getEventType().contains(NOTEBOOK_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getNotebookNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getNotebookNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getPersistenceNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getPersistenceNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
 					}
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
@@ -118,6 +129,21 @@ public class KafkaCoreCampaignService {
 					vo.setMessageDetails(message.getMessageDetails());
 					vo.setIsRead("false");
 					vo.setMessage(message.getMessage());
+					String emailBody = "<br/>"+ message.getMessage() + "<br/>";
+					String bucketURL = dnaBaseUri + STORAGE_URI_PATH + message.getResourceId();
+					if(!ObjectUtils.isEmpty(message.getChangeLogs())) {
+						for (ChangeLogVO changeLog : message.getChangeLogs()) {
+							emailBody += "<br/>" + "\u2022" + " " + changeLog.getChangeDescription() + "<br/>";
+						}
+					}
+					if(!ObjectUtils.isEmpty(message.getResourceId()) && message.getEventType().contains(STORAGE_NOTIFICATION_KEY)) {
+							
+							emailBody += "<p> Please use " + " <a href=\"" + bucketURL +"\">link</a> to access the bucket. <p/> <br/>";
+							if(!user.equalsIgnoreCase(publishingUser)) {
+								emailBody +=  message.getMessageDetails() + "<br/>";
+							}
+						
+					}
 					if(appNotificationPreferenceFlag) {
 						cacheUtil.addEntry(user, vo);
 						LOGGER.info("New message with details- user {}, eventType {}, uuid {} added to user notifications", user,
@@ -130,7 +156,8 @@ public class KafkaCoreCampaignService {
 						String userEmail = usersEmails.get(userListPivot);
 						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
 							String emailSubject = message.getEventType()+" Email Notification";
-							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , message.getMessage());
+							
+							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , emailBody);
 							LOGGER.info("Sent email as per user preference, Details: user {}, eventType {}, uuid {}", user,
 									message.getEventType(), message.getUuid());
 						}else {
@@ -152,6 +179,7 @@ public class KafkaCoreCampaignService {
 		dynamicProducer.sendMessage(dnaCentralTopicName, request);
 	}
 
+	/*
 	public List<String> getEventCategories(String userId) {
 		List<String> results = new ArrayList<>();
 		List<GenericEventRecord> allRecords = dynamicConsumer.consumeRecordsFromTopic(Arrays.asList(userId));
@@ -317,4 +345,5 @@ public class KafkaCoreCampaignService {
 			}
 		}
 	}
+	*/
 }

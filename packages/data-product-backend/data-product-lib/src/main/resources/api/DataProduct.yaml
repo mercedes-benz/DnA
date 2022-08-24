@@ -1,0 +1,452 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : dataproduct.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  PRINCKU
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "core dataproduct Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "dataproducts"
+    description: "This service is used for dataproducts maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create, update, getAll dataproduct
+  #
+  #  supported http methods GET, PUT, POST
+  #
+  # path example ../dataproducts
+
+  /dataproducts:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get all available dataproducts."
+      description: "Get all dataproducts. This endpoints will be used to get all valid available dataproduct records."
+      operationId: "getAll"
+      parameters:
+        - name: published
+          in: query
+          description: Filtering dataproducts based on publish state. Draft or published, values true or false
+          required: false
+          type: boolean   
+        - name: offset
+          in: query
+          description: page number from which listing of dataproducts should start.
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of dataproducts.
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort dataproducts by a given variable.
+          required: false
+          type: string
+          enum: [dataProductName]
+        - name: sortOrder
+          in: query
+          description: Sort dataproducts based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]             
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+  
+    post:
+      tags:
+        - "dataproducts"
+      summary: "Add a new dataproduct."
+      description: "Adds a new non existing dataproduct."
+      operationId: "create"
+      parameters:
+        - name: "dataProductRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a new dataproduct"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductRequestVO"    
+      responses:
+        201:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"      
+    
+    put:
+      tags:
+        - "dataproducts"
+      summary: "Update existing dataproduct."
+      description: "Update an existing dataproduct."
+      operationId: "update"
+      parameters:
+        - name: "dataProductRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating dataproduct"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductRequestVO"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  # path to get and delete dataproduct by id
+  #
+  #  Supported http methods GET, DELETE
+  #
+  # path example ../dataproducts
+  /dataproducts/{id}:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get dataProduct for a given Id."
+      description: "Get dataproduct for a given identifier. This endpoints will be used to get a dataproduct for a given identifier."
+      operationId: "getById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "DataProduct ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    delete:
+      tags:
+        - "dataproducts"
+      summary: "Delete dataProduct for a given Id."
+      description: "Delete dataproduct for a given identifier."
+      operationId: "delete"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "DataProduct ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+definitions:
+  ContactInformationVO:
+    type: object
+    properties:  
+      dataTransferDate:
+        type: string
+        format: date
+        minLength: 1
+      name:
+        type: string
+        description: ""
+        minLength: 1
+      division:
+        $ref: "#/definitions/DivisionVO"
+      department:
+        type: string
+        description: "Department of the dataproduct"
+        minLength: 1                           
+      localComplianceOfficer:
+        type: string
+        description: "Local compliance officer"
+        minLength: 1
+      appId:
+        type: string
+        description: "planning IT App-ID "
+        minLength: 1          
+    required:
+      - dataTransferDate
+      - name
+      - division
+      - department
+      - localComplianceOfficer
+      - appId  
+      
+  ClassificationConfidentialityVO:
+    type: object
+    properties:  
+      description:
+        type: string
+        description: "Description and classification of the transfered data"
+        minLength: 1
+      confidentiality: 
+        description: "Confidentiality level"
+        type: string
+        minLength: 1
+    required:
+      - description
+      - confidentiality
+      
+  PersonalRelatedDataVO:
+    type: object
+    properties:  
+      personalRelatedData:
+        type: boolean
+        description: "Is data personal related"
+      description: 
+        description: "Description of personal related data"
+        type: string
+      purpose: 
+        description: "Purpose of processing this personal related data"
+        type: string
+      legalBasis: 
+        description: "Legal basis for processing this personal related data"
+        type: string                  
+    required:
+      - personalRelatedData  
+          
+  TransnationalDataTransferVO:
+    type: object
+    properties:     
+      dataTransferred:
+        type: boolean
+        description: "Is data being transferred from one country to another"
+      notWithinEU:
+        type: boolean
+        description: "Is one of these countries not within the EU"
+      approved: 
+        description: "Has LCO/LCR approved this data transfer"
+        type: string         
+    required:
+      - dataTransferred    
+      
+  DeletionRequirementVO:
+    type: object
+    properties:  
+      deletionRequirements:
+        type: boolean
+        description: "Are there specific deletion requirements for this data"
+      description: 
+        description: "Describe requirements"
+        type: string                 
+    required:
+      - deletionRequirements                               
+
+  DataProductVO:
+    type: object
+    properties:
+      id:
+        type: string
+      dataProductName:
+        type: string
+        description: "Name of the DataProduct"
+        minLength: 1  
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      modifiedBy:
+        $ref: "#/definitions/CreatedByVO"        
+      publish:
+        type: boolean
+        description: "Flag to identify if dataproduct is in draft stage or in published state."    
+      contactInformation:
+        $ref: "#/definitions/ContactInformationVO"
+      classificationConfidentiality:
+        $ref: "#/definitions/ClassificationConfidentialityVO"
+      personalRelatedData:
+        $ref: "#/definitions/PersonalRelatedDataVO"
+      transnationalDataTransfer:
+        $ref: "#/definitions/TransnationalDataTransferVO" 
+      dataFromChina:
+        type: boolean
+        description: "Is data from China included"    
+      deletionRequirement:
+        $ref: "#/definitions/DeletionRequirementVO"
+      otherInformation:
+        type: string
+        description: "Specifying other relevant information"                      
+      openSegments:
+        type: array
+        description: "This attribute stores all the open/input sections that user has completed in the dataproduct creation process"
+        items:
+          type: string
+          enum:
+            [
+              "ContactInformation",
+              "ClassificationAndConfidentiality",
+              "IdentifyingPersonalRelatedData",
+              "IdentifiyingTransnationalDataTransfer",
+              "IdentifyingDataOriginatingFromChina",
+              "SpecifyDeletionRequirements",
+              "SpecifyingRelevantInformation"
+            ]
+    required:
+      - dataProductName
+      - publish                      
+
+  DataProductRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/DataProductVO"
+        
+  DataProductResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/DataProductVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+          
+  DataProductCollection:
+    description: "Collection of DataProducts."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/DataProductVO"
+      
+  DivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of division
+      name:
+        type: string
+        description: name of division
+      subdivision:
+        $ref: "#/definitions/SubdivisionVO"
+    required:
+      - id
+      - name
+      
+  SubdivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of subdivision
+      name:
+        type: string
+        description: name of subdivision

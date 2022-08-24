@@ -4,30 +4,38 @@
 
 #Suchart properties for frontend
 frontend:
-  enabled: false
+  enabled: true
   namespace: dna
   imagePullSecret: 
-    name: harbor-pull-secrets
+    name: dockerregistry
     key: "docker-config" 
-  cert:
-    certManager: acme
-  traefik:
-    image: ""
   ingress:
+    enabled: false
     namespace: ingress
-    host: "ingress-host"
+    host: "localhost"
     lbIP: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   appFrontend:
     replicaCount: 1
-    image: dna-frontend
-    config: 
+    #Specify the frontend image, after building the image from docker file
+    image: ""
+    config:
+    #If you want to enable OIDC authentication then set oidcDisabled to "false"
       oidcDisabled: true
       oidcProvider: INTERNAL
       apiBaseUrl: api
-      jupyterNotebookUrl: ""
-      jupyterNotebookOidcPopUpUrl: ""
+    #Specify the Jupyter Notebook url 
+      jupyterNotebookUrl: http://localhost/notebooks
+      jupyterNotebookOidcPopUpUrl: http://localhost/notebooks/hub/oauth_login?next=
+    #Specify the dataiku live application URL
       dataikuLiveAppUrl: ""
       dataikuTrainingAppUrl: ""
+    #Specify the OAuth token URL for OIDC authentication
       oauth2TokenUrl: ""
       oauth2AuthUrl: ""
       oauth2RevokeUrl: ""
@@ -36,9 +44,14 @@ frontend:
       oauth2UserInfoUrl: ""
       frontendClientid: ""
       redirectUrls: ""
-      swaggerUiUrl: ""
+
+
+    #Specify the swagger URL for malwarescan
+      swaggerUiUrl: http://localhost/avscan/swagger-ui.html#/
       dataikuFerretUrl: ""
+    #Specify the ML pipeline URL
       mlPipelineUrl: ""
+    #Specify the App Header
       appNameHeader: ""
       appNameHome: ""
       contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
@@ -46,22 +59,29 @@ frontend:
       appLogoUrl: /images/branding/logo-app.png
       enableInternalUserInfo: true
       enableDataCompliance: true
-      enabledReports: false
+    # Set enabledReports to "true" if you want to enable reports, by default value is "false"
+      enabledReports: true
+    # Set enableJupyterWorkspace to "true", if you want to enable Jupyter Workspace
       enableJupyterWorkspace: false
+    # Set enableDataikuWorkspace to "true", if you want to enable Dataiku Workspace, by default value is "false"
       enableDataikuWorkspace: false
-      enableMalwareService: false
+      enableMalwareService: true
       enableDataPipelineService: false
-      enableStorageService: false
-      storageMFEAppURL: http://localhost:8083
+    # Set enableStorageService to "true" to enable Storage Service
+      enableStorageService: true
+      storageMFEAppURL: http://localhost:7175
       enablePipelineService: false
       enabledMlPipelineService: false
       enableMalwareApiInfo: false
-      enableNotification: false
+    # If you want to enable notification, set enableNotification to "true", by default it is false
+      enableNotification: true
+    # Specify the company name 
       companyName: XYZ
-      backendHost: dna-app-backend-service
+      backendHost: dna-service
 
+  # Configure ngnix as per the 
     ngnix:
-      backend: http://dna-app-backend-service.dna.svc.cluster.local:80
+      backend: http://dna-service.dna.svc.cluster.local:80
       jupyServer: http://proxy-public:8000
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
       avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
@@ -69,75 +89,83 @@ frontend:
       airflowServer: http://airflow.airflow.svc.cluster.local:8080
       naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
       dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
+      storage: http://storage-be.storage.svc.cluster.local:80      
 
 #Suchart properties for backend
 backend:
-  enabled: false
+  enabled: true
   namespace: dna
   imagePullSecret: 
-    name: harbor-pull-secrets
+    name: dockerregistry
     key: "docker-config" 
-  cert:
-    certManager: acme
-  traefik:
-    image: ""
   ingress:
+    enabled: false
     namespace: ingress
     host: "ingress-host"
     lbIP: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   app:
     backend:
       replicaCount: 1
-      image: backend:latest
+      
+      image: ""
+      #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
         notebookSecretToken: ""
         oidcClientID: ""
-        oidcClientSecret: ""
+        oidcClientSecret: "" 
         drdCertPassword: ""
-        jwtSecretKey: ""
-        s3AccessKey: ""
-        s3SecretKey: ""
+        jwtSecretKey: 
+        s3AccessKey: 
+        s3SecretKey: 
         dataikuProdApiKey: ""
-        dataikuTrainingApiKey: ""
+        dataikuTrainingApiKey: "" 
         avscanApiKey: ""
-        appDBUserName: db
-        appDBPassword: admin
+        appDBUserName: postgres
+        appDBPassword: postgres
       config:
         enableItsmm: false
         enableJupyterNotebook: false
         enableDataiku: false
-        enableAttachmentScan: false
+        enableAttachmentScan: true
         enableInternalUser: false
         redirectUrl: ""
-        dbUri: jdbc:postgresql://postgresql:64000/db
-        oidcUserInfoUrl: ""
-        oidcTokenIntrospectionUrl: ""
+        dbUri: jdbc:postgresql://dna-bitnamipostgresql:5432/db
+        oidcUserInfoUrl: "" 
+        oidcTokenIntrospectionUrl: "" 
         oidcProvider: INTERNAL
         oidcTokenRevocationUrl: ""
         internalUserRequestUrl: ""
         internalCertFile: ""
         oidcDisabled: true
+        #Create a bucket in the minio and mention the bucket name in the s3BuckerName
         s3BucketName: ""
-        s3Url: ""
+        s3Url: http://minio.storage.svc.cluster.local:9000
         corosOriginUrl: ""
-        jupyterNotebookUrl: ""
+        jupyterNotebookUrl: "" 
         vaultHost: vault.vault.svc.cluster.local
         vaultPort: 8200
         dataikuProdUri: ""
-        dataikuProdAdminGroup: ""
+        dataikuProdAdminGroup: "" 
         dataikutraininguri: ""
         avscanAppId: ""
-        naasBroker: broker01.kafka.svc.cluster.local:8001
+        naasBroker: ""
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
         dataikuTrainingAdminGroup: ""
-        avscanUri: ""
+        avscanUri: http://clamav-rest-service.clamav.svc.cluster.local:8181/avscan/api/v1
         flywayBaseline: "true"
         flywayBaselineOnMigrate: "true"
         flywayBaselineVersion: "0"
         flywaySchema: "public"
+        dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173/dashboards
 
     vault:
       secret:
@@ -145,53 +173,546 @@ backend:
         rootToken: ""
 
 #Suchart properties for i3postgressql database
-i3postgresql:
+postgresql-helm:
   enabled: false
   namespace: dna
-  app:
-    db:
-      replicaCount: 1
-      image: postgresql:10.3-2.1.0
-      pgssl: "NO"
-      dbname: db
-      secrets: 
-        name: postgres-secrets
-        backupUserName: ""
-        backupUserPassword: ""
-        dbAdminUserName: ""
-        dbAdminPassword: ""
-        patroniUserPassword: ""
-        appUserName: ""
-        appPassword: ""
-      airflowDB:
-        airflowUserName: ""
-        airflowdbName: ""
-        airflowdbPwd: ""
-      dashboardDB:
-        dashboardUserName: ""
-        dashboarddbName: ""
-        dashboarddbPwd: "" 
+  ##
+  image:
+    repository: postgresql
+    tag: latest
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+
+  ## PostgreSQL replica count
+  ##
+  replicaCount: 3
+
+  printEnv: false
+
+  ## PostgreSQL connection settings - max connections
+  ## ref: https://www.postgresql.org/docs/current/runtime-config-connection.html#GUC-MAX-CONNECTIONS
+  ##
+  pgconnectionconfig:
+    enabled: false
+    maxconnections: 100
+
+  ## PostgreSQL memory resource limits - shared buffers
+  ## ref: https://www.postgresql.org/docs/current/runtime-config-resource.html#GUC-SHARED-BUFFERS
+  ##
+  pgmemoryresources:
+    enabled: false
+    sharedbuffers: 128MB
+
+  ## PostgreSQL parameter wal_level. Default wal_level is 'replica'. Use wal_level 'logical' with Debezium and Kafka.
+  ## ref: https://www.postgresql.org/docs/12/runtime-config-wal.html
+  ##
+  pg_wal_level: replica
+  #pg_wal_level: logical
+
+  ## Set to true to enable the pgAudit extension before initializing the DB
+  ## By default the pgAudit extension is inactive. Each application owner needs to make sure to be compliant with GDPR (DSGVO) before enabling the PGAudit feature.
+  ## Configure the pgAudit extension with 'parameters' below. ref: https://github.com/pgaudit/pgaudit#settings
+  ##
+  pgaudit:
+    enabled: false
+
+  ## PostgreSQL config parameter map.
+  ## ref: https://www.postgresql.org/docs/current/config-setting.html
+  ##
+  parameters:
+    max_wal_senders: 10
+    work_mem: 4MB
+  #  pgaudit.log: 'write,ddl'
+
+  ## Set to true if you would enable SSL
+  ##
+  SSL:
+    enabled: true
+    ## uncomment and set values when you bring yor own SSL certificate and key
+    # tlscrt: <Base64 encoded certificate>
+    # tlskey: <Base64 encoded key>
+
+  ## uncomment when your database client cannot authenticate with "SCRAM-SHA-256" by default
+  # PGPWENCRYPT: "MD5"
+
+  ## more optional PostgreSQL configuration parameters. See docs/configuration/configuration-database.md for details.
+  #
+  # PGDBCREATEPARAMS: "ENCODING 'LATIN1'"
+  # PGNETWORK: "0.0.0.0/0"
+  # PGBACKUPHOST: "0.0.0.0/0"
+  # PGHARDPROP: ""
+  # PATRONIADDRESS: "0.0.0.0/0"
+  # PGENABLECSVLOG: "on"
+  # PGSYNCCOMMIT: "on"
+  # PGSYNCSTANDBYNAMES: "*"
+  # RECOVERY_TIMEOUT: "300"
+
+  ## Specify PGDATABASE
+  ##
+  DBName: db
+
+  ## Configure S3 properties if S3 storage will be used
+  ##
+  s3:
+    ## provided by s3 provider
+    accesskey: ""
+    ## provided by s3 provider
+    secretkey: ""
+    ## internally used
+    hostAlias: s3
+    ## url of the S3 endpoint
+    host: ""
+    ## use rclone client in insecure mode
+    ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
+    insecure: false
+    ## rclone client option for debug output to console
+    debug: false
+
+  ## Configure resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources:
+    enabled: false
+    ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
+    limits:
+      enabled: false
+      # cpu: 1.5
+      # memory: 1Gi
+    request:
+      enabled: false
+      # cpu: 1.2
+      # memory: 1Gi
+
+  ## Configure additional env variables
+  env:
+  #- name: USERPW
+  #  valueFrom:
+  #    secretKeyRef:
+  #      name: my-postgres-postgresql-helm
+  #      key: postgres.user.password
+
+  ## Configure WAL archiving
+  ## for point-in-time recovery WAL archiving must be enabled
+  ## for details on WAL archiving see https://www.postgresql.org/docs/10/continuous-archiving.html
+  walArchiving:
+    enabled: false
+    # you have to choose the type of storage where the WAL files will be archived
+    # fs | s3
+    storage: fs
+    fs:
+      ## Configuration for FS
+      targetdir: /tmp/wal_archiving
+      volume:
+        ## if volume.enabled is true, a PersistentVolumeClaim will be created
+        ## if it is false, the WAL files will be archived to an emptyDir (makes only sense for testing)
+        enabled: false
+        accessModes:
+        - ReadWriteMany
+        size: 1Gi
+        storageClass: dhc-backup-nfs
+    s3:
+      ## Configuration for S3 storage
+      subfolder: postgresql-cluster
+      ## fill in the bucket name you have ordered!
+      bucketName: emeas3
+
+  ## Configure extra options for liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+
+  ## Security context for mounted volumes and containers
+  ##
+  ## Pod Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  ##
+  ## Use setgid: true and setuid: true on DHC CaaS and Kubernetes platform
+  ## Use setgid: false and setuid: false on OpenShift platforms
+  securityContext:
+    setgid: true
+    setuid: true
+    runAsUser: 987
+    fsGroup: 987
+    runAsGroup: 987
+    fsGroupChangePolicy: "OnRootMismatch"
+
+  ## Set to false if you want to deploy credentials not within secret files
+  ##
+  secrets:
+    enabled: true
+    # Set this to the name of the secret holding sensitive data. It must be created before PODs and must
+    # contain all configured key/value pairs. If not set, and enabled is set to true, a secret will be
+    # created from the data specified down below.
+    #externalSecretName: mySecret
+    # Set this to the name of the secret holding the decryption private key and its passphrase. It must
+    # be created before restore-job is ran. If not set, and enabled is set to true, a secret will be
+    # created from the data specified in the 'encryptBackupWal' snippet down below.
+    #externalGpgSecretName: mySecret-gpg-private
+
+  ## PostgreSQL database users
+  ## It is recommended to change the dbusers values to your own!
+  ##
+  dbusers:
+    ## backup user, will be used for synchronizing between the cluster nodes and for backup
+    backup:
+      username: ""
+      password: ""
+    ## the database (not the instance) owner
+    dbadm:
+      username: ""
+      password: ""
+      createSchema:
+        # Usually this is required if you use an ORM and do not create the table via the initdb script
+        enabled: false
+        # name: customschema
+    ## technical user for postgresql monitoring
+    pgmon:
+      username: ""
+      password: ""
+    ## if a technical user for Debezium is needed, then set a password
+    ## otherwise no user for Debezium is created
+    debezium:
+      username: ""
+      password:
+    ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
+    ## otherwise no user for CORPORATE DATA CATALOG is created
+    dataCatalog:
+      password:
+
+  ## Enable PostgreSQL service
+  ##
+  service:
+    enabled: true
+    ## Attention!
+    ## The service name has to be unique inside a namespace!
+    ## Otherwise there will be a clash of endpoint and the service will not work!
+    # name: postgres
+    port: 64000
+
+  ## PostgreSQL persistence layer
+  ## storageClassName: <storageClass>
+  ##
+  persistence:
+    enabled: true
+    size: 1Gi
+    # storageClass: cinder
+    # PVCName: name
+    wal:
+      enabled: false
+      size: 1Gi
+      # storageClass: cinder
+      # PVCName: name
+
+  ## Network Policy to be applied
+  ## By default an ingress rule which allows the communication between all pods of this application, is already defined in templates/networkpolicies.yaml.
+  ## Additionally a namespaceSelector can be added
+  ##
+  networkPolicy:
+    enabled: true
+    ## here you can define additional rules, e.g.:
+    #ingress:
+    #- from:
+    #  - podSelector:
+    #      matchLabels:
+    #        app: db
+
+  ## encryption of backup and WAL files
+  ##
+  encryptBackupWal:
+    enabled: false
+    publicKey: # <Base64 encoded key>
+    keyId: # keyId or fingerprint
+
+  ## decryption of backup and WAL files
+  ##
+  decryptBackupWal:
+    enabled: false
+    passphrase: # passphrase
+    privateKey: # <Base64 encoded key>
+
+  ## PostgreSQL backup configuration
+  ##
+  backup:
+    enabled: false
+
+    ## the storage type, either fs or s3.
+    ## This is the target storage where the compressed backup archive file will be stored.
+    storage: fs
+    ## Configuration for FS
+    fs:
+      volume:
+        ## if true, an PersistentVolumeClaim will be created
+        ## else the backup will be written to an `emptyDir`
+        enabled: false
+        accessModes:
+        - ReadWriteMany
+        size: 1Gi
+        storageClass: dhc-backup-nfs
+    s3:
+      ## Configuration for S3 storage
+      # subfolder: postgresql-cluster
+      ## fill in the bucket name you have ordered!
+      bucketName: emeas3
+    ## general configuration for backup
+    schedule: "0 0 * * *"
+    retention: 5
+    ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
+    cleanupWalArchives: false
+    image:
+      repository: postgresql-backup
+      tag: 13.6-5.1.1-2022.6.15
+      pullPolicy: IfNotPresent
+    resources:
+      enabled: false
+      limits:
+        enabled: false
+        # cpu: 500m
+        # memory: 512Mi
+      request:
+        enabled: false
+        # cpu: 250m
+        # memory: 256Mi
+
+    ## this volume is a temporary used volume where the backup container stores the copy of the master.
+    ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
+    tempPgdataVolume:
+      ## recommended
+      enabled: true
+      size: 1Gi
+      # storageClass: cinder
+    file:
+      name: postgresql-backup
+      # label: test
+
+  ## PostgreSQL restore configuration
+  ##
+  restore:
+    ## whether to create the restore job or not
+    createRestoreJob: false
+    ## whether to create the list backup job or not
+    createListBackupJob: false
+    ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
+    ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
+    #targetTime: 2020-12-31 23:59:59
+    # "latest" recovers to the latest timeline (poss. over different timelines) found in the WAL archive
+    targetTimeline: latest
+    ## "true" means that given recovery target time is inclusive, applies when recovery_target_time is set
+    targetInclusive: true
+    ## the kind of storage where the backups are stored
+    ## fs | s3
+    storage: fs
+    fs:
+      volume:
+        ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
+        enabled: true
+    s3:
+      # subfolder: postgresql-cluster
+      ## fill in the bucket name you have ordered!
+      bucketName: emeas3
+
+    ## Complete (including label) file name of backup file that has to be restored.
+    recoveryFile: postgresql-backup*.tar.gz
+    image:
+      repository: postgresql-backup
+      tag: 13.6-5.1.1-2022.6.15
+      pullPolicy: IfNotPresent
+    resources:
+      enabled: false
+      limits:
+        enabled: false
+        # cpu: 500m
+        # memory: 512Mi
+      request:
+        enabled: false
+        # cpu: 250m
+        # memory: 256Mi
+
+    ## false for dry-run
+    targetVolume:
+      enabled: true
+
+  ## initdb scripts
+  ## Specify a script to be run at first boot
+  ##
+  initdbScripts:
+    enabled: false
+    name: init_db.sh
+    script: |-
+      ##!/bin/bash
+
+      # PREREQUISITE: EXISTING ENV variable 'USERPW' with your required db user password. For more information please refer to our documentation.
+
+      #psql <<INITSQL
+      #    CREATE ROLE i3user LOGIN ENCRYPTED PASSWORD '${USERPW}';
+      #    GRANT dai_db_connect to i3user;
+      #    GRANT dai_public_compat to i3user;
+      #    CREATE SCHEMA IF NOT EXISTS i3 AUTHORIZATION i3user;
+      #    ALTER ROLE i3user SET search_path to i3;
+      #INITSQL
+
+      #psql -U i3user <<INITSQL
+      #    CREATE TABLE person(
+      #      id serial PRIMARY KEY,
+      #      username VARCHAR (50) UNIQUE NOT NULL,
+      #      email VARCHAR (50)  UNIQUE NOT NULL
+      #    );
+      #INITSQL
+
+  test:
+    enabled: true
+
+  serviceAccount:
+    enabled: true
+
+  endpoints:
+    enabled: true
+
+  bypassApiService:
+    enabled: false
+
+  createGlobalResources: false
+
+  statefulSet:
+    enabled: true
+
+  pgmonitoring:
+    enabled: true
+    image:
+      repository: postgres-exporter
+      tag: v0.10.1
+      pullPolicy: IfNotPresent
+    resources:
+      enabled: false
+      limits:
+        enabled: false
+        # cpu: 500m
+        # memory: 512Mi
+      request:
+        enabled: false
+        # cpu: 250m
+        # memory: 256Mi
+    queryMonitoring:
+      enabled: true
+    customQueries: {}
+    #  pg_replication:
+    #    query: "SELECT CASE WHEN pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() THEN 0 ELSE EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp()) END as lag"
+    #    metrics:
+    #      - lag:
+    #          usage: "GAUGE"
+    #          description: "Replication lag behind master in seconds"
+
+    dashboard:
+      # If you have a i3-monitoring installation running, you can enable here the deployment of a grafana dashboard
+      # to i3-monitoring via configmap
+      deploy: false
+      file:
+      - files/i3-postgres-exporter-dashboard.json
+      - files/i3-postgres-query-exporter-dashboard.json
+      i3-monitoring-namespace: i3-monitoring
+
+  ## Manually specify POD affinity. Overrides antiAffinity set down below.
+  affinity: {}
+    #  # schedule all instances from the same release on a different node.
+    #  podAntiAffinity:
+    #    requiredDuringSchedulingIgnoredDuringExecution:
+    #      - labelSelector:
+    #          matchExpressions:
+    #            - key: app.kubernetes.io/component
+    #              operator: In
+    #              values:
+    #                - "postgresql-node"
+    #            - key: app.kubernetes.io/name
+    #              operator: In
+    #              values:
+    #                - postgresql-helm
+    #            - key: app.kubernetes.io/instance
+    #              operator: In
+    #              values:
+    #                - mypg-instance
+    #        topologyKey: "kubernetes.io/hostname"
+
+  antiAffinity:
+    enabled: true
+
+  podDisruptionBudget:
+    maxUnavailable: 1
+
+  terminationGracePeriodSeconds: 300
+
+  mountPGLibs:
+    enabled: false
+    pgVersion: "13.6"
+    image:
+      repository: postgresql
+      tag: 13.6-5.1.1-2022.6.15
+      pullPolicy: IfNotPresent
+    resources:
+      enabled: false
+      limits:
+        enabled: false
+        # cpu: 500m
+        # memory: 512Mi
+      request:
+        enabled: false
+        # cpu: 250m
+        # memory: 256Mi
+
+  ## Start master and slave(s) pod(s) without limitations on shm memory.
+  ## By default docker and containerd (and possibly other container runtimes)
+  ## limit `/dev/shm` to `64M` (see e.g. the
+  ## [docker issue](https://github.com/docker-library/postgres/issues/416) and the
+  ## [containerd issue](https://github.com/containerd/containerd/issues/3654),
+  ## which could be not enough if PostgreSQL uses parallel workers heavily.
+  ##
+  shmVolume:
+    enabled: false
+
+  ## Load balancer config for CORPORATE DATA CATALOG
+  ## for details on CORPORATE DATA CATALOG integration see our [documentation](../../docs/operations/operations.md#corporate-data-catalog-integration)
+  lb:
+    enabled: false
+    # ip:
+    port: 4400
+
+  ## define permanent replication slots. These slots will be preserved during switchover/failover
+  slots:
 
 #Subchart properties for bitnami postgresql
 bitnamipostgresql:
-  enabled: false
-  namespace: bitnami
+  enabled: true
+  namespace: dna
   global:
     postgresql:
       postgresqlDatabase: db
-      postgresqlUsername: admin
-      postgresqlPassword: admin
-      servicePort: 64000
+      postgresqlUsername: postgres
+      postgresqlPassword: postgres
+      servicePort: 5432
 
 #Subchart properties for clamav
 clamav:
-  enabled: false
+  enabled: true
   appName: clamav
   namespace: clamav
   app:
     backend:
       name: clamav-rest
-      image: malwarescan-backend:latest
+      image: ""
       replicaCount: 1
       secrets:
         name: oneapi-secrets
@@ -199,63 +720,86 @@ clamav:
       config: 
         clamav_backend_url: clamav-service
         clamav_backend_port: 3310
-        max_file_size: 10MB
-        max_request_size: 11MB
+        max_file_size: 4000MB
+        max_request_size: 4000MB
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
-        auth_api_host: http://dna-app-backend-service.dna.svc.cluster.local:80/api/subscription/validate
+        auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription/validate
         restricted_url_pattern: /avscan/api/v1/scan.*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
+        corsOriginUrl: ""
+
+  securityContext:
+    runasUser: 0 
+
+    probes:
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+      livenessProbe:
+        path: /avscan/actuator/health/liveness
+        port: api
+      
+      readinessProbe:
+        path: /avscan/actuator/health/readiness
+        port: api
   image:
-    repo: clamav:latest
+    repo: ""
     replicaCount: 1
     pullPolicy: Always
   ingress:
+    enabled: false 
     host: "" 
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: "" 
   imagePullSecret: 
-    name: harbor-pull-secrets
-  cert:
-    certManager: acme
+    name: dockerregistry
+    key: "docker-config" 
 
   Storage:
-    storageClass: cinder
+    storageClass: ""
     accessModes: ReadWriteOnce
-    size: 5G
+    size: 2G
 
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1000Mi"
-      cpu: "500m"
+  # resources:
+  #   requests:
+  #     memory: "512Mi"
+  #     cpu: "250m"
+  #   limits:
+  #     memory: "1000Mi"
+  #     cpu: "500m"
       
 #Subchart properties for naas
 naas:
-  enabled: false
+  enabled: true
   appName: naas
   namespace: naas
   app:
     backend:
-      image: naas-backend
+      image: ""
       secrets:
         name: naas-app-secrets
         authApiToken: ""
-        jwtKey: ""
+        jwtKey: 
         db: 
-          appUserName: ""
-          appPassword: ""
+          appUserName: postgres
+          appPassword: postgres
       config:
-        api_db_url: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/db
-        naas_broker: broker01.kafka.svc.cluster.local:8001
+        api_db_url: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/db
+        naas_broker: ""
         max_poll_records: 6000
-        dna_uri: http://dna-app-backend-service.dna.svc.cluster.local:80
-        dna_auth_enable: true
+        dna_uri: http://dna-service.dna.svc.cluster.local:80
+        dna_auth_enable: false
         mailServerHost: ""
         mailServerPort: ""
-        notificationSenderEmail: ""
+        notificationSenderEmail: "" 
         poll_time: 5000
         naas_central_topic: CentralEventTopic
         naas_centralread_topic: CentralReadTopic
@@ -269,16 +813,34 @@ naas:
       limits:
         memory: "1000Mi"
         cpu: "500m"
+    probes:
+      initialDelaySeconds: 180
+      timeoutSeconds: 10
+      periodSeconds: 30
+      failureThreshold: 3
+      livenessProbe:
+        path: /naas/actuator/health/liveness
+        port: api
+      
+      readinessProbe:
+        path: /naas/actuator/health/readiness
+        port: api
   
   image:
   pullPolicy: Always
       
   ingress:
+    enabled: false
     host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   imagePullSecret: 
-   name: harbor-pull-secrets
-  cert:
-    certManager: acme
+   name: dockerregistry
+   key: "docker-config" 
   
 #Subchart properties for notebooks
 notebooks:
@@ -321,37 +883,41 @@ notebooks:
       userNameSpaceTemplate: kubeflow
 
   ingress:
+    enabled: false
     host: ""
-
-  cert:
-    certManager: acme
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
 
   Storage:
-    storageClass: cinder
+    storageClass: ""
     accessModes: ReadWriteOnce
     size: 1G
   
   resources:
     cpu: 1
-    memory: 4G
+    memory: 1G
 
 #Subchart properties for dashboard
 dashboard:
-  enabled: false
+  enabled: true
   namespace: dashboard
-  image: dashboard-backend
+  image: ""
   imagePullSecret: 
-    name: harbor-pull-secrets
-  cert:
-    certManager: acme
-  dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/dashboard
+    name: dockerregistry
+    key: "docker-config" 
+  dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/dashboard
   secret:
     name: dashboard-secrets
-    appUserName: ""
-    appPassword: ""
-    jwtKey: ""
-  appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
-  enableAuth: true
+    appUserName: dashboard
+    appPassword: dashboard
+    jwtKey: 
+    
+  appUrl: http://dna-service.dna.svc.cluster.local:80
+  enableAuth: false
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
   flywayBaseline: "true"
@@ -359,7 +925,15 @@ dashboard:
   flywayBaselineVersion: "0"
   flywaySchema: "public"
   containerPort: 7173
-  host: ""
+  ingress:
+    enabled: false
+    host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
   resources:
     requests:
       memory: "512Mi"
@@ -368,38 +942,53 @@ dashboard:
       memory: "1000Mi"
       cpu: "500m"
 
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 10
+    periodSeconds: 20
+    failureThreshold: 3
+    livenessProbe:
+      path: /dashboards/actuator/health/liveness
+      port: api
+        
+    readinessProbe:
+      path: /dashboards/actuator/health/readiness
+      port: api
+
 #Subchart properties for airflow
 airflow:
   enabled: false
   appName: airflow
   namespace: airflow
   imagePullSecret: 
-    name: harbor-pull-secrets
-  cert:
-    certManager: ""
+    name: dockerregistry
+    key: "docker-config" 
+  airflowIngressRoute:
+    enabled: false
+  airflowMiddleware:
+    enabled: false 
   backend:
     image: ""
     imagePullPolicy: Always
-    dbUrl: jdbc:postgresql://postgresql.dna.svc.cluster.local:64000/airflow
+    dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
       name: airflow-backend-secrets
-      dbPassword: ""
-      dbUsername: ""
-      gitToken: ""
-      jwtKey: ""
+      dbPassword: airflow
+      dbUsername: airflow
+      gitToken: "" 
+      jwtKey: 
       oidcClientID: ""
       oidcClientSecret: ""
     containerPort: 7171
-    host: ""
     crossOriginUrl: ""
-    apiUrl: ""
+    apiUrl: http://dna-service.dna.svc.cluster.local:80
     oidcInfoUrl: "" 
     oidcIntrospectionUrl: "" 
     oidcRevocationUrl: "" 
-    oidcDisabled: false
-    gitUrl: "" 
+    oidcDisabled: true
+    gitUrl: ""
     gitMountPath: /git/airflow-user-dags
-    gitBranch: ""
+    gitBranch: main
     dag:
       path: dags
       ext: py
@@ -407,26 +996,36 @@ airflow:
       retry: 20
     loggingPath: /tmp/airflow/log
     loggingEnvironment: dev
-    flywayBaseline: ""
-    flywayBaselineOnMigrate: ""
-    flywayBaselineVersion: ""
-    flywaySchema: ""
+    flywayBaseline: "true"
+    flywayBaselineOnMigrate: "true"
+    flywayBaselineVersion: "0"
+    flywaySchema: "public"
 
-  pullSecretData: ""
+  ingress:
+    enabled: true
+    host: ""
+    annotations:
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
+
+  pullSecretData: 
   secret:
-    gitUserName: ""
-    gitPassword: ""
+    gitUserName: 
+    gitPassword: 
     #gitSshKey: ""
     knownHosts: ""
     postgresql:
-      sqlAlchemyConn: ""
-    clientSecret: ""
+      sqlAlchemyConn: postgresql+psycopg2://airflow:airflow@dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
+    #clientSecret: eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
 
   gitSync:
     image: ""
-    repo: ""
+    repo: https://github.com/airflow_dags.git
     dest: git-sync
-    branch: master
+    branch: main
     ssh: "false"
     root: /git
 
@@ -485,11 +1084,11 @@ airflow:
       workerContainerImagePullPolicy: Always
       workerServiceAccountName: airflow
       deleteWorkerPods: True
-      dagsInImage: False
+      dagsInImage: false
       gitSubpath: dags
       inCluster: True
-      gitSyncContainerRepository: ""
-      gitSyncContainerTag: 3.3.0
+      gitSyncContainerRepository: airflow-git-sync
+      gitSyncContainerTag: latest
       gitSyncInitContainerName: git-sync-container
       gitSyncRunAsUser: 1000
       runAsUser: 1000
@@ -500,7 +1099,7 @@ airflow:
   docker:
     image:
       name: ""
-      tag: ""
+      tag: latest
 
   service:
     port: 8080
@@ -548,19 +1147,20 @@ airflow:
       resourcePolicy: keep
       accessMode: ReadWriteOnce
       storage:
-        className: cinder-retain
-        size: 50Gi
+        className: ""
+        size: 2Gi
 
   oidc:
     logout:
       uri: ""
 
   Storage:
-    storageClass: cinder-retain
+    storageClass: ""
     accessModes: ReadWriteOnce
-    size: 5Gi
+    size: 1Gi
   
 #Subchart properties for microgateway
+
 microgateway:
   enabled: false
   namespace: clamav
@@ -691,24 +1291,201 @@ microgateway:
 
 #Subchart properties for vault
 vault:
-  enabled: false
-  namespace: vault
+  enabled: true 
+  # Available parameters and their default values for the Vault chart.
   global:
-  # enabled is the master enabled switch. Setting this to true or false
-  # will enable or disable all the components within this chart by default.
+    # enabled is the master enabled switch. Setting this to true or false
+    # will enable or disable all the components within this chart by default.
     enabled: true
-  # Image pull secret to use for registry authentication.
-    imagePullSecrets: [ ]
-  # imagePullSecrets:
-  #   - name: image-pull-secret
-  # TLS for end-to-end encrypted transport
-  tlsDisable: true
-  server:
+    # Image pull secret to use for registry authentication.
+    # Alternatively, the value may be specified as an array of strings.
+    imagePullSecrets: []
+    # imagePullSecrets:
+    #   - name: image-pull-secret
+    # TLS for end-to-end encrypted transport
+    tlsDisable: true
+    # If deploying to OpenShift
+    openshift: false
+    # Create PodSecurityPolicy for pods
+    psp:
+      enable: false
+      # Annotation for PodSecurityPolicy.
+      # This is a multi-line templated string map, and can also be set as YAML.
+      annotations: |
+        seccomp.security.alpha.kubernetes.io/allowedProfileNames: docker/default,runtime/default
+        apparmor.security.beta.kubernetes.io/allowedProfileNames: runtime/default
+        seccomp.security.alpha.kubernetes.io/defaultProfileName:  runtime/default
+        apparmor.security.beta.kubernetes.io/defaultProfileName:  runtime/default
+
+  namespace: vault
+
+  injector:
+    # True if you want to enable vault agent injection.
+    # @default: global.enabled
+    enabled: true
+
+    replicas: 1
+
+    # Configures the port the injector should listen on
+    port: 8080
+
+    # If multiple replicas are specified, by default a leader will be determined
+    # so that only one injector attempts to create TLS certificates.
+    leaderElector:
+      enabled: true
+
+    # If true, will enable a node exporter metrics endpoint at /metrics.
+    metrics:
+      enabled: false
+
+    # External vault server address for the injector to use. Setting this will
+    # disable deployment of a vault server along with the injector.
+    externalVaultAddr: ""
+
+    # image sets the repo and tag of the vault-k8s image to use for the injector.
     image:
-      repository: /docker.io_vault
-      tag: 1.3.0
+      repository: "hashicorp/vault-k8s"
+      tag: "0.14.2"
       pullPolicy: IfNotPresent
-    resources:
+
+    # agentImage sets the repo and tag of the Vault image to use for the Vault Agent
+    # containers.  This should be set to the official Vault image.  Vault 1.3.1+ is
+    # required.
+    agentImage:
+      repository: "hashicorp/vault"
+      tag: "1.9.3"
+
+    # The default values for the injected Vault Agent containers.
+    agentDefaults:
+      # For more information on configuring resources, see the K8s documentation:
+      # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+      cpuLimit: "500m"
+      cpuRequest: "250m"
+      memLimit: "128Mi"
+      memRequest: "64Mi"
+
+      # Default template type for secrets when no custom template is specified.
+      # Possible values include: "json" and "map".
+      template: "map"
+
+      # Default values within Agent's template_config stanza.
+      templateConfig:
+        exitOnRetryFailure: true
+        staticSecretRenderInterval: ""
+
+    # Mount Path of the Vault Kubernetes Auth Method.
+    authPath: "auth/kubernetes"
+
+    # Configures the log verbosity of the injector.
+    # Supported log levels include: trace, debug, info, warn, error
+    logLevel: "trace"
+
+    # Configures the log format of the injector. Supported log formats: "standard", "json".
+    logFormat: "standard"
+
+    # Configures all Vault Agent sidecars to revoke their token when shutting down
+    revokeOnShutdown: false
+
+    webhook: 
+      # Configures failurePolicy of the webhook. The "unspecified" default behaviour depends on the
+      # API Version of the WebHook.
+      # To block pod creation while webhook is unavailable, set the policy to `Fail` below.
+      # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#failure-policy
+      #
+      failurePolicy: Ignore
+
+      # matchPolicy specifies the approach to accepting changes based on the rules of 
+      # the MutatingWebhookConfiguration.
+      # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchpolicy
+      # for more details.
+      #
+      matchPolicy: Exact
+
+      # timeoutSeconds is the amount of seconds before the webhook request will be ignored
+      # or fails.
+      # If it is ignored or fails depends on the failurePolicy
+      # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#timeouts
+      # for more details.
+      #
+      timeoutSeconds: 30
+      
+      # namespaceSelector is the selector for restricting the webhook to only
+      # specific namespaces.
+      # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-namespaceselector
+      # for more details.
+      # Example:
+      # namespaceSelector:
+      #    matchLabels:
+      #      sidecar-injector: enabled
+      namespaceSelector: {}
+
+      # objectSelector is the selector for restricting the webhook to only
+      # specific labels.
+      # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-objectselector
+      # for more details.
+      # Example:
+      # objectSelector:
+      #    matchLabels:
+      #      vault-sidecar-injector: enabled
+      objectSelector: {}
+
+      # Extra annotations to attach to the webhook
+      annotations: {}
+
+    # Deprecated: please use 'webhook.failurePolicy' instead
+    # Configures failurePolicy of the webhook. The "unspecified" default behaviour depends on the
+    # API Version of the WebHook.
+    # To block pod creation while webhook is unavailable, set the policy to `Fail` below.
+    # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#failure-policy
+    #
+    failurePolicy: Ignore
+
+    # Deprecated: please use 'webhook.namespaceSelector' instead
+    # namespaceSelector is the selector for restricting the webhook to only
+    # specific namespaces.
+    # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-namespaceselector
+    # for more details.
+    # Example:
+    # namespaceSelector:
+    #    matchLabels:
+    #      sidecar-injector: enabled
+    namespaceSelector: {}
+
+    # Deprecated: please use 'webhook.objectSelector' instead
+    # objectSelector is the selector for restricting the webhook to only
+    # specific labels.
+    # See https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-objectselector
+    # for more details.
+    # Example:
+    # objectSelector:
+    #    matchLabels:
+    #      vault-sidecar-injector: enabled
+    objectSelector: {}
+
+    # Deprecated: please use 'webhook.annotations' instead
+    # Extra annotations to attach to the webhook
+    webhookAnnotations: {}
+
+    certs:
+      # secretName is the name of the secret that has the TLS certificate and
+      # private key to serve the injector webhook. If this is null, then the
+      # injector will default to its automatic management mode that will assign
+      # a service account to the injector to generate its own certificates.
+      secretName: null
+
+      # caBundle is a base64-encoded PEM-encoded certificate bundle for the CA
+      # that signed the TLS certificate that the webhook serves. This must be set
+      # if secretName is non-null, unless an external service like cert-manager is
+      # keeping the caBundle updated.
+      caBundle: ""
+
+      # certName and keyName are the names of the files within the secret for
+      # the TLS cert and private key, respectively. These have reasonable
+      # defaults but can be customized if necessary.
+      certName: tls.crt
+      keyName: tls.key
+
+    resources: {}
     # resources:
     #   requests:
     #     memory: 256Mi
@@ -717,71 +1494,305 @@ vault:
     #     memory: 256Mi
     #     cpu: 250m
 
-    # Ingress allows ingress services to be created to allow external access 
+    # extraEnvironmentVars is a list of extra environment variables to set in the
+    # injector deployment.
+    extraEnvironmentVars: {}
+      # KUBERNETES_SERVICE_HOST: kubernetes.default.svc
+
+    # Affinity Settings for injector pods
+    # This can either be multi-line string or YAML matching the PodSpec's affinity field.
+    # Commenting out or setting as empty the affinity variable, will allow
+    # deployment of multiple replicas to single node services such as Minikube.
+    affinity: |
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: {{ template "vault.name" . }}-agent-injector
+                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                component: webhook
+            topologyKey: kubernetes.io/hostname
+
+    # Toleration Settings for injector pods
+    # This should be either a multi-line string or YAML matching the Toleration array
+    # in a PodSpec.
+    tolerations: []
+
+    # nodeSelector labels for server pod assignment, formatted as a multi-line string or YAML map.
+    # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+    # Example:
+    # nodeSelector:
+    #   beta.kubernetes.io/arch: amd64
+    nodeSelector: {}
+
+    # Priority class for injector pods
+    priorityClassName: ""
+
+    # Extra annotations to attach to the injector pods
+    # This can either be YAML or a YAML-formatted multi-line templated string map
+    # of the annotations to apply to the injector pods
+    annotations: {}
+
+    # Extra labels to attach to the agent-injector
+    # This should be a YAML map of the labels to apply to the injector
+    extraLabels: {}
+
+    # Should the injector pods run on the host network (useful when using
+    # an alternate CNI in EKS)
+    hostNetwork: false
+
+    # Injector service specific config
+    service:
+      # Extra annotations to attach to the injector service
+      annotations: {}
+
+    # A disruption budget limits the number of pods of a replicated application
+    # that are down simultaneously from voluntary disruptions
+    podDisruptionBudget: {}
+    # podDisruptionBudget:
+    #   maxUnavailable: 1
+
+    # strategy for updating the deployment. This can be a multi-line string or a
+    # YAML map.
+    strategy: {}
+    # strategy: |
+    #   rollingUpdate:
+    #     maxSurge: 25%
+    #     maxUnavailable: 25%
+    #   type: RollingUpdate
+
+  server:
+    # If true, or "-" with global.enabled true, Vault server will be installed.
+    # See vault.mode in _helpers.tpl for implementation details.
+    enabled: "-"
+
+    # [Enterprise Only] This value refers to a Kubernetes secret that you have
+    # created that contains your enterprise license. If you are not using an
+    # enterprise image or if you plan to introduce the license key via another
+    # route, then leave secretName blank ("") or set it to null.
+    # Requires Vault Enterprise 1.8 or later.
+    enterpriseLicense:
+      # The name of the Kubernetes secret that holds the enterprise license. The
+      # secret must be in the same namespace that Vault is installed into.
+      secretName: ""
+      # The key within the Kubernetes secret that holds the enterprise license.
+      secretKey: "license"
+
+    # Resource requests, limits, etc. for the server cluster placement. This
+    # should map directly to the value of the resources field for a PodSpec.
+    # By default no direct resource request is made.
+
+    image:
+      repository: "hashicorp/vault"
+      tag: "1.9.3"
+      # Overrides the default Image Pull Policy
+      pullPolicy: IfNotPresent
+
+    # Configure the Update Strategy Type for the StatefulSet
+    # See https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+    updateStrategyType: "OnDelete"
+
+    # Configure the logging verbosity for the Vault server.
+    # Supported log levels include: trace, debug, info, warn, error
+    logLevel: "trace"
+
+    # Configure the logging format for the Vault server.
+    # Supported log formats include: standard, json
+    logFormat: "standard"
+
+    resources: {}
+    # resources:
+    #   requests:
+    #     memory: 256Mi
+    #     cpu: 250m
+    #   limits:
+    #     memory: 256Mi
+    #     cpu: 250m
+
+    # Ingress allows ingress services to be created to allow external access
     # from Kubernetes to access Vault pods.
+    # If deployment is on OpenShift, the following block is ignored.
+    # In order to expose the service, use the route section below
     ingress:
       enabled: false
-      labels: { }
-      # traffic: external
-      annotations: { }
+      labels: {}
+        # traffic: external
+      annotations: {}
+        # |
         # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
+        # kubernetes.io/tls-acme: "true"
+        #   or
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+
+      # Optionally use ingressClassName instead of deprecated annotation.
+      # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#deprecated-annotation
+      ingressClassName: ""
+
+      # As of Kubernetes 1.19, all Ingress Paths must have a pathType configured. The default value below should be sufficient in most cases.
+      # See: https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types for other possible values.
+      pathType: Prefix
+
+      # When HA mode is enabled and K8s service registration is being used,
+      # configure the ingress to point to the Vault active service.
+      activeService: true
       hosts:
         - host: chart-example.local
-          # As of now vault can only be servered on "/"
-          paths: [ / ]
-
-      tls: [ ]
+          paths: []
+      ## Extra paths to prepend to the host configuration. This is useful when working with annotation based services.
+      extraPaths: []
+      # - path: /*
+      #   backend:
+      #     service:
+      #       name: ssl-redirect
+      #       port:
+      #         number: use-annotation
+      tls: []
       #  - secretName: chart-example-tls
       #    hosts:
       #      - chart-example.local
 
+    # OpenShift only - create a route to expose the service
+    # By default the created route will be of type passthrough
+    route:
+      enabled: false
+
+      # When HA mode is enabled and K8s service registration is being used,
+      # configure the route to point to the Vault active service.
+      activeService: true
+
+      labels: {}
+      annotations: {}
+      host: chart-example.local
+      # tls will be passed directly to the route's TLS config, which
+      # can be used to configure other termination methods that terminate
+      # TLS at the router
+      tls:
+        termination: passthrough
 
     # authDelegator enables a cluster role binding to be attached to the service
     # account.  This cluster role binding can be used to setup Kubernetes auth
     # method.  https://www.vaultproject.io/docs/auth/kubernetes.html
     authDelegator:
-      enabled: false
+      enabled: true
 
-    # extraContainers is a list of sidecar containers. Specified as a raw YAML string.
+    # extraInitContainers is a list of init containers. Specified as a YAML list.
+    # This is useful if you need to run a script to provision TLS certificates or
+    # write out configuration files in a dynamic way.
+    extraInitContainers: null
+      # # This example installs a plugin pulled from github into the /usr/local/libexec/vault/oauthapp folder,
+      # # which is defined in the volumes value.
+      # - name: oauthapp
+      #   image: "alpine"
+      #   command: [sh, -c]
+      #   args:
+      #     - cd /tmp &&
+      #       wget https://github.com/puppetlabs/vault-plugin-secrets-oauthapp/releases/download/v1.2.0/vault-plugin-secrets-oauthapp-v1.2.0-linux-amd64.tar.xz -O oauthapp.xz &&
+      #       tar -xf oauthapp.xz &&
+      #       mv vault-plugin-secrets-oauthapp-v1.2.0-linux-amd64 /usr/local/libexec/vault/oauthapp &&
+      #       chmod +x /usr/local/libexec/vault/oauthapp
+      #   volumeMounts:
+      #     - name: plugins
+      #       mountPath: /usr/local/libexec/vault
+
+    # extraContainers is a list of sidecar containers. Specified as a YAML list.
     extraContainers: null
 
+    # shareProcessNamespace enables process namespace sharing between Vault and the extraContainers
+    # This is useful if Vault must be signaled, e.g. to send a SIGHUP for log rotation
+    shareProcessNamespace: false
+
+    # extraArgs is a string containing additional Vault server arguments.
+    extraArgs: ""
 
     # Used to define custom readinessProbe settings
     readinessProbe:
       enabled: true
       # If you need to use a http path instead of the default exec
-      # path: /v1/sys/health?standbyok
+      # path: /v1/sys/health?standbyok=true
+
+      # When a probe fails, Kubernetes will try failureThreshold times before giving up
+      failureThreshold: 2
+      # Number of seconds after the container has started before probe initiates
+      initialDelaySeconds: 5
+      # How often (in seconds) to perform the probe
+      periodSeconds: 5
+      # Minimum consecutive successes for the probe to be considered successful after having failed
+      successThreshold: 1
+      # Number of seconds after which the probe times out.
+      timeoutSeconds: 3
     # Used to enable a livenessProbe for the pods
     livenessProbe:
       enabled: false
-      path: /v1/sys/health?standbyok
+      path: "/v1/sys/health?standbyok=true"
+      # When a probe fails, Kubernetes will try failureThreshold times before giving up
+      failureThreshold: 2
+      # Number of seconds after the container has started before probe initiates
+      initialDelaySeconds: 60
+      # How often (in seconds) to perform the probe
+      periodSeconds: 5
+      # Minimum consecutive successes for the probe to be considered successful after having failed
+      successThreshold: 1
+      # Number of seconds after which the probe times out.
+      timeoutSeconds: 3
 
-    # extraEnvironmentVars is a list of extra enviroment variables to set with the stateful set. These could be
+    # Optional duration in seconds the pod needs to terminate gracefully.
+    # See: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+    terminationGracePeriodSeconds: 10
+
+    # Used to set the sleep time during the preStop step
+    preStopSleepSeconds: 5
+
+    # Used to define commands to run after the pod is ready.
+    # This can be used to automate processes such as initialization
+    # or boostrapping auth methods.
+    postStart: []
+    # - /bin/sh
+    # - -c
+    # - /vault/userconfig/myscript/run.sh
+
+    # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
     # used to include variables required for auto-unseal.
-    extraEnvironmentVars: { }
+    extraEnvironmentVars: {}
       # GOOGLE_REGION: global
       # GOOGLE_PROJECT: myproject
-    # GOOGLE_APPLICATION_CREDENTIALS: /vault/userconfig/myproject/myproject-creds.json
+      # GOOGLE_APPLICATION_CREDENTIALS: /vault/userconfig/myproject/myproject-creds.json
 
-    # extraSecretEnvironmentVars is a list of extra enviroment variables to set with the stateful set.
+    # extraSecretEnvironmentVars is a list of extra environment variables to set with the stateful set.
     # These variables take value from existing Secret objects.
-    extraSecretEnvironmentVars: [ ]
+    extraSecretEnvironmentVars: []
       # - envName: AWS_SECRET_ACCESS_KEY
       #   secretName: vault
-    #   secretKey: AWS_SECRET_ACCESS_KEY
+      #   secretKey: AWS_SECRET_ACCESS_KEY
 
+    # Deprecated: please use 'volumes' instead.
     # extraVolumes is a list of extra volumes to mount. These will be exposed
     # to Vault in the path `/vault/userconfig/<name>/`. The value below is
     # an array of objects, examples are shown below.
-    extraVolumes: [ ]
+    extraVolumes: []
       # - type: secret (or "configMap")
       #   name: my-secret
-    #   path: null # default is `/vault/userconfig`
+      #   path: null # default is `/vault/userconfig`
+
+    # volumes is a list of volumes made available to all containers. These are rendered
+    # via toYaml rather than pre-processed like the extraVolumes value.
+    # The purpose is to make it easy to share volumes between containers.
+    volumes: null
+    #   - name: plugins
+    #     emptyDir: {}
+
+    # volumeMounts is a list of volumeMounts for the main server container. These are rendered
+    # via toYaml rather than pre-processed like the extraVolumes value.
+    # The purpose is to make it easy to share volumes between containers.
+    volumeMounts: null
+    #   - mountPath: /usr/local/libexec/vault
+    #     name: plugins
+    #     readOnly: true
 
     # Affinity Settings
     # Commenting out or setting as empty the affinity variable, will allow
     # deployment to single node services such as Minikube
+    # This should be either a multi-line string or YAML matching the PodSpec's affinity field.
     affinity: |
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -793,26 +1804,40 @@ vault:
             topologyKey: kubernetes.io/hostname
 
     # Toleration Settings for server pods
-    # This should be a multi-line string matching the Toleration array
+    # This should be either a multi-line string or YAML matching the Toleration array
     # in a PodSpec.
-    tolerations: { }
+    tolerations: []
 
-    # nodeSelector labels for server pod assignment, formatted as a muli-line string.
+    # nodeSelector labels for server pod assignment, formatted as a multi-line string or YAML map.
     # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
     # Example:
-    # nodeSelector: |
+    # nodeSelector:
     #   beta.kubernetes.io/arch: amd64
-    nodeSelector: { }
+    nodeSelector: {}
+
+    # Enables network policy for server pods
+    networkPolicy:
+      enabled: false
+      egress: []
+      # egress:
+      # - to:
+      #   - ipBlock:
+      #       cidr: 10.0.0.0/24
+      #   ports:
+      #   - protocol: TCP
+      #     port: 443
+
+    # Priority class for server pods
+    priorityClassName: ""
 
     # Extra labels to attach to the server pods
-    # This should be a multi-line string mapping directly to the a map of
-    # the labels to apply to the server pods
-    extraLabels: { }
+    # This should be a YAML map of the labels to apply to the server pods
+    extraLabels: {}
 
     # Extra annotations to attach to the server pods
-    # This should be a multi-line string mapping directly to the a map of
-    # the annotations to apply to the server pods
-    annotations: { }
+    # This can either be YAML or a YAML-formatted multi-line templated string map
+    # of the annotations to apply to the server pods
+    annotations: {}
 
     # Enables a headless service to be used by the Vault Statefulset
     service:
@@ -825,40 +1850,68 @@ vault:
       # load balancer.
       # clusterIP: None
 
+      # Configures the service type for the main Vault service.  Can be ClusterIP
+      # or NodePort.
+      #type: ClusterIP
+
+      # Do not wait for pods to be ready
+      publishNotReadyAddresses: true
+
+      # The externalTrafficPolicy can be set to either Cluster or Local
+      # and is only valid for LoadBalancer and NodePort service types.
+      # The default value is Cluster.
+      # ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-traffic-policy
+      externalTrafficPolicy: Cluster
+
+      # If type is set to "NodePort", a specific nodePort value can be configured,
+      # will be random if left blank.
+      #nodePort: 30000
+
       # Port on which Vault server is listening
       port: 8200
       # Target port to which the service should be mapped to
       targetPort: 8200
-      # Extra annotations for the service definition
-      annotations: { }
+      # Extra annotations for the service definition. This can either be YAML or a
+      # YAML-formatted multi-line templated string map of the annotations to apply
+      # to the service.
+      annotations: {}
 
     # This configures the Vault Statefulset to create a PVC for data
-    # storage when using the file backend.
+    # storage when using the file or raft backend storage engines.
     # See https://www.vaultproject.io/docs/configuration/storage/index.html to know more
     dataStorage:
       enabled: true
       # Size of the PVC created
       size: 10Gi
+      # Location where the PVC will be mounted.
+      mountPath: "/vault/data"
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: cinder-retain
+      storageClass: null
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
+      # Annotations to apply to the PVC
+      annotations: {}
 
     # This configures the Vault Statefulset to create a PVC for audit
-    # logs.  Once Vault is deployed, initialized and unseal, Vault must
+    # logs.  Once Vault is deployed, initialized and unsealed, Vault must
     # be configured to use this for audit logs.  This will be mounted to
     # /vault/audit
     # See https://www.vaultproject.io/docs/audit/index.html to know more
     auditStorage:
-      enabled: true
+      enabled: false
       # Size of the PVC created
       size: 10Gi
+      # Location where the PVC will be mounted.
+      mountPath: "/vault/audit"
       # Name of the storage class to use.  If null it will use the
       # configured default Storage Class.
-      storageClass: cinder-retain
+      storageClass: null
       # Access Mode of the storage device being used for the PVC
       accessMode: ReadWriteOnce
+      # Annotations to apply to the PVC
+      annotations: {}
+
     # Run Vault in "dev" mode. This requires no further setup, no state management,
     # and no initialization. This is useful for experimenting with Vault without
     # needing to unseal, store keys, et. al. All data is lost on restart - do not
@@ -866,6 +1919,9 @@ vault:
     # See https://www.vaultproject.io/docs/concepts/dev-server.html to know more
     dev:
       enabled: false
+
+      # Set VAULT_DEV_ROOT_TOKEN_ID value
+      devRootToken: "root"
 
     # Run Vault in "standalone" mode. This is the default mode that will deploy if
     # no arguments are given to helm. This requires a PVC for data storage to use
@@ -878,6 +1934,11 @@ vault:
       # deployment. Default is to use a PersistentVolumeClaim mounted at /vault/data
       # and store data there. This is only used when using a Replica count of 1, and
       # using a stateful set. This should be HCL.
+
+      # Note: Configuration files are stored in ConfigMaps so sensitive data
+      # such as passwords should be either mounted through extraSecretEnvironmentVars
+      # or through a Kube secret.  For more information see:
+      # https://www.vaultproject.io/docs/platform/k8s/helm/run#protecting-sensitive-vault-configurations
       config: |
         ui = true
 
@@ -909,9 +1970,54 @@ vault:
       enabled: false
       replicas: 3
 
+      # Set the api_addr configuration for Vault HA
+      # See https://www.vaultproject.io/docs/configuration#api_addr
+      # If set to null, this will be set to the Pod IP Address
+      apiAddr: null
+
+      # Set the cluster_addr confuguration for Vault HA
+      # See https://www.vaultproject.io/docs/configuration#cluster_addr
+      # If set to null, this will be set to https://$(HOSTNAME).{{ template "vault.fullname" . }}-internal:8201
+      clusterAddr: null
+
+      # Enables Vault's integrated Raft storage.  Unlike the typical HA modes where
+      # Vault's persistence is external (such as Consul), enabling Raft mode will create
+      # persistent volumes for Vault to store data according to the configuration under server.dataStorage.
+      # The Vault cluster will coordinate leader elections and failovers internally.
+      raft:
+
+        # Enables Raft integrated storage
+        enabled: false
+        # Set the Node Raft ID to the name of the pod
+        setNodeId: false
+
+        # Note: Configuration files are stored in ConfigMaps so sensitive data
+        # such as passwords should be either mounted through extraSecretEnvironmentVars
+        # or through a Kube secret.  For more information see:
+        # https://www.vaultproject.io/docs/platform/k8s/helm/run#protecting-sensitive-vault-configurations
+        config: |
+          ui = true
+
+          listener "tcp" {
+            tls_disable = 1
+            address = "[::]:8200"
+            cluster_address = "[::]:8201"
+          }
+
+          storage "raft" {
+            path = "/vault/data"
+          }
+
+          service_registration "kubernetes" {}
+
       # config is a raw string of default configuration when using a Stateful
       # deployment. Default is to use a Consul for its HA storage backend.
       # This should be HCL.
+
+      # Note: Configuration files are stored in ConfigMaps so sensitive data
+      # such as passwords should be either mounted through extraSecretEnvironmentVars
+      # or through a Kube secret.  For more information see:
+      # https://www.vaultproject.io/docs/platform/k8s/helm/run#protecting-sensitive-vault-configurations
       config: |
         ui = true
 
@@ -924,6 +2030,8 @@ vault:
           path = "vault"
           address = "HOST_IP:8500"
         }
+
+        service_registration "kubernetes" {}
 
         # Example configuration for using auto-unseal, using Google Cloud KMS. The
         # GKMS keys must already exist, and the cluster must have a service account
@@ -940,47 +2048,223 @@ vault:
       disruptionBudget:
         enabled: true
 
-        # maxUnavailable will default to (n/2)-1 where n is the number of
-        # replicas. If you'd like a custom value, you can specify an override here.
+      # maxUnavailable will default to (n/2)-1 where n is the number of
+      # replicas. If you'd like a custom value, you can specify an override here.
         maxUnavailable: null
 
     # Definition of the serviceAccount used to run Vault.
+    # These options are also used when using an external Vault server to validate
+    # Kubernetes tokens.
     serviceAccount:
-      annotations: { }
+      # Specifies whether a service account should be created
+      create: true
+      # The name of the service account to use.
+      # If not set and create is true, a name is generated using the fullname template
+      name: ""
+      # Extra annotations for the serviceAccount definition. This can either be
+      # YAML or a YAML-formatted multi-line templated string map of the
+      # annotations to apply to the serviceAccount.
+      annotations: {}
+
+    # Settings for the statefulSet used to run Vault.
+    statefulSet:
+      # Extra annotations for the statefulSet. This can either be YAML or a
+      # YAML-formatted multi-line templated string map of the annotations to apply
+      # to the statefulSet.
+      annotations: {}
 
   # Vault UI
   ui:
-  # True if you want to create a Service entry for the Vault UI.
-  #
-  # serviceType can be used to control the type of service created. For
-  # example, setting this to "LoadBalancer" will create an external load
-  # balancer (for supported K8S installations) to access the UI.
+    # True if you want to create a Service entry for the Vault UI.
+    #
+    # serviceType can be used to control the type of service created. For
+    # example, setting this to "LoadBalancer" will create an external load
+    # balancer (for supported K8S installations) to access the UI.
     enabled: false
+    publishNotReadyAddresses: true
+    # The service should only contain selectors for active Vault pod
+    activeVaultPodOnly: false
     serviceType: "ClusterIP"
     serviceNodePort: null
     externalPort: 8200
+    targetPort: 8200
+
+    # The externalTrafficPolicy can be set to either Cluster or Local
+    # and is only valid for LoadBalancer and NodePort service types.
+    # The default value is Cluster.
+    # ref: https://kubernetes.io/docs/concepts/services-networking/service/#external-traffic-policy
+    externalTrafficPolicy: Cluster
+
+    #loadBalancerSourceRanges:
+    #   - 10.0.0.0/16
+    #   - 1.78.23.3/32
+
+    # loadBalancerIP:
+
+    # Extra annotations to attach to the ui service
+    # This can either be YAML or a YAML-formatted multi-line templated string map
+    # of the annotations to apply to the ui service
+    annotations: {}
+
+  # secrets-store-csi-driver-provider-vault
+  csi:
+    # True if you want to install a secrets-store-csi-driver-provider-vault daemonset.
+    #
+    # Requires installing the secrets-store-csi-driver separately, see:
+    # https://github.com/kubernetes-sigs/secrets-store-csi-driver#install-the-secrets-store-csi-driver
+    #
+    # With the driver and provider installed, you can mount Vault secrets into volumes
+    # similar to the Vault Agent injector, and you can also sync those secrets into
+    # Kubernetes secrets.
+    enabled: false
+
+    image:
+      repository: "hashicorp/vault-csi-provider"
+      tag: "1.0.0"
+      pullPolicy: IfNotPresent
+
+    # volumes is a list of volumes made available to all containers. These are rendered
+    # via toYaml rather than pre-processed like the extraVolumes value.
+    # The purpose is to make it easy to share volumes between containers.
+    volumes: null
+    # - name: tls
+    #   secret:
+    #     secretName: vault-tls
+
+    # volumeMounts is a list of volumeMounts for the main server container. These are rendered
+    # via toYaml rather than pre-processed like the extraVolumes value.
+    # The purpose is to make it easy to share volumes between containers.
+    volumeMounts: null
+    # - name: tls
+    #   mountPath: "/vault/tls"
+    #   readOnly: true
+
+    resources: {}
+    # resources:
+    #   requests:
+    #     cpu: 50m
+    #     memory: 128Mi
+    #   limits:
+    #     cpu: 50m
+    #     memory: 128Mi
+
+    # Settings for the daemonSet used to run the provider.
+    daemonSet:
+      updateStrategy:
+        type: RollingUpdate
+        maxUnavailable: ""
+      # Extra annotations for the daemonSet. This can either be YAML or a
+      # YAML-formatted multi-line templated string map of the annotations to apply
+      # to the daemonSet.
+      annotations: {}
+      # Provider host path (must match the CSI provider's path)
+      providersDir: "/etc/kubernetes/secrets-store-csi-providers"
+      # Kubelet host path
+      kubeletRootDir: "/var/lib/kubelet"
+      # Extra labels to attach to the vault-csi-provider daemonSet
+      # This should be a YAML map of the labels to apply to the csi provider daemonSet
+      extraLabels: {}
+
+    pod:
+      # Extra annotations for the provider pods. This can either be YAML or a
+      # YAML-formatted multi-line templated string map of the annotations to apply
+      # to the pod.
+      annotations: {}
+
+      # Toleration Settings for provider pods
+      # This should be either a multi-line string or YAML matching the Toleration array
+      # in a PodSpec.
+      tolerations: []
+
+      # Extra labels to attach to the vault-csi-provider pod
+      # This should be a YAML map of the labels to apply to the csi provider pod
+      extraLabels: {}
+
+
+
+    # Priority class for csi pods
+    priorityClassName: ""
+
+    serviceAccount:
+      # Extra annotations for the serviceAccount definition. This can either be
+      # YAML or a YAML-formatted multi-line templated string map of the
+      # annotations to apply to the serviceAccount.
+      annotations: {}
+
+      # Extra labels to attach to the vault-csi-provider serviceAccount
+      # This should be a YAML map of the labels to apply to the csi provider serviceAccount
+      extraLabels: {}
+
+    # Used to configure readinessProbe for the pods.
+    readinessProbe:
+      # When a probe fails, Kubernetes will try failureThreshold times before giving up
+      failureThreshold: 2
+      # Number of seconds after the container has started before probe initiates
+      initialDelaySeconds: 5
+      # How often (in seconds) to perform the probe
+      periodSeconds: 5
+      # Minimum consecutive successes for the probe to be considered successful after having failed
+      successThreshold: 1
+      # Number of seconds after which the probe times out.
+      timeoutSeconds: 3
+    # Used to configure livenessProbe for the pods.
+    livenessProbe:
+      # When a probe fails, Kubernetes will try failureThreshold times before giving up
+      failureThreshold: 2
+      # Number of seconds after the container has started before probe initiates
+      initialDelaySeconds: 5
+      # How often (in seconds) to perform the probe
+      periodSeconds: 5
+      # Minimum consecutive successes for the probe to be considered successful after having failed
+      successThreshold: 1
+      # Number of seconds after which the probe times out.
+      timeoutSeconds: 3
+
+    # Enables debug logging.
+    debug: true
+
+    # Pass arbitrary additional arguments to vault-csi-provider.
+    extraArgs: []
 
 #subchart  value for  storageMfe
 storagemfe:
   enabled: true
-  namespace: storage-service
+  namespace: storage
   conf:
-    storageBackendUrl: ""
-    containerAppUrl: ""
-    apiBaseUrl: ""
+    storageBackendUrl: http://storage-be.storage.svc.cluster.local:80 
+
+
+  envs:
+  #Add new env as array value with name/value field. Keep one tab indentation.
+    - name: PROJECTSMO_CONTAINER_APP_URL
+      value: http://localhost:7179
+    - name: PROJECTSMO_FRONTEND_API_BASEURL
+      value: api
   replicaCount: 1
 
   image:
     repository: ""
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: ""
+    tag: latest
+
 
   imagePullSecrets:
-    - name: harbor-pull-secret
+    - name: dockerregistry
+
+  nameOverride: ""
+  fullnameOverride: "storage-mfe"
+
+  podSecurityContext:
+    runAsUser: 1001
+
+  containerPort: 3000
+  service:
+    type: ClusterIP
+    port: 80
   
   ingress:
-    enabled: true
+    enabled: false
     annotations:
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -1001,3 +2285,163 @@ storagemfe:
       - hosts:
         - chart-example.local
         secretName: my-tls-secret
+
+storagebe:
+  enabled: true
+    # Default values for storage-be.
+  # This is a YAML-formatted file.
+  # Declare variables to be passed into your templates.
+  namespace: storage
+  #Add new env as array value with name/value field. Keep one tab indentation.
+  envs:
+    - name: MAX_FILE_SIZE
+      value: 3000MB
+    - name: MAX_REQUEST_SIZE
+      value: 3000MB
+    - name: VAULT_HOST
+      value: vault.vault.svc.cluster.local
+    - name: VAULT_PORT
+      value: "8200"         
+    - name: VAULT_SCHEME
+      value: http
+    - name: VAULT_AUTHENTICATION
+      value: TOKEN
+    - name: VAULT_TOKEN
+      valueFrom:
+        secretKeyRef:
+          key: vaultToken
+          name: storage-be
+    - name: VAULT_MOUNTPATH
+      value: kv
+    - name: VAULT_PATH
+      value: dna/minio  
+    - name: DNA_URI
+      value: http://dna-service.dna.svc.cluster.local:80
+    - name: DNA_AUTH_ENABLE
+      value: "true"  
+    - name: JWT_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          key: jwt.secret.key
+          name: storage-be
+    - name: CORS_ORIGIN_URL
+      value: "" 
+    - name: MINIO_ENDPOINT
+      value: http://minio.storage.svc.cluster.local:9000
+    - name: MINIO_ADMIN_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          key: minioAccessKey
+          name: storage-be  
+    - name: MINIO_ADMIN_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          key: minioSecretKey
+          name: storage-be   
+    - name: MINIO_POLICY_VERSION
+      value: "2012-10-17"   
+    - name: LOGGING_ENVIRONMENT
+      value: DEV   
+    - name: LOGGING_PATH
+      value: /tmp/log/   
+
+  secret:
+    - key: vaultToken
+      value: ""
+    - key: jwt.secret.key 
+      value: 
+    - key: minioAccessKey 
+      value: 
+    - key: minioSecretKey
+      value: 
+
+  replicaCount: 1
+
+  image:
+    repository: ""
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: latest
+
+  imagePullSecrets:
+    - name: dockerregistry
+  nameOverride: ""
+  fullnameOverride: "storage-be"
+
+  podSecurityContext:
+    #We are running this applicaton as root  
+    runAsUser: 1001
+    
+
+  containerPort: 7175
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: true
+    annotations:
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: ""
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /storage/api
+            pathType: Prefix
+          - path: /storage/swagger-ui.html
+            pathType: Prefix
+          - path: /storage/swagger-resources
+            pathType: Prefix
+          - path: /storage/v2/api-docs
+            pathType: Prefix
+          - path: /storage/webjars
+            pathType: Prefix
+    tls:
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+      - hosts:
+        - chart-example.local
+        secretName: my-tls-secret
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+minio:
+  enabled: true
+
+#Subchart properties for model-registry
+
+model-registry:
+  enabled: true
+
+#subChart properties for trinoBackend
+trinoBackend:
+  enabled: true
+
+#Redis Sub Chart
+redis:
+  enabled: true
+
+#subChart properties data-product-mfe
+data-product-mfe:
+  enabled: true
+
+data-product-be:
+  enabled: true
+
+code-server:
+  enabled: true

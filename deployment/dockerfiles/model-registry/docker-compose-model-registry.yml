@@ -1,0 +1,13 @@
+version: '2.1'
+services:
+  model-registry:
+    image: dna/model-registry
+    container_name: model-registry
+    build:
+      context: ../../../packages/model-registry
+      dockerfile: $PWD/dockerfile.Dockerfile
+    environment:
+    - KUBE_NAMESPACE=dna
+    ports:
+    - 7373:7373
+    

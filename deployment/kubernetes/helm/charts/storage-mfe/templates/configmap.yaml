@@ -34,9 +34,11 @@ data:
             tcp_nodelay        off;
             gzip               on;
             gzip_http_version  1.0;
-            gzip_comp_level    2;
+            gzip_comp_level    5;
+            gzip_min_length    256;
+            gzip_vary          on;
             gzip_proxied       any;
-            gzip_types         text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+            gzip_types         application/atom+xml application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml font/opentype image/svg+xml image/x-icon text/x-component application/javascript application/json text/plain text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript;
             keepalive_timeout  65;
             ssl_protocols      TLSv1 TLSv1.1 TLSv1.2;
 
@@ -48,7 +50,7 @@ data:
 
             resolver kube-dns.kube-system.svc.cluster.local valid=10s;
 
-            set $backend {{ .Values.conf.storageBackendUrl | quote }};
+            set $storage_server {{ .Values.conf.storageBackendUrl | quote }};
 
             root /usr/share/nginx/html;
             index index.htm index.html;
@@ -59,7 +61,16 @@ data:
               add_header Cache-Control "no-store, no-cache, must-revalidate";
               ssi on;
             }
-                        location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|eot|woff)$ {
+            location ~ .remoteEntry.js$ {
+              expires -1;
+              add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            }
+
+            location ~ .config.js$ {
+              expires -1;
+              add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+            }
+            location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|eot|woff)$ {
               expires 1M;
               access_log "/opt/bitnami/nginx/logs/static.log";
               add_header Cache-Control "public";
@@ -73,10 +84,14 @@ data:
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header X-NginX-Proxy true;
-              proxy_pass $backend;
+              proxy_pass $storage_server;
               proxy_ssl_session_reuse off;
               proxy_set_header Host $http_host;
               proxy_redirect off;
-            }
+            }            
           }
         }
+  {{- if not .Values.vaultInjector.enable }}  
+  config.js: |
+    {{ .Values.configJs | nindent 8 }}
+  {{- end }}

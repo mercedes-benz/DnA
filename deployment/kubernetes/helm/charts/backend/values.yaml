@@ -3,15 +3,22 @@
 # Declare variables to be passed into your templates.
 
 namespace: dna
-imagePullSecret: 
-  name: harbor-pull-secrets
-  key: "docker-config" 
-cert:
-  certManager: acme
+# Image pull secret to use for registry authentication.
+imagePullSecrets:
+# imagePullSecrets:
+  # - name: image-pull-secret
 ingress:
+  enabled: true
   namespace: ingress
   host: "ingress-host"
   lbIP: ""
+
+  annotations:
+    traefik.frontend.rule.type: PathPrefix
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: ""
 app:
   backend:
     replicaCount: 1
@@ -49,11 +56,13 @@ app:
       s3Url: ""
       corosOriginUrl: ""
       jupyterNotebookUrl: ""
-      vaultHost: vault.vault.svc.cluster.local
-      vaultPort: 8200
       dataikuProdUri: ""
       dataikuProdAdminGroup: ""
       dataikutraininguri: ""
+      apacCorpDir: ""
+      emeaCorpDir: ""
+      dataikuUserRoleUriPath: "/admin/users/"
+      dataikuPermissionUriPath: "/permissions"
       avscanAppId: ""
       naasBroker: broker01.kafka.svc.cluster.local:8001
       loggingEnvironment: dev
@@ -65,8 +74,37 @@ app:
       flywayBaselineOnMigrate: "true"
       flywayBaselineVersion: "0"
       flywaySchema: "public"
+      dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
+      avscanSubsProvisionAPI: /api/subscription/provision
+      avscanUploadApi: /api/v1/scan/upload
+      dataSourceBulkCreateApiAccessToken: ""
 
-  vault:
-    secret:
-      name: vault-secrets
-      rootToken: ""
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: 7171
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: 7171 
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/dnaBackend'
+    vault.hashicorp.com/agent-inject-template-envvar: | 
+      {{- with secret "kv/dna/kubernetesSecret/dnaBackend" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+  saName: "default"
+  jarName: "dnambc-lib*.jar"

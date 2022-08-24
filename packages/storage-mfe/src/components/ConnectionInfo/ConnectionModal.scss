@@ -1,0 +1,110 @@
+.accessDetails {
+  text-align: center;
+  margin-bottom: 20px;
+  h5,
+  h6 {
+    margin-bottom: 20px;
+  }
+  table {
+    width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 15px;
+    tr {
+      max-width: 370px;
+      td:nth-child(1) {
+        min-width: 75px;
+      }
+    }
+    .keys {
+      min-width: 260px;
+      text-align: left;
+      padding-left: 15px;
+    }
+    .visibilityIcon {
+      margin-right: 5px;
+      margin-left: 5px;
+      cursor: pointer;
+      color: #00adef;
+      font-size: var(--font-size-tiny) !important;
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+  .copyIcon {
+    cursor: pointer;
+    float: right;
+  }
+  li:nth-child(2) {
+    background-color: transparent !important;
+  }
+}
+
+.tabsContentWrapper {
+  margin-top: 0px !important;
+  .connectionCode {
+    white-space: pre-wrap;
+    margin-left: 15px !important;
+    margin-bottom: 15px !important;
+    color: #d9dfe4 !important;
+    text-align: left;
+    width: 38vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 250px;
+
+    .dataikuConnectionBtn {
+      align-self: flex-end;
+      button:disabled {
+        background-color: #697582;
+        border-color: transparent;
+      }
+    }
+    .optionContainer {
+      display: flex;
+      flex-direction: column;
+      .optionTitle {
+        color: #d9dfe4;
+      }
+      .optionText {
+        color: #c0c8d0;
+        font-size: var(--font-size-small);
+      }
+    }
+  }
+  .tabContentContainer {
+    border: 1px solid #383f49;
+    padding: 10px 0px;
+    overflow: auto;
+  }
+}
+
+.OkBtn {
+  margin-top: 15px;
+  float: right;
+}
+.portal {
+  margin-top: 5px;
+  display: inline-block;
+  color: #acb8c4;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  right: 50%;
+}
+
+.emptyDataikuProjectsList {
+  text-align: center;
+  margin-top: 50px;
+  color: #c0c8d0;
+}
+
+:global {
+  [class*="ConnectionModal"] #tab-content-2 .open-suggestion [class*="portal"] {
+    display: none;
+  }
+}

@@ -39,7 +39,7 @@ import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 import { getQueryParameterByName } from '../../../services/Query';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
-import { trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 
 import SolutionsFilter from '../filters/SolutionsFilter';
@@ -256,7 +256,7 @@ export default class AllSolutions extends React.Component<
             break;
         }
         this.setState({ queryParams }, () => {
-          this.getSolutions(true);
+          // this.getSolutions(true);
         });
       } else if (window.location.href.indexOf('allsolutions') !== -1) {
         this.setState({ showSolutionsFilter: true });
@@ -268,12 +268,12 @@ export default class AllSolutions extends React.Component<
         queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
         this.setState({ allSolutionsFilterApplied: false, queryParams }, () => {
           SelectBox.defaultSetup();
-          this.getSolutions();
+          // this.getSolutions();
         });
       } else {
         this.setState({ allSolutionsFilterApplied: false });
         SelectBox.defaultSetup();
-        this.getSolutions();
+        // this.getSolutions();
       }
     });
     ApiClient.getNotebooksDetails()
@@ -576,23 +576,20 @@ export default class AllSolutions extends React.Component<
               onCancel={this.onCancellingDeleteChanges}
               onAccept={this.onAcceptDeleteChanges}
             />
-          </div>
-          {this.state.showSolutionsFilter && (
-            <>
-              <SolutionsFilter
-                userId={this.props.user.id}
-                getFilterQueryParams={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams)}
-                solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
-                setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
-                // getValuesFromFilter={(value: any) => {
-                //   this.setState({ locations: value.locations ? value.locations : [] });
-                //   this.setState({ phases: value.phases ? value.phases : [] });
-                //   this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
-                //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
-                // }}
-              />
-            </>
-          )}
+          </div>          
+          <SolutionsFilter
+            userId={this.props.user.id}
+            getFilterQueryParams={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter? false : true)}
+            solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
+            setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
+            showSolutionsFilter = {this.state.showSolutionsFilter}
+            // getValuesFromFilter={(value: any) => {
+            //   this.setState({ locations: value.locations ? value.locations : [] });
+            //   this.setState({ phases: value.phases ? value.phases : [] });
+            //   this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
+            //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
+            // }}
+          />
           {exportCSVIcon()}
         </div>
       </React.Fragment>
@@ -760,71 +757,109 @@ export default class AllSolutions extends React.Component<
 
   protected getFilteredSolutions = (queryParams: IFilterParams, getPublished?: boolean) => {
     ProgressIndicator.show();
-    this.setState(
-      {
+    const enablePortfolioSolutionsView = window.location.href.indexOf('viewsolutions') !== -1;
+
+    if (enablePortfolioSolutionsView) {
+      const { kpi, value } = this.props.match.params;
+      if (queryParams.status.includes('0')) {
+        queryParams.status = [];
+      }
+      if (queryParams.useCaseType.includes('0')) {
+        queryParams.useCaseType = [];
+      }
+      queryParams.dataVolume = [];
+      switch (kpi) {
+        case 'phase':
+          queryParams.phase = [value];
+          ApiClient.get('phases')
+            .then((res) => {
+              this.setState({ phases: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        case 'datavolume':
+          queryParams.dataVolume = [value];
+          ApiClient.get('datavolumes')
+            .then((res) => {
+              this.setState({ dataVolumes: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        case 'location':
+          queryParams.location = [value];
+          ApiClient.get('locations')
+            .then((res) => {
+              this.setState({ locations: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        default:
+          break;
+      }
+      this.setState({ queryParams,
+        currentPageOffset: 0,
+        currentPageNumber: 1, }, () => {
+        this.getSolutions(true);
+      });
+    } 
+    else if (window.location.href.indexOf('allsolutions') !== -1) {
+      this.setState({ showSolutionsFilter: true,
         queryParams,
         currentPageOffset: 0,
-        currentPageNumber: 1,
-      },
-      () => {
-        this.getSolutions(getPublished);
-      },
-    );
+        currentPageNumber: 1 }, () => {
+        this.getSolutions();
+      });
+    } 
+    else if (
+      window.location.href.indexOf('bookmarks') !== -1 ||
+      window.location.href.indexOf('mysolutions') !== -1
+    ) {
+      queryParams = this.state.queryParams;
+      queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
+      this.setState(
+        {
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+          allSolutionsFilterApplied: false, 
+          queryParams
+        },
+        () => {          
+          SelectBox.defaultSetup();
+          this.getSolutions();          
+        },
+      );
+      
+    } else {
+      this.setState(
+        {
+          queryParams,
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+        },
+        () => {
+          this.getSolutions(getPublished);
+        },
+      );
+      
+    }
+    
   };
 
   protected getSolutions = (getPublished?: boolean) => {
     const queryParams = this.state.queryParams;
     const locationIds = queryParams.location.join(',');
     const phaseIds = queryParams.phase.join(',');
-    let divisionIds = queryParams.division.join(',');
-    // const subDivisionIds = queryParams.subDivision.join(',');
+    const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
     const status = queryParams.status.join(',');
     const useCaseType = queryParams.useCaseType.join(',');
-    const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume.join(',') : '';
+    const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
     const tags = queryParams.tag.join(',');
-
-    if (queryParams.division.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      distinctSelectedDivisions.forEach((item) => {
-        const tempString = '{' + item + ',[]}';
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
-
-    if (queryParams.subDivision.length > 0) {
-      const distinctSelectedDivisions = queryParams.division;
-      const tempArr: any[] = [];
-      let hasEmpty = false; // To find none selected in sub division since its not mandatory
-      const emptySubDivId = 'EMPTY';
-      distinctSelectedDivisions.forEach((item) => {
-        const tempSubdiv = queryParams.subDivision.map((value) => {
-          const tempArray = value.split('-');
-          const subDivId = tempArray[0];
-          if (subDivId === emptySubDivId) {
-            hasEmpty = true;
-          }
-          if (item === tempArray[1]) {
-            return subDivId;
-          }
-        });
-
-        if (hasEmpty && !tempSubdiv.includes(emptySubDivId)) {
-          tempSubdiv.unshift(emptySubDivId);
-        }
-
-        let tempString = '';
-
-        if (tempSubdiv.length === 0) {
-          tempString += '{' + item + ',[]}';
-        } else {
-          tempString += '{' + item + ',[' + tempSubdiv.filter((div) => div) + ']}';
-        }
-        tempArr.push(tempString);
-      });
-      divisionIds = JSON.stringify(tempArr).replace(/['"]+/g, '');
-    }
 
     ApiClient.getSolutionsByGraphQL(
       locationIds,
@@ -916,7 +951,9 @@ export default class AllSolutions extends React.Component<
       const typeFilterValue = this.state.projectTypes.find(
         (item) => item.id === this.state.queryParams.useCaseType.toString(),
       );
-      pageTitle = typeFilterValue ? typeFilterValue.name : 'Solutions';
+      pageTitle = (typeFilterValue ? typeFilterValue.name : 'Solutions') + ` (${solutionsCount})`;
+    } else {
+      pageTitle += ` (${solutionsCount})`;
     }
 
     return pageTitle;
@@ -1012,8 +1049,10 @@ export default class AllSolutions extends React.Component<
     let userId = '';
     if (solution.team.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = solution.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-    } else if (solution.createdBy) {
+    } else if (solution?.createdBy?.id === userInfo.id) {
       userId = solution.createdBy.id;
+    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(solution?.division?.name)) {
+      userId = userInfo.id;    
     } else {
       userId = '';
     }

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: {{ .Chart.Name }}-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ .Chart.Name }}-backend
+  template:
+    metadata:
+      labels:
+        name: {{ .Chart.Name }}-backend
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}        
+    spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}     
+      containers:
+        - name: {{ .Chart.Name }}-service
+          image: {{ .Values.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}          
+          {{- with .Values.envs }}            
+          env:
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}               
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+              name: api
+              protocol: TCP
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory }}
+              cpu: {{ .Values.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.resources.limits.memory }}
+              cpu: {{ .Values.resources.limits.cpu }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.livenessProbe.path }}
+              port: {{ .Values.probes.livenessProbe.port }}
+              
+          readinessProbe:
+            # initialDelaySeconds: 60
+            # Max time it will take to success the readiness probe .
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+            httpGet:
+              path: {{ .Values.probes.readinessProbe.path }}
+              port: {{ .Values.probes.readinessProbe.port }}   
+      securityContext:
+        runAsUser: 1000
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecret.name }}

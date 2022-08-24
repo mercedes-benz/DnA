@@ -1,0 +1,233 @@
+.mainPanel {
+  padding: 72px 184px 30px 114px;
+  // display: flex;
+
+  .caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    h3 {
+      color: #dee3e8;
+    }
+  }
+
+  .wrapper {
+    background: #252a33;
+    flex: 1 auto;
+    padding: 24px 0 30px 40px;
+    
+    .searchPanel {
+      display: flex;
+      align-items: center;
+      > div {
+        margin-right: 25px;
+      }
+      .customContainer {
+        width: 320px;
+      }
+    }
+    .tablePanel {
+      margin-left: -40px;
+    }
+    h3 {
+      padding: 0 38px;
+    }
+    tr th.actionLinksTD {
+      text-align: right !important;
+      padding-right: 30px;
+
+      label {
+        display: flex;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
+  
+.modalContentWrapper {
+  margin-top: -20px;
+  font-size: var(--font-size-sub-headline);
+  .modalTitle {
+    margin-top: 0px;
+    text-align: center;
+  }
+  .modalContent {
+    margin-top: 20px;
+    font-size: var(--font-size-medium);
+
+    p {
+      margin: 0 auto;
+      max-width: 650px;
+    }
+  }
+}
+
+.tagIsEmpty {
+  display: flex;
+  flex-direction: column;
+  height: 440px;
+  justify-content: center;
+  position: relative;
+  background-color: #252a33;
+  text-align: center;
+  width: calc(100% - 40px);
+  .linkStyle {
+    color: #00adef;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+
+.changeLogContainer {
+  height: 440px;
+  position: relative;
+  background-color: #252a33;
+  width: 100%;
+}
+
+.addItemButton {
+  margin-top: 13px;
+  button {
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    outline: none;
+    color: #c0c8d0;
+    vertical-align: middle;
+    i {
+      vertical-align: top;
+      margin-right: 10px;
+      color: #00adef;
+    }
+    span {
+      color: #99a5b3;
+    }
+    &:hover span {
+      text-decoration: underline;
+    }
+  }
+  i {
+    width: auto;
+    height: auto;
+    margin-right: 19px;
+  }
+}
+.disabledAddItemBtn {
+  cursor: default !important;
+  pointer-events: none;
+  button {
+    i {
+      color: #697582 !important;
+      span {
+        color: #697582 !important;
+      }
+    }
+  }
+}
+.exportLinkWrapper {
+  margin-left: auto;
+  margin-top: 13px;
+}
+.addBtn {
+  display: flex;
+  justify-content: flex-end;
+}
+.tabActiveClr {
+  background-color: #383f49;
+}
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  .wrapper {
+    width: auto;
+    height: auto;
+  }
+  > div {
+    width: calc(48% - 0px) !important;
+    margin: 5px 0;
+    flex: unset !important;
+  }
+}
+.formWrapperMain {
+  min-height: 330px;
+  width: 550px;
+  overflow: hidden;
+}
+.tabscontentWrapper {
+  margin-top: -8px !important;
+}
+.updateModelOverlayContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #252a33;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+
+  p {
+    font-size: var(--font-size-medium);
+    padding: 0 60px;
+    margin-bottom: 30px;
+  }
+}
+
+thead {
+  tr {
+    vertical-align: top;
+
+    th:first-child {
+      min-width: 120px;
+    }
+  }
+}
+th {
+  > label {
+    display: flex;
+
+    .infoIcon {
+      font-size: 13px !important;
+      margin-left: 0;
+      margin-right: 6px !important;
+      margin-top: -2px;
+      cursor: pointer;
+    }
+  }
+}
+
+.tagError {
+  font-size: 12px;
+  padding-bottom: 2px;
+  margin-top: -5px;
+}
+
+.btnSwitch {
+  background-color: transparent;
+  border: 0;
+  color: #00adef;
+  display: block;
+  margin-top: 4px;
+  padding: 0;
+  float: right;
+  position: relative;
+  z-index: 9;
+  font-size: var(--font-size-smallest);
+
+  &:focus {
+    outline: 0;
+  }
+}
+
+.tagControl {
+  min-height: 95px;
+}

@@ -27,9 +27,31 @@
 
 package com.daimler.data.controller;
 
+import java.util.Arrays;
+import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.daimler.data.api.datasource.DatasourcesApi;
 import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.controller.exceptions.*;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.datasource.DataSourceBulkRequestVO;
 import com.daimler.data.dto.datasource.DataSourceCollection;
 import com.daimler.data.dto.datasource.DataSourceRequestVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
@@ -38,21 +60,14 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.datasource.DataSourceService;
 import com.daimler.data.service.userinfo.UserInfoService;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import com.daimler.data.util.ConstantsUtility;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.List;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "DataSource API", tags = { "datasources" })
@@ -60,6 +75,8 @@ import java.util.List;
 @Slf4j
 public class DataSourceController implements DatasourcesApi {
 
+	private static Logger logger = LoggerFactory.getLogger(DataSourceController.class);
+	
 	@Autowired
 	private UserStore userStore;
 
@@ -80,7 +97,6 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 405, message = "Invalid input"), @ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	@CacheEvict(value = "data-sources", allEntries = true)
 	public ResponseEntity<DataSourceVO> create(@Valid DataSourceRequestVO requestVO) {
 		DataSourceVO requestDatasourceVO = requestVO.getData();
 		try {
@@ -115,7 +131,6 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources/{id}", produces = { "application/json" }, method = RequestMethod.DELETE)
-	@CacheEvict(value = "data-sources", allEntries = true)
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Id of the datasource", required = true) @PathVariable("id") String id) {
 		try {
@@ -139,7 +154,12 @@ public class DataSourceController implements DatasourcesApi {
 					}
 				}
 			}
+			DataSourceVO datasource = datasourceService.getById(id);
+			String datasourceName = datasource != null ? datasource.getName() : "";
+			String userName = datasourceService.currentUserName(currentUser);
+			String eventMessage = "DataSource  " + datasourceName + " has been deleted by Admin " + userName;
 			datasourceService.deleteDataSource(id);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.info("Datasource {} deleted successfully", id);
@@ -168,17 +188,41 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources", produces = { "application/json" }, method = RequestMethod.GET)
-	@Cacheable("data-sources")
 	public ResponseEntity<DataSourceCollection> getAll() {
 		final List<DataSourceVO> datasources = datasourceService.getAll();
 		DataSourceCollection datasourceCollection = new DataSourceCollection();
-		if (datasources != null && datasources.size() > 0) {
+		if (!ObjectUtils.isEmpty(datasources)) {
 			datasourceCollection.addAll(datasources);
 			log.debug("Returning all available datasources");
 			return new ResponseEntity<>(datasourceCollection, HttpStatus.OK);
 		} else {
 			log.debug("No datasources found, returning empty");
 			return new ResponseEntity<>(datasourceCollection, HttpStatus.NO_CONTENT);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Add datasources.", nickname = "bulkCreate", notes = "Add datasources will add non-existing datasources.", response = GenericMessage.class, tags = {
+			"datasources", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure ", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@PostMapping(path = "/datasources/bulk", produces = { "application/json" }, consumes = { "application/json" })
+	public ResponseEntity<GenericMessage> bulkCreate(
+			@ApiParam(value = "Api access token to access api.", required = true) @RequestHeader(value = "accessToken", required = true) String accessToken,
+			@ApiParam(value = "Request Body that contains data required for adding new datasources", required = true) @Valid @RequestBody DataSourceBulkRequestVO dataSourceBulkRequestVO) {
+		if(datasourceService.accessTokenIntrospection(accessToken)) {
+			logger.info("Valid access token.");
+			return datasourceService.bulkCreate(dataSourceBulkRequestVO.getData());
+		}else {
+			GenericMessage genericMessage = new GenericMessage();
+			logger.info("Access Token must not be empty or invalid.");
+			genericMessage.setErrors(Arrays.asList(new MessageDescription("Invalid Access Token.")));
+			return new ResponseEntity<>(genericMessage, HttpStatus.FORBIDDEN);
 		}
 	}
 

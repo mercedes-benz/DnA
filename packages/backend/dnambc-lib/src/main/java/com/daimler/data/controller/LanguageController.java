@@ -27,9 +27,24 @@
 
 package com.daimler.data.controller;
 
+import java.util.List;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.daimler.data.api.language.LanguagesApi;
 import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.controller.exceptions.*;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.language.LanguageCollection;
 import com.daimler.data.dto.language.LanguageRequestVO;
 import com.daimler.data.dto.language.LanguageVO;
@@ -38,16 +53,14 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.language.LanguageService;
 import com.daimler.data.service.userinfo.UserInfoService;
-import io.swagger.annotations.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.daimler.data.util.ConstantsUtility;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-import java.util.List;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Api(value = "Language API", tags = { "languages" })
@@ -134,7 +147,12 @@ public class LanguageController implements LanguagesApi {
 					}
 				}
 			}
+			LanguageVO language = languageService.getById(id);
+			String languageName = language != null ? language.getName() : "";
+			String userName = languageService.currentUserName(currentUser);
+			String eventMessage = "Language  " + languageName + " has been deleted by Admin " + userName;
 			languageService.deleteLanguage(id);
+			userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, null);
 			GenericMessage successMsg = new GenericMessage();
 			successMsg.setSuccess("success");
 			log.debug("Language {} deleted successfully", id);

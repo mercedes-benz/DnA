@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "storage-be.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+    - ports:
+        - port: {{ .Values.containerPort }}
+  podSelector:
+    matchLabels:
+      {{- include "storage-be.selectorLabels" . | nindent 8 }}

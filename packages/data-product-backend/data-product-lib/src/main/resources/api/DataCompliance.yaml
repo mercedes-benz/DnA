@@ -1,0 +1,340 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : datacompliance.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  PRINCKU
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "core data compliance service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "datacompliance"
+    description: "This service is used for data compliance network maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create, update, getAll data compliance network list
+  #
+  #  supported http methods GET, PUT, POST
+  #
+  # path example ../datacompliance
+
+  /datacompliance:
+    get:
+      tags:
+        - "datacompliance"
+      summary: "Get all available datacompliance network list."
+      description: "Get all available datacompliance network list."
+      operationId: "getAll"
+      parameters:
+        - name: entityId
+          in: query
+          description: Filtering data compliance details based on entityId.
+          required: false
+          type: string                                         
+        - name: entityName
+          in: query
+          description: Filtering data compliance details based on entityName
+          required: false
+          type: string
+        - name: localComplianceOfficer
+          in: query
+          description: Filter using localComplianceOfficer. localComplianceOfficer is comma seperated search keywords.
+          required: false
+          type: string
+        - name: localComplianceResponsible
+          in: query
+          description: Filter using localComplianceResponsible. localComplianceResponsible is comma seperated search keywords.
+          required: false
+          type: string
+        - name: dataProtectionCoordinator
+          in: query
+          description: Filter using dataProtectionCoordinator. dataProtectionCoordinator is comma seperated search keywords.
+          required: false
+          type: string 
+        - name: localComplianceSpecialist
+          in: query
+          description: Filter using localComplianceSpecialist. localComplianceSpecialist is comma seperated search keywords.
+          required: false
+          type: string                                      
+        - name: offset
+          in: query
+          description: page number from which listing of records should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of records. Example 15
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort records by a given variable like entityId, entityName, localComplianceOfficer, etc
+          required: false
+          type: string
+          enum: [entityId, entityName, localComplianceOfficer, localComplianceResponsible, dataProtectionCoordinator, localComplianceSpecialist]
+        - name: sortOrder
+          in: query
+          description: Sort records based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]               
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataComplianceCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+  
+    post:
+      tags:
+        - "datacompliance"
+      summary: "Add a new datacompliance record."
+      description: "Adds a new non existing datacompliance record."
+      operationId: "create"
+      parameters:
+        - name: "dataComplianceRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a new record"
+          required: true
+          schema:
+            $ref: "#/definitions/DataComplianceRequestVO"    
+      responses:
+        200:
+          description: "Returns message of succes"
+          schema:
+            $ref: "#/definitions/DataComplianceResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"      
+    
+    put:
+      tags:
+        - "datacompliance"
+      summary: "Update existing datacompliance record."
+      description: "Update an existing datacompliance record."
+      operationId: "update"
+      parameters:
+        - name: "dataComplianceRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating data compliance record"
+          required: true
+          schema:
+            $ref: "#/definitions/DataComplianceRequestVO"    
+      responses:
+        200:
+          description: "Returns message of succes"
+          schema:
+            $ref: "#/definitions/DataComplianceResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  # path to delete datacompliance entry by id
+  #
+  #  Supported http methods DELETE
+  #
+  # path example ../datacompliance/{id}
+  
+  /datacompliance/{id}:
+    delete:
+      tags:
+        - "datacompliance"
+      summary: "Delete datacompliance record for a given Id."
+      description: "Delete datacompliance record for a given identifier."
+      operationId: "delete"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+definitions:
+  DataComplianceVO:
+    type: object
+    properties:
+      id:
+        type: string
+      entityId:
+        type: string
+        description: "Entity Id"
+        minLength: 1
+      entityName:
+        type: string
+        description: "Name of the Entity"
+        minLength: 1        
+      localComplianceOfficer:
+        type: array
+        description: "First point of contact for data compliance question"
+        items:
+          type: string
+      localComplianceResponsible:
+        type: array
+        items:
+          type: string
+      dataProtectionCoordinator:
+        type: array
+        items:
+          type: string 
+      localComplianceSpecialist:
+        type: array
+        items:
+          type: string                                      
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      modifiedBy:
+        $ref: "#/definitions/CreatedByVO"        
+    required:
+      - entityId
+      - entityName                      
+
+  DataComplianceRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/DataComplianceVO"
+        
+  DataComplianceResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/DataComplianceVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+          
+  DataComplianceCollection:
+    description: "Collection of records."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/DataComplianceVO"                 
+          
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user" 

@@ -51,7 +51,7 @@ public class ApplicationLoggingAspect {
 	public void springBeanPointcut() {
 	}
 
-	@Pointcut("within(com.daimler.dna.notifications..*)")
+	@Pointcut("within(com.daimler.dna..*)")
 	public void applicationPackagePointcut() {
 	}
 

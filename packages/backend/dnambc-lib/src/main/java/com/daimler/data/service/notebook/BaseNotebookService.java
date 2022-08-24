@@ -29,6 +29,7 @@ package com.daimler.data.service.notebook;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +48,11 @@ import com.daimler.data.db.repo.notebook.NotebookCustomRepository;
 import com.daimler.data.db.repo.notebook.NotebookRepository;
 import com.daimler.data.dto.notebook.NotebookVO;
 import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.dto.solution.SolutionVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.solution.SolutionService;
+import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 @Service
@@ -68,7 +73,13 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 	private NotebookRepository jpaRepo;
 	@Autowired
 	private NotebookAssembler notebookAssembler;
+	
+	@Autowired
+	private SolutionService solutionService;
 
+	@Autowired
+	private UserInfoService userInfoService;
+	
 	public BaseNotebookService() {
 		super();
 	}
@@ -94,8 +105,13 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 //			LOGGER.debug("Saving Notebook...");
 //			jpaRepo.save(notebookNsql);
 //		}
+		String solutionName = solutionId;
 		Notebook notebook = null;
 		if (solutionId != null) {
+			SolutionVO solutionVO = solutionService.getById(solutionId);
+			if(solutionVO!=null) {
+				solutionName = solutionVO.getProductName();
+			}
 			NotebookNsql existingNotebook = customRepo.findbyUniqueLiteral("solutionId", solutionId);
 			if (existingNotebook != null) {
 				Notebook existingNotebookDetails = existingNotebook.getData();
@@ -158,11 +174,11 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		String notebookName = notebook != null ? notebook.getName() : "";
 		if ("provisioned".equalsIgnoreCase(updateType) && sendNotificationForNotebookLink) {
 			eventType = "Notebook Provisioned";
-			message = "Solution provisioned from notebook " + notebookName;
+			message = "Solution " + solutionName + " provisioned from notebook " + notebookName;
 		}
 		if (sendNotificationForNotebookUnLink) {
 			eventType = "Notebook Unlinked";
-			message = "Notebook " + notebookName + " unlinked from Solution " + solutionId + " before solution delete";
+			message = "Notebook " + notebookName + " unlinked from Solution " + solutionName + " before solution delete";
 		}
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "dna_system";
@@ -189,6 +205,19 @@ public class BaseNotebookService extends BaseCommonService<NotebookVO, NotebookN
 		existingNotebookDetails.setSolutionId(solutionId);
 		notebookRecord.setData(existingNotebookDetails);
 		customRepo.update(notebookRecord);
+	}
+	
+	@Override
+	public NotebookVO getById(String id) {
+		LOGGER.info("Fetching notebook info from db.");
+		NotebookVO notebookVO = super.getById(id);
+		if(Objects.nonNull(notebookVO)) {
+			LOGGER.info("Fetching user details for user:{}",notebookVO.getUserId());
+			UserInfoVO userInfoVO = userInfoService.getById(notebookVO.getUserId().toUpperCase());
+			LOGGER.debug("Setting createdByVO.");
+			notebookVO.setCreatedBy(notebookAssembler.toCreatedByVO(userInfoVO));
+		}
+		return notebookVO;
 	}
 
 }

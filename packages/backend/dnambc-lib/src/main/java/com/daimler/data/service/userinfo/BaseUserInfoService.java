@@ -27,31 +27,41 @@
 
 package com.daimler.data.service.userinfo;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
+import com.daimler.data.application.config.CodeServerClient;
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserFavoriteUseCase;
+import com.daimler.data.db.jsonb.UserInfo;
 import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
 import com.daimler.data.db.repo.userinfo.UserInfoRepository;
+import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.UserFavoriteUseCaseVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
 import com.daimler.data.util.JWTGenerator;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 @Service
 @Transactional
@@ -59,6 +69,8 @@ import java.util.List;
 public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoNsql, String>
 		implements UserInfoService {
 
+	private static Logger logger = LoggerFactory.getLogger(BaseUserInfoService.class);
+	
 	@Autowired
 	private UserInfoCustomRepository customRepo;
 	@Autowired
@@ -70,6 +82,12 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	@Autowired
 	private UserInfoAssembler userinfoAssembler;
 
+	@Autowired
+	private KafkaProducerService kafkaProducer;
+
+	@Autowired
+	private CodeServerClient codeServerClient;
+	
 	public BaseUserInfoService() {
 		super();
 	}
@@ -225,9 +243,108 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	}
 
 	@Override
+	public void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs) {
+		log.debug("Notifying all Admin users on " + eventType + " for " + message);
+		List<UserInfoVO> allUsers = this.getAll();
+		List<String> adminUsersIds = new ArrayList<>();
+		List<String> adminUsersEmails = new ArrayList<>();
+		for (UserInfoVO user : allUsers) {
+			boolean isAdmin = false;
+			if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+				isAdmin = user.getRoles().stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+			}
+			if (isAdmin) {
+				adminUsersIds.add(user.getId());
+				adminUsersEmails.add(user.getEmail());
+			}
+		}
+		try {
+			kafkaProducer.send(eventType, resourceId, "", triggeringUser, message, true, adminUsersIds,
+					adminUsersEmails, changeLogs);
+			log.info("Successfully notified all admin users for event {} for {} ", eventType, message);
+		} catch (Exception e) {
+			log.error("Exception occured while notifying all Admin users on {}  for {} . Failed with exception {}",
+					eventType, message, e.getMessage());
+		}
+	}
+
+	@Override
 	public boolean isLoggedIn(String id) {
 		UserInfoNsql userinfo = jpaRepo.findById(id).get();
 		return !ObjectUtils.isEmpty(userinfo) && userinfo.getIsLoggedIn().equalsIgnoreCase("Y");
 	}
 
+	@Override
+	public List<UserInfoVO> getAllWithFilters(String searchTerm, int limit, int offset, String sortBy,
+			String sortOrder) {
+		logger.info("Fetching user information from table.");
+		List<UserInfoNsql> userInfoEntities = customRepo.getAllWithFilters(searchTerm, limit, offset, sortBy,
+				sortOrder);
+		logger.info("Success from get information from table.");
+		if (!ObjectUtils.isEmpty(userInfoEntities)) {
+			return userInfoEntities.stream().map(n -> userinfoAssembler.toVo(n)).toList();
+		} else {
+			return new ArrayList<>();
+		}
+	}
+
+	@Override
+	public Long getCountWithFilters(String searchTerm) {
+		logger.info("Fetching total count of user information.");
+		return customRepo.getCount(searchTerm);		
+	}
+
+	@Override
+	@Transactional
+	public void updateDivisionForUserRole(String divisionOldValue, String divisionNewValue) {
+		List<UserInfoNsql> userInfoEntities = customRepo.getAllWithFilters(divisionOldValue, 0, 0, null, null);
+		Optional.ofNullable(userInfoEntities).ifPresent(l -> l.forEach(userInfoNsql -> {
+			if (!ObjectUtils.isEmpty(userInfoNsql.getData().getDivisionAdmins())
+					&& userInfoNsql.getData().getDivisionAdmins().contains(divisionOldValue)) {
+				int index = userInfoNsql.getData().getDivisionAdmins().indexOf(divisionOldValue);
+				if (StringUtils.hasText(divisionNewValue)) {
+					logger.info("Setting new division value:{} for division:{}", divisionNewValue, divisionOldValue);
+					userInfoNsql.getData().getDivisionAdmins().set(index, divisionNewValue);
+				} else {
+					logger.info("Removing division:{}", divisionOldValue);
+					userInfoNsql.getData().getDivisionAdmins().remove(index);
+				}
+				logger.debug("Saving pdtaed userInfo in database");
+				jpaRepo.save(userInfoNsql);
+			}
+		}));
+	}
+	
+	@Override
+	public UserInfoVO getById(String id) {
+		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
+		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
+	}
+	
+	@Override
+	@Transactional
+	public GenericMessage initializeCodeServer(String userId, String password, String type) {
+		GenericMessage response = codeServerClient.createWorkbench(userId.toLowerCase(), password, type);
+		if(response!=null && "success".equalsIgnoreCase(response.getSuccess())){
+			logger.info("Workbench created successfully, saving workbench password for user {} in db.", userId);
+			try {
+			UserInfoNsql userinfo = customRepo.findById(userId).get();
+			UserInfo data = userinfo.getData();
+			data.setCodeServerPassword(password);
+			userinfo.setData(data);
+			customRepo.update(userinfo);
+			logger.info("Saved workbench password for user {} in db sucessfully.", userId);
+			}catch(Exception e) {
+				e.printStackTrace();
+				logger.error("Workbench created successfully, failed while saving workbench password for user {} in db with exception {} .", userId,e.getMessage());
+			}
+		}
+		return response;
+	}
+
+	@Override
+	public HttpStatus pollWorkBenchStatus(String userId) {
+		return codeServerClient.pollWorkBenchStatus(userId.toLowerCase());
+	}
 }

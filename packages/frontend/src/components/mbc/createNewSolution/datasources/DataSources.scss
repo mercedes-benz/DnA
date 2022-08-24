@@ -2,6 +2,7 @@
   background: #252a33 !important;
   margin-top: 60px !important;
   padding: 25px 38px;
+  min-height: 350px;
 
   .firstPanel {
     background: #252a33;
@@ -9,7 +10,6 @@
 
     .formWrapper {
       margin: 60px 70px 0;
-      min-height: 200px;
     }
 
     .flexLayout {
@@ -24,5 +24,64 @@
       text-align: center;
       margin: 30px 0;
     }
+  }
+}
+
+.weightageTableContainer {
+  padding: 0 70px;
+}
+.dataSourceWeightage {
+  table {
+    width: 100%;
+
+    tr {
+      border-bottom: 1px solid #383f49;
+    }
+
+    th {
+      text-align: inherit;
+      color: #acb8c4;
+      font-size: var(--font-size-smallest);
+      font-family: 'Roboto-Medium';
+      font-weight: normal;
+      padding: 12px 20px;
+    }
+
+    td {
+      height: 55px;
+      padding: 18px 20px;
+      color: #c0c8d0;
+      max-width: 50%;
+      width: 50%;
+      font-size: var(--font-size-small);
+    }
+  }
+
+  .totalWeightage {
+    font-size: var(--font-size-default);
+
+    b {
+      width: 58px;
+      display: inline-block;
+      text-align: center;
+      margin-left: 26px;
+    }
+  }
+
+  .error {
+    color: #e84d47;
+  }
+
+  .success {
+    color: #00adef;
+  }
+
+  .note {
+    color: #acb8c4;
+    font-size: var(--font-size-small);
+    margin-bottom: 0;
+    padding-top: 16px;
+    text-align: right;
+    padding-right: 20px;
   }
 }

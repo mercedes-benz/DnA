@@ -1,14 +1,13 @@
+{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Values.app.backend.name }}-ingress
   namespace: {{ .Values.namespace }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: {{ .Values.cert.certManager }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   rules:
     - host: {{ .Values.ingress.host }}
@@ -19,33 +18,10 @@ spec:
                 name: {{ .Values.app.backend.name }}-service
                 port: 
                   name: api-http
-            path: /avscan/api
+            path: /
             pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port:
-                  name: api-http
-            path: /avscan/swagger-ui.html
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port: 
-                  name: api-http
-            path: /avscan/swagger-resources
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port:
-                  name: api-http
-            path: /avscan/v2/api-docs
-            pathType: Prefix
-          - backend:
-              service:
-                name: {{ .Values.app.backend.name }}-service
-                port:
-                  name: api-http
-            path: /avscan/webjars
-            pathType: Prefix
+  tls:
+    - hosts:
+      - {{ .Values.ingress.host }}
+      secretName: clamav-tls       
+ {{- end }}
