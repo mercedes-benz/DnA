@@ -54,5 +54,7 @@ public class CodeServerWorkspace implements Serializable{
 	private String environment;
 	private String cloudServiceProvider;
 	private String status;
+	private String deploymentUrl;
+	private String workspaceUrl;
 	
 }
