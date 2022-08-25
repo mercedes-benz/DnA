@@ -802,12 +802,12 @@ export default class AllSolutions extends React.Component<
         default:
           break;
       }
-      const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
-      const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
+      // const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+      // const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
       this.setState({ queryParams,
         currentPageOffset: 0,
         currentPageNumber: 1, }, () => {
-        this.getSolutions(true, isDigitalValueContributionEnabled, isNotificationEnabled);
+        this.getSolutions(true);
       });
     } 
     else if (window.location.href.indexOf('allsolutions') !== -1) {
@@ -853,9 +853,7 @@ export default class AllSolutions extends React.Component<
     
   };
 
-  protected getSolutions = (getPublished?: boolean, 
-    isDigitalValueContributionEnabled?: boolean, 
-    isNotificationEnabled?: boolean) => {
+  protected getSolutions = (getPublished?: boolean) => {
     const queryParams = this.state.queryParams;
     const locationIds = queryParams.location.join(',');
     const phaseIds = queryParams.phase.join(',');
@@ -864,6 +862,9 @@ export default class AllSolutions extends React.Component<
     const useCaseType = queryParams.useCaseType.join(',');
     const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
     const tags = queryParams.tag.join(',');
+
+    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
 
     ApiClient.getSolutionsByGraphQL(
       locationIds,
