@@ -47,4 +47,10 @@ public interface WorkspaceService {
 
 	GenericMessage deployWorspace(String id);
 
+	GenericMessage update(CodeServerWorkspaceVO existingVO);
+
+	Integer getCount(String userId);
+
+	GenericMessage undeployWorspace(String id);
+
 }
