@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -50,9 +49,6 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 	private JpaRepository<T, ID> jpaRepo;
 	@Autowired
 	private GenericAssembler<V, T> assembler;
-
-	@Autowired
-	private PagingAndSortingRepository<T, ID> sortingAndPagingRepo;
 
 	public BaseCommonService() {
 		super();
