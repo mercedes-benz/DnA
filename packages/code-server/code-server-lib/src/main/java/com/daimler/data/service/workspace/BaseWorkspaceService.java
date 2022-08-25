@@ -30,13 +30,13 @@ package com.daimler.data.service.workspace;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.assembler.WorkspaceAssembler;
@@ -74,14 +74,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
-	public GenericMessage deleteById(String id) {
+	@Transactional
+	public GenericMessage deleteById(String userId,String id) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			Optional<CodeServerWorkspaceNsql> entityOptional = jpaRepo.findById(id);
-			CodeServerWorkspaceNsql entity = !entityOptional.isEmpty() ? entityOptional.get() : null;
+			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
 			if(entity!=null && entity.getData()!=null && !"DELETED".equalsIgnoreCase(entity.getData().getStatus())) {
 				GenericMessage undeployJobResponse = client.performWorkBenchActions("undeploy", entity.getData());
 				if(undeployJobResponse!=null && "SUCCESS".equalsIgnoreCase(undeployJobResponse.getSuccess())) {
@@ -111,6 +111,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 
 	@Override
+	@Transactional
 	public InitializeWorkspaceResponseVO create(CodeServerWorkspaceVO vo, String password) {
 		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
 		responseVO.setData(vo);
@@ -145,9 +146,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 
 	@Override
-	public CodeServerWorkspaceVO getById(String id) {
-		Optional<CodeServerWorkspaceNsql> entityOptional = jpaRepo.findById(id);
-		CodeServerWorkspaceNsql entity = !entityOptional.isEmpty() ? entityOptional.get() : null;
+	public CodeServerWorkspaceVO getById(String userId,String id) {
+		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId,id);
 		return workspaceAssembler.toVo(entity);
 	}
 
@@ -175,15 +175,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 
 	@Override
-	public GenericMessage deployWorspace(String id) {
+	@Transactional
+	public GenericMessage deployWorspace(String userId,String id) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			Optional<CodeServerWorkspaceNsql> entityOptional = jpaRepo.findById(id);
-			CodeServerWorkspaceNsql entity = !entityOptional.isEmpty() ? entityOptional.get() : null;
-			if(entity!=null) {
+			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
+			if(entity!=null ) {
 				GenericMessage jobResponse = client.performWorkBenchActions("deploy", entity.getData());
 				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					entity.getData().setStatus("DEPLOY_REQUESTED");
@@ -207,14 +207,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 	
 	@Override
-	public GenericMessage undeployWorspace(String id) {
+	@Transactional
+	public GenericMessage undeployWorspace(String userId, String id) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			Optional<CodeServerWorkspaceNsql> entityOptional = jpaRepo.findById(id);
-			CodeServerWorkspaceNsql entity = !entityOptional.isEmpty() ? entityOptional.get() : null;
+			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
 			if(entity!=null) {
 				GenericMessage jobResponse = client.performWorkBenchActions("undeploy", entity.getData());
 				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
@@ -238,6 +238,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 
 
 	@Override
+	@Transactional
 	public GenericMessage update(CodeServerWorkspaceVO existingVO) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
