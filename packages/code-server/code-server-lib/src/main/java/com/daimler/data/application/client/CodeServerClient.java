@@ -19,6 +19,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.dto.WorkBenchActionRequestDto;
+import com.daimler.data.dto.WorkBenchBaseInputDto;
 import com.daimler.data.dto.WorkBenchInputDto;
 
 @Component
@@ -73,7 +74,7 @@ public class CodeServerClient {
 		String type = "";
 		String environment = "";
 		String wsid = "";
-		String codeServerGitJobUri = codeServerGitJobManageUri;
+		String codeServerGitJobUri = codeServerGitJobDeployUri;
 		if(workspaceDetails!=null) {
 			userId = workspaceDetails.getOwner().toLowerCase();
 			password = workspaceDetails.getPassword();
@@ -88,22 +89,28 @@ public class CodeServerClient {
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
 
-			WorkBenchActionRequestDto requestDto = new WorkBenchActionRequestDto();
-			WorkBenchInputDto inputDto = new WorkBenchInputDto();
-			if(action!=null) {
+			WorkBenchActionRequestDto requestDto = null;
+			if(!action.equalsIgnoreCase("deploy") && !action.equalsIgnoreCase("undeploy")) {
+				codeServerGitJobUri = codeServerGitJobManageUri;
+				requestDto = new WorkBenchActionRequestDto<WorkBenchInputDto>();
+				WorkBenchInputDto inputDto = new WorkBenchInputDto();
 				inputDto.setAction(action);
-				if(!action.equalsIgnoreCase("deploy") && !action.equalsIgnoreCase("undeploy")) {
-					codeServerGitJobUri = codeServerGitJobDeployUri;
-					inputDto.setPassword(password);
-					inputDto.setType(type);
-				}
+				inputDto.setShortid(userId);
+				inputDto.setEnvironment(environment);
+				inputDto.setWsid(wsid);
+				inputDto.setPassword(password);
+				inputDto.setType(type);
+				requestDto.setInputs(inputDto);
+			}else {
+				requestDto = new WorkBenchActionRequestDto<WorkBenchBaseInputDto>();
+				WorkBenchBaseInputDto baseInputDto = new WorkBenchBaseInputDto();
+				baseInputDto.setAction(action);
+				baseInputDto.setShortid(userId);
+				baseInputDto.setEnvironment(environment);
+				baseInputDto.setWsid(wsid);
+				requestDto.setInputs(baseInputDto);
 			}
-			inputDto.setShortid(userId);
-			inputDto.setEnvironment(environment);
-			inputDto.setWsid(wsid);
-			requestDto.setInputs(inputDto);
 			requestDto.setRef(codeServerEnvRef);
-			
 			HttpEntity<WorkBenchActionRequestDto> entity = new HttpEntity<WorkBenchActionRequestDto>(requestDto,headers);
 			ResponseEntity<String> response = restTemplate.exchange(codeServerGitJobUri, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -125,7 +132,6 @@ public class CodeServerClient {
 			error.setMessage("Failed while intializing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
 		}
-		
 		respone.setSuccess(status);
 		respone.setWarnings(warnings);
 		respone.setErrors(errors);
