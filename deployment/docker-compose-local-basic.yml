@@ -320,3 +320,8 @@ services:
       /usr/bin/mc mb myminio/dna;
       exit 0;
       "
+  chronos-mfe:
+    image: ${IMAGE_CHRONOS_MFE:-chronos_mfe}
+    build:
+      context: ../packages/chronos-mfe/
+      dockerfile: ../dockerfiles/chronosService/chronos-mfe.Dockerfile
