@@ -1,13 +1,13 @@
-# Default values for data-product-mfe.
+# Default values for chronos-mfe.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-namespace: data-product
+namespace: chronos
 configJs: |
     window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
       CONTAINER_APP_URL: "http://localhost:9090",
       API_BASEURL: "http://localhost:7171/api",
-      DATA_PRODUCT_API_BASEURL: "http://localhost:7175/data-product/api",
+      CHRONOS_API_BASEURL: "http://localhost:7175/data-product/api",
       DATA_GOVERNANCE_HTML_FOR_CHINA_DATA: '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="https://localhost" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
       DATA_PRODUCT_TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>'
     };
@@ -15,7 +15,7 @@ configJs: |
 replicaCount: 1
 
 image:
-  repository: "data-product-mfe"
+  repository: "chronos-mfe"
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -24,7 +24,7 @@ imagePullSecrets:
   - name: harbor-pull-secret
 
 nameOverride: ""
-fullnameOverride: "data-product-mfe"
+fullnameOverride: "chronos-mfe"
 
 podSecurityContext:
   runAsUser: 1001
