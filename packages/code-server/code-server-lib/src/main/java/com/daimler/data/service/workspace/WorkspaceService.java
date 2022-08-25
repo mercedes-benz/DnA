@@ -37,20 +37,20 @@ public interface WorkspaceService {
 
 	InitializeWorkspaceResponseVO create(CodeServerWorkspaceVO vo, String password);
 
-	GenericMessage deleteById(String id);
+	GenericMessage deleteById(String userId,String id);
 
-	CodeServerWorkspaceVO getById(String id);
+	CodeServerWorkspaceVO getById(String userId, String id);
 	
 	List<CodeServerWorkspaceVO> getAll(String userId,int offset,int limit);
 	
 	CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value);
 
-	GenericMessage deployWorspace(String id);
+	GenericMessage deployWorspace(String userId,String id);
 
 	GenericMessage update(CodeServerWorkspaceVO existingVO);
 
 	Integer getCount(String userId);
 
-	GenericMessage undeployWorspace(String id);
+	GenericMessage undeployWorspace(String userId,String id);
 
 }
