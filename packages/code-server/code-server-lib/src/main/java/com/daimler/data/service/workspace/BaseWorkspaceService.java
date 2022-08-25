@@ -32,9 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +54,9 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings(value = "unused")
 public class BaseWorkspaceService implements WorkspaceService {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(BaseWorkspaceService.class);
-
+	@Value("${codeServer.base.uri}")
+	private String codeServerBaseUri;
+	
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
 	@Autowired
@@ -98,7 +98,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}
 			}
 		}catch(Exception e) {
-			LOGGER.error("Error occured while deleting workspace {} in database with exception {} ", id, e.getMessage());
+			log.error("Error occured while deleting workspace {} in database with exception {} ", id, e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while deleting workspace with exception " + e.getMessage());
 			errors.add(error);
@@ -183,7 +183,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-			if(entity!=null ) {
+			if(entity!=null) {
 				GenericMessage jobResponse = client.performWorkBenchActions("deploy", entity.getData());
 				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					entity.getData().setStatus("DEPLOY_REQUESTED");
@@ -246,11 +246,21 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 		CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(existingVO);
+		if("CREATED".equalsIgnoreCase(existingVO.getStatus())){
+			String workspaceUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/?folder=/home/coder";
+			if("microservice".equalsIgnoreCase(existingVO.getRecipeId().toString()))
+				workspaceUrl += "/projects/demo";
+			entity.getData().setWorkspaceUrl(workspaceUrl);
+		}
+		if("DEPLOYED".equalsIgnoreCase(existingVO.getStatus())){
+			String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/demo";
+			entity.getData().setDeploymentUrl(deploymentUrl);
+		}
 		CodeServerWorkspaceNsql updatedEntity = jpaRepo.save(entity);
 		status = "SUCCESS";
 		log.info("Updated workspace status successfully");
 		}catch(Exception e) {
-			LOGGER.error("Error occured while updating workspace {} in database with exception {} ", existingVO.getName(), e.getMessage());
+			log.error("Error occured while updating workspace {} in database with exception {} ", existingVO.getName(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while updating workspace status in database with exception " + e.getMessage());
 			errors.add(error);
