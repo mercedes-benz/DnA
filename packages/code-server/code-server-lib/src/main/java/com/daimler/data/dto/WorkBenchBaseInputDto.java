@@ -10,9 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties
-public class WorkBenchInputDto extends WorkBenchBaseInputDto{
+public class WorkBenchBaseInputDto {
 
-	private String password;
-	private String type;
+	private String environment;
+	private String wsid;
+	private String shortid;
+//	private String password;
+	private String action;
+//	private String type;
 	
 }
