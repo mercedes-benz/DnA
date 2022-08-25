@@ -347,6 +347,12 @@ definitions:
         type: string
         format: date
         description: "Date of last deployment"
+      deploymentUrl:
+        type: string
+        description: "URL of the project deployed"
+      workspaceUrl:
+        type: string
+        description: "Workspace url"
       environment:
         type: string
         enum: [Development, Test]    
@@ -374,6 +380,7 @@ definitions:
         type: string
         description: "Status of workspace - CREATE_REQUESTED,CREATED,CREATE_FAILED,DELETE_REQUESTED,DELETED,DELETE_FAILED,DEPLOY_REQUESTED,
         DEPLOYED,DEPLOYMENT_FAILED,UNDEPLOY_REQUESTED,UNDEPLOYED,UNDEPLOY_FAILED"
+      
       required:
         -name
         -recipeId
