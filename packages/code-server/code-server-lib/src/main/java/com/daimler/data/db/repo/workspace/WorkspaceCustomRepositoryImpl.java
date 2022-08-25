@@ -111,5 +111,28 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			return null;
 	}
 
+	@Override
+	public CodeServerWorkspaceNsql findById(String userId, String id) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(root.get("id"),id);
+		Predicate con2 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				userId.toLowerCase());
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con2, con3);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities.get(0);
+		else
+			return null;
+	}
+
 	
 }
