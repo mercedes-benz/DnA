@@ -65,7 +65,7 @@ public class CodeServerClient {
 	
 	public GenericMessage performWorkBenchActions(String action,CodeServerWorkspace workspaceDetails) {
 		GenericMessage respone = new GenericMessage();
-		String status = "Failed";
+		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		String userId = "";
@@ -75,7 +75,7 @@ public class CodeServerClient {
 		String wsid = "";
 		String codeServerGitJobUri = codeServerGitJobManageUri;
 		if(workspaceDetails!=null) {
-			userId = workspaceDetails.getOwner();
+			userId = workspaceDetails.getOwner().toLowerCase();
 			password = workspaceDetails.getPassword();
 			type = workspaceDetails.getRecipeId();
 			environment = workspaceDetails.getEnvironment();
@@ -92,7 +92,7 @@ public class CodeServerClient {
 			WorkBenchInputDto inputDto = new WorkBenchInputDto();
 			if(action!=null) {
 				inputDto.setAction(action);
-				if(!action.equalsIgnoreCase("deploy")) {
+				if(!action.equalsIgnoreCase("deploy") && !action.equalsIgnoreCase("undeploy")) {
 					codeServerGitJobUri = codeServerGitJobDeployUri;
 					inputDto.setPassword(password);
 					inputDto.setType(type);
@@ -108,11 +108,11 @@ public class CodeServerClient {
 			ResponseEntity<String> response = restTemplate.exchange(codeServerGitJobUri, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				if(response.getStatusCode().is2xxSuccessful()) {
-					status = "Success";
+					status = "SUCCESS";
 					LOGGER.info("Success while performing {} action for codeServer workbench for user {} ", action, userId);
 				}
 				else {
-					LOGGER.info("Warnings while polling codeServer workbench status for user {} with status code {}", userId,response.getStatusCodeValue());
+					LOGGER.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", action, userId,response.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + response.getBody() + " Response Code is : " + response.getStatusCodeValue());
 					warnings.add(warning);
@@ -120,7 +120,7 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling codeServer Intialize workbench for user {} with exception {} ", userId, e.getMessage());
+			LOGGER.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", userId, action, e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while intializing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);

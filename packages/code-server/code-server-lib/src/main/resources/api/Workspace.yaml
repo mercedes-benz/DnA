@@ -165,6 +165,37 @@ paths:
         500:
           description: "Internal error"
           
+    delete:
+      tags:
+        - "code-server"
+      summary: "Delete workspace for a given Id."
+      description: "Delete workspace for a given identifier."
+      operationId: "deleteWorkspace"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    
+  /workspaces/deploy/{id}:        
     post:
       tags:
         - "code-server"
@@ -198,13 +229,13 @@ paths:
     delete:
       tags:
         - "code-server"
-      summary: "Delete workspace for a given Id."
-      description: "Delete workspace for a given identifier."
-      operationId: "deleteWorkspace"
+      summary: "undeploy workspace project for a given Id."
+      description: "undeploy workspace project for a given identifier."
+      operationId: "undeployWorkspaceProject"
       parameters:
         - name: "id"
           in: "path"
-          description: "Workspace ID to be deleted"
+          description: "Workspace ID for the project to be undeployed"
           required: true
           type: "string"
       responses:
@@ -229,9 +260,9 @@ paths:
   #
   #  supported http methods GET, PUT
   #
-  # path example ../workspaces/{name}
+  # path example ../workspaces/status/{name}
 
-  /workspaces/{name}:
+  /workspaces/status/{name}/:
     get:
       tags:
         - "code-server"
@@ -262,43 +293,6 @@ paths:
         500:
           description: "Internal error"
           
-    put:
-      tags:
-        - "code-server"
-      summary: "Update workspace Project for a given Id."
-      description: "update workspace Project for a given identifier."
-      operationId: "updateWorkspace"
-      parameters:
-        - name: "name"
-          in: "path"
-          description: "Name of workspace that needs to be updated"
-          required: true
-          type: "string"
-        - name: "updateRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for updating code server workbench status for user"
-          required: true
-          schema:
-            $ref: "#/definitions/WorkspaceUpdateRequestVO"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
-          
-                                
 definitions:
 
   WorkspaceCollectionVO:
@@ -315,13 +309,13 @@ definitions:
   WorkspaceUpdateRequestVO:
     type: object
     properties:
-      lastDeployedOn:
-        type: string
-        format: date
-        description: "Date of last deployment"  
+#      lastDeployedOn:
+#        type: string
+#        format: date
+#        description: "Date of last deployment"  
       status:
         type: string
-        enum: ["CREATED","DELETED","DEPLOYED","DEPLOYMENT_FAILED"]
+        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED"]
         description: "Status of workspace job action create/delete/deploy request"
       required:
         -status
@@ -378,8 +372,8 @@ definitions:
         description: "Operating system required"
       status:
         type: string
-        enum: ["REQUESTED","CREATED","DELETED","DEPLOY_REQUESTED","DEPLOYED","DEPLOYMENT_FAILED"]
-        description: "Status of workspace creation request"
+        description: "Status of workspace - CREATE_REQUESTED,CREATED,CREATE_FAILED,DELETE_REQUESTED,DELETED,DELETE_FAILED,DEPLOY_REQUESTED,
+        DEPLOYED,DEPLOYMENT_FAILED,UNDEPLOY_REQUESTED,UNDEPLOYED,UNDEPLOY_FAILED"
       required:
         -name
         -recipeId

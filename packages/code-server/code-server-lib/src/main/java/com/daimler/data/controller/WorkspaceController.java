@@ -50,7 +50,6 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
-import com.daimler.data.dto.workspace.WorkspaceUpdateRequestVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 
 import io.swagger.annotations.Api;
@@ -197,8 +196,54 @@ public class WorkspaceController  implements CodeServerApi{
 			log.error("No workspace found with id {}, failed to deploy", id);
 			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			log.error("Failed to delete workspace {}, with exception {}", id, e.getLocalizedMessage());
-			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			log.error("Failed to deploy workspace {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to deploy due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+    }
+    
+    @ApiOperation(value = "undeploy workspace project for a given Id.", nickname = "undeployWorkspaceProject", notes = "undeploy workspace project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/deploy/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> undeployWorkspaceProject(@ApiParam(value = "Workspace ID for the project to be undeployed",required=true) @PathVariable("id") String id){
+    	try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			CodeServerWorkspaceVO vo = service.getById(id);
+			if(!(vo!=null && vo.getOwner()!=null && vo.getOwner().equalsIgnoreCase(userId))) {
+				MessageDescription notAuthorizedMsg = new MessageDescription();
+				notAuthorizedMsg.setMessage(
+						"Not authorized to undeploy project for workspace. User does not have privileges.");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(notAuthorizedMsg);
+				log.info("User {} cannot undeploy project for workspace {}, insufficient privileges.", userId,vo.getName());
+				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+			}
+			GenericMessage responseMsg = service.undeployWorspace(id);
+			log.info("User {} undeployed workspace {} project {}", userId,vo.getName(),vo.getRecipeId());
+			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error(e.getLocalizedMessage());
+			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			log.error("No workspace found with id {}, failed to undeploy", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to undeploy workspace {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to undeploy due to internal error.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -227,7 +272,7 @@ public class WorkspaceController  implements CodeServerApi{
 		log.debug("Sending all algorithms");
 		if (workspaces != null && workspaces.size() > 0) {
 			collection.setRecords(workspaces);
-			collection.setTotalCount(workspaces.size());
+			collection.setTotalCount(service.getCount(userId));
 			return new ResponseEntity<>(collection, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
@@ -281,7 +326,7 @@ public class WorkspaceController  implements CodeServerApi{
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/{name}",
+    @RequestMapping(value = "/workspaces/status/{name}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
@@ -308,39 +353,4 @@ public class WorkspaceController  implements CodeServerApi{
     }
 
 
-    @ApiOperation(value = "Update workspace Project for a given Id.", nickname = "updateWorkspace", notes = "update workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/{name}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.PUT)
-    public ResponseEntity<GenericMessage> updateWorkspace(@ApiParam(value = "Name of workspace that needs to be updated",required=true) @PathVariable("name") String name,@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
-//    	HttpStatus responseStatus = HttpStatus.OK;
-//		CreatedByVO currentUser = this.userStore.getVO();
-//		String userId = currentUser != null ? currentUser.getId() : null;
-//		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"name", name);
-//		if (existingVO != null && existingVO.getName() != null) {
-//			
-//			log.info("workspace {} already exists for User {} ",reqVO.getName(), userId);
-//			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
-//		}
-//		reqVO.setId(null);
-//		responseMessage = service.create(reqVO,password);
-//		if("CREATED".equalsIgnoreCase(responseMessage.getSuccess())) {
-//			responseStatus = HttpStatus.CREATED;
-//			log.info("User {} created workspace {}", userId,reqVO.getName());
-//		}else {
-//			log.info("Failed while creating workspace {} for user {}", reqVO.getName(), userId);
-//			responseStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-//		}
-//		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
-    	return null;
-    }
 }
