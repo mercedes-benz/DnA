@@ -33,6 +33,13 @@ import org.springframework.stereotype.Component;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CloudServiceProviderEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CpuCapacityEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.EnvironmentEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.OperatingSystemEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RamMetricsEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RamSizeEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RecipeIdEnum;
 
 @Component
 public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceVO, CodeServerWorkspaceNsql> {
@@ -45,6 +52,15 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			CodeServerWorkspace data = entity.getData();
 			if(data!=null) {
 				BeanUtils.copyProperties(data, vo);
+				vo.setCloudServiceProvider(CloudServiceProviderEnum.fromValue(data.getCloudServiceProvider()));
+				vo.setRecipeId(RecipeIdEnum.fromValue(data.getRecipeId()));
+				vo.setRamSize(RamSizeEnum.fromValue(data.getRamSize().split(" ")[0]));
+				vo.setCpuCapacity(CpuCapacityEnum.fromValue(data.getCpuCapacity()));
+				vo.setEnvironment(EnvironmentEnum.fromValue(data.getEnvironment()));
+				vo.setOperatingSystem(OperatingSystemEnum.fromValue(data.getOperatingSystem()));
+				vo.setRamMetrics(RamMetricsEnum.GB);
+				vo.setCloudServiceProvider(CloudServiceProviderEnum.fromValue(data.getCloudServiceProvider()));
+				vo.setCloudServiceProvider(CloudServiceProviderEnum.fromValue(data.getCloudServiceProvider()));
 			}
 		}
 		return vo;
@@ -57,6 +73,12 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 			entity = new CodeServerWorkspaceNsql();
 			CodeServerWorkspace data = new CodeServerWorkspace();
 			BeanUtils.copyProperties(vo,data);
+			data.setRecipeId(vo.getRecipeId().toString());
+			data.setRamSize(vo.getRamSize().toString() + " " + vo.getRamMetrics().toString());
+			data.setCpuCapacity(vo.getCpuCapacity().toString());
+			data.setOperatingSystem(vo.getOperatingSystem().toString());
+			data.setEnvironment(vo.getEnvironment().toString());
+			data.setCloudServiceProvider(vo.getCloudServiceProvider().toString());
 			entity.setData(data);
 			if (vo.getId() != null)
 				entity.setId(vo.getId());
