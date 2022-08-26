@@ -140,7 +140,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   }
 
   const onAcceptCodeDeploy =() => {
-    Notification.show('This feature will be enabled soon.', 'warning');
+    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id).then((res: any) => {
+      Notification.show('Deployment triggered. Please check after some time.');
+    });
   }
 
   return (
