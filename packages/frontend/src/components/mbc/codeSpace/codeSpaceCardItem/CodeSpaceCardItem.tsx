@@ -34,18 +34,13 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   };
 
   const onCardNameClick = () => {
-    history.push('codespace');
+    history.push(`codespace/${codeSpace.id}`);
   }
 
   return (
     <>
       <div className={Styles.codeSpaceCard}>
-        <div
-          className={Styles.cardHead}
-          onClick={() => {
-            /* navigate to summary page*/
-          }}
-        >
+        <div className={Styles.cardHead}>
           <div className={Styles.cardHeadInfo}>
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {codeSpace?.name}
@@ -67,20 +62,31 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
               <div>Created on</div>
               <div>{regionalDateAndTimeConversionSolution(codeSpace?.createdDate)}</div>
             </div>
-            <div>
-              <div>Last Deployed on</div>
-              <div>{regionalDateAndTimeConversionSolution(codeSpace?.lastDeployedDate)}</div>
-            </div>
+            {codeSpace.deployed && (
+              <div>
+                <div>Last Deployed on</div>
+                <div>{regionalDateAndTimeConversionSolution(codeSpace?.lastDeployedDate)}</div>
+              </div>
+            )}
             <div>
               <div>Code Space ID</div>
-              <div>{codeSpace.id}</div>
+              <div>{codeSpace.name}</div>
             </div>
           </div>
         </div>
         <div className={Styles.cardFooter}>
-          <div>{codeSpace.deployed && <><span className={Styles.deployedIndicator}>Deployed</span><a href="#" className={Styles.deployedLink}><i className="icon mbc-icon new-tab"/></a></>}</div>
+          <div>
+            {codeSpace.deployed && (
+              <>
+                <span className={Styles.deployedIndicator}>Deployed</span>
+                <a href={codeSpace.deployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                  <i className="icon mbc-icon new-tab" />
+                </a>
+              </>
+            )}
+          </div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
+            <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.name}`)}>
               <i className="icon mbc-icon edit"></i>
             </button>
             <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
