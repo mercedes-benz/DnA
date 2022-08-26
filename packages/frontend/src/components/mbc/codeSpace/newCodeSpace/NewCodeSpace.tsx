@@ -57,7 +57,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     confirmPassword: '',
   });
 
-  const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
+  // const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
 
   const requiredError = '*Missing entry';
 
@@ -259,7 +259,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
           if(res.data.status === 'CREATE_REQUESTED') {
-            setCreatedCodeSpaceName(res.data.name);
+            // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
             enableLivelinessCheck(res.data.name);
           } else {
