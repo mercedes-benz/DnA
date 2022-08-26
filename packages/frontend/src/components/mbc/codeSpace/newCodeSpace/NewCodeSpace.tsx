@@ -185,10 +185,10 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
 
   let livelinessInterval: any = undefined;
-  const enableLivelinessCheck = () => {
+  const enableLivelinessCheck = (name: string) => {
     clearInterval(livelinessInterval);
     livelinessInterval = setInterval(() => {
-      CodeSpaceApiClient.getCodeSpaceStatus(createdCodeSpaceName)
+      CodeSpaceApiClient.getCodeSpaceStatus(name)
         .then((res:any) => {
           if (res.status === 'CREATED') {
             props.toggleProgressMessage(false);
@@ -261,7 +261,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           if(res.data.status === 'CREATE_REQUESTED') {
             setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
-            enableLivelinessCheck();
+            enableLivelinessCheck(res.data.name);
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();
