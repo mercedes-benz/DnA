@@ -34,7 +34,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   };
 
   const onCardNameClick = () => {
-    history.push(`codespace/${codeSpace.id}`);
+    history.push(`codespace/${codeSpace.name}`);
   }
 
   return (
@@ -86,7 +86,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             )}
           </div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.name}`)}>
+            <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
               <i className="icon mbc-icon edit"></i>
             </button>
             <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
