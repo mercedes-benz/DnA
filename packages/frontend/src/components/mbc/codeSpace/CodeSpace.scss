@@ -70,6 +70,10 @@
         display: flex;
         align-items: center;
         justify-content: flex-end;
+
+        div > a:hover {
+          text-decoration: none;
+        }
       }
       .stopNbbtn {
         width: 40px;
