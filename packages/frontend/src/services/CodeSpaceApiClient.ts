@@ -30,22 +30,103 @@ export class CodeSpaceApiClient {
   }
 
   public static getCodeSpacesList() {
-    return this.get('workspaces');
+    return Promise.resolve({
+      totalCount: 1,
+      records: [
+        {
+          id: '1110e328-1339-41e0-941c-1ba9e3ae73b2',
+          name: 'wsx1',
+          description: null,
+          owner: 'BEALURI',
+          recipeId: 'microservice',
+          intiatedOn: '2022-08-25T10:18:39.460+00:00',
+          lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
+          deploymentUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/demo',
+          workspaceUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/?folder=/home/coder/projects/demo',
+          environment: 'Development',
+          cloudServiceProvider: 'DHC-CaaS',
+          ramSize: '1',
+          ramMetrics: 'GB',
+          cpuCapacity: '1',
+          operatingSystem: 'Debian-OS-11',
+          status: 'DEPLOYED',
+        },
+      ],
+    });
+    // return this.get('workspaces');
   }
   public static createCodeSpace(data: any) {
-    return this.post('workspaces', data);
+    return Promise.resolve({
+      data: {
+        id: '1110e328-1339-41e0-941c-1ba9e3ae73b2',
+        name: 'wsx1',
+        description: null,
+        owner: 'BEALURI',
+        recipeId: 'microservice',
+        intiatedOn: '2022-08-25T10:18:39.460+00:00',
+        lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
+        deploymentUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/demo',
+        workspaceUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/?folder=/home/coder/projects/demo',
+        environment: 'Development',
+        cloudServiceProvider: 'DHC-CaaS',
+        ramSize: '1',
+        ramMetrics: 'GB',
+        cpuCapacity: '1',
+        operatingSystem: 'Debian-OS-11',
+        status: 'CREATE_REQUESTED',
+      },
+      errors: []
+    });
+    // return this.post('workspaces', data);
   }
   public static getCodeSpaceById(id: string) {
-    return this.get(`workspaces/${id}`);
+    return Promise.resolve({
+      id: '1110e328-1339-41e0-941c-1ba9e3ae73b2',
+      name: 'wsx1',
+      description: null,
+      owner: 'BEALURI',
+      recipeId: 'microservice',
+      intiatedOn: '2022-08-25T10:18:39.460+00:00',
+      lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
+      deploymentUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/demo',
+      workspaceUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/?folder=/home/coder/projects/demo',
+      environment: 'Development',
+      cloudServiceProvider: 'DHC-CaaS',
+      ramSize: '1',
+      ramMetrics: 'GB',
+      cpuCapacity: '1',
+      operatingSystem: 'Debian-OS-11',
+      status: 'CREATED',
+    });
+    // return this.get(`workspaces/${id}`);
   }
   public static getCodeSpaceStatus(name: string) {
-    return this.get(`workspaces/status/${name}`);
+    return Promise.resolve({
+      id: '1110e328-1339-41e0-941c-1ba9e3ae73b2',
+      name: 'wsx1',
+      description: null,
+      owner: 'BEALURI',
+      recipeId: 'microservice',
+      intiatedOn: '2022-08-25T10:18:39.460+00:00',
+      lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
+      deploymentUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/demo',
+      workspaceUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/?folder=/home/coder/projects/demo',
+      environment: 'Development',
+      cloudServiceProvider: 'DHC-CaaS',
+      ramSize: '1',
+      ramMetrics: 'GB',
+      cpuCapacity: '1',
+      operatingSystem: 'Debian-OS-11',
+      status: 'DEPLOYED',
+    });
+    // return this.get(`workspaces/status/${name}`);
   }
   public static deleteCodeSpace(id: string) {
     return this.delete(`workspaces/${id}`);
   }
   public static deployCodeSpace(id: string) {
-    return this.post(`workspaces/deploy/${id}`);
+    return Promise.resolve({ errors: [], success: 'SUCCESS', warnings: [] });
+    // return this.post(`workspaces/deploy/${id}`);
   }
   public static unDeployCodeSpace(id: string) {
     return this.delete(`workspaces/deploy/${id}`);
