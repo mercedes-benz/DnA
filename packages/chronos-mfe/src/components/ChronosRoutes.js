@@ -12,12 +12,18 @@ import { history } from '../store';
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import SessionExpired from './SessionExpired';
 import Projects from './Projects';
+import ForecastForm from './form';
 
 const protectedRoutes = [
   {
     component: Projects,
     exact: true,
     path: '/',
+  },
+  {
+    component: ForecastForm,
+    exact: true,
+    path: '/project',
   },
 ];
 
