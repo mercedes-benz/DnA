@@ -196,7 +196,11 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       ProgressIndicator.hide();
       Notification.show('Error in deploying code space. Please try again later.\n' + err.message, 'alert');
     });
-  }
+  };
+
+  const goBack = () => {
+    history.goBack();
+  };
 
   return (
     <div className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}>
@@ -206,6 +210,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.headerdetails}>
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
+                <button tooltip-data="Go Back" className="btn btn-text back arrow" type="submit" onClick={goBack}></button>
                 <h2>
                   {props.user.firstName}&apos;s Code Space - {codeSpaceData.name}
                 </h2>
@@ -215,7 +220,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
                   {codeDeployed && (
-                    <div tooltip-data="API BASE URL">
+                    <div className={Styles.urlLink} tooltip-data="API BASE URL">
                       <a href={codeDeployedUrl}>
                         <i className="icon mbc-icon link" />
                       </a>
