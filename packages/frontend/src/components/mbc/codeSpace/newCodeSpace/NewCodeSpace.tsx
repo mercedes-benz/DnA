@@ -309,13 +309,41 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         <h3>Hello {namePrefix}, Create your Code Space</h3>
         <p>Protect your code space with the password of your own.</p>
         {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
+        <div
+          id="recipeContainer"
+          className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
+        >
+          <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
+            Code Recipe<sup>*</sup>
+          </label>
+          <div id="recipe" className="custom-select">
+            <select
+              id="recipeSelect"
+              multiple={false}
+              required={true}
+              required-error={requiredError}
+              onChange={onRecipeChange}
+              value={recipeValues.join('')}
+            >
+              <option id="defaultStatus" value={0}>
+                Select Code Recipe
+              </option>
+              {recipes.map((obj: any) => (
+                <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
+                  {obj.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
+        </div>
         <div className={Styles.flexLayout}>
           <div>
             <TextBox
               type="text"
               controlId={'productNameInput'}
               labelId={'productNameLabel'}
-              label={'Project Name'}
+              label={'Code Space Name'}
               placeholder={'Type here'}
               value={projectName}
               errorText={projectNameError}
@@ -360,34 +388,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               </div>
             </div>
           </div>
-        </div>
-        <div
-          id="recipeContainer"
-          className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
-        >
-          <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
-            Code Recipe<sup>*</sup>
-          </label>
-          <div id="recipe" className="custom-select">
-            <select
-              id="recipeSelect"
-              multiple={false}
-              required={true}
-              required-error={requiredError}
-              onChange={onRecipeChange}
-              value={recipeValues.join('')}
-            >
-              <option id="defaultStatus" value={0}>
-                Select Code Recipe
-              </option>
-              {recipes.map((obj: any) => (
-                <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
-                  {obj.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
         </div>
         <div className={Styles.flexLayout}>
           <div>
