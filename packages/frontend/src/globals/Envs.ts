@@ -142,6 +142,11 @@ export const Envs = {
       ? getInjectedEnv('ENABLE_APP_FEEDBACK')
       : EnvParser.parseBool(process.env.ENABLE_APP_FEEDBACK, false),
   APP_FEEDBACK_EXTERNAL_URL: getInjectedEnv('APP_FEEDBACK_EXTERNAL_URL') || process.env.APP_FEEDBACK_EXTERNAL_URL,
+  ENABLE_CODE_SPACE:
+    getInjectedEnv('ENABLE_CODE_SPACE') !== undefined
+      ? getInjectedEnv('ENABLE_CODE_SPACE')
+      : EnvParser.parseBool(process.env.ENABLE_CODE_SPACE, false),
+  CODE_SPACE_API_BASEURL: getInjectedEnv('CODE_SPACE_API_BASEURL') || process.env.CODE_SPACE_API_BASEURL,
   ENABLE_CHRONOS_FORECASTING_SERVICE:
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
