@@ -64,6 +64,20 @@
         padding-right: 30px;
         max-width: 350px;
         min-width: 210px;
+        h2 {
+          display: inline-block;
+          margin-left: 15px;
+          position: relative;
+          top:3px;
+        }
+
+        button {
+          border: 2px solid #3e444e;
+          &::before {
+            padding-left: 9px!important;
+            padding-right: 9px!important;
+          }
+        }
       }
   
       .headerright {
@@ -195,6 +209,15 @@
         top: 11px !important;
         right: 15px !important;
         display: flex;
+
+        .urlLink {
+          width: 30px;
+          margin-top: 5px;
+          font-size: var(--font-size-icon-medium);
+          > a:hover {
+            text-decoration: none;
+          }
+        } 
   
         .OpenNewTab {
           display: none;
@@ -217,9 +240,20 @@
           color: #acb8c4;
           font-size: var(--font-size-headline);
           padding-top: 10px;
+          display: inline-block;
+          position: relative;
+          top: 2px;
+          margin-left: 15px;
         }
         h6 {
           display: none;
+        }
+        button {
+          border: 2px solid #3e444e;
+          &::before {
+            padding-left: 9px!important;
+            padding-right: 9px!important;
+          }
         }
       }
       .nbDescr {
@@ -231,12 +265,6 @@
       .nbstopbtn {
         display: none;
       }
-    }
-    i {
-      position: absolute;
-      color: #acb8c4;
-      font-size: var(--font-size-default);
-      margin: 0;
     }
   }
   
