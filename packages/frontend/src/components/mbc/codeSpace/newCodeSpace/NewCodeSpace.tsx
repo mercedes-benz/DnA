@@ -196,6 +196,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             clearInterval(livelinessInterval);
             props.isCodeSpaceCreationSuccess(true, {
               id: res.id,
+              name: res.name,
               url: res.workspaceUrl,
               running: true,
             });
