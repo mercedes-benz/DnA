@@ -245,7 +245,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         cpuCapacity: "1",
         description: "",
         environment: "Development",
-        name: "cs" + (props.lastCreatedId + 1),
+        name: projectName,
         operatingSystem: "Debian-OS-11",
         ramMetrics: "GB",
         ramSize: "1",
@@ -272,7 +272,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         .catch((err: Error) => {
           props.toggleProgressMessage(false);
           ProgressIndicator.hide();
-          Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+          if(err.message === 'Value or Item already exist!') {
+            Notification.show(`Given Code Space Name '${projectName}' already in use. Please use another name.`, 'alert');
+          } else {
+            Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+          }
         });
     }
 
@@ -348,7 +352,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
               value={projectName}
               errorText={projectNameError}
               required={true}
-              maxLength={100}
+              maxLength={39}
               onChange={onProjectNameOnChange}
             />
           </div>
