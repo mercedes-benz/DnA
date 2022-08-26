@@ -215,7 +215,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-			if(entity!=null) {
+			if(entity.getData().getLastDeployedOn()!=null) {
 				GenericMessage jobResponse = client.performWorkBenchActions("undeploy", entity.getData());
 				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					entity.getData().setStatus("UNDEPLOY_REQUESTED");
@@ -224,6 +224,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}else {
 					errors.addAll(jobResponse.getErrors());
 				}
+			}else {
+				MessageDescription warning = new MessageDescription();
+				warning.setMessage("Project is not in deployed state. Cannot undeploy");
+				warnings.add(warning);
 			}
 		}catch(Exception e) {
 				MessageDescription error = new MessageDescription();

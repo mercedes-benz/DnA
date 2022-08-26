@@ -78,6 +78,17 @@ paths:
       summary: "Get all codeServer workspaces for the user."
       description:  "Get all codeServer workspaces for the user."
       operationId: "getAll"
+      parameters:
+          - name: offset
+            in: query
+            description: page number from which listing of workspaces should start. Offset. Example 2
+            required: false
+            type: integer
+          - name: limit
+            in: query
+            description: page size to limit the number of workspaces, Example 15
+            required: false
+            type: integer
       responses:
         201:
           description: "Returns message of success or failure"
@@ -329,6 +340,9 @@ definitions:
       name:
         type: string
         description: "Name of the workspace"
+      projectName:
+        type: string
+        description: "Name of the project in workspace"
       description:
         type: string
         description: "description of the workspace"

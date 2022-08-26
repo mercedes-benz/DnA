@@ -43,6 +43,7 @@ public class CodeServerWorkspace implements Serializable{
 	
 	private String owner;
 	private String name;
+	private String projectName;
 	private String description;
 	private String recipeId;
 	private String password;
