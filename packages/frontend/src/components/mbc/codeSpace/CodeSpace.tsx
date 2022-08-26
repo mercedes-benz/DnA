@@ -165,6 +165,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             // });
             setCodeDeployed(true);
             setCodeDeployedUrl(res.deployedUrl);
+            Tooltip.defaultSetup();
             setShowCodeDeployModal(false);
             Notification.show(`Code from code space ${res.name} succesfully deployed.`);
           }
@@ -205,19 +206,25 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.headerdetails}>
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
-                <h2>{props.user.firstName}&apos;s Code Space - {codeSpaceData.name}</h2>
+                <h2>
+                  {props.user.firstName}&apos;s Code Space - {codeSpaceData.name}
+                </h2>
               </div>
             </div>
             <div className={Styles.navigation}>
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
-                  <div tooltip-data="API BASE URL">
-                    <a href={codeDeployedUrl}>
-                      <i className="icon mbc-icon link" />
-                    </a>
-                  </div>
+                  {codeDeployed && (
+                    <div tooltip-data="API BASE URL">
+                      <a href={codeDeployedUrl}>
+                        <i className="icon mbc-icon link" />
+                      </a>
+                    </div>
+                  )}
                   <div>
-                    <button className="btn btn-secondary" onClick={onShowCodeDeployModal}>{codeDeployed && '(Re)'}Deploy</button>
+                    <button className="btn btn-secondary" onClick={onShowCodeDeployModal}>
+                      {codeDeployed && '(Re)'}Deploy
+                    </button>
                   </div>
                   <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
                     <i className="icon mbc-icon arrow small right" />
@@ -285,7 +292,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           buttonAlignment="center"
           show={showCodeDeployModal}
           content={
-            <p>The code from your workspace will be deployed and is run in a container and you will get the access url after the deployment.</p>
+            <p>
+              The code from your workspace will be deployed and is run in a container and you will get the access url
+              after the deployment.
+            </p>
           }
           scrollableContent={false}
           onCancel={onCodeDeployModalCancel}
