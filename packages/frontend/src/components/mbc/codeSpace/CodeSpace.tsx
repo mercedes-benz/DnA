@@ -164,7 +164,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             //   lastDeployedDate: res.lastDeployedOn
             // });
             setCodeDeployed(true);
-            setCodeDeployedUrl(res.deployedUrl);
+            setCodeDeployedUrl(res.deploymentUrl);
             Tooltip.defaultSetup();
             setShowCodeDeployModal(false);
             Notification.show(`Code from code space ${res.name} succesfully deployed.`);
