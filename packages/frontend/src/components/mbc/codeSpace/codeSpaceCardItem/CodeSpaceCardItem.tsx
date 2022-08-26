@@ -80,7 +80,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
               <>
                 <span className={Styles.deployedIndicator}>Deployed</span>
                 <a href={codeSpace.deployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
-                  <i className="icon mbc-icon new-tab" />
+                  <i className="icon mbc-icon link" />
                 </a>
               </>
             )}
