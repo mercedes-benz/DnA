@@ -9,7 +9,7 @@ import { Envs } from '../../../globals/Envs';
 import { IUserInfo } from '../../../globals/types';
 import { history } from '../../../router/History';
 import { trackEvent } from '../../../services/utils';
-import { ApiClient } from '../../../services/ApiClient';
+// import { ApiClient } from '../../../services/ApiClient';
 import Modal from '../../formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from '../../icons/fullScreenMode/FullScreenModeIcon';
@@ -20,6 +20,8 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import ProgressWithMessage from '../../../components/progressWithMessage/ProgressWithMessage';
+import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
+import { getParams } from '../../../router/RouterUtils';
 // import { HTTP_METHOD } from '../../../globals/constants';
 
 
@@ -33,6 +35,7 @@ export interface ICodeSpaceData {
   recipe?: string;
   environment?: string;
   deployed?: boolean;
+  deployedUrl?: string;
   createdDate?: string;
   lastDeployedDate?: string;
   url: string;
@@ -40,8 +43,13 @@ export interface ICodeSpaceData {
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
+  // const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
+  //   url: `https://code-spaces.***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
+  //   running: false
+  // });
+  const { id } = getParams();
   const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-    url: `https://code-spaces.***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
+    url: undefined,
     running: false
   });
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
@@ -51,17 +59,47 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [showCodeDeployModal, setShowCodeDeployModal] = useState<boolean>(false);
 
   useEffect(() => {
-    ApiClient.getCodeSpace().then((res: any) => {
+    CodeSpaceApiClient.getCodeSpaceStatus(id).then((res: any) => {
       setLoading(false);
-      const codeSpaceRunning = (res.success === 'true');
-      setCodeSpaceData({
-        ...codeSpaceData,
-        running: codeSpaceRunning
-      });
-      setShowNewCodeSpaceModal(!codeSpaceRunning);
+      const status = res.status;
+      if (
+        status !== 'CREATE_REQUESTED' &&
+        status !== 'CREATE_FAILED' &&
+        status !== 'DELETE_REQUESTED' &&
+        status !== 'DELETED' &&
+        status !== 'DELETE_FAILED'
+      ) {
+        setCodeSpaceData({
+          id: res.id,
+          name: res.name,
+          recipe:
+            res.recipeId !== 'default'
+              ? `Microservice using Spring Boot (${res.operatingSystem}, ${res.ramSize}${res.ramMetrics} RAM, ${res.cpuCapacity}CPU)`
+              : 'Default',
+          environment: res.cloudServiceProvider,
+          deployed: !!res.lastDeployedOn,
+          createdDate: res.intiatedOn,
+          lastDeployedDate: res.lastDeployedOn,
+          url: res.workspaceUrl,
+          running: !!res.intiatedOn,
+        });
+      } else {
+        Notification.show(`Code space ${res.name} is getting created. Please try again later.`, 'warning');
+      }
     }).catch((err: Error) => {
       Notification.show("Error in validating code space - " + err.message, 'alert');
     });
+    // ApiClient.getCodeSpace().then((res: any) => {
+    //   setLoading(false);
+    //   const codeSpaceRunning = (res.success === 'true');
+    //   setCodeSpaceData({
+    //     ...codeSpaceData,
+    //     running: codeSpaceRunning
+    //   });
+    //   setShowNewCodeSpaceModal(!codeSpaceRunning);
+    // }).catch((err: Error) => {
+    //   Notification.show("Error in validating code space - " + err.message, 'alert');
+    // });
   }, [])
 
   const toggleFullScreenMode = () => {
@@ -113,7 +151,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.headerdetails}>
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
-                <h2>{props.user.firstName}&apos;s Code Space</h2>
+                <h2>{props.user.firstName}&apos;s Code Space - {codeSpaceData.name}</h2>
               </div>
             </div>
             <div className={Styles.navigation}>
