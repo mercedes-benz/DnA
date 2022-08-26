@@ -241,7 +241,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const createCodeSpace = () => {
     const createCodeSpaceRequest = {
       data: {
-        cloudServiceProvider: "DHC-CaaS",
+        cloudServiceProvider: environment,
         cpuCapacity: "1",
         description: "",
         environment: "Development",
