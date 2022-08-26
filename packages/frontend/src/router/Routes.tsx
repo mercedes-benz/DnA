@@ -300,7 +300,7 @@ const protectedRoutes = [
     allowedRoles: UserAndAdminRole,
     component: CodeSpace,
     exact: false,
-    path: '/codespace',
+    path: '/codespace/:id?',
     title: 'Code Space',
   },
   {
