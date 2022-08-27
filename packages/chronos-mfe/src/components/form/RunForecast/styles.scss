@@ -19,6 +19,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            display: block;
+            min-width: 300px;
+            text-align: center;
         }
     }
     .icon {
@@ -57,6 +60,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         font-size: var(--font-size-medium);
+        min-width: 300px;
     }
 }
 .existingFilesContainer {
