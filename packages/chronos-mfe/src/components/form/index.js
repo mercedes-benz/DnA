@@ -63,8 +63,6 @@ const ForecastForm = ({ user }) => {
     //     reset(defaultValues); // setting default values
     //   } else {
     const data = tabs[currentTab];
-    console.log(data);
-
     reset(data); // setting default values
     // }
     // }
