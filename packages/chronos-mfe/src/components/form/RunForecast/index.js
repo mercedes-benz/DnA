@@ -1,14 +1,38 @@
 import classNames from 'classnames';
-import React, { useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect, useState } from 'react';
+
 import Upload from 'rc-upload';
 import Styles from './styles.scss';
 import { useFormContext } from 'react-hook-form';
-import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
+
+import { fileObj } from '../../../Utility/utils';
+
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../../common/modules/uilab/js/src/notification';
+
+const SelectedFile = ({ setFiles }) => {
+  return (
+    <>
+      <div className={Styles.selectedFile}>
+        <div>
+          <span>Input File</span>
+          <span>{'MS_tms_fc.xls'}</span>
+        </div>
+        <span>
+          <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
+          <span>File is ready to use.</span>
+        </span>
+        <span>
+          <i onClick={() => setFiles([])} className={classNames('icon delete', Styles.deleteIcon)} />
+        </span>
+      </div>
+    </>
+  );
+};
 
 const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) => {
   const {
@@ -20,11 +44,11 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
   } = useFormContext();
   const [fileList, setFiles] = useState([]);
   const [keepExistingFiles, setKeepExistingFiles] = useState(false);
-  const [portal, setPortal] = useState(null);
-  const uploadRef = useRef(null);
 
   const [showExistingFiles, setShowExistingFiles] = useState(false);
   const [existingFiles, setExistingFiles] = useState([]);
+
+  const isValidFile = (file) => ['csv', 'xls', 'xlsx'].includes(file?.name?.split('.')[1]);
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -32,66 +56,69 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
     //eslint-disable-next-line
   }, []);
 
+  const onChange = (info) => {
+    const { status } = info.file;
+
+    if (status === 'done') {
+      Notification.show(`${info.file.name} file uploaded successfully.`);
+    } else if (status === 'error') {
+      Notification.show(`${info.file.name} file upload failed.`, 'alert');
+    }
+  };
+
   const uploadProps = {
-    accept: '.xls,.csv',
+    accept: '.xls,.csv,.xlsx',
     action: ``,
-    onStart: (files) => {
-      console.log(files);
+    onStart: () => {
       ProgressIndicator.show(1);
     },
-    onSuccess() {
+    onSuccess(response, file, xhr) {
+      ProgressIndicator.hide();
+      const targetItem = fileObj(file);
+      targetItem.status = 'done';
+      targetItem.percent = 100;
+      targetItem.response = response;
+      targetItem.xhr = xhr;
+      const info = {
+        file: targetItem,
+      };
+      onChange(info);
+    },
+    onError(error, response, file) {
+      const targetItem = fileObj(file);
+      targetItem.error = error;
+      targetItem.response = response;
+      targetItem.status = 'error';
+      onChange({ file: targetItem });
       ProgressIndicator.hide();
     },
-    onError() {
-      ProgressIndicator.hide();
-    },
-    onProgress: (e) => {
+    onProgress: (e, file) => {
       ProgressIndicator.show(e.percent);
+      const targetItem = fileObj(file);
+      targetItem.status = 'uploading';
+      targetItem.percent = e.percent;
+      onChange({ file: targetItem, e });
     },
-    beforeUpload: (file, files) => {
-      let isValid = true;
-      setFiles(files);
+    beforeUpload: (file) => {
+      let isValid = isValidFile(file);
+      if (!isValid) Notification.show('File is not valid.', 'alert');
       return isValid;
     },
   };
 
   const onDrop = (e) => {
     console.log('Dropped files', e.dataTransfer.files);
-    setFiles(e.dataTransfer.files);
+    const file = e.dataTransfer.files?.[0];
+    const isValid = isValidFile(file);
+    if (!isValid) Notification.show('File is not valid.', 'alert');
   };
 
   const onFileDrop = (e) => {
+    e.preventDefault();
     if (e.type === 'drop') {
       onDrop?.(e);
     }
   };
-
-  useEffect(() => {
-    if (!fileList.length) {
-      const container = document?.querySelector('.upload-container');
-      const portal = ReactDOM.createPortal(
-        <div className={Styles.helperTextContainer}>
-          <div className={Styles.browseHelperText}>
-            You can also <button className={Styles.selectExisitingFiles}>browse local files</button> (.xls, .csv)
-          </div>
-          <div
-            className={Styles.browseHelperText}
-            onClick={(e) => {
-              e.stopPropagation();
-              setExistingFiles([]);
-              setShowExistingFiles(true);
-            }}
-          >
-            <p>
-              or <button className={Styles.selectExisitingFiles}>select an existing file</button> to run forecast
-            </p>
-          </div>
-        </div>,
-        container,
-      );
-      setPortal(portal);
-    }
-  }, [fileList.length]);
 
   const existingFilesContent = (
     <div className={Styles.existingFilesContainer}>
@@ -125,41 +152,34 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
       </div>
       <p>MS_tms_fc.xls</p>
       <div className={Styles.flexLayout}>
-        <div className={Styles.flexLayout}>
-          <div>
-            <div className={Styles.uploadInfo}>
-              <span>Uploaded On</span>
-              <span>27/03/2022</span>
-            </div>
-            <div className={Styles.uploadInfo}>
-              <span>Uploaded By</span>
-              <span>John Doe</span>
-            </div>
+        <div>
+          <div className={Styles.uploadInfo}>
+            <span>Uploaded On</span>
+            <span>27/03/2022</span>
+          </div>
+          <div className={Styles.uploadInfo}>
+            <span>Uploaded By</span>
+            <span>John Doe</span>
           </div>
         </div>
       </div>
+      <hr />
+      <div className={Styles.btnContinue}>
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={isSubmitting}
+          onClick={handleSubmit((values) => {
+            reset(values, {
+              keepDirty: false,
+            });
+          })}
+        >
+          Continue with file
+        </button>
+      </div>
     </div>
   );
-
-  const SelectedFile = () => {
-    return (
-      <>
-        <div className={Styles.selectedFile}>
-          <div>
-            <span>Input File</span>
-            <span>{'MS_tms_fc.xls'}</span>
-          </div>
-          <span>
-            <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
-            <span>File is ready to use.</span>
-          </span>
-          <span>
-            <i onClick={() => setFiles([])} className={classNames('icon delete', Styles.deleteIcon)} />
-          </span>
-        </div>
-      </>
-    );
-  };
 
   return (
     <>
@@ -182,30 +202,42 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
             {!fileList.length ? (
               <div className={Styles.container}>
                 <div
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    onFileDrop(e);
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    onFileDrop(e);
-                  }}
+                  onDrop={onFileDrop}
+                  onDragOver={onFileDrop}
                   onDragLeave={onFileDrop}
                   className={classNames('upload-container', Styles.uploadContainer)}
                 >
-                  <Upload {...uploadProps}>
-                    <div>
+                  <Upload {...uploadProps} className={Styles.rcUpload}>
+                    <div className={Styles.dragDrop}>
                       <div className={Styles.icon}>
-                        <button ref={uploadRef} style={{ display: 'none' }}></button>
+                        <button style={{ display: 'none' }}></button>
                       </div>
                       <h4>Drag & Drop your Input File here to upload</h4>
                     </div>
-                    {portal}
+                    <div className={Styles.helperTextContainer}>
+                      <div className={Styles.browseHelperText}>
+                        You can also <button className={Styles.selectExisitingFiles}>browse local files</button> (.xls,
+                        .csv)
+                      </div>
+                      <div
+                        className={Styles.browseHelperText}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExistingFiles([]);
+                          setShowExistingFiles(true);
+                        }}
+                      >
+                        <p>
+                          or <button className={Styles.selectExisitingFiles}>select an existing file</button> to run
+                          forecast
+                        </p>
+                      </div>
+                    </div>
                   </Upload>
                 </div>
               </div>
             ) : (
-              <SelectedFile />
+              <SelectedFile setFiles={setFiles} />
             )}
             <div className={Styles.checkbox}>
               <label className="checkbox">
@@ -390,13 +422,14 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
         title={'Select existing input file'}
         showAcceptButton={false}
         showCancelButton={false}
-        modalWidth={'50%'}
+        modalWidth={'35%'}
         buttonAlignment="right"
         show={showExistingFiles}
         content={existingFilesContent}
         scrollableContent={false}
         onCancel={() => {
           setShowExistingFiles(false);
+          reset(['existingFile']);
         }}
       />
     </>
