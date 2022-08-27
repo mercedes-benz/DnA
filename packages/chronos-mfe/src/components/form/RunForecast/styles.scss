@@ -11,6 +11,15 @@
         width: 100%;
         border: 2px dotted #697582;
         height: 500px;
+        .rcUpload {
+            height: 100%;
+        }
+        .dragDrop {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
     }
     .icon {
         display: flex;
@@ -43,7 +52,7 @@
     }
     .helperTextContainer {
         position: absolute;
-        bottom: 10px;
+        bottom: 50px;
         display: block;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -62,6 +71,10 @@
             font-weight: bold;
             color: #697582;
         }
+    }
+    .btnContinue {
+        display: flex;
+        justify-content: flex-end;
     }
 }
 
