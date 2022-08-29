@@ -26,7 +26,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const deleteCodeSpaceContent = (
     <div>
-      <h3>Are you sure you want to delete {codeSpace.name} Code Space? You will be lossing your code as well as the deployed code instance.</h3>
+      <h3>Are you sure you want to delete {codeSpace.name} Code Space?<br />You will be lossing your code as well as the deployed code instance.</h3>
     </div>
   );
 
