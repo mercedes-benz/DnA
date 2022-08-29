@@ -155,5 +155,16 @@ vaultInjector:
           {{- end }}
           {{- end }}
               };
-      {{- end }}  
+      {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/chronosMFE" -}}
+          window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
+          {{- range $k, $v := .Data.data }}
+          {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
+                  {{ $k }}:{{ $v }},
+          {{ else }}
+                  {{ $k }}:'{{ $v }}',
+          {{- end }}
+          {{- end }}
+              };
+      {{- end }}        
   saName: "default"
