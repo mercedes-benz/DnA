@@ -161,6 +161,7 @@ const base = {
         './AddUser': './src/components/mbc/addUser/AddUser.tsx',
         './SelectBox': './src/components/formElements/SelectBox/SelectBox.ts',
         './Tags': './src/components/formElements/tags/Tags',
+        './TeamMemberListItem': './src/components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem',
       },
       remotes: {
         // object key is used to import
