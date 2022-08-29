@@ -7,13 +7,21 @@ import { history } from '../../../../router/History';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { ICodeSpaceData } from '../CodeSpace';
+import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
+import { trackEvent } from '../../../../services/utils';
+// @ts-ignore
+import Notification from '../../../../assets/modules/uilab/js/src/notification';
 
 interface CodeSpaceCardItemProps {
   codeSpace: ICodeSpaceData;
+  onDeleteSuccess?: () => void;
+  toggleProgressMessage?: (show: boolean) => void;
 }
 
 const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const codeSpace = props.codeSpace;
+  const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
+  const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const deleteCodeSpaceContent = (
@@ -24,10 +32,26 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const deleteCodeSpaceAccept = () => {
     ProgressIndicator.show();
-    //ApiClient.deleteCodeSpace(codeSpace.id).then(() => {
-      //codeSpace.getCodeSpaces();
-      setShowDeleteModal(false);
-    //});
+    CodeSpaceApiClient.deleteCodeSpace(codeSpace.id).then((res: any) => {
+      trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+      if(res.success === 'SUCCESS') {
+        props.onDeleteSuccess();
+        setShowDeleteModal(false);
+        ProgressIndicator.hide();
+        // setCreatedCodeSpaceName(res.data.name);
+        // setIsApiCallTakeTime(true);
+        // enableDeployLivelinessCheck(codeSpaceData.name);
+      } else {
+        // setIsApiCallTakeTime(false);
+        ProgressIndicator.hide();
+        Notification.show('Error in deploying code space. Please try again later.\n' + res.errors[0].message, 'alert');
+      }
+      //props.getCodeSpaces();
+      //setShowDeleteModal(false);
+    }).catch((err: Error) => {
+      ProgressIndicator.hide();
+      Notification.show('Error in deleting code space. Please try again later.\n' + err.message, 'alert');
+    });
   };
   const deleteCodeSpaceClose = () => {
     setShowDeleteModal(false);
@@ -39,9 +63,9 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   return (
     <>
-      <div className={Styles.codeSpaceCard}>
+      <div className={classNames(Styles.codeSpaceCard, deleteInProgress ? Styles.disable : null)}>
         <div className={Styles.cardHead}>
-          <div className={Styles.cardHeadInfo}>
+          <div className={classNames(Styles.cardHeadInfo, deleteInProgress ? Styles.disable : null)}>
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {codeSpace?.name}
             </div>
@@ -68,30 +92,38 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 <div>{regionalDateAndTimeConversionSolution(codeSpace?.lastDeployedDate)}</div>
               </div>
             )}
-            <div>
+            {/* <div>
               <div>Code Space ID</div>
               <div>{codeSpace.name}</div>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className={Styles.cardFooter}>
           <div>
+            {codeDeploying && (
+              <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+            )}
             {codeSpace.deployed && (
               <>
-                <span className={Styles.deployedIndicator}>Deployed</span>
+                <span className={Styles.statusIndicator}>Deployed</span>
                 <a href={codeSpace.deployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
                   <i className="icon mbc-icon link" />
                 </a>
               </>
+            )}
+            {deleteInProgress && (
+              <span className={classNames(Styles.statusIndicator, Styles.deleting)}>Deleting...</span>
             )}
           </div>
           <div className={Styles.btnGrp}>
             <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
               <i className="icon mbc-icon edit"></i>
             </button>
-            <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-              <i className="icon delete"></i>
-            </button>
+            {!deleteInProgress && (
+              <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+                <i className="icon delete"></i>
+              </button>
+            )}
           </div>
         </div>
       </div>
