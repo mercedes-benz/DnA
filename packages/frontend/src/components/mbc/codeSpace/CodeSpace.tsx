@@ -40,6 +40,7 @@ export interface ICodeSpaceData {
   lastDeployedDate?: string;
   url: string;
   running: boolean;
+  status?: string;
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
@@ -306,7 +307,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           onCancel={onCodeDeployModalCancel}
         />
       )}
-      {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up to a minute....'} />}
+      {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up 2 to 5 minutes....'} />}
     </div>
   );
 };
