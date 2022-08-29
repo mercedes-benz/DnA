@@ -65,6 +65,18 @@ module.exports = {
         exclude: [path.resolve(__dirname, path.join('..', 'src'))],
       },
       {
+        test: /\.(png|jpg|gif)$/i,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 1000,
+              name: 'images/[name]-[contenthash].[ext]',
+            },
+          },
+        ],
+      },
+      {
         test: /config.js/,
         use: [
           {
