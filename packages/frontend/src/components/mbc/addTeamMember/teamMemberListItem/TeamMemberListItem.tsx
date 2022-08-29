@@ -102,7 +102,7 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
             </div>
             <div className={Styles.details}>
               {
-                this.props.hidePosition ? null : <h6>{teamMember?.teamMemberPosition}</h6>
+                this.props?.hidePosition ? null : <h6>{teamMember?.teamMemberPosition}</h6>
               }
               <div className={Styles.memberDetails}>
                 <div>

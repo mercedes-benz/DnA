@@ -167,25 +167,14 @@
     .collabContentList {
       display: none;
       font-size: var(--font-size-smallest);
-      .dagTile {
-        width: 100%;
-        padding: 10px 10px;
-        border-bottom: 1px solid #383f49;
-      }
       .collabContentListAdd {
         margin: 25px auto;
-        input {
-          opacity: unset !important;
-          position: unset!important;
-          z-index: unset !important;
-        }
         .userExistedError {
           color: #e84d47;
           padding: 4px 0;
         }
       }
       .collabUsersList {
-
         .collUserTitle {
           display: flex;
           align-items: center;
