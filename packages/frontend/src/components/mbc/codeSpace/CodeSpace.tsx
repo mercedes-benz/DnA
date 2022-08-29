@@ -22,6 +22,7 @@ import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import ProgressWithMessage from '../../../components/progressWithMessage/ProgressWithMessage';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 import { getParams } from '../../../router/RouterUtils';
+import classNames from 'classnames';
 // import { HTTP_METHOD } from '../../../globals/constants';
 
 
@@ -60,6 +61,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [showCodeDeployModal, setShowCodeDeployModal] = useState<boolean>(false);
   const [codeDeployed, setCodeDeployed] = useState<boolean>(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
+  const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
 
   useEffect(() => {
     CodeSpaceApiClient.getCodeSpaceStatus(id).then((res: any) => {
@@ -88,10 +90,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           lastDeployedDate: res.lastDeployedOn,
           url: res.workspaceUrl,
           running: !!res.intiatedOn,
+          status: res.status,
         });
         setCodeDeployed(deployed);
         setCodeDeployedUrl(deployedUrl);
         Tooltip.defaultSetup();
+        if (res.status === 'DEPLOY_REQUESTED') {
+          enableDeployLivelinessCheck(res.name);
+        }
       } else {
         Notification.show(`Code space ${res.name} is getting created. Please try again later.`, 'warning');
       }
@@ -186,7 +192,13 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
       if(res.success === 'SUCCESS') {
         // setCreatedCodeSpaceName(res.data.name);
-        setIsApiCallTakeTime(true);
+        if (acceptContinueCodingOnDeployment) {
+          ProgressIndicator.hide();
+          Notification.show(`Code space '${codeSpaceData.name}' deployment successfully started. Please check the status later.`);
+          setShowCodeDeployModal(false);
+        } else {
+          setIsApiCallTakeTime(true);
+        }
         enableDeployLivelinessCheck(codeSpaceData.name);
       } else {
         setIsApiCallTakeTime(false);
@@ -201,6 +213,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const goBack = () => {
     history.goBack();
+  };
+
+  const onAcceptContinueCodingOnDeployment = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAcceptContinueCodingOnDeployment(e.target.checked);
   };
 
   return (
@@ -228,8 +244,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                     </div>
                   )}
                   <div>
-                    <button className="btn btn-secondary" onClick={onShowCodeDeployModal}>
-                      {codeDeployed && '(Re)'}Deploy
+                    <button className={classNames('btn btn-secondary', codeSpaceData.status === 'DEPLOY_REQUESTED' ? 'disable' : '')} onClick={onShowCodeDeployModal}>
+                      {codeDeployed && '(Re)'}Deploy{codeSpaceData.status === 'DEPLOY_REQUESTED' && 'ing...'}
                     </button>
                   </div>
                   <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
@@ -298,10 +314,25 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           buttonAlignment="center"
           show={showCodeDeployModal}
           content={
-            <p>
-              The code from your workspace will be deployed and is run in a container and you will get the access url
-              after the deployment.
-            </p>
+            <>
+              <p>
+                The code from your workspace will be deployed and is run in a container and you will get the access url
+                after the deployment.
+              </p>
+              <div>
+                <label className="checkbox">
+                  <span className="wrapper">
+                    <input
+                      type="checkbox"
+                      className="ff-only"
+                      checked={acceptContinueCodingOnDeployment}
+                      onChange={onAcceptContinueCodingOnDeployment}
+                    />
+                  </span>
+                  <span className="label">Continue coding after deployment started.</span>
+                </label>
+              </div>
+            </>
           }
           scrollableContent={false}
           onCancel={onCodeDeployModalCancel}
