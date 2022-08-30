@@ -329,7 +329,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       onChange={onAcceptContinueCodingOnDeployment}
                     />
                   </span>
-                  <span className="label">Continue coding after deployment started.</span>
+                  <span className="label">Continue with your workspace while the deployment is in progress?</span>
                 </label>
               </div>
             </>
