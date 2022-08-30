@@ -78,6 +78,8 @@ public class CodeServerClient {
 		if(workspaceDetails!=null) {
 			userId = workspaceDetails.getOwner().toLowerCase();
 			password = workspaceDetails.getPassword();
+			if(password==null)
+				password = "";
 			type = workspaceDetails.getRecipeId();
 			environment = workspaceDetails.getEnvironment();
 			wsid = workspaceDetails.getName();
@@ -129,7 +131,7 @@ public class CodeServerClient {
 		} catch (Exception e) {
 			LOGGER.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", userId, action, e.getMessage());
 			MessageDescription error = new MessageDescription();
-			error.setMessage("Failed while intializing codeserver workbench with exception " + e.getMessage());
+			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
 		}
 		respone.setSuccess(status);
