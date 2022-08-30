@@ -12,6 +12,19 @@ const devConfig = {
       'Access-Control-Allow-Origin': '*',
     },
   },
+  module: {
+    rules: [
+      {
+        test: /\.js?$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader',
+        options: {
+          presets: ['@babel/preset-env' /* to transfer any advansed ES to ES5 */, '@babel/preset-react'], // to compile react to ES5
+          plugins: [['@babel/plugin-transform-runtime']],
+        },
+      },
+    ],
+  },
   plugins: [
     new MFLiveReloadPlugin({
       port: 8085,
