@@ -31,7 +31,8 @@ const ForecastForm = ({ user }) => {
   const projects = useSelector((state) => state.projects);
 
   const [currentTab, setCurrentTab] = useState('runForecast');
-  const [savedTabs, setSavedTabs] = useState([]);
+  // const [savedTabs, setSavedTabs] = useState([]);
+  const [savedTabs, setSavedTabs] = useState(['forecastResults','manageConnections','projectDetails']);
   const methods = useForm();
   const { formState, reset } = methods;
 

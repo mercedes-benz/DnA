@@ -545,26 +545,28 @@ const ForeCastingProjects = () => {
           )}
         </div>
       </div>
-      <Modal
-        title={createProject ? 'Create new Forecasting Project' : editProject && 'Edit Forecasting Project'}
-        showAcceptButton={false}
-        showCancelButton={false}
-        modalWidth={'60%'}
-        buttonAlignment="right"
-        show={createProject || editProject}
-        content={addProjectContent}
-        scrollableContent={false}
-        onCancel={() => {
-          setCreateProject(false);
-          setEditProject(false);
-        }}
-        modalStyle={{
-          padding: '50px 35px 35px 35px',
-          minWidth: 'unset',
-          width: '60%',
-          maxWidth: '800px'
-        }}
-      />
+      { (createProject || editProject) &&
+        <Modal
+          title={createProject ? 'Create new Forecasting Project' : editProject && 'Edit Forecasting Project'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          buttonAlignment="right"
+          show={createProject || editProject}
+          content={addProjectContent}
+          scrollableContent={false}
+          onCancel={() => {
+            setCreateProject(false);
+            setEditProject(false);
+          }}
+          modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+            maxWidth: '800px'
+          }}
+        />
+      }
     </>
   );
 };
