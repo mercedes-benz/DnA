@@ -23,6 +23,8 @@ export interface IConfirmModalProps {
   removalConfirmation?: boolean;
   /** show Icons */
   showIcon?: boolean;
+  /** show modal close icon */
+  showCloseIcon?: boolean;
   /** action to be done on clicking Accept button */
   onAccept?: () => void;
   /** action to be done on clicking Cancel button */
@@ -40,6 +42,11 @@ const ConfirmModal = (props: IConfirmModalProps) => (
       <header>
         <div>{props.showIcon === false ? '' : <IconAttention />}</div>
         {props.showCancelButton && (
+          <button className="modal-close-button" onClick={props.onCancel}>
+            <i className="icon mbc-icon close thin" />
+          </button>
+        )}
+        {props.showCloseIcon && (
           <button className="modal-close-button" onClick={props.onCancel}>
             <i className="icon mbc-icon close thin" />
           </button>
