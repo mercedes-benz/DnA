@@ -80,7 +80,10 @@
 }
 .content {
     .formGroup {
-        padding: 25px 0;
+      padding: 0 15px 25px 0;
+      max-height: 500px;
+      overflow-y: auto;
+      overflow-x: hidden;
         .permissionField {
             display: flex;
             margin-left: -10px;
@@ -99,6 +102,18 @@
             > div {
                 width: calc(50% - 30px);
             }
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #00adef;
+          border-radius: 10px;
+        }
+        &::-webkit-scrollbar-track {
+          background: #293f55;
+        }
+        &::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
         }
     }
 }
@@ -325,10 +340,6 @@
     }
   }
 
-  .membersList {
-    padding-right: 35px;
-  }
-
   .apiKey {
     display: flex;
     align-items: center;
@@ -448,5 +459,24 @@
       &:hover .addlabel {
         color: #00adef;
       }
+    }
+  }
+
+  .collabAvatar {
+    padding: 25px 25px 25px 0;
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    &::-webkit-scrollbar-thumb {
+      background: #00adef;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #293f55;
+    }
+    &::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
     }
   }
