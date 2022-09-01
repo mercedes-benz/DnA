@@ -13,6 +13,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 
 import ContactInformation from './ContactInformation';
 import PersonalRelatedData from './PersonalRelatedData';
+import TourGuide from '../TourGuide';
 
 const tabs = {
   'contact-info': {
@@ -90,89 +91,92 @@ const ConsumerForm = ({ user }) => {
   };
 
   return (
-    <FormProvider {...methods}>
-      <div className={classNames(Styles.mainPanel)}>
-        <h3 className={classNames(Styles.title)}>Consume / Share Data Product</h3>
-        <div id="data-product-tabs" className="tabs-panel">
-          <div className="tabs-wrapper">
-            <nav>
-              <ul className="tabs">
-                <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}>
-                  <a
-                    href="#tab-content-1"
-                    id="contact-info"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[0] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Contact Information
-                  </a>
-                </li>
-                <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
-                  <a
-                    href="#tab-content-2"
-                    id="personal-data"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[1] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Identifying personal related data
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-          <div className="tabs-content-wrapper">
-            <div id="tab-content-1" className="tab-content">
-              {currentTab === 'contact-info' && (
-                <ContactInformation
-                  onSave={() => onSave('contact-info')}
-                  divisions={divisions}
-                  setSubDivisions={setSubDivisions}
-                  subDivisions={subDivisions}
-                />
-              )}
+    <>
+      <FormProvider {...methods}>
+        <div className={classNames(Styles.mainPanel)}>
+          <h3 className={classNames(Styles.title)}>Consume / Share Data Product</h3>
+          <div id="data-product-tabs" className="tabs-panel">
+            <div className="tabs-wrapper">
+              <nav>
+                <ul className="tabs">
+                  <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}>
+                    <a
+                      href="#tab-content-1"
+                      id="contact-info"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[0] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Contact Information
+                    </a>
+                  </li>
+                  <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
+                    <a
+                      href="#tab-content-2"
+                      id="personal-data"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[1] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Identifying personal related data
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
-            <div id="tab-content-2" className="tab-content">
-              {currentTab === 'personal-data' && <PersonalRelatedData onSave={() => onSave('personal-data')} />}
+            <div className="tabs-content-wrapper">
+              <div id="tab-content-1" className="tab-content">
+                {currentTab === 'contact-info' && (
+                  <ContactInformation
+                    onSave={() => onSave('contact-info')}
+                    divisions={divisions}
+                    setSubDivisions={setSubDivisions}
+                    subDivisions={subDivisions}
+                  />
+                )}
+              </div>
+              <div id="tab-content-2" className="tab-content">
+                {currentTab === 'personal-data' && <PersonalRelatedData onSave={() => onSave('personal-data')} />}
+              </div>
             </div>
           </div>
+          <ConfirmModal
+            title="Save Changes?"
+            acceptButtonTitle="Close"
+            cancelButtonTitle="Cancel"
+            showAcceptButton={true}
+            showCancelButton={true}
+            show={showChangeAlert?.modal}
+            content={
+              <div id="contentparentdiv">
+                Press &#187;Close&#171; to save your changes or press
+                <br />
+                &#187;Cancel&#171; to discard changes.
+              </div>
+            }
+            onCancel={() => {
+              reset(watch()); // to reset different states of the form.
+              const defaultValues = watch(); // update api response to reset
+              // defaultValues['personalRelatedDataDescription'] = 'sample code';
+              Object.entries(defaultValues)?.map(([key, value]) => {
+                setValue(key, value); // setting default values
+              });
+              setCurrentTab(showChangeAlert.switchingTab);
+              elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
+              setShowChangeAlert({ modal: false, switchingTab: '' });
+            }}
+            onAccept={() => {
+              setShowChangeAlert({ modal: false, switchingTab: '' });
+              elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
+            }}
+          />
         </div>
-        <ConfirmModal
-          title="Save Changes?"
-          acceptButtonTitle="Close"
-          cancelButtonTitle="Cancel"
-          showAcceptButton={true}
-          showCancelButton={true}
-          show={showChangeAlert?.modal}
-          content={
-            <div id="contentparentdiv">
-              Press &#187;Close&#171; to save your changes or press
-              <br />
-              &#187;Cancel&#171; to discard changes.
-            </div>
-          }
-          onCancel={() => {
-            reset(watch()); // to reset different states of the form.
-            const defaultValues = watch(); // update api response to reset
-            // defaultValues['personalRelatedDataDescription'] = 'sample code';
-            Object.entries(defaultValues)?.map(([key, value]) => {
-              setValue(key, value); // setting default values
-            });
-            setCurrentTab(showChangeAlert.switchingTab);
-            elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-          }}
-          onAccept={() => {
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-            elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
-          }}
-        />
-      </div>
-      <div className={Styles.mandatoryInfo}>* mandatory fields</div>
-    </FormProvider>
+        <div className={Styles.mandatoryInfo}>* mandatory fields</div>
+      </FormProvider>
+      <TourGuide type="ConsumerForm" />
+    </>
   );
 };
 
