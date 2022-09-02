@@ -53,7 +53,7 @@ const DataProducts = () => {
     <div className={classNames(Styles.mainPanel)}>
       <div className={classNames(Styles.wrapper)}>
         <div className={classNames(Styles.caption)}>
-          <h3>Data Product Overview</h3>
+          <h3>Data Transfer Overview</h3>
           <div className={classNames(Styles.listHeader)}>
             {dataProducts?.length ? (
               <React.Fragment>
