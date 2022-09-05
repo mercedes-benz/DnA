@@ -2445,3 +2445,6 @@ data-product-be:
 
 code-server:
   enabled: true
+
+kong: 
+  enabled: true
