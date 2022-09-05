@@ -40,7 +40,8 @@
       }
     },
     "rules": {
-      "react/prop-types": "off"
+      "react/prop-types": "off",
+      "react/no-unknown-property": 0
     }
   },
   "browserslist": {
