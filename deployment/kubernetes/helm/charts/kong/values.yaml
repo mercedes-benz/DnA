@@ -1016,7 +1016,7 @@ extraSecrets: []
 #   subPath: my-subpath # Optional, if you wish to mount a single key and not the entire ConfigMap
 
 
-kong-settings:
+kongSettings:
   - key: postgres.host
     value: ""
   - key: postgres.port
