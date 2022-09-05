@@ -14,7 +14,7 @@ dependencies:
 
 - name: postgresql-helm
   repository: file://charts/postgresql-helm
-  version: 0.1.0
+  version: 5.1.1-2022.6.15
   condition: postgresql-helm.enabled
 
 - name: bitnamipostgresql
@@ -107,6 +107,10 @@ dependencies:
   version: 2.9.1
   condition: kong.enabled
   
+- name: chronos-be
+  repository: file://charts/chronos-be
+  version: 0.1.0
+  condition: chronos-be.enabled  
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives

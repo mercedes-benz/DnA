@@ -2448,3 +2448,6 @@ code-server:
 
 kong: 
   enabled: true
+
+chronos-be: 
+  enabled: true
