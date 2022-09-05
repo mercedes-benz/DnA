@@ -41,7 +41,7 @@
     },
     "rules": {
       "react/prop-types": "off",
-      "react/no-unknown-property": 0
+      "react/no-unknown-property": ["error", { "ignore": ["tooltip-data", "required-error"] }]
     }
   },
   "browserslist": {
