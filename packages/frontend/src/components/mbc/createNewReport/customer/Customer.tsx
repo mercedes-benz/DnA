@@ -3,7 +3,7 @@ import * as React from 'react';
 import Styles from './Customer.scss';
 import Modal from '../../../formElements/modal/Modal';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
-import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
+import IconAvatarNew from '../../../../components/icons/IconAvatarNew';
 import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, ICustomerDetails } from '../../../../globals/types';
 import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
 import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
@@ -338,9 +338,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                               <div className="expansion-panel-content">
                                 <div className={Styles.customerCollContent}>
                                   <div className={Styles.customerDesc}>
-                                    <pre className={Styles.commentPre}>
-                                      {customer.comment}
-                                    </pre>
+                                    <pre className={Styles.commentPre}>{customer.comment}</pre>
                                   </div>
                                   <div className={Styles.customerBtnGrp}>
                                     <button
@@ -418,7 +416,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           scrollableContent={false}
           onCancel={this.addCustomerModelClose}
         />
-        { this.state.showAddTeamMemberModal && (
+        {this.state.showAddTeamMemberModal && (
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
             modalTitleText={'Process Owner'}
@@ -694,7 +692,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     // if (!this.state.customerInfo.comment) {
     //   errors.comment = errorMissingEntry;
     //   formValid = false;
-    // } 
+    // }
     else {
       errors.comment = '';
     }

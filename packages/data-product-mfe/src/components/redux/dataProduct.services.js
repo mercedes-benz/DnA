@@ -66,6 +66,9 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     const data = deserializeFormData(res?.data?.data);
     if (values.publish) {
       Notification.show('Your Data Product is now available!');
+    } else if (data.openSegments.length === 7) {
+      // on saving last tab
+      Notification.show('Progress saved in Data Transfer Overview');
     }
     return {
       data,
