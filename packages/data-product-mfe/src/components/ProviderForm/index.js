@@ -64,7 +64,7 @@ const ProviderForm = ({ user, history }) => {
   const [currentTab, setCurrentTab] = useState('contact-info');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
-  const { setValue, formState, reset, watch } = methods;
+  const { setValue, formState, reset } = methods;
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -109,7 +109,7 @@ const ProviderForm = ({ user, history }) => {
         let defaultValues = { ...provideDataProducts.selectedDataProduct };
         reset(defaultValues); // setting default values
       } else {
-        const data = watch();
+        const data = tabs['contact-info'];
         reset(data); // setting default values
       }
     } //eslint-disable-next-line
@@ -185,6 +185,13 @@ const ProviderForm = ({ user, history }) => {
 
   return (
     <>
+      <button
+        className={classNames('btn btn-text back arrow', Styles.backBtn)}
+        type="submit"
+        onClick={() => history.goBack()}
+      >
+        Back
+      </button>
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
           <h3 className={classNames(Styles.title)}>Data Providing Side</h3>
