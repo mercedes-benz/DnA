@@ -28,7 +28,7 @@ const Classification = ({ onSave }) => {
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
-            <h3>Classification & Confidentiality</h3>
+            <h3>Data Description & Classification</h3>
             <div className={Styles.infoIcon}>
               <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
             </div>
@@ -86,22 +86,22 @@ const Classification = ({ onSave }) => {
               <span className={classNames('error-message')}>{errors?.confidentiality?.message}</span>
             </div>
           </div>
-          <div className="btnContainer">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              onClick={handleSubmit((data) => {
-                onSave(data);
-                reset(data, {
-                  keepDirty: false,
-                  keepSubmitCount: false,
-                });
-              })}
-            >
-              Save & Next
-            </button>
-          </div>
         </div>
+      </div>
+      <div className="btnContainer">
+        <button
+          className="btn btn-primary"
+          type="submit"
+          onClick={handleSubmit((data) => {
+            onSave(data);
+            reset(data, {
+              keepDirty: false,
+              keepSubmitCount: false,
+            });
+          })}
+        >
+          Save & Next
+        </button>
       </div>
       {showInfoModal && (
         <InfoModal
