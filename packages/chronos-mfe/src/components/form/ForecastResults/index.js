@@ -9,6 +9,7 @@ import Pagination from 'dna-container/Pagination';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import RowItem from './rowItem/RowItem';
+import { useHistory } from 'react-router-dom';
 
 const MOCK_RESULTS = [
   {
@@ -129,11 +130,15 @@ const ForecastResults = () => {
     setShowDeleteModal(false);
   };
   const onAcceptDelete = () => {
-    console.log('oye');
     setShowDeleteModal(false);
     Notification.show('Run deleted');
   }
 
+  /* Row actions */
+  const history = useHistory();
+  const openForecastingResults = () => {
+    history.push('/results');
+  }
   return (
     <React.Fragment>
         <div className={Styles.content}>
@@ -279,6 +284,7 @@ const ForecastResults = () => {
                               item={item}
                               key={item.id}
                               showDeleteConfirmModal={showDeleteConfirmModal}
+                              openDetails={openForecastingResults}
                             />
                           );
                         })}
