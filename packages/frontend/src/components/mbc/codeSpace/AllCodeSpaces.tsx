@@ -130,8 +130,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   }
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
-    setShowNewCodeSpaceModal(!status);
-    history.push(`codespace/${codeSpaceData.name}`);
+    if (showNewCodeSpaceModal) {
+      setShowNewCodeSpaceModal(!status);
+      history.push(`codespace/${codeSpaceData.name}`);
+    }
   }
 
   const toggleProgressMessage = (show: boolean) => {
