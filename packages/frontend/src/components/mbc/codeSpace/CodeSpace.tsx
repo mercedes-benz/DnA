@@ -197,6 +197,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
       if(res.success === 'SUCCESS') {
         // setCreatedCodeSpaceName(res.data.name);
+        setCodeDeploying(true);
         if (acceptContinueCodingOnDeployment) {
           ProgressIndicator.hide();
           Notification.show(`Code space '${codeSpaceData.name}' deployment successfully started. Please check the status later.`);
