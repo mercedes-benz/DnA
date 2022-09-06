@@ -11,7 +11,7 @@ import { Envs } from '../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLegalBasis } from '../../redux/consumeDataProduct.services';
 
-const PersonalRelatedData = ({ onSave, history }) => {
+const PersonalRelatedData = ({ onSave }) => {
   const {
     register,
     handleSubmit,
@@ -272,7 +272,6 @@ const PersonalRelatedData = ({ onSave, history }) => {
               reset(data, {
                 keepDirty: false,
               });
-              history.push('/');
             })}
           >
             Save
@@ -286,7 +285,6 @@ const PersonalRelatedData = ({ onSave, history }) => {
               reset(data, {
                 keepDirty: false,
               });
-              history.push('/');
             })}
           >
             Finalize Minimum Information Documentation
