@@ -235,7 +235,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             <div className={Styles.headerdetails}>
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
-                <button tooltip-data="Go Back" className="btn btn-text back arrow" type="submit" onClick={goBack}></button>
+                <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
                 <h2>
                   {props.user.firstName}&apos;s Code Space - {codeSpaceData.name}
                 </h2>
