@@ -13,6 +13,7 @@ import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator
 import SessionExpired from './SessionExpired';
 import Projects from './Projects';
 import ForecastForm from './form';
+import ForecastingResults from './ForecastingResults';
 
 const protectedRoutes = [
   {
@@ -25,6 +26,11 @@ const protectedRoutes = [
     exact: true,
     path: '/project',
   },
+  {
+    component: ForecastingResults,
+    exact: true,
+    path: '/results'
+  }
 ];
 
 const Routes = ({ user }) => {
