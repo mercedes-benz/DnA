@@ -17,14 +17,13 @@ import { SetDataProducts, UpdateDataProducts } from '../redux/dataProduct.servic
 import { deserializeFormData, mapOpenSegments } from '../../Utility/formData';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
+import SelectBox from 'dna-container/SelectBox';
 
 // Form Components
 import ContactInformation from './ContactInformation';
 import Classification from './ClassificationAndConfidentiality';
 import PersonalRelatedData from './PersonalRelatedData';
 import TransNationalDataTransfer from './TransNationalDataTransfer';
-import DataOriginating from './DataOriginating';
-import OtherRelevant from './OtherRelavantInfo';
 import DeletionRequirements from './DeletionRequirements';
 
 import TourGuide from '../TourGuide';
@@ -38,7 +37,7 @@ const tabs = {
     subDivision: '0',
     department: '',
     complianceOfficer: '',
-    planningIT: '',
+    planningIT: 'APP-',
   },
   'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: 'Public' },
   'personal-data': {
@@ -51,10 +50,9 @@ const tabs = {
     transnationalDataTransfer: '',
     transnationalDataTransferNotWithinEU: '',
     LCOApprovedDataTransfer: '',
+    dataOriginatedFromChina: '',
   },
-  'data-originating-china': { dataOriginatedFromChina: '' },
-  'deletion-requirements': { deletionRequirement: '', deletionRequirementDescription: '' },
-  'other-information': { otherRelevantInfo: '' },
+  'deletion-requirements': { deletionRequirement: '', deletionRequirementDescription: '', otherRelevantInfo: '' },
 };
 
 const ProviderForm = ({ user, history }) => {
@@ -66,7 +64,7 @@ const ProviderForm = ({ user, history }) => {
   const [currentTab, setCurrentTab] = useState('contact-info');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
-  const { setValue, formState, reset, watch } = methods;
+  const { setValue, formState, reset } = methods;
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -111,7 +109,7 @@ const ProviderForm = ({ user, history }) => {
         let defaultValues = { ...provideDataProducts.selectedDataProduct };
         reset(defaultValues); // setting default values
       } else {
-        const data = watch();
+        const data = tabs['contact-info'];
         reset(data); // setting default values
       }
     } //eslint-disable-next-line
@@ -123,6 +121,7 @@ const ProviderForm = ({ user, history }) => {
       setDivisions(res.data);
       ProgressIndicator.hide();
       dispatch(setDivisionList(res.data));
+      SelectBox.defaultSetup();
     });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
@@ -155,7 +154,7 @@ const ProviderForm = ({ user, history }) => {
   const switchTabs = (currentTab) => {
     const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
     setSavedTabs([...new Set([...savedTabs, currentTab])]);
-    if (currentTab !== 'other-information') {
+    if (currentTab !== 'deletion-requirements') {
       setCurrentTab(Object.keys(tabs)[tabIndex]);
       elementRef.current[tabIndex].click();
     }
@@ -186,9 +185,16 @@ const ProviderForm = ({ user, history }) => {
 
   return (
     <>
+      <button
+        className={classNames('btn btn-text back arrow', Styles.backBtn)}
+        type="submit"
+        onClick={() => history.goBack()}
+      >
+        Back
+      </button>
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title)}>Provide Data Product</h3>
+          <h3 className={classNames(Styles.title)}>Data Providing Side</h3>
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
@@ -214,7 +220,7 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Classification & Confidentiality
+                      Data Description & Classification
                     </a>
                   </li>
                   <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
@@ -226,7 +232,7 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Identifying personal related data
+                      Personal Related Data
                     </a>
                   </li>
                   <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}>
@@ -238,43 +244,19 @@ const ProviderForm = ({ user, history }) => {
                       }}
                       onClick={setTab}
                     >
-                      Identifiying Trans-national Data Transfer
+                      Trans-national Data
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('data-originating-china') ? 'tab valid' : 'tab disabled'}>
+                  <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}>
                     <a
                       href="#tab-content-5"
-                      id="data-originating-china"
+                      id="deletion-requirements"
                       ref={(ref) => {
                         if (elementRef.current) elementRef.current[4] = ref;
                       }}
                       onClick={setTab}
                     >
-                      Identifying data originating from China
-                    </a>
-                  </li>
-                  <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}>
-                    <a
-                      href="#tab-content-6"
-                      id="deletion-requirements"
-                      ref={(ref) => {
-                        if (elementRef.current) elementRef.current[5] = ref;
-                      }}
-                      onClick={setTab}
-                    >
-                      Specify deletion requirements
-                    </a>
-                  </li>
-                  <li className={savedTabs?.includes('other-information') ? 'tab valid' : 'tab disabled'}>
-                    <a
-                      href="#tab-content-7"
-                      id="other-information"
-                      ref={(ref) => {
-                        if (elementRef.current) elementRef.current[6] = ref;
-                      }}
-                      onClick={setTab}
-                    >
-                      Specifying other relevant information
+                      Deletion Requirements & Other
                     </a>
                   </li>
                 </ul>
@@ -305,18 +287,8 @@ const ProviderForm = ({ user, history }) => {
                 )}
               </div>
               <div id="tab-content-5" className="tab-content">
-                {currentTab === 'data-originating-china' && (
-                  <DataOriginating onSave={(values) => onSave('data-originating-china', values)} />
-                )}
-              </div>
-              <div id="tab-content-6" className="tab-content">
                 {currentTab === 'deletion-requirements' && (
                   <DeletionRequirements onSave={(values) => onSave('deletion-requirements', values)} />
-                )}
-              </div>
-              <div id="tab-content-7" className="tab-content">
-                {currentTab === 'other-information' && (
-                  <OtherRelevant onSave={(values) => onSave('other-information', values)} />
                 )}
               </div>
             </div>
