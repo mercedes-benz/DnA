@@ -108,3 +108,9 @@ export const mapOpenSegments = {
   'deletion-requirements': 'SpecifyDeletionRequirements',
   'other-information': 'SpecifyingRelevantInformation',
 };
+
+export const consumerOpenSegments = {
+  'provider-summary': 'Provider Summary',
+  'consumer-contact-info': 'ConsumerContactInformation',
+  'consumer-personal-data': 'ConsumerIdentifyingPersonalRelatedData',
+};
