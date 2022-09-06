@@ -133,6 +133,8 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     if (showNewCodeSpaceModal) {
       setShowNewCodeSpaceModal(!status);
       history.push(`codespace/${codeSpaceData.name}`);
+    } else {
+      getCodeSpacesData();
     }
   }
 
