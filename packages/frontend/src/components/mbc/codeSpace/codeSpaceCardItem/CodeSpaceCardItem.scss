@@ -96,6 +96,11 @@
       border: 1px solid #e84d47;
       color: #e84d47;
     }
+
+    &.creating {
+      border: 1px solid #00adef;
+      color: #00adef;
+    }
   }
 
   .deployedLink {

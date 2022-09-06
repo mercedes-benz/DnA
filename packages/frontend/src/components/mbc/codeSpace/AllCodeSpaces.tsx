@@ -12,6 +12,8 @@ import { history } from '../../../router/History';
 // import { ApiClient } from '../../../services/ApiClient';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
+// @ts-ignore
+import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 
 export interface IAllCodeSpacesProps {
   user: IUserInfo;
@@ -144,6 +146,13 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     getCodeSpacesData();
   };
 
+  const switchBackToCodeSpace = () => {
+    setShowNewCodeSpaceModal(false);
+    setIsApiCallTakeTime(false);
+    ProgressIndicator.hide();
+    getCodeSpacesData();
+  };
+
   return (
     <div className={classNames(Styles.mainPanel)}>
       <div className={classNames(Styles.wrapper)}>
@@ -152,7 +161,11 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           <div className={classNames(Styles.listHeader)}>
             {codeSpaces?.length ? (
               <>
-                <button className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-icon-circle'} tooltip-data="Refresh" onClick={getCodeSpacesData}>
+                <button
+                  className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-icon-circle'}
+                  tooltip-data="Refresh"
+                  onClick={getCodeSpacesData}
+                >
                   <i className="icon mbc-icon refresh" />
                 </button>
                 <button
@@ -200,7 +213,14 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                         <label className={Styles.addlabel}>Create new Code Space</label>
                       </div>
                       {codeSpaces?.map((codeSpace: ICodeSpaceData, index: number) => {
-                        return <CodeSpaceCardItem key={index} codeSpace={codeSpace} toggleProgressMessage={toggleProgressMessage} onDeleteSuccess={onDeleteSuccess} />;
+                        return (
+                          <CodeSpaceCardItem
+                            key={index}
+                            codeSpace={codeSpace}
+                            toggleProgressMessage={toggleProgressMessage}
+                            onDeleteSuccess={onDeleteSuccess}
+                          />
+                        );
                       })}
                     </div>
                   </div>
@@ -241,7 +261,17 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           onCancel={onNewCodeSpaceModalCancel}
         />
       )}
-      {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up to a minute....'} />}
+      {isApiCallTakeTime && (
+        <ProgressWithMessage
+          message={
+            <>
+              'Please wait as this process can take up to a minute....'
+              <br />
+              <button className="btn btn-text back arrow" onClick={switchBackToCodeSpace}>Back to Code Spaces</button>
+            </>
+          }
+        />
+      )}
     </div>
   );
 };
