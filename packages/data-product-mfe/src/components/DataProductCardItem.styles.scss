@@ -134,6 +134,10 @@
       color: #697582;
       font-size: 22px;
     }
+    &.disabled {
+      background: transparent !important;
+      cursor: not-allowed;
+    }
   }
 }
 .btnGrp {
