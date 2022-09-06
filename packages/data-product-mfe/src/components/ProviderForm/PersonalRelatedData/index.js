@@ -170,21 +170,21 @@ const PersonalRelatedData = ({ onSave }) => {
               <span className={classNames('error-message')}>{errors?.personalRelatedDataLegalBasis?.message}</span>
             </div>
           </div>
-          <div className="btnContainer">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              onClick={handleSubmit((data) => {
-                onSave(data);
-                reset(data, {
-                  keepDirty: false,
-                });
-              })}
-            >
-              Save & Next
-            </button>
-          </div>
         </div>
+      </div>
+      <div className="btnContainer">
+        <button
+          className="btn btn-primary"
+          type="submit"
+          onClick={handleSubmit((data) => {
+            onSave(data);
+            reset(data, {
+              keepDirty: false,
+            });
+          })}
+        >
+          Save & Next
+        </button>
       </div>
       {showInfoModal && (
         <InfoModal

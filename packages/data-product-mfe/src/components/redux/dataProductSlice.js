@@ -13,7 +13,7 @@ const dataProductsInitialState = {
     maxItemsPerPage: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
   },
   selectedDataProduct: {},
-  divisions: [],
+  divisionList: [],
 };
 
 export const provideDataProductSlice = createSlice({
@@ -67,7 +67,7 @@ export const provideDataProductSlice = createSlice({
   },
   reducers: {
     setDivisionList: (state, action) => {
-      state.divisions = action.payload;
+      state.divisionList = action.payload;
     },
     setDataProducts: (state, action) => {
       state.dataProducts = action.payload;

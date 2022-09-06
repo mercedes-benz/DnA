@@ -5,14 +5,14 @@ import Styles from '../Form.common.styles.scss';
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
 
+import OtherRelevant from '../OtherRelavantInfo';
+
 const DeletionRequirements = ({ onSave }) => {
   const {
     register,
-    handleSubmit,
     formState: { errors },
     watch,
     clearErrors,
-    reset,
     setValue,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -101,22 +101,9 @@ const DeletionRequirements = ({ onSave }) => {
               <span className={classNames('error-message')}>{errors?.deletionRequirementDescription?.message}</span>
             </div>
           </div>
-          <div className="btnContainer">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              onClick={handleSubmit((data) => {
-                onSave(data);
-                reset(data, {
-                  keepDirty: false,
-                });
-              })}
-            >
-              Save & Next
-            </button>
-          </div>
         </div>
       </div>
+      <OtherRelevant onSave={onSave} />
       {showInfoModal && (
         <InfoModal
           title="Info Modal"
