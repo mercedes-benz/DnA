@@ -2,7 +2,9 @@ import { Data } from 'react-csv/components/CommonPropTypes';
 import { IAllSolutionsResultCSV, IDataSources, IFilterParams, IPhasesItem, IRolloutDetail } from '../globals/types';
 import { ApiClient } from './ApiClient';
 import { Envs } from '../globals/Envs';
-import { getDivisionsQueryValue } from './utils';
+import { getDivisionsQueryValue, 
+  // regionalDateAndTimeConversionSolution 
+} from './utils';
 
 export const getDataForCSV = (
   queryParams: IFilterParams,
@@ -408,6 +410,8 @@ export const getDataForCSV = (
                 ? solution.digitalValue.permissions.map((team) => team.shortId).join('|')
                 : 'NA',
             createdBy: solution.createdBy ? solution.createdBy.id : 'NA',
+            // createdDate: solution.createdDate ? regionalDateAndTimeConversionSolution(solution.createdDate) : 'NA',
+            // lastModifiedDate: solution.lastModifiedDate ? regionalDateAndTimeConversionSolution(solution.lastModifiedDate) : 'NA',
             createdDate: solution.createdDate ? solution.createdDate : 'NA',
             lastModifiedDate: solution.lastModifiedDate ? solution.lastModifiedDate : 'NA',
           });
