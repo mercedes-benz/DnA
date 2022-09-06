@@ -1,9 +1,13 @@
 import classNames from 'classnames';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import Styles from './style.scss';
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import { hostServer } from '../../server/api';
 import { useForm, FormProvider } from 'react-hook-form';
+import { deserializeFormData, consumerOpenSegments } from '../../Utility/formData';
+import { UpdateDataProducts } from '../redux/dataProduct.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 import SelectBox from 'dna-container/SelectBox';
@@ -14,18 +18,21 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import ContactInformation from './ContactInformation';
 import PersonalRelatedData from './PersonalRelatedData';
 import TourGuide from '../TourGuide';
+import ProviderSummary from './ProviderSummary';
+import { dataProductsApi } from '../../apis/dataproducts.api';
+import { useParams } from 'react-router-dom';
+import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 
 const tabs = {
-  'contact-info': {
+  'provider-summary': {},
+  'consumer-contact-info': {
     businessOwner: '',
     division: '0',
     subDivision: '0',
     department: '',
-    LCONeededToBeInvolved: '',
-    LCOOfficer: '',
-    planningIT: '',
+    planningIT: 'APP-',
   },
-  'personal-data': {
+  'consumer-personal-data': {
     personalRelatedDataTransferred: '',
     personalRelatedDataPurpose: '',
     personalRelatedDataLegalBasis: '',
@@ -35,7 +42,7 @@ const tabs = {
 };
 
 const ConsumerForm = ({ user }) => {
-  const [currentTab, setCurrentTab] = useState('contact-info');
+  const [currentTab, setCurrentTab] = useState('provider-summary');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
   const { setValue, formState, reset, watch } = methods;
@@ -45,6 +52,10 @@ const ConsumerForm = ({ user }) => {
   const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
 
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
+
+  const dispatch = useDispatch();
+  const provideDataProducts = useSelector((state) => state.provideDataProducts);
+  const { id: dataProductId } = useParams();
 
   useEffect(() => {
     if (user?.roles?.length) {
@@ -67,15 +78,39 @@ const ConsumerForm = ({ user }) => {
     ProgressIndicator.show();
     hostServer.get('/divisions').then((res) => {
       setDivisions(res.data);
+      dispatch(setDivisionList(res.data));
       SelectBox.defaultSetup();
       ProgressIndicator.hide();
     });
+  }, [dispatch]);
+
+  useEffect(() => {
+    getDataProductById();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const getDataProductById = () => {
+    dataProductsApi.getDataProductById(dataProductId).then((res) => {
+      const data = deserializeFormData(res.data);
+      dispatch(setDataProduct(data));
+      // reset(data);
+      let segments = [];
+      res.data.openSegments?.map((seg) => {
+        for (let key in consumerOpenSegments) {
+          if (consumerOpenSegments[key] === seg) {
+            segments.push(key);
+          }
+        }
+      });
+      setSavedTabs(segments);
+    });
+  };
 
   const setTab = (e) => {
     const id = e.target.id;
     if (currentTab !== id) {
-      if (formState.isDirty) {
+      const isFieldsDirty = formState.isDirty || Object.keys(formState.dirtyFields).length > 0;
+      if (isFieldsDirty) {
         setShowChangeAlert({ modal: true, switchingTab: id });
       } else {
         setCurrentTab(id);
@@ -83,44 +118,87 @@ const ConsumerForm = ({ user }) => {
     }
   };
 
-  const onSave = (currentTab) => {
+  const switchTabs = (currentTab) => {
     const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
     setSavedTabs([...new Set([...savedTabs, currentTab])]);
-    setCurrentTab(Object.keys(tabs)[tabIndex]);
-    elementRef.current[tabIndex].click();
+    if (currentTab !== 'consumer-personal-data') {
+      setCurrentTab(Object.keys(tabs)[tabIndex]);
+      elementRef.current[tabIndex].click();
+    }
+  };
+
+  const onSave = (currentTab, values) => {
+    const saveSegments = consumerOpenSegments[currentTab];
+    if (currentTab === 'consumer-contact-info') {
+      // values.openSegments = ['CustomerContactInformation'];
+    } else if (values.openSegments?.indexOf(saveSegments) === -1) {
+      // values.openSegments.push(saveSegments);
+    }
+
+    if (currentTab !== 'consumer-contact-info') {
+      const value = { ...provideDataProducts.selectedDataProduct };
+      const data = {
+        values: { ...value, ...values },
+        onSave: () => switchTabs(currentTab),
+        provideDataProducts,
+      };
+
+      dispatch(UpdateDataProducts(data));
+    }
+
+    switchTabs(currentTab);
   };
 
   return (
     <>
+      <button
+        className={classNames('btn btn-text back arrow', Styles.backBtn)}
+        type="submit"
+        onClick={() => history.goBack()}
+      >
+        Back
+      </button>
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title)}>Consume / Share Data Product</h3>
+          <h3 className={classNames(Styles.title)}>Data Receiving Side</h3>
           <div id="data-product-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
-                  <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}>
+                  <li className={savedTabs?.includes('provider-summary') ? 'tab valid' : 'tab active'}>
                     <a
                       href="#tab-content-1"
-                      id="contact-info"
+                      id="provider-summary"
                       ref={(ref) => {
                         if (elementRef.current) elementRef.current[0] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Provider Summary
+                    </a>
+                  </li>
+                  <li className={savedTabs?.includes('consumer-contact-info') ? 'tab valid' : 'tab disabled'}>
+                    <a
+                      href="#tab-content-2"
+                      id="consumer-contact-info"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[1] = ref;
                       }}
                       onClick={setTab}
                     >
                       Contact Information
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
+                  <li className={savedTabs?.includes('consumer-personal-data') ? 'tab valid' : 'tab disabled'}>
                     <a
-                      href="#tab-content-2"
-                      id="personal-data"
+                      href="#tab-content-3"
+                      id="consumer-personal-data"
                       ref={(ref) => {
-                        if (elementRef.current) elementRef.current[1] = ref;
+                        if (elementRef.current) elementRef.current[2] = ref;
                       }}
                       onClick={setTab}
                     >
-                      Identifying personal related data
+                      Personal Related Data
                     </a>
                   </li>
                 </ul>
@@ -128,17 +206,22 @@ const ConsumerForm = ({ user }) => {
             </div>
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
-                {currentTab === 'contact-info' && (
+                <ProviderSummary onSave={() => switchTabs('provider-summary')} />
+              </div>
+              <div id="tab-content-2" className="tab-content">
+                {currentTab === 'consumer-contact-info' && (
                   <ContactInformation
-                    onSave={() => onSave('contact-info')}
+                    onSave={(values) => onSave('consumer-contact-info', values)}
                     divisions={divisions}
                     setSubDivisions={setSubDivisions}
                     subDivisions={subDivisions}
                   />
                 )}
               </div>
-              <div id="tab-content-2" className="tab-content">
-                {currentTab === 'personal-data' && <PersonalRelatedData onSave={() => onSave('personal-data')} />}
+              <div id="tab-content-3" className="tab-content">
+                {currentTab === 'consumer-personal-data' && (
+                  <PersonalRelatedData onSave={(values) => onSave('consumer-personal-data', values)} />
+                )}
               </div>
             </div>
           </div>

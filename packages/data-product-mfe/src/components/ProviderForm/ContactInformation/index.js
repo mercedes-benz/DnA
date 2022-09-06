@@ -288,22 +288,22 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
               </div>
             </div>
           </div>
-          <div className="btnContainer">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={isSubmitting}
-              onClick={handleSubmit((values) => {
-                reset(values, {
-                  keepDirty: false,
-                });
-                onSave(values);
-              })}
-            >
-              Save & Next
-            </button>
-          </div>
         </div>
+      </div>
+      <div className="btnContainer">
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={isSubmitting}
+          onClick={handleSubmit((values) => {
+            reset(values, {
+              keepDirty: false,
+            });
+            onSave(values);
+          })}
+        >
+          Save & Next
+        </button>
       </div>
       {showInfoModal && (
         <InfoModal
