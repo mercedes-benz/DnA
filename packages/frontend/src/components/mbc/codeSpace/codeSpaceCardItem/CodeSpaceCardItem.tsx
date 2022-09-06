@@ -22,6 +22,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const codeSpace = props.codeSpace;
   const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
+  const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const deleteCodeSpaceContent = (
@@ -63,9 +64,9 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   return (
     <>
-      <div className={classNames(Styles.codeSpaceCard, deleteInProgress ? Styles.disable : null)}>
+      <div className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}>
         <div className={Styles.cardHead}>
-          <div className={classNames(Styles.cardHeadInfo, deleteInProgress ? Styles.disable : null)}>
+          <div className={classNames(Styles.cardHeadInfo, deleteInProgress || createInProgress ? Styles.disable : null)}>
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {codeSpace?.name}
             </div>
@@ -114,12 +115,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             {deleteInProgress && (
               <span className={classNames(Styles.statusIndicator, Styles.deleting)}>Deleting...</span>
             )}
+            {createInProgress && (
+              <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
+            )}
           </div>
           <div className={Styles.btnGrp}>
             <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
               <i className="icon mbc-icon edit"></i>
             </button>
-            {!deleteInProgress && (
+            {!deleteInProgress && !createInProgress && (
               <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
                 <i className="icon delete"></i>
               </button>
