@@ -124,7 +124,15 @@ const DataProductCardItem = ({ product, history }) => {
             <button className="btn btn-primary" onClick={() => {}}>
               <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>
             </button>
-            <button className={classNames('btn btn-primary', Styles.shareIcon)} onClick={() => onShare(product.id)}>
+            <button
+              className={classNames(
+                'btn btn-primary',
+                Styles.shareIcon,
+                !isProviderFormSubmitted ? Styles.disabled : '',
+              )}
+              disabled={!isProviderFormSubmitted}
+              onClick={() => onShare(product.id)}
+            >
               <span tooltip-data="Share"></span>
             </button>
           </div>

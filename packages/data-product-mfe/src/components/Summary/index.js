@@ -22,6 +22,10 @@ const Summary = ({ history }) => {
   const dispatch = useDispatch();
 
   const [currentTab, setCurrentTab] = useState('provider');
+  const showDataDescription = data?.openSegments?.includes('ClassificationAndConfidentiality');
+  const showPersonalData = data?.openSegments?.includes('IdentifyingPersonalRelatedData');
+  const showTransNationalData = data?.openSegments?.includes('IdentifiyingTransnationalDataTransfer');
+  const showDeletionRequirements = data?.openSegments?.includes('SpecifyDeletionRequirements');
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -33,6 +37,10 @@ const Summary = ({ history }) => {
 
   useEffect(() => {
     getDataProductById();
+
+    return () => {
+      dispatch(setDataProduct({}));
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -151,139 +159,148 @@ const Summary = ({ history }) => {
                     </div>
                   </div>
                 </div>
-                <div className={Styles.sectionWrapper}>
-                  <div className={Styles.firstPanel}>
-                    <div className={Styles.flexLayout}>
-                      <div>
-                        <h5>Data Description & Classification</h5>
+                {showDataDescription ? (
+                  <div className={Styles.sectionWrapper}>
+                    <div className={Styles.firstPanel}>
+                      <div className={Styles.flexLayout}>
+                        <div>
+                          <h5>Data Description & Classification</h5>
+                        </div>
                       </div>
-                    </div>
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div>
-                        <label className="input-label summary">Description & Classification of transfered data</label>
-                        <br />
-                        {data.classificationOfTransferedData}
-                      </div>
-                      <div>
-                        <label className="input-label summary">Confidentiality</label>
-                        <br />
-                        {data.confidentiality}
+                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                        <div>
+                          <label className="input-label summary">Description & Classification of transfered data</label>
+                          <br />
+                          {data.classificationOfTransferedData}
+                        </div>
+                        <div>
+                          <label className="input-label summary">Confidentiality</label>
+                          <br />
+                          {data.confidentiality}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className={Styles.sectionWrapper}>
-                  <div className={Styles.firstPanel}>
-                    <div className={Styles.flexLayout}>
-                      <div>
-                        <h5>Personal Related Data</h5>
-                      </div>
-                    </div>
-                    <div className={Styles.flexLayout}>
-                      <div>
-                        <label className="input-label summary">Is data personal related</label>
-                        <br />
-                        {data.personalRelatedData}
-                      </div>
-                    </div>
-                    {data.personalRelatedData === 'Yes' ? (
-                      <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                ) : null}
+                {showPersonalData ? (
+                  <div className={Styles.sectionWrapper}>
+                    <div className={Styles.firstPanel}>
+                      <div className={Styles.flexLayout}>
                         <div>
-                          <label className="input-label summary">Description</label>
-                          <br />
-                          {data.personalRelatedDataDescription}
+                          <h5>Personal Related Data</h5>
                         </div>
+                      </div>
+                      <div className={Styles.flexLayout}>
+                        <div>
+                          <label className="input-label summary">Is data personal related</label>
+                          <br />
+                          {data.personalRelatedData}
+                        </div>
+                      </div>
+                      {data.personalRelatedData === 'Yes' ? (
+                        <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                          <div>
+                            <label className="input-label summary">Description</label>
+                            <br />
+                            {data.personalRelatedDataDescription}
+                          </div>
+                          <div>
+                            <label className="input-label summary">
+                              Original (business) purpose of processing this personal related data
+                            </label>
+                            <br />
+                            {data.personalRelatedDataPurpose}
+                          </div>
+                          <div>
+                            <label className="input-label summary">
+                              Original legal basis for processing this personal related data
+                            </label>
+                            <br />
+                            {data.personalRelatedDataLegalBasis}
+                          </div>
+                          <div></div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+                {showTransNationalData ? (
+                  <div className={Styles.sectionWrapper}>
+                    <div className={Styles.firstPanel}>
+                      <div className={Styles.flexLayout}>
+                        <div>
+                          <h5>Trans-national Data</h5>
+                        </div>
+                      </div>
+                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
                           <label className="input-label summary">
-                            Original (business) purpose of processing this personal related data
+                            Is data being transferred from one country to another?
                           </label>
                           <br />
-                          {data.personalRelatedDataPurpose}
+                          {data.transnationalDataTransfer}
                         </div>
+                        {data.transnationalDataTransfer == 'Yes' ? (
+                          <div>
+                            <label className="input-label summary">Is one of these countries not within the EU?</label>
+                            <br />
+                            {data.transnationalDataTransferNotWithinEU || 'No'}
+                          </div>
+                        ) : null}
+                        {data.transnationalDataTransfer == 'Yes' &&
+                        data.transnationalDataTransferNotWithinEU == 'Yes' ? (
+                          <div>
+                            <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
+                            <br />
+                            {data.LCOApprovedDataTransfer}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className={Styles.flexLayout}>
+                        <div>
+                          <label className="input-label summary">Is data from China included?</label>
+                          <br />
+                          {data.dataOriginatedFromChina}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+                {showDeletionRequirements ? (
+                  <div className={Styles.sectionWrapper}>
+                    <div className={Styles.firstPanel}>
+                      <div className={Styles.flexLayout}>
+                        <div>
+                          <h5>Deletion Requirements & Other</h5>
+                        </div>
+                      </div>
+                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                         <div>
                           <label className="input-label summary">
-                            Original legal basis for processing this personal related data
+                            Are there specific deletion requirements for this data?
                           </label>
                           <br />
-                          {data.personalRelatedDataLegalBasis}
+                          {data.deletionRequirement}
                         </div>
+                        {data.deletionRequirement === 'Yes' ? (
+                          <div>
+                            <label className="input-label summary">Describe deletion requirements</label>
+                            <br />
+                            {data.deletionRequirementDescription}
+                          </div>
+                        ) : null}
                         <div></div>
                       </div>
-                    ) : null}
-                  </div>
-                </div>
-                <div className={Styles.sectionWrapper}>
-                  <div className={Styles.firstPanel}>
-                    <div className={Styles.flexLayout}>
-                      <div>
-                        <h5>Trans-national Data</h5>
-                      </div>
-                    </div>
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div>
-                        <label className="input-label summary">
-                          Is data being transferred from one country to another?
-                        </label>
-                        <br />
-                        {data.transnationalDataTransfer}
-                      </div>
-                      {data.transnationalDataTransfer == 'Yes' ? (
+                      <div className={Styles.flexLayout}>
                         <div>
-                          <label className="input-label summary">Is one of these countries not within the EU?</label>
+                          <label className="input-label summary">Other relevant information </label>
                           <br />
-                          {data.transnationalDataTransferNotWithinEU || 'No'}
+                          {data.otherRelevantInfo}
                         </div>
-                      ) : null}
-                      {data.transnationalDataTransfer == 'Yes' && data.transnationalDataTransferNotWithinEU == 'Yes' ? (
-                        <div>
-                          <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
-                          <br />
-                          {data.LCOApprovedDataTransfer}
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className={Styles.flexLayout}>
-                      <div>
-                        <label className="input-label summary">Is data from China included?</label>
-                        <br />
-                        {data.dataOriginatedFromChina}
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className={Styles.sectionWrapper}>
-                  <div className={Styles.firstPanel}>
-                    <div className={Styles.flexLayout}>
-                      <div>
-                        <h5>Deletion Requirements & Other</h5>
-                      </div>
-                    </div>
-                    <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                      <div>
-                        <label className="input-label summary">
-                          Are there specific deletion requirements for this data?
-                        </label>
-                        <br />
-                        {data.deletionRequirement}
-                      </div>
-                      {data.deletionRequirement === 'Yes' ? (
-                        <div>
-                          <label className="input-label summary">Describe deletion requirements</label>
-                          <br />
-                          {data.deletionRequirementDescription}
-                        </div>
-                      ) : null}
-                      <div></div>
-                    </div>
-                    <div className={Styles.flexLayout}>
-                      <div>
-                        <label className="input-label summary">Other relevant information </label>
-                        <br />
-                        {data.otherRelevantInfo}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                ) : null}
               </div>
               <div id="tab-content-2" className="tab-content"></div>
             </div>
