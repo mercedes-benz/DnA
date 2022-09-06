@@ -123,7 +123,7 @@ const RowItem = (props) => {
     <React.Fragment>
       <tr
         key={item.id}
-        onClick={onRowClick}
+        onClick={showContextMenu ? undefined : onRowClick}
         className={classNames('data-row', Styles.dataRow)}
       >
         <td>
