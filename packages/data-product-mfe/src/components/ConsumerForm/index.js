@@ -151,6 +151,13 @@ const ConsumerForm = ({ user }) => {
 
   return (
     <>
+      <button
+        className={classNames('btn btn-text back arrow', Styles.backBtn)}
+        type="submit"
+        onClick={() => history.goBack()}
+      >
+        Back
+      </button>
       <FormProvider {...methods}>
         <div className={classNames(Styles.mainPanel)}>
           <h3 className={classNames(Styles.title)}>Data Receiving Side</h3>
