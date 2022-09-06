@@ -81,7 +81,7 @@
 .content {
     .formGroup {
       padding: 0 15px 25px 0;
-      max-height: 500px;
+      max-height: 90vh;
       overflow-y: auto;
       overflow-x: hidden;
         .permissionField {
@@ -310,7 +310,7 @@
     }
 
     .addTeamMemberWrapper {
-      min-height: 110px;
+      min-height: 84px;
       padding-left: 40px;
 
       button {
@@ -463,8 +463,8 @@
   }
 
   .collabAvatar {
-    padding: 25px 25px 25px 0;
-    max-height: 500px;
+    padding: 0 25px 25px 0;
+    max-height: calc(90vh - 110px);
     overflow-y: auto;
     overflow-x: hidden;
 

@@ -59,6 +59,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false);
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
   const [showCodeDeployModal, setShowCodeDeployModal] = useState<boolean>(false);
+  const [codeDeploying, setCodeDeploying] = useState<boolean>(false);
   const [codeDeployed, setCodeDeployed] = useState<boolean>(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
@@ -96,6 +97,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         setCodeDeployedUrl(deployedUrl);
         Tooltip.defaultSetup();
         if (res.status === 'DEPLOY_REQUESTED') {
+          setCodeDeploying(true);
           enableDeployLivelinessCheck(res.name);
         }
       } else {
@@ -143,6 +145,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const onNewCodeSpaceModalCancel = () => {
     setShowNewCodeSpaceModal(false);
+    clearInterval(livelinessInterval);
+    Tooltip.clear();
     history.goBack();
   }
 
@@ -171,6 +175,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             //   lastDeployedDate: res.lastDeployedOn
             // });
             setCodeDeployed(true);
+            setCodeDeploying(false);
             setCodeDeployedUrl(res.deploymentUrl);
             Tooltip.defaultSetup();
             setShowCodeDeployModal(false);
@@ -192,6 +197,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
       if(res.success === 'SUCCESS') {
         // setCreatedCodeSpaceName(res.data.name);
+        setCodeDeploying(true);
         if (acceptContinueCodingOnDeployment) {
           ProgressIndicator.hide();
           Notification.show(`Code space '${codeSpaceData.name}' deployment successfully started. Please check the status later.`);
@@ -212,6 +218,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const goBack = () => {
+    clearInterval(livelinessInterval);
+    Tooltip.clear();
     history.goBack();
   };
 
@@ -238,14 +246,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 <div className={Styles.headerright}>
                   {codeDeployed && (
                     <div className={Styles.urlLink} tooltip-data="API BASE URL">
-                      <a href={codeDeployedUrl}>
+                      <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
                         <i className="icon mbc-icon link" />
                       </a>
                     </div>
                   )}
                   <div>
-                    <button className={classNames('btn btn-secondary', codeSpaceData.status === 'DEPLOY_REQUESTED' ? 'disable' : '')} onClick={onShowCodeDeployModal}>
-                      {codeDeployed && '(Re)'}Deploy{codeSpaceData.status === 'DEPLOY_REQUESTED' && 'ing...'}
+                    <button className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')} onClick={onShowCodeDeployModal}>
+                      {codeDeployed && '(Re)'}Deploy{codeDeploying && 'ing...'}
                     </button>
                   </div>
                   <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
