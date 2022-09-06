@@ -20,7 +20,7 @@ import PersonalRelatedData from './PersonalRelatedData';
 import TourGuide from '../TourGuide';
 import ProviderSummary from './ProviderSummary';
 import { dataProductsApi } from '../../apis/dataproducts.api';
-import { useParams } from 'react-router-dom';
+import { useParams, withRouter } from 'react-router-dom';
 import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 
 const tabs = {
@@ -41,7 +41,7 @@ const tabs = {
   },
 };
 
-const ConsumerForm = ({ user }) => {
+const ConsumerForm = ({ user, history }) => {
   const [currentTab, setCurrentTab] = useState('provider-summary');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
@@ -139,7 +139,7 @@ const ConsumerForm = ({ user }) => {
       const value = { ...provideDataProducts.selectedDataProduct };
       const data = {
         values: { ...value, ...values },
-        onSave: () => switchTabs(currentTab),
+        onSave: () => history.push('/'),
         provideDataProducts,
       };
 
@@ -263,4 +263,4 @@ const ConsumerForm = ({ user }) => {
   );
 };
 
-export default ConsumerForm;
+export default withRouter(ConsumerForm);
