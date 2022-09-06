@@ -4,14 +4,13 @@ import Styles from '../Form.common.styles.scss';
 
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
+import DataOriginating from '../DataOriginating';
 
 const TransNationalDataTransfer = ({ onSave }) => {
   const {
     register,
-    handleSubmit,
     formState: { errors },
     watch,
-    reset,
     setValue,
     clearErrors,
   } = useFormContext();
@@ -222,23 +221,9 @@ const TransNationalDataTransfer = ({ onSave }) => {
               <span className={classNames('error-message')}>{errors?.LCOApprovedDataTransfer?.message}</span>
             </div>
           </div>
-          <div className="btnContainer">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              onClick={handleSubmit((data) => {
-                onSave(data);
-                reset(data, {
-                  keepDirty: false,
-                  keepSubmitCount: false,
-                });
-              })}
-            >
-              Save & Next
-            </button>
-          </div>
         </div>
       </div>
+      <DataOriginating onSave={onSave} />
       {showInfoModal && (
         <InfoModal
           title="Info Modal"
