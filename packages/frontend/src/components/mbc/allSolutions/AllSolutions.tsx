@@ -39,7 +39,7 @@ import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 import { getQueryParameterByName } from '../../../services/Query';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
-import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent, csvSeparator } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 
 import SolutionsFilter from '../filters/SolutionsFilter';
@@ -400,6 +400,7 @@ export default class AllSolutions extends React.Component<
                   ref={(r: any) => (this.csvLink = r)}
                   filename={`Solutions.csv`}
                   target="_blank"
+                  separator={csvSeparator(navigator.language)}
                 />
                 <div className={Styles.solutionsViewMode}>
                   <div tooltip-data="Card View">
