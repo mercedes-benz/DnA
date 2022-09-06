@@ -154,7 +154,7 @@ const ConsumerForm = ({ user, history }) => {
       <button
         className={classNames('btn btn-text back arrow', Styles.backBtn)}
         type="submit"
-        onClick={() => history.goBack()}
+        onClick={() => history.push('/')}
       >
         Back
       </button>
