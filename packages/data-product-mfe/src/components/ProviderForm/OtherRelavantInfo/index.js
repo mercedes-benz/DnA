@@ -41,6 +41,8 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(-1);
 
+  const isDisabled = !teamMembers?.length;
+
   const onTeamMemberMoveUp = (index) => {
     const teamMembersTemp = [...teamMembers];
     const teamMember = teamMembersTemp.splice(index, 1)[0];
@@ -159,7 +161,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
     </div>
   );
 
-  const handleSkip = () => {
+  const handleCancel = () => {
     history.push('/');
     setShowAddConsumersModal(false);
   };
@@ -202,6 +204,10 @@ const OtherRelevantInfo = ({ onSave, history }) => {
               <span className={classNames('error-message')}>{errors?.otherRelevantInfo?.message}</span>
             </div>
           </div>
+        </div>
+      </div>
+      <div className={Styles.wrapper}>
+        <div className={Styles.firstPanel}>
           <div className={Styles.termsOfUseContainer}>
             <div className={classNames(Styles.termsOfUseContent)}>
               <label className={classNames('checkbox', errors?.tou ? 'error' : '')}>
@@ -221,25 +227,24 @@ const OtherRelevantInfo = ({ onSave, history }) => {
             </div>
             <span className={classNames('error-message', Styles.errorMsg)}>{errors?.tou?.message}</span>
           </div>
-          <div className="btnContainer">
-            <div className="btn-set">
-              <button
-                className={'btn btn-tertiary'}
-                type="button"
-                onClick={handleSubmit((data) => {
-                  console.log(data);
-                  // setPublishModal(true);
-                  onSave(data);
-                  setShowAddConsumersModal(true);
-                  reset(data, {
-                    keepDirty: false,
-                  });
-                })}
-              >
-                Save and Forward Minimum Information
-              </button>
-            </div>
-          </div>
+        </div>
+      </div>
+      <div className="btnContainer">
+        <div className="btn-set">
+          <button
+            className={'btn btn-tertiary'}
+            type="button"
+            onClick={handleSubmit((data) => {
+              console.log(data);
+              onSave(data);
+              setShowAddConsumersModal(true);
+              reset(data, {
+                keepDirty: false,
+              });
+            })}
+          >
+            Save and Forward Minimum Information
+          </button>
         </div>
       </div>
       {showInfoModal && (
@@ -259,15 +264,17 @@ const OtherRelevantInfo = ({ onSave, history }) => {
         show={showAddConsumersModal}
         content={addMembersContent}
         scrollableContent={false}
-        onCancel={() => {
-          setShowAddConsumersModal(false);
-        }}
+        onCancel={handleCancel}
         footer={
           <div className={Styles.footerContainer}>
-            <button className="btn btn-secondary" onClick={handleSkip}>
+            <button className="btn btn-secondary" onClick={handleCancel}>
               Skip
             </button>
-            <button className="btn btn-tertiary" onClick={handleForwardMinInfo}>
+            <button
+              className={isDisabled ? 'btn' : 'btn btn-tertiary'}
+              disabled={isDisabled}
+              onClick={handleForwardMinInfo}
+            >
               Forward Minimum Information
             </button>
           </div>
