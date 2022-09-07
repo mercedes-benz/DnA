@@ -8,6 +8,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import Pagination from 'dna-container/Pagination';
 import Modal from 'dna-container/Modal';
 import AddUser from 'dna-container/AddUser';
+import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 
 import { setProjects, setPagination } from './redux/projectsSlice';
@@ -221,6 +222,18 @@ const ForeCastingProjects = () => {
     );
   });
 
+  const addTeamMemberModalRef = React.createRef();
+  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
+  const showAddTeamMemberModalView = () => {
+    setShowAddTeamMemberModal(true);
+  }
+  const onAddTeamMemberModalCancel = () => {
+    setShowAddTeamMemberModal(false);
+  }
+  const updateTeamMemberList = () => {
+    onAddTeamMemberModalCancel();
+  }
+
   const addProjectContent = (
     <FormProvider {...methods}>
       <div className={Styles.content}>
@@ -293,7 +306,7 @@ const ForeCastingProjects = () => {
                 <div className={Styles.addTeamMemberWrapper}>
                   <IconAvatarNew className={Styles.avatarIcon} />
                   <button id="AddTeamMemberBtn" 
-                    // onClick={showAddTeamMemberModalView}
+                    onClick={showAddTeamMemberModalView}
                     >
                     <i className="icon mbc-icon plus" />
                     <span>Add team member</span>
@@ -563,10 +576,23 @@ const ForeCastingProjects = () => {
             padding: '50px 35px 35px 35px',
             minWidth: 'unset',
             width: '60%',
-            maxWidth: '800px'
+            maxWidth: '50vw'
           }}
         />
       }
+      {showAddTeamMemberModal && (
+        <AddTeamMemberModal
+          ref={addTeamMemberModalRef}
+          modalTitleText={'Collaborator'}
+          showOnlyInteral={true}
+          // editMode={editTeamMember}
+          showAddTeamMemberModal={showAddTeamMemberModal}
+          // teamMember={teamMemberObj}
+          onUpdateTeamMemberList={updateTeamMemberList}
+          onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
+          // validateMemebersList={validateMembersList}
+        />
+      )}
     </>
   );
 };
