@@ -4,7 +4,7 @@ import Styles from './Form.style.scss';
 
 import { useForm, FormProvider } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-// import { useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 // import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -107,6 +107,14 @@ const ForecastForm = ({ user }) => {
   return (
     <FormProvider {...methods}>
       <div className={classNames(Styles.mainPanel)}>
+        <div className={classNames(Styles.breadcrumb)}>
+          <ol>
+            <li><a href='#/'>Start</a></li>
+            <li><a href='#/services'>My Services</a></li>
+            <li><Link to='/'>Chronos Forecasting</Link></li>
+            <li>Project Name</li>
+          </ol>
+        </div>
         <h3 className={classNames(Styles.title)}>Forecasting Project Name</h3>
         <div id="data-product-tabs" className="tabs-panel">
           <div className="tabs-wrapper">
@@ -129,7 +137,7 @@ const ForecastForm = ({ user }) => {
                     Forecast Results
                   </a>
                 </li>
-                <li className={savedTabs?.includes('manageConnections') ? 'tab valid' : 'tab disabled'}>
+                {/* <li className={savedTabs?.includes('manageConnections') ? 'tab valid' : 'tab disabled'}>
                   <a
                     href="#tab-content-3"
                     id="manageConnections"
@@ -140,7 +148,7 @@ const ForecastForm = ({ user }) => {
                   >
                     Manage Connections
                   </a>
-                </li>
+                </li> */}
                 <li className={savedTabs?.includes('projectDetails') ? 'tab valid' : 'tab disabled'}>
                   <a
                     href="#tab-content-4"
