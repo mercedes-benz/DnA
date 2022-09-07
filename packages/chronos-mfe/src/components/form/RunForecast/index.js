@@ -13,6 +13,7 @@ import { fileObj } from '../../../Utility/utils';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../common/modules/uilab/js/src/notification';
+import { Link } from 'react-router-dom';
 
 const SelectedFile = ({ setFiles }) => {
   return (
@@ -52,6 +53,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
 
   useEffect(() => {
     SelectBox.defaultSetup();
+    console.log(fileList);
     // reset(watch());
     //eslint-disable-next-line
   }, []);
@@ -120,6 +122,8 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
     }
   };
 
+  const [isSelectedFile, setIsSelectedFile] = useState(false);
+
   const existingFilesContent = (
     <div className={Styles.existingFilesContainer}>
       <div className={Styles.flexLayout}>
@@ -139,6 +143,12 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
             >
               <option id="existingFileOption" value={0}>
                 Choose
+              </option>
+              <option value={1}>
+                MS_tms_fc.xls
+              </option>
+              <option value={2}>
+                MS_tms_fc2.xls
               </option>
               {existingFiles?.map((obj) => (
                 <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
@@ -169,11 +179,12 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
           className="btn btn-primary"
           type="submit"
           disabled={isSubmitting}
-          onClick={handleSubmit((values) => {
-            reset(values, {
-              keepDirty: false,
-            });
-          })}
+          // onClick={handleSubmit((values) => {
+          //   reset(values, {
+          //     keepDirty: false,
+          //   });
+          // })}
+          onClick={() => {setShowExistingFiles(false); setIsSelectedFile(true)}}
         >
           Continue with file
         </button>
@@ -193,13 +204,13 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
             <div>
               <p>
                 Please upload your Input File and make sure it&apos;s structured according to our{' '}
-                <a href="#/chronos/project">forecasting guidelines</a>.
+                <Link to="help">forecasting guidelines</Link>.
               </p>
               <p>
                 For a quick start you can download the default template (.xls) <a href="#/">right here</a>.
               </p>
             </div>
-            {!fileList.length ? (
+            {!isSelectedFile ? (
               <div className={Styles.container}>
                 <div
                   onDrop={onFileDrop}
@@ -315,6 +326,9 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                       <option id="configurationOption" value={0}>
                         Choose
                       </option>
+                      <option value={1}>
+                        Default Configuration
+                      </option>
                       {configurationFile?.map((obj) => (
                         <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                           {obj.name}
@@ -346,6 +360,15 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                       <option id="frequencyOption" value={0}>
                         Choose
                       </option>
+                      <option value={1}>
+                        Daily
+                      </option>
+                      <option value={2}>
+                        Weekly
+                      </option>
+                      <option value={3}>
+                        Monthly
+                      </option>
                       {frequency?.map((obj) => (
                         <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                           {obj.name}
@@ -376,6 +399,9 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                     >
                       <option id="forecastHorizonOption" value={0}>
                         Choose
+                      </option>
+                      <option value={1}>
+                        2033
                       </option>
                       {forecastHorizon?.map((obj) => (
                         <option id={obj.name + obj.id} key={obj.id} value={obj.id}>

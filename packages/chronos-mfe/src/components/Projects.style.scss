@@ -16,7 +16,7 @@
     }
     .content {
         background-color: #252a33;
-        padding: 0 0 0px 0px;
+        padding: 0;
         min-width: 518px;
         .listContent {
             min-height: 435px;
@@ -79,11 +79,8 @@
     }
 }
 .content {
+    padding-top: 8px;
     .formGroup {
-      padding: 0 15px 25px 0;
-      max-height: 90vh;
-      overflow-y: auto;
-      overflow-x: hidden;
         .permissionField {
             display: flex;
             margin-left: -10px;
@@ -103,19 +100,25 @@
                 width: calc(50% - 30px);
             }
         }
-
-        &::-webkit-scrollbar-thumb {
-          background: #00adef;
-          border-radius: 10px;
-        }
-        &::-webkit-scrollbar-track {
-          background: #293f55;
-        }
-        &::-webkit-scrollbar {
-          width: 5px;
-          height: 5px;
-        }
     }
+}
+.membersList {
+  padding: 0 15px 0 0;
+  max-height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
 }
 .btnContainer {
     display: flex;
@@ -302,7 +305,7 @@
   }
 
   .teamListWrapper {
-    margin: 25px -35px 0;
+    margin: 8px -25px 0 -35px;
 
     .avatarIcon {
       width: 55px;
@@ -310,7 +313,7 @@
     }
 
     .addTeamMemberWrapper {
-      min-height: 84px;
+      min-height: 68px;
       padding-left: 40px;
 
       button {
@@ -343,7 +346,7 @@
   .apiKey {
     display: flex;
     align-items: center;
-    padding: 25px 0;
+    padding: 16px 0;
 
     p {
       margin: 0;
@@ -369,6 +372,9 @@
     align-items: center;
     .refreshedKey {
       min-width: 218px;
+      height: 37.5px;
+      display: flex;
+      align-items: center;
     }
     i {
       font-size: var(--font-size-icon);
