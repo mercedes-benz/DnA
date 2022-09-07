@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import Styles from './styles.scss';
 
 let isTouch = false;
@@ -9,7 +9,7 @@ let isTouch = false;
 const data = [
 	{ name: "Jan 2017", kpi: 2000, trend: 3700, movingAverage: 6000 },
 	{ name: "Feb 2017", kpi: 4200, trend: 3700, movingAverage: 6000 },
-	{ name: "Mar 2017", kpi: 8200, trend: 3700, movingAverage: 6000 },
+	{ name: "Mar 2017", kpi: 8200, trend: 3700, movingAverage: 6000 }, 
 	{ name: "Apr 2017", kpi: 13000, trend: 1100, movingAverage: 2300 },
 	{ name: "May 2017", kpi: 8200, trend: 3700, movingAverage: 6000 },
 	{ name: "Jun 2017", kpi: 3200, trend: 3700, movingAverage: 6000 },
@@ -240,7 +240,10 @@ const ForecastingResults = () => {
               >
                 <ul className="contextList">
                   <li className="contextListItem" onClick={() => { console.log('dummy action')}}>
-                    <span>Dummy Action</span>
+                    <span>Export as PDF</span>
+                  </li>
+                  <li className="contextListItem" onClick={() => { console.log('dummy action')}}>
+                    <span>Export as PNG</span>
                   </li>
                 </ul>
               </div>
@@ -248,7 +251,7 @@ const ForecastingResults = () => {
           </div>
         </div>
         <div className={Styles.firstPanel}>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={450}>
             <LineChart
               data={data}
               margin={{
@@ -266,6 +269,7 @@ const ForecastingResults = () => {
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={axisTextStyle} />
               <YAxis axisLine={false} tickLine={false} tick={axisTextStyle} />
               <Tooltip cursor={tooltipCursorBackground} />
+              <Legend />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -279,7 +283,7 @@ const ForecastingResults = () => {
               <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)} tooltip-data="More Action">
                 <i className="icon mbc-icon listItem context" />
               </span>
-              <div
+              {/* <div
                 style={{
                   top: contextMenuOffsetTop + 'px',
                   left: contextMenuOffsetLeft + 'px',
@@ -288,15 +292,18 @@ const ForecastingResults = () => {
               >
                 <ul className="contextList">
                   <li className="contextListItem" onClick={() => { console.log('dummy action')}}>
-                    <span>Dummy Action</span>
+                    <span>Export as PDF</span>
+                  </li>
+                  <li className="contextListItem" onClick={() => { console.log('dummy action')}}>
+                    <span>Export as PNG</span>
                   </li>
                 </ul>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
         <div className={Styles.firstPanel}>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={450}>
             <LineChart
               data={data}
               margin={{
@@ -314,6 +321,7 @@ const ForecastingResults = () => {
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={axisTextStyle} />
               <YAxis axisLine={false} tickLine={false} tick={axisTextStyle} />
               <Tooltip cursor={tooltipCursorBackground} />
+              <Legend />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -327,7 +335,7 @@ const ForecastingResults = () => {
               <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)} tooltip-data="More Action">
                 <i className="icon mbc-icon listItem context" />
               </span>
-              <div
+              {/* <div
                 style={{
                   top: contextMenuOffsetTop + 'px',
                   left: contextMenuOffsetLeft + 'px',
@@ -336,15 +344,18 @@ const ForecastingResults = () => {
               >
                 <ul className="contextList">
                   <li className="contextListItem" onClick={() => { console.log('dummy action')}}>
-                    <span>Dummy Action</span>
+                    <span>Export as PDF</span>
+                  </li>
+                  <li className="contextListItem" onClick={() => { console.log('dummy action')}}>
+                    <span>Export as PNG</span>
                   </li>
                 </ul>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
         <div className={Styles.firstPanel}>
-          <RadarChart outerRadius={300} width={1080} height={1080} data={data2} startAngle={150} endAngle={-210}>
+          <RadarChart outerRadius={300} width={1080} height={750} data={data2} startAngle={150} endAngle={-210}>
             <PolarGrid stroke="#383F49" />
             <PolarAngleAxis dataKey="month" tick={axisTextStyle} stroke="#383F49" />
             <PolarRadiusAxis angle={0} domain={[0, 150]} tick={axisTextStyle} stroke="#383F49" />
