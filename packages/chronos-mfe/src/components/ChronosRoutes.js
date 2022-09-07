@@ -14,6 +14,7 @@ import SessionExpired from './SessionExpired';
 import Projects from './Projects';
 import ForecastForm from './form';
 import ForecastingResults from './ForecastingResults';
+import ChronosHelp from './ChronosHelp';
 
 const protectedRoutes = [
   {
@@ -30,7 +31,12 @@ const protectedRoutes = [
     component: ForecastingResults,
     exact: true,
     path: '/results'
-  }
+  },
+  {
+    component: ChronosHelp,
+    exact: true,
+    path: '/help'
+  }, 
 ];
 
 const Routes = ({ user }) => {
