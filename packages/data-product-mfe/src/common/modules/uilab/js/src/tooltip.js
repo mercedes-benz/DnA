@@ -45,11 +45,16 @@ class Tooltip {
         if (elem) elem.parentNode?.removeChild(elem);
         if (popper) popper.destroy();
       });
+      elem.addEventListener('click', () => {
+        const elem = document.querySelector('.tooltip');
+        if (elem) elem.parentNode?.removeChild(elem);
+        if (popper) popper.destroy();
+      });
     });
   }
 
   static clear() {
-    document.querySelectorAll('.tooltip.show').forEach(elem => elem.remove());
+    document.querySelectorAll('.tooltip.show').forEach((elem) => elem.remove());
   }
 }
 
