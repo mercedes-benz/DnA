@@ -89,6 +89,12 @@ const ConsumerForm = ({ user, history }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    return () => {
+      dispatch(setDataProduct({}));
+    };
+  }, [dispatch]);
+
   const getDataProductById = () => {
     dataProductsApi.getDataProductById(dataProductId).then((res) => {
       const data = deserializeFormData(res.data);
@@ -154,7 +160,7 @@ const ConsumerForm = ({ user, history }) => {
       <button
         className={classNames('btn btn-text back arrow', Styles.backBtn)}
         type="submit"
-        onClick={() => history.goBack()}
+        onClick={() => history.push('/')}
       >
         Back
       </button>
