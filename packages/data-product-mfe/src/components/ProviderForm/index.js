@@ -321,7 +321,7 @@ const ProviderForm = ({ user, history }) => {
         </div>
         <div className={Styles.mandatoryInfo}>* mandatory fields</div>
       </FormProvider>
-      <TourGuide />
+      {!isEditPage && <TourGuide />}
     </>
   );
 };
