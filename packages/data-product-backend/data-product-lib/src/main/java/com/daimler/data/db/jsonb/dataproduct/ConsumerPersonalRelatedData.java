@@ -27,8 +27,6 @@
 
 package com.daimler.data.db.jsonb.dataproduct;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,9 +34,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DeletionRequirement {
+public class ConsumerPersonalRelatedData {
 
-	private boolean deletionRequirements;
-	private String description;
+	private boolean personalRelatedData;
+	private String lcoChecked;
+	private String purpose;
+	private String legalBasis;
+	private String comment;
 }
