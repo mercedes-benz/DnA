@@ -228,7 +228,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				this.deleteById(id);
 				GenericMessage successMsg = new GenericMessage();
 				successMsg.setSuccess("success");
-				LOGGER.info("dataProduct with id {} deleted successfully", id);
+				LOGGER.info("DataProduct with id {} deleted successfully", id);
 				return new ResponseEntity<>(successMsg, HttpStatus.OK);
 			} else {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
