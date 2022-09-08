@@ -1,4 +1,4 @@
-scalar Date
+scalar ISODate
 
 type SolutionCollection{
    totalCount: Int,
@@ -16,9 +16,9 @@ type SolutionVO {
     attachments: [FileDetailsVO],
     expectedBenefits: String,
     reasonForHoldOrClose: String,
-    createdDate: String,
-    lastModifiedDate: String,
-    closeDate: String,
+    createdDate: ISODate,
+    lastModifiedDate: ISODate,
+    closeDate: ISODate,
     tags:[String],
     bookmarked: Boolean,
     publish: Boolean,
@@ -170,7 +170,7 @@ type AssessmentDetailsVO{
 }
 
 type ChangeLogVO{
-	changeDate: Date,
+	changeDate: ISODate,
 	modifiedBy: TeamMemberVO,
 	fieldChanged: String,
 	oldValue: String,
@@ -297,8 +297,8 @@ type SolutionCurrentPhase{
 }
 type SkillSummaryVO{
 	neededSkill: String,
-	fromDate: String,
-	toDate: String,
+	fromDate: ISODate,
+	toDate: ISODate,
 	requestedFTECount: Float
 }
 enum UserTypeEnum{
