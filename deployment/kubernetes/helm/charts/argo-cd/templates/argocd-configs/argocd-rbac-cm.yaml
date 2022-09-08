@@ -1,0 +1,18 @@
+{{-  if .Values.server.rbacConfigCreate }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  labels:
+    {{- include "argo-cd.labels" (dict "context" . "component" .Values.server.name "name" "rbac-cm") | nindent 4 }}
+  {{- if .Values.server.rbacConfigAnnotations }}
+  annotations:
+  {{- range $key, $value := .Values.server.rbacConfigAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+{{- if .Values.server.rbacConfig }}
+data:
+{{- toYaml .Values.server.rbacConfig | nindent 4 }}
+{{- end }}
+{{- end }}
