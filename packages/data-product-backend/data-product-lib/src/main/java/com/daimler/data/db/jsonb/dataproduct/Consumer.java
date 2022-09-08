@@ -27,6 +27,10 @@
 
 package com.daimler.data.db.jsonb.dataproduct;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,8 +38,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClassificationConfidentiality {
-
-	private String description;
-	private String confidentiality;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Consumer {
+	private ConsumerContactInformation contactInformation;
+	private ConsumerPersonalRelatedData personalRelatedData;
+	private List<String> openSegments;
 }

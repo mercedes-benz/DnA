@@ -27,6 +27,8 @@
 
 package com.daimler.data.db.jsonb.dataproduct;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,9 +36,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransnationalDataTransfer {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ProviderDeletionRequirement {
 
-	private boolean dataTransferred;
-	private boolean notWithinEU;
-	private String approved;
+	private boolean deletionRequirements;
+	private String description;
+	private String otherRelevantInformation;
 }

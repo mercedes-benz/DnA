@@ -27,8 +27,6 @@
 
 package com.daimler.data.db.jsonb.dataproduct;
 
-import java.util.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,12 +34,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContactInformation {
+public class ProviderPersonalRelatedData {
 
-	private Date dataTransferDate;
-	private String name;
-	private String appId;
-	private String localComplianceOfficer;
-	private String department;
-	private Division division;
+	private boolean personalRelatedData;
+	private String description;
+	private String purpose;
+	private String legalBasis;
 }
