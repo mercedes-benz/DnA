@@ -39,7 +39,7 @@ data:
 
   config.properties: |
     coordinator=true
-    internal-communication.shared-secret={{ .Values.config.internalSharedSecret }}
+    internal-communication.shared-secret={{ .Values.server.config.internalSharedSecret }}
   {{- if gt (int .Values.server.workers) 0 }}
     node-scheduler.include-coordinator=false
   {{- else }}
@@ -115,7 +115,7 @@ data:
     immuta.apikey= {{ .Values.immuta.apikey }}
     immuta.allowed.non.immuta.datasource.operations= {{ .Values.immuta.nonImmutaUserPermission }}
   {{- end }}
-  
+
   access-rules.json: |
     {
 
