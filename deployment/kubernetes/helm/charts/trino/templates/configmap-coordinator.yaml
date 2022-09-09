@@ -39,6 +39,7 @@ data:
 
   config.properties: |
     coordinator=true
+    internal-communication.shared-secret={{ .Values.server.config.internalSharedSecret }}
   {{- if gt (int .Values.server.workers) 0 }}
     node-scheduler.include-coordinator=false
   {{- else }}
@@ -105,6 +106,15 @@ data:
     access-control.name=file
     security.config-file={{ .Values.server.config.path }}/access-rules.json
     security.refresh-period=5s
+
+  {{- if .Values.immuta.enabled }}
+  immuta-access-control.properties: |
+    access-control.name= {{ .Vaules.immuta.name }}
+    access-control.config-files= {{ .Values.server.config.path }}/access-rules.json
+    immuta.endpoint= {{ .Values.immuta.endpoint }}
+    immuta.apikey= {{ .Values.immuta.apikey }}
+    immuta.allowed.non.immuta.datasource.operations= {{ .Values.immuta.nonImmutaUserPermission }}
+  {{- end }}
 
   access-rules.json: |
     {
