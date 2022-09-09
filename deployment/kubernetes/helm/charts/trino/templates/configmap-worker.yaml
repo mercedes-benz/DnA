@@ -41,6 +41,7 @@ data:
   config.properties: |
     coordinator=false
     http-server.http.port={{ .Values.service.port }}
+    internal-communication.shared-secret={{ .Values.server.config.internalSharedSecret }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
     memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
