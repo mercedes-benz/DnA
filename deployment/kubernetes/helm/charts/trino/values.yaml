@@ -33,6 +33,7 @@ server:
       level: INFO
   config:
     path: /etc/trino
+    internalSharedSecret: 
     http:
       port: 8080
     query:
@@ -153,3 +154,4 @@ immuta:
   endpoint: ""
   apiKey: ""
   listenerName: "immuta-event-listener"
+  nonImmutaUserPermission: 
