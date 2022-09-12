@@ -1,0 +1,107 @@
+.mainPanel {
+  padding: 50px 184px 0px 114px;
+}
+.backButtonWapper {
+  margin-bottom: 15px;
+}
+.summeryBannerTitle {
+  margin: 19px 0 60px 0;
+  h2 {
+    font-size: var(--font-size-headline-big);
+    line-height: 33px;
+  }
+}
+.switch {
+  text-align: right;
+  font-size: var(--font-size-icon-medium);
+  margin-right: -10px;
+  margin-top: -37px;
+  float: right;
+  i {
+      cursor: pointer;
+      color: #697582;
+
+      &:hover {
+          color: #00adef;
+      }
+  }
+}
+.header {
+  margin-bottom: 50px;
+  position: relative;
+}
+
+.content {
+  background: #252a33;
+  margin: 15px 0;
+  padding:  25px 38px;
+  position: relative;
+
+  .contextMenu {
+    position: absolute;
+    top: 0;
+    right: -10px;
+    &.open .contextMenuTrigger {
+      z-index: 10;
+      position: relative;
+    }
+
+    .contextMenuTrigger {
+      padding: 12px 10px;
+      cursor: pointer;
+
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+}
+  
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px;
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+    &.threeColumn {
+      > div {
+        width: calc(33% - 7px);
+      }
+    }
+  }
+}
+
+.contextMenu {
+  position: relative;
+  &.open .contextMenuTrigger {
+    z-index: 10;
+    position: relative;
+  }
+  .contextMenuTrigger {
+    padding: 12px 10px;
+    cursor: pointer;
+    margin-right: -14px;
+    &:hover {
+      color: #00adef;
+    }
+  }
+}
+  
+:global {
+  label.input-label.summary {
+    color: #99A5B3;
+    font-size: var(--font-size-small);
+    font-weight: bold;
+  }
+}

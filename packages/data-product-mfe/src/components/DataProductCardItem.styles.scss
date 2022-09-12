@@ -75,6 +75,41 @@
         }
       }
     }
+    .stagesInfo {
+      flex-direction: row;
+      div {
+        flex-direction: column;
+        margin-bottom: 0 !important;
+        .draft {
+          color: #00adef;
+        }
+      }
+      .icon {
+        font-size: 20px;
+        transform: scale(2, -1) translate(0px, 10px);
+        color: #00adef;
+      }
+      .customIcon {
+        div {
+          position: relative;
+          font-size: 30px;
+          transform: scale(1.3);
+          &::after {
+            content: "\21C0";
+            position: absolute;
+            transform: rotate(180deg) translate(27px, -2px);
+            color: #697582;
+          }
+          &::before {
+            content: "\21C0";
+            color: #00adef;
+          }
+        }
+      }
+      .disabled {
+        color: #697582;
+      }
+    }
   }
   .draftIndicator {
     padding: 2px 8px;
@@ -88,10 +123,24 @@
 }
 .cardFooter {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 10px;
   div:first-child {
     margin: 7px 0px;
+  }
+  .shareIcon {
+    span::after {
+      content: "\027A6";
+      color: #697582;
+      font-size: 22px;
+    }
+    &.disabled {
+      background: transparent !important;
+      cursor: not-allowed;
+      span::after {
+        color: #383f49;
+      }
+    }
   }
 }
 .btnGrp {
@@ -102,7 +151,6 @@
     border: 0;
     color: #99a5b3;
     float: right;
-    font-size: 12px;
     margin-right: 20px;
     outline: 0;
     padding: 0;

@@ -20,6 +20,7 @@ spec:
       {{- end }}
       labels:
         {{- include "code-server-backend.selectorLabels" . | nindent 8 }}
+        helm-revision: "{{ .Release.Revision }}"
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

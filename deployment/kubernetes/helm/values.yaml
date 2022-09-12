@@ -2445,3 +2445,9 @@ data-product-be:
 
 code-server:
   enabled: true
+
+kong: 
+  enabled: true
+
+chronos-be: 
+  enabled: true

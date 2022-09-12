@@ -5,6 +5,10 @@
   min-width: 250px;
   position: relative;
 
+  &.disable {
+    opacity: 0.5;
+  }
+
   .cardHead {
     display: flex;
     justify-content: space-between;
@@ -28,6 +32,10 @@
         width: 100%;
         text-align: left;
       }
+
+      &.disable {
+        pointer-events: none;
+      }
     }
 
     &:hover .cardHeadTitle {
@@ -41,6 +49,7 @@
   }
   .cardBodySection {
     padding: 15px 20px 20px 20px;
+    min-height: 200px;
     > div {
       display: flex;
       justify-content: space-between;
@@ -69,7 +78,7 @@
       }
     }
   }
-  .deployedIndicator {
+  .statusIndicator {
     padding: 2px 8px;
     border: 1px solid #0AE6AB;
     color: #0AE6AB;
@@ -77,6 +86,21 @@
     letter-spacing: 1px;
     border-radius: 2px;
     margin-left: 20px;
+
+    &.deploying {
+      border: 1px solid #f3e537;
+      color: #f3e537;
+    }
+
+    &.deleting {
+      border: 1px solid #e84d47;
+      color: #e84d47;
+    }
+
+    &.creating {
+      border: 1px solid #00adef;
+      color: #00adef;
+    }
   }
 
   .deployedLink {

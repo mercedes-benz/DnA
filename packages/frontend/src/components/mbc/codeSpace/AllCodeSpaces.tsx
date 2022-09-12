@@ -9,8 +9,11 @@ import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import { IUserInfo } from '../../../globals/types';
 import ProgressWithMessage from '../../../components/progressWithMessage/ProgressWithMessage';
 import { history } from '../../../router/History';
-import { ApiClient } from '../../..//services/ApiClient';
-import Notification from '../../..//assets/modules/uilab/js/src/notification';
+// import { ApiClient } from '../../../services/ApiClient';
+import Notification from '../../../assets/modules/uilab/js/src/notification';
+import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
+// @ts-ignore
+import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 
 export interface IAllCodeSpacesProps {
   user: IUserInfo;
@@ -18,10 +21,11 @@ export interface IAllCodeSpacesProps {
 
 const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-    url: `https://code-spaces.***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
-    running: false
-  });
+  const [lastCreatedId, setLastCreatedId] = useState<number>(0);
+  // const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
+  //   url: `https://code-spaces.***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
+  //   running: false
+  // });
   const [codeSpaces, setCodeSpaces] = useState<ICodeSpaceData[]>([]),
     [codeSpacesListResponse, setCodeSpacesListResponse] = useState<ICodeSpaceData[]>([]),
     [pagination, setPagination] = useState({
@@ -31,33 +35,68 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     }),
     [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false),
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
-  
-  useEffect(() => {
-    ApiClient.getCodeSpace().then((res: any) => {
+
+  const formatCodeSpaceData = (records: any[]) => {
+    return records.map((record: any) => {
+      return {
+        id: record.id,
+        name: record.name,
+        recipe:
+          record.recipeId !== 'default'
+            ? `Microservice using Spring Boot (${record.operatingSystem}, ${record.ramSize}${record.ramMetrics} RAM, ${record.cpuCapacity}CPU)`
+            : 'Default',
+        environment: record.cloudServiceProvider,
+        deployed: record.status === 'DEPLOYED',
+        deployedUrl: record.deploymentUrl,
+        createdDate: record.intiatedOn,
+        lastDeployedDate: record.lastDeployedOn,
+        url: record.workspaceUrl,
+        running: !!record.intiatedOn,
+        status: record.status,
+      } as ICodeSpaceData;
+    });
+  };
+
+  const getCodeSpacesData = () => {
+    setLoading(true);
+    CodeSpaceApiClient.getCodeSpacesList().then((res: any) => {
       setLoading(false);
-      const codeSpaceRunning = (res.success === 'true');
-      setCodeSpaceData({
-        ...codeSpaceData,
-        running: codeSpaceRunning
-      });
-      // setShowNewCodeSpaceModal(!codeSpaceRunning);
-      codeSpaceRunning && setCodeSpaces([
-        {
-          id: 'ws001',
-          name: 'DemoSpringBootMS',
-          recipe: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)',
-          environment: 'DHC CaaS',
-          deployed: true,
-          createdDate: '2022-05-17T12:15:36.606+00:00',
-          lastDeployedDate: '2022-05-20T12:15:36.606+00:00',
-          url: 'sample',
-          running: true,
-        }
-      ]);
+      setCodeSpaces(Array.isArray(res) ? res : formatCodeSpaceData(res.records) as ICodeSpaceData[]);
+      setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
     }).catch((err: Error) => {
-      Notification.show("Error in validating code space - " + err.message, 'alert');
+      setLoading(false);
+      Notification.show("Error in loading your code spaces - " + err.message, 'alert');
     });
     setCodeSpacesListResponse([]);
+  };
+  
+  useEffect(() => {
+    // ApiClient.getCodeSpace().then((res: any) => {
+    //   setLoading(false);
+    //   const codeSpaceRunning = (res.success === 'true');
+    //   setCodeSpaceData({
+    //     ...codeSpaceData,
+    //     running: codeSpaceRunning
+    //   });
+    //   // setShowNewCodeSpaceModal(!codeSpaceRunning);
+    //   codeSpaceRunning && setCodeSpaces([
+    //     {
+    //       id: 'ws001',
+    //       name: 'DemoSpringBootMS',
+    //       recipe: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)',
+    //       environment: 'DHC CaaS',
+    //       deployed: true,
+    //       createdDate: '2022-05-17T12:15:36.606+00:00',
+    //       lastDeployedDate: '2022-05-20T12:15:36.606+00:00',
+    //       url: 'sample',
+    //       running: true,
+    //     }
+    //   ]);
+    // }).catch((err: Error) => {
+    //   Notification.show("Error in validating code space - " + err.message, 'alert');
+    // });
+
+    getCodeSpacesData();
   }, []);
 
   const onPaginationPreviousClick = () => {
@@ -91,8 +130,12 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   }
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
-    setShowNewCodeSpaceModal(!status);
-    history.push('codespace');
+    if (showNewCodeSpaceModal) {
+      setShowNewCodeSpaceModal(!status);
+      history.push(`codespace/${codeSpaceData.name}`);
+    } else {
+      getCodeSpacesData();
+    }
   }
 
   const toggleProgressMessage = (show: boolean) => {
@@ -103,16 +146,34 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     setShowNewCodeSpaceModal(false);
   }
 
+  const onDeleteSuccess = () => {
+    getCodeSpacesData();
+  };
+
+  const switchBackToCodeSpace = () => {
+    setShowNewCodeSpaceModal(false);
+    setIsApiCallTakeTime(false);
+    ProgressIndicator.hide();
+    getCodeSpacesData();
+  };
+
   return (
     <div className={classNames(Styles.mainPanel)}>
       <div className={classNames(Styles.wrapper)}>
         <div className={classNames(Styles.caption)}>
           <h3>Code Spaces Overview</h3>
-          <div className={classNames(Styles.listHeader, 'hide')}>
+          <div className={classNames(Styles.listHeader)}>
             {codeSpaces?.length ? (
               <>
                 <button
-                  className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-primary'}
+                  className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-icon-circle'}
+                  tooltip-data="Refresh"
+                  onClick={getCodeSpacesData}
+                >
+                  <i className="icon mbc-icon refresh" />
+                </button>
+                <button
+                  className={codeSpaces?.length === null ? Styles.btnHide : 'btn btn-primary hide'}
                   type="button"
                   onClick={onShowNewCodeSpaceModal}
                 >
@@ -156,7 +217,14 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                         <label className={Styles.addlabel}>Create new Code Space</label>
                       </div>
                       {codeSpaces?.map((codeSpace: ICodeSpaceData, index: number) => {
-                        return <CodeSpaceCardItem key={index} codeSpace={codeSpace} />;
+                        return (
+                          <CodeSpaceCardItem
+                            key={index}
+                            codeSpace={codeSpace}
+                            toggleProgressMessage={toggleProgressMessage}
+                            onDeleteSuccess={onDeleteSuccess}
+                          />
+                        );
                       })}
                     </div>
                   </div>
@@ -188,6 +256,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           content={
             <NewCodeSpace
               user={props.user}
+              lastCreatedId={lastCreatedId}
               isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
               toggleProgressMessage={toggleProgressMessage}
             />
@@ -196,7 +265,17 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           onCancel={onNewCodeSpaceModalCancel}
         />
       )}
-      {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up to a minute....'} />}
+      {isApiCallTakeTime && (
+        <ProgressWithMessage
+          message={
+            <>
+              'Please wait as this process can take up to a minute....'
+              <br />
+              <button className="btn btn-text back arrow" onClick={switchBackToCodeSpace}>Back to Code Spaces</button>
+            </>
+          }
+        />
+      )}
     </div>
   );
 };
