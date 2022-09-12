@@ -613,7 +613,6 @@ tls:
 # secrets are stored into environment of init container - stored encoded on k8s
 # REQUIRED for s3 restore: AWS 'access_key' and 'secret_key' or stored in existingSecret
 # EXAMPLE source for s3 restore: 's3://bucket/dump.rdb'
-# REQUIRED for ssh restore: 'key' should be in one line including CR i.e. '***REMOVED***\n...\n...\n...\n***REMOVED***'
 # EXAMPLE source for ssh restore: 'user@server:/path/dump.rdb'
 restore:
   timeout: 600
