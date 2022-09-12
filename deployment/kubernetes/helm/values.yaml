@@ -2451,6 +2451,3 @@ kong:
 
 chronos-be: 
   enabled: true
-
-argo-cd: 
-  enabled: true
