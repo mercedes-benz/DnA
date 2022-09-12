@@ -293,6 +293,5 @@ export const decimalSeparator = (region: string) => {
 export const csvSeparator = (region: string) => {
   if(region.includes('de'))
     return  ";" 
-  else  
-    return ","
+  
 }
