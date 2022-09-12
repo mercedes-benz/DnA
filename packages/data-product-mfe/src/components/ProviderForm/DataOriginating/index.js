@@ -69,22 +69,22 @@ const DataOriginating = ({ onSave }) => {
             </div>
             <div dangerouslySetInnerHTML={{ __html: Envs.DATA_GOVERNANCE_HTML_FOR_CHINA_DATA }}></div>
           </div>
-          <div className="btnContainer">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={isSubmitting}
-              onClick={handleSubmit((data) => {
-                onSave(data);
-                reset(data, {
-                  keepDirty: false,
-                });
-              })}
-            >
-              Save & Next
-            </button>
-          </div>
         </div>
+      </div>
+      <div className="btnContainer">
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={isSubmitting}
+          onClick={handleSubmit((data) => {
+            onSave(data);
+            reset(data, {
+              keepDirty: false,
+            });
+          })}
+        >
+          Save & Next
+        </button>
       </div>
       {showInfoModal && (
         <InfoModal

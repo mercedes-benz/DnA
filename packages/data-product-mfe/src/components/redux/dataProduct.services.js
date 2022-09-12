@@ -26,10 +26,10 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
   const {
     values,
     onSave,
-    provideDataProducts: { divisions, pagination },
+    provideDataProducts: { divisionList, pagination },
   } = data;
 
-  const division = serializeDivisionSubDivision(divisions, values);
+  const division = serializeDivisionSubDivision(divisionList, values);
 
   const requestBody = serializeFormData(values, division);
   ProgressIndicator.show();
@@ -53,10 +53,10 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
   const {
     values,
     onSave,
-    provideDataProducts: { divisions, pagination },
+    provideDataProducts: { divisionList, pagination },
   } = data;
 
-  const division = serializeDivisionSubDivision(divisions, values);
+  const division = serializeDivisionSubDivision(divisionList, values);
   const requestBody = serializeFormData(values, division);
   ProgressIndicator.show();
   try {
@@ -66,6 +66,9 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     const data = deserializeFormData(res?.data?.data);
     if (values.publish) {
       Notification.show('Your Data Product is now available!');
+    } else if (data.openSegments.length === 5) {
+      // on saving last tab
+      Notification.show('Progress saved in Data Transfer Overview');
     }
     return {
       data,

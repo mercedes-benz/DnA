@@ -1014,3 +1014,18 @@ extraSecrets: []
 # - name: my-secret
 #   mountPath: /mount/to/my/location
 #   subPath: my-subpath # Optional, if you wish to mount a single key and not the entire ConfigMap
+
+
+kongSettings:
+  - key: postgres.host
+    value: ""
+  - key: postgres.port
+    value: ""
+  - key: postgres.user
+    value: ""
+  - key: postgres.password
+    value: ""
+  - key: postgres.db
+    value: "" 
+  - key: postgres.schema
+    value: ""                

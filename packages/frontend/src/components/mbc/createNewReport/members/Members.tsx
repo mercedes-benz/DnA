@@ -10,7 +10,7 @@ import ImgMaturityLevel from '../../../../assets/images/maturity-level-info.png'
 import ImgRiskAssesment from '../../../../assets/images/risk-assesment-info.png';
 // @ts-ignore
 import ImgValueDriver from '../../../../assets/images/value-driver-info.png';
-import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
+import IconAvatarNew from '../../../../components/icons/IconAvatarNew';
 import { IAttachment, IMembers, ITeams } from '../../../../globals/types';
 import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
 import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
@@ -90,7 +90,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         admin: '',
       },
       hideTeamPosition: true,
-      teamPositionNotRequired: true
+      teamPositionNotRequired: true,
     };
   }
 
