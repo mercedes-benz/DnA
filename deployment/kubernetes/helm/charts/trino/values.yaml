@@ -33,6 +33,7 @@ server:
       level: INFO
   config:
     path: /etc/trino
+    internalSharedSecret: 
     http:
       port: 8080
     query:
@@ -133,7 +134,18 @@ authentication:
 
 hivemetastore:
   image: ""
+  server:
+    session:
+      check_interval: "1h"
+      timeout: "2h"
+    operation:
+      timeout: "2h"
+    thrift:
+      http_timeout: "2h"
   requests:
+    memory: "8G"
+    cpu: 2
+  limits:
     memory: "8G"
     cpu: 2
   minio:
@@ -153,3 +165,4 @@ immuta:
   endpoint: ""
   apiKey: ""
   listenerName: "immuta-event-listener"
+  nonImmutaUserPermission: 

@@ -41,6 +41,7 @@ data:
   config.properties: |
     coordinator=false
     http-server.http.port={{ .Values.service.port }}
+    internal-communication.shared-secret={{ .Values.server.config.internalSharedSecret }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
     memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
@@ -97,11 +98,11 @@ data:
 
         }
 
-  #{{- if .Values.immuta.enabled }}
-  #event-listener.properties: |
-  #  event-listener.name={{ .Values.immuta.listenerName }}
-  #  immuta.endpoint={{ .Values.immuta.endpoint }}
-  #  immuta.apikey={{ .Values.immuta.apiKey }}
-  #  immuta.catalogs=immuta
-  #{{- end }}
+  {{- if .Values.immuta.enabled }}
+  event-listener.properties: |
+    event-listener.name={{ .Values.immuta.listenerName }}
+    immuta.endpoint={{ .Values.immuta.endpoint }}
+    immuta.apikey={{ .Values.immuta.apiKey }}
+    immuta.catalogs=immuta
+  {{- end }}
 {{- end }}
