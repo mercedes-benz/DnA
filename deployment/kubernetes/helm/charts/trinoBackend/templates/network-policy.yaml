@@ -6,7 +6,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      name: {{ .Chart.Name }}-backend
+      name: {{ .Chart.Name }}
   ingress:
     - ports:
       - port: {{ .Values.containerPort }}
