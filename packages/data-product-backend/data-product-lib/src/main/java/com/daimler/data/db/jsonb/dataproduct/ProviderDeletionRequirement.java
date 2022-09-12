@@ -27,9 +27,6 @@
 
 package com.daimler.data.db.jsonb.dataproduct;
 
-import java.util.Date;
-
-import com.daimler.data.db.jsonb.CreatedBy;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -40,14 +37,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DataProduct {
+public class ProviderDeletionRequirement {
 
-	private String dataProductName;
-	private Provider providerInformation;
-	private Consumer consumerInformation;
-	private boolean publish;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
+	private boolean deletionRequirements;
+	private String description;
+	private String otherRelevantInformation;
 }

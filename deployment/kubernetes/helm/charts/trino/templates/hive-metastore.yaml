@@ -57,12 +57,16 @@ spec:
         - name: metastore-cfg-vol
           mountPath: /opt/hive-metastore/conf/metastore-site.xml
           subPath: metastore-site.xml
+
         command: ["/opt/hive-metastore/bin/start-metastore"]
         args: ["-p", "9083"]
         resources:
           requests:
             memory: {{ .Values.hivemetastore.requests.memory }}
             cpu: {{ .Values.hivemetastore.requests.cpu }}
+          limits:
+            memory: {{ .Values.hivemetastore.limits.memory }}
+            cpu: {{ .Values.hivemetastore.limits.cpu }}
         imagePullPolicy: Always
       volumes:
         - name: metastore-cfg-vol
