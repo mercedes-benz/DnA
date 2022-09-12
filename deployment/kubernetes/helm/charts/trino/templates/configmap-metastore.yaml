@@ -63,4 +63,25 @@ data:
             <name>metastore.warehouse.dir</name>
             <value>s3a://{{ .Values.hivemetastore.minio.warehouseBucketName }}/</value>
     </property>
+    <property>
+            <name>hive.server2.idle.session.check.operation</name>
+            <value>true</value>
+    </property>
+    <property>
+            <name>hive.server2.session.check.interval</name>
+            <value>{{ .Values.hivemetastore.server.session.check_interval }}</value>
+    </property>
+    <property>
+            <name>hive.server2.idle.session.timeout</name>
+            <value>{{ .Values.hivemetastore.server.session.timeout }}</value>
+    </property>
+    <property>
+            <name>hive.server2.idle.operation.timeout</name>
+            <value>{{ .Values.hivemetastore.server.operation.timeout }}</value>
+    </property>
+    <property>
+            <name>hive.server2.thrift.http.max.idle.time</name>
+            <value>{{ .Values.hivemetastore.server.thrift.http_timeout }}</value>
+    </property>
+
     </configuration>

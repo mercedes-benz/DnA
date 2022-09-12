@@ -4,6 +4,11 @@ kind: NetworkPolicy
 metadata:
   name: allow-all-ingress
   namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
   podSelector: {}
   ingress:
