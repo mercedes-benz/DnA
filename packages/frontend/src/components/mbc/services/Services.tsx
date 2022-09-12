@@ -53,7 +53,7 @@ const Services = () => {
         <Tile
           title={'Chronos Forecasting'}
           background={chronosforecasting}
-          bgPosition={'center'}
+          bgPosition={'center left'}
           route={'/chronos'}
           isEnabled={enableChronosForecastingService}
         />

@@ -27,6 +27,14 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.util.List;
+
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -35,6 +43,96 @@ import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 @Repository
 public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<CodeServerWorkspaceNsql, String>
 		implements WorkspaceCustomRepository {
+
+	
+	@Override
+	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> getAll = cq.select(root);
+		Predicate p1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				userId.toLowerCase());
+		Predicate p2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(p1,p2);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
+		if (offset >= 0)
+			getAllQuery.setFirstResult(offset);
+		if (limit > 0)
+			getAllQuery.setMaxResults(limit);
+		return getAllQuery.getResultList();
+	}
+
+	@Override
+	public Integer getCount(String userId) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(CodeServerWorkspaceNsql.class);
+		CriteriaQuery<Long> getAll = cq.select(cb.count(root));
+		Predicate p1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				userId.toLowerCase());
+		Predicate p2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(p1,p2);
+		cq.where(pMain);
+		TypedQuery<Long> getAllQuery = em.createQuery(getAll);
+		Long count = getAllQuery.getSingleResult();
+		return Integer.valueOf(count.intValue());
+	}
+
+	@Override
+	public CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal(uniqueLiteral))),
+				value.toLowerCase());
+		Predicate con2 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				userId.toLowerCase());
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con2, con3);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities.get(0);
+		else
+			return null;
+	}
+
+	@Override
+	public CodeServerWorkspaceNsql findById(String userId, String id) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(root.get("id"),id);
+		Predicate con2 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				userId.toLowerCase());
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con2, con3);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities.get(0);
+		else
+			return null;
+	}
 
 	
 }

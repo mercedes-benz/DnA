@@ -1,0 +1,125 @@
+.content {
+  background-color: #252a33;
+  padding: 25px 0;
+  position: relative;
+  .forecastResultListWrapper {
+    .forecastResultList {
+      position: relative;
+      border-bottom: 0px solid #383f49;
+      thead {
+        th {
+          padding-left: 15px;
+
+          &:first-child {
+            padding-left: 38px;
+          }
+
+          .thCheckbox {
+            margin-left: -10px;
+          }
+        }
+      }
+      td {
+        font-size: var(--font-size-default);
+        padding-left: 15px;
+        word-break: break-all;
+        line-height: 16px;
+        &:first-child {
+          padding-left: 28px;
+        }
+      }
+    }
+    tr {
+      position: relative;
+    }
+    tbody {
+      tr {
+        position: relative;
+        height: 100px;
+        &:hover {
+          background-color: #20242b;
+          cursor: pointer;
+        }
+      }
+    }
+
+    text-align: right;
+    .listContent {
+      .forecastResultListEmpty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        justify-content: center;
+        height: 400px;
+        position: relative;
+        border: 1px solid #383f49;
+        margin: 0px 38px;
+        i {
+          font-size: 80px;
+        }
+      }
+    }
+  }
+}
+
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  margin: 40px;
+  margin-top: 0px; /*this will be removed once search and filter is enabled*/
+  margin-bottom: 10px; /*this will be removed once search and filter is enabled*/
+  > div {
+    width: calc(50% - 7px);
+  }
+  &.fourColumn {
+    > div {
+      width: calc(25% - 7px);
+    }
+  }
+  &.threeColumn {
+    > div {
+      width: calc(33% - 7px);
+    }
+  }
+}
+
+.removeBlock {
+  /*margin-top: 10px;*/
+  color: #c0c8d0;
+  display: inline-block;
+  &:hover {
+    cursor: pointer;
+    i {
+      color: #00adef;
+    }
+  }
+}
+
+.deleteForecastResult {
+  margin: 35px 0;
+  text-align: center;
+}
+
+.closeIcon {
+  border: 2px solid #d8d8d8;
+  width: 54px;
+  height: 54px;
+  line-height: 50px;
+  border-radius: 100%;
+  margin: 0 auto 24px;
+
+  i {
+    color: #e94d47;
+    font-size: 18px;
+    margin: 0;
+  }
+} 
+
+.deleteBtn {
+  margin-top: 40px;
+
+  button {
+    background-color: #383f49 !important;
+  }
+}

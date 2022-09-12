@@ -1,0 +1,67 @@
+.mainPanel {
+  padding: 72px 184px 30px 114px;
+
+  .title {
+    justify-content: center;
+    font-size: var(--font-size-section-headline);
+    text-align: left;
+    margin-bottom: 40px;
+    min-height: 30px;
+  }
+
+  .wrapper {
+    width: 100%;
+    .container {
+      padding: 40px 0;
+      text-align: center;
+      h2 {
+        text-align: center;
+        color: #c8c9cb;
+        line-height: 1.5;
+        letter-spacing: 1px;
+        padding: 0 0 35px 0;
+      }
+      img {
+        display: block;
+        margin: 0 auto 50px;
+      }
+      button {
+        background-color: #383f49!important;
+      }
+    }
+  }
+}
+
+.breadcrumb {
+  margin-top: -50px;
+  margin-bottom: 25px;
+
+  ol {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+
+      li {
+          color: #c8c9cb;
+          margin-right: 6px;
+          display: flex;
+          align-items: center;
+
+          &::after {
+              font-family: "dna-icons";
+              content: "\e91e";
+              margin-left: 6px;
+          }
+
+          &:last-child::after {
+              display: none;
+          }
+
+          a {
+              color: #c8c9cb;
+          }
+      }
+  }
+}

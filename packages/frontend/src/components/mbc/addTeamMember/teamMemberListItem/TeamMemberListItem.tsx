@@ -19,6 +19,7 @@ export interface ITeamMemberListItemProps {
   onMoveDown: (index: number) => void;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
+  hidePosition?: boolean;
 }
 
 export interface ITeamMemberListItemState {
@@ -100,7 +101,9 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
               <IconAvatar className={Styles.avatarIcon} />
             </div>
             <div className={Styles.details}>
-              <h6>{teamMember?.teamMemberPosition}</h6>
+              {
+                this.props?.hidePosition ? null : <h6>{teamMember?.teamMemberPosition}</h6>
+              }
               <div className={Styles.memberDetails}>
                 <div>
                   {teamMember?.firstName} {teamMember?.lastName} <br />

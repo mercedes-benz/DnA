@@ -64,7 +64,7 @@ swaggerSources {
         def workspaceJson = "${rootDir}/code-server-lib/src/main/resources/api/Workspace.json"
         inputFile = file(workspaceyaml)
 
-        def ignoreFile = "${rootDir}/model-registry-lib/src/main/resources/api/.swagger-codegen-ignore"
+        def ignoreFile = "${rootDir}/code-server-lib/src/main/resources/api/.swagger-codegen-ignore"
 
         code {
             language = 'spring'

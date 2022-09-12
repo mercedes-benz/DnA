@@ -7,6 +7,7 @@ import { history } from '../../../..//router/History';
 import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
 import { attachEllipsis } from '../../../../services/utils';
 import { Envs } from '../../../../globals/Envs';
+import { DataFormater } from '../../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -169,8 +170,16 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
               }
             >
               {solution.projectStatus.name}
-            </span>{' '}
+            </span>
+            {' '}
             {!solution.publish && <span className={Styles.draftIndicator}>DRAFT</span>}
+            {' '}
+            <span className={Styles.digitalValue}>
+            {solution.digitalValue && solution.digitalValue.digitalValue
+              ? `${DataFormater(solution.digitalValue.digitalValue)}`
+              : ''}
+            </span>
+            
           </div>
           <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
             <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
