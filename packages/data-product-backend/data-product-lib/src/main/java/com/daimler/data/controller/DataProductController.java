@@ -177,7 +177,7 @@ public class DataProductController implements DataproductsApi {
 			@ApiParam(value = "DataProduct ID to be fetched", required = true) @PathVariable("id") String id) {
 		DataProductVO dataProductVO = dataProductService.getById(id);
 		if (dataProductVO != null) {
-			LOGGER.info("DataProduct {} fetched successfully", id);
+			LOGGER.info("DataProduct with id {} fetched successfully", id);
 			return new ResponseEntity<>(dataProductVO, HttpStatus.OK);
 		} else {
 			LOGGER.debug("No DataProduct {} found", id);

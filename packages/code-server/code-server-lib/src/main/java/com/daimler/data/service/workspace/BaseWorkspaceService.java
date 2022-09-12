@@ -253,7 +253,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			entity.getData().setWorkspaceUrl(workspaceUrl);
 		}
 		if("DEPLOYED".equalsIgnoreCase(existingVO.getStatus())){
-			String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/api";
+			String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/api/swagger-ui.html";
 			entity.getData().setDeploymentUrl(deploymentUrl);
 		}
 		CodeServerWorkspaceNsql updatedEntity = jpaRepo.save(entity);
