@@ -111,11 +111,7 @@ dependencies:
   repository: file://charts/chronos-be
   version: 0.1.0
   condition: chronos-be.enabled  
-
-- name: argo-cd
-  repository: file://charts/argo-cd
-  version: 5.4.2
-  condition: argo-cd.enabled  
+ 
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
