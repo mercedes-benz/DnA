@@ -5,9 +5,11 @@ import Styles from '../common.styles.scss';
 // components from container app
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
+import Tags from 'dna-container/Tags';
 
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
+import { dataProductsApi } from '../../../apis/dataproducts.api';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
@@ -20,8 +22,15 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     handleSubmit,
     trigger,
     reset,
+    control,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
+
+  const [complianceOfficerList, setComplianceOfficerList] = useState({
+    records: [],
+    totalCount: 0,
+  });
+  const [complianceOfficer, setComplianceOfficer] = useState([]);
 
   useEffect(() => {
     const id = watch('division');
@@ -43,6 +52,28 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   useEffect(() => {
     SelectBox.defaultSetup();
     reset(watch());
+    //eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    dataProductsApi
+      .getDataComplianceList(0, 0, 'entityId', 'asc')
+      .then((res) => {
+        res.data?.records?.map((item) => {
+          item['name'] = item.localComplianceOfficer.toString();
+          return item;
+        });
+        setComplianceOfficerList(res.data);
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          e.response?.data?.errors?.[0]?.message || 'Error while fethcing data compliance officers list.',
+          'alert',
+        );
+      });
     //eslint-disable-next-line
   }, []);
 
@@ -153,58 +184,35 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
               </div>
             </div>
             <div className={Styles.flexLayout}>
-              <div
-                className={classNames('input-field-group include-error', errors.LCONeededToBeInvolved ? 'error' : '')}
-              >
-                <label id="dLCONeededToBeInvolvedLabel" htmlFor="LCONeededToBeInvolvedInput" className="input-label">
-                  Is LCO/LCR needed to be involved / has to check legal basis of usage of personal data? <sup>*</sup>
-                </label>
-                <div className={Styles.radioBtns}>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('LCONeededToBeInvolved', {
-                          required: '*Missing entry',
-                        })}
-                        type="radio"
-                        className="ff-only"
-                        name="LCONeededToBeInvolved"
-                        value="No"
-                      />
-                    </span>
-                    <span className="label">No</span>
-                  </label>
-                  <label className={'radio'}>
-                    <span className="wrapper">
-                      <input
-                        {...register('LCONeededToBeInvolved', { required: '*Missing entry' })}
-                        type="radio"
-                        className="ff-only"
-                        name="LCONeededToBeInvolved"
-                        value="Yes"
-                      />
-                    </span>
-                    <span className="label">Yes</span>
-                  </label>
-                </div>
-                <span className={classNames('error-message')}>{errors?.LCONeededToBeInvolved?.message}</span>
-              </div>
-            </div>
-            <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.LCOOfficer ? 'error' : '')}>
-                <label id="LCOOfficerLabel" htmlFor="LCOOfficerInput" className="input-label">
-                  Local Compliance Officer / Local Compliance Responsible (LCO/LCR) <sup>*</sup>
-                </label>
-                <input
-                  {...register('LCOOfficer', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="LCOOfficerInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+              <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>
+                <Controller
+                  control={control}
+                  name="complianceOfficer"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <Tags
+                      title={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
+                      max={1}
+                      chips={complianceOfficer}
+                      tags={complianceOfficerList.records}
+                      setTags={(selectedTags) => {
+                        setComplianceOfficer(selectedTags);
+                        field.onChange(selectedTags);
+                      }}
+                      suggestionRender={(item) => (
+                        <div className={Styles.optionContainer}>
+                          <span className={Styles.optionText}>Entity ID: {item?.entityId}</span>
+                          <span className={Styles.optionText}>Entiry Name: {item?.entityName}</span>
+                          <span className={Styles.optionText}>LCO: {item?.name}</span>
+                        </div>
+                      )}
+                      isMandatory={true}
+                      showMissingEntryError={errors.complianceOfficer?.message}
+                      disableOnBlurAdd={true}
+                      suggestionPopupHeight={120}
+                    />
+                  )}
                 />
-                <span className={classNames('error-message')}>{errors.LCOOfficer?.message}</span>
               </div>
               <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
                 <label id="planningITLabel" htmlFor="planningITInput" className="input-label">
@@ -223,23 +231,23 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
               </div>
             </div>
           </div>
-          <div className="btnContainer">
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={isSubmitting}
-              onClick={handleSubmit((data) => {
-                console.log(data);
-                onSave();
-                reset(data, {
-                  keepDirty: false,
-                });
-              })}
-            >
-              Save & Next
-            </button>
-          </div>
         </div>
+      </div>
+      <div className="btnContainer">
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={isSubmitting}
+          onClick={handleSubmit((data) => {
+            console.log(data);
+            onSave(data);
+            reset(data, {
+              keepDirty: false,
+            });
+          })}
+        >
+          Save & Next
+        </button>
       </div>
       {showInfoModal && (
         <InfoModal

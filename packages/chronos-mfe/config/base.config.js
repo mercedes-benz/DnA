@@ -12,13 +12,40 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js?$/,
-        exclude: /node_modules/,
-        loader: 'babel-loader',
-        options: {
-          presets: ['@babel/preset-env' /* to transfer any advansed ES to ES5 */, '@babel/preset-react'], // to compile react to ES5
-          plugins: [['@babel/plugin-transform-runtime']],
-        },
+        test: /\.(eot|woff2|woff|svg|otf)/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 1000,
+              name: 'fonts/[name]-[contenthash].[ext]',
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(ttf)/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 1000,
+              name: 'fonts/[name].[ext]',
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(png|jpg|gif)$/i,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 1000,
+              name: 'images/[name]-[contenthash].[ext]',
+            },
+          },
+        ],
       },
       {
         test: /\.(css|scss)$/,

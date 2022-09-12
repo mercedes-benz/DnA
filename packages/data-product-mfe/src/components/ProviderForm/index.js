@@ -17,19 +17,18 @@ import { SetDataProducts, UpdateDataProducts } from '../redux/dataProduct.servic
 import { deserializeFormData, mapOpenSegments } from '../../Utility/formData';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
+import SelectBox from 'dna-container/SelectBox';
 
 // Form Components
-import BasicInformation from './BasicInformation';
 import ContactInformation from './ContactInformation';
 import Classification from './ClassificationAndConfidentiality';
 import PersonalRelatedData from './PersonalRelatedData';
 import TransNationalDataTransfer from './TransNationalDataTransfer';
-import DataOriginating from './DataOriginating';
-import OtherRelevant from './OtherRelavantInfo';
 import DeletionRequirements from './DeletionRequirements';
 
+import TourGuide from '../TourGuide';
+
 const tabs = {
-  'basic-info': {},
   'contact-info': {
     productName: '',
     dateOfDataTransfer: '',
@@ -38,7 +37,7 @@ const tabs = {
     subDivision: '0',
     department: '',
     complianceOfficer: '',
-    planningIT: '',
+    planningIT: 'APP-',
   },
   'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: 'Public' },
   'personal-data': {
@@ -51,10 +50,9 @@ const tabs = {
     transnationalDataTransfer: '',
     transnationalDataTransferNotWithinEU: '',
     LCOApprovedDataTransfer: '',
+    dataOriginatedFromChina: '',
   },
-  'data-originating-china': { dataOriginatedFromChina: '' },
-  'deletion-requirements': { deletionRequirement: '', deletionRequirementDescription: '' },
-  'other-information': { otherRelevantInfo: '' },
+  'deletion-requirements': { deletionRequirement: '', deletionRequirementDescription: '', otherRelevantInfo: '' },
 };
 
 const ProviderForm = ({ user, history }) => {
@@ -63,10 +61,10 @@ const ProviderForm = ({ user, history }) => {
 
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
-  const [currentTab, setCurrentTab] = useState(isEditPage ? 'contact-info' : 'basic-info');
+  const [currentTab, setCurrentTab] = useState('contact-info');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
-  const { setValue, formState, reset, watch } = methods;
+  const { setValue, formState, reset } = methods;
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -111,7 +109,7 @@ const ProviderForm = ({ user, history }) => {
         let defaultValues = { ...provideDataProducts.selectedDataProduct };
         reset(defaultValues); // setting default values
       } else {
-        const data = watch();
+        const data = tabs['contact-info'];
         reset(data); // setting default values
       }
     } //eslint-disable-next-line
@@ -123,6 +121,7 @@ const ProviderForm = ({ user, history }) => {
       setDivisions(res.data);
       ProgressIndicator.hide();
       dispatch(setDivisionList(res.data));
+      SelectBox.defaultSetup();
     });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
@@ -155,7 +154,7 @@ const ProviderForm = ({ user, history }) => {
   const switchTabs = (currentTab) => {
     const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
     setSavedTabs([...new Set([...savedTabs, currentTab])]);
-    if (currentTab !== 'other-information') {
+    if (currentTab !== 'deletion-requirements') {
       setCurrentTab(Object.keys(tabs)[tabIndex]);
       elementRef.current[tabIndex].click();
     }
@@ -185,187 +184,145 @@ const ProviderForm = ({ user, history }) => {
   };
 
   return (
-    <FormProvider {...methods}>
-      <div className={classNames(Styles.mainPanel)}>
-        <h3 className={classNames(Styles.title)}>Provide Data Product</h3>
-        <div id="data-product-tabs" className="tabs-panel">
-          <div className="tabs-wrapper">
-            <nav>
-              <ul className="tabs">
-                {!isEditPage ? (
-                  <li className={savedTabs?.includes('basic-info') ? 'tab valid' : 'tab active'}>
-                    <a href="#tab-content-1" id="basic-info" ref={elementRef} onClick={setTab}>
-                      Basic Information
+    <>
+      <button
+        className={classNames('btn btn-text back arrow', Styles.backBtn)}
+        type="submit"
+        onClick={() => history.goBack()}
+      >
+        Back
+      </button>
+      <FormProvider {...methods}>
+        <div className={classNames(Styles.mainPanel)}>
+          <h3 className={classNames(Styles.title)}>Data Providing Side</h3>
+          <div id="data-product-tabs" className="tabs-panel">
+            <div className="tabs-wrapper">
+              <nav>
+                <ul className="tabs">
+                  <li className={savedTabs?.includes('contact-info') ? 'tab valid' : 'tab active'}>
+                    <a
+                      href="#tab-content-1"
+                      id="contact-info"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[0] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Contact Information
                     </a>
                   </li>
-                ) : null}
-                <li
-                  className={
-                    savedTabs?.includes('contact-info') ? 'tab valid' : isEditPage ? 'tab active' : 'tab disabled'
-                  }
-                >
-                  <a
-                    href="#tab-content-2"
-                    id="contact-info"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[1] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Contact Information
-                  </a>
-                </li>
-                <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}>
-                  <a
-                    href="#tab-content-3"
-                    id="classification-confidentiality"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[2] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Classification & Confidentiality
-                  </a>
-                </li>
-                <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
-                  <a
-                    href="#tab-content-4"
-                    id="personal-data"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[3] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Identifying personal related data
-                  </a>
-                </li>
-                <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}>
-                  <a
-                    href="#tab-content-5"
-                    id="trans-national-data-transfer"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[4] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Identifiying Trans-national Data Transfer
-                  </a>
-                </li>
-                <li className={savedTabs?.includes('data-originating-china') ? 'tab valid' : 'tab disabled'}>
-                  <a
-                    href="#tab-content-6"
-                    id="data-originating-china"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[5] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Identifying data originating from China
-                  </a>
-                </li>
-                <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}>
-                  <a
-                    href="#tab-content-7"
-                    id="deletion-requirements"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[6] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Specify deletion requirements
-                  </a>
-                </li>
-                <li className={savedTabs?.includes('other-information') ? 'tab valid' : 'tab disabled'}>
-                  <a
-                    href="#tab-content-8"
-                    id="other-information"
-                    ref={(ref) => {
-                      if (elementRef.current) elementRef.current[7] = ref;
-                    }}
-                    onClick={setTab}
-                  >
-                    Specifying other relevant information
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </div>
-          <div className="tabs-content-wrapper">
-            {!isEditPage ? (
+                  <li className={savedTabs?.includes('classification-confidentiality') ? 'tab valid' : 'tab disabled'}>
+                    <a
+                      href="#tab-content-2"
+                      id="classification-confidentiality"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[1] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Data Description & Classification
+                    </a>
+                  </li>
+                  <li className={savedTabs?.includes('personal-data') ? 'tab valid' : 'tab disabled'}>
+                    <a
+                      href="#tab-content-3"
+                      id="personal-data"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[2] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Personal Related Data
+                    </a>
+                  </li>
+                  <li className={savedTabs?.includes('trans-national-data-transfer') ? 'tab valid' : 'tab disabled'}>
+                    <a
+                      href="#tab-content-4"
+                      id="trans-national-data-transfer"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[3] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Trans-national Data
+                    </a>
+                  </li>
+                  <li className={savedTabs?.includes('deletion-requirements') ? 'tab valid' : 'tab disabled'}>
+                    <a
+                      href="#tab-content-5"
+                      id="deletion-requirements"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[4] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Deletion Requirements & Other
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+            <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
-                <BasicInformation onSave={() => switchTabs('basic-info')} />
-              </div>
-            ) : null}
-            <div id="tab-content-2" className="tab-content">
-              {currentTab === 'contact-info' && (
                 <ContactInformation
                   onSave={(values) => onSave('contact-info', values)}
                   divisions={divisions}
                   setSubDivisions={setSubDivisions}
                   subDivisions={subDivisions}
                 />
-              )}
-            </div>
-            <div id="tab-content-3" className="tab-content">
-              {currentTab === 'classification-confidentiality' && (
-                <Classification onSave={(values) => onSave('classification-confidentiality', values)} />
-              )}
-            </div>
-            <div id="tab-content-4" className="tab-content">
-              {currentTab === 'personal-data' && (
-                <PersonalRelatedData onSave={(values) => onSave('personal-data', values)} />
-              )}
-            </div>
-            <div id="tab-content-5" className="tab-content">
-              {currentTab === 'trans-national-data-transfer' && (
-                <TransNationalDataTransfer onSave={(values) => onSave('trans-national-data-transfer', values)} />
-              )}
-            </div>
-            <div id="tab-content-6" className="tab-content">
-              {currentTab === 'data-originating-china' && (
-                <DataOriginating onSave={(values) => onSave('data-originating-china', values)} />
-              )}
-            </div>
-            <div id="tab-content-7" className="tab-content">
-              {currentTab === 'deletion-requirements' && (
-                <DeletionRequirements onSave={(values) => onSave('deletion-requirements', values)} />
-              )}
-            </div>
-            <div id="tab-content-8" className="tab-content">
-              {currentTab === 'other-information' && (
-                <OtherRelevant onSave={(values) => onSave('other-information', values)} />
-              )}
+              </div>
+              <div id="tab-content-2" className="tab-content">
+                {currentTab === 'classification-confidentiality' && (
+                  <Classification onSave={(values) => onSave('classification-confidentiality', values)} />
+                )}
+              </div>
+              <div id="tab-content-3" className="tab-content">
+                {currentTab === 'personal-data' && (
+                  <PersonalRelatedData onSave={(values) => onSave('personal-data', values)} />
+                )}
+              </div>
+              <div id="tab-content-4" className="tab-content">
+                {currentTab === 'trans-national-data-transfer' && (
+                  <TransNationalDataTransfer onSave={(values) => onSave('trans-national-data-transfer', values)} />
+                )}
+              </div>
+              <div id="tab-content-5" className="tab-content">
+                {currentTab === 'deletion-requirements' && (
+                  <DeletionRequirements onSave={(values) => onSave('deletion-requirements', values)} />
+                )}
+              </div>
             </div>
           </div>
+          <ConfirmModal
+            title="Save Changes?"
+            acceptButtonTitle="Close"
+            cancelButtonTitle="Cancel"
+            showAcceptButton={true}
+            showCancelButton={true}
+            show={showChangeAlert?.modal}
+            content={
+              <div id="contentparentdiv">
+                Press &#187;Close&#171; to save your changes or press
+                <br />
+                &#187;Cancel&#171; to discard changes.
+              </div>
+            }
+            onCancel={() => {
+              getDataProductById();
+              setCurrentTab(showChangeAlert.switchingTab);
+              elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
+              setShowChangeAlert({ modal: false, switchingTab: '' });
+            }}
+            onAccept={() => {
+              setShowChangeAlert({ modal: false, switchingTab: '' });
+              elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
+            }}
+          />
         </div>
-        <ConfirmModal
-          title="Save Changes?"
-          acceptButtonTitle="Close"
-          cancelButtonTitle="Cancel"
-          showAcceptButton={true}
-          showCancelButton={true}
-          show={showChangeAlert?.modal}
-          content={
-            <div id="contentparentdiv">
-              Press &#187;Close&#171; to save your changes or press
-              <br />
-              &#187;Cancel&#171; to discard changes.
-            </div>
-          }
-          onCancel={() => {
-            getDataProductById();
-            setCurrentTab(showChangeAlert.switchingTab);
-            elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-          }}
-          onAccept={() => {
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-            elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
-          }}
-        />
-      </div>
-      {currentTab !== 'basic-info' && <div className={Styles.mandatoryInfo}>* mandatory fields</div>}
-    </FormProvider>
+        <div className={Styles.mandatoryInfo}>* mandatory fields</div>
+      </FormProvider>
+      {!isEditPage && <TourGuide />}
+    </>
   );
 };
 export default ProviderForm;

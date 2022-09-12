@@ -39,7 +39,7 @@ import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 import { getQueryParameterByName } from '../../../services/Query';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
-import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent, csvSeparator } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 
 import SolutionsFilter from '../filters/SolutionsFilter';
@@ -400,6 +400,7 @@ export default class AllSolutions extends React.Component<
                   ref={(r: any) => (this.csvLink = r)}
                   filename={`Solutions.csv`}
                   target="_blank"
+                  separator={csvSeparator(navigator.language)}
                 />
                 <div className={Styles.solutionsViewMode}>
                   <div tooltip-data="Card View">
@@ -802,6 +803,8 @@ export default class AllSolutions extends React.Component<
         default:
           break;
       }
+      // const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+      // const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
       this.setState({ queryParams,
         currentPageOffset: 0,
         currentPageNumber: 1, }, () => {
@@ -861,6 +864,9 @@ export default class AllSolutions extends React.Component<
     const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
     const tags = queryParams.tag.join(',');
 
+    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
+
     ApiClient.getSolutionsByGraphQL(
       locationIds,
       phaseIds,
@@ -874,6 +880,8 @@ export default class AllSolutions extends React.Component<
       this.state.sortBy.name,
       this.state.sortBy.currentSortType,
       getPublished,
+      isDigitalValueContributionEnabled,
+      isNotificationEnabled
     )
       .then((res) => {
         if (res) {

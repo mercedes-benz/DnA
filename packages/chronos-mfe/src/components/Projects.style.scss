@@ -16,7 +16,7 @@
     }
     .content {
         background-color: #252a33;
-        padding: 0 0 0px 0px;
+        padding: 0;
         min-width: 518px;
         .listContent {
             min-height: 435px;
@@ -78,21 +78,9 @@
         }
     }
 }
-.allProjectContent {
-    margin-bottom: 15px;
-    flex: 1 auto;
-    position: relative;
-
-    .allProjectCardviewContent {
-        flex-wrap: wrap;
-        display: flex;
-        justify-content: left;
-        margin-right: -30px;
-    }
-}
 .content {
+    padding-top: 8px;
     .formGroup {
-        padding: 25px 38px;
         .permissionField {
             display: flex;
             margin-left: -10px;
@@ -114,7 +102,387 @@
         }
     }
 }
+.membersList {
+  padding: 0 15px 0 0;
+  max-height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+}
 .btnContainer {
     display: flex;
     justify-content: flex-end;
 }
+
+.breadcrumb {
+    margin-top: -50px;
+    margin-bottom: 25px;
+
+    ol {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+
+        li {
+            color: #c8c9cb;
+            margin-right: 6px;
+            display: flex;
+            align-items: center;
+
+            &::after {
+                font-family: "dna-icons";
+                content: "\e91e";
+                margin-left: 6px;
+            }
+
+            &:last-child::after {
+                display: none;
+            }
+
+            a {
+                color: #c8c9cb;
+            }
+        }
+    }
+}
+
+.modalSubTitle {
+    border-top: 1px solid #383f49;
+    margin: 8px 0 0;
+    padding-top: 18px;
+    font-size: 16px;
+    padding-bottom: 12px;
+}
+.collabContent {
+    margin: 10px 0;
+    .collabContentEmpty {
+      width: 100%;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #383f49;
+      margin-top: -9px;
+      h6 {
+        font-size: var(--font-size-smallest);
+        font-weight: initial;
+        margin: 0;
+      }
+    }
+    .collabContentList {
+      display: none;
+      font-size: var(--font-size-smallest);
+      .collabContentListAdd {
+        margin: 25px auto;
+        .userExistedError {
+          color: #e84d47;
+          padding: 4px 0;
+        }
+      }
+      .collabUsersList {
+        .collUserTitle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          padding-bottom: 15px;
+          border-bottom: 1px solid #383f49;
+          .collUserTitleCol {
+            flex: 1;
+            font-size: var(--font-size-smallest);
+            padding-right: 12px;
+            color: #99a5b3;
+          }
+        }
+        .collUserContent {
+          display: flex;
+          align-items: center;
+          flex-direction: column;
+          justify-content: flex-start;
+          width: 100%;
+          .collUserContentRow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            border-bottom: 1px solid #383f49;
+            .collUserTitleCol {
+              display: flex;
+              align-items: center;
+              justify-content: flex-start;
+              flex: 1;
+              font-size: var(--font-size-smallest);
+              padding-right: 15px;
+              word-break: break-word;
+              color: #99a5b3;
+              label {
+                cursor: pointer;
+              }
+              span {
+                color: #99a5b3;
+              }
+              .checkBoxDisable {
+                pointer-events: none;
+                opacity: 0.5;
+                cursor: default;
+              }
+              .writeAccess {
+                cursor: pointer;
+              }
+              input {
+                opacity: unset !important;
+                position: initial;
+                z-index: unset !important;
+              }
+              .inputGrp {
+                margin-top: 8px;
+                &:first-child {
+                  margin-left: -10px;
+                }
+                min-height: unset;
+              }
+              i {
+                margin: -7px 7px 0 0;
+                right: 0;
+              }
+              div {
+                cursor: default;
+              }
+            }
+            .colAction {
+                max-width: 50px;
+                .deleteEntry {
+                    cursor: pointer;
+                    font-size: var(--font-size-medium);
+                    color: #00adef;
+                }
+            }
+          }
+        }
+      }
+    }
+  }
+  .addItemButton {
+    margin-top: 13px;
+    button {
+      padding: 0;
+      margin: 0;
+      background: none;
+      border: none;
+      outline: none;
+      color: #c0c8d0;
+      vertical-align: middle;
+      i {
+        vertical-align: top;
+        margin-right: 10px;
+        color: #00adef;
+      }
+      span {
+        color: #99a5b3;
+      }
+      &:hover span {
+        text-decoration: underline;
+      }
+    }
+    i {
+      width: auto;
+      height: auto;
+      margin-right: 19px;
+    }
+  }
+
+  .teamListWrapper {
+    margin: 8px -25px 0 -35px;
+
+    .avatarIcon {
+      width: 55px;
+      height: 55px;
+    }
+
+    .addTeamMemberWrapper {
+      min-height: 68px;
+      padding-left: 40px;
+
+      button {
+        padding: 0;
+        margin: 0 0 0 30px;
+        background: none;
+        border: none;
+        outline: none;
+        color: #c0c8d0;
+        vertical-align: middle;
+
+        i {
+          vertical-align: top;
+          margin-right: 10px;
+          color: #00adef;
+        }
+
+        &:hover span {
+          text-decoration: underline;
+        }
+      }
+
+      .teamsErrorMessage {
+        margin: 3px 0 0 85px;
+        font-size: var(--font-size-small);
+      }
+    }
+  }
+
+  .apiKey {
+    display: flex;
+    align-items: center;
+    padding: 16px 0;
+
+    p {
+      margin: 0;
+      margin-right: 35px;
+    }
+    .generateApiKeyBtn {
+      background: unset;
+      color: #c0c8d0;
+      border: 2px solid #383f49;
+      padding: 7px 30px;
+    }
+    .label {
+      color: #acb8c4;
+      font-size: var(--font-size-smallest);
+    }
+    .oneApiLink {
+      margin-left: 10px;
+    }
+  }
+  
+  .appIdParentDiv {
+    display: flex;
+    align-items: center;
+    .refreshedKey {
+      min-width: 218px;
+      height: 37.5px;
+      display: flex;
+      align-items: center;
+    }
+    i {
+      font-size: var(--font-size-icon);
+      cursor: pointer;
+      display: block;
+      width: 28px;
+    }
+    div {
+      .copyAppIdDisable {
+        opacity: 0.4;
+        cursor: default;
+        pointer-events: none;
+      }
+      .showAppId {
+        cursor: pointer;
+        margin-left: 0;
+        font-size: var(--font-size-small);
+      }
+      
+    }
+    .refreshedKeyIcon {
+      display: flex;
+      align-items: center;
+      margin-top: -5px;
+      .visiblityshow {
+        font-size: var(--font-size-tiny);
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .allProjectContent {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin: -7px;
+
+    .newProjectCard {
+      width: calc(33.33% - 14px);
+      margin: 7px;
+      min-width: 250px;
+      position: relative;
+      border: 1px solid #383F49;
+      cursor: pointer;
+
+      .addicon {
+        top: calc(50% - 41px);
+        width: 63px;
+        height: 63px;
+        border: 1px solid #fff;
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin: 0 auto;
+        &:after {
+          content: '';
+          position: absolute;
+          width: 50%;
+          height: 1px;
+          background-color: #00ADEF;
+          left: 25%;
+          transform: rotate(90deg);
+        }
+        &:before {
+          content: '';
+          position: absolute;
+          width: 50%;
+          height: 1px;
+          background-color: #00ADEF;
+          left: 25%;
+          margin: 0 auto;
+          transform: rotate(180deg);
+          top: 49%;
+        }
+      }
+      .addlabel {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        position: absolute;
+        word-break: break-word;
+        display: block;
+        width: 100%;
+        text-align: center;
+        bottom: 20px;
+      }
+
+      &:hover .addlabel {
+        color: #00adef;
+      }
+    }
+  }
+
+  .collabAvatar {
+    padding: 0 25px 25px 0;
+    max-height: calc(90vh - 110px);
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    &::-webkit-scrollbar-thumb {
+      background: #00adef;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #293f55;
+    }
+    &::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+  }

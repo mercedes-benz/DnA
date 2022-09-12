@@ -27,9 +27,19 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServerWorkspaceNsql, String> {
+
+	List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset);
+
+	Integer getCount(String userId);
+
+	CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value);
+
+	CodeServerWorkspaceNsql findById(String userId, String id);
 
 }

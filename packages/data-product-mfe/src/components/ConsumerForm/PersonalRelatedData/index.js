@@ -1,18 +1,17 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import Styles from '../common.styles.scss';
+import Styles from './styles.scss';
 import { withRouter } from 'react-router-dom';
 
 import { useFormContext } from 'react-hook-form';
 
 import InfoModal from 'dna-container/InfoModal';
-import ConfirmModal from 'dna-container/ConfirmModal';
 
 import { Envs } from '../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLegalBasis } from '../../redux/consumeDataProduct.services';
 
-const PersonalRelatedData = ({ onSave, history }) => {
+const PersonalRelatedData = ({ onSave }) => {
   const {
     register,
     handleSubmit,
@@ -23,8 +22,6 @@ const PersonalRelatedData = ({ onSave, history }) => {
     resetField,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showPublishModal, setPublishModal] = useState(false);
-  const [touChecked, setTOUChecked] = useState(false);
 
   const dispatch = useDispatch();
   const { legalBasisList } = useSelector((state) => state.consumeDataProducts);
@@ -40,33 +37,6 @@ const PersonalRelatedData = ({ onSave, history }) => {
   useEffect(() => {
     dispatch(getLegalBasis());
   }, [dispatch]);
-
-  const publishContent = (
-    <div>
-      <h3>Publish Data Product</h3>
-      <div className={Styles.termsOfUseContainer}>
-        <div className={Styles.termsOfUseContent}>
-          <label className="checkbox">
-            <span className="wrapper">
-              <input
-                value={touChecked}
-                type="checkbox"
-                className="ff-only"
-                onChange={() => setTOUChecked(!touChecked)}
-                defaultChecked={false}
-              />
-            </span>
-            <div
-              className={classNames(Styles.termsOfUseText, 'mbc-scroll')}
-              dangerouslySetInnerHTML={{
-                __html: Envs.DATA_PRODUCT_TOU_HTML,
-              }}
-            ></div>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -267,31 +237,58 @@ const PersonalRelatedData = ({ onSave, history }) => {
               <span className={classNames('error-message')}>{errors?.LCOComments?.message}</span>
             </div>
           </div>
-          <div className="btnContainer">
-            <div className="btn-set">
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={handleSubmit((data) => {
-                  onSave();
-                  reset(data, {
-                    keepDirty: false,
-                  });
-                })}
-              >
-                Save
-              </button>
-              <button
-                className="btn btn-tertiary"
-                type="button"
-                onClick={handleSubmit(() => {
-                  setPublishModal(true);
-                })}
-              >
-                Consume Data Product
-              </button>
+        </div>
+      </div>
+      <div className={Styles.wrapper}>
+        <div className={Styles.firstPanel}>
+          <div className={Styles.termsOfUseContainer}>
+            <div className={Styles.termsOfUseContent}>
+              <label className={classNames('checkbox', errors?.tou ? 'error' : '')}>
+                <span className="wrapper">
+                  <input {...register('tou', { required: '*Missing entry' })} type="checkbox" className="ff-only" />
+                </span>
+                <div
+                  className={classNames(Styles.termsOfUseText, 'mbc-scroll')}
+                  style={{
+                    ...(errors?.tou ? { color: '#e84d47' } : ''),
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: Envs.DATA_PRODUCT_TOU_HTML,
+                  }}
+                ></div>
+              </label>
             </div>
+            <span className={classNames('error-message', Styles.errorMsg)}>{errors?.tou?.message}</span>
           </div>
+        </div>
+      </div>
+      <div className="btnContainer">
+        <div className="btn-set">
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={handleSubmit((data) => {
+              onSave(data);
+              reset(data, {
+                keepDirty: false,
+              });
+            })}
+          >
+            Save
+          </button>
+          <button
+            className="btn btn-tertiary"
+            type="button"
+            onClick={handleSubmit((data) => {
+              setValue('publish', true);
+              onSave(watch());
+              reset(data, {
+                keepDirty: false,
+              });
+            })}
+          >
+            Finalize Minimum Information Documentation
+          </button>
         </div>
       </div>
       {showInfoModal && (
@@ -303,23 +300,6 @@ const PersonalRelatedData = ({ onSave, history }) => {
           onCancel={() => setShowInfoModal(false)}
         />
       )}
-      <ConfirmModal
-        title={''}
-        acceptButtonTitle="Publish"
-        showAcceptButton={true}
-        showCancelButton={true}
-        show={showPublishModal}
-        content={publishContent}
-        onAccept={() => {
-          setPublishModal(false);
-          setValue('tou', touChecked);
-          console.log('Published data', watch());
-          // dispatch(SetDataProducts(watch()));
-          history.push('/');
-        }}
-        onCancel={() => setPublishModal(false)}
-        acceptButtonDisabled={!touChecked}
-      />
     </>
   );
 };

@@ -13,7 +13,7 @@ import ImgMaturityLevel from '../../../../assets/images/maturity-level-info.png'
 import ImgRiskAssesment from '../../../../assets/images/risk-assesment-info.png';
 // @ts-ignore
 import ImgValueDriver from '../../../../assets/images/value-driver-info.png';
-import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
+import IconAvatarNew from '../../../../components/icons/IconAvatarNew';
 import {
   IAssessment,
   IAttachment,
@@ -34,7 +34,7 @@ import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMembe
 import AddOrEditFactorModal from './addOrEditFactorModal/AddOrEditFactorModal';
 import Styles from './DigitalValue.scss';
 import SelectBox from '../../../formElements/SelectBox/SelectBox';
-import {IntlProvider, FormattedNumber} from 'react-intl';
+import { IntlProvider, FormattedNumber } from 'react-intl';
 
 const classNames = cn.bind(Styles);
 
@@ -385,7 +385,13 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                   </p>
                   <div className={Styles.addIconButtonWrapper}>
                     <IconAvatarNew className={Styles.buttonIcon} />
-                    <button id="AddControllerBtn" onClick={() => { this.setState({ isControllerMember: true }); this.addControllerMember(); }}>
+                    <button
+                      id="AddControllerBtn"
+                      onClick={() => {
+                        this.setState({ isControllerMember: true });
+                        this.addControllerMember();
+                      }}
+                    >
                       <i className="icon mbc-icon plus" />
                       <span>Add controller (optional)</span>
                     </button>
@@ -589,13 +595,21 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
                                             <strong>{valueDriver.year}</strong>
                                             <div>
                                               <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
+                                                {valueDriver.percent ? (
+                                                  <FormattedNumber value={Number(valueDriver.percent)} />
+                                                ) : (
+                                                  ''
+                                                )}
                                               </IntlProvider>
                                               %
                                             </div>
                                             <div>
                                               <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                                {valueDriver.value ? (
+                                                  <FormattedNumber value={Number(valueDriver.value)} />
+                                                ) : (
+                                                  ''
+                                                )}
                                               </IntlProvider>
                                               &euro;
                                             </div>
@@ -798,7 +812,12 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
               <div>
                 <div className={Styles.addIconButtonWrapper}>
                   <IconAvatarNew className={Styles.buttonIcon} />
-                  <button onClick={() => { this.setState({ isControllerMember: false }); this.addTeamMember(); }}>
+                  <button
+                    onClick={() => {
+                      this.setState({ isControllerMember: false });
+                      this.addTeamMember();
+                    }}
+                  >
                     <i className="icon mbc-icon plus" />
                     <span>Add share / permission to team member</span>
                   </button>
@@ -972,13 +991,19 @@ export default class DigitalValue extends React.Component<IDigitalValueProps, ID
   };
 
   protected validateMembersList = (teamMemberObj: ITeams) => {
-    if(this.state.isControllerMember) {
+    if (this.state.isControllerMember) {
       let duplicateMember = false;
-      duplicateMember = this.state.contollerTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+      duplicateMember = this.state.contollerTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)
+        ?.length
+        ? true
+        : false;
       return duplicateMember;
     } else {
       let duplicateMember = false;
-      duplicateMember = this.state.sharingTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+      duplicateMember = this.state.sharingTeamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)
+        ?.length
+        ? true
+        : false;
       return duplicateMember;
     }
   };

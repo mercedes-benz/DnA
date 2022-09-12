@@ -1,0 +1,164 @@
+.content {
+  background: #252a33;
+  margin: 15px 0;
+  padding: 25px 0;
+  position: relative;
+
+  h3,
+  span.description {
+    padding: 0 38px;
+  }
+
+  .contextMenu {
+    float: right;
+    margin: 5px 20px 0 0;
+    &.open .contextMenuTrigger {
+      z-index: 10;
+      position: relative;
+    }
+
+    .contextMenuTrigger {
+      padding: 12px 10px;
+      cursor: pointer;
+
+      &:hover {
+        color: #00adef;
+      }
+    }
+  }
+}
+
+.firstPanel {
+  background: #252a33;
+  margin-bottom: 15px;
+
+  .flexLayout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px;
+    > div {
+      width: calc(50% - 7px);
+    }
+    &.fourColumn {
+      > div {
+        width: calc(25% - 7px);
+      }
+    }
+    &.threeColumn {
+      > div {
+        width: calc(33% - 7px);
+      }
+    }
+  }
+}
+  
+:global {
+  label.input-label.summary {
+    color: #99A5B3;
+    font-size: var(--font-size-small);
+    font-weight: bold;
+  }
+}
+
+.teamListWrapper {
+  margin: 40px 0 0;
+
+  .avatarIcon {
+    width: 55px;
+    height: 55px;
+  }
+
+  .addTeamMemberWrapper {
+    min-height: 110px;
+    padding-left: 40px;
+
+    button {
+      padding: 0;
+      margin: 0 0 0 30px;
+      background: none;
+      border: none;
+      outline: none;
+      color: #c0c8d0;
+      vertical-align: middle;
+
+      i {
+        vertical-align: top;
+        margin-right: 10px;
+        color: #00adef;
+      }
+
+      &:hover span {
+        text-decoration: underline;
+      }
+    }
+
+    .teamsErrorMessage {
+      margin: 3px 0 0 85px;
+      font-size: var(--font-size-small);
+    }
+  }
+}
+
+.membersList {
+  padding-right: 35px;
+}
+
+.apiKey {
+  display: flex;
+  align-items: center;
+
+  p {
+    margin: 0;
+    margin-right: 35px;
+  }
+  .generateApiKeyBtn {
+    background: unset;
+    color: #c0c8d0;
+    border: 2px solid #383f49;
+    padding: 7px 30px;
+  }
+  .label {
+    color: #acb8c4;
+    font-size: var(--font-size-smallest);
+  }
+  .oneApiLink {
+    margin-left: 10px;
+  }
+}
+
+.appIdParentDiv {
+  display: flex;
+  align-items: center;
+  .refreshedKey {
+    min-width: 218px;
+  }
+  i {
+    font-size: var(--font-size-icon);
+    cursor: pointer;
+    display: block;
+    width: 28px;
+  }
+  div {
+    .copyAppIdDisable {
+      opacity: 0.4;
+      cursor: default;
+      pointer-events: none;
+    }
+    .showAppId {
+      cursor: pointer;
+      margin-left: 0;
+      font-size: var(--font-size-small);
+    }
+    
+  }
+  .refreshedKeyIcon {
+    display: flex;
+    align-items: center;
+    margin-top: -5px;
+    .visiblityshow {
+      font-size: var(--font-size-tiny);
+      margin-top: 2px;
+    }
+  }
+}

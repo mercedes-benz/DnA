@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
-import { ApiClient } from '../../../../services/ApiClient';
+// import { ApiClient } from '../../../../services/ApiClient';
 
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -14,11 +14,13 @@ import TextBox from '../../shared/textBox/TextBox';
 import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
 import { IUserInfo } from '../../../../globals/types';
+import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 
 const classNames = cn.bind(Styles);
 
 export interface ICodeSpaceProps {
   user: IUserInfo;
+  lastCreatedId?: number;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
   toggleProgressMessage?: (show: boolean) => void;
 }
@@ -36,10 +38,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
-  const [environment, setEnvironment] = useState('dhc-cass');
+  const [environment, setEnvironment] = useState('DHC-CaaS');
   const [recipeValues, setRecipeValues] = useState([]);
   const recipes = [
-    { id: 'ms-springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'default', name: 'Plain or Empty (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'microservice', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
     { id: 'dna', name: 'DnA Workspace (Coming Soon)' },
     { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
     { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
@@ -53,6 +56,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     password: '',
     confirmPassword: '',
   });
+
+  // const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
 
   const requiredError = '*Missing entry';
 
@@ -179,43 +184,85 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     return formValid;
   };
 
-  let livelinessInterval:any = undefined;
-  const enableLivelinessCheck = () => {
+  let livelinessInterval: any = undefined;
+  const enableLivelinessCheck = (name: string) => {
     clearInterval(livelinessInterval);
     livelinessInterval = setInterval(() => {
-      ApiClient.getCodeSpace().then((res: any) => {
-        if(res.success === 'true') {
+      CodeSpaceApiClient.getCodeSpaceStatus(name)
+        .then((res:any) => {
+          if (res.status === 'CREATED') {
+            props.toggleProgressMessage(false);
+            ProgressIndicator.hide();
+            clearInterval(livelinessInterval);
+            props.isCodeSpaceCreationSuccess(true, {
+              id: res.id,
+              name: res.name,
+              url: res.workspaceUrl,
+              running: true,
+            });
+            Notification.show('Code space succesfully created.');
+          }
+        })
+        .catch((err: Error) => {
+          clearInterval(livelinessInterval);
           props.toggleProgressMessage(false);
           ProgressIndicator.hide();
-          clearInterval(livelinessInterval);
-          props.isCodeSpaceCreationSuccess(true, { 
-            url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
-            running: true,
-          });
-          Notification.show('Code space succesfully created.');
-        }
-      }).catch((err: Error) => {
-        clearInterval(livelinessInterval);
-        props.toggleProgressMessage(false);
-        ProgressIndicator.hide();
-        Notification.show("Error in validating code space - " + err.message, 'alert');
-      });
+          Notification.show('Error in validating code space - ' + err.message, 'alert');
+        });
     }, 2000);
-  }
+  };
+
+  // let livelinessInterval: any = undefined;
+  // const enableLivelinessCheck = () => {
+  //   clearInterval(livelinessInterval);
+  //   livelinessInterval = setInterval(() => {
+  //     ApiClient.getCodeSpace()
+  //       .then((res: any) => {
+  //         if (res.success === 'true') {
+  //           props.toggleProgressMessage(false);
+  //           ProgressIndicator.hide();
+  //           clearInterval(livelinessInterval);
+  //           props.isCodeSpaceCreationSuccess(true, {
+  //             url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
+  //             running: true,
+  //           });
+  //           Notification.show('Code space succesfully created.');
+  //         }
+  //       })
+  //       .catch((err: Error) => {
+  //         clearInterval(livelinessInterval);
+  //         props.toggleProgressMessage(false);
+  //         ProgressIndicator.hide();
+  //         Notification.show('Error in validating code space - ' + err.message, 'alert');
+  //       });
+  //   }, 2000);
+  // };
 
   const createCodeSpace = () => {
-    const codeSpaceData = {
-      recipeId: recipeValues.join(''),
+    const createCodeSpaceRequest = {
+      data: {
+        cloudServiceProvider: environment,
+        cpuCapacity: "1",
+        description: "",
+        environment: "Development",
+        name: projectName,
+        operatingSystem: "Debian-OS-11",
+        ramMetrics: "GB",
+        ramSize: "1",
+        recipeId: recipeValues.join(''),
+      },
       password: passwordInput.password,
     };
+
     if (validateNewCodeSpaceForm()) {
       ProgressIndicator.show();
-      ApiClient.createCodeSpace(codeSpaceData)
+      CodeSpaceApiClient.createCodeSpace(createCodeSpaceRequest)
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          if(res.success === 'Success') {
+          if(res.data.status === 'CREATE_REQUESTED') {
+            // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
-            enableLivelinessCheck();
+            enableLivelinessCheck(res.data.name);
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();
@@ -225,9 +272,38 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         .catch((err: Error) => {
           props.toggleProgressMessage(false);
           ProgressIndicator.hide();
-          Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+          if(err.message === 'Value or Item already exist!') {
+            Notification.show(`Given Code Space Name '${projectName}' already in use. Please use another name.`, 'alert');
+          } else {
+            Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+          }
         });
     }
+
+    // const codeSpaceData = {
+    //   recipeId: recipeValues.join(''),
+    //   password: passwordInput.password,
+    // };
+    // if (validateNewCodeSpaceForm()) {
+    //   ProgressIndicator.show();
+    //   ApiClient.createCodeSpace(codeSpaceData)
+    //     .then((res) => {
+    //       trackEvent('DnA Code Space', 'Create', 'New code space');
+    //       if(res.success === 'Success') {
+    //         props.toggleProgressMessage(true);
+    //         enableLivelinessCheck();
+    //       } else {
+    //         props.toggleProgressMessage(false);
+    //         ProgressIndicator.hide();
+    //         Notification.show('Error in creating new code space. Please try again later.\n' + res.errors[0].message, 'alert');
+    //       }
+    //     })
+    //     .catch((err: Error) => {
+    //       props.toggleProgressMessage(false);
+    //       ProgressIndicator.hide();
+    //       Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+    //     });
+    // }
   };
   
   return (
@@ -237,58 +313,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         <h3>Hello {namePrefix}, Create your Code Space</h3>
         <p>Protect your code space with the password of your own.</p>
         {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
-        <div className={Styles.flexLayout}>
-          <div>
-            <TextBox
-              type="text"
-              controlId={'productNameInput'}
-              labelId={'productNameLabel'}
-              label={'Project Name'}
-              placeholder={'Type here'}
-              value={projectName}
-              errorText={projectNameError}
-              required={true}
-              maxLength={100}
-              onChange={onProjectNameOnChange}
-            />
-          </div>
-          <div>
-            <div id="environmentContainer" className={classNames('input-field-group include-error')}>
-              <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Evironment<sup>*</sup>
-              </label>
-              <div className={Styles.pIIField}>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value={'dhc-caas'}
-                      name="environment"
-                      onChange={onEnvironmentChange}
-                      checked={true}
-                    />
-                  </span>
-                  <span className="label">DHC CaaS</span>
-                </label>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="azure"
-                      name="environment"
-                      onChange={onEnvironmentChange}
-                      checked={false}
-                      disabled={true}
-                    />
-                  </span>
-                  <span className="label">Azure (Coming Soon)</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
         <div
           id="recipeContainer"
           className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
@@ -316,6 +340,58 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             </select>
           </div>
           <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
+        </div>
+        <div className={Styles.flexLayout}>
+          <div>
+            <TextBox
+              type="text"
+              controlId={'productNameInput'}
+              labelId={'productNameLabel'}
+              label={'Code Space Name'}
+              placeholder={'Type here'}
+              value={projectName}
+              errorText={projectNameError}
+              required={true}
+              maxLength={39}
+              onChange={onProjectNameOnChange}
+            />
+          </div>
+          <div>
+            <div id="environmentContainer" className={classNames('input-field-group include-error')}>
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Evironment<sup>*</sup>
+              </label>
+              <div className={Styles.pIIField}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value={'DHC-CaaS'}
+                      name="environment"
+                      onChange={onEnvironmentChange}
+                      checked={true}
+                    />
+                  </span>
+                  <span className="label">DHC CaaS</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="azure"
+                      name="environment"
+                      onChange={onEnvironmentChange}
+                      checked={false}
+                      disabled={true}
+                    />
+                  </span>
+                  <span className="label">Azure (Coming Soon)</span>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
         <div className={Styles.flexLayout}>
           <div>
