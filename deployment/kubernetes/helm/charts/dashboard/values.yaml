@@ -25,7 +25,7 @@ containerPort: 7173
 corsOrigibUrl: ""
 naasBroker: ""
 ingress:
-  enabled: true
+  enabled: false
   host: ""
   annotations:
     traefik.frontend.rule.type: PathPrefix

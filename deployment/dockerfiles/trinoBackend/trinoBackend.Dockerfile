@@ -9,5 +9,5 @@ ENV ARTIFACT_NAME=trino-backend-lib-1.0.0.jar
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/trino-backend-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
-EXPOSE 7174
+EXPOSE 7575
 CMD java -jar $ARTIFACT_NAME

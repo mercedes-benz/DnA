@@ -29,9 +29,6 @@ package com.daimler.data.db.jsonb.dataproduct;
 
 import java.util.Date;
 
-import com.daimler.data.db.jsonb.CreatedBy;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,15 +36,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DataProduct {
+public class ProviderContactInformation {
 
-	private String dataProductName;
-	private Provider providerInformation;
-	private Consumer consumerInformation;
-	private boolean publish;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
+	private Date dataTransferDate;
+	private String name;
+	private String appId;
+	private String localComplianceOfficer;
+	private String department;
+	private Division division;
 }
