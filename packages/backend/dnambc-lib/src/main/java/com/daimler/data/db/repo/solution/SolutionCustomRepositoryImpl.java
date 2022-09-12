@@ -337,7 +337,7 @@ public class SolutionCustomRepositoryImpl extends CommonDataRepositoryImpl<Solut
 	private String hasDigitalValue(Boolean hasDigitalValue) {
 		String hasDigitalValueQuery = "";
 		if (Boolean.TRUE.equals(hasDigitalValue)) {
-			hasDigitalValueQuery = " and jsonb_extract_path_text(data,'digitalValueDetails','digitalValue') is not null ";
+			hasDigitalValueQuery = " and (jsonb_extract_path_text(data,'digitalValueDetails','digitalValue') is not null and jsonb_extract_path_text(data,'digitalValueDetails','digitalValue') !='0') ";
 		}
 		return hasDigitalValueQuery;
 	}

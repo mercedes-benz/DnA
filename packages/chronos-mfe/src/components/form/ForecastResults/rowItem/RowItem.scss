@@ -1,0 +1,38 @@
+.checkCircle {
+    color: #12e7ab;
+    font-size: 16px;
+}
+.closeCircle {
+    color: #e94d47;
+    font-size: 17px;
+}
+.badge {
+    border-radius: 2px;
+    color: #c0c8d0;
+    font-size: var(--font-size-icon-small);
+    letter-spacing: 1px;
+    margin-right: 5px;
+    padding: 5px 8px;
+    background-color: #1c2026;
+}
+.contextMenu {
+    position: relative;
+    &.open .contextMenuTrigger {
+      z-index: 10;
+      position: relative;
+    }
+    .contextMenuTrigger {
+      padding: 12px 10px;
+      cursor: pointer;
+      margin-right: -14px;
+      &:hover {
+        color: #00adef;
+      }
+    }
+}
+.dataRow {
+  &:hover {
+    background-color: #1c2026;
+    cursor: pointer;
+  }
+}

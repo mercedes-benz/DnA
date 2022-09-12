@@ -1,0 +1,65 @@
+.backBtn {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(0px, -50%);
+  font-size: 36px;
+}
+
+.fwdBtn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translate(0px, -50%);
+}
+
+.tourGuidesummary {
+  margin-top: 30px;
+}
+
+.tourGuidecontent {
+  position: relative;
+  display: flex;
+  justify-content: space-evenly;
+  padding: 30px;
+}
+
+.tourGuidedescription {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bullets {
+  display: flex;
+  justify-content: space-around;
+  width: 100px;
+  margin: 20px auto;
+  span {
+    height: 10px;
+    width: 10px;
+    background: #697582;
+    display: block;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .activeBullet {
+    background: #00adef;
+  }
+}
+
+.footerContainer {
+  display: flex;
+  justify-content: flex-end;
+  > div {
+    padding-right: 10px;
+  }
+}
+
+:global {
+  .tourGuideContainer {
+    .btn.arrow::before {
+      font-size: 36px;
+    }
+  }
+}

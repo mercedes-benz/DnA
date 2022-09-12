@@ -96,6 +96,8 @@ data:
 
     c.JupyterHub.allow_named_servers = True
 
+    {{ .Values.app.hubConfig.vaultStorageAnnotations | nindent 4 }}
+
     # # implement common labels
     # # this duplicates the jupyterhub.commonLabels helper
     # common_labels = c.KubeSpawner.common_labels = {}

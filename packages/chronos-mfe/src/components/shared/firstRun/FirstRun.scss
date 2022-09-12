@@ -1,0 +1,32 @@
+.header {
+    text-align: center;
+    
+    .lead {
+        font-size: 20px;
+        margin-bottom: 30px;
+        span {
+            color: #00adef;
+        }
+    }
+}
+.forecastContainer {
+    background: #1c2026;
+    min-height: 550px;
+}
+.messageContainer {
+    text-align: center;
+    img {
+        width: 50px;
+        height: 50px;
+        margin-top: 80px;
+        margin-bottom: 35px;
+    }
+    h2 {
+        font-size: 2.45rem;
+    }
+}
+.btnContainer {
+    display: flex;
+    justify-content: center;
+    padding-top: 30px;
+}
