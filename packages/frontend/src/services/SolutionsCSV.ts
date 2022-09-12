@@ -3,7 +3,8 @@ import { IAllSolutionsResultCSV, IDataSources, IFilterParams, IPhasesItem, IRoll
 import { ApiClient } from './ApiClient';
 import { Envs } from '../globals/Envs';
 import { getDivisionsQueryValue, 
-  // regionalDateAndTimeConversionSolution 
+  regionalDateAndTimeConversionSolution,
+  regionalForMonthAndYear 
 } from './utils';
 
 export const getDataForCSV = (
@@ -410,10 +411,10 @@ export const getDataForCSV = (
                 ? solution.digitalValue.permissions.map((team) => team.shortId).join('|')
                 : 'NA',
             createdBy: solution.createdBy ? solution.createdBy.id : 'NA',
-            // createdDate: solution.createdDate ? regionalDateAndTimeConversionSolution(solution.createdDate) : 'NA',
-            // lastModifiedDate: solution.lastModifiedDate ? regionalDateAndTimeConversionSolution(solution.lastModifiedDate) : 'NA',
-            createdDate: solution.createdDate ? solution.createdDate : 'NA',
-            lastModifiedDate: solution.lastModifiedDate ? solution.lastModifiedDate : 'NA',
+            createdDate: solution.createdDate ? regionalDateAndTimeConversionSolution(solution.createdDate) : 'NA',
+            lastModifiedDate: solution.lastModifiedDate ? regionalDateAndTimeConversionSolution(solution.lastModifiedDate) : 'NA',
+            // createdDate: solution.createdDate ? solution.createdDate : 'NA',
+            // lastModifiedDate: solution.lastModifiedDate ? solution.lastModifiedDate : 'NA',
           });
         });
       }
@@ -452,12 +453,12 @@ export const setDataSources = (dataSources: IDataSources[], dsList: any) => {
 
 export const setMilestonesPhases = (phases: IPhasesItem[], phaseId: number) => {
   const temVar = phases.filter((phase: IPhasesItem) => Number(phase.phase.id) === phaseId);
-  const dataValues = temVar[0] ? sanitize(temVar[0].month + '-' + temVar[0].year+'|'+temVar[0].description) : '';
+  const dataValues = temVar[0] ? (temVar[0].month > 0 && temVar[0].year > 0) || temVar[0].description.length > 0? sanitize( (temVar[0].month > 0 && temVar[0].year > 0 ? regionalForMonthAndYear(temVar[0].month+'/'+'01'+'/'+temVar[0].year):'') + '|' + temVar[0].description) : '' : '';
   return dataValues;
 };
 
 export const setRolloutLocations = (locations: IRolloutDetail[]) => {
-  const stringValsArr = locations.map((location: IRolloutDetail) => location.location.name + '(' + location.month + '-' + location.year + ')');
+  const stringValsArr = locations.map((location: IRolloutDetail) => location.location.name + '(' + (location.month > 0 && location.year > 0 ? regionalForMonthAndYear(location.month+'/'+'01'+'/'+location.year):'') + ')');
   const dataValues = stringValsArr.join('|');
   return dataValues;
 };
