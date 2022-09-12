@@ -1,0 +1,15 @@
+apiVersion: v1
+{{- if .Values.configs.tlsCerts }}
+{{- toYaml .Values.configs.tlsCerts | nindent 0 }}
+{{- end }}
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "argo-cd.labels" (dict "context" . "component" .Values.server.name "name" "tls-certs-cm") | nindent 4 }}
+  {{- if .Values.configs.tlsCertsAnnotations }}
+  annotations:
+  {{- range $key, $value := .Values.configs.tlsCertsAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+  name: argocd-tls-certs-cm
