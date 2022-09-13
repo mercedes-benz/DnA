@@ -15,10 +15,39 @@ spec:
         paths:
           - backend:
               service:
-                name: {{ .Chart.Name }}-backend-service
+                name: {{ .Chart.Name }}-service
                 port: 
                   name: api-http
             path: /api
             pathType: Prefix
+          - path: /swagger-ui.html
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Chart.Name }}-service
+                port:
+                  name: api-http
+          - path: /swagger-resources
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Chart.Name }}-service
+                port:
+                  name: api-http
+          - path: /v2/api-docs
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Chart.Name }}-service
+                port:
+                  name: api-http
+          - path: /webjars
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Chart.Name }}-service
+                port:
+                  name: api-http
+
  
  {{- end }}
