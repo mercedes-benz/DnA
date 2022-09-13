@@ -11,7 +11,7 @@ import { Envs } from '../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLegalBasis } from '../../redux/consumeDataProduct.services';
 
-const PersonalRelatedData = ({ onSave }) => {
+const PersonalRelatedData = ({ onSave, setIsEditing }) => {
   const {
     register,
     handleSubmit,
@@ -27,12 +27,9 @@ const PersonalRelatedData = ({ onSave }) => {
   const { legalBasisList } = useSelector((state) => state.consumeDataProducts);
 
   const isValid = (value) =>
-    !watch('personalRelatedDataTransferred') ||
-    watch('personalRelatedDataTransferred') === 'No' ||
-    value?.length > 0 ||
-    '*Missing entry';
+    !watch('personalRelatedData') || watch('personalRelatedData') === 'No' || value?.length > 0 || '*Missing entry';
 
-  const isDisabled = !watch('personalRelatedDataTransferred') || watch('personalRelatedDataTransferred') === 'No';
+  const isDisabled = !watch('personalRelatedData') || watch('personalRelatedData') === 'No';
 
   useEffect(() => {
     dispatch(getLegalBasis());
@@ -50,9 +47,7 @@ const PersonalRelatedData = ({ onSave }) => {
           </div>
           <div className={Styles.formWrapper}>
             <div
-              className={classNames(
-                `input-field-group include-error ${errors?.personalRelatedDataTransferred ? 'error' : ''}`,
-              )}
+              className={classNames(`input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`)}
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -62,7 +57,7 @@ const PersonalRelatedData = ({ onSave }) => {
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('personalRelatedDataTransferred', {
+                      {...register('personalRelatedData', {
                         required: '*Missing entry',
                         onChange: () => {
                           resetField('personalRelatedDataPurpose');
@@ -73,7 +68,7 @@ const PersonalRelatedData = ({ onSave }) => {
                       })}
                       type="radio"
                       className="ff-only"
-                      name="personalRelatedDataTransferred"
+                      name="personalRelatedData"
                       value="No"
                     />
                   </span>
@@ -82,17 +77,17 @@ const PersonalRelatedData = ({ onSave }) => {
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('personalRelatedDataTransferred', { required: '*Missing entry' })}
+                      {...register('personalRelatedData', { required: '*Missing entry' })}
                       type="radio"
                       className="ff-only"
-                      name="personalRelatedDataTransferred"
+                      name="personalRelatedData"
                       value="Yes"
                     />
                   </span>
                   <span className="label">Yes</span>
                 </label>
               </div>
-              <span className={classNames('error-message')}>{errors?.personalRelatedDataTransferred?.message}</span>
+              <span className={classNames('error-message')}>{errors?.personalRelatedData?.message}</span>
             </div>
             <div
               id="personalRelatedDataPurpose"
@@ -268,7 +263,8 @@ const PersonalRelatedData = ({ onSave }) => {
             className="btn btn-primary"
             type="button"
             onClick={handleSubmit((data) => {
-              onSave(data);
+              setValue('notifyUsers', false);
+              onSave(watch());
               reset(data, {
                 keepDirty: false,
               });
@@ -280,7 +276,9 @@ const PersonalRelatedData = ({ onSave }) => {
             className="btn btn-tertiary"
             type="button"
             onClick={handleSubmit((data) => {
+              setValue('notifyUsers', true);
               setValue('publish', true);
+              setIsEditing(true);
               onSave(watch());
               reset(data, {
                 keepDirty: false,

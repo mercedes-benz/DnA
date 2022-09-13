@@ -4,13 +4,18 @@ import { useSelector } from 'react-redux';
 import { serializeDivisionSubDivision } from '../../../Utility/formData';
 import Styles from './styles.scss';
 
-const ProviderSummary = ({ onSave }) => {
+const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
   const { selectedDataProduct: data, divisionList } = useSelector((state) => state.provideDataProducts);
 
   const division = serializeDivisionSubDivision(divisionList, {
     division: data.division,
     subDivision: data.subDivision,
   });
+
+  const showDataDescription = data?.openSegments?.includes('ClassificationAndConfidentiality');
+  const showPersonalData = data?.openSegments?.includes('IdentifyingPersonalRelatedData');
+  const showTransNationalData = data?.openSegments?.includes('IdentifiyingTransnationalDataTransfer');
+  const showDeletionRequirements = data?.openSegments?.includes('SpecifyDeletionRequirements');
 
   return (
     <>
@@ -50,7 +55,7 @@ const ProviderSummary = ({ onSave }) => {
               <div>
                 <label className="input-label summary">Sub Division</label>
                 <br />
-                {division?.subdivision?.name}
+                {division?.subdivision?.name || '-'}
               </div>
               <div>
                 <label className="input-label summary">Department</label>
@@ -71,137 +76,145 @@ const ProviderSummary = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <div className={Styles.sectionWrapper}>
-        <div className={Styles.firstPanel}>
-          <div className={Styles.flexLayout}>
-            <div>
-              <label className="input-label summary">Data Description & Classification</label>
+      {showDataDescription ? (
+        <div className={Styles.sectionWrapper}>
+          <div className={Styles.firstPanel}>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label className="input-label summary">Data Description & Classification</label>
+              </div>
             </div>
-          </div>
-          <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-            <div>
-              <label className="input-label summary">Description & Classification of transfered data</label>
-              <br />
-              {data.classificationOfTransferedData}
-            </div>
-            <div>
-              <label className="input-label summary">Confidentiality</label>
-              <br />
-              {data.confidentiality}
+            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+              <div>
+                <label className="input-label summary">Description & Classification of transfered data</label>
+                <br />
+                {data.classificationOfTransferedData}
+              </div>
+              <div>
+                <label className="input-label summary">Confidentiality</label>
+                <br />
+                {data.confidentiality}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className={Styles.sectionWrapper}>
-        <div className={Styles.firstPanel}>
-          <div className={Styles.flexLayout}>
-            <div>
-              <label className="input-label summary">Personal Related Data</label>
+      ) : null}
+      {showPersonalData ? (
+        <div className={Styles.sectionWrapper}>
+          <div className={Styles.firstPanel}>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label className="input-label summary">Personal Related Data</label>
+              </div>
+            </div>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label className="input-label summary">Is data personal related</label>
+                <br />
+                {data.personalRelatedData}
+              </div>
+            </div>
+            {data.personalRelatedData === 'Yes' ? (
+              <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                <div>
+                  <label className="input-label summary">Description</label>
+                  <br />
+                  {data.personalRelatedDataDescription}
+                </div>
+                <div>
+                  <label className="input-label summary">
+                    Original (business) purpose of processing this personal related data
+                  </label>
+                  <br />
+                  {data.personalRelatedDataPurpose}
+                </div>
+                <div>
+                  <label className="input-label summary">
+                    Original legal basis for processing this personal related data
+                  </label>
+                  <br />
+                  {data.personalRelatedDataLegalBasis}
+                </div>
+                <div></div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      {showTransNationalData ? (
+        <div className={Styles.sectionWrapper}>
+          <div className={Styles.firstPanel}>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label className="input-label summary">Trans-national Data</label>
+              </div>
+            </div>
+            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+              <div>
+                <label className="input-label summary">Is data being transferred from one country to another?</label>
+                <br />
+                {data.transnationalDataTransfer}
+              </div>
+              {data.transnationalDataTransfer == 'Yes' ? (
+                <div>
+                  <label className="input-label summary">Is one of these countries not within the EU?</label>
+                  <br />
+                  {data.transnationalDataTransferNotWithinEU || 'No'}
+                </div>
+              ) : null}
+              {data.transnationalDataTransfer == 'Yes' && data.transnationalDataTransferNotWithinEU == 'Yes' ? (
+                <div>
+                  <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
+                  <br />
+                  {data.LCOApprovedDataTransfer}
+                </div>
+              ) : null}
+            </div>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label className="input-label summary">Is data from China included?</label>
+                <br />
+                {data.dataOriginatedFromChina}
+              </div>
             </div>
           </div>
-          <div className={Styles.flexLayout}>
-            <div>
-              <label className="input-label summary">Is data personal related</label>
-              <br />
-              {data.personalRelatedData}
+        </div>
+      ) : null}
+      {showDeletionRequirements ? (
+        <div className={Styles.sectionWrapper}>
+          <div className={Styles.firstPanel}>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label className="input-label summary">Deletion Requirements & Other</label>
+              </div>
             </div>
-          </div>
-          {data.personalRelatedData === 'Yes' ? (
-            <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
               <div>
-                <label className="input-label summary">Description</label>
+                <label className="input-label summary">Are there specific deletion requirements for this data?</label>
                 <br />
-                {data.personalRelatedDataDescription}
+                {data.deletionRequirement}
               </div>
-              <div>
-                <label className="input-label summary">
-                  Original (business) purpose of processing this personal related data
-                </label>
-                <br />
-                {data.personalRelatedDataPurpose}
-              </div>
-              <div>
-                <label className="input-label summary">
-                  Original legal basis for processing this personal related data
-                </label>
-                <br />
-                {data.personalRelatedDataLegalBasis}
-              </div>
+              {data.deletionRequirement === 'Yes' ? (
+                <div>
+                  <label className="input-label summary">Describe deletion requirements</label>
+                  <br />
+                  {data.deletionRequirementDescription}
+                </div>
+              ) : null}
               <div></div>
             </div>
-          ) : null}
-        </div>
-      </div>
-      <div className={Styles.sectionWrapper}>
-        <div className={Styles.firstPanel}>
-          <div className={Styles.flexLayout}>
-            <div>
-              <label className="input-label summary">Trans-national Data</label>
-            </div>
-          </div>
-          <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-            <div>
-              <label className="input-label summary">Is data being transferred from one country to another?</label>
-              <br />
-              {data.transnationalDataTransfer}
-            </div>
-            {data.transnationalDataTransfer == 'Yes' ? (
+            <div className={Styles.flexLayout}>
               <div>
-                <label className="input-label summary">Is one of these countries not within the EU?</label>
+                <label className="input-label summary">Other relevant information </label>
                 <br />
-                {data.transnationalDataTransferNotWithinEU || 'No'}
+                {data.otherRelevantInfo}
               </div>
-            ) : null}
-            {data.transnationalDataTransfer == 'Yes' && data.transnationalDataTransferNotWithinEU == 'Yes' ? (
-              <div>
-                <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
-                <br />
-                {data.LCOApprovedDataTransfer}
-              </div>
-            ) : null}
-          </div>
-          <div className={Styles.flexLayout}>
-            <div>
-              <label className="input-label summary">Is data from China included?</label>
-              <br />
-              {data.dataOriginatedFromChina}
             </div>
           </div>
         </div>
-      </div>
-      <div className={Styles.sectionWrapper}>
-        <div className={Styles.firstPanel}>
-          <div className={Styles.flexLayout}>
-            <div>
-              <label className="input-label summary">Deletion Requirements & Other</label>
-            </div>
-          </div>
-          <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-            <div>
-              <label className="input-label summary">Are there specific deletion requirements for this data?</label>
-              <br />
-              {data.deletionRequirement}
-            </div>
-            {data.deletionRequirement === 'Yes' ? (
-              <div>
-                <label className="input-label summary">Describe deletion requirements</label>
-                <br />
-                {data.deletionRequirementDescription}
-              </div>
-            ) : null}
-            <div></div>
-          </div>
-          <div className={Styles.flexLayout}>
-            <div>
-              <label className="input-label summary">Other relevant information </label>
-              <br />
-              {data.otherRelevantInfo}
-            </div>
-          </div>
-        </div>
-      </div>
+      ) : null}
       <div className="btnContainer">
-        <button className="btn btn-primary" type="submit" onClick={onSave}>
+        <button disabled={providerFormIsDraft} className="btn btn-primary" type="submit" onClick={onSave}>
           Save & Next
         </button>
       </div>
