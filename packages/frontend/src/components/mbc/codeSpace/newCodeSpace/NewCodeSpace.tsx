@@ -64,6 +64,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
+    return () => clearInterval(livelinessInterval);
   }, []);
 
   const sanitizedRepositoryName = (name: string) => { 
@@ -158,8 +159,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
   // User Name
   const namePrefix = props.user.firstName;
-
-  console.log(environment);
 
   const validateNewCodeSpaceForm = () => {
     let formValid = true;
