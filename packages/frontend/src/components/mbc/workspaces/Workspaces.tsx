@@ -12,6 +12,7 @@ const Workspaces = () => {
   const [enableDataikuWorkspace, setEnableDataikuWorkspace] = useState(true);
   const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
   const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
+  const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
 
   useEffect(() => {
     setEnableJupiyterNoteWorkspace(Envs.ENABLE_JUPYTER_WORKSPACE);
@@ -47,7 +48,7 @@ const Workspaces = () => {
         <Tile
           title={'My Code Space'}
           route={'/codespaces'}
-          isEnabled={true}
+          isEnabled={enableCodeSpace}
         />
       </div>
     </MainPanel>
