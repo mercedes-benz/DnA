@@ -137,7 +137,7 @@ dependencies {
 	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
-	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
+	//implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
 	
 	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
 	
