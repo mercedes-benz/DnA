@@ -13,6 +13,8 @@ const Classification = ({ onSave }) => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -93,7 +95,8 @@ const Classification = ({ onSave }) => {
           className="btn btn-primary"
           type="submit"
           onClick={handleSubmit((data) => {
-            onSave(data);
+            setValue('notifyUsers', false);
+            onSave(watch());
             reset(data, {
               keepDirty: false,
               keepSubmitCount: false,

@@ -27,6 +27,7 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.TypedQuery;
@@ -126,6 +127,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"DELETED".toLowerCase());
 		Predicate pMain = cb.and(con1, con2, con3);
 		cq.where(pMain);
+		cq.orderBy(cb.desc(cb.function("jsonb_extract_path_text", Date.class, root.get("data"), cb.literal("intiatedOn"))));
 		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
 		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
 		if (entities != null && entities.size() > 0)
