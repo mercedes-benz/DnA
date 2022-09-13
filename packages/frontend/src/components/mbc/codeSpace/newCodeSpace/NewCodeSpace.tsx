@@ -57,15 +57,24 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     password: '',
     confirmPassword: '',
   });
+  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
 
   // const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
 
   const requiredError = '*Missing entry';
+  const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
+  // let livelinessInterval: any = undefined;
 
   useEffect(() => {
     SelectBox.defaultSetup();
-    return () => clearInterval(livelinessInterval);
   }, []);
+
+  useEffect(() => {
+    livelinessIntervalRef.current = livelinessInterval;
+    return () => {
+      livelinessIntervalRef.current && clearInterval(livelinessIntervalRef.current);
+    };
+  }, [livelinessInterval]);
 
   const sanitizedRepositoryName = (name: string) => { 
     return name.replace(/[^\w.-]/g, '-');
@@ -184,10 +193,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     return formValid;
   };
 
-  let livelinessInterval: any = undefined;
   const enableLivelinessCheck = (name: string) => {
     clearInterval(livelinessInterval);
-    livelinessInterval = setInterval(() => {
+    const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
         .then((res:any) => {
           try {
@@ -214,6 +222,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           Notification.show('Error in validating code space - ' + err.message, 'alert');
         });
     }, 2000);
+    setLivelinessInterval(intervalId);
   };
 
   // let livelinessInterval: any = undefined;
