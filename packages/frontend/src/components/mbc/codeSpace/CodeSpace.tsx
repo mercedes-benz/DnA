@@ -63,8 +63,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeDeployed, setCodeDeployed] = useState<boolean>(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
+  const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
 
-  let livelinessInterval: any = undefined;
+  const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
 
   useEffect(() => {
     CodeSpaceApiClient.getCodeSpaceStatus(id).then((res: any) => {
@@ -119,9 +120,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     // }).catch((err: Error) => {
     //   Notification.show("Error in validating code space - " + err.message, 'alert');
     // });
+  }, []);
 
-    return () => clearInterval(livelinessInterval);
-  }, [])
+  useEffect(() => {
+    livelinessIntervalRef.current = livelinessInterval;
+    return () => {
+      livelinessIntervalRef.current && clearInterval(livelinessIntervalRef.current);
+    };
+  }, [livelinessInterval]);
 
   const toggleFullScreenMode = () => {
     setFullScreenMode(!fullScreenMode);
@@ -164,7 +170,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const enableDeployLivelinessCheck = (name: string) => {
     clearInterval(livelinessInterval);
-    livelinessInterval = setInterval(() => {
+    const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
         .then((res:any) => {
           try {
@@ -196,6 +202,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           Notification.show('Error in validating code space deployment - ' + err.message, 'alert');
         });
     }, 2000);
+    setLivelinessInterval(intervalId);
   };
 
   const onAcceptCodeDeploy = () => {
