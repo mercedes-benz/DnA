@@ -70,7 +70,7 @@ public class CodeServerClient {
 		if(recipeId!=null)
 			recipeType = recipeId.toLowerCase();
 		switch(recipeType) {
-			case "springboot":  deployType = "gradle"; break;
+			case "springboot":  deployType = "springboot"; break;
 			case "py-fastapi" : deployType = "py-fastapi"; break;
 			default: deployType = "gradle"; break;
 		}
