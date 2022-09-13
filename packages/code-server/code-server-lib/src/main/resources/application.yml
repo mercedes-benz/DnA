@@ -49,6 +49,7 @@ codeServer:
   git.pat: ${CODE_SERVER_GIT_PIT:XXXX}
   base.uri: ${CODE_BASE_URI:XXXX}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
+  env.value: ${CODE_SERVER_GIT_ENV:Development}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
