@@ -79,7 +79,8 @@ const DataOriginating = ({ onSave }) => {
           type="submit"
           disabled={isSubmitting}
           onClick={handleSubmit((data) => {
-            setValue('notifyUsers', false);
+            const isPublished = watch('publish');
+            setValue('notifyUsers', isPublished ? true : false);
             onSave(watch());
             reset(data, {
               keepDirty: false,

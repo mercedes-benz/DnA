@@ -111,8 +111,12 @@ const ConsumerForm = ({ user, history }) => {
 
   const getDataProductById = () => {
     dataProductsApi.getDataProductById(dataProductId).then((res) => {
+      const isCreator = res.data?.createdBy.id === user.id;
+      const isValidUser = res.data.users.find((item) => user.id === item.shortId || user.eMail === item.email) || false;
       if (res.status === 204) {
         return history.push('/NotFound');
+      } else if (isCreator || (res.data.users?.length > 0 && !isValidUser)) {
+        return history.push('/Unauthorized');
       } else {
         const data = deserializeFormData(res.data, 'consumer');
         dispatch(setDataProduct(data));
