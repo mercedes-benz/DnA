@@ -40,4 +40,4 @@ public class PersonalRelatedData {
 	private String description;
 	private String purpose;
 	private String legalBasis;
-} 
+}
