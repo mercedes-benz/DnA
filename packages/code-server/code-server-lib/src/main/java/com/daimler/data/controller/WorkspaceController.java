@@ -55,6 +55,7 @@ import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CpuCapacityEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.EnvironmentEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.OperatingSystemEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RamMetricsEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
@@ -108,6 +109,7 @@ public class WorkspaceController  implements CodeServerApi{
 		reqVO.setLastDeployedOn(null);
 		reqVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
 		reqVO.setRamMetrics(RamMetricsEnum.GB);
+		reqVO.setRamSize(RamSizeEnum._1);
 		reqVO.setEnvironment(EnvironmentEnum.valueOf(codeServerEnvValue.toUpperCase()));
 		String password = codeServerRequestVO.getPassword();
 		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"name", reqVO.getName());
