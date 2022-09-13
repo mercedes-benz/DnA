@@ -86,7 +86,7 @@ public class WorkspaceJobStatusUpdateController  {
 						invalidStatus = true;
 					break;
 				default:
-					invalidStatus = true;
+					invalidStatus = false;
 					break;
 			  
 			}
