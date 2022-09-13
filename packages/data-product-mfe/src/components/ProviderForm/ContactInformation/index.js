@@ -296,7 +296,8 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
           type="submit"
           disabled={isSubmitting}
           onClick={handleSubmit((values) => {
-            setValue('notifyUsers', false);
+            const isPublished = watch('publish');
+            setValue('notifyUsers', isPublished ? true : false);
             onSave(watch());
             reset(values, {
               keepDirty: false,

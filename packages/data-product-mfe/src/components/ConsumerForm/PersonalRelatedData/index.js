@@ -263,7 +263,8 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
             className="btn btn-primary"
             type="button"
             onClick={handleSubmit((data) => {
-              setValue('notifyUsers', false);
+              const isPublished = watch('publish');
+              setValue('notifyUsers', isPublished ? true : false);
               onSave(watch());
               reset(data, {
                 keepDirty: false,
