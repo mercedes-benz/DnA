@@ -179,9 +179,12 @@ const ProviderForm = ({ user, history }) => {
       const { id } = provideDataProducts.selectedDataProduct;
       if (id) {
         data.values['id'] = id;
+        data.type = 'provider';
         dispatch(UpdateDataProducts(data));
       } else dispatch(SetDataProducts(data));
     } else if (isEditPage) {
+      data.type = 'provider';
+      data.state = 'edit';
       dispatch(UpdateDataProducts(data));
     }
   };

@@ -177,7 +177,8 @@ const PersonalRelatedData = ({ onSave }) => {
           className="btn btn-primary"
           type="submit"
           onClick={handleSubmit((data) => {
-            setValue('notifyUsers', false);
+            const isPublished = watch('publish');
+            setValue('notifyUsers', isPublished ? true : false);
             onSave(watch());
             reset(data, {
               keepDirty: false,
