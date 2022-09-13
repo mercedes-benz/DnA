@@ -83,8 +83,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
 			if(entity!=null && entity.getData()!=null && !"DELETED".equalsIgnoreCase(entity.getData().getStatus())) {
-				GenericMessage undeployJobResponse = client.performWorkBenchActions("undeploy", entity.getData());
-				if(undeployJobResponse!=null && "SUCCESS".equalsIgnoreCase(undeployJobResponse.getSuccess())) {
+				boolean undeployCheck = true;
+				GenericMessage undeployJobResponse = new GenericMessage();
+				if(entity.getData().getLastDeployedOn()!=null) {
+					undeployJobResponse = client.performWorkBenchActions("undeploy", entity.getData());
+					if(undeployJobResponse!=null && "SUCCESS".equalsIgnoreCase(undeployJobResponse.getSuccess()))
+						undeployCheck = true;
+					else
+						undeployCheck = false;
+				}
+					if(undeployCheck) {
 					GenericMessage deleteJobResponse = client.performWorkBenchActions("delete", entity.getData());
 					if(deleteJobResponse!=null && "SUCCESS".equalsIgnoreCase(deleteJobResponse.getSuccess())) {
 						entity.getData().setStatus("DELETE_REQUESTED");
@@ -215,7 +223,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-			if(entity!=null) {
+			if(entity.getData().getLastDeployedOn()!=null) {
 				GenericMessage jobResponse = client.performWorkBenchActions("undeploy", entity.getData());
 				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					entity.getData().setStatus("UNDEPLOY_REQUESTED");
@@ -224,6 +232,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 				}else {
 					errors.addAll(jobResponse.getErrors());
 				}
+			}else {
+				MessageDescription warning = new MessageDescription();
+				warning.setMessage("Project is not in deployed state. Cannot undeploy");
+				warnings.add(warning);
 			}
 		}catch(Exception e) {
 				MessageDescription error = new MessageDescription();
@@ -248,12 +260,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 		CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(existingVO);
 		if("CREATED".equalsIgnoreCase(existingVO.getStatus())){
 			String workspaceUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/?folder=/home/coder";
-			if("microservice".equalsIgnoreCase(existingVO.getRecipeId().toString()))
-				workspaceUrl += "/projects/demo";
+			if(!"default".equalsIgnoreCase(existingVO.getRecipeId().toString()))
+				workspaceUrl += "/app";
 			entity.getData().setWorkspaceUrl(workspaceUrl);
 		}
 		if("DEPLOYED".equalsIgnoreCase(existingVO.getStatus())){
-			String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/api";
+			String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/api/swagger-ui.html";
 			entity.getData().setDeploymentUrl(deploymentUrl);
 		}
 		CodeServerWorkspaceNsql updatedEntity = jpaRepo.save(entity);

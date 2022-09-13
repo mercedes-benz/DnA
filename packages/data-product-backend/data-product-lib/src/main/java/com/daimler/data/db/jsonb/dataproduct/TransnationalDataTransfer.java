@@ -25,10 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.json;
-
-import java.io.Serializable;
-import java.util.Date;
+package com.daimler.data.db.jsonb.dataproduct;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,25 +34,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CodeServerWorkspace implements Serializable{
+public class TransnationalDataTransfer {
 
-	private static final long serialVersionUID = -1767843944100072529L;
-	
-	private String owner;
-	private String name;
-	//private String projectName;
-	private String description;
-	private String recipeId;
-	private String password;
-	private Date intiatedOn;
-	private Date lastDeployedOn;
-	private String ramSize;
-	private String cpuCapacity;
-	private String operatingSystem;
-	private String environment;
-	private String cloudServiceProvider;
-	private String status;
-	private String deploymentUrl;
-	private String workspaceUrl;
-	
+	private boolean dataTransferred;
+	private boolean notWithinEU;
+	private String approved;
 }

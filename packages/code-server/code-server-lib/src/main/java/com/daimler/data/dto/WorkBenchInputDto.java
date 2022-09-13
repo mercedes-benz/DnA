@@ -13,6 +13,5 @@ import lombok.NoArgsConstructor;
 public class WorkBenchInputDto extends WorkBenchBaseInputDto{
 
 	private String password;
-	private String type;
 	
 }
