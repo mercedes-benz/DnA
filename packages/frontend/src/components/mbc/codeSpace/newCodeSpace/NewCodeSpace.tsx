@@ -190,17 +190,21 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     livelinessInterval = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
         .then((res:any) => {
-          if (res.status === 'CREATED') {
-            props.toggleProgressMessage(false);
-            ProgressIndicator.hide();
-            clearInterval(livelinessInterval);
-            props.isCodeSpaceCreationSuccess(true, {
-              id: res.id,
-              name: res.name,
-              url: res.workspaceUrl,
-              running: true,
-            });
-            Notification.show('Code space succesfully created.');
+          try {
+            if (res.status === 'CREATED') {
+                props.toggleProgressMessage(false);
+                ProgressIndicator.hide();
+                clearInterval(livelinessInterval);
+                props.isCodeSpaceCreationSuccess(true, {
+                  id: res.id,
+                  name: res.name,
+                  url: res.workspaceUrl,
+                  running: true,
+                });
+                Notification.show('Code space succesfully created.');
+            }
+          } catch(err: any) {
+            console.log(err);
           }
         })
         .catch((err: Error) => {
