@@ -243,10 +243,11 @@ const OtherRelevantInfo = ({ onSave, history }) => {
       <div className="btnContainer">
         <div className="btn-set">
           <button
-            className={'btn btn-tertiary'}
+            className={'btn btn-primary'}
             type="button"
             onClick={handleSubmit((data) => {
-              setValue('notifyUsers', false);
+              const isPublished = watch('publish');
+              setValue('notifyUsers', isPublished ? true : false);
               onSave(watch());
               reset(data, {
                 keepDirty: false,
