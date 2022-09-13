@@ -260,7 +260,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(existingVO);
 		if("CREATED".equalsIgnoreCase(existingVO.getStatus())){
 			String workspaceUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/?folder=/home/coder";
-			if("microservice".equalsIgnoreCase(existingVO.getRecipeId().toString()))
+			if(!"default".equalsIgnoreCase(existingVO.getRecipeId().toString()))
 				workspaceUrl += "/app";
 			entity.getData().setWorkspaceUrl(workspaceUrl);
 		}
