@@ -20,6 +20,8 @@ const OtherRelevantInfo = ({ onSave, history }) => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useFormContext();
 
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -42,6 +44,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(-1);
 
   const isDisabled = !teamMembers?.length;
+  const hasUsers = watch('users');
 
   const onTeamMemberMoveUp = (index) => {
     const teamMembersTemp = [...teamMembers];
@@ -91,6 +94,10 @@ const OtherRelevantInfo = ({ onSave, history }) => {
       } else addTeamMemberModalRef.current.setTeamMemberData(teamMemberObj, true);
     }
   }, [showAddTeamMemberModal, teamMemberObj, addTeamMemberModalRef, editTeamMember]);
+
+  useEffect(() => {
+    hasUsers?.length && setTeamMembers(hasUsers);
+  }, [hasUsers]);
 
   const onAddTeamMemberModalCancel = () => {
     setShowAddTeamMemberModal(false);
@@ -168,8 +175,12 @@ const OtherRelevantInfo = ({ onSave, history }) => {
 
   const handleForwardMinInfo = () => {
     // trigger notification
-    setShowAddConsumersModal(false);
-    history.push('/');
+    setValue('notifyUsers', true);
+    setValue('users', teamMembers);
+    onSave(watch(), () => {
+      setShowAddConsumersModal(false);
+      history.push('/');
+    });
   };
 
   return (
@@ -235,8 +246,21 @@ const OtherRelevantInfo = ({ onSave, history }) => {
             className={'btn btn-tertiary'}
             type="button"
             onClick={handleSubmit((data) => {
-              console.log(data);
-              onSave(data);
+              setValue('notifyUsers', false);
+              onSave(watch());
+              reset(data, {
+                keepDirty: false,
+              });
+            })}
+          >
+            Save
+          </button>
+          <button
+            className={'btn btn-tertiary'}
+            type="button"
+            onClick={handleSubmit((data) => {
+              setValue('providerFormSubmitted', true);
+              onSave(watch());
               setShowAddConsumersModal(true);
               reset(data, {
                 keepDirty: false,
