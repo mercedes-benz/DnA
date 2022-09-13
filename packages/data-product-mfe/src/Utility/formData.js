@@ -55,7 +55,28 @@ export const serializeFormData = (values, division, type = 'provider') => {
         },
         openSegments: values.openSegments,
       },
-      ...(!isProviderForm && values.formValues),
+      ...(!isProviderForm
+        ? values.formValues
+        : values.consumer && {
+            consumerInformation: {
+              contactInformation: {
+                appId: values.consumer.planningIT,
+                department: values.consumer.department,
+                division: isProviderForm ? values.consumer?.serializedDivision : division,
+                lcoNeeded: values.consumer.lcoNeeded ? true : false,
+                localComplianceOfficer: values.consumer.complianceOfficer?.toString(),
+                ownerName: values.consumer.businessOwnerName,
+              },
+              openSegments: values.consumer.openSegments,
+              personalRelatedData: {
+                comment: values.consumer.LCOComments,
+                lcoChecked: values.consumer.LCOCheckedLegalBasis,
+                legalBasis: values.consumer.personalRelatedDataLegalBasis,
+                personalRelatedData: values.consumer.personalRelatedData === 'Yes' ? true : false, //boolean,
+                purpose: values.consumer.personalRelatedDataPurpose,
+              },
+            },
+          }),
       notifyUsers: values.notifyUsers || false,
       users: values.users || [],
       dataProductName: values.productName,
@@ -98,7 +119,7 @@ export const deserializeFormData = (item, type = 'provider') => {
     notifyUsers: item.notifyUsers,
     users: item.users,
     providerFormSubmitted: item.providerFormSubmitted,
-    ...(!isProvider && {
+    ...((!isProvider || item.consumerInformation) && {
       consumer: {
         planningIT: item.consumerInformation?.contactInformation?.appId || 'APP-',
         department: item.consumerInformation?.contactInformation?.department,
