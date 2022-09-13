@@ -48,6 +48,7 @@ import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CloudServiceProviderEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CpuCapacityEnum;
