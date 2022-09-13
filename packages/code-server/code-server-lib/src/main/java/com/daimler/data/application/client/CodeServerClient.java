@@ -64,6 +64,19 @@ public class CodeServerClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
+	private String toDeployType(String recipeId) {
+		String recipeType = "";
+		String deployType = "";
+		if(recipeId!=null)
+			recipeType = recipeId.toLowerCase();
+		switch(recipeType) {
+			case "springboot":  deployType = "gradle"; break;
+			case "py-fastapi" : deployType = "py-fastapi"; break;
+			default: deployType = "gradle"; break;
+		}
+		return deployType;
+	}
+	
 	public GenericMessage performWorkBenchActions(String action,CodeServerWorkspace workspaceDetails) {
 		GenericMessage respone = new GenericMessage();
 		String status = "FAILED";
@@ -110,6 +123,7 @@ public class CodeServerClient {
 				baseInputDto.setShortid(userId);
 				baseInputDto.setEnvironment(environment);
 				baseInputDto.setWsid(wsid);
+				baseInputDto.setType(this.toDeployType(type));
 				requestDto.setInputs(baseInputDto);
 			}
 			requestDto.setRef(codeServerEnvRef);
