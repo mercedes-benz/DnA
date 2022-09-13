@@ -58,8 +58,12 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     state, // "edit" or "create"
   } = data;
 
+  const isProviderForm = type === 'provider';
   const isEdit = state === 'edit';
   const division = serializeDivisionSubDivision(divisionList, values);
+  if (isProviderForm && values.consumer) {
+    values.consumer['serializedDivision'] = serializeDivisionSubDivision(divisionList, values?.consumer);
+  }
   const requestBody = serializeFormData(values, division, type);
 
   ProgressIndicator.show();
@@ -69,10 +73,11 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     onSave();
     const data = deserializeFormData(res?.data?.data, type);
 
-    if (values.publish) {
+    if (isProviderForm && data.providerFormSubmitted) {
+      Notification.show(isEdit ? 'Information updated sucessfully.' : 'Progress saved in Data Transfer Overview');
+    }
+    if (!isProviderForm && values.publish) {
       Notification.show(isEdit ? 'Information updated sucessfully.' : 'Transfer is now complete!');
-    } else if (data.providerFormSubmitted) {
-      Notification.show('Progress saved in Data Transfer Overview');
     }
     return {
       data,
