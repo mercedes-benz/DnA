@@ -37,6 +37,7 @@ import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		implements DataProductService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseDataProductService.class);
+
+	@Value(value = "${dataproduct.consume.url}")
+	private String consumeUrl;
 
 	@Autowired
 	private UserStore userStore;
@@ -180,7 +184,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						response.setData(mergedDataProductVO);
 						response.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
-						
+
 						if (mergedDataProductVO.isNotifyUsers()
 								&& !ObjectUtils.isEmpty(mergedDataProductVO.getUsers())) {
 							CreatedByVO modifyingUser = this.userStore.getVO();
@@ -209,12 +213,16 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 								}
 
 							}
-							String eventMessage = "Provider form " + dataProductName + " has been updated by "
-									+ publishingUserName;
+//							String eventMessage = "Provider form " + dataProductName + " has been updated by "
+//									+ publishingUserName;
+
+							String eventMessage = "A Minimum Information Documentation is ready for you. Please [provide information]("
+									+ consumeUrl + resourceID + ")"
+									+ " about the receiving side to finalise the Data Transfer.";
 							kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
 									teamMembers, teamMembersEmails, null);
-							LOGGER.info("Published successfully event {} for data product {} with message {}", eventType,
-									resourceID, eventMessage);
+							LOGGER.info("Published successfully event {} for data product {} with message {}",
+									eventType, resourceID, eventMessage);
 						}
 
 						return new ResponseEntity<>(response, HttpStatus.OK);
