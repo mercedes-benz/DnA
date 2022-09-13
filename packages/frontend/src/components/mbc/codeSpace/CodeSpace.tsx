@@ -64,6 +64,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
 
+  let livelinessInterval: any = undefined;
+
   useEffect(() => {
     CodeSpaceApiClient.getCodeSpaceStatus(id).then((res: any) => {
       setLoading(false);
@@ -117,6 +119,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     // }).catch((err: Error) => {
     //   Notification.show("Error in validating code space - " + err.message, 'alert');
     // });
+
+    return () => clearInterval(livelinessInterval);
   }, [])
 
   const toggleFullScreenMode = () => {
@@ -158,28 +162,31 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setShowCodeDeployModal(false);
   }
 
-  let livelinessInterval: any = undefined;
   const enableDeployLivelinessCheck = (name: string) => {
     clearInterval(livelinessInterval);
     livelinessInterval = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
         .then((res:any) => {
-          if (res.status === 'DEPLOYED') {
-            setIsApiCallTakeTime(false);
-            ProgressIndicator.hide();
-            clearInterval(livelinessInterval);
-            // setCodeSpaceData({
-            //   ...codeSpaceData,
-            //   deployed: true,
-            //   deployedUrl: res.deployedUrl,
-            //   lastDeployedDate: res.lastDeployedOn
-            // });
-            setCodeDeployed(true);
-            setCodeDeploying(false);
-            setCodeDeployedUrl(res.deploymentUrl);
-            Tooltip.defaultSetup();
-            setShowCodeDeployModal(false);
-            Notification.show(`Code from code space ${res.name} succesfully deployed.`);
+          try {
+            if (res.status === 'DEPLOYED') {
+              setIsApiCallTakeTime(false);
+              ProgressIndicator.hide();
+              clearInterval(livelinessInterval);
+              // setCodeSpaceData({
+              //   ...codeSpaceData,
+              //   deployed: true,
+              //   deployedUrl: res.deployedUrl,
+              //   lastDeployedDate: res.lastDeployedOn
+              // });
+              setCodeDeployed(true);
+              setCodeDeploying(false);
+              setCodeDeployedUrl(res.deploymentUrl);
+              Tooltip.defaultSetup();
+              setShowCodeDeployModal(false);
+              Notification.show(`Code from code space ${res.name} succesfully deployed.`);
+            }
+          } catch(err:any) {
+            console.log(err);
           }
         })
         .catch((err: Error) => {

@@ -37,6 +37,7 @@ import javax.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,8 @@ import com.daimler.data.db.repo.dataproduct.DataProductRepository;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.dataproduct.DataProductResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
+import com.daimler.data.dto.dataproduct.TeamMemberVO;
+import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
 
 @Service
@@ -62,11 +65,17 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseDataProductService.class);
 
+	@Value(value = "${dataproduct.consume.url}")
+	private String consumeUrl;
+
 	@Autowired
 	private UserStore userStore;
 
 	@Autowired
 	private DataProductAssembler dataProductAssembler;
+
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	@Autowired
 	private DataProductCustomRepository dataProductCustomRepository;
@@ -175,6 +184,47 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						response.setData(mergedDataProductVO);
 						response.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
+
+						if (mergedDataProductVO.isNotifyUsers()
+								&& !ObjectUtils.isEmpty(mergedDataProductVO.getUsers())) {
+							CreatedByVO modifyingUser = this.userStore.getVO();
+							String eventType = "Provider-Form Update";
+							String resourceID = mergedDataProductVO.getId();
+							String dataProductName = mergedDataProductVO.getDataProductName();
+							String publishingUserId = "dna_system";
+							String publishingUserName = "";
+							if (modifyingUser != null) {
+								publishingUserId = modifyingUser.getId();
+								publishingUserName = modifyingUser.getFirstName() + " " + modifyingUser.getLastName();
+								if (publishingUserName == null || "".equalsIgnoreCase(publishingUserName))
+									publishingUserName = publishingUserId;
+							}
+
+							List<String> teamMembers = new ArrayList<>();
+							List<String> teamMembersEmails = new ArrayList<>();
+							for (TeamMemberVO user : mergedDataProductVO.getUsers()) {
+								if (user != null) {
+									String userId = user.getShortId() != null ? user.getShortId() : "";
+									if (!teamMembers.contains(userId)) {
+										teamMembers.add(userId);
+										String emailId = user.getEmail() != null ? user.getEmail() : "";
+										teamMembersEmails.add(emailId);
+									}
+								}
+
+							}
+//							String eventMessage = "Provider form " + dataProductName + " has been updated by "
+//									+ publishingUserName;
+
+							String eventMessage = "A Minimum Information Documentation is ready for you. Please [provide information]("
+									+ consumeUrl + resourceID + ")"
+									+ " about the receiving side to finalise the Data Transfer.";
+							kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
+									teamMembers, teamMembersEmails, null);
+							LOGGER.info("Published successfully event {} for data product {} with message {}",
+									eventType, resourceID, eventMessage);
+						}
+
 						return new ResponseEntity<>(response, HttpStatus.OK);
 					} else {
 						List<MessageDescription> messages = new ArrayList<>();

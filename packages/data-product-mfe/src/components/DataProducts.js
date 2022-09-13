@@ -10,7 +10,7 @@ import { setDataProducts, setPagination } from './redux/dataProductSlice';
 import { GetDataProducts } from './redux/dataProduct.services';
 import DataProductCardItem from './DataProductCardItem';
 
-const DataProducts = () => {
+const DataProducts = ({ user }) => {
   const dispatch = useDispatch();
   const {
     dataProducts,
@@ -93,7 +93,7 @@ const DataProducts = () => {
                 <div className={Styles.allDataproductContent}>
                   <div className={classNames('cardSolutions', Styles.allDataproductCardviewContent)}>
                     {dataProducts?.map((product, index) => {
-                      return <DataProductCardItem key={index} product={product} />;
+                      return <DataProductCardItem key={index} product={product} user={user} />;
                     })}
                   </div>
                 </div>
