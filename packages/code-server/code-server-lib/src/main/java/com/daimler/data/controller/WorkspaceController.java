@@ -34,12 +34,14 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.workspace.CodeServerApi;
@@ -47,7 +49,11 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CloudServiceProviderEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CpuCapacityEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.EnvironmentEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.OperatingSystemEnum;
+import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RamMetricsEnum;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
@@ -71,6 +77,9 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Value("${codeServer.env.value}")
+	private String codeServerEnvValue;
 
 	@ApiOperation(value = "Initialize/Create Workbench for user in code-server.", nickname = "createWorkspace", notes = "Create workspace for user in code-server with given password", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
@@ -91,6 +100,14 @@ public class WorkspaceController  implements CodeServerApi{
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO reqVO = codeServerRequestVO.getData();
 		reqVO.setOwner(userId);
+		reqVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
+		reqVO.setCpuCapacity(CpuCapacityEnum._1);
+		reqVO.setId(null);
+		reqVO.setIntiatedOn(null);
+		reqVO.setLastDeployedOn(null);
+		reqVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
+		reqVO.setRamMetrics(RamMetricsEnum.GB);
+		reqVO.setEnvironment(EnvironmentEnum.valueOf(codeServerEnvValue.toUpperCase()));
 		String password = codeServerRequestVO.getPassword();
 		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"name", reqVO.getName());
 		if (existingVO != null && existingVO.getName() != null) {
@@ -213,6 +230,15 @@ public class WorkspaceController  implements CodeServerApi{
 				log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,vo.getName());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
+			if(vo!=null && "default".equalsIgnoreCase(vo.getRecipeId().name())) {
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"Invalid type, cannot deploy this type of recipe");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId, vo.getRecipeId().name(), vo.getName());
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
 			GenericMessage responseMsg = service.deployWorspace(userId,id);
 			log.info("User {} deployed workspace {} project {}", userId,vo.getName(),vo.getRecipeId());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
@@ -301,15 +327,21 @@ public class WorkspaceController  implements CodeServerApi{
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<WorkspaceCollectionVO> getAll(){
+    public ResponseEntity<WorkspaceCollectionVO> getAll(@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
     	CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
-    	final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId,0,0);
+		if(offset==null) {
+			offset = 0;
+		}
+		if(limit==null) {
+			limit = 0;
+		}
+    	final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId,offset,limit);
     	WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
+    	collection.setTotalCount(service.getCount(userId));
 		log.debug("Sending all algorithms");
 		if (workspaces != null && workspaces.size() > 0) {
 			collection.setRecords(workspaces);
-			collection.setTotalCount(service.getCount(userId));
 			return new ResponseEntity<>(collection, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
