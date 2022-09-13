@@ -54,20 +54,24 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     values,
     onSave,
     provideDataProducts: { divisionList, pagination },
+    type, // "provider" form or "consumer" form
+    state, // "edit" or "create"
   } = data;
 
+  const isEdit = state === 'edit';
   const division = serializeDivisionSubDivision(divisionList, values);
-  const requestBody = serializeFormData(values, division);
+  const requestBody = serializeFormData(values, division, type);
+
   ProgressIndicator.show();
   try {
     const res = await dataProductsApi.updateDataProduct(requestBody);
     ProgressIndicator.hide();
     onSave();
-    const data = deserializeFormData(res?.data?.data);
+    const data = deserializeFormData(res?.data?.data, type);
+
     if (values.publish) {
-      Notification.show('Your Data Product is now available!');
-    } else if (data.openSegments.length === 5) {
-      // on saving last tab
+      Notification.show(isEdit ? 'Information updated sucessfully.' : 'Transfer is now complete!');
+    } else if (data.providerFormSubmitted) {
       Notification.show('Progress saved in Data Transfer Overview');
     }
     return {
