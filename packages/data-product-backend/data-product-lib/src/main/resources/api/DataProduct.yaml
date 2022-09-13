@@ -571,4 +571,28 @@ definitions:
         type: string
         description: "Position of team member in project"
     required:
-      - shortId        
+      - shortId 
+      
+  ChangeLogVO:
+    type: object
+    description: "Describes a single change log record done on the data product"
+    properties:
+      changeDate:
+        type: string
+        format: date
+        description: "Date on which this change occurred"
+      modifiedBy:
+        description: "User who changed the value"
+        $ref: "#/definitions/TeamMemberVO"
+      fieldChanged:
+        type: string
+        description: "Describe the attribute that changed"
+      oldValue:
+        type: string
+        description: "Describes the old value of the changed attribute"
+      newValue:
+        type: string
+        description: "Describes the new value of the changed attribute"
+      changeDescription:
+        type: string
+        description: "Short Description on change/addition/removal of attribute"              
