@@ -64,6 +64,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
 
+  let livelinessInterval: any = undefined;
+
   useEffect(() => {
     CodeSpaceApiClient.getCodeSpaceStatus(id).then((res: any) => {
       setLoading(false);
@@ -117,6 +119,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     // }).catch((err: Error) => {
     //   Notification.show("Error in validating code space - " + err.message, 'alert');
     // });
+
+    return () => clearInterval(livelinessInterval);
   }, [])
 
   const toggleFullScreenMode = () => {
@@ -158,7 +162,6 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setShowCodeDeployModal(false);
   }
 
-  let livelinessInterval: any = undefined;
   const enableDeployLivelinessCheck = (name: string) => {
     clearInterval(livelinessInterval);
     livelinessInterval = setInterval(() => {

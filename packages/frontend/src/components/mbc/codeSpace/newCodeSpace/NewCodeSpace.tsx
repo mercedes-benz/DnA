@@ -41,8 +41,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [environment, setEnvironment] = useState('DHC-CaaS');
   const [recipeValues, setRecipeValues] = useState([]);
   const recipes = [
-    { id: 'default', name: 'Plain or Empty (Debian 11 OS, 2GB RAM, 1CPU)' },
-    { id: 'microservice', name: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)' },
+    { id: 'default', name: 'Plain or Empty (Debian 11 OS, 1GB RAM, 1CPU)' },
+    { id: 'springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 1GB RAM, 1CPU)' },
+    { id: 'py-fastapi', name: 'Microservice using Python FastAPI (Debian 11 OS, 1GB RAM, 1CPU)' },
     { id: 'dna', name: 'DnA Workspace (Coming Soon)' },
     { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
     { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
@@ -63,6 +64,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
+    return () => clearInterval(livelinessInterval);
   }, []);
 
   const sanitizedRepositoryName = (name: string) => { 
@@ -158,8 +160,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // User Name
   const namePrefix = props.user.firstName;
 
-  console.log(environment);
-
   const validateNewCodeSpaceForm = () => {
     let formValid = true;
     if (!projectName.length) {
@@ -242,13 +242,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     const createCodeSpaceRequest = {
       data: {
         cloudServiceProvider: environment,
-        cpuCapacity: "1",
-        description: "",
-        environment: "Development",
         name: projectName,
-        operatingSystem: "Debian-OS-11",
-        ramMetrics: "GB",
-        ramSize: "1",
         recipeId: recipeValues.join(''),
       },
       password: passwordInput.password,
