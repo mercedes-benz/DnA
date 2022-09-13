@@ -1,12 +1,11 @@
 import classNames from 'classnames';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import Styles from './style.scss';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { hostServer } from '../../server/api';
 import { useForm, FormProvider } from 'react-hook-form';
-import { deserializeFormData, consumerOpenSegments } from '../../Utility/formData';
+import { deserializeFormData, consumerOpenSegments, serializeDivisionSubDivision } from '../../Utility/formData';
 import { UpdateDataProducts } from '../redux/dataProduct.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
@@ -14,6 +13,7 @@ import SelectBox from 'dna-container/SelectBox';
 
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 import ContactInformation from './ContactInformation';
 import PersonalRelatedData from './PersonalRelatedData';
@@ -26,14 +26,16 @@ import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 const tabs = {
   'provider-summary': {},
   'consumer-contact-info': {
-    businessOwner: '',
+    businessOwnerName: '',
     division: '0',
     subDivision: '0',
     department: '',
     planningIT: 'APP-',
+    lcoNeeded: '',
+    complianceOfficer: '',
   },
   'consumer-personal-data': {
-    personalRelatedDataTransferred: '',
+    personalRelatedData: '',
     personalRelatedDataPurpose: '',
     personalRelatedDataLegalBasis: '',
     LCOCheckedLegalBasis: '',
@@ -45,16 +47,21 @@ const ConsumerForm = ({ user, history }) => {
   const [currentTab, setCurrentTab] = useState('provider-summary');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
-  const { setValue, formState, reset, watch } = methods;
+  const { formState, reset } = methods;
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [isFormMounted, setFormMounted] = useState(false);
+  const [providerFormIsDraft, setProviderDraftState] = useState(false);
+
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
 
   const dispatch = useDispatch();
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
+  const divisionList = useSelector((state) => state.provideDataProducts.divisionList);
   const { id: dataProductId } = useParams();
 
   useEffect(() => {
@@ -68,19 +75,21 @@ const ConsumerForm = ({ user, history }) => {
   }, [user]);
 
   useEffect(() => {
-    const defaultValues = Object.values(tabs).reduce((acc, curr) => ({ ...acc, ...curr }), {});
-    Object.entries(defaultValues)?.map(([key, value]) => {
-      setValue(key, value); // setting default values
-    });
-  }, [setValue]);
+    const { id } = provideDataProducts.selectedDataProduct;
+    if (id) {
+      let defaultValues = { ...provideDataProducts.selectedDataProduct.consumer };
+      reset(defaultValues); // setting default values
+    }
+    //eslint-disable-next-line
+  }, [dispatch, provideDataProducts.selectedDataProduct]);
 
   useEffect(() => {
     ProgressIndicator.show();
     hostServer.get('/divisions').then((res) => {
       setDivisions(res.data);
+      ProgressIndicator.hide();
       dispatch(setDivisionList(res.data));
       SelectBox.defaultSetup();
-      ProgressIndicator.hide();
     });
   }, [dispatch]);
 
@@ -95,20 +104,32 @@ const ConsumerForm = ({ user, history }) => {
     };
   }, [dispatch]);
 
+  useEffect(() => {
+    if (providerFormIsDraft)
+      Notification.show('Provider form is still in Draft. Please reach out to Information Owner', 'warning');
+  }, [providerFormIsDraft]);
+
   const getDataProductById = () => {
     dataProductsApi.getDataProductById(dataProductId).then((res) => {
-      const data = deserializeFormData(res.data);
-      dispatch(setDataProduct(data));
-      // reset(data);
-      let segments = [];
-      res.data.openSegments?.map((seg) => {
-        for (let key in consumerOpenSegments) {
-          if (consumerOpenSegments[key] === seg) {
-            segments.push(key);
+      if (res.status === 204) {
+        return history.push('/NotFound');
+      } else {
+        const data = deserializeFormData(res.data, 'consumer');
+        dispatch(setDataProduct(data));
+        setIsEditing(data.publish);
+        setFormMounted(true);
+        setProviderDraftState(!res.data.providerFormSubmitted);
+        reset({ ...data.consumer });
+        let segments = [];
+        res.data.consumerInformation?.openSegments?.map((seg) => {
+          for (let key in consumerOpenSegments) {
+            if (consumerOpenSegments[key] === seg) {
+              segments.push(key);
+            }
           }
-        }
-      });
-      setSavedTabs(segments);
+        });
+        setSavedTabs(segments);
+      }
     });
   };
 
@@ -133,26 +154,53 @@ const ConsumerForm = ({ user, history }) => {
     }
   };
 
-  const onSave = (currentTab, values) => {
+  const onSave = (currentTab, values, callbackFn) => {
     const saveSegments = consumerOpenSegments[currentTab];
-    if (currentTab === 'consumer-contact-info') {
-      // values.openSegments = ['CustomerContactInformation'];
+    if (!values.openSegments?.length && currentTab === 'consumer-contact-info') {
+      values.openSegments = ['ContactInformation'];
     } else if (values.openSegments?.indexOf(saveSegments) === -1) {
-      // values.openSegments.push(saveSegments);
+      values.openSegments.push(saveSegments);
     }
 
-    if (currentTab !== 'consumer-contact-info') {
-      const value = { ...provideDataProducts.selectedDataProduct };
-      const data = {
-        values: { ...value, ...values },
-        onSave: () => history.push('/'),
-        provideDataProducts,
-      };
+    const division = serializeDivisionSubDivision(divisionList, values);
+    const value = { ...provideDataProducts.selectedDataProduct };
 
-      dispatch(UpdateDataProducts(data));
-    }
+    value.notifyUsers = values.notifyUsers || false;
+    value.publish = values.publish || false;
 
-    switchTabs(currentTab);
+    const formValues = {
+      consumerInformation: {
+        contactInformation: {
+          appId: values.planningIT,
+          department: values.department,
+          division,
+          lcoNeeded: values.lcoNeeded ? true : false,
+          localComplianceOfficer: values.complianceOfficer?.toString(),
+          ownerName: values.businessOwnerName,
+        },
+        openSegments: values.openSegments,
+        personalRelatedData: {
+          comment: values.LCOComments,
+          lcoChecked: values.LCOCheckedLegalBasis,
+          legalBasis: values.personalRelatedDataLegalBasis,
+          personalRelatedData: values.personalRelatedData === 'Yes' ? true : false, //boolean,
+          purpose: values.personalRelatedDataPurpose,
+        },
+      },
+    };
+
+    const data = {
+      values: { ...value, formValues },
+      onSave: () => {
+        switchTabs(currentTab);
+        if (typeof callbackFn === 'function') callbackFn();
+      },
+      provideDataProducts,
+      type: 'consumer',
+      state: isEditing ? 'edit' : 'create',
+    };
+
+    dispatch(UpdateDataProducts(data));
   };
 
   return (
@@ -171,7 +219,14 @@ const ConsumerForm = ({ user, history }) => {
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
-                  <li className={savedTabs?.includes('provider-summary') ? 'tab valid' : 'tab active'}>
+                  <li
+                    className={
+                      savedTabs?.includes('provider-summary') ||
+                      provideDataProducts.selectedDataProduct?.consumer?.openSegments?.length
+                        ? 'tab valid'
+                        : 'tab active'
+                    }
+                  >
                     <a
                       href="#tab-content-1"
                       id="provider-summary"
@@ -183,7 +238,13 @@ const ConsumerForm = ({ user, history }) => {
                       Provider Summary
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('consumer-contact-info') ? 'tab valid' : 'tab disabled'}>
+                  <li
+                    className={
+                      savedTabs?.includes('consumer-contact-info') && !providerFormIsDraft
+                        ? 'tab valid'
+                        : 'tab disabled'
+                    }
+                  >
                     <a
                       href="#tab-content-2"
                       id="consumer-contact-info"
@@ -195,7 +256,13 @@ const ConsumerForm = ({ user, history }) => {
                       Contact Information
                     </a>
                   </li>
-                  <li className={savedTabs?.includes('consumer-personal-data') ? 'tab valid' : 'tab disabled'}>
+                  <li
+                    className={
+                      savedTabs?.includes('consumer-personal-data') && !providerFormIsDraft
+                        ? 'tab valid'
+                        : 'tab disabled'
+                    }
+                  >
                     <a
                       href="#tab-content-3"
                       id="consumer-personal-data"
@@ -212,21 +279,28 @@ const ConsumerForm = ({ user, history }) => {
             </div>
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
-                <ProviderSummary onSave={() => switchTabs('provider-summary')} />
+                <ProviderSummary
+                  onSave={() => switchTabs('provider-summary')}
+                  providerFormIsDraft={providerFormIsDraft}
+                />
               </div>
               <div id="tab-content-2" className="tab-content">
                 {currentTab === 'consumer-contact-info' && (
                   <ContactInformation
-                    onSave={(values) => onSave('consumer-contact-info', values)}
+                    onSave={(values, callbackFn) => onSave('consumer-contact-info', values, callbackFn)}
                     divisions={divisions}
                     setSubDivisions={setSubDivisions}
                     subDivisions={subDivisions}
+                    isFormMounted={isFormMounted}
                   />
                 )}
               </div>
               <div id="tab-content-3" className="tab-content">
                 {currentTab === 'consumer-personal-data' && (
-                  <PersonalRelatedData onSave={(values) => onSave('consumer-personal-data', values)} />
+                  <PersonalRelatedData
+                    onSave={(values, callbackFn) => onSave('consumer-personal-data', values, callbackFn)}
+                    setIsEditing={(val) => setIsEditing(val)}
+                  />
                 )}
               </div>
             </div>
@@ -246,12 +320,7 @@ const ConsumerForm = ({ user, history }) => {
               </div>
             }
             onCancel={() => {
-              reset(watch()); // to reset different states of the form.
-              const defaultValues = watch(); // update api response to reset
-              // defaultValues['personalRelatedDataDescription'] = 'sample code';
-              Object.entries(defaultValues)?.map(([key, value]) => {
-                setValue(key, value); // setting default values
-              });
+              getDataProductById();
               setCurrentTab(showChangeAlert.switchingTab);
               elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
               setShowChangeAlert({ modal: false, switchingTab: '' });
