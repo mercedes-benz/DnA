@@ -399,7 +399,6 @@ definitions:
       required:
         -name
         -recipeId
-        -ramSize
           
   BindingResult:
     type: object
