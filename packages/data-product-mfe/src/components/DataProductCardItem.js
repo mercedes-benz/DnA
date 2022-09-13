@@ -14,11 +14,12 @@ import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../common/modules/uilab/js/src/notification';
 
-const DataProductCardItem = ({ product, history }) => {
+const DataProductCardItem = ({ product, history, user }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dispatch = useDispatch();
 
-  const isProviderFormSubmitted = product.openSegments.includes('SpecifyDeletionRequirements');
+  const isProviderFormSubmitted = product.providerFormSubmitted;
+  const isCreator = product.createdBy.id === user.id;
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -72,7 +73,7 @@ const DataProductCardItem = ({ product, history }) => {
             </div>
             <div>
               <div>Data Classification</div>
-              <div>{product?.classificationConfidentiality?.confidentiality || '-'}</div>
+              <div>{product?.providerInformation?.classificationConfidentiality?.confidentiality || '-'}</div>
             </div>
             <div>
               <div>Created by</div>
@@ -90,7 +91,7 @@ const DataProductCardItem = ({ product, history }) => {
               {!isProviderFormSubmitted ? (
                 <span className={Styles.draft}>Draft</span>
               ) : (
-                <span>{product.contactInformation.appId}</span>
+                <span>{product.providerInformation?.contactInformation?.appId}</span>
               )}
             </div>
             <div>
@@ -108,19 +109,26 @@ const DataProductCardItem = ({ product, history }) => {
             </div>
             <div className={!product.publish ? Styles.disabled : ''}>
               <label>Consumer</label>
-              {product.publish ? <span>{product.contactInformation.appId}</span> : <span>pending...</span>}
+              {product.publish ? (
+                <span>{product.consumerInformation?.contactInformation?.appId}</span>
+              ) : (
+                <span>pending...</span>
+              )}
             </div>
           </div>
         </div>
         <div className={Styles.cardFooter}>
-          {/* <div>{!product?.publish && <span className={Styles.draftIndicator}>DRAFT</span>}</div> */}
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-              <i className="icon delete" tooltip-data="Delete"></i>
-            </button>
-            <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.id}`)}>
-              <i className="icon mbc-icon edit" tooltip-data="Edit"></i>
-            </button>
+            {isCreator ? (
+              <>
+                <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+                  <i className="icon delete" tooltip-data="Delete"></i>
+                </button>
+                <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.id}`)}>
+                  <i className="icon mbc-icon edit" tooltip-data="Edit"></i>
+                </button>
+              </>
+            ) : null}
             <button className="btn btn-primary" onClick={() => {}}>
               <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>
             </button>

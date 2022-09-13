@@ -296,10 +296,11 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
           type="submit"
           disabled={isSubmitting}
           onClick={handleSubmit((values) => {
+            setValue('notifyUsers', false);
+            onSave(watch());
             reset(values, {
               keepDirty: false,
             });
-            onSave(values);
           })}
         >
           Save & Next
