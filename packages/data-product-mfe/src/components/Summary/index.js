@@ -139,7 +139,7 @@ const Summary = ({ history }) => {
                       <div>
                         <label className="input-label summary">Sub Division</label>
                         <br />
-                        {division?.subdivision?.name}
+                        {division?.subdivision?.name || '-'}
                       </div>
                       <div>
                         <label className="input-label summary">Department</label>
