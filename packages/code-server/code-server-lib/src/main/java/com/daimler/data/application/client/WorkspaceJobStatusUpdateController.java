@@ -52,7 +52,7 @@ public class WorkspaceJobStatusUpdateController  {
     		@ApiParam(value = "user for which workspaces needs to be updated",required=true) @PathVariable("userId") String userId,
     		@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
 		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"name", name);
-		if (existingVO != null) {
+		if (existingVO != null && existingVO.getOwner()!=null) {
 			String owner = existingVO.getOwner();
 			if(!userId.equalsIgnoreCase(owner)) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
@@ -60,7 +60,7 @@ public class WorkspaceJobStatusUpdateController  {
 						"Not authorized to update other's workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {}", userId,name);
+				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {} and owner is {}", userId,name,owner);
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 //			if(updateRequestVO.getLastDeployedOn()!=null)
@@ -74,7 +74,7 @@ public class WorkspaceJobStatusUpdateController  {
 						invalidStatus = true;
 					break;
 				case "DELETE_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("DELETED") || latestStatus.equalsIgnoreCase("DELETE_FAILED")))
+					if(!(latestStatus.equalsIgnoreCase("DELETED") || latestStatus.equalsIgnoreCase("DELETE_FAILED") || latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED") ))
 						invalidStatus = true;
 					break;
 				case "DEPLOY_REQUESTED": 
@@ -86,6 +86,7 @@ public class WorkspaceJobStatusUpdateController  {
 						invalidStatus = true;
 					break;
 				default:
+					invalidStatus = false;
 					break;
 			  
 			}
