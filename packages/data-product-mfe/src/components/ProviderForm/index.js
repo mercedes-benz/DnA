@@ -81,7 +81,7 @@ const ProviderForm = ({ user, history }) => {
       dispatch(setDataProduct(data));
       reset(data);
       let segments = [];
-      res.data.openSegments?.map((seg) => {
+      res.data.providerInformation?.openSegments?.map((seg) => {
         for (let key in mapOpenSegments) {
           if (mapOpenSegments[key] === seg) {
             segments.push(key);
@@ -160,16 +160,19 @@ const ProviderForm = ({ user, history }) => {
     }
   };
 
-  const onSave = (currentTab, values) => {
+  const onSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
     if (isCreatePage && currentTab === 'contact-info') {
       values.openSegments = ['ContactInformation'];
-    } else if (values.openSegments.indexOf(saveSegments) === -1) {
+    } else if (values.openSegments?.indexOf(saveSegments) === -1) {
       values.openSegments.push(saveSegments);
     }
     const data = {
       values,
-      onSave: () => switchTabs(currentTab),
+      onSave: () => {
+        switchTabs(currentTab);
+        if (typeof callbackFn === 'function') callbackFn();
+      },
       provideDataProducts,
     };
     if (isCreatePage) {
@@ -288,7 +291,9 @@ const ProviderForm = ({ user, history }) => {
               </div>
               <div id="tab-content-5" className="tab-content">
                 {currentTab === 'deletion-requirements' && (
-                  <DeletionRequirements onSave={(values) => onSave('deletion-requirements', values)} />
+                  <DeletionRequirements
+                    onSave={(values, callbackFn) => onSave('deletion-requirements', values, callbackFn)}
+                  />
                 )}
               </div>
             </div>

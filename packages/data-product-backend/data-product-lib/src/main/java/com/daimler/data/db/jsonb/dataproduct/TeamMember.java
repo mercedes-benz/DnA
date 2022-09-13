@@ -34,9 +34,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransnationalDataTransfer {
+public class TeamMember {
 
-	private boolean dataTransferred;
-	private boolean notWithinEU;
-	private String approved;
+	private String id;
+	private String userType;
+	private String shortId;
+	private String firstName;
+	private String lastName;
+	private String department;
+	private String email;
+	private String mobileNumber;
+	private String company;
+	private String teamMemberPosition;
+
 }
