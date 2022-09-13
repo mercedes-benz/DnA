@@ -30,6 +30,17 @@ spring:
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
     
+  cloud:
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+          brokers: ${NAAS_BROKER:localhost:9092}
+          
+kafka:
+  centralTopic:
+    name: dnaCentralEventTopic              
+    
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
