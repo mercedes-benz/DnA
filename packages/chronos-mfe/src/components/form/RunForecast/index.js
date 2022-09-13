@@ -13,6 +13,7 @@ import { fileObj } from '../../../Utility/utils';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import { Link } from 'react-router-dom';
 
 const SelectedFile = ({ setFiles }) => {
@@ -51,8 +52,14 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
 
   const isValidFile = (file) => ['csv', 'xls', 'xlsx'].includes(file?.name?.split('.')[1]);
 
+  const frequencyTooltipContent =
+    'Please select a frequency for your data in the field below.\n Make sure the datetimes in the first column of the data you upload matches the frequency selected here.\n If your data has no inherent frequency or the frequency is not available in the list, select "No frequency".\n In this case, the first column of your data should contain sortable indices like [1, 2, 3...].';
+  const forecastHorizonTooltipContent =
+    'Select how many data points in the future the forecast should predict.\n Note that this number should not be more than 1/5th the length of your existing data, ideally less.\n Also, forecasting gets less precise over time, so try to not predict too many points in the future.';
+
   useEffect(() => {
     SelectBox.defaultSetup();
+    Tooltip.defaultSetup();
     console.log(fileList);
     // reset(watch());
     //eslint-disable-next-line
@@ -144,12 +151,8 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
               <option id="existingFileOption" value={0}>
                 Choose
               </option>
-              <option value={1}>
-                MS_tms_fc.xls
-              </option>
-              <option value={2}>
-                MS_tms_fc2.xls
-              </option>
+              <option value={1}>MS_tms_fc.xls</option>
+              <option value={2}>MS_tms_fc2.xls</option>
               {existingFiles?.map((obj) => (
                 <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                   {obj.name}
@@ -184,7 +187,10 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
           //     keepDirty: false,
           //   });
           // })}
-          onClick={() => {setShowExistingFiles(false); setIsSelectedFile(true)}}
+          onClick={() => {
+            setShowExistingFiles(false);
+            setIsSelectedFile(true);
+          }}
         >
           Continue with file
         </button>
@@ -326,9 +332,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                       <option id="configurationOption" value={0}>
                         Choose
                       </option>
-                      <option value={1}>
-                        Default Configuration
-                      </option>
+                      <option value={1}>Default Configuration</option>
                       {configurationFile?.map((obj) => (
                         <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                           {obj.name}
@@ -343,10 +347,14 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
             <div className={Styles.flexLayout}>
               <div className={Styles.frequencyContainer}>
                 <div
-                  className={classNames(`input-field-group include-error ${errors?.frequency?.message ? 'error' : ''}`)}
+                  className={classNames(
+                    `input-field-group include-error ${errors?.frequency?.message ? 'error' : ''}`,
+                    Styles.tooltipIcon,
+                  )}
                 >
                   <label id="frequencyLabel" htmlFor="frequencyField" className="input-label">
                     Frequency <sup>*</sup>
+                    <i className="icon mbc-icon info" tooltip-data={frequencyTooltipContent} />
                   </label>
                   <div className="custom-select" onBlur={() => trigger('frequency')}>
                     <select
@@ -360,15 +368,9 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                       <option id="frequencyOption" value={0}>
                         Choose
                       </option>
-                      <option value={1}>
-                        Daily
-                      </option>
-                      <option value={2}>
-                        Weekly
-                      </option>
-                      <option value={3}>
-                        Monthly
-                      </option>
+                      <option value={1}>Daily</option>
+                      <option value={2}>Weekly</option>
+                      <option value={3}>Monthly</option>
                       {frequency?.map((obj) => (
                         <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                           {obj.name}
@@ -383,10 +385,12 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                 <div
                   className={classNames(
                     `input-field-group include-error ${errors?.forecastHorizon?.message ? 'error' : ''}`,
+                    Styles.tooltipIcon,
                   )}
                 >
                   <label id="forecastHorizonLabel" htmlFor="forecastHorizonField" className="input-label">
                     Forecast Horizon <sup>*</sup>
+                    <i className="icon mbc-icon info" tooltip-data={forecastHorizonTooltipContent} />
                   </label>
                   <div className="custom-select" onBlur={() => trigger('forecastHorizon')}>
                     <select
@@ -400,9 +404,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                       <option id="forecastHorizonOption" value={0}>
                         Choose
                       </option>
-                      <option value={1}>
-                        2033
-                      </option>
+                      <option value={1}>2033</option>
                       {forecastHorizon?.map((obj) => (
                         <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                           {obj.name}
