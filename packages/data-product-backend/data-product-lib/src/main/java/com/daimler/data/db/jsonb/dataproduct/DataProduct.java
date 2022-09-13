@@ -28,6 +28,7 @@
 package com.daimler.data.db.jsonb.dataproduct;
 
 import java.util.Date;
+import java.util.List;
 
 import com.daimler.data.db.jsonb.CreatedBy;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -46,6 +47,9 @@ public class DataProduct {
 	private Provider providerInformation;
 	private Consumer consumerInformation;
 	private boolean publish;
+	private boolean providerFormSubmitted;
+	private boolean notifyUsers;
+	private List<TeamMember> users;
 	private Date createdDate;
 	private Date lastModifiedDate;
 	private CreatedBy createdBy;
