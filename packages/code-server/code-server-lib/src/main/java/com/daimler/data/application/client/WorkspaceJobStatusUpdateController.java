@@ -74,7 +74,7 @@ public class WorkspaceJobStatusUpdateController  {
 						invalidStatus = true;
 					break;
 				case "DELETE_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("DELETED") || latestStatus.equalsIgnoreCase("DELETE_FAILED")))
+					if(!(latestStatus.equalsIgnoreCase("DELETED") || latestStatus.equalsIgnoreCase("DELETE_FAILED") || latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED") ))
 						invalidStatus = true;
 					break;
 				case "DEPLOY_REQUESTED": 
@@ -86,6 +86,7 @@ public class WorkspaceJobStatusUpdateController  {
 						invalidStatus = true;
 					break;
 				default:
+					invalidStatus = true;
 					break;
 			  
 			}

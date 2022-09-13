@@ -63,7 +63,7 @@
     "npm": ">=5.6.0"
   },
   "dependencies": {
-    "@react-pdf/renderer": "^2.0.15",
+    "@react-pdf/renderer": "^3.0.0",
     "ace-builds": "^1.4.12",
     "cors": "^2.8.5",
     "popper.js": "^1.16.1",

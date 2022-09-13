@@ -111,6 +111,7 @@ dependencies:
   repository: file://charts/chronos-be
   version: 0.1.0
   condition: chronos-be.enabled  
+ 
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
