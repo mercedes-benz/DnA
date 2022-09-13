@@ -60,7 +60,7 @@ public class WorkspaceJobStatusUpdateController  {
 						"Not authorized to update other's workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {}", userId,name);
+				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {} and owner is {}", userId,name,owner);
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 //			if(updateRequestVO.getLastDeployedOn()!=null)
