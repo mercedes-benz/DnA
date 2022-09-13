@@ -334,7 +334,7 @@ const teamMembersList = (members: ITeams[]) => {
             <View>
               <Text>
                 <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
-                  {member.firstName} {member.lastName}
+                  <Text>{member.firstName} {member.lastName}</Text>
                 </Link>
               </Text>
               <Text>{member.department}</Text>
@@ -359,7 +359,9 @@ const linkList = (links: ILink[]) => {
           <Image style={{ width: 10 }} src={ImgLink} />
         </View>
         <Text>
-          <Link src={link.link}>{link.link}</Link>
+          <Link src={link.link}>
+            <Text>{link.link}</Text>
+          </Link>
         </Text>
       </View>
     );
@@ -792,7 +794,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                                 <Link
                                   src={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
                                 >
-                                  {props.dataIkuInfo.name}
+                                  <Text>{props.dataIkuInfo.name}</Text>
                                 </Link>
                               ))}
                           </Text>
@@ -877,7 +879,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.seperatorLine} />
             </View>
-            : ''} 
+            : <Text></Text>} 
           </View>
         ) : (
           <View />
@@ -976,7 +978,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Git Repository</Text>
                     {props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '' ? (
-                      <Link src={props.solution.sharing.gitUrl}>{props.solution.sharing.gitUrl}</Link>
+                      <Link src={props.solution.sharing.gitUrl}>
+                        <Text>{props.solution.sharing.gitUrl}</Text>
+                      </Link>
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -988,7 +992,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Comment</Text>
                     {props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '' ? (
-                      <Link src={props.solution.sharing.resultUrl}>{props.solution.sharing.resultUrl}</Link>
+                      <Link src={props.solution.sharing.resultUrl}>
+                        <Text>{props.solution.sharing.resultUrl}</Text>
+                      </Link>
                     ) : (
                       <Text>NA</Text>
                     )}
