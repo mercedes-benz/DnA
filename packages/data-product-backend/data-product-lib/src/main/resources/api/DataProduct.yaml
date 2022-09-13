@@ -248,7 +248,7 @@ paths:
           description: "Internal error"
 
 definitions:
-  ProviderContactInformationVO:
+  ContactInformationVO:
     type: object
     properties:  
       dataTransferDate:
@@ -424,7 +424,9 @@ definitions:
               "ClassificationAndConfidentiality",
               "IdentifyingPersonalRelatedData",
               "IdentifiyingTransnationalDataTransfer",
-              "SpecifyDeletionRequirements"
+              "IdentifyingDataOriginatingFromChina",
+              "SpecifyDeletionRequirements",
+              "SpecifyingRelevantInformation"
             ]  
             
   ConsumerVO:
@@ -453,17 +455,7 @@ definitions:
       dataProductName:
         type: string
         description: "Name of the DataProduct"
-        minLength: 1
-      providerFormSubmitted:
-        type: boolean
-        description: "Flag to identify if provider form submitted or not."
-      notifyUsers:
-        type: boolean
-        description: "Flag to notify users." 
-      users:
-        type: array
-        items:
-          $ref: "#/definitions/TeamMemberVO"               
+        minLength: 1  
       createdDate:
         type: string
         format: date
@@ -537,38 +529,3 @@ definitions:
       name:
         type: string
         description: name of subdivision
-        
-  TeamMemberVO:
-    type: object
-    properties:
-      shortId:
-        type: string
-        description: "Short id of the user"
-      userType:
-        type: string
-        description: "Internal or External"
-        enum: [internal, external]
-      firstName:
-        type: string
-        description: "First Name of the user"
-      lastName:
-        type: string
-        description: "Last Name of the user"
-      department:
-        type: string
-        description: "Department of the user"
-      email:
-        type: string
-        description: "E-Mail of the user"
-        format: email
-      mobileNumber:
-        type: string
-        description: "Mobile number of the user"
-      company:
-        type: string
-        description: "Company name of the external member"
-      teamMemberPosition:
-        type: string
-        description: "Position of team member in project"
-    required:
-      - shortId        

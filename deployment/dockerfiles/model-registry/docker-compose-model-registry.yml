@@ -1,7 +1,7 @@
 version: '2.1'
 services:
   model-registry:
-    image: dna/model-registry
+    image: ${IMAGE_MODEL_REGISTRY:-model-registry}
     container_name: model-registry
     build:
       context: ../../../packages/model-registry

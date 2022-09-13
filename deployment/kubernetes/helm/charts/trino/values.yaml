@@ -134,7 +134,18 @@ authentication:
 
 hivemetastore:
   image: ""
+  server:
+    session:
+      check_interval: "1h"
+      timeout: "2h"
+    operation:
+      timeout: "2h"
+    thrift:
+      http_timeout: "2h"
   requests:
+    memory: "8G"
+    cpu: 2
+  limits:
     memory: "8G"
     cpu: 2
   minio:

@@ -28,7 +28,6 @@
 package com.daimler.data.db.jsonb.dataproduct;
 
 import java.util.Date;
-import java.util.List;
 
 import com.daimler.data.db.jsonb.CreatedBy;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
