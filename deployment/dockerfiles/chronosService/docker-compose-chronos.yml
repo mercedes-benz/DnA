@@ -6,8 +6,8 @@ services:
       context: ../../../packages/chronos-mfe/
       dockerfile: $PWD/chronos-mfe.Dockerfile
 
-  chronos-be:
-    image: ${IMAGE_CHRONOS_BE:-chronos_mfe}
-    build:
-      context: ../../../packages/chronos-backend/
-      dockerfile: $PWD/chronos-be.Dockerfile
+  # chronos-be:
+  #   image: ${IMAGE_CHRONOS_BE:-chronos_be}
+  #   build:
+  #     context: ../../../packages/chronos-backend/
+  #     dockerfile: $PWD/chronos-be.Dockerfile

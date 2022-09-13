@@ -12,6 +12,8 @@ const DataOriginating = ({ onSave }) => {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
+    watch,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -77,7 +79,8 @@ const DataOriginating = ({ onSave }) => {
           type="submit"
           disabled={isSubmitting}
           onClick={handleSubmit((data) => {
-            onSave(data);
+            setValue('notifyUsers', false);
+            onSave(watch());
             reset(data, {
               keepDirty: false,
             });

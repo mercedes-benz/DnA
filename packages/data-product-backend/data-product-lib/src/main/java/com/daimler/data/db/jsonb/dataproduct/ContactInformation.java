@@ -25,9 +25,8 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.json;
+package com.daimler.data.db.jsonb.dataproduct;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -37,25 +36,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CodeServerWorkspace implements Serializable{
+public class ContactInformation {
 
-	private static final long serialVersionUID = -1767843944100072529L;
-	
-	private String owner;
+	private Date dataTransferDate;
 	private String name;
-	//private String projectName;
-	private String description;
-	private String recipeId;
-	private String password;
-	private Date intiatedOn;
-	private Date lastDeployedOn;
-	private String ramSize;
-	private String cpuCapacity;
-	private String operatingSystem;
-	private String environment;
-	private String cloudServiceProvider;
-	private String status;
-	private String deploymentUrl;
-	private String workspaceUrl;
-	
+	private String appId;
+	private String localComplianceOfficer;
+	private String department;
+	private Division division;
 }

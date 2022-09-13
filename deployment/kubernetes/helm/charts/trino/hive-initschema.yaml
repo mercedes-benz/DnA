@@ -3,6 +3,9 @@ kind: Job
 metadata:
   name: hive-initschema
   namespace: trino
+  labels:
+    name: initschema
+    key: init
 spec:
   template:
     spec:
