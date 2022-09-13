@@ -167,22 +167,26 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     livelinessInterval = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
         .then((res:any) => {
-          if (res.status === 'DEPLOYED') {
-            setIsApiCallTakeTime(false);
-            ProgressIndicator.hide();
-            clearInterval(livelinessInterval);
-            // setCodeSpaceData({
-            //   ...codeSpaceData,
-            //   deployed: true,
-            //   deployedUrl: res.deployedUrl,
-            //   lastDeployedDate: res.lastDeployedOn
-            // });
-            setCodeDeployed(true);
-            setCodeDeploying(false);
-            setCodeDeployedUrl(res.deploymentUrl);
-            Tooltip.defaultSetup();
-            setShowCodeDeployModal(false);
-            Notification.show(`Code from code space ${res.name} succesfully deployed.`);
+          try {
+            if (res.status === 'DEPLOYED') {
+              setIsApiCallTakeTime(false);
+              ProgressIndicator.hide();
+              clearInterval(livelinessInterval);
+              // setCodeSpaceData({
+              //   ...codeSpaceData,
+              //   deployed: true,
+              //   deployedUrl: res.deployedUrl,
+              //   lastDeployedDate: res.lastDeployedOn
+              // });
+              setCodeDeployed(true);
+              setCodeDeploying(false);
+              setCodeDeployedUrl(res.deploymentUrl);
+              Tooltip.defaultSetup();
+              setShowCodeDeployModal(false);
+              Notification.show(`Code from code space ${res.name} succesfully deployed.`);
+            }
+          } catch(err:any) {
+            console.log(err);
           }
         })
         .catch((err: Error) => {
