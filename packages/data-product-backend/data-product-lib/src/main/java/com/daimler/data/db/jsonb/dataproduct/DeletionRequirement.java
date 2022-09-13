@@ -25,10 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.json;
+package com.daimler.data.db.jsonb.dataproduct;
 
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,25 +36,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CodeServerWorkspace implements Serializable{
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DeletionRequirement {
 
-	private static final long serialVersionUID = -1767843944100072529L;
-	
-	private String owner;
-	private String name;
-	//private String projectName;
+	private boolean deletionRequirements;
 	private String description;
-	private String recipeId;
-	private String password;
-	private Date intiatedOn;
-	private Date lastDeployedOn;
-	private String ramSize;
-	private String cpuCapacity;
-	private String operatingSystem;
-	private String environment;
-	private String cloudServiceProvider;
-	private String status;
-	private String deploymentUrl;
-	private String workspaceUrl;
-	
 }

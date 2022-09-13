@@ -1,7 +1,7 @@
 import { Data } from 'react-csv/components/CommonPropTypes';
 import { IAllReportsResultCSV, IReportFilterParams } from '../globals/types';
 import { ReportsApiClient } from './ReportsApiClient';
-import { getDivisionsQueryValue } from './utils';
+import { getDivisionsQueryValue, regionalDateAndTimeConversionSolution } from './utils';
 
 export const getDataForCSV = (
   queryParams: IReportFilterParams,
@@ -122,8 +122,8 @@ export const getDataForCSV = (
               ? report.members.admin?.map((member) => member.shortId)?.join(', ')
               : 'NA',
             publish: report.publish ? 'Yes' : 'No',
-            createdDate: report?.createdDate ? report.createdDate : 'NA',
-            lastModifiedDate: report?.lastModifiedDate ? report.lastModifiedDate : 'NA',
+            createdDate: report?.createdDate ? regionalDateAndTimeConversionSolution(report.createdDate) : 'NA',
+            lastModifiedDate: report?.lastModifiedDate ? regionalDateAndTimeConversionSolution(report.lastModifiedDate) : 'NA',
           });
         });
       }
