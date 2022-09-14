@@ -78,6 +78,7 @@ public class KafkaCoreCampaignService {
 	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
 	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
+	private static String DATAPRODUCT_NOTIFICATION_KEY = "DataProduct";
 	private static String STORAGE_URI_PATH = "/#/storage/explorer/";
 	
 	/*
@@ -119,6 +120,10 @@ public class KafkaCoreCampaignService {
 					if(message.getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
+					}
+					if(message.getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = true;
+						emailNotificationPreferenceFlag = true;
 					}
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
