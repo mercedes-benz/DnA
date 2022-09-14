@@ -162,6 +162,7 @@ const base = {
         './SelectBox': './src/components/formElements/SelectBox/SelectBox.ts',
         './Tags': './src/components/formElements/tags/Tags',
         './TeamMemberListItem': './src/components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem',
+        './ShowTeamMemberList': './src/components/mbc/summary/team/teamMemberListItem/TeamMemberListItem.tsx',
         './IconAvatarNew': './src/components/icons/IconAvatarNew.tsx',
         './AddTeamMemberModal': './src/components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal.tsx',
       },
