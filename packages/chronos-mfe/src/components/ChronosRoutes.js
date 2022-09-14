@@ -2,9 +2,9 @@ import React, { Suspense } from 'react';
 import { Route, Router, Switch } from 'react-router-dom';
 
 // import component from container app
-const Progress = React.lazy(() => import('dna-container/Progress'));
-const NotFoundPage = React.lazy(() => import('dna-container/NotFound'));
-const UnAuthorised = React.lazy(() => import('dna-container/UnAuthorised'));
+import Progress from 'dna-container/Progress';
+import NotFoundPage from 'dna-container/NotFound';
+import UnAuthorised from 'dna-container/UnAuthorised';
 
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../store';
@@ -30,13 +30,13 @@ const protectedRoutes = [
   {
     component: ForecastingResults,
     exact: true,
-    path: '/results'
+    path: '/results',
   },
   {
     component: ChronosHelp,
     exact: true,
-    path: '/help'
-  }, 
+    path: '/help',
+  },
 ];
 
 const Routes = ({ user }) => {
