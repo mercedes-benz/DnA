@@ -46,6 +46,10 @@ const connectToDataikuProjects = (data) => {
   return server.post('/buckets/dataiku/connect', data);
 };
 
+const connectToJupyterNotebook = (data) => {
+  return server.post('/buckets/dataiku/connect', data);
+};
+
 export const bucketsApi = {
   getAllBuckets,
   getBucketByName,
@@ -56,4 +60,5 @@ export const bucketsApi = {
   getDataConnectionTypes,
   getDataikuProjects,
   connectToDataikuProjects,
+  connectToJupyterNotebook
 };
