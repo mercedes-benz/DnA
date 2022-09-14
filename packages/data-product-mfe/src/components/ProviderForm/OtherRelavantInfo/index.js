@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Styles from './styles.scss';
 
 import { useFormContext } from 'react-hook-form';
+import { useSelector } from 'react-redux';
 
 // components from container app
 import InfoModal from 'dna-container/InfoModal';
@@ -23,6 +24,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
     setValue,
     watch,
   } = useFormContext();
+  const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showAddConsumersModal, setShowAddConsumersModal] = useState(false);
@@ -43,7 +45,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(-1);
 
-  const isDisabled = !teamMembers?.length;
+  const isDisabled = !teamMembers.length && !provideDataProducts.selectedDataProduct.users?.length ? true : false;
   const hasUsers = watch('users');
 
   const onTeamMemberMoveUp = (index) => {
