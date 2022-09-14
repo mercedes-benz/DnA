@@ -164,6 +164,9 @@ const base = {
         './TeamMemberListItem': './src/components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem',
         './IconAvatarNew': './src/components/icons/IconAvatarNew.tsx',
         './AddTeamMemberModal': './src/components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal.tsx',
+        './TextBox': './src/components/mbc/shared/textBox/TextBox.tsx',
+        './Spinner': './src/components/mbc/shared/spinner/Spinner.tsx',
+        './TypeAheadBox': './src/components/mbc/shared/typeAheadBox/TypeAheadBox.tsx',
       },
       remotes: {
         // object key is used to import
