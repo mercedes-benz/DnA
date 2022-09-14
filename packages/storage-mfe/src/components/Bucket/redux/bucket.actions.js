@@ -53,6 +53,8 @@ const getBucketList = () => {
 };
 
 const createBucket = (data) => {
+  console.log('createBucket data');
+  console.log(data);
   return async (dispatch) => {
     dispatch({
       type: 'BUCKET_LOADING',
@@ -70,6 +72,7 @@ const createBucket = (data) => {
         payload: {
           bucketName: data.bucketName,
           modal: true,
+          creator: data.creator,
           accessInfo: res.data.bucketAccessinfo,
         },
       });

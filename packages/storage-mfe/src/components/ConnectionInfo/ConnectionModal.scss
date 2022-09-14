@@ -60,6 +60,7 @@
       button:disabled {
         background-color: #697582;
         border-color: transparent;
+        cursor: not-allowed;
       }
     }
     .optionContainer {
@@ -106,5 +107,24 @@
 :global {
   [class*="ConnectionModal"] #tab-content-2 .open-suggestion [class*="portal"] {
     display: none;
+  }
+}
+
+.btnTertiary {
+  background-color: #00adef;
+  border-color: #00adef;
+  max-width: 192px;
+  margin-left: auto;
+
+  &:hover {
+    background-color: #008abf;
+    border-color: #008abf;
+  }
+
+  &:disabled {
+    background-color: #697582;
+    color: #99a5b3;
+    border-color: #697582; 
+    cursor: not-allowed;
   }
 }
