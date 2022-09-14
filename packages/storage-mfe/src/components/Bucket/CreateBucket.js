@@ -187,6 +187,7 @@ const CreateBucket = ({ user }) => {
         collaborators: bucketCollaborators,
         classificationType: dataClassification,
         piiData: PII,
+        creator: user,
         termsOfUse: termsOfUse,
       };
       dispatch(bucketActions.createBucket(data));
@@ -580,7 +581,7 @@ const CreateBucket = ({ user }) => {
           title="Connect"
           show={connect?.modal}
           hiddenTitle={true}
-          content={<ConnectionModal />}
+          content={<ConnectionModal user={user} />}
           onCancel={onConnectionModalCancel}
         />
       )}

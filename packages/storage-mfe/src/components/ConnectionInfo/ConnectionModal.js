@@ -20,13 +20,14 @@ const copyToClipboard = (content) => {
   navigator.clipboard.writeText(content).then(() => Notification.show('Copied to Clipboard'));
 };
 
-export const ConnectionModal = () => {
+export const ConnectionModal = (props) => {
   const dispatch = useDispatch();
   const { connect } = useSelector((state) => state.connectionInfo);
 
   const [bucketInfo, setBucketInfo] = useState({
     bucketName: '',
     accessInfo: [],
+    creator: {},
   });
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [dataikuProjectList, setDataikuProjectList] = useState([]);
@@ -71,8 +72,9 @@ export const ConnectionModal = () => {
     setBucketInfo({
       bucketName: connect?.bucketName,
       accessInfo: connect?.accessInfo,
+      creator: connect?.creator,
     });
-  }, [connect?.bucketName, connect?.accessInfo]);
+  }, [connect?.bucketName, connect?.accessInfo, connect?.creator]);
 
   useEffect(() => {
     if (connect.modal && isDataikuEnabled) {
@@ -175,6 +177,27 @@ export const ConnectionModal = () => {
       });
   };
 
+  const handleNotebookMakeConnection = () => {
+    ProgressIndicator.show();
+    const data = {
+      data: {
+        bucketName: bucketInfo.bucketName,
+        dataikuProjects: connect.dataikuProjects?.map((item) => item.match(/\((.*?)\)/)[1]), // pick projectKey within paranthesis
+      },
+    };
+    bucketsApi
+      .connectToDataikuProjects(data)
+      .then(() => {
+        setSelectedDataikuProjects(connect?.dataikuProjects);
+        NotificationMsg();
+        ProgressIndicator.hide();
+      })
+      .catch(() => {
+        NotificationMsg(false);
+        ProgressIndicator.hide();
+      });
+  };
+
   /**
    * @param {array} arr selected array list
    * @param {string} key to be matched
@@ -184,14 +207,24 @@ export const ConnectionModal = () => {
   };
 
   const connectToJupyter = (
-    <code>
-      {`from minio import Minio
-import pandas as pd
-MINIO_BUCKET = "${bucketInfo.bucketName}"
-minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True)
-y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
-y = pd.read_csv(y_file_obj)`}
-    </code>
+    <>
+      <code>
+        {`from minio import Minio
+          import pandas as pd
+          MINIO_BUCKET = "${bucketInfo.bucketName}"
+          minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True)
+          y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
+          y = pd.read_csv(y_file_obj)`}
+          {console.log('creatorInfo: ', bucketInfo)}
+          {console.log('currentUser: ', props.user)}
+      </code>
+      <div className={Styles.dataikuConnectionBtn}>
+        {' '}
+        <button className="btn btn-tertiary" onClick={handleNotebookMakeConnection} disabled={bucketInfo.creator?.id !== props.user.id}>
+          Make Connection
+        </button>
+      </div>
+    </>
   );
 
   const connectToDataiku = (
