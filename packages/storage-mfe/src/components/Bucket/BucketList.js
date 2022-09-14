@@ -19,7 +19,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 import { Envs } from '../Utility/envs';
 
-export const BucketList = () => {
+export const BucketList = (props) => {
   const dispatch = useDispatch();
   const { connect } = useSelector((state) => state.connectionInfo);
   const { bucketList } = useSelector((state) => state.bucket);
@@ -237,7 +237,6 @@ export const BucketList = () => {
                           <div className={Styles.bucketTitleCol}>{item.classificationType}</div>
                           <div className={Styles.bucketTitleCol}></div>
                         </div>
-
                         <i tooltip-data="Expand" className="icon down-up-flip"></i>
                       </label>
                       <div className="expansion-panel-content">
@@ -308,7 +307,7 @@ export const BucketList = () => {
                                 className={'btn btn-primary'}
                                 type="button"
                                 onClick={() => {
-                                  dispatch(getConnectionInfo(item.bucketName));
+                                  dispatch(getConnectionInfo(item.bucketName, item.createdBy));
                                 }}
                               >
                                 <i className="icon mbc-icon comparison"></i>
@@ -337,14 +336,18 @@ export const BucketList = () => {
         onCancel={deleteBucketClose}
         onAccept={deleteBucketAccept}
       />
-      <InfoModal
-        title="Connect"
-        modalCSS={Styles.header}
-        show={connect?.modal}
-        content={<ConnectionModal />}
-        hiddenTitle={true}
-        onCancel={onConnectionModalClose}
-      />
+      {
+        connect?.modal &&
+          <InfoModal
+            title="Connect"
+            modalCSS={Styles.header}
+            show={connect?.modal}
+            content={<ConnectionModal user={props.user} />}
+            hiddenTitle={true}
+            onCancel={onConnectionModalClose}
+          />
+      }
+      
     </>
   );
 };
