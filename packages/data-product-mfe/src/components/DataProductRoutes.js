@@ -16,6 +16,7 @@ import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator
 import SessionExpired from './SessionExpired';
 import DataProducts from './DataProducts';
 import Summary from './Summary';
+import DataComplianceNetworkList from './DataComplianceNetworkList';
 
 const protectedRoutes = [
   {
@@ -43,6 +44,11 @@ const protectedRoutes = [
     exact: true,
     path: '/summary/:id',
   },
+  {
+    component: DataComplianceNetworkList,
+    exact: true,
+    path: '/datacompliancenetworklist',
+  }
 ];
 
 const Routes = ({ user }) => {
