@@ -14,7 +14,7 @@ import { bucketActions } from './redux/bucket.actions';
  * List all buckets corresponding to the user
  * @visibleName All Buckets
  */
-const AllBuckets = () => {
+const AllBuckets = (props) => {
   const dispatch = useDispatch();
   const {
     bucketList,
@@ -119,7 +119,7 @@ const AllBuckets = () => {
                 </>
               ) : (
                 <div className={Styles.subscriptionList}>
-                  <BucketList />
+                  <BucketList user={props.user} />
                   {bucketList?.length ? (
                     <Pagination
                       totalPages={totalNumberOfPages}
