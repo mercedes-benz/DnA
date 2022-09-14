@@ -6,9 +6,9 @@ import { useDispatch } from 'react-redux';
 import { getUserInfo } from '../appRedux/app.actions';
 
 // import component from container app
-const Progress = React.lazy(() => import('dna-container/Progress'));
-const NotFoundPage = React.lazy(() => import('dna-container/NotFound'));
-const UnAuthorised = React.lazy(() => import('dna-container/UnAuthorised'));
+import Progress from 'dna-container/Progress';
+import NotFoundPage from 'dna-container/NotFound';
+import UnAuthorised from 'dna-container/UnAuthorised';
 
 import AllBuckets from './Bucket/Bucket';
 import CreateBucket from './Bucket/CreateBucket';
