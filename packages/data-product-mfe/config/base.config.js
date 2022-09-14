@@ -129,6 +129,7 @@ module.exports = {
         './DataProduct': './src/App',
         './ProviderForm': './src/components/ProviderForm',
         './ConsumerForm': './src/components/ConsumerForm',
+        './DataComplianceNetworkList': './src/components/DataComplianceNetworkList',
       },
       remotes: {
         'dna-container': `dna_container@[(window.DATA_PRODUCT_INJECTED_ENVIRONMENT && window.DATA_PRODUCT_INJECTED_ENVIRONMENT.CONTAINER_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
