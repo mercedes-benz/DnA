@@ -47,8 +47,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.dataproduct.DataproductsApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.dataproduct.DataProductCollection;
-import com.daimler.data.dto.dataproduct.DataProductRequestVO;
-import com.daimler.data.dto.dataproduct.DataProductResponseVO;
+import com.daimler.data.dto.dataproduct.DataProductConsumerRequestVO;
+import com.daimler.data.dto.dataproduct.DataProductConsumerResponseVO;
+import com.daimler.data.dto.dataproduct.DataProductProviderRequestVO;
+import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.service.dataproduct.DataProductService;
 
@@ -69,20 +71,20 @@ public class DataProductController implements DataproductsApi {
 	private DataProductService dataProductService;
 
 	@Override
-	@ApiOperation(value = "Add a new dataproduct.", nickname = "create", notes = "Adds a new non existing dataproduct.", response = DataProductResponseVO.class, tags = {
+	@ApiOperation(value = "Add a new dataproduct provider form", nickname = "create", notes = "Adds a new non existing dataproduct provider form", response = DataProductProviderResponseVO.class, tags = {
 			"dataproducts", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of success", response = DataProductResponseVO.class),
+			@ApiResponse(code = 201, message = "Returns message of success", response = DataProductProviderResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/dataproducts", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/dataproducts/provider", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<DataProductResponseVO> create(
-			@ApiParam(value = "Request Body that contains data required for creating a new dataproduct", required = true) @Valid @RequestBody DataProductRequestVO dataProductRequestVO) {
-		return dataProductService.createDataProduct(dataProductRequestVO.getData());
+	public ResponseEntity<DataProductProviderResponseVO> create(
+			@ApiParam(value = "Request Body that contains data required for creating a new dataproduct provider form", required = true) @Valid @RequestBody DataProductProviderRequestVO dataProductProviderRequestVO) {
+		return dataProductService.createDataProductProvider(dataProductProviderRequestVO.getData());
 	}
 
 	@Override
@@ -186,20 +188,37 @@ public class DataProductController implements DataproductsApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update existing dataproduct.", nickname = "update", notes = "Update an existing dataproduct.", response = DataProductResponseVO.class, tags = {
+	@ApiOperation(value = "Update existing dataproduct provider form", nickname = "update", notes = "Update an existing dataproduct provider form", response = DataProductProviderResponseVO.class, tags = {
 			"dataproducts", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Returns message of success", response = DataProductResponseVO.class),
+			@ApiResponse(code = 200, message = "Returns message of success", response = DataProductProviderResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/dataproducts", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/dataproducts/provider", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<DataProductResponseVO> update(
-			@ApiParam(value = "Request Body that contains data required for updating dataproduct", required = true) @Valid @RequestBody DataProductRequestVO dataProductRequestVO) {
-		return dataProductService.updateDataProduct(dataProductRequestVO.getData());
+	public ResponseEntity<DataProductProviderResponseVO> update(
+			@ApiParam(value = "Request Body that contains data required for updating dataproduct provider form", required = true) @Valid @RequestBody DataProductProviderRequestVO dataProductProviderRequestVO) {
+		return dataProductService.updateDataProductProvider(dataProductProviderRequestVO.getData());
+	}
+
+	@Override
+	@ApiOperation(value = "Update existing dataproduct consumer form", nickname = "update", notes = "Update an existing dataproduct consumer form", response = DataProductConsumerResponseVO.class, tags = {
+			"dataproducts", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success", response = DataProductConsumerResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/dataproducts/consume", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<DataProductConsumerResponseVO> update(
+			@ApiParam(value = "Request Body that contains data required for updating dataproduct consumer form", required = true) @Valid @RequestBody DataProductConsumerRequestVO dataProductConsumerRequestVO) {
+		return dataProductService.updateDataProductConsumer(dataProductConsumerRequestVO.getData());
 	}
 
 }

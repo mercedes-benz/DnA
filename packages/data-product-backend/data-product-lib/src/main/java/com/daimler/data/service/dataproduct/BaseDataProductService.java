@@ -43,6 +43,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DataProductAssembler;
@@ -52,8 +53,12 @@ import com.daimler.data.db.entities.DataProductNsql;
 import com.daimler.data.db.repo.dataproduct.DataProductCustomRepository;
 import com.daimler.data.db.repo.dataproduct.DataProductRepository;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.DataProductResponseVO;
+import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.dataproduct.ConsumerVO;
+import com.daimler.data.dto.dataproduct.DataProductConsumerResponseVO;
+import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
+import com.daimler.data.dto.dataproduct.ProviderVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
@@ -65,8 +70,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BaseDataProductService.class);
 
-	@Value(value = "${dataproduct.consume.url}")
-	private String consumeUrl;
+	@Value(value = "${dataproduct.base.url}")
+	private String dataProductBaseUrl;
 
 	@Autowired
 	private UserStore userStore;
@@ -111,130 +116,94 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	@Override
 	@Transactional
-	public ResponseEntity<DataProductResponseVO> createDataProduct(DataProductVO requestDataProductVO) {
-		DataProductResponseVO dataProductResponseVO = new DataProductResponseVO();
+	public ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO requestVO) {
+		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
+		DataProductVO dataProductVO = new DataProductVO();
 		try {
-			String uniqueProductName = requestDataProductVO.getDataProductName();
-			DataProductVO existingDataProductVO = super.getByUniqueliteral("dataProductName", uniqueProductName);
-			if (existingDataProductVO != null && existingDataProductVO.getDataProductName() != null) {
-				dataProductResponseVO.setData(existingDataProductVO);
+			String uniqueProductName = requestVO.getDataProductName();
+			DataProductVO existingVO = super.getByUniqueliteral("dataProductName", uniqueProductName);
+			if (existingVO != null && existingVO.getProviderInformation() != null && existingVO.getProviderInformation().getDataProductName() != null) {
+				responseVO.setData(existingVO.getProviderInformation());
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("DataProduct already exists.");
 				messages.add(message);
-				dataProductResponseVO.setErrors(messages);
+				responseVO.setErrors(messages);
 				LOGGER.debug("DataProduct {} already exists, returning as CONFLICT", uniqueProductName);
-				return new ResponseEntity<>(dataProductResponseVO, HttpStatus.CONFLICT);
+				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
-			requestDataProductVO.setCreatedBy(this.userStore.getVO());
-			requestDataProductVO.setCreatedDate(new Date());
-			requestDataProductVO.setId(null);
+			requestVO.setCreatedBy(this.userStore.getVO());
+			requestVO.setCreatedDate(new Date());
+			requestVO.setId(null);
 
-			if (requestDataProductVO.isPublish() == null)
-				requestDataProductVO.setPublish(false);
-
-			DataProductVO dataProductVO = this.create(requestDataProductVO);
-			if (dataProductVO != null && dataProductVO.getId() != null) {
-				dataProductResponseVO.setData(dataProductVO);
+			if (requestVO.isProviderFormSubmitted() == null)
+				requestVO.setProviderFormSubmitted(false);
+			dataProductVO.setProviderInformation(requestVO);
+			DataProductVO vo = this.create(dataProductVO);
+			if (vo != null && vo.getProviderInformation().getId() != null) {
+				responseVO.setData(vo.getProviderInformation());
 				LOGGER.info("DataProduct {} created successfully", uniqueProductName);
-				return new ResponseEntity<>(dataProductResponseVO, HttpStatus.CREATED);
+				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 			} else {
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("Failed to save due to internal error");
 				messages.add(message);
-				dataProductResponseVO.setData(requestDataProductVO);
-				dataProductResponseVO.setErrors(messages);
+				responseVO.setData(requestVO);
+				responseVO.setErrors(messages);
 				LOGGER.error("DataProduct {} , failed to create", uniqueProductName);
-				return new ResponseEntity<>(dataProductResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} catch (Exception e) {
 			LOGGER.error("Exception occurred:{} while creating dataProduct {} ", e.getMessage(),
-					requestDataProductVO.getDataProductName());
+					requestVO.getDataProductName());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
 			message.setMessage(e.getMessage());
 			messages.add(message);
-			dataProductResponseVO.setData(requestDataProductVO);
-			dataProductResponseVO.setErrors(messages);
-			return new ResponseEntity<>(dataProductResponseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			responseVO.setData(requestVO);
+			responseVO.setErrors(messages);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@Override
 	@Transactional
-	public ResponseEntity<DataProductResponseVO> updateDataProduct(DataProductVO requestDataProductVO) {
-		DataProductResponseVO response = new DataProductResponseVO();
+	public ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO requestVO) {
+		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
+		DataProductVO dataProductVO = new DataProductVO();
 		try {
-			String id = requestDataProductVO.getId();
-			DataProductVO existingDataProductVO = this.getById(id);
-			DataProductVO mergedDataProductVO = null;
-			if (requestDataProductVO.isPublish() == null) {
-				requestDataProductVO.setPublish(false);
+			String id = requestVO.getId();
+			DataProductVO existingVO = this.getById(id);
+			DataProductVO mergedVO = null;
+			if (requestVO.isProviderFormSubmitted() == null) {
+				requestVO.setProviderFormSubmitted(false);
 			}
-			if (existingDataProductVO != null && existingDataProductVO.getId() != null) {
-				CreatedByVO createdBy = existingDataProductVO.getCreatedBy();
+			if (existingVO != null && existingVO.getProviderInformation().getId() != null) {
+				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
 				if (true) {
-					requestDataProductVO.setCreatedBy(createdBy);
-					requestDataProductVO.setCreatedDate(existingDataProductVO.getCreatedDate());
-					requestDataProductVO.lastModifiedDate(new Date());
-					requestDataProductVO.setModifiedBy(this.userStore.getVO());
-					mergedDataProductVO = this.create(requestDataProductVO);
-					if (mergedDataProductVO != null && mergedDataProductVO.getId() != null) {
-						response.setData(mergedDataProductVO);
-						response.setErrors(null);
+					requestVO.setCreatedBy(createdBy);
+					requestVO.setCreatedDate(existingVO.getProviderInformation().getCreatedDate());
+					requestVO.lastModifiedDate(new Date());
+					requestVO.setModifiedBy(this.userStore.getVO());
+					dataProductVO.setProviderInformation(requestVO);
+					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
+					mergedVO = this.create(dataProductVO);
+					if (mergedVO != null && mergedVO.getProviderInformation().getId() != null) {
+						responseVO.setData(mergedVO.getProviderInformation());
+						responseVO.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
-
-						if (mergedDataProductVO.isNotifyUsers()
-								&& !ObjectUtils.isEmpty(mergedDataProductVO.getUsers())) {
-							CreatedByVO modifyingUser = this.userStore.getVO();
-							String eventType = "Provider-Form Update";
-							String resourceID = mergedDataProductVO.getId();
-							String dataProductName = mergedDataProductVO.getDataProductName();
-							String publishingUserId = "dna_system";
-							String publishingUserName = "";
-							if (modifyingUser != null) {
-								publishingUserId = modifyingUser.getId();
-								publishingUserName = modifyingUser.getFirstName() + " " + modifyingUser.getLastName();
-								if (publishingUserName == null || "".equalsIgnoreCase(publishingUserName))
-									publishingUserName = publishingUserId;
-							}
-
-							List<String> teamMembers = new ArrayList<>();
-							List<String> teamMembersEmails = new ArrayList<>();
-							for (TeamMemberVO user : mergedDataProductVO.getUsers()) {
-								if (user != null) {
-									String userId = user.getShortId() != null ? user.getShortId() : "";
-									if (!teamMembers.contains(userId)) {
-										teamMembers.add(userId);
-										String emailId = user.getEmail() != null ? user.getEmail() : "";
-										teamMembersEmails.add(emailId);
-									}
-								}
-
-							}
-//							String eventMessage = "Provider form " + dataProductName + " has been updated by "
-//									+ publishingUserName;
-
-							String eventMessage = "A Minimum Information Documentation is ready for you. Please [provide information]("
-									+ consumeUrl + resourceID + ")"
-									+ " about the receiving side to finalise the Data Transfer.";
-							kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
-									teamMembers, teamMembersEmails, null);
-							LOGGER.info("Published successfully event {} for data product {} with message {}",
-									eventType, resourceID, eventMessage);
-						}
-
-						return new ResponseEntity<>(response, HttpStatus.OK);
+						this.publishEventMessages(existingVO, mergedVO);
+						return new ResponseEntity<>(responseVO, HttpStatus.OK);
 					} else {
 						List<MessageDescription> messages = new ArrayList<>();
 						MessageDescription message = new MessageDescription();
 						message.setMessage("Failed to update due to internal error");
 						messages.add(message);
-						response.setData(requestDataProductVO);
-						response.setErrors(messages);
+						responseVO.setData(requestVO);
+						responseVO.setErrors(messages);
 						LOGGER.debug("DataProduct with id {} cannot be edited. Failed with unknown internal error", id);
-						return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				} else {
 					List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
@@ -242,31 +211,187 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					notAuthorizedMsg.setMessage(
 							"Not authorized to edit dataProduct. Only user who created the dataProduct or with admin role can edit.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
-					response.setErrors(notAuthorizedMsgs);
+					responseVO.setErrors(notAuthorizedMsgs);
 					LOGGER.debug("DataProduct with id {} cannot be edited. User not authorized", id);
-					return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}
 			} else {
 				List<MessageDescription> notFoundmessages = new ArrayList<>();
 				MessageDescription notFoundmessage = new MessageDescription();
 				notFoundmessage.setMessage("No dataProduct found for given id. Update cannot happen");
 				notFoundmessages.add(notFoundmessage);
-				response.setErrors(notFoundmessages);
+				responseVO.setErrors(notFoundmessages);
 				LOGGER.debug("No dataProduct found for given id {} , update cannot happen.", id);
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
-			LOGGER.error("DataProduct with id {} cannot be edited. Failed due to internal error {} ",
-					requestDataProductVO.getId(), e.getMessage());
+			LOGGER.error("DataProduct with id {} cannot be edited. Failed due to internal error {} ", requestVO.getId(),
+					e.getMessage());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
 			message.setMessage("Failed to update due to internal error. " + e.getMessage());
 			messages.add(message);
-			response.setData(requestDataProductVO);
-			response.setErrors(messages);
-			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			responseVO.setData(requestVO);
+			responseVO.setErrors(messages);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<DataProductConsumerResponseVO> updateDataProductConsumer(ConsumerVO requestVO) {
+		DataProductConsumerResponseVO responseVO = new DataProductConsumerResponseVO();
+		DataProductVO dataProductVO = new DataProductVO();
+		try {
+			String id = requestVO.getId();
+			DataProductVO existingVO = this.getById(id);
+			DataProductVO mergedVO = null;
+			if (requestVO.isPublish() == null) {
+				requestVO.setPublish(false);
+			}
+			if (existingVO != null && existingVO.getProviderInformation().getId() != null) {
+				if (true) {
+					if(existingVO.getConsumerInformation() == null) {
+						requestVO.setCreatedBy(this.userStore.getVO());
+						requestVO.setCreatedDate(new Date());
+					}else {
+						CreatedByVO createdBy = existingVO.getConsumerInformation().getCreatedBy();
+						requestVO.setCreatedBy(createdBy);
+						requestVO.setCreatedDate(existingVO.getConsumerInformation().getCreatedDate());
+						requestVO.lastModifiedDate(new Date());
+						requestVO.setModifiedBy(this.userStore.getVO());
+					}
+					dataProductVO.setConsumerInformation(requestVO);
+					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
+					mergedVO = this.create(dataProductVO);
+					if (mergedVO != null && mergedVO.getConsumerInformation().getId() != null) {
+						responseVO.setData(mergedVO.getConsumerInformation());
+						responseVO.setErrors(null);
+						LOGGER.info("DataProduct with id {} updated successfully", id);
+						this.publishEventMessages(existingVO, mergedVO);
+						return new ResponseEntity<>(responseVO, HttpStatus.OK);
+					} else {
+						List<MessageDescription> messages = new ArrayList<>();
+						MessageDescription message = new MessageDescription();
+						message.setMessage("Failed to update due to internal error");
+						messages.add(message);
+						responseVO.setData(requestVO);
+						responseVO.setErrors(messages);
+						LOGGER.debug("DataProduct with id {} cannot be edited. Failed with unknown internal error", id);
+						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+				} else {
+					List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage(
+							"Not authorized to edit dataProduct. Only user who created the dataProduct or with admin role can edit.");
+					notAuthorizedMsgs.add(notAuthorizedMsg);
+					responseVO.setErrors(notAuthorizedMsgs);
+					LOGGER.debug("DataProduct with id {} cannot be edited. User not authorized", id);
+					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+				}
+			} else {
+				List<MessageDescription> notFoundmessages = new ArrayList<>();
+				MessageDescription notFoundmessage = new MessageDescription();
+				notFoundmessage.setMessage("No dataProduct found for given id. Update cannot happen");
+				notFoundmessages.add(notFoundmessage);
+				responseVO.setErrors(notFoundmessages);
+				LOGGER.debug("No dataProduct found for given id {} , update cannot happen.", id);
+				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+			}
+		} catch (Exception e) {
+			LOGGER.error("DataProduct with id {} cannot be edited. Failed due to internal error {} ", requestVO.getId(),
+					e.getMessage());
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to update due to internal error. " + e.getMessage());
+			messages.add(message);
+			responseVO.setData(requestVO);
+			responseVO.setErrors(messages);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
+	private void publishEventMessages(DataProductVO prevDataProductVO, DataProductVO currDataProductVO) {
+		try {
+			ProviderVO currProviderVO = currDataProductVO.getProviderInformation();
+			ConsumerVO currConsumerVO = currDataProductVO.getConsumerInformation();
+			ConsumerVO prevConsumerVO = prevDataProductVO.getConsumerInformation();
+			if (currProviderVO.isNotifyUsers()) {
+				CreatedByVO currentUser = this.userStore.getVO();
+				String resourceID = currProviderVO.getId();
+				String dataProductName = currProviderVO.getDataProductName();
+				String eventType = "";
+				String eventMessage = "";
+				String userName = super.currentUserName(currentUser);
+				String userId = currentUser != null ? currentUser.getId() : "dna_system";
+				List<ChangeLogVO> changeLogs = new ArrayList<>();
+				List<String> teamMembers = new ArrayList<>();
+				List<String> teamMembersEmails = new ArrayList<>();
+				if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
+					for (TeamMemberVO user : currProviderVO.getUsers()) {
+						if (user != null) {
+							String shortId = user.getShortId();
+							if (StringUtils.hasText(shortId) && !teamMembers.contains(shortId)) {
+								teamMembers.add(shortId);
+							}
+							String emailId = user.getEmail();
+							if (StringUtils.hasText(emailId) && !teamMembersEmails.contains(emailId)) {
+								teamMembersEmails.add(emailId);
+							}
+						}
+					}
+				}
+
+				if (currProviderVO.getCreatedBy() != null) {
+					String providerUserId = currProviderVO.getCreatedBy().getId();
+					String providerEmailId = currProviderVO.getCreatedBy().getEmail();
+
+					if (StringUtils.hasText(providerUserId)) {
+						teamMembers.add(providerUserId);
+					}
+
+					if (StringUtils.hasText(providerEmailId)) {
+						teamMembersEmails.add(providerEmailId);
+					}
+				}
+
+				if (!prevConsumerVO.isPublish() && currConsumerVO.isPublish()) {
+					eventType = "DataProduct - Consumer form Published";
+					// teamMembers.remove(publishingUserId);
+					teamMembersEmails.remove(0);
+					eventMessage = "A Minimum Information Documentation data transfer is complete. [view]("
+							+ dataProductBaseUrl + "summary/" + resourceID + ")";
+					LOGGER.info("Publishing message on consumer form submission for dataProduct {} by userId {}",
+							dataProductName, userId);
+
+				} else if (prevConsumerVO.isPublish() && currConsumerVO.isPublish()) {
+					eventType = "DataProduct_Update";
+					eventMessage = "DataProduct " + dataProductName + " is updated by user " + userName;
+					changeLogs = dataProductAssembler.jsonObjectCompare(currDataProductVO, prevDataProductVO,
+							currentUser);
+					LOGGER.info("Publishing message on update for dataProduct {} by userId {}", dataProductName,
+							userId);
+
+				} else if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
+					eventType = "DataProduct - Provider Form Submitted";
+					eventMessage = "A Minimum Information Documentation is ready for you. Please [provide information]("
+							+ dataProductBaseUrl + "consume/" + resourceID + ")"
+							+ " about the receiving side to finalise the Data Transfer.";
+					LOGGER.info("Publishing message on provider form submission for dataProduct {} by userId {}",
+							dataProductName, userId);
+				}
+				if (StringUtils.hasText(eventType)) {
+					kafkaProducer.send(eventType, resourceID, "", userId, eventMessage, true, teamMembers,
+							teamMembersEmails, changeLogs);
+					LOGGER.info("Published successfully event {} for data product {}", eventType, dataProductName);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed while publishing dataProduct event msg {} ", e.getMessage());
+		}
 	}
 
 	@Override
