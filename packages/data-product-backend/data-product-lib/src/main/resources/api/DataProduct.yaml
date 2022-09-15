@@ -61,9 +61,116 @@ schemes:
   - "https"
 
 paths:
-  # path to create, update, getAll dataproduct
+  # path to create, update dataproduct provider form
   #
-  #  supported http methods GET, PUT, POST
+  #  supported http methods PUT, POST
+  #
+  # path example ../dataproducts/provider
+
+  /dataproducts/provider:
+    post:
+      tags:
+        - "dataproducts"
+      summary: "Add a new dataproduct provider form"
+      description: "Adds a new non existing dataproduct provider form"
+      operationId: "create"
+      parameters:
+        - name: "dataProductProviderRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a new dataproduct provider form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductProviderRequestVO"    
+      responses:
+        201:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductProviderResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"      
+    
+    put:
+      tags:
+        - "dataproducts"
+      summary: "Update existing dataproduct provider form"
+      description: "Update an existing dataproduct provider form"
+      operationId: "update"
+      parameters:
+        - name: "dataProductProviderRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating dataproduct provider form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductProviderRequestVO"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductProviderResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  # path to create, update dataproduct consumer form
+  #
+  #  supported http methods PUT, POST
+  #
+  # path example ../dataproducts/consume
+
+  /dataproducts/consume:
+    put:
+      tags:
+        - "dataproducts"
+      summary: "Update existing dataproduct consumer form"
+      description: "Update an existing dataproduct consumer form"
+      operationId: "update"
+      parameters:
+        - name: "dataProductConsumerRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating dataproduct consumer form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductConsumerRequestVO"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductConsumerResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"          
+          
+  # path to getAll dataproducts
+  #
+  #  supported http method GET
   #
   # path example ../dataproducts
 
@@ -118,69 +225,7 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"
-  
-    post:
-      tags:
-        - "dataproducts"
-      summary: "Add a new dataproduct."
-      description: "Adds a new non existing dataproduct."
-      operationId: "create"
-      parameters:
-        - name: "dataProductRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for creating a new dataproduct"
-          required: true
-          schema:
-            $ref: "#/definitions/DataProductRequestVO"    
-      responses:
-        201:
-          description: "Returns message of success"
-          schema:
-            $ref: "#/definitions/DataProductResponseVO"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"      
-    
-    put:
-      tags:
-        - "dataproducts"
-      summary: "Update existing dataproduct."
-      description: "Update an existing dataproduct."
-      operationId: "update"
-      parameters:
-        - name: "dataProductRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for updating dataproduct"
-          required: true
-          schema:
-            $ref: "#/definitions/DataProductRequestVO"    
-      responses:
-        200:
-          description: "Returns message of success"
-          schema:
-            $ref: "#/definitions/DataProductResponseVO"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+          description: "Internal error"          
 
   # path to get and delete dataproduct by id
   #
@@ -254,7 +299,6 @@ definitions:
       dataTransferDate:
         type: string
         format: date
-        minLength: 1
       name:
         type: string
         description: ""
@@ -274,7 +318,6 @@ definitions:
         description: "planning IT App-ID "
         minLength: 1          
     required:
-      - dataTransferDate
       - name
       - division
       - department
@@ -370,7 +413,10 @@ definitions:
       appId:
         type: string
         description: "planning IT App-ID "
-        minLength: 1          
+        minLength: 1 
+      agreementDate:
+        type: string
+        format: date                 
     required:
       - lcoNeeded
       - ownerName
@@ -402,54 +448,9 @@ definitions:
       
   ProviderVO:
     type: object
-    properties:  
-      contactInformation:
-        $ref: "#/definitions/ProviderContactInformationVO"
-      classificationConfidentiality:
-        $ref: "#/definitions/ProviderClassificationConfidentialityVO"
-      personalRelatedData:
-        $ref: "#/definitions/ProviderPersonalRelatedDataVO"
-      transnationalDataTransfer:
-        $ref: "#/definitions/ProviderTransnationalDataTransferVO"    
-      deletionRequirement:
-        $ref: "#/definitions/ProviderDeletionRequirementVO"                     
-      openSegments:
-        type: array
-        description: "This attribute stores all the open/input sections that user has completed in the dataproduct provider process"
-        items:
-          type: string
-          enum:
-            [
-              "ContactInformation",
-              "ClassificationAndConfidentiality",
-              "IdentifyingPersonalRelatedData",
-              "IdentifiyingTransnationalDataTransfer",
-              "SpecifyDeletionRequirements"
-            ]  
-            
-  ConsumerVO:
-    type: object
-    properties:  
-      contactInformation:
-        $ref: "#/definitions/ConsumerContactInformationVO"
-      personalRelatedData:
-        $ref: "#/definitions/ConsumerPersonalRelatedDataVO"                     
-      openSegments:
-        type: array
-        description: "This attribute stores all the open/input sections that user has completed in the dataproduct consume process"
-        items:
-          type: string
-          enum:
-            [
-              "ContactInformation",
-              "IdentifyingPersonalRelatedData"
-            ]                                                                                 
-
-  DataProductVO:
-    type: object
     properties:
       id:
-        type: string
+        type: string     
       dataProductName:
         type: string
         description: "Name of the DataProduct"
@@ -473,33 +474,109 @@ definitions:
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       modifiedBy:
-        $ref: "#/definitions/CreatedByVO"        
+        $ref: "#/definitions/CreatedByVO"      
+      contactInformation:
+        $ref: "#/definitions/ProviderContactInformationVO"
+      classificationConfidentiality:
+        $ref: "#/definitions/ProviderClassificationConfidentialityVO"
+      personalRelatedData:
+        $ref: "#/definitions/ProviderPersonalRelatedDataVO"
+      transnationalDataTransfer:
+        $ref: "#/definitions/ProviderTransnationalDataTransferVO"    
+      deletionRequirement:
+        $ref: "#/definitions/ProviderDeletionRequirementVO"                             
+      openSegments:
+        type: array
+        description: "This attribute stores all the open/input sections that user has completed in the dataproduct provider process"
+        items:
+          type: string
+          enum:
+            [
+              "ContactInformation",
+              "ClassificationAndConfidentiality",
+              "IdentifyingPersonalRelatedData",
+              "IdentifiyingTransnationalDataTransfer",
+              "SpecifyDeletionRequirements"
+            ]
+    required:
+      - dataProductName              
+            
+  ConsumerVO:
+    type: object
+    properties: 
+      id:
+        type: string         
+      contactInformation:
+        $ref: "#/definitions/ConsumerContactInformationVO"
+      personalRelatedData:
+        $ref: "#/definitions/ConsumerPersonalRelatedDataVO"
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      modifiedBy:
+        $ref: "#/definitions/CreatedByVO" 
       publish:
         type: boolean
-        description: "Flag to identify if dataproduct is in draft stage or in published state." 
+        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."                                      
+      openSegments:
+        type: array
+        description: "This attribute stores all the open/input sections that user has completed in the dataproduct consume process"
+        items:
+          type: string
+          enum:
+            [
+              "ContactInformation",
+              "IdentifyingPersonalRelatedData"
+            ]
+    required:
+      - id
+      - publish                                                                                             
+
+  DataProductVO:
+    type: object
+    properties:       
       providerInformation:
         $ref: "#/definitions/ProviderVO" 
       consumerInformation:
         $ref: "#/definitions/ConsumerVO"
-    required:
-      - dataProductName
-      - publish                      
-
-  DataProductRequestVO:
-    type: object
-    properties:
-      data:
-        $ref: "#/definitions/DataProductVO"
+                             
         
-  DataProductResponseVO:
+  DataProductProviderRequestVO:
     type: object
     properties:
       data:
-        $ref: "#/definitions/DataProductVO"
+        $ref: "#/definitions/ProviderVO"
+        
+  DataProductConsumerRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ConsumerVO"                
+          
+  DataProductProviderResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ProviderVO"
       errors:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
+          
+  DataProductConsumerResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ConsumerVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"                    
           
   DataProductCollection:
     description: "Collection of DataProducts."
