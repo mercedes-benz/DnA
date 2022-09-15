@@ -458,7 +458,7 @@ definitions:
       recordStatus:
         type: string
         description: "Record is open or deleted"                       
-      providerDetails:
+      providerInformation:
         $ref: "#/definitions/ProviderResponseVO"
     required:
       - dataProductName         
@@ -519,7 +519,7 @@ definitions:
       dataProductName:
         type: string
         description: "Name of the DataProduct"                
-      consumerDetails:
+      consumerInformation:
         $ref: "#/definitions/ConsumerResponseVO"
       publish:
         type: boolean
