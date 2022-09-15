@@ -39,6 +39,9 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DataProduct {
 	
+	private String dataProductName;
+	private String recordStatus;
+	private boolean publish;
 	private Provider providerInformation;
 	private Consumer consumerInformation;
 }
