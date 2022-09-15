@@ -5,7 +5,6 @@ window['INJECTED_ENVIRONMENT'] = {
   MALWARESCAN_API_BASEURL: 'http://localhost:8181/api',
   DASHBOARD_API_BASEURL: 'http://localhost:7173/api',
   NOTIFICATIONS_API_BASEURL: 'http://localhost:7272/api',
-  DATA_COMPLIANCE_API_BASEURL: 'YOUR_DATA_COMPLIANCE_API_BASEURL',
   DNA_COMPANY_NAME: 'Company_Name',
   DNA_APPNAME_HEADER: 'DnA App',
   DNA_APPNAME_HOME: 'Data and Analytics',
