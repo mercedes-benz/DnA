@@ -201,6 +201,23 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                 />
                 <span className={classNames('error-message')}>{errors.department?.message}</span>
               </div>
+              <div className={classNames('input-field-group include-error', errors.dateOfAgreement ? 'error' : '')}>
+                <label id="dateOfAgreementLabel" htmlFor="dateOfAgreementInput" className="input-label">
+                  Date of Agreement <sup>*</sup>
+                </label>
+                <input
+                  {...register('dateOfAgreement', {
+                    required: '*Missing entry',
+                  })}
+                  type="text"
+                  className="input-field"
+                  id="dateOfAgreementInput"
+                  maxLength={200}
+                  placeholder="Type here"
+                  autoComplete="off"
+                />
+                <span className={classNames('error-message')}>{errors.dateOfAgreement?.message}</span>
+              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div
