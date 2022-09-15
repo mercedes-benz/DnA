@@ -77,7 +77,7 @@ const DataProductCardItem = ({ product, history, user }) => {
             </div>
             <div>
               <div>Created by</div>
-              <div>{`${product?.createdBy?.firstName} ${product?.createdBy?.lastName}`}</div>
+              <div>{product?.providerInformation?.contactInformation?.name}</div>
             </div>
             <div>
               <div>Created on</div>
