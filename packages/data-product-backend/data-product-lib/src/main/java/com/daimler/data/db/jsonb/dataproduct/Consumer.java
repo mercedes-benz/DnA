@@ -42,7 +42,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Consumer {
-	private boolean publish;
 	private Date createdDate;
 	private Date lastModifiedDate;
 	private CreatedBy createdBy;
