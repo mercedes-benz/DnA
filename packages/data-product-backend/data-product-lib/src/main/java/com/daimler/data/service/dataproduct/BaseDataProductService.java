@@ -123,12 +123,12 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		DataProductVO dataProductVO = new DataProductVO();
 		ProviderVO providerVO = new ProviderVO();
 		try {
-			ProviderResponseVO providerResponseVO = requestVO.getProviderDetails();
+			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String uniqueProductName = requestVO.getDataProductName();
 			DataProductVO existingVO = super.getByUniqueliteral("dataProductName", uniqueProductName);
 			if (existingVO != null && existingVO.getProviderInformation() != null
 					&& existingVO.getDataProductName() != null) {
-				providerVO.setProviderDetails(existingVO.getProviderInformation());
+				providerVO.setProviderInformation(existingVO.getProviderInformation());
 				providerVO.setId(existingVO.getId());
 				providerVO.setDataProductName(existingVO.getDataProductName());
 				providerVO.setRecordStatus(existingVO.getRecordStatus());
@@ -153,7 +153,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			dataProductVO.setId(null);
 			DataProductVO vo = this.create(dataProductVO);
 			if (vo != null && vo.getId() != null) {
-				providerVO.setProviderDetails(vo.getProviderInformation());
+				providerVO.setProviderInformation(vo.getProviderInformation());
 				providerVO.setId(vo.getId());
 				providerVO.setDataProductName(vo.getDataProductName());
 				providerVO.setRecordStatus(vo.getRecordStatus());
@@ -190,7 +190,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		DataProductVO dataProductVO = new DataProductVO();
 		ProviderVO providerVO = new ProviderVO();
 		try {
-			ProviderResponseVO providerResponseVO = requestVO.getProviderDetails();
+			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String id = requestVO.getId();
 			DataProductVO existingVO = this.getById(id);
 			DataProductVO mergedVO = null;
@@ -212,7 +212,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
 					mergedVO = this.create(dataProductVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
-						providerVO.setProviderDetails(mergedVO.getProviderInformation());
+						providerVO.setProviderInformation(mergedVO.getProviderInformation());
 						providerVO.setId(mergedVO.getId());
 						providerVO.setDataProductName(mergedVO.getDataProductName());
 						providerVO.setRecordStatus(mergedVO.getRecordStatus());
@@ -271,7 +271,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		DataProductVO dataProductVO = new DataProductVO();
 		ConsumerVO consumerVO = new ConsumerVO();
 		try {
-			ConsumerResponseVO consumerResponseVO = requestVO.getConsumerDetails();
+			ConsumerResponseVO consumerResponseVO = requestVO.getConsumerInformation();
 			String id = requestVO.getId();
 			DataProductVO existingVO = this.getById(id);
 			DataProductVO mergedVO = null;
@@ -298,7 +298,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
 					mergedVO = this.create(dataProductVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
-						consumerVO.setConsumerDetails(mergedVO.getConsumerInformation());
+						consumerVO.setConsumerInformation(mergedVO.getConsumerInformation());
 						consumerVO.setId(mergedVO.getId());
 						consumerVO.setPublish(mergedVO.isPublish());
 						consumerVO.setDataProductName(mergedVO.getDataProductName());
