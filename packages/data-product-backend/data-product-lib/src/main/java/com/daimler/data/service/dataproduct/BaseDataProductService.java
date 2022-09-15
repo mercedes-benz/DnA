@@ -54,10 +54,12 @@ import com.daimler.data.db.repo.dataproduct.DataProductCustomRepository;
 import com.daimler.data.db.repo.dataproduct.DataProductRepository;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
 import com.daimler.data.dto.dataproduct.ConsumerVO;
 import com.daimler.data.dto.dataproduct.DataProductConsumerResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
+import com.daimler.data.dto.dataproduct.ProviderResponseVO;
 import com.daimler.data.dto.dataproduct.ProviderVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
@@ -119,11 +121,18 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	public ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO requestVO) {
 		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
 		DataProductVO dataProductVO = new DataProductVO();
+		ProviderVO providerVO = new ProviderVO();
 		try {
+			ProviderResponseVO providerResponseVO = requestVO.getProviderDetails();
 			String uniqueProductName = requestVO.getDataProductName();
 			DataProductVO existingVO = super.getByUniqueliteral("dataProductName", uniqueProductName);
-			if (existingVO != null && existingVO.getProviderInformation() != null && existingVO.getProviderInformation().getDataProductName() != null) {
-				responseVO.setData(existingVO.getProviderInformation());
+			if (existingVO != null && existingVO.getProviderInformation() != null
+					&& existingVO.getDataProductName() != null) {
+				providerVO.setProviderDetails(existingVO.getProviderInformation());
+				providerVO.setId(existingVO.getId());
+				providerVO.setDataProductName(existingVO.getDataProductName());
+				providerVO.setRecordStatus(existingVO.getRecordStatus());
+				responseVO.setData(providerVO);
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("DataProduct already exists.");
@@ -132,16 +141,23 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				LOGGER.debug("DataProduct {} already exists, returning as CONFLICT", uniqueProductName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
-			requestVO.setCreatedBy(this.userStore.getVO());
-			requestVO.setCreatedDate(new Date());
-			requestVO.setId(null);
+			providerResponseVO.setCreatedBy(this.userStore.getVO());
+			providerResponseVO.setCreatedDate(new Date());
+			if (providerResponseVO.isProviderFormSubmitted() == null)
+				providerResponseVO.setProviderFormSubmitted(false);
 
-			if (requestVO.isProviderFormSubmitted() == null)
-				requestVO.setProviderFormSubmitted(false);
-			dataProductVO.setProviderInformation(requestVO);
+			dataProductVO.setProviderInformation(providerResponseVO);
+			dataProductVO.setDataProductName(uniqueProductName);
+			dataProductVO.setPublish(false);
+			dataProductVO.setRecordStatus("OPEN");
+			dataProductVO.setId(null);
 			DataProductVO vo = this.create(dataProductVO);
-			if (vo != null && vo.getProviderInformation().getId() != null) {
-				responseVO.setData(vo.getProviderInformation());
+			if (vo != null && vo.getId() != null) {
+				providerVO.setProviderDetails(vo.getProviderInformation());
+				providerVO.setId(vo.getId());
+				providerVO.setDataProductName(vo.getDataProductName());
+				providerVO.setRecordStatus(vo.getRecordStatus());
+				responseVO.setData(providerVO);
 				LOGGER.info("DataProduct {} created successfully", uniqueProductName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 			} else {
@@ -172,25 +188,35 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	public ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO requestVO) {
 		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
 		DataProductVO dataProductVO = new DataProductVO();
+		ProviderVO providerVO = new ProviderVO();
 		try {
+			ProviderResponseVO providerResponseVO = requestVO.getProviderDetails();
 			String id = requestVO.getId();
 			DataProductVO existingVO = this.getById(id);
 			DataProductVO mergedVO = null;
-			if (requestVO.isProviderFormSubmitted() == null) {
-				requestVO.setProviderFormSubmitted(false);
+			if (providerResponseVO.isProviderFormSubmitted() == null) {
+				providerResponseVO.setProviderFormSubmitted(false);
 			}
-			if (existingVO != null && existingVO.getProviderInformation().getId() != null) {
+			if (existingVO != null && existingVO.getId() != null) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
 				if (true) {
-					requestVO.setCreatedBy(createdBy);
-					requestVO.setCreatedDate(existingVO.getProviderInformation().getCreatedDate());
-					requestVO.lastModifiedDate(new Date());
-					requestVO.setModifiedBy(this.userStore.getVO());
-					dataProductVO.setProviderInformation(requestVO);
+					providerResponseVO.setCreatedBy(createdBy);
+					providerResponseVO.setCreatedDate(existingVO.getProviderInformation().getCreatedDate());
+					providerResponseVO.lastModifiedDate(new Date());
+					providerResponseVO.setModifiedBy(this.userStore.getVO());
+					dataProductVO.setProviderInformation(providerResponseVO);
+					dataProductVO.setDataProductName(requestVO.getDataProductName());
+					dataProductVO.setPublish(false);
+					dataProductVO.setRecordStatus("OPEN");
+					dataProductVO.setId(id);
 					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
 					mergedVO = this.create(dataProductVO);
-					if (mergedVO != null && mergedVO.getProviderInformation().getId() != null) {
-						responseVO.setData(mergedVO.getProviderInformation());
+					if (mergedVO != null && mergedVO.getId() != null) {
+						providerVO.setProviderDetails(mergedVO.getProviderInformation());
+						providerVO.setId(mergedVO.getId());
+						providerVO.setDataProductName(mergedVO.getDataProductName());
+						providerVO.setRecordStatus(mergedVO.getRecordStatus());
+						responseVO.setData(providerVO);
 						responseVO.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
 						this.publishEventMessages(existingVO, mergedVO);
@@ -243,30 +269,41 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	public ResponseEntity<DataProductConsumerResponseVO> updateDataProductConsumer(ConsumerVO requestVO) {
 		DataProductConsumerResponseVO responseVO = new DataProductConsumerResponseVO();
 		DataProductVO dataProductVO = new DataProductVO();
+		ConsumerVO consumerVO = new ConsumerVO();
 		try {
+			ConsumerResponseVO consumerResponseVO = requestVO.getConsumerDetails();
 			String id = requestVO.getId();
 			DataProductVO existingVO = this.getById(id);
 			DataProductVO mergedVO = null;
 			if (requestVO.isPublish() == null) {
 				requestVO.setPublish(false);
 			}
-			if (existingVO != null && existingVO.getProviderInformation().getId() != null) {
+			if (existingVO != null && existingVO.getId() != null) {
 				if (true) {
-					if(existingVO.getConsumerInformation() == null) {
-						requestVO.setCreatedBy(this.userStore.getVO());
-						requestVO.setCreatedDate(new Date());
-					}else {
+					if (existingVO.getConsumerInformation() == null) {
+						consumerResponseVO.setCreatedBy(this.userStore.getVO());
+						consumerResponseVO.setCreatedDate(new Date());
+					} else {
 						CreatedByVO createdBy = existingVO.getConsumerInformation().getCreatedBy();
-						requestVO.setCreatedBy(createdBy);
-						requestVO.setCreatedDate(existingVO.getConsumerInformation().getCreatedDate());
-						requestVO.lastModifiedDate(new Date());
-						requestVO.setModifiedBy(this.userStore.getVO());
+						consumerResponseVO.setCreatedBy(createdBy);
+						consumerResponseVO.setCreatedDate(existingVO.getConsumerInformation().getCreatedDate());
+						consumerResponseVO.lastModifiedDate(new Date());
+						consumerResponseVO.setModifiedBy(this.userStore.getVO());
 					}
-					dataProductVO.setConsumerInformation(requestVO);
+					dataProductVO.setConsumerInformation(consumerResponseVO);
+					dataProductVO.setDataProductName(requestVO.getDataProductName());
+					dataProductVO.setPublish(false);
+					dataProductVO.setRecordStatus("OPEN");
+					dataProductVO.setId(id);
 					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
 					mergedVO = this.create(dataProductVO);
-					if (mergedVO != null && mergedVO.getConsumerInformation().getId() != null) {
-						responseVO.setData(mergedVO.getConsumerInformation());
+					if (mergedVO != null && mergedVO.getId() != null) {
+						consumerVO.setConsumerDetails(mergedVO.getConsumerInformation());
+						consumerVO.setId(mergedVO.getId());
+						consumerVO.setPublish(mergedVO.isPublish());
+						consumerVO.setDataProductName(mergedVO.getDataProductName());
+						consumerVO.setRecordStatus(mergedVO.getRecordStatus());
+						responseVO.setData(consumerVO);
 						responseVO.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
 						this.publishEventMessages(existingVO, mergedVO);
@@ -316,13 +353,13 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	private void publishEventMessages(DataProductVO prevDataProductVO, DataProductVO currDataProductVO) {
 		try {
-			ProviderVO currProviderVO = currDataProductVO.getProviderInformation();
-			ConsumerVO currConsumerVO = currDataProductVO.getConsumerInformation();
-			ConsumerVO prevConsumerVO = prevDataProductVO.getConsumerInformation();
+			ProviderResponseVO currProviderVO = currDataProductVO.getProviderInformation();
+			ConsumerResponseVO currConsumerVO = currDataProductVO.getConsumerInformation();
+			ConsumerResponseVO prevConsumerVO = prevDataProductVO.getConsumerInformation();
 			if (currProviderVO.isNotifyUsers()) {
 				CreatedByVO currentUser = this.userStore.getVO();
-				String resourceID = currProviderVO.getId();
-				String dataProductName = currProviderVO.getDataProductName();
+				String resourceID = currDataProductVO.getId();
+				String dataProductName = currDataProductVO.getDataProductName();
 				String eventType = "";
 				String eventMessage = "";
 				String userName = super.currentUserName(currentUser);
@@ -358,7 +395,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					}
 				}
 
-				if (!prevConsumerVO.isPublish() && currConsumerVO.isPublish()) {
+				if (!prevDataProductVO.isPublish() && currDataProductVO.isPublish()) {
 					eventType = "DataProduct - Consumer form Published";
 					// teamMembers.remove(publishingUserId);
 					teamMembersEmails.remove(0);
@@ -367,7 +404,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					LOGGER.info("Publishing message on consumer form submission for dataProduct {} by userId {}",
 							dataProductName, userId);
 
-				} else if (prevConsumerVO.isPublish() && currConsumerVO.isPublish()) {
+				} else if (prevDataProductVO.isPublish() && currDataProductVO.isPublish()) {
 					eventType = "DataProduct_Update";
 					eventMessage = "DataProduct " + dataProductName + " is updated by user " + userName;
 					changeLogs = dataProductAssembler.jsonObjectCompare(currDataProductVO, prevDataProductVO,

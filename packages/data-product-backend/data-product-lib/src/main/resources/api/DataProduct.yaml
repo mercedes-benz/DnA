@@ -450,11 +450,22 @@ definitions:
     type: object
     properties:
       id:
-        type: string     
+        type: string 
       dataProductName:
         type: string
         description: "Name of the DataProduct"
         minLength: 1
+      recordStatus:
+        type: string
+        description: "Record is open or deleted"                       
+      providerDetails:
+        $ref: "#/definitions/ProviderResponseVO"
+    required:
+      - dataProductName         
+      
+  ProviderResponseVO:
+    type: object
+    properties:   
       providerFormSubmitted:
         type: boolean
         description: "Flag to identify if provider form submitted or not."
@@ -498,14 +509,31 @@ definitions:
               "IdentifiyingTransnationalDataTransfer",
               "SpecifyDeletionRequirements"
             ]
-    required:
-      - dataProductName              
+                     
             
   ConsumerVO:
     type: object
     properties: 
       id:
-        type: string         
+        type: string 
+      dataProductName:
+        type: string
+        description: "Name of the DataProduct"                
+      consumerDetails:
+        $ref: "#/definitions/ConsumerResponseVO"
+      publish:
+        type: boolean
+        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."
+      recordStatus:
+        type: string
+        description: "Record is open or deleted"                
+    required:
+      - id
+      - publish
+      
+  ConsumerResponseVO:
+    type: object
+    properties:        
       contactInformation:
         $ref: "#/definitions/ConsumerContactInformationVO"
       personalRelatedData:
@@ -519,10 +547,7 @@ definitions:
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       modifiedBy:
-        $ref: "#/definitions/CreatedByVO" 
-      publish:
-        type: boolean
-        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."                                      
+        $ref: "#/definitions/CreatedByVO"                                     
       openSegments:
         type: array
         description: "This attribute stores all the open/input sections that user has completed in the dataproduct consume process"
@@ -532,18 +557,26 @@ definitions:
             [
               "ContactInformation",
               "IdentifyingPersonalRelatedData"
-            ]
-    required:
-      - id
-      - publish                                                                                             
+            ]                                                                                                  
 
   DataProductVO:
     type: object
-    properties:       
+    properties: 
+      id:
+        type: string 
+      dataProductName:
+        type: string
+        description: "Name of the DataProduct"
+      recordStatus:
+        type: string
+        description: "Record is open or deleted"                          
       providerInformation:
-        $ref: "#/definitions/ProviderVO" 
+        $ref: "#/definitions/ProviderResponseVO" 
       consumerInformation:
-        $ref: "#/definitions/ConsumerVO"
+        $ref: "#/definitions/ConsumerResponseVO"
+      publish:
+        type: boolean
+        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."        
                              
         
   DataProductProviderRequestVO:
