@@ -42,8 +42,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Provider {
-	
-	private String dataProductName;
 	private boolean providerFormSubmitted;
 	private boolean notifyUsers;
 	private List<TeamMember> users;
