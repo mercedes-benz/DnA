@@ -643,6 +643,7 @@ export interface ICreateNewReport {
   createdBy?: IUserInfo;
   id?: string;
   productName: string;
+  usingQuickPath: boolean;
 }
 export interface IProductPhase {
   id: string;

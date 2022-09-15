@@ -180,6 +180,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         },
         publish: false,
         openSegments: [],
+        usingQuickPath: false,
       },
       currentState: null,
       showAlertChangesModal: false,
@@ -409,11 +410,32 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     }
   }
 
+  public changeQuickPath = (value: boolean) => {
+    const report = {...this.state.report};
+    report.usingQuickPath = !value;
+    this.setState({report});
+  }
+
   public render() {
     const currentTab = this.state.currentTab;
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
+          <div className={Styles.infoIcon}>
+            <label className="switch">
+              <span className="label" style={{ marginRight: '5px' }}>
+                {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
+              </span>
+              <span className="wrapper">
+                <input
+                  type="checkbox"
+                  className="ff-only"
+                  onChange={() => this.changeQuickPath(this.state.report.usingQuickPath)}
+                  checked={this.state.report.usingQuickPath}
+                />
+              </span>
+            </label>
+          </div>
           <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
             {this.state.report.description.productName}
           </h3>
@@ -713,6 +735,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         members: report.members,
         publish: isPublished,
         openSegments: report.openSegments,
+        usingQuickPath: report.usingQuickPath
       },
     };
     // create deep copy of an object (won't alter original object)
