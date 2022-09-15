@@ -65,15 +65,15 @@ import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.dataproduct.ChangeLogVO;
 import com.daimler.data.dto.dataproduct.ConsumerContactInformationVO;
 import com.daimler.data.dto.dataproduct.ConsumerPersonalRelatedDataVO;
-import com.daimler.data.dto.dataproduct.ConsumerVO;
+import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.dto.dataproduct.DivisionVO;
 import com.daimler.data.dto.dataproduct.ProviderClassificationConfidentialityVO;
 import com.daimler.data.dto.dataproduct.ProviderContactInformationVO;
 import com.daimler.data.dto.dataproduct.ProviderDeletionRequirementVO;
 import com.daimler.data.dto.dataproduct.ProviderPersonalRelatedDataVO;
+import com.daimler.data.dto.dataproduct.ProviderResponseVO;
 import com.daimler.data.dto.dataproduct.ProviderTransnationalDataTransferVO;
-import com.daimler.data.dto.dataproduct.ProviderVO;
 import com.daimler.data.dto.dataproduct.SubdivisionVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO.UserTypeEnum;
@@ -91,12 +91,13 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		DataProductVO vo = null;
 		if (entity != null && entity.getData() != null) {
 			vo = new DataProductVO();
+			vo.setId(entity.getId());
 			DataProduct dataProduct = entity.getData();
+			BeanUtils.copyProperties(dataProduct, vo);
 			Provider provider = dataProduct.getProviderInformation();
 			if (provider != null) {
-				ProviderVO providerVO = new ProviderVO();
+				ProviderResponseVO providerVO = new ProviderResponseVO();
 				BeanUtils.copyProperties(provider, providerVO);
-				providerVO.setId(entity.getId());
 				if (Objects.nonNull(provider.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
 					BeanUtils.copyProperties(provider.getCreatedBy(), createdByVO);
@@ -153,9 +154,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					providerVO.setDeletionRequirement(deletionRequirementVO);
 				}
 				if (!ObjectUtils.isEmpty(provider.getOpenSegments())) {
-					List<ProviderVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
-					provider.getOpenSegments().forEach(
-							openSegment -> openSegmentsEnumList.add(ProviderVO.OpenSegmentsEnum.valueOf(openSegment)));
+					List<ProviderResponseVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+					provider.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
+							.add(ProviderResponseVO.OpenSegmentsEnum.valueOf(openSegment)));
 					providerVO.setOpenSegments(openSegmentsEnumList);
 				}
 				vo.setProviderInformation(providerVO);
@@ -163,9 +164,8 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 
 			Consumer consumer = dataProduct.getConsumerInformation();
 			if (consumer != null) {
-				ConsumerVO consumerVO = new ConsumerVO();
+				ConsumerResponseVO consumerVO = new ConsumerResponseVO();
 				BeanUtils.copyProperties(consumer, consumerVO);
-				consumerVO.setId(entity.getId());
 				if (Objects.nonNull(consumer.getCreatedBy())) {
 					CreatedByVO createdByVO = new CreatedByVO();
 					BeanUtils.copyProperties(consumer.getCreatedBy(), createdByVO);
@@ -199,9 +199,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				}
 
 				if (!ObjectUtils.isEmpty(consumer.getOpenSegments())) {
-					List<ConsumerVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
-					consumer.getOpenSegments().forEach(
-							openSegment -> openSegmentsEnumList.add(ConsumerVO.OpenSegmentsEnum.valueOf(openSegment)));
+					List<ConsumerResponseVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+					consumer.getOpenSegments().forEach(openSegment -> openSegmentsEnumList
+							.add(ConsumerResponseVO.OpenSegmentsEnum.valueOf(openSegment)));
 					consumerVO.setOpenSegments(openSegmentsEnumList);
 				}
 				vo.setConsumerInformation(consumerVO);
@@ -217,14 +217,16 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		DataProductNsql entity = null;
 		if (vo != null) {
 			entity = new DataProductNsql();
+			String id = vo.getId();
+			if (StringUtils.hasText(id)) {
+				entity.setId(id);
+			}
 			DataProduct dataProduct = new DataProduct();
-			ProviderVO providerVO = vo.getProviderInformation();
+			BeanUtils.copyProperties(vo, dataProduct);
+			dataProduct.setPublish(vo.isPublish());
+			ProviderResponseVO providerVO = vo.getProviderInformation();
 			if (providerVO != null) {
 				Provider provider = new Provider();
-				String id = providerVO.getId();
-				if (StringUtils.hasText(id)) {
-					entity.setId(id);
-				}
 				BeanUtils.copyProperties(providerVO, provider);
 				provider.setNotifyUsers(providerVO.isNotifyUsers());
 				provider.setProviderFormSubmitted(providerVO.isProviderFormSubmitted());
@@ -303,11 +305,11 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				}
 				dataProduct.setProviderInformation(provider);
 			}
-			ConsumerVO consumerVO = vo.getConsumerInformation();
+			ConsumerResponseVO consumerVO = vo.getConsumerInformation();
 			if (consumerVO != null) {
 				Consumer consumer = new Consumer();
 				BeanUtils.copyProperties(consumerVO, consumer);
-				consumer.setPublish(consumerVO.isPublish());
+
 				if (Objects.nonNull(consumerVO.getCreatedBy())) {
 					CreatedBy userDetails = new CreatedBy();
 					BeanUtils.copyProperties(consumerVO.getCreatedBy(), userDetails);
