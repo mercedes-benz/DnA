@@ -105,6 +105,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
         },
         publish: false,
         openSegments: [],
+        usingQuickPath: false
       },
       publish: false,
       showDeleteReportModal: false,
