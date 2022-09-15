@@ -27,10 +27,19 @@
 
 package com.daimler.data.assembler;
 
+import java.lang.reflect.Type;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -53,6 +62,7 @@ import com.daimler.data.db.jsonb.dataproduct.ProviderTransnationalDataTransfer;
 import com.daimler.data.db.jsonb.dataproduct.Subdivision;
 import com.daimler.data.db.jsonb.dataproduct.TeamMember;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
+import com.daimler.data.dto.dataproduct.ChangeLogVO;
 import com.daimler.data.dto.dataproduct.ConsumerContactInformationVO;
 import com.daimler.data.dto.dataproduct.ConsumerPersonalRelatedDataVO;
 import com.daimler.data.dto.dataproduct.ConsumerVO;
@@ -67,6 +77,11 @@ import com.daimler.data.dto.dataproduct.ProviderVO;
 import com.daimler.data.dto.dataproduct.SubdivisionVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO.UserTypeEnum;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.MapDifference.ValueDifference;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 @Component
 public class DataProductAssembler implements GenericAssembler<DataProductVO, DataProductNsql> {
@@ -77,27 +92,26 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		if (entity != null && entity.getData() != null) {
 			vo = new DataProductVO();
 			DataProduct dataProduct = entity.getData();
-			BeanUtils.copyProperties(dataProduct, vo);
-
-			if (Objects.nonNull(dataProduct.getCreatedBy())) {
-				CreatedByVO createdByVO = new CreatedByVO();
-				BeanUtils.copyProperties(dataProduct.getCreatedBy(), createdByVO);
-				vo.setCreatedBy(createdByVO);
-			}
-			if (Objects.nonNull(dataProduct.getModifiedBy())) {
-				CreatedByVO updatedByVO = new CreatedByVO();
-				BeanUtils.copyProperties(dataProduct.getModifiedBy(), updatedByVO);
-				vo.setModifiedBy(updatedByVO);
-			}
-			if (!ObjectUtils.isEmpty(dataProduct.getUsers())) {
-				List<TeamMemberVO> users = dataProduct.getUsers().stream().map(n -> toTeamMemberVO(n))
-						.collect(Collectors.toList());
-				vo.setUsers(users);
-			}
-
 			Provider provider = dataProduct.getProviderInformation();
 			if (provider != null) {
 				ProviderVO providerVO = new ProviderVO();
+				BeanUtils.copyProperties(provider, providerVO);
+				providerVO.setId(entity.getId());
+				if (Objects.nonNull(provider.getCreatedBy())) {
+					CreatedByVO createdByVO = new CreatedByVO();
+					BeanUtils.copyProperties(provider.getCreatedBy(), createdByVO);
+					providerVO.setCreatedBy(createdByVO);
+				}
+				if (Objects.nonNull(provider.getModifiedBy())) {
+					CreatedByVO updatedByVO = new CreatedByVO();
+					BeanUtils.copyProperties(provider.getModifiedBy(), updatedByVO);
+					providerVO.setModifiedBy(updatedByVO);
+				}
+				if (!ObjectUtils.isEmpty(provider.getUsers())) {
+					List<TeamMemberVO> users = provider.getUsers().stream().map(n -> toTeamMemberVO(n))
+							.collect(Collectors.toList());
+					providerVO.setUsers(users);
+				}
 				if (provider.getContactInformation() != null) {
 					ProviderContactInformationVO contactInformationVO = new ProviderContactInformationVO();
 					BeanUtils.copyProperties(provider.getContactInformation(), contactInformationVO);
@@ -150,6 +164,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			Consumer consumer = dataProduct.getConsumerInformation();
 			if (consumer != null) {
 				ConsumerVO consumerVO = new ConsumerVO();
+				BeanUtils.copyProperties(consumer, consumerVO);
+				consumerVO.setId(entity.getId());
+				if (Objects.nonNull(consumer.getCreatedBy())) {
+					CreatedByVO createdByVO = new CreatedByVO();
+					BeanUtils.copyProperties(consumer.getCreatedBy(), createdByVO);
+					consumerVO.setCreatedBy(createdByVO);
+				}
+				if (Objects.nonNull(consumer.getModifiedBy())) {
+					CreatedByVO updatedByVO = new CreatedByVO();
+					BeanUtils.copyProperties(consumer.getModifiedBy(), updatedByVO);
+					consumerVO.setModifiedBy(updatedByVO);
+				}
 				if (consumer.getContactInformation() != null) {
 					ConsumerContactInformationVO contactInformationVO = new ConsumerContactInformationVO();
 					BeanUtils.copyProperties(consumer.getContactInformation(), contactInformationVO);
@@ -181,8 +207,6 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 				vo.setConsumerInformation(consumerVO);
 			}
 
-			vo.setId(entity.getId());
-
 		}
 
 		return vo;
@@ -193,34 +217,32 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		DataProductNsql entity = null;
 		if (vo != null) {
 			entity = new DataProductNsql();
-			String id = vo.getId();
-			if (id != null && !id.isEmpty() && !id.trim().isEmpty()) {
-				entity.setId(id);
-			}
 			DataProduct dataProduct = new DataProduct();
-			BeanUtils.copyProperties(vo, dataProduct);
-			dataProduct.setPublish(vo.isPublish());
-			dataProduct.setNotifyUsers(vo.isNotifyUsers());
-			dataProduct.setProviderFormSubmitted(vo.isProviderFormSubmitted());
-			if (Objects.nonNull(vo.getCreatedBy())) {
-				CreatedBy userDetails = new CreatedBy();
-				BeanUtils.copyProperties(vo.getCreatedBy(), userDetails);
-				dataProduct.setCreatedBy(userDetails);
-			}
-			if (Objects.nonNull(vo.getModifiedBy())) {
-				CreatedBy userDetails = new CreatedBy();
-				BeanUtils.copyProperties(vo.getModifiedBy(), userDetails);
-				dataProduct.setModifiedBy(userDetails);
-			}
-			if (!ObjectUtils.isEmpty(vo.getUsers())) {
-				List<TeamMember> users = vo.getUsers().stream().map(n -> toTeamMemberJson(n))
-						.collect(Collectors.toList());
-				dataProduct.setUsers(users);
-			}
-
 			ProviderVO providerVO = vo.getProviderInformation();
 			if (providerVO != null) {
 				Provider provider = new Provider();
+				String id = providerVO.getId();
+				if (StringUtils.hasText(id)) {
+					entity.setId(id);
+				}
+				BeanUtils.copyProperties(providerVO, provider);
+				provider.setNotifyUsers(providerVO.isNotifyUsers());
+				provider.setProviderFormSubmitted(providerVO.isProviderFormSubmitted());
+				if (Objects.nonNull(providerVO.getCreatedBy())) {
+					CreatedBy userDetails = new CreatedBy();
+					BeanUtils.copyProperties(providerVO.getCreatedBy(), userDetails);
+					provider.setCreatedBy(userDetails);
+				}
+				if (Objects.nonNull(providerVO.getModifiedBy())) {
+					CreatedBy userDetails = new CreatedBy();
+					BeanUtils.copyProperties(providerVO.getModifiedBy(), userDetails);
+					provider.setModifiedBy(userDetails);
+				}
+				if (!ObjectUtils.isEmpty(providerVO.getUsers())) {
+					List<TeamMember> users = providerVO.getUsers().stream().map(n -> toTeamMemberJson(n))
+							.collect(Collectors.toList());
+					provider.setUsers(users);
+				}
 				if (providerVO.getContactInformation() != null) {
 					ProviderContactInformation contactInformation = new ProviderContactInformation();
 					BeanUtils.copyProperties(providerVO.getContactInformation(), contactInformation);
@@ -284,6 +306,18 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			ConsumerVO consumerVO = vo.getConsumerInformation();
 			if (consumerVO != null) {
 				Consumer consumer = new Consumer();
+				BeanUtils.copyProperties(consumerVO, consumer);
+				consumer.setPublish(consumerVO.isPublish());
+				if (Objects.nonNull(consumerVO.getCreatedBy())) {
+					CreatedBy userDetails = new CreatedBy();
+					BeanUtils.copyProperties(consumerVO.getCreatedBy(), userDetails);
+					consumer.setCreatedBy(userDetails);
+				}
+				if (Objects.nonNull(consumerVO.getModifiedBy())) {
+					CreatedBy userDetails = new CreatedBy();
+					BeanUtils.copyProperties(consumerVO.getModifiedBy(), userDetails);
+					consumer.setModifiedBy(userDetails);
+				}
 				ConsumerContactInformationVO consumerContactInformationVO = consumerVO.getContactInformation();
 				if (consumerContactInformationVO != null) {
 					ConsumerContactInformation contactInformation = new ConsumerContactInformation();
@@ -348,6 +382,180 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			}
 		}
 		return teamMember;
+	}
+
+	/**
+	 * Simple GSON based json objects compare and difference provider
+	 * 
+	 * @param request
+	 * @param existing
+	 * @param currentUser
+	 * @return
+	 */
+	public List<ChangeLogVO> jsonObjectCompare(Object request, Object existing, CreatedByVO currentUser) {
+		Gson gson = new Gson();
+		Type type = new TypeToken<Map<String, Object>>() {
+		}.getType();
+		Map<String, Object> leftMap = gson.fromJson(gson.toJson(existing), type);
+		Map<String, Object> rightMap = gson.fromJson(gson.toJson(request), type);
+
+		Map<String, Object> leftFlatMap = DataProductAssembler.flatten(leftMap);
+		Map<String, Object> rightFlatMap = DataProductAssembler.flatten(rightMap);
+
+		MapDifference<String, Object> difference = Maps.difference(leftFlatMap, rightFlatMap);
+
+		TeamMemberVO teamMemberVO = new TeamMemberVO();
+		BeanUtils.copyProperties(currentUser, teamMemberVO);
+		teamMemberVO.setShortId(currentUser.getId());
+		Date changeDate = new Date();
+
+		List<ChangeLogVO> changeLogsVO = new ArrayList<ChangeLogVO>();
+		ChangeLogVO changeLogVO = null;
+		// Checking for Removed values
+		if (null != difference.entriesOnlyOnLeft() && !difference.entriesOnlyOnLeft().isEmpty()) {
+			for (Entry<String, Object> entry : difference.entriesOnlyOnLeft().entrySet()) {
+				changeLogVO = new ChangeLogVO();
+				changeLogVO.setModifiedBy(teamMemberVO);
+				changeLogVO.setChangeDate(changeDate);
+				changeLogVO.setFieldChanged(entry.getKey());
+				changeLogVO.setOldValue(entry.getValue().toString());
+				// setting change Description Starts
+				changeLogVO
+						.setChangeDescription(toChangeDescription(entry.getKey(), entry.getValue().toString(), null));
+				changeLogsVO.add(changeLogVO);
+			}
+		}
+		// Checking for Added values
+		if (null != difference.entriesOnlyOnRight() && !difference.entriesOnlyOnRight().isEmpty()) {
+			for (Entry<String, Object> entry : difference.entriesOnlyOnRight().entrySet()) {
+				changeLogVO = new ChangeLogVO();
+				changeLogVO.setModifiedBy(teamMemberVO);
+				changeLogVO.setChangeDate(changeDate);
+				changeLogVO.setFieldChanged(entry.getKey());
+				changeLogVO.setNewValue(entry.getValue().toString());
+				// setting change Description
+				changeLogVO
+						.setChangeDescription(toChangeDescription(entry.getKey(), null, entry.getValue().toString()));
+				changeLogsVO.add(changeLogVO);
+
+			}
+		}
+		// Checking for value differences
+		if (null != difference.entriesDiffering() && !difference.entriesDiffering().isEmpty()) {
+			for (Entry<String, ValueDifference<Object>> entry : difference.entriesDiffering().entrySet()) {
+				changeLogVO = new ChangeLogVO();
+				changeLogVO.setModifiedBy(teamMemberVO);
+				changeLogVO.setChangeDate(changeDate);
+				changeLogVO.setFieldChanged(entry.getKey());
+				changeLogVO.setOldValue(entry.getValue().leftValue().toString());
+				changeLogVO.setNewValue(entry.getValue().rightValue().toString());
+				// setting change Description
+				changeLogVO.setChangeDescription(toChangeDescription(entry.getKey(),
+						entry.getValue().leftValue().toString(), entry.getValue().rightValue().toString()));
+				changeLogsVO.add(changeLogVO);
+			}
+		}
+		return changeLogsVO;
+	}
+
+	/**
+	 * flatten the map
+	 * 
+	 * @param map
+	 * @return Map<String, Object>
+	 */
+	public static Map<String, Object> flatten(Map<String, Object> map) {
+		if (null == map || map.isEmpty()) {
+			return new HashMap<String, Object>();
+		} else {
+			return map.entrySet().stream().flatMap(DataProductAssembler::flatten).collect(LinkedHashMap::new,
+					(m, e) -> m.put("/" + e.getKey(), e.getValue()), LinkedHashMap::putAll);
+		}
+	}
+
+	/**
+	 * flatten map entry
+	 * 
+	 * @param entry
+	 * @return
+	 */
+	private static Stream<Entry<String, Object>> flatten(Entry<String, Object> entry) {
+
+		if (entry == null) {
+			return Stream.empty();
+		}
+
+		if (entry.getValue() instanceof Map<?, ?>) {
+			Map<?, ?> properties = (Map<?, ?>) entry.getValue();
+			return properties.entrySet().stream()
+					.flatMap(e -> flatten(new SimpleEntry<>(entry.getKey() + "/" + e.getKey(), e.getValue())));
+		}
+
+		if (entry.getValue() instanceof List<?>) {
+			List<?> list = (List<?>) entry.getValue();
+			return IntStream.range(0, list.size())
+					.mapToObj(i -> new SimpleEntry<String, Object>(entry.getKey() + "/" + i, list.get(i)))
+					.flatMap(DataProductAssembler::flatten);
+		}
+
+		return Stream.of(entry);
+	}
+
+	private String toHumanReadableFormat(String raw) {
+		if (raw != null) {
+			String seperated = raw.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])",
+					"(?<=[^A-Z])(?=[A-Z])", "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+			String formatted = Character.toUpperCase(seperated.charAt(0)) + seperated.substring(1);
+			return formatted;
+		} else
+			return raw;
+	}
+
+	/**
+	 * toChangeDescription convert given keyString to changeDescription
+	 * 
+	 * @param keyString
+	 * @param fromValue
+	 * @param toValue
+	 * @return changeDescription
+	 */
+	private String toChangeDescription(String keyString, String fromValue, String toValue) {
+		keyString = keyString.substring(1);
+		String[] keySet = keyString.split("/");
+		String at = null;
+		int indexValue = 0;
+		StringBuilder changeDescription = new StringBuilder();
+		if (keySet.length > 0) {
+			String fieldValue = toHumanReadableFormat(keySet[0]);
+			changeDescription.append(fieldValue + ": ");
+		}
+		boolean flag = false;
+		for (int i = (keySet.length - 1), index = keySet.length; i >= 0; i--) {
+			if (!keySet[i].matches("[0-9]") && !flag) {
+				changeDescription.append(toHumanReadableFormat(keySet[i]));
+				flag = true;
+			} else if (keySet[i].matches("[0-9]")) {
+				indexValue = Integer.parseInt(keySet[i]) + 1;
+				at = " at index " + String.valueOf(indexValue);
+				index = i;
+			} else {
+				changeDescription.append(" of " + toHumanReadableFormat(keySet[i]));
+			}
+			if (StringUtils.hasText(at) && index != i) {
+				changeDescription.append(at);
+				at = null;
+			}
+
+		}
+		if (!StringUtils.hasText(fromValue)) {
+			changeDescription.append(" `" + toValue + "` added . ");
+		} else if (!StringUtils.hasText(toValue)) {
+			changeDescription.append(" `" + fromValue + "` removed . ");
+		} else {
+			changeDescription.append(" changed from `" + fromValue + "` to `" + toValue + "` .");
+		}
+
+		return changeDescription.toString();
 	}
 
 }
