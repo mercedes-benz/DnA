@@ -109,6 +109,20 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	}
 
 	@Override
+	@Transactional
+	public DataProductVO getById(String id) {
+		if (StringUtils.hasText(id)) {
+			DataProductVO existingVO = super.getByUniqueliteral("dataProductId", id);
+			if (existingVO != null && existingVO.getDataProductId() != null) {
+				return existingVO;
+			} else {
+				return super.getById(id);
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
 			String sortOrder) {
 		List<DataProductNsql> dataProductEntities = dataProductCustomRepository
@@ -174,6 +188,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			if (existingVO != null && existingVO.getDataProductName() != null) {
 				providerVO.setProviderInformation(existingVO.getProviderInformation());
 				providerVO.setId(existingVO.getId());
+				providerVO.setDataProductId(existingVO.getDataProductId());
 				providerVO.setDataProductName(existingVO.getDataProductName());
 				providerVO.setRecordStatus(existingVO.getRecordStatus());
 				responseVO.setData(providerVO);
@@ -194,12 +209,14 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			dataProductVO.setDataProductName(uniqueProductName);
 			dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 			dataProductVO.setPublish(false);
+			dataProductVO.setDataProductId("DP-" + String.format("%04d", dataProductRepository.getNextSeriesId()));
 			dataProductVO.setRecordStatus("OPEN");
 			dataProductVO.setId(null);
 			DataProductVO vo = this.create(dataProductVO);
 			if (vo != null && vo.getId() != null) {
 				providerVO.setProviderInformation(vo.getProviderInformation());
 				providerVO.setId(vo.getId());
+				providerVO.setDataProductId(vo.getDataProductId());
 				providerVO.setDataProductName(vo.getDataProductName());
 				providerVO.setRecordStatus(vo.getRecordStatus());
 				providerVO.setNotifyUsers(vo.isNotifyUsers());
@@ -238,7 +255,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		try {
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String id = requestVO.getId();
-			DataProductVO existingVO = this.getById(id);
+			DataProductVO existingVO = super.getById(id);
 			DataProductVO mergedVO = null;
 			if (providerResponseVO.isProviderFormSubmitted() == null) {
 				providerResponseVO.setProviderFormSubmitted(false);
@@ -251,6 +268,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					providerResponseVO.lastModifiedDate(new Date());
 					providerResponseVO.setModifiedBy(this.userStore.getVO());
 					dataProductVO.setProviderInformation(providerResponseVO);
+					dataProductVO.setDataProductId(existingVO.getDataProductId());
 					dataProductVO.setDataProductName(requestVO.getDataProductName());
 					dataProductVO.setPublish(existingVO.isPublish());
 					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
@@ -264,6 +282,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						providerVO.setDataProductName(mergedVO.getDataProductName());
 						providerVO.setRecordStatus(mergedVO.getRecordStatus());
 						providerVO.setNotifyUsers(mergedVO.isNotifyUsers());
+						providerVO.setDataProductId(mergedVO.getDataProductId());
 						responseVO.setData(providerVO);
 						responseVO.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
@@ -321,7 +340,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		try {
 			ConsumerResponseVO consumerResponseVO = requestVO.getConsumerInformation();
 			String id = requestVO.getId();
-			DataProductVO existingVO = this.getById(id);
+			DataProductVO existingVO = super.getById(id);
 			DataProductVO mergedVO = null;
 			if (requestVO.isPublish() == null) {
 				requestVO.setPublish(false);
@@ -342,6 +361,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setDataProductName(existingVO.getDataProductName());
 					dataProductVO.setPublish(requestVO.isPublish());
 					dataProductVO.setRecordStatus("OPEN");
+					dataProductVO.setDataProductId(existingVO.getDataProductId());
 					dataProductVO.setId(id);
 					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
@@ -349,6 +369,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					if (mergedVO != null && mergedVO.getId() != null) {
 						consumerVO.setConsumerInformation(mergedVO.getConsumerInformation());
 						consumerVO.setId(mergedVO.getId());
+						consumerVO.setDataProductId(mergedVO.getDataProductId());
 						consumerVO.setPublish(mergedVO.isPublish());
 						consumerVO.setNotifyUsers(mergedVO.isNotifyUsers());
 						consumerVO.setDataProductName(mergedVO.getDataProductName());
@@ -485,7 +506,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	@Transactional
 	public ResponseEntity<GenericMessage> deleteDataProduct(String id) {
 		try {
-			DataProductVO dataProduct = this.getById(id);
+			DataProductVO dataProduct = super.getById(id);
 			if (true) {
 				this.deleteById(id);
 				GenericMessage successMsg = new GenericMessage();
