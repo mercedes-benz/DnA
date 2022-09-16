@@ -92,7 +92,7 @@ export const deserializeFormData = (item, type = 'provider') => {
     LCOApprovedDataTransfer: item.providerInformation?.transnationalDataTransfer?.approved,
     transnationalDataTransfer: item.providerInformation?.transnationalDataTransfer?.dataTransferred ? 'Yes' : 'No',
     transnationalDataTransferNotWithinEU: item.providerInformation?.transnationalDataTransfer?.notWithinEU ? 'Yes' : '',
-    notifyUsers: item.providerInformation?.notifyUsers,
+    notifyUsers: item?.notifyUsers,
     users: item.providerInformation?.users,
     providerFormSubmitted: item.providerInformation?.providerFormSubmitted,
     ...((!isProvider || item.consumerInformation) && {
@@ -115,7 +115,7 @@ export const deserializeFormData = (item, type = 'provider') => {
         personalRelatedDataLegalBasis: item.consumerInformation?.personalRelatedData.legalBasis,
         personalRelatedData: item.consumerInformation?.personalRelatedData.personalRelatedData ? 'Yes' : 'No',
         personalRelatedDataPurpose: item.consumerInformation?.personalRelatedData.purpose,
-        notifyUsers: item.providerInformation?.notifyUsers,
+        notifyUsers: item?.notifyUsers,
         publish: item.publish,
       },
     }),

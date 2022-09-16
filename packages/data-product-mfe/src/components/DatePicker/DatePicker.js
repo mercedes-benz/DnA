@@ -33,7 +33,6 @@ const DatePicker = ({ label, value, name, onChange, requiredError }) => {
           onChange(newValue);
         }}
         renderInput={({ inputRef, inputProps, InputProps }) => {
-          inputProps.placeholder = 'Enter Date';
           return (
             <div className={classNames(Styles.datePicker, requiredError ? 'CalendarIcon-position' : '')}>
               <input className="input-field" ref={inputRef} {...inputProps} />
