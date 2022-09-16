@@ -25,33 +25,21 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
-
-import java.util.Date;
-import java.util.List;
-
-import com.daimler.data.db.jsonb.CreatedBy;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+package com.daimler.data.db.jsonb;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Provider {
-	private boolean providerFormSubmitted;
-	private List<TeamMember> users;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
-	private ProviderContactInformation contactInformation;
-	private ProviderClassificationConfidentiality classificationConfidentiality;
-	private ProviderPersonalRelatedData personalRelatedData;
-	private ProviderTransnationalDataTransfer transnationalDataTransfer;
-	private ProviderDeletionRequirement deletionRequirement;
-	private List<String> openSegments;
+public class Department implements Serializable {
+
+	private static final long serialVersionUID = 8540510586879228017L;
+
+	private String name;
+
 }
