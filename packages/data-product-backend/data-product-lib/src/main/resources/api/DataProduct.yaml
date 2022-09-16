@@ -450,7 +450,11 @@ definitions:
     type: object
     properties:
       id:
-        type: string 
+        type: string
+        description: "Technical Id  which used as primary key"
+      dataProductId:
+        type: string
+        description: "Functional Id"                         
       dataProductName:
         type: string
         description: "Name of the DataProduct"
@@ -515,7 +519,11 @@ definitions:
     type: object
     properties: 
       id:
-        type: string 
+        type: string
+        description: "Technical Id  which used as primary key"
+      dataProductId:
+        type: string
+        description: "Functional Id" 
       dataProductName:
         type: string
         description: "Name of the DataProduct"                
@@ -566,7 +574,11 @@ definitions:
     type: object
     properties: 
       id:
-        type: string 
+        type: string
+        description: "Technical Id  which used as primary key"
+      dataProductId:
+        type: string
+        description: "Functional Id" 
       dataProductName:
         type: string
         description: "Name of the DataProduct"
