@@ -12,6 +12,7 @@ import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 import Styles from './styles.scss';
 
 import ShowTeamMemberList from 'dna-container/ShowTeamMemberList';
+import { regionalDateFormat } from '../../Utility/utils';
 
 const Summary = ({ history }) => {
   const { id: dataProductId } = useParams();
@@ -137,7 +138,7 @@ const Summary = ({ history }) => {
                       <div>
                         <label className="input-label summary">Date of Data Transfer</label>
                         <br />
-                        {data.dateOfDataTransfer}
+                        {regionalDateFormat(data.dateOfDataTransfer)}
                       </div>
                       <div>
                         <label className="input-label summary">Name</label>
@@ -348,7 +349,7 @@ const Summary = ({ history }) => {
                           <div>
                             <label className="input-label summary">Date of Agreement</label>
                             <br />
-                            {data?.consumer?.dateOfAgreement}
+                            {regionalDateFormat(data?.consumer?.dateOfAgreement)}
                           </div>
                           <div>
                             <label className="input-label summary">Division</label>
@@ -362,6 +363,11 @@ const Summary = ({ history }) => {
                           </div>
                         </div>
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                          <div>
+                            <label className="input-label summary">Department</label>
+                            <br />
+                            {data?.consumer?.department}
+                          </div>
                           <div>
                             <label className="input-label summary">
                               LCO/LCR needed to be involved / has to check legal basis of usage of personal data?{' '}
@@ -379,7 +385,6 @@ const Summary = ({ history }) => {
                             <br />
                             {data?.consumer?.complianceOfficer}
                           </div>
-                          <div></div>
                         </div>
                       </div>
                     </div>

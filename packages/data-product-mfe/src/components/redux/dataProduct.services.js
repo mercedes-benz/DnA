@@ -38,6 +38,7 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
     onSave();
     const data = deserializeFormData(res?.data?.data);
     ProgressIndicator.hide();
+    Notification.show('Draft saved successfully.');
     return {
       data,
       pagination,
@@ -65,19 +66,43 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     values.consumer['serializedDivision'] = serializeDivisionSubDivision(divisionList, values?.consumer);
   }
   const requestBody = serializeFormData(values, division, type);
-
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.updateDataProduct(requestBody);
+    let res = {};
+    if (isProviderForm) {
+      res = await dataProductsApi.updateProvider(requestBody);
+    } else {
+      res = await dataProductsApi.updateConsumer(requestBody);
+    }
     ProgressIndicator.hide();
     onSave();
-    const data = deserializeFormData(res?.data?.data, type);
-
-    if (isProviderForm && data.providerFormSubmitted) {
-      Notification.show(isEdit ? 'Information updated sucessfully.' : 'Progress saved in Data Transfer Overview');
+    const responseData = res?.data?.data;
+    const data = deserializeFormData(responseData, type);
+    // Provider Form
+    if (isProviderForm) {
+      if (responseData?.providerInformation?.providerFormSubmitted) {
+        Notification.show(
+          responseData?.notifyUsers
+            ? 'Information saved and published sucessfully.\n Members (if any) will be notified on the data transfer.'
+            : isEdit
+            ? 'Information updated sucessfully.'
+            : 'Progress saved in Data Transfer Overview',
+        );
+      } else {
+        Notification.show('Draft saved successfully.');
+      }
     }
-    if (!isProviderForm && values.publish) {
-      Notification.show(isEdit ? 'Information updated sucessfully.' : 'Transfer is now complete!');
+    // Consumer Form
+    if (!isProviderForm) {
+      if (responseData?.publish) {
+        Notification.show(
+          responseData?.notifyUsers
+            ? 'Information saved and published sucessfully.\n Members will be notified.'
+            : isEdit
+            ? 'Information updated sucessfully.'
+            : 'Transfer is now complete!',
+        );
+      } else Notification.show('Draft saved successfully.');
     }
     return {
       data,
