@@ -33,9 +33,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.daimler.data.api.department.DepartmentsApi;
-import com.daimler.data.dto.department.DepartmentCollection;
-import com.daimler.data.service.department.DepartmentService;
+import com.daimler.data.api.classification.ClassificationsApi;
+import com.daimler.data.dto.classification.ClassificationVOCollection;
+import com.daimler.data.service.classification.ClassificationService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -43,28 +43,28 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @RestController
-@Api(value = "departments", tags = { "departments" })
+@Api(value = "Classifications", tags = { "classifications" })
 @RequestMapping("/api")
-public class DepartmentController implements DepartmentsApi {
+public class ClassificationController implements ClassificationsApi {
 
 	@Autowired
-	private DepartmentService departmentService;
+	private ClassificationService classificationService;
 
 	@Override
-	@ApiOperation(value = "Get all available department.", nickname = "getAll", notes = "Get all department. This endpoints will be used to get all valid available department records.", response = DepartmentCollection.class, tags = {
-			"departments", })
+	@ApiOperation(value = "Get all classification types.", nickname = "getAll", notes = "Get all classification types. This endpoints will be used to Get all valid available classification types.", response = ClassificationVOCollection.class, tags = {
+			"classifications", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = DepartmentCollection.class),
+			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = ClassificationVOCollection.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/departments", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/classifications", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<DepartmentCollection> getAll() {
-		return departmentService.getAllDepartments();
+	public ResponseEntity<ClassificationVOCollection> getAll() {
+		return classificationService.getAllClassifications();
 	}
 
 }

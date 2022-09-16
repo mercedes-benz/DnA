@@ -209,7 +209,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			dataProductVO.setDataProductName(uniqueProductName);
 			dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 			dataProductVO.setPublish(false);
-			dataProductVO.setDataProductId("DP-" + String.format("%04d", dataProductRepository.getNextSeriesId()));
+			dataProductVO.setDataProductId("DP-" + String.format("%04d", dataProductRepository.getNextSeqId()));
 			dataProductVO.setRecordStatus("OPEN");
 			dataProductVO.setId(null);
 			DataProductVO vo = this.create(dataProductVO);

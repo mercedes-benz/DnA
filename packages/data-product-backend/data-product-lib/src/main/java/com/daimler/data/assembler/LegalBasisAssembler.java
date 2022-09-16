@@ -25,21 +25,41 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.assembler;
 
-import java.io.Serializable;
+import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Department implements Serializable {
+import com.daimler.data.db.entities.LegalBasisNsql;
+import com.daimler.data.db.jsonb.LegalBasis;
+import com.daimler.data.dto.legalbasis.LegalBasisVO;
 
-	private static final long serialVersionUID = 8540510586879228017L;
+@Component
+public class LegalBasisAssembler implements GenericAssembler<LegalBasisVO, LegalBasisNsql> {
 
-	private String name;
+	@Override
+	public LegalBasisVO toVo(LegalBasisNsql entity) {
+		LegalBasisVO legalBasisVO = null;
+		if (Objects.nonNull(entity)) {
+			legalBasisVO = new LegalBasisVO();
+			legalBasisVO.setId(entity.getId());
+			legalBasisVO.setName(entity.getData().getName());
+		}
+		return legalBasisVO;
+	}
 
+	@Override
+	public LegalBasisNsql toEntity(LegalBasisVO vo) {
+		LegalBasisNsql legalBasisNsql = null;
+		if (Objects.nonNull(vo)) {
+			legalBasisNsql = new LegalBasisNsql();
+			LegalBasis legalBasis = new LegalBasis();
+			legalBasis.setName(vo.getName());
+			legalBasisNsql.setData(legalBasis);
+			if (vo.getId() != null)
+				legalBasisNsql.setId(vo.getId());
+		}
+		return legalBasisNsql;
+	}
 }

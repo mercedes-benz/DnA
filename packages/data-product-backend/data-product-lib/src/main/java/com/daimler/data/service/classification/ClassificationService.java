@@ -25,21 +25,16 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.service.classification;
 
-import java.io.Serializable;
+import org.springframework.http.ResponseEntity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.daimler.data.db.entities.ClassificationNsql;
+import com.daimler.data.dto.classification.ClassificationVO;
+import com.daimler.data.dto.classification.ClassificationVOCollection;
+import com.daimler.data.service.common.CommonService;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Department implements Serializable {
+public interface ClassificationService extends CommonService<ClassificationVO, ClassificationNsql, String> {
 
-	private static final long serialVersionUID = 8540510586879228017L;
-
-	private String name;
-
+	ResponseEntity<ClassificationVOCollection> getAllClassifications();
 }
