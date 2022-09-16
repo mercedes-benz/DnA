@@ -25,21 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.db.repo.classification;
 
-import java.io.Serializable;
+import com.daimler.data.db.entities.ClassificationNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Department implements Serializable {
-
-	private static final long serialVersionUID = 8540510586879228017L;
-
-	private String name;
+public interface ClassificationCustomRepository extends CommonDataRepository<ClassificationNsql, String> {
 
 }
