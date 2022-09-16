@@ -62,8 +62,12 @@ import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.dto.dataproduct.ProviderResponseVO;
 import com.daimler.data.dto.dataproduct.ProviderVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO;
+import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.department.DepartmentService;
+
+import io.jsonwebtoken.lang.Strings;
 
 @Service
 @SuppressWarnings(value = "unused")
@@ -82,6 +86,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	private DataProductAssembler dataProductAssembler;
 
 	@Autowired
+	private DepartmentService departmentService;
+
+	@Autowired
 	private KafkaProducerService kafkaProducer;
 
 	@Autowired
@@ -97,6 +104,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	@Override
 	@Transactional
 	public DataProductVO create(DataProductVO vo) {
+		updateDepartments(vo);
 		return super.create(vo);
 	}
 
@@ -116,6 +124,43 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		return dataProductCustomRepository.getCountUsingNativeQuery(published);
 	}
 
+	private void updateDepartments(DataProductVO vo) {
+		if (vo != null && vo.getProviderInformation() != null
+				&& vo.getProviderInformation().getContactInformation() != null) {
+			String providerDepartment = vo.getProviderInformation().getContactInformation().getDepartment();
+			if (Strings.hasText(providerDepartment)) {
+				DepartmentVO existingDepartmentVO = departmentService.getByUniqueliteral("name", providerDepartment);
+				if (existingDepartmentVO != null && existingDepartmentVO.getName() != null
+						&& existingDepartmentVO.getName().equalsIgnoreCase(providerDepartment)) {
+					return;
+				} else {
+					DepartmentVO newDepartmentVO = new DepartmentVO();
+					newDepartmentVO.setId(null);
+					newDepartmentVO.setName(providerDepartment);
+					departmentService.create(newDepartmentVO);
+				}
+			}
+
+		}
+		if (vo != null && vo.getConsumerInformation() != null
+				&& vo.getConsumerInformation().getContactInformation() != null) {
+			String consumerDepartment = vo.getConsumerInformation().getContactInformation().getDepartment();
+			if (Strings.hasText(consumerDepartment)) {
+				DepartmentVO existingDepartmentVO = departmentService.getByUniqueliteral("name", consumerDepartment);
+				if (existingDepartmentVO != null && existingDepartmentVO.getName() != null
+						&& existingDepartmentVO.getName().equalsIgnoreCase(consumerDepartment)) {
+					return;
+				} else {
+					DepartmentVO newDepartmentVO = new DepartmentVO();
+					newDepartmentVO.setId(null);
+					newDepartmentVO.setName(consumerDepartment);
+					departmentService.create(newDepartmentVO);
+				}
+
+			}
+		}
+	}
+
 	@Override
 	@Transactional
 	public ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO requestVO) {
@@ -126,8 +171,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String uniqueProductName = requestVO.getDataProductName();
 			DataProductVO existingVO = super.getByUniqueliteral("dataProductName", uniqueProductName);
-			if (existingVO != null && existingVO.getProviderInformation() != null
-					&& existingVO.getDataProductName() != null) {
+			if (existingVO != null && existingVO.getDataProductName() != null) {
 				providerVO.setProviderInformation(existingVO.getProviderInformation());
 				providerVO.setId(existingVO.getId());
 				providerVO.setDataProductName(existingVO.getDataProductName());
@@ -148,6 +192,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 			dataProductVO.setProviderInformation(providerResponseVO);
 			dataProductVO.setDataProductName(uniqueProductName);
+			dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 			dataProductVO.setPublish(false);
 			dataProductVO.setRecordStatus("OPEN");
 			dataProductVO.setId(null);
@@ -157,6 +202,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				providerVO.setId(vo.getId());
 				providerVO.setDataProductName(vo.getDataProductName());
 				providerVO.setRecordStatus(vo.getRecordStatus());
+				providerVO.setNotifyUsers(vo.isNotifyUsers());
 				responseVO.setData(providerVO);
 				LOGGER.info("DataProduct {} created successfully", uniqueProductName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
@@ -206,7 +252,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					providerResponseVO.setModifiedBy(this.userStore.getVO());
 					dataProductVO.setProviderInformation(providerResponseVO);
 					dataProductVO.setDataProductName(requestVO.getDataProductName());
-					dataProductVO.setPublish(false);
+					dataProductVO.setPublish(existingVO.isPublish());
+					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 					dataProductVO.setRecordStatus("OPEN");
 					dataProductVO.setId(id);
 					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
@@ -216,6 +263,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						providerVO.setId(mergedVO.getId());
 						providerVO.setDataProductName(mergedVO.getDataProductName());
 						providerVO.setRecordStatus(mergedVO.getRecordStatus());
+						providerVO.setNotifyUsers(mergedVO.isNotifyUsers());
 						responseVO.setData(providerVO);
 						responseVO.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
@@ -291,16 +339,18 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						consumerResponseVO.setModifiedBy(this.userStore.getVO());
 					}
 					dataProductVO.setConsumerInformation(consumerResponseVO);
-					dataProductVO.setDataProductName(requestVO.getDataProductName());
-					dataProductVO.setPublish(false);
+					dataProductVO.setDataProductName(existingVO.getDataProductName());
+					dataProductVO.setPublish(requestVO.isPublish());
 					dataProductVO.setRecordStatus("OPEN");
 					dataProductVO.setId(id);
+					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
 					mergedVO = this.create(dataProductVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
 						consumerVO.setConsumerInformation(mergedVO.getConsumerInformation());
 						consumerVO.setId(mergedVO.getId());
 						consumerVO.setPublish(mergedVO.isPublish());
+						consumerVO.setNotifyUsers(mergedVO.isNotifyUsers());
 						consumerVO.setDataProductName(mergedVO.getDataProductName());
 						consumerVO.setRecordStatus(mergedVO.getRecordStatus());
 						responseVO.setData(consumerVO);
@@ -356,7 +406,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			ProviderResponseVO currProviderVO = currDataProductVO.getProviderInformation();
 			ConsumerResponseVO currConsumerVO = currDataProductVO.getConsumerInformation();
 			ConsumerResponseVO prevConsumerVO = prevDataProductVO.getConsumerInformation();
-			if (currProviderVO.isNotifyUsers()) {
+			if (currDataProductVO.isNotifyUsers()) {
 				CreatedByVO currentUser = this.userStore.getVO();
 				String resourceID = currDataProductVO.getId();
 				String dataProductName = currDataProductVO.getDataProductName();
