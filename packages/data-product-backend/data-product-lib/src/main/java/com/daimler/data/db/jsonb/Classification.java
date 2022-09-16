@@ -36,7 +36,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Department implements Serializable {
+public class Classification implements Serializable {
 
 	private static final long serialVersionUID = 8540510586879228017L;
 

@@ -23,19 +23,18 @@
 # SOFTWARE.
 # 
 # LICENSE END 
-# 
+#
 #-----------------------------------------------------------------------------------------------------
 #  **
-#  ** File Name  : department.yaml
+#  ** File Name  : Classification.yaml
 #  **
 #  ** Module     : core
 #  ** 
-
 #  -------------------------------------------------------------------------------------------------------
 #
 #  CHANGE HISTORY
 #
-#  Created By         :  PRINCKU
+#  Created By         :  
 #
 #  Bug Number         :  
 #  Changed By         :  
@@ -44,45 +43,43 @@
 #  Search String      :  
 #  
 #  -------------------------------------------------------------------------------------------------------
-  
-
 swagger: "2.0"
 info:
  version: "1.0.0"
- title: "core department Service"
-host: "localhost:7171"
+ title: "Classification Maintenance Service"
+host: "localhost:7175"
 basePath: "/api/1.0"
 consumes:
  - "application/json"
 produces:
  - "application/json"
 tags:
- - name: "departments"
-   description: "This service is used to maintain departments used in dataProducts."
+ - name: "classifications"
+   description: "This service is used to maintain classification types used in dataProduct service."
 
 schemes:
 - "https"
 
 paths:
 
-# path to fetch all valid departments
+# path to getAll valid configured Classification types
 #
-#  supported http methods GET
+#  supported http methods GET 
 #
-# path example ../departments
+# path example ../classifications
 
- /departments:
+ /classifications:
   get:
    tags:
-    - "departments"
-   summary: "Get all available department."
-   description:  "Get all department. This endpoints will be used to get all valid available department records."
+    - "classifications"
+   summary: "Get all classification types."
+   description:  "Get all classification types. This endpoints will be used to Get all valid available classification types."
    operationId: "getAll"
    responses:
     200:
      description: "Returns message of succes or failure"
      schema:
-       $ref: "#/definitions/DepartmentCollection"
+       $ref: "#/definitions/ClassificationVOCollection"
     204:
       description: "Fetch complete, no content found."
     400:
@@ -94,27 +91,28 @@ paths:
     405:
      description: "Method not allowed"
     500:
-     description: "Internal error"     
-     
-definitions:      
- DepartmentVO:
+     description: "Internal error"   
+
+definitions:
+ ClassificationVO:
   type: object
   properties: 
     id:
      type: string
-     description: "ID of the department"
+     description: "ID of the classification type."
     name:
      type: string
-     description: "Name of the department"
+     description: "Name of the classification type"
      minLength: 1
   required:
-     - name 
+     - name      
      
- DepartmentCollection: 
-  description: "Collection of departments."
+ ClassificationVOCollection: 
+  description: "Collection of classification types."
   type: object
   properties:
    data:
     type: array
     items: 
-     $ref: "#/definitions/DepartmentVO"
+     $ref: "#/definitions/ClassificationVO"    
+      
