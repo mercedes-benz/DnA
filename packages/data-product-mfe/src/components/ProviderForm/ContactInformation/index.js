@@ -15,6 +15,7 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import { useSelector } from 'react-redux';
 import { dataProductsApi } from '../../../apis/dataproducts.api';
+import DatePicker from '../../DatePicker/DatePicker';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }) => {
   const {
@@ -30,13 +31,15 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
-  const { division, complianceOfficer: selectedcomplianceOfficer } = watch();
+  const { division, department, complianceOfficer: selectedcomplianceOfficer } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
     totalCount: 0,
   });
   const [complianceOfficer, setComplianceOfficer] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState([]);
 
   useEffect(() => {
     const id = watch('division');
@@ -101,6 +104,24 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     }
   }, [selectedcomplianceOfficer]);
 
+  useEffect(() => {
+    ProgressIndicator.show();
+    dataProductsApi
+      .getDepartments()
+      .then((res) => {
+        setDepartments(res?.data?.data);
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        Notification.show(e?.response?.data?.errors[0]?.message || 'Error while fetching department list', 'alert');
+        ProgressIndicator.hide();
+      });
+  }, []);
+
+  useEffect(() => {
+    setSelectedDepartment(department);
+  }, [department]);
+
   return (
     <>
       <div className={Styles.wrapper}>
@@ -108,7 +129,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
           <div>
             <h3>Contact Information</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>
@@ -129,19 +150,22 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 <span className={classNames('error-message')}>{errors.productName?.message}</span>
               </div>
               <div className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}>
-                <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
+                <label id="dateOfAgreementLabel" htmlFor="dateOfDataTransferInput" className="input-label">
                   Date of Data Transfer <sup>*</sup>
                 </label>
-                <input
-                  {...register('dateOfDataTransfer', {
-                    required: '*Missing entry',
-                  })}
-                  type="text"
-                  className="input-field"
-                  id="dateOfDataTransferInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="dateOfDataTransfer"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <DatePicker
+                      label="Date of Data Transfer"
+                      value={watch('dateOfDataTransfer')}
+                      name={field.name}
+                      onChange={(value) => field.onChange(value)}
+                      requiredError={errors.dateOfDataTransfer?.message}
+                    />
+                  )}
                 />
                 <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
               </div>
@@ -225,19 +249,26 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.department ? 'error' : '')}>
-                <label id="departmentLabel" htmlFor="departmentInput" className="input-label">
-                  Department <sup>*</sup>
-                </label>
-                <input
-                  {...register('department', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="departmentInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="department"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <Tags
+                      title={'Department'}
+                      max={1}
+                      chips={selectedDepartment}
+                      tags={departments}
+                      setTags={(selectedTags) => {
+                        let dept = selectedTags?.map((item) => item.toUpperCase());
+                        setSelectedDepartment(dept);
+                        field.onChange(dept);
+                      }}
+                      isMandatory={true}
+                      showMissingEntryError={errors.department?.message}
+                    />
+                  )}
                 />
-                <span className={classNames('error-message')}>{errors.department?.message}</span>
               </div>
             </div>
             <div className={Styles.flexLayout}>
