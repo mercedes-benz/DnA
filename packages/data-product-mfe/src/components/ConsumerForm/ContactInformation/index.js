@@ -13,6 +13,7 @@ import { dataProductsApi } from '../../../apis/dataproducts.api';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { useSelector } from 'react-redux';
+import DatePicker from '../../DatePicker/DatePicker';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, isFormMounted }) => {
   const {
@@ -27,13 +28,15 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  const { division, complianceOfficer: selectedcomplianceOfficer } = watch();
+  const { division, department, complianceOfficer: selectedcomplianceOfficer } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
     totalCount: 0,
   });
   const [complianceOfficer, setComplianceOfficer] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState([]);
 
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
@@ -96,6 +99,24 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
       setComplianceOfficer(selectedcomplianceOfficer);
     }
   }, [selectedcomplianceOfficer]);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    dataProductsApi
+      .getDepartments()
+      .then((res) => {
+        setDepartments(res?.data?.data);
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        Notification.show(e?.response?.data?.errors[0]?.message || 'Error while fetching department list', 'alert');
+        ProgressIndicator.hide();
+      });
+  }, []);
+
+  useEffect(() => {
+    setSelectedDepartment(department);
+  }, [department]);
 
   return (
     <>
@@ -187,36 +208,48 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.department ? 'error' : '')}>
-                <label id="departmentLabel" htmlFor="departmentInput" className="input-label">
-                  Department <sup>*</sup>
-                </label>
-                <input
-                  {...register('department', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="departmentInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="department"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <Tags
+                      title={'Department'}
+                      max={1}
+                      chips={selectedDepartment}
+                      tags={departments}
+                      setTags={(selectedTags) => {
+                        let dept = selectedTags?.map((item) => item.toUpperCase());
+                        setSelectedDepartment(dept);
+                        field.onChange(dept);
+                      }}
+                      isMandatory={true}
+                      showMissingEntryError={errors.department?.message}
+                    />
+                  )}
                 />
-                <span className={classNames('error-message')}>{errors.department?.message}</span>
               </div>
-              <div className={classNames('input-field-group include-error', errors.dateOfAgreement ? 'error' : '')}>
-                <label id="dateOfAgreementLabel" htmlFor="dateOfAgreementInput" className="input-label">
-                  Date of Agreement <sup>*</sup>
-                </label>
-                <input
-                  {...register('dateOfAgreement', {
-                    required: '*Missing entry',
-                  })}
-                  type="text"
-                  className="input-field"
-                  id="dateOfAgreementInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
-                />
-                <span className={classNames('error-message')}>{errors.dateOfAgreement?.message}</span>
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', errors.dateOfAgreement ? 'error' : '')}>
+                  <label id="dateOfAgreementLabel" htmlFor="dateOfAgreementInput" className="input-label">
+                    Date of Agreement <sup>*</sup>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="dateOfAgreement"
+                    rules={{ required: '*Missing entry' }}
+                    render={({ field }) => (
+                      <DatePicker
+                        label="Date of Agreement"
+                        value={watch('dateOfAgreement')}
+                        name={field.name}
+                        onChange={(value) => field.onChange(value)}
+                        requiredError={errors.dateOfAgreement?.message}
+                      />
+                    )}
+                  />
+                  <span className={classNames('error-message')}>{errors.dateOfAgreement?.message}</span>
+                </div>
               </div>
             </div>
             <div className={Styles.flexLayout}>

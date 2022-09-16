@@ -32,7 +32,7 @@ const DeletionRequirements = ({ onSave }) => {
           <div>
             <h3> Specify deletion requirements</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>
