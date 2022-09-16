@@ -34,6 +34,6 @@ import com.daimler.data.db.entities.DataProductNsql;
 
 public interface DataProductRepository extends JpaRepository<DataProductNsql, String> {
 
-	@Query(value = "SELECT nextval('data_product_seq')", nativeQuery = true)
-	Long getNextSeriesId();
+	@Query(value = "SELECT nextval('dataproduct_seq')", nativeQuery = true)
+	Long getNextSeqId();
 }

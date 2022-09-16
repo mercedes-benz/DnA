@@ -23,19 +23,18 @@
 # SOFTWARE.
 # 
 # LICENSE END 
-# 
+#
 #-----------------------------------------------------------------------------------------------------
 #  **
-#  ** File Name  : department.yaml
+#  ** File Name  : LegalBasis.yaml
 #  **
 #  ** Module     : core
 #  ** 
-
 #  -------------------------------------------------------------------------------------------------------
 #
 #  CHANGE HISTORY
 #
-#  Created By         :  PRINCKU
+#  Created By         :  
 #
 #  Bug Number         :  
 #  Changed By         :  
@@ -44,45 +43,43 @@
 #  Search String      :  
 #  
 #  -------------------------------------------------------------------------------------------------------
-  
-
 swagger: "2.0"
 info:
  version: "1.0.0"
- title: "core department Service"
-host: "localhost:7171"
+ title: "LegalBasis Maintenance Service"
+host: "localhost:7175"
 basePath: "/api/1.0"
 consumes:
  - "application/json"
 produces:
  - "application/json"
 tags:
- - name: "departments"
-   description: "This service is used to maintain departments used in dataProducts."
+ - name: "legalbasis"
+   description: "This service is used to maintain legalBasis types used in dataProduct service."
 
 schemes:
 - "https"
 
 paths:
-
-# path to fetch all valid departments
+     
+# path to getAll valid configured Legal Basis types
 #
-#  supported http methods GET
+#  supported http methods GET 
 #
-# path example ../departments
+# path example ../legalbasis
 
- /departments:
+ /legalbasis:
   get:
    tags:
-    - "departments"
-   summary: "Get all available department."
-   description:  "Get all department. This endpoints will be used to get all valid available department records."
+    - "legalbasis"
+   summary: "Get all legalbasis types."
+   description:  "Get all legalbasis types. This endpoints will be used to Get all valid available legalbasis types."
    operationId: "getAll"
    responses:
     200:
      description: "Returns message of succes or failure"
      schema:
-       $ref: "#/definitions/DepartmentCollection"
+       $ref: "#/definitions/LegalBasisVOCollection"
     204:
       description: "Fetch complete, no content found."
     400:
@@ -95,26 +92,27 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"     
-     
-definitions:      
- DepartmentVO:
+
+definitions:     
+ LegalBasisVO:
   type: object
   properties: 
     id:
      type: string
-     description: "ID of the department"
+     description: "ID of the legalBasis type."
     name:
      type: string
-     description: "Name of the department"
+     description: "Name of the legalBasis type"
      minLength: 1
   required:
-     - name 
+     - name      
      
- DepartmentCollection: 
-  description: "Collection of departments."
+ LegalBasisVOCollection: 
+  description: "Collection of legalBasis types."
   type: object
   properties:
    data:
     type: array
     items: 
-     $ref: "#/definitions/DepartmentVO"
+     $ref: "#/definitions/LegalBasisVO"     
+      
