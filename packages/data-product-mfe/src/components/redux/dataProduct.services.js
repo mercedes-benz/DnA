@@ -65,19 +65,31 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     values.consumer['serializedDivision'] = serializeDivisionSubDivision(divisionList, values?.consumer);
   }
   const requestBody = serializeFormData(values, division, type);
-
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.updateDataProduct(requestBody);
+    let res = {};
+    if (isProviderForm) {
+      res = await dataProductsApi.updateProvider(requestBody);
+    } else {
+      res = await dataProductsApi.updateConsumer(requestBody);
+    }
     ProgressIndicator.hide();
     onSave();
-    const data = deserializeFormData(res?.data?.data, type);
+    const responseData = res?.data?.data;
+    const data = deserializeFormData(responseData, type);
 
-    if (isProviderForm && data.providerFormSubmitted) {
-      Notification.show(isEdit ? 'Information updated sucessfully.' : 'Progress saved in Data Transfer Overview');
+    if (isProviderForm && responseData?.providerInformation?.providerFormSubmitted) {
+      if (responseData?.notifyUsers) {
+        Notification.show('Information updated sucessfully. Members (if any) will be notified on the data transfer.');
+      } else {
+        Notification.show(isEdit ? 'Information updated sucessfully.' : 'Progress saved in Data Transfer Overview');
+      }
     }
-    if (!isProviderForm && values.publish) {
-      Notification.show(isEdit ? 'Information updated sucessfully.' : 'Transfer is now complete!');
+
+    if (!isProviderForm && responseData?.publish) {
+      if (responseData?.notifyUsers) {
+        Notification.show('Information updated sucessfully. Members will be notified.');
+      } else Notification.show(isEdit ? 'Information updated sucessfully.' : 'Transfer is now complete!');
     }
     return {
       data,
