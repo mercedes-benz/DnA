@@ -117,7 +117,8 @@ const ConsumerForm = ({ user, history }) => {
       .then((res) => {
         const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;
         const isValidUser =
-          res.data.users?.find((item) => user.id === item.shortId || user.eMail === item.email) || false;
+          res.data.providerInformation?.users?.find((item) => user.id === item.shortId || user.eMail === item.email) ||
+          false;
         if (res.status === 204) {
           return history.push('/NotFound');
         } else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
