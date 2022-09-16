@@ -3,6 +3,7 @@ import React from 'react';
 
 import Styles from './styles.scss';
 
+import 'dayjs/locale/en-gb';
 import 'dayjs/locale/en';
 import 'dayjs/locale/de';
 import 'dayjs/locale/fr';
@@ -19,8 +20,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 
+let language = ['en-gb', 'en', 'de', 'fr', 'it', 'pl', 'sv', 'tr', 'nl', 'nb', 'ko'];
+
 const DatePicker = ({ label, value, name, onChange, requiredError }) => {
-  const datePickerLang = navigator.language.split('-')?.[0];
+  const browserLang = navigator.language.toLowerCase();
+  const datePickerLang = language.includes(browserLang) ? browserLang : navigator.language.split('-')?.[0];
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={datePickerLang}>
