@@ -28,9 +28,12 @@
 package com.daimler.data.db.repo.dataproduct;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.daimler.data.db.entities.DataProductNsql;
 
 public interface DataProductRepository extends JpaRepository<DataProductNsql, String> {
 
+	@Query(value = "SELECT nextval('data_product_seq')", nativeQuery = true)
+	Long getNextSeriesId();
 }
