@@ -42,6 +42,7 @@ public class DataProduct {
 	private String dataProductName;
 	private String recordStatus;
 	private boolean publish;
+	private boolean notifyUsers;
 	private Provider providerInformation;
 	private Consumer consumerInformation;
 }

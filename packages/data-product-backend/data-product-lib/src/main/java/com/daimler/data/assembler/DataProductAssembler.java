@@ -223,12 +223,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 			}
 			DataProduct dataProduct = new DataProduct();
 			BeanUtils.copyProperties(vo, dataProduct);
+			dataProduct.setNotifyUsers(vo.isNotifyUsers());
 			dataProduct.setPublish(vo.isPublish());
 			ProviderResponseVO providerVO = vo.getProviderInformation();
 			if (providerVO != null) {
 				Provider provider = new Provider();
 				BeanUtils.copyProperties(providerVO, provider);
-				provider.setNotifyUsers(providerVO.isNotifyUsers());
 				provider.setProviderFormSubmitted(providerVO.isProviderFormSubmitted());
 				if (Objects.nonNull(providerVO.getCreatedBy())) {
 					CreatedBy userDetails = new CreatedBy();
