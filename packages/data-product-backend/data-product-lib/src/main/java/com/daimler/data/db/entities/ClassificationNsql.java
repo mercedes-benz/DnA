@@ -25,21 +25,23 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.db.entities;
 
 import java.io.Serializable;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Department implements Serializable {
+import com.daimler.data.db.jsonb.Classification;
 
-	private static final long serialVersionUID = 8540510586879228017L;
+@Entity
+@Table(name = "classification_nsql")
+public class ClassificationNsql extends BaseEntity<Classification> implements Serializable {
 
-	private String name;
+	private static final long serialVersionUID = -8153656359474301648L;
+
+	public ClassificationNsql() {
+		super();
+	}
 
 }

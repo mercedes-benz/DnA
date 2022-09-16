@@ -25,21 +25,16 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.service.legalbasis;
 
-import java.io.Serializable;
+import org.springframework.http.ResponseEntity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.daimler.data.db.entities.LegalBasisNsql;
+import com.daimler.data.dto.legalbasis.LegalBasisVO;
+import com.daimler.data.dto.legalbasis.LegalBasisVOCollection;
+import com.daimler.data.service.common.CommonService;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Department implements Serializable {
+public interface LegalBasisService extends CommonService<LegalBasisVO, LegalBasisNsql, String> {
 
-	private static final long serialVersionUID = 8540510586879228017L;
-
-	private String name;
-
+	ResponseEntity<LegalBasisVOCollection> getAllLegalBasis();
 }
