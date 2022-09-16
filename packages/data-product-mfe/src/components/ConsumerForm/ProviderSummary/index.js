@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { serializeDivisionSubDivision } from '../../../Utility/formData';
+import { regionalDateFormat } from '../../../Utility/utils';
 import Styles from './styles.scss';
 
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
@@ -38,7 +39,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Date of Data Transfer</label>
                 <br />
-                {data.dateOfDataTransfer}
+                {regionalDateFormat(data.dateOfDataTransfer)}
               </div>
               <div>
                 <label className="input-label summary">Name</label>
