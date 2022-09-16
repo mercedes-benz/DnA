@@ -4,7 +4,7 @@ import Styles from './DataProductCardItem.styles.scss';
 import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
-import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
+import { regionalDateFormat } from '../Utility/utils';
 import { dataProductsApi } from '../apis/dataproducts.api';
 import { GetDataProducts } from './redux/dataProduct.services';
 
@@ -18,8 +18,8 @@ const DataProductCardItem = ({ product, history, user }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dispatch = useDispatch();
 
-  const isProviderFormSubmitted = product.providerFormSubmitted;
-  const isCreator = product.createdBy.id === user.id;
+  const isProviderFormSubmitted = product?.providerInformation?.providerFormSubmitted;
+  const isCreator = product.providerInformation?.createdBy?.id === user?.id || true;
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -27,13 +27,13 @@ const DataProductCardItem = ({ product, history, user }) => {
 
   const deleteDataProductContent = (
     <div>
-      <h3>Are you sure you want to delete {product.dataProductName} ? </h3>
+      <h3>Are you sure you want to delete {product.providerInformation?.dataProductName} ? </h3>
     </div>
   );
 
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
-    dataProductsApi.deleteDataProduct(product.id).then(() => {
+    dataProductsApi.deleteDataProduct(product?.id).then(() => {
       dispatch(GetDataProducts());
       setShowDeleteModal(false);
     });
@@ -54,7 +54,7 @@ const DataProductCardItem = ({ product, history, user }) => {
         <div
           className={Styles.cardHead}
           onClick={() => {
-            history.push(`/summary/${product.id}`);
+            history.push(`/summary/${product?.dataProductId}`);
           }}
         >
           <div className={Styles.cardHeadInfo}>
@@ -69,7 +69,7 @@ const DataProductCardItem = ({ product, history, user }) => {
           <div>
             <div>
               <div>Data Transfer ID</div>
-              <div>{product?.id}</div>
+              <div>{product?.dataProductId}</div>
             </div>
             <div>
               <div>Data Classification</div>
@@ -81,7 +81,7 @@ const DataProductCardItem = ({ product, history, user }) => {
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(product?.createdDate)}</div>
+              <div>{regionalDateFormat(product?.providerInformation?.createdDate)}</div>
             </div>
           </div>
           <hr />
@@ -95,7 +95,7 @@ const DataProductCardItem = ({ product, history, user }) => {
               )}
             </div>
             <div>
-              {isProviderFormSubmitted && !product.publish ? (
+              {isProviderFormSubmitted && !product?.publish ? (
                 <div className={Styles.customIcon}>
                   <div></div> {/** renders custom arrow icon */}
                 </div>
@@ -124,7 +124,7 @@ const DataProductCardItem = ({ product, history, user }) => {
                 <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
                   <i className="icon delete" tooltip-data="Delete"></i>
                 </button>
-                <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.id}`)}>
+                <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.dataProductId}`)}>
                   <i className="icon mbc-icon edit" tooltip-data="Edit"></i>
                 </button>
               </>
@@ -139,7 +139,7 @@ const DataProductCardItem = ({ product, history, user }) => {
                 !isProviderFormSubmitted ? Styles.disabled : '',
               )}
               disabled={!isProviderFormSubmitted}
-              onClick={() => onShare(product.id)}
+              onClick={() => onShare(product?.dataProductId)}
             >
               <span tooltip-data="Share"></span>
             </button>

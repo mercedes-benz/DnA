@@ -178,6 +178,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const handleForwardMinInfo = () => {
     // trigger notification
     setValue('notifyUsers', true);
+    !watch('providerFormSubmitted') && setValue('providerFormSubmitted', true);
     setValue('users', teamMembers);
     onSave(watch(), () => {
       setShowAddConsumersModal(false);
@@ -192,7 +193,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
           <div>
             <h3>Specifying other relevant information</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>
