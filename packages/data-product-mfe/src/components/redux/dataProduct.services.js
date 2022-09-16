@@ -38,6 +38,7 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
     onSave();
     const data = deserializeFormData(res?.data?.data);
     ProgressIndicator.hide();
+    Notification.show('Draft saved successfully.');
     return {
       data,
       pagination,
@@ -77,19 +78,31 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
     onSave();
     const responseData = res?.data?.data;
     const data = deserializeFormData(responseData, type);
-
-    if (isProviderForm && responseData?.providerInformation?.providerFormSubmitted) {
-      if (responseData?.notifyUsers) {
-        Notification.show('Information updated sucessfully. Members (if any) will be notified on the data transfer.');
+    // Provider Form
+    if (isProviderForm) {
+      if (responseData?.providerInformation?.providerFormSubmitted) {
+        Notification.show(
+          responseData?.notifyUsers
+            ? 'Information saved and published sucessfully.\n Members (if any) will be notified on the data transfer.'
+            : isEdit
+            ? 'Information updated sucessfully.'
+            : 'Progress saved in Data Transfer Overview',
+        );
       } else {
-        Notification.show(isEdit ? 'Information updated sucessfully.' : 'Progress saved in Data Transfer Overview');
+        Notification.show('Draft saved successfully.');
       }
     }
-
-    if (!isProviderForm && responseData?.publish) {
-      if (responseData?.notifyUsers) {
-        Notification.show('Information updated sucessfully. Members will be notified.');
-      } else Notification.show(isEdit ? 'Information updated sucessfully.' : 'Transfer is now complete!');
+    // Consumer Form
+    if (!isProviderForm) {
+      if (responseData?.publish) {
+        Notification.show(
+          responseData?.notifyUsers
+            ? 'Information saved and published sucessfully.\n Members will be notified.'
+            : isEdit
+            ? 'Information updated sucessfully.'
+            : 'Transfer is now complete!',
+        );
+      } else Notification.show('Draft saved successfully.');
     }
     return {
       data,
