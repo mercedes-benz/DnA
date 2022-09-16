@@ -40,7 +40,7 @@
                         outline: none;
                     }
                 }
-                .PrivatePickersFadeTransitionGroup-root {
+                .MuiCalendarPicker-viewTransitionContainer {
                     &::-webkit-scrollbar {
                         display: block;
                         width: 5px;
@@ -56,7 +56,7 @@
                     div[role="row"] span {
                         color: #acb8c4;
                     }
-                    .PrivatePickersSlideTransition-root {
+                    div[class*="SlideTransition"] {
                         .MuiButtonBase-root {
                             outline: none;
                             &span.MuiTouchRipple-root {
