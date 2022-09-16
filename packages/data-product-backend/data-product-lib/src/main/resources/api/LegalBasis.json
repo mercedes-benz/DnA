@@ -1,0 +1,14 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"useTags": true,
+	"modelPackage": "com.daimler.data.dto.legalbasis",
+	"apiPackage": "com.daimler.data.api.legalbasis",
+	"invokerPackage": "com.daimler.data.service.legalbasis",
+	"importMappings": {
+		"BindingResult": "org.springframework.validation.BindingResult",
+		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription"
+	}
+}

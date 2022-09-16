@@ -25,21 +25,15 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.db.repo.legalbasis;
 
-import java.io.Serializable;
+import org.springframework.stereotype.Repository;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.daimler.data.db.entities.LegalBasisNsql;
+import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Department implements Serializable {
-
-	private static final long serialVersionUID = 8540510586879228017L;
-
-	private String name;
+@Repository
+public class LegalBasisCustomRepositoryImpl extends CommonDataRepositoryImpl<LegalBasisNsql, String>
+		implements LegalBasisCustomRepository {
 
 }

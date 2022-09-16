@@ -451,7 +451,7 @@ definitions:
     properties:
       id:
         type: string
-        description: "Technical Id  which used as primary key"
+        description: "TechnicalId  which used as primary key"
       dataProductId:
         type: string
         description: "Functional Id"                         
@@ -520,7 +520,7 @@ definitions:
     properties: 
       id:
         type: string
-        description: "Technical Id  which used as primary key"
+        description: "TechnicalId  which used as primary key"
       dataProductId:
         type: string
         description: "Functional Id" 
@@ -575,7 +575,7 @@ definitions:
     properties: 
       id:
         type: string
-        description: "Technical Id  which used as primary key"
+        description: "TechnicalId  which used as primary key"
       dataProductId:
         type: string
         description: "Functional Id" 
