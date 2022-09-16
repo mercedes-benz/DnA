@@ -12,14 +12,26 @@ const getDataProductById = (id) => {
   });
 };
 
+const getDepartments = () => {
+  return server.get('/departments', {
+    data: {},
+  });
+};
+
 const createDataProduct = (data) => {
-  return server.post('/dataproducts', {
+  return server.post('/dataproducts/provider', {
     data,
   });
 };
 
-const updateDataProduct = (data) => {
-  return server.put('/dataproducts', {
+const updateProvider = (data) => {
+  return server.put('/dataproducts/provider', {
+    data,
+  });
+};
+
+const updateConsumer = (data) => {
+  return server.put('/dataproducts/consume', {
     data,
   });
 };
@@ -39,7 +51,9 @@ const getDataComplianceList = (offset, limit, sortBy, sortOrder) => {
 export const dataProductsApi = {
   getAllDataProducts,
   createDataProduct,
-  updateDataProduct,
+  getDepartments,
+  updateProvider,
+  updateConsumer,
   deleteDataProduct,
   getDataProductById,
   getDataComplianceList,
