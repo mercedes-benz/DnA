@@ -25,33 +25,16 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.service.department;
 
-import java.util.Date;
-import java.util.List;
+import org.springframework.http.ResponseEntity;
 
-import com.daimler.data.db.jsonb.CreatedBy;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.DepartmentNsql;
+import com.daimler.data.dto.department.DepartmentCollection;
+import com.daimler.data.dto.department.DepartmentVO;
+import com.daimler.data.service.common.CommonService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public interface DepartmentService extends CommonService<DepartmentVO, DepartmentNsql, String> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Provider {
-	private boolean providerFormSubmitted;
-	private List<TeamMember> users;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
-	private ProviderContactInformation contactInformation;
-	private ProviderClassificationConfidentiality classificationConfidentiality;
-	private ProviderPersonalRelatedData personalRelatedData;
-	private ProviderTransnationalDataTransfer transnationalDataTransfer;
-	private ProviderDeletionRequirement deletionRequirement;
-	private List<String> openSegments;
+	ResponseEntity<DepartmentCollection> getAllDepartments();
 }
