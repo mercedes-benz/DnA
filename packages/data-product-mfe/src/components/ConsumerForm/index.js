@@ -115,22 +115,22 @@ const ConsumerForm = ({ user, history }) => {
     dataProductsApi
       .getDataProductById(dataProductId)
       .then((res) => {
-        const isCreator = res.data?.createdBy.id === user.id;
+        const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;
         const isValidUser =
           res.data.users?.find((item) => user.id === item.shortId || user.eMail === item.email) || false;
         if (res.status === 204) {
           return history.push('/NotFound');
-        } else if (isCreator || (res.data.users?.length > 0 && !isValidUser)) {
+        } else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
           return history.push('/Unauthorized');
         } else {
           const data = deserializeFormData(res.data, 'consumer');
           dispatch(setDataProduct(data));
           setIsEditing(data.publish);
           setFormMounted(true);
-          setProviderDraftState(!res.data.providerFormSubmitted);
+          setProviderDraftState(!res.data.providerInformation?.providerFormSubmitted);
           reset({ ...data.consumer });
           let segments = [];
-          res.data.consumerInformation?.openSegments?.map((seg) => {
+          res.data?.consumerInformation?.openSegments?.map((seg) => {
             for (let key in consumerOpenSegments) {
               if (consumerOpenSegments[key] === seg) {
                 segments.push(key);
@@ -182,15 +182,16 @@ const ConsumerForm = ({ user, history }) => {
     value.notifyUsers = values.notifyUsers || false;
     value.publish = values.publish || false;
 
-    const formValues = {
+    const consumerFormValues = {
       consumerInformation: {
         contactInformation: {
           appId: values.planningIT,
-          department: values.department,
+          department: values.department?.toString(),
           division,
           lcoNeeded: values.lcoNeeded ? true : false,
           localComplianceOfficer: values.complianceOfficer?.toString(),
           ownerName: values.businessOwnerName,
+          agreementDate: new Date(values.dateOfAgreement),
         },
         openSegments: values.openSegments,
         personalRelatedData: {
@@ -204,7 +205,7 @@ const ConsumerForm = ({ user, history }) => {
     };
 
     const data = {
-      values: { ...value, formValues },
+      values: { ...value, consumerFormValues },
       onSave: () => {
         switchTabs(currentTab);
         if (typeof callbackFn === 'function') callbackFn();
