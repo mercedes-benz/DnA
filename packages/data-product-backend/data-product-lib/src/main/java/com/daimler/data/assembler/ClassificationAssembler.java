@@ -25,21 +25,41 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.assembler;
 
-import java.io.Serializable;
+import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Department implements Serializable {
+import com.daimler.data.db.entities.ClassificationNsql;
+import com.daimler.data.db.jsonb.Classification;
+import com.daimler.data.dto.classification.ClassificationVO;
 
-	private static final long serialVersionUID = 8540510586879228017L;
+@Component
+public class ClassificationAssembler implements GenericAssembler<ClassificationVO, ClassificationNsql> {
 
-	private String name;
+	@Override
+	public ClassificationVO toVo(ClassificationNsql entity) {
+		ClassificationVO classificationVO = null;
+		if (Objects.nonNull(entity)) {
+			classificationVO = new ClassificationVO();
+			classificationVO.setId(entity.getId());
+			classificationVO.setName(entity.getData().getName());
+		}
+		return classificationVO;
+	}
 
+	@Override
+	public ClassificationNsql toEntity(ClassificationVO vo) {
+		ClassificationNsql classificationNsql = null;
+		if (Objects.nonNull(vo)) {
+			classificationNsql = new ClassificationNsql();
+			Classification classification = new Classification();
+			classification.setName(vo.getName());
+			classificationNsql.setData(classification);
+			if (vo.getId() != null)
+				classificationNsql.setId(vo.getId());
+		}
+		return classificationNsql;
+	}
 }
