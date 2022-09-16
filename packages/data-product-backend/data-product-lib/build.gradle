@@ -103,7 +103,20 @@ swaggerSources {
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
         }
-    }      
+    }   
+    
+    department {
+        def departmentyaml = "${rootDir}/data-product-lib/src/main/resources/api/Department.yaml"
+        def departmentJson = "${rootDir}/data-product-lib/src/main/resources/api/Department.json"
+        inputFile = file(departmentyaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(departmentJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }       
         
 }
 
@@ -115,7 +128,9 @@ compileJava {
     dependsOn swaggerSources.entityid.code
     source "${swaggerSources.entityid.code.outputDir}/src/main/java"  
     dependsOn swaggerSources.dataproduct.code
-    source "${swaggerSources.dataproduct.code.outputDir}/src/main/java"        
+    source "${swaggerSources.dataproduct.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.department.code
+    source "${swaggerSources.department.code.outputDir}/src/main/java"           
 }
 
 sourceSets {
@@ -128,6 +143,7 @@ sourceSets {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.entityid.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.dataproduct.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
     }
 }
 

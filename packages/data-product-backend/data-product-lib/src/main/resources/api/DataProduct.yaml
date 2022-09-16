@@ -457,7 +457,10 @@ definitions:
         minLength: 1
       recordStatus:
         type: string
-        description: "Record is open or deleted"                       
+        description: "Record is open or deleted"
+      notifyUsers:
+        type: boolean
+        description: "Flag to notify users."                               
       providerInformation:
         $ref: "#/definitions/ProviderResponseVO"
     required:
@@ -468,10 +471,7 @@ definitions:
     properties:   
       providerFormSubmitted:
         type: boolean
-        description: "Flag to identify if provider form submitted or not."
-      notifyUsers:
-        type: boolean
-        description: "Flag to notify users." 
+        description: "Flag to identify if provider form submitted or not." 
       users:
         type: array
         items:
@@ -526,7 +526,10 @@ definitions:
         description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."
       recordStatus:
         type: string
-        description: "Record is open or deleted"                
+        description: "Record is open or deleted"
+      notifyUsers:
+        type: boolean
+        description: "Flag to notify users."                        
     required:
       - id
       - publish
@@ -569,7 +572,10 @@ definitions:
         description: "Name of the DataProduct"
       recordStatus:
         type: string
-        description: "Record is open or deleted"                          
+        description: "Record is open or deleted"
+      notifyUsers:
+        type: boolean
+        description: "Flag to notify users."                                  
       providerInformation:
         $ref: "#/definitions/ProviderResponseVO" 
       consumerInformation:
