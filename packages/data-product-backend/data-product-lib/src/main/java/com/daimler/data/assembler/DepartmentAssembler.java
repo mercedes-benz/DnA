@@ -25,33 +25,41 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.assembler;
 
-import java.util.Date;
-import java.util.List;
+import java.util.Objects;
 
-import com.daimler.data.db.jsonb.CreatedBy;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.stereotype.Component;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.daimler.data.db.entities.DepartmentNsql;
+import com.daimler.data.db.jsonb.Department;
+import com.daimler.data.dto.department.DepartmentVO;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Provider {
-	private boolean providerFormSubmitted;
-	private List<TeamMember> users;
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
-	private ProviderContactInformation contactInformation;
-	private ProviderClassificationConfidentiality classificationConfidentiality;
-	private ProviderPersonalRelatedData personalRelatedData;
-	private ProviderTransnationalDataTransfer transnationalDataTransfer;
-	private ProviderDeletionRequirement deletionRequirement;
-	private List<String> openSegments;
+@Component
+public class DepartmentAssembler implements GenericAssembler<DepartmentVO, DepartmentNsql> {
+
+	@Override
+	public DepartmentVO toVo(DepartmentNsql entity) {
+		DepartmentVO departmentVO = null;
+		if (Objects.nonNull(entity)) {
+			departmentVO = new DepartmentVO();
+			departmentVO.setId(entity.getId());
+			departmentVO.setName(entity.getData().getName());
+		}
+		return departmentVO;
+	}
+
+	@Override
+	public DepartmentNsql toEntity(DepartmentVO vo) {
+		DepartmentNsql departmentNsql = null;
+		if (Objects.nonNull(vo)) {
+			departmentNsql = new DepartmentNsql();
+			Department department = new Department();
+			department.setName(vo.getName());
+			departmentNsql.setData(department);
+			if (vo.getId() != null)
+				departmentNsql.setId(vo.getId());
+		}
+		return departmentNsql;
+	}
 }
