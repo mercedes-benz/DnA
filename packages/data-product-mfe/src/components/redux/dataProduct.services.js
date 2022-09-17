@@ -83,9 +83,11 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
       if (responseData?.providerInformation?.providerFormSubmitted) {
         Notification.show(
           responseData?.notifyUsers
-            ? 'Information saved and published sucessfully.\n Members (if any) will be notified on the data transfer.'
+            ? `Information saved${
+                responseData?.publish ? ' and published' : ''
+              } sucessfully.\n Members will be notified${responseData?.publish ? '.' : ' on the data transfer.'}`
             : isEdit
-            ? 'Information updated sucessfully.'
+            ? 'Information saved sucessfully.'
             : 'Progress saved in Data Transfer Overview',
         );
       } else {
@@ -99,7 +101,7 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
           responseData?.notifyUsers
             ? 'Information saved and published sucessfully.\n Members will be notified.'
             : isEdit
-            ? 'Information updated sucessfully.'
+            ? 'Information saved sucessfully.'
             : 'Transfer is now complete!',
         );
       } else Notification.show('Draft saved successfully.');
