@@ -366,7 +366,6 @@ definitions:
       productPhase:
         type: string
         description: "Product Phase of the report"
-        minLength: 1
       status:
         type: string
         description: "Status of the report"
