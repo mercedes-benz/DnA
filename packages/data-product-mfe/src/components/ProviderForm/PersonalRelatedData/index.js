@@ -6,7 +6,7 @@ import { useFormContext } from 'react-hook-form';
 
 import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLegalBasis } from '../../redux/consumeDataProduct.services';
+import { getLegalBasis } from '../../redux/getDropdowns.services';
 
 const PersonalRelatedData = ({ onSave }) => {
   const {
@@ -21,7 +21,7 @@ const PersonalRelatedData = ({ onSave }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   const dispatch = useDispatch();
-  const { legalBasisList } = useSelector((state) => state.consumeDataProducts);
+  const { legalBasisList } = useSelector((state) => state.dropdowns);
 
   const isValid = (value) =>
     !watch('personalRelatedData') || watch('personalRelatedData') === 'No' || value?.length > 0 || '*Missing entry';
