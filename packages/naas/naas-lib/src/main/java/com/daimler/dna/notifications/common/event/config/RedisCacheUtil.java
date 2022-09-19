@@ -25,6 +25,9 @@ public class RedisCacheUtil {
 	@Autowired
 	private RedisCacheManager cacheManager;
 	
+	@Autowired
+	private RedisCacheConfig redisCacheConfig;
+	
 	@Value(value = "${kafka.centralReadTopic.name}")
 	private String readTopicName;
 
@@ -34,8 +37,6 @@ public class RedisCacheUtil {
 	@Autowired
 	private KafkaDynamicProducerService dynamicProducer;
 	
-	@Autowired
-	private RedisClient lettuceClient;
 	
 	public Cache getCache(String cacheName) {
 		return this.cacheManager.getCache(cacheName);
@@ -54,10 +55,7 @@ public class RedisCacheUtil {
 	public List<NotificationVO> getNotificationVO(String userId, String eventType, String readType, String searchTerm,
 			Integer offset, Integer limit) {
 		List<NotificationVO> voList = new ArrayList<>();
-		StatefulRedisConnection<String, NotificationVO> statefulRedisConnection = null;
-		statefulRedisConnection = lettuceClient.connect(new NotificationRedisCodec());
-		RedisCommands<String, NotificationVO> syncCommands = statefulRedisConnection.sync();
-		List<String> keys = syncCommands.keys(userId+"*");
+		List<String> keys = redisCacheConfig.getKeys(userId);
 		if(keys!=null && !keys.isEmpty()) {
 			log.info("Successfully got lettuceConnection and readKeys");
 			for(String key: keys) {
