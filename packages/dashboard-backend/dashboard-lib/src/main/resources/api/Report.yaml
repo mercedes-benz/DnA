@@ -398,11 +398,8 @@ definitions:
         description: "Flag to identify if design guide implemented or not"
     required:
       - productDescription
-      - productPhase
       - status
-      - designGuideImplemented
       - frontendTechnologies
-      - division
       - department
   
   CustomerVO:
