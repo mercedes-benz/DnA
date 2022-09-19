@@ -251,62 +251,6 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-
-  /users/code-server:
-    get:
-      tags:
-        - "code-server"
-      summary: "Get status of codeServer workbench intialization status for given user."
-      description:  "Get status of codeServer workbench intialization status for given user."
-      operationId: "pollUserWorkBenchStatus"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
-          
-    post:
-      tags:
-        - "code-server"
-      summary: "Initialize/Create Workbench for user in code-server."
-      description: "Create Workbench for user in code-server with given password"
-      operationId: "initializeCodeServer"
-      parameters:
-        - name: "codeServerRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for intialize code server workbench for user"
-          required: true
-          schema:
-            $ref: "#/definitions/InitializeCodeServerRequestVO"
-      responses:
-        201:
-          description: "Returns message of success or failure "
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
     
                     
 definitions:
@@ -454,15 +398,4 @@ definitions:
         type: string
         description: "message"
         
-  InitializeCodeServerRequestVO:
-    type: object
-    properties:
-      recipeId:
-        type: string
-        description: "Recipe Id, which says, what kind of workbench to be loaded. Ex- empty,ms-springboot,dna"
-      password:
-        type: string
-        description: "Create Password, required to login to workbench of codeserver"
-    required:
-      - password
  

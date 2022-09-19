@@ -141,12 +141,6 @@ dataiku:
     
 dashboard:
   uri: ${DASHBOARD_URI:xxxxx}       
-    
-codeServer:
-  gitjob.uri: ${CODE_SERVER_GITJOB_URI:XXXX}
-  git.pat: ${CODE_SERVER_GIT_PIT:XXXX}
-  base.uri: ${CODE_BASE_URI:XXXX}
-  env.ref: ${CODE_SERVER_GIT_ENVREF:XXXX}
       
 avscan:
   uri: ${AVSCAN_URI:xxxxx}
