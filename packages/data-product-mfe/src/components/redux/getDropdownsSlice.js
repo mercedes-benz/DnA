@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getClassificationTypes, getLegalBasis } from './consumeDataProduct.services';
+import { getClassificationTypes, getLegalBasis } from './getDropdowns.services';
 
 const consumerProductsInitialState = {
   isLegalBasisListLoading: false,
@@ -8,8 +8,8 @@ const consumerProductsInitialState = {
   classificationTypes: [],
 };
 
-export const consumeDataProductSlice = createSlice({
-  name: 'consumeDataProducts',
+export const getDropdownsSlice = createSlice({
+  name: 'dropdowns',
   initialState: consumerProductsInitialState,
   extraReducers: {
     [getLegalBasis.pending]: (state) => {
@@ -29,4 +29,4 @@ export const consumeDataProductSlice = createSlice({
   },
 });
 
-export default consumeDataProductSlice.reducer;
+export default getDropdownsSlice.reducer;
