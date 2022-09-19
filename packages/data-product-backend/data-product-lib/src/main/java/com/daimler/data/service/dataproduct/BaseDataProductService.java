@@ -32,8 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityNotFoundException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,13 +101,6 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	@Override
 	@Transactional
-	public DataProductVO create(DataProductVO vo) {
-		updateDepartments(vo);
-		return super.create(vo);
-	}
-
-	@Override
-	@Transactional
 	public DataProductVO getById(String id) {
 		if (StringUtils.hasText(id)) {
 			DataProductVO existingVO = super.getByUniqueliteral("dataProductId", id);
@@ -138,39 +129,17 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		return dataProductCustomRepository.getCountUsingNativeQuery(published);
 	}
 
-	private void updateDepartments(DataProductVO vo) {
-		if (vo != null && vo.getProviderInformation() != null
-				&& vo.getProviderInformation().getContactInformation() != null) {
-			String providerDepartment = vo.getProviderInformation().getContactInformation().getDepartment();
-			if (Strings.hasText(providerDepartment)) {
-				DepartmentVO existingDepartmentVO = departmentService.getByUniqueliteral("name", providerDepartment);
-				if (existingDepartmentVO != null && existingDepartmentVO.getName() != null
-						&& existingDepartmentVO.getName().equalsIgnoreCase(providerDepartment)) {
-					return;
-				} else {
-					DepartmentVO newDepartmentVO = new DepartmentVO();
-					newDepartmentVO.setId(null);
-					newDepartmentVO.setName(providerDepartment);
-					departmentService.create(newDepartmentVO);
-				}
-			}
-
-		}
-		if (vo != null && vo.getConsumerInformation() != null
-				&& vo.getConsumerInformation().getContactInformation() != null) {
-			String consumerDepartment = vo.getConsumerInformation().getContactInformation().getDepartment();
-			if (Strings.hasText(consumerDepartment)) {
-				DepartmentVO existingDepartmentVO = departmentService.getByUniqueliteral("name", consumerDepartment);
-				if (existingDepartmentVO != null && existingDepartmentVO.getName() != null
-						&& existingDepartmentVO.getName().equalsIgnoreCase(consumerDepartment)) {
-					return;
-				} else {
-					DepartmentVO newDepartmentVO = new DepartmentVO();
-					newDepartmentVO.setId(null);
-					newDepartmentVO.setName(consumerDepartment);
-					departmentService.create(newDepartmentVO);
-				}
-
+	private void updateDepartments(String department) {
+		if (Strings.hasText(department)) {
+			DepartmentVO existingDepartmentVO = departmentService.getByUniqueliteral("name", department);
+			if (existingDepartmentVO != null && existingDepartmentVO.getName() != null
+					&& existingDepartmentVO.getName().equalsIgnoreCase(department)) {
+				return;
+			} else {
+				DepartmentVO newDepartmentVO = new DepartmentVO();
+				newDepartmentVO.setId(null);
+				newDepartmentVO.setName(department);
+				departmentService.create(newDepartmentVO);
 			}
 		}
 	}
@@ -212,6 +181,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			dataProductVO.setDataProductId("DP-" + String.format("%04d", dataProductRepository.getNextSeqId()));
 			dataProductVO.setRecordStatus("OPEN");
 			dataProductVO.setId(null);
+			if (providerResponseVO != null && providerResponseVO.getContactInformation() != null) {
+				updateDepartments(providerResponseVO.getContactInformation().getDepartment());
+			}
 			DataProductVO vo = this.create(dataProductVO);
 			if (vo != null && vo.getId() != null) {
 				providerVO.setProviderInformation(vo.getProviderInformation());
@@ -246,6 +218,42 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		}
 	}
 
+	/*
+	 * To check if user has access to proceed with edit or delete of the provider
+	 * form.
+	 * 
+	 */
+	private boolean hasProviderAccess(CreatedByVO createdBy) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (StringUtils.hasText(userId)) {
+			if (userId.equalsIgnoreCase(createdBy.getId())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * To check if user has access to proceed with consume of the provider form.
+	 * 
+	 */
+	private boolean hasConsumeAccess(List<TeamMemberVO> users) {
+		boolean canProceed = true;
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		if (StringUtils.hasText(userId)) {
+			// To check if user is valid consumer
+			if (!ObjectUtils.isEmpty(users)) {
+				canProceed = users.stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
+			}
+			return canProceed;
+
+		}
+
+		return false;
+	}
+
 	@Override
 	@Transactional
 	public ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO requestVO) {
@@ -262,7 +270,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			}
 			if (existingVO != null && existingVO.getId() != null) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
-				if (true) {
+				if (hasProviderAccess(createdBy)) {
 					providerResponseVO.setCreatedBy(createdBy);
 					providerResponseVO.setCreatedDate(existingVO.getProviderInformation().getCreatedDate());
 					providerResponseVO.lastModifiedDate(new Date());
@@ -275,6 +283,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setRecordStatus("OPEN");
 					dataProductVO.setId(id);
 					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
+					if (providerResponseVO != null && providerResponseVO.getContactInformation() != null) {
+						updateDepartments(providerResponseVO.getContactInformation().getDepartment());
+					}
 					mergedVO = this.create(dataProductVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
 						providerVO.setProviderInformation(mergedVO.getProviderInformation());
@@ -301,11 +312,10 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				} else {
 					List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage(
-							"Not authorized to edit dataProduct. Only user who created the dataProduct or with admin role can edit.");
+					notAuthorizedMsg.setMessage("Not authorized to edit dataProduct provider form.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					responseVO.setErrors(notAuthorizedMsgs);
-					LOGGER.debug("DataProduct with id {} cannot be edited. User not authorized", id);
+					LOGGER.debug("DataProduct provider form with id {} cannot be edited. User not authorized", id);
 					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}
 			} else {
@@ -346,7 +356,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				requestVO.setPublish(false);
 			}
 			if (existingVO != null && existingVO.getId() != null) {
-				if (true) {
+				if (hasConsumeAccess(existingVO.getProviderInformation().getUsers())) {
 					if (existingVO.getConsumerInformation() == null) {
 						consumerResponseVO.setCreatedBy(this.userStore.getVO());
 						consumerResponseVO.setCreatedDate(new Date());
@@ -365,6 +375,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setId(id);
 					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
+					if (consumerResponseVO != null && consumerResponseVO.getContactInformation() != null) {
+						updateDepartments(consumerResponseVO.getContactInformation().getDepartment());
+					}
 					mergedVO = this.create(dataProductVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
 						consumerVO.setConsumerInformation(mergedVO.getConsumerInformation());
@@ -392,8 +405,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				} else {
 					List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage(
-							"Not authorized to edit dataProduct. Only user who created the dataProduct or with admin role can edit.");
+					notAuthorizedMsg.setMessage("Not authorized to consume dataProduct.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					responseVO.setErrors(notAuthorizedMsgs);
 					LOGGER.debug("DataProduct with id {} cannot be edited. User not authorized", id);
@@ -507,27 +519,29 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	public ResponseEntity<GenericMessage> deleteDataProduct(String id) {
 		try {
 			DataProductVO dataProduct = super.getById(id);
-			if (true) {
-				this.deleteById(id);
-				GenericMessage successMsg = new GenericMessage();
-				successMsg.setSuccess("success");
-				LOGGER.info("DataProduct with id {} deleted successfully", id);
-				return new ResponseEntity<>(successMsg, HttpStatus.OK);
+			if (dataProduct != null && dataProduct.getId() != null) {
+				CreatedByVO createdBy = dataProduct.getProviderInformation().getCreatedBy();
+				if (hasProviderAccess(createdBy)) {
+					this.deleteById(id);
+					GenericMessage successMsg = new GenericMessage();
+					successMsg.setSuccess("success");
+					LOGGER.info("DataProduct with id {} deleted successfully", id);
+					return new ResponseEntity<>(successMsg, HttpStatus.OK);
+				} else {
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage("Not authorized to delete dataProduct.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					LOGGER.debug("DataProduct with id {} cannot be deleted. User not authorized", id);
+					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+				}
 			} else {
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage(
-						"Not authorized to delete dataProduct. Only the dataProduct owner or an admin can delete the dataProduct.");
+				MessageDescription invalidMsg = new MessageDescription("No dataProduct with the given id found");
 				GenericMessage errorMessage = new GenericMessage();
-				errorMessage.addErrors(notAuthorizedMsg);
-				LOGGER.debug("DataProduct with id {} cannot be deleted. User not authorized", id);
-				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+				errorMessage.addErrors(invalidMsg);
+				LOGGER.error("No dataProduct with the given id {} found.", id);
+				return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 			}
-		} catch (EntityNotFoundException e) {
-			MessageDescription invalidMsg = new MessageDescription("No dataProduct with the given id");
-			GenericMessage errorMessage = new GenericMessage();
-			errorMessage.addErrors(invalidMsg);
-			LOGGER.error("No dataProduct with the given id {} , could not delete.", id);
-			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
 			GenericMessage errorMessage = new GenericMessage();
