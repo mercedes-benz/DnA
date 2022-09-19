@@ -48,6 +48,14 @@ const getDataComplianceList = (offset, limit, sortBy, sortOrder) => {
   });
 };
 
+const getAllClassificationTypes = () => {
+  return server.get('/classifications', { data: {} });
+};
+
+const getAllLegalBasis = () => {
+  return server.get('/legalbasis', { data: {} });
+};
+
 export const dataProductsApi = {
   getAllDataProducts,
   createDataProduct,
@@ -57,4 +65,6 @@ export const dataProductsApi = {
   deleteDataProduct,
   getDataProductById,
   getDataComplianceList,
+  getAllClassificationTypes,
+  getAllLegalBasis,
 };

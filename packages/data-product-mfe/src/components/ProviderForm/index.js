@@ -64,7 +64,7 @@ const ProviderForm = ({ user, history }) => {
   const [currentTab, setCurrentTab] = useState('contact-info');
   const [savedTabs, setSavedTabs] = useState([]);
   const methods = useForm();
-  const { setValue, formState, reset } = methods;
+  const { formState, reset } = methods;
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -74,9 +74,26 @@ const ProviderForm = ({ user, history }) => {
   const dispatch = useDispatch();
 
   const { id: dataProductId } = useParams();
+  const createCopyId = history.location?.state?.copyId;
 
   const getDataProductById = () => {
-    dataProductsApi.getDataProductById(dataProductId).then((res) => {
+    const id = createCopyId || dataProductId;
+    dataProductsApi.getDataProductById(id).then((res) => {
+      if (createCopyId) {
+        // creating copy of existing data product
+        // below properties needs to be reset to new ones for the copy
+        res.data.dataProductId = '';
+        res.data.id = '';
+        res.data.notifyUsers = false;
+        res.data.publish = false;
+        res.data.providerInformation.providerFormSubmitted = false;
+        delete res.data.providerInformation.createdBy;
+        delete res.data.providerInformation.createdDate;
+        delete res.data.providerInformation.lastModifiedDate;
+        delete res.data.providerInformation.modifiedBy;
+        delete res.data.consumerInformation;
+      }
+      console.log(res.data);
       const data = deserializeFormData(res.data);
       dispatch(setDataProduct(data));
       reset(data);
@@ -104,7 +121,7 @@ const ProviderForm = ({ user, history }) => {
 
   useEffect(() => {
     const { id } = provideDataProducts.selectedDataProduct;
-    if (isCreatePage) {
+    if (isCreatePage && !createCopyId) {
       if (id) {
         let defaultValues = { ...provideDataProducts.selectedDataProduct };
         reset(defaultValues); // setting default values
@@ -112,8 +129,9 @@ const ProviderForm = ({ user, history }) => {
         const data = tabs['contact-info'];
         reset(data); // setting default values
       }
-    } //eslint-disable-next-line
-  }, [dispatch, setValue, provideDataProducts.selectedDataProduct, isCreatePage]);
+    }
+    //eslint-disable-next-line
+  }, [dispatch, provideDataProducts.selectedDataProduct, isCreatePage]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -127,8 +145,8 @@ const ProviderForm = ({ user, history }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isEditPage) {
-      getDataProductById();
+    if (isEditPage || createCopyId) {
+      divisions.length > 0 && getDataProductById();
     }
     //eslint-disable-next-line
   }, [divisions]);
@@ -162,7 +180,7 @@ const ProviderForm = ({ user, history }) => {
 
   const onSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
-    if (isCreatePage && currentTab === 'contact-info') {
+    if (isCreatePage && !createCopyId && currentTab === 'contact-info') {
       values.openSegments = ['ContactInformation'];
     } else if (values.openSegments?.indexOf(saveSegments) === -1) {
       values.openSegments.push(saveSegments);
