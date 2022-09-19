@@ -27,7 +27,7 @@ const DataProductCardItem = ({ product, history, user }) => {
 
   const deleteDataProductContent = (
     <div>
-      <h3>Are you sure you want to delete {product.providerInformation?.dataProductName} ? </h3>
+      <h3>Are you sure you want to delete {product?.dataProductName} ? </h3>
     </div>
   );
 
@@ -129,7 +129,10 @@ const DataProductCardItem = ({ product, history, user }) => {
                 </button>
               </>
             ) : null}
-            <button className="btn btn-primary" onClick={() => {}}>
+            <button
+              className="btn btn-primary"
+              onClick={() => history.push({ pathname: '/create', state: { copyId: product?.dataProductId } })}
+            >
               <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>
             </button>
             <button
