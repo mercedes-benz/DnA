@@ -1,0 +1,113 @@
+.listContainer {
+    display: flex;
+    flex-direction: column;
+    background-color: #252a33;
+    padding: 15px;
+    margin: 15px 0;
+
+    .titleSection {
+        display: flex;
+        justify-content: space-between;
+        margin-left: 40px;
+        color: #c0c8d0;
+        li {
+            &.disabled {
+                background: transparent !important;
+                cursor: not-allowed;
+                color: #697582;
+                span:hover {
+                    cursor: not-allowed;
+                    color: #697582;
+                }
+            }
+        }
+    }
+}
+
+.dataProductContent {
+    display: flex;
+    > div {
+        flex-grow: 1;
+        > div {
+            display: flex;
+            justify-content: space-around;
+            flex-direction: row;
+        }
+    }
+    .label {
+        margin-right: 20px;
+        color: #697582;
+        font-weight: 700;
+    }
+    color: #c0c8d0;
+}
+.arrowBtn {
+    color: #c0c8d0 !important;
+    font-size: var(--font-size-headline);
+    &:hover {
+        color: #00adef !important;
+    }
+    &::before {
+        font-size: var(--font-size-icon) !important;
+        line-height: 27px !important;
+    }
+}
+.stagesInfo {
+    div {
+        display: flex;
+        flex-direction: column;
+        .draft {
+            color: #00adef;
+        }
+    }
+    .icon {
+        font-size: 20px;
+        transform: scale(1.2, -1) translate(0px, 10px);
+        color: #00adef;
+    }
+    .customIcon {
+        div {
+            position: relative;
+            font-size: 30px;
+            transform: scale(1.1);
+            &::after {
+                content: "\21C0";
+                position: absolute;
+                transform: rotate(180deg) translate(0, -2px);
+                color: #697582;
+            }
+            &::before {
+                content: "\21C0";
+                color: #00adef;
+            }
+        }
+    }
+    .disabled {
+        color: #697582;
+    }
+}
+.contextMenu {
+    align-self: center;
+    z-index: 1;
+    &.locations {
+        display: inline-block;
+    }
+
+    &.open .contextMenuTrigger {
+        z-index: 10;
+    }
+
+    .contextMenuTrigger {
+        padding: 12px 10px;
+        cursor: pointer;
+
+        &:hover {
+            color: #00adef;
+        }
+    }
+}
+.contextOpened {
+    .contextMenuTrigger {
+        position: relative;
+    }
+}
