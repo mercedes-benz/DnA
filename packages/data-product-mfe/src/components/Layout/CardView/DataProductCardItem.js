@@ -4,15 +4,15 @@ import Styles from './DataProductCardItem.styles.scss';
 import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
-import { regionalDateFormat } from '../Utility/utils';
-import { dataProductsApi } from '../apis/dataproducts.api';
-import { GetDataProducts } from './redux/dataProduct.services';
+import { regionalDateFormat } from '../../../Utility/utils';
+import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { GetDataProducts } from '../../redux/dataProduct.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 
-import Tooltip from '../common/modules/uilab/js/src/tooltip';
-import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
-import Notification from '../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../../common/modules/uilab/js/src/notification';
 
 const DataProductCardItem = ({ product, history, user }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
