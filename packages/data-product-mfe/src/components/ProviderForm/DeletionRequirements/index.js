@@ -7,7 +7,7 @@ import InfoModal from 'dna-container/InfoModal';
 
 import OtherRelevant from '../OtherRelavantInfo';
 
-const DeletionRequirements = ({ onSave }) => {
+const DeletionRequirements = ({ onSave, user }) => {
   const {
     register,
     formState: { errors },
@@ -103,7 +103,7 @@ const DeletionRequirements = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <OtherRelevant onSave={onSave} />
+      <OtherRelevant onSave={onSave} user={user} />
       {showInfoModal && (
         <InfoModal
           title="Info Modal"
