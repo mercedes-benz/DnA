@@ -22,6 +22,7 @@ export interface TeamSearchProps {
   setSearchTerm: (val: string) => void;
   showUserDetails: boolean;
   setShowUserDetails: (val: boolean) => void;
+  customUserErrorMsg?: string;
 }
 
 const TeamSearch = (props: TeamSearchProps) => {
@@ -248,7 +249,9 @@ const TeamSearch = (props: TeamSearchProps) => {
               {showNoUserFoundError && (
                 <p className={Styles.searchError}>User details not found. Please provide valid User-ID.</p>
               )}
-              {props.userAlreadyExists && <p className={Styles.searchError}>User already exists.</p>}
+              {props.userAlreadyExists && (
+                <p className={Styles.searchError}>{props.customUserErrorMsg || 'User already exists.'}</p>
+              )}
               {!hideSuggestion && searchTerm.length > 0 ? (
                 <ul ref={suggestionContainer} className={Styles.suggestionList}>
                   {suggestions}

@@ -15,7 +15,7 @@ import IconAvatarNew from 'dna-container/IconAvatarNew';
 import { Envs } from '../../../Utility/envs';
 import { withRouter } from 'react-router-dom';
 
-const OtherRelevantInfo = ({ onSave, history }) => {
+const OtherRelevantInfo = ({ onSave, history, user }) => {
   const {
     register,
     handleSubmit,
@@ -47,6 +47,8 @@ const OtherRelevantInfo = ({ onSave, history }) => {
 
   const isDisabled = !teamMembers.length && !provideDataProducts.selectedDataProduct.users?.length ? true : false;
   const hasUsers = watch('users');
+
+  const [isCreator, setIsCreator] = useState(false);
 
   const onTeamMemberMoveUp = (index) => {
     const teamMembersTemp = [...teamMembers];
@@ -110,7 +112,9 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const validateMembersList = (teamMemberObj) => {
     let duplicateMember = false;
     duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
-    return duplicateMember;
+    const isCreator = teamMemberObj.shortId === user.id;
+    setIsCreator(isCreator);
+    return isCreator || duplicateMember;
   };
 
   const teamMembersList = teamMembers?.map((member, index) => {
@@ -316,6 +320,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
         onUpdateTeamMemberList={updateTeamMemberList}
         onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
         validateMemebersList={validateMembersList}
+        customUserErrorMsg={isCreator ? 'You are the creator and not allowed to consume data product' : ''}
       />
     </>
   );
