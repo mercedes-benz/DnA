@@ -38,7 +38,7 @@ jwt:
     key: ${JWT_SECRET_KEY:XXXXXX}
 
 server:
-  port: 8989
+  port: 9191
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
