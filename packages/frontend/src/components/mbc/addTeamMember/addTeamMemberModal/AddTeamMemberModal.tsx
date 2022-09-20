@@ -26,6 +26,7 @@ export interface IAddTeamMemberModalProps {
   onAddTeamMemberModalCancel: () => void;
   onUpdateTeamMemberList: (teamMemberObj: ITeams) => void;
   validateMemebersList?: (teamMemberObj: ITeams) => boolean;
+  customUserErrorMsg?: string;
 }
 
 export interface IAddTeamMemberModalState {
@@ -228,6 +229,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
               setSearchTerm={(val) => this.setState({ searchTerm: val })}
               showUserDetails={this.state.showUserDetails}
               setShowUserDetails={(val) => this.setState({ showUserDetails: val })}
+              customUserErrorMsg={this.props.customUserErrorMsg}
             />
           </div>
           <div className={!belongingInternal ? Styles.externalWrapper : 'hide'}>
@@ -676,7 +678,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       formValid = false;
     }
 
-    if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
+    if (typeof this.props.validateMemebersList === 'function') {
       const isDuplicate = this.props.validateMemebersList(teamMemberObj);
       if (isDuplicate) {
         this.setState({ showUserAlreadyExistsError: true });
@@ -774,7 +776,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       formValid = false;
     }
 
-    if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
+    if (typeof this.props.validateMemebersList === 'function') {
       const isDuplicate = this.props.validateMemebersList(this.state.teamMemberObj);
       formValid = !isDuplicate;
     }
