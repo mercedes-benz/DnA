@@ -1,0 +1,16 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"useTags": true,
+	"modelPackage": "com.daimler.data.dto.forecast",
+	"apiPackage": "com.daimler.data.api.forecast",
+	"invokerPackage": "com.daimler.data.service.forecast",
+	"importMappings": {
+		"BindingResult": "org.springframework.validation.BindingResult",
+		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
+		"ByteArrayResource" : "org.springframework.core.io.ByteArrayResource",
+		"MultipartFile" : "org.springframework.web.multipart.MultipartFile"
+	}
+}
