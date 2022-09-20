@@ -47,31 +47,24 @@
     }
 
     .listHeader {
-        align-items: flex-start;
+        height: 29px;
         display: flex;
-        justify-content: space-between;
-        margin: 0px;
-        position: relative;
-        background-color: #0a0b0e;
-
-        i {
-            font-size: var(--font-size-icon-content);
-            color: #00adef;
+        align-items: center;
+        cursor: pointer;
+        .iconactive {
+            opacity: 0.5;
+            cursor: default;
         }
-        button {
-            background: none;
-            border: none;
-            color: #c0c8d0;
-            height: auto;
-            margin: 0px;
-            outline: none;
-            padding: 0 2px;
-            i {
-                margin-top: 2px;
-            }
-            a {
-                color: #c0c8d0;
-            }
+        .dividerLine {
+            height: 25px;
+            display: inline-block;
+            background-color: #252a33;
+            height: 25px;
+            margin: 0 10px 0 5px;
+            padding: 0;
+            width: 1px;
+        }
+        .iconInActive {
             &:hover {
                 color: #00adef;
             }
@@ -88,5 +81,106 @@
         display: flex;
         justify-content: left;
         margin-right: -30px;
+    }
+}
+.cardViewContainer {
+    width: calc(33% - 15px);
+    margin: 0 15px 15px 0;
+    min-width: 250px;
+    position: relative;
+    border: 1px solid #383f49;
+    cursor: pointer;
+    .addicon {
+        top: calc(50% - 31px);
+        width: 63px;
+        height: 63px;
+        border: 1px solid #fff;
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin: 0 auto;
+        &:after {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            transform: rotate(90deg);
+        }
+        &:before {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            margin: 0 auto;
+            transform: rotate(180deg);
+            top: 49%;
+        }
+    }
+    .addlabel {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        position: absolute;
+        word-break: break-word;
+        display: block;
+        width: 100%;
+        text-align: center;
+        bottom: 20px;
+    }
+    &:hover .addlabel {
+        color: #00adef;
+    }
+}
+.listViewContainer {
+    display: flex;
+    justify-content: center;
+    border: 1px solid #697582;
+    padding: 20px;
+    .addicon {
+        width: 40px;
+        height: 40px;
+        margin: 0px;
+        border: 1px solid #fff;
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        &:after {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            transform: rotate(90deg);
+        }
+        &:before {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            margin: 0 auto;
+            transform: rotate(180deg);
+            top: 49%;
+        }
+    }
+    .addlabel {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        margin: 0px 20px;
+        position: relative;
+        width: auto;
+        top: 10px;
+        cursor: pointer;
+        word-break: break-word;
+    }
+    &:hover .addlabel {
+        color: #00adef;
     }
 }
