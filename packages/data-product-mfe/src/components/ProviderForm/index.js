@@ -93,7 +93,6 @@ const ProviderForm = ({ user, history }) => {
         delete res.data.providerInformation.modifiedBy;
         delete res.data.consumerInformation;
       }
-      console.log(res.data);
       const data = deserializeFormData(res.data);
       dispatch(setDataProduct(data));
       reset(data);
@@ -314,6 +313,7 @@ const ProviderForm = ({ user, history }) => {
                 {currentTab === 'deletion-requirements' && (
                   <DeletionRequirements
                     onSave={(values, callbackFn) => onSave('deletion-requirements', values, callbackFn)}
+                    user={user}
                   />
                 )}
               </div>
