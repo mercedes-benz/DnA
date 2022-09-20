@@ -1,0 +1,786 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : forecast.yaml
+#  **
+#  ** Module     : core
+#  ** 
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  BEALURI
+#
+#  Bug Number         :  
+#  Changed By         :  
+#  Change Description :  
+#  Change On          :  
+#  Search String      :  
+#  
+#  -------------------------------------------------------------------------------------------------------
+
+
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Chronos Workspace Service"
+host: "localhost:8989"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "forecasts"
+    description: "This service is used to maintain forecasts information."
+
+schemes:
+  - "https"
+
+paths:
+
+  # Fetch all valid userinfo or by intent
+  #
+  #  supported http methods GET, POST, PUT
+  #
+  # path example ../forecasts
+
+  /forecasts:
+    get:
+      tags:
+        - "forecast-projects"
+      summary: "Get all forecast projects for the user."
+      description:  "Get all forecasts projects for the user."
+      operationId: "getAll"
+      parameters:
+          - name: offset
+            in: query
+            description: page number from which listing of forecasts should start. Offset. Example 2
+            required: false
+            type: integer
+          - name: limit
+            in: query
+            description: page size to limit the number of forecasts, Example 15
+            required: false
+            type: integer
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+    post:
+      tags:
+        - "forecast-projects"
+      summary: "Initialize/Create forecast project for user."
+      description: "Create forecast project for user "
+      operationId: "createForecastProject"
+      parameters:
+        - name: "forecastRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize chronos project for user"
+          required: true
+          schema:
+            $ref: "#/definitions/ForecastProjectCreateRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ForecastProjectResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+#    put:
+#      tags:
+#        - "forecast-projects"
+#      summary: "Update/manage forecast project for user."
+#      description: "Update forecast project for user "
+#      operationId: "updateForecastProject"
+#      parameters:
+#        - name: "forecastUpdateRequestVO"
+#          in: "body"
+#          description: "Request Body that contains data required for intialize chronos project for user"
+#          required: true
+#          schema:
+#            $ref: "#/definitions/ForecastProjectUpdateRequestVO"
+#      responses:
+#        201:
+#          description: "Returns message of success or failure "
+#          schema:
+#            $ref: "#/definitions/ForecastProjectResponseVO"
+#        400:
+#          description: "Bad Request"
+#          schema:
+#            $ref: "#/definitions/GenericMessage"
+#        401:
+#          description: "Request does not have sufficient credentials."
+#        403:
+#          description: "Request is not authorized."
+#        405:
+#          description: "Method not allowed"
+#        500:
+#          description: "Internal error"
+    
+
+  # Fetch all valid userinfo or by intent
+  #
+  #  supported http methods GET, POST and DELETE
+  #
+  # path example ../forecasts/{id}
+
+  /forecasts/{id}:
+    get:
+      tags:
+        - "forecast-projects"
+      summary: "Get forecasts details for a given Id."
+      description: "Get forecasts details for a given Id."
+      operationId: "getById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+  
+    post:
+      tags:
+        - "forecast-runs"
+      summary: "Run job for forecast project."
+      description: "Create job for forecast project"
+      operationId: "createForecastJob"
+      parameters:
+        - name: "forecastJobRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize chronos project for user"
+          required: true
+          schema:
+            $ref: "#/definitions/ForecastRunRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ForecastRunResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+ 
+  # Fetch all valid userinfo or by intent
+  #
+  #  supported http methods GET, POST and DELETE
+  #
+  # path example ../forecasts/{id}
+
+  
+  /forecasts/{id}/inputs: 
+    post:
+       tags:
+        - "forecast-inputs"
+       summary: "Upload input csv file"
+       description: "Upload input csv file"
+       operationId: "uploadInput"
+       consumes:
+             - multipart/form-data
+       parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: formData
+          name: file
+          type: file
+          description: The file to upload.
+          required: true 
+       responses:
+        200: 
+         description: "Returns message of succes or failure " 
+         schema:
+           $ref: "#/definitions/GenericMessage"
+        400:
+         description: "Bad Request"
+         schema:
+           $ref: "#/definitions/GenericMessage"
+        401:
+         description: "Request does not have sufficient credentials."
+        403:
+         description: "Request is not authorized."
+        405:
+         description: "Method not allowed"
+        500:
+         description: "Internal error"
+     
+    get:
+      tags:
+        - "forecast-inputs"
+      summary: "Get list of saved input files"
+      description: "Get list of saved input files"
+      operationId: "getInputFiles"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/InputFilesCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+  #
+  #  supported http methods GET
+  #
+  # path example ../forecasts/{id}/runs
+
+  /forecasts/{id}/runs:
+    get:
+      tags:
+        - "forecast-runs"
+      summary: "Get all forecast projects for the user."
+      description:  "Get all forecasts projects for the user."
+      operationId: "getAllRunsForProject"
+      parameters:
+          - in: "path"
+            name: "id"
+            description: "forecast project ID "
+            required: true
+            type: "string"
+          - name: offset
+            in: query
+            description: page number from which listing of forecasts should start. Offset. Example 2
+            required: false
+            type: integer
+          - name: limit
+            in: query
+            description: page size to limit the number of forecasts, Example 15
+            required: false
+            type: integer
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/ForecastRunCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  #
+  #  supported http methods GET
+  #
+  # path example ../forecasts/{id}/runs/{rid}
+
+  /forecasts/{id}/runs/{rid}:
+    get:
+      tags:
+        - "forecast-runs"
+      summary: "Get all forecast projects for the user."
+      description:  "Get all forecasts projects for the user."
+      operationId: "getRunVisualizationData"
+      parameters:
+          - in: "path"
+            name: "id"
+            description: "forecast project ID "
+            required: true
+            type: "string"
+          - in: "path"
+            name: "rid"
+            description: "run id "
+            required: true
+            type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/RunVisualizationVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+          
+    delete:
+      tags:
+        - "forecast-runs"
+      summary: "delete particular run"
+      description: "delete particular run based on id"
+      operationId: "deleteRun"
+      parameters:
+          - in: "path"
+            name: "id"
+            description: "forecast project ID "
+            required: true
+            type: "string"
+          - in: "path"
+            name: "rid"
+            description: "run id "
+            required: true
+            type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+          
+definitions:
+
+#ForecastCollectionVO--
+#ForecastProjectRequestVO
+#ForecastProjectUpdateRequestVO
+#ForecastVO
+#ForecastRunRequestVO
+#ForecastRunResponseVO
+#InputFilesCollectionVO
+#ForecastRunCollectionVO
+#RunVisualizationVO
+
+  InputFilesCollectionVO:
+    type: object 
+    properties:
+        files:
+            type: array
+            items:
+                $ref: "#/definitions/InputFileVO"
+    
+  InputFileVO:
+    type: object
+    properties:
+        id: 
+            type: string
+            description: id of the file
+        name:
+            type: string
+            description: name of the file    
+        path:
+            type: string
+            description: full path of the file object in minio with bucketname
+        createdBy:
+            type: string
+            description: shortid of user who uploaded the file
+        createdOn:
+            type: string
+            format: date
+            description: time when file is uploaded
+        
+  ForecastCollectionVO:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/ForecastVO"
+  
+  ForecastProjectCreateRequestVO:
+    type: object
+    properties: 
+        name:
+            type: string
+            description: name of the forecast project
+#        permission:
+#            $ref: "#/definitions/ForecastPermissionVO"
+        collaborators:
+            type: array
+            items:
+              $ref: "#/definitions/CollaboratorVO"
+        apiKey:
+            type: string
+            description: apiKey for the project access
+        required:
+            - name
+        
+#  ForecastProjectUpdateRequestVO:
+#    type: object
+#    properties:
+#        id:
+#            type: string
+#            description: id of forecast project
+#        manageconnections 
+            
+#  ForecastPermissionVO:
+#    type: object
+#    properties:
+#        read:
+#            type: boolean
+#        write:
+#            type: boolean
+            
+            
+  CollaboratorVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+#      permissions:
+#        $ref: "#/definitions/ForecastPermissionVO"
+#        description: "Read write permissions"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+     
+      required:
+        - shortId
+        - firstName
+        - lastName
+        - department
+        - email
+
+  ForecastProjectResponseVO:
+    type: object 
+    properties: 
+        data:
+           $ref: "#/definitions/ForecastVO"
+        response:
+            $ref: "#/definitions/GenericMessage"
+            
+  ForecastVO:
+    type: object
+    properties:
+        id:
+            type: string
+            description: id of the forecast project
+        name:
+            type: string
+            description: name of the forecast project
+#        permission:
+#            $ref: "#/definitions/ForecastPermissionVO"
+        collaborators:
+            type: array
+            items:
+                    $ref: "#/definitions/CollaboratorVO"
+        apiKey:
+            type: string
+            description: apiKey for the project access
+        createdBy:
+            $ref: "#/definitions/CreatedByVO"
+            description: createdBy user details
+        createdOn:
+            type: string
+            format: date
+            description: date when project created
+        savedInputs:
+            type: array
+            items:
+                $ref: "#/definitions/InputFileVO"
+        runs:
+            type: array
+            items:
+                $ref: "#/definitions/RunVO"
+     
+  ForecastRunRequestVO:
+    type: object
+    properties:
+        inputFile:
+            type: string
+            description: path of file in minio system
+        runName:
+            type: string
+            description: name of the run sample. Example YYYY-MM-DD_run_topic
+        configurationFile:
+            type: string
+            enum: [Default-Settings]
+            description: "Chronos default config yml"
+        frequency:
+            type: string
+            enum: [Daily,Weekly,Monthly,Yearly,No_Frequency]
+            description: "frequency parameter."
+        forecastHorizon:
+            type: number
+            minimum: 1
+            description: "Any number greater than 1"
+        comment:
+            type: string
+            description: "Comments for the run"
+            
+        required: 
+            -inputfile
+            -runName
+            -configurationFile
+            -frequency
+            -forecastHorizon
+            
+  RunNowResponseVO: 
+    type: object
+    properties:
+        run_id:
+            type: string
+            description: generated run id 
+        number_in_job:
+            type: string
+            description: number in the job
+        error_code:
+            type: string
+            description: error code if fails
+        message:
+            type: string
+            description: error message if fails
+  
+  RunVO:
+    type: object
+    properties:
+        id:
+            type: string
+            description: unique id for the run, used as correlation id 
+        jobId:
+            type: number
+            description:
+        runId:
+            type: number
+            description:
+        inputFile:
+            type: string
+            description: path of file in minio system
+        runName:
+            type: string
+            description: name of the run sample. Example YYYY-MM-DD_run_topic
+        configurationFile:
+            type: string
+            enum: [Default-Settings]
+            description: "Chronos default config yml"
+        frequency:
+            type: string
+            enum: [Monthly]
+            description: "frequency parameter. For now supported only Monthly-M"
+        forecastHorizon:
+            type: string
+            enum: [Default-Settings]
+            description: "Chronos default config yml"
+        comment:
+            type: string
+            description: "Comments for the run"
+        runType:
+            type: string
+            description:
+        attemptNumber:
+            type: number
+            description:
+        numberInJob:
+            type: number
+            description:
+        creatorUserName:
+            type: string
+            description:
+        originalAttemptRunId:
+            type: number
+            description:
+        startTime:
+            type: string
+            description:
+        endTime:
+            type: string
+            description:
+        trigger:
+            type: string
+            description:
+        setupDuration:
+            type: string
+            description:
+        executionDuration:
+            type: string
+            description:
+
+  
+  ForecastRunResponseVO:
+    type: object
+    properties:
+        runDetails:
+            $ref: "#/definitions/RunNowResponseVO"
+        responseMessage:
+            $ref: "#/definitions/GenericMessage"
+            
+  ForecastRunCollectionVO:
+    type: object
+    properties:  
+        runs:
+            type: array
+            items:
+                $ref: "#/definitions/RunVO"
+           
+    
+  RunVisualizationVO:
+    type: object
+    properties:  
+        value: 
+            type: string
+            message: json string value containing visualization data
+          
+  BindingResult:
+    type: object
+
+  GenericMessage:
+    type: object
+    properties:
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  MessageDescription:
+    type: object
+    properties:
+      message:
+        type: string
+        description: "message"
+
+          
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user" 
+ 
+ 
