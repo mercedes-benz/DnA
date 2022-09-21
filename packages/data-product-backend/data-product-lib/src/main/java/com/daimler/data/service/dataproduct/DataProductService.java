@@ -46,9 +46,10 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 
 	}
 
-	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder);
+	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
+			String recordStatus);
 
-	Long getCount(Boolean published);
+	Long getCount(Boolean published, String recordStatus);
 
 	ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO providerVO);
 
