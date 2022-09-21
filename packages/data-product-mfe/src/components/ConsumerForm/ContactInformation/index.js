@@ -6,6 +6,7 @@ import Styles from '../common.styles.scss';
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
+import DatePicker from 'dna-container/DatePicker';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
@@ -13,7 +14,6 @@ import { dataProductsApi } from '../../../apis/dataproducts.api';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { useSelector } from 'react-redux';
-import DatePicker from '../../DatePicker/DatePicker';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, isFormMounted }) => {
   const {
@@ -242,7 +242,6 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                       <DatePicker
                         label="Date of Agreement"
                         value={watch('dateOfAgreement')}
-                        name={field.name}
                         onChange={(value) => field.onChange(value)}
                         requiredError={errors.dateOfAgreement?.message}
                       />

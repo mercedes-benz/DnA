@@ -6,6 +6,7 @@ import Styles from './styles.scss';
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
+import DatePicker from 'dna-container/DatePicker';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
@@ -15,7 +16,6 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import { useSelector } from 'react-redux';
 import { dataProductsApi } from '../../../apis/dataproducts.api';
-import DatePicker from '../../DatePicker/DatePicker';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }) => {
   const {
@@ -149,25 +149,29 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 />
                 <span className={classNames('error-message')}>{errors.productName?.message}</span>
               </div>
-              <div className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}>
-                <label id="dateOfAgreementLabel" htmlFor="dateOfDataTransferInput" className="input-label">
-                  Date of Data Transfer <sup>*</sup>
-                </label>
-                <Controller
-                  control={control}
-                  name="dateOfDataTransfer"
-                  rules={{ required: '*Missing entry' }}
-                  render={({ field }) => (
-                    <DatePicker
-                      label="Date of Data Transfer"
-                      value={watch('dateOfDataTransfer')}
-                      name={field.name}
-                      onChange={(value) => field.onChange(value)}
-                      requiredError={errors.dateOfDataTransfer?.message}
-                    />
-                  )}
-                />
-                <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
+                >
+                  <label id="dateOfAgreementLabel" htmlFor="dateOfDataTransferInput" className="input-label">
+                    Date of Data Transfer <sup>*</sup>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="dateOfDataTransfer"
+                    rules={{ required: '*Missing entry' }}
+                    render={({ field }) => (
+                      <DatePicker
+                        label="Date of Data Transfer"
+                        value={watch('dateOfDataTransfer')}
+                        name={field.name}
+                        onChange={(value) => field.onChange(value)}
+                        requiredError={errors.dateOfDataTransfer?.message}
+                      />
+                    )}
+                  />
+                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
+                </div>
               </div>
             </div>
             <div className={Styles.flexLayout}>
@@ -272,21 +276,6 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
               </div>
             </div>
             <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
-                <label id="planningITLabel" htmlFor="planningITInput" className="input-label">
-                  planningIT App-ID <sup>*</sup>
-                </label>
-                <input
-                  {...register('planningIT', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="planningITInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
-                />
-                <span className={classNames('error-message')}>{errors.planningIT?.message}</span>
-              </div>
               <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>
                 <Controller
                   control={control}
@@ -316,6 +305,21 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                     />
                   )}
                 />
+              </div>
+              <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
+                <label id="planningITLabel" htmlFor="planningITInput" className="input-label">
+                  planningIT App-ID <sup>*</sup>
+                </label>
+                <input
+                  {...register('planningIT', { required: '*Missing entry' })}
+                  type="text"
+                  className="input-field"
+                  id="planningITInput"
+                  maxLength={200}
+                  placeholder="Type here"
+                  autoComplete="off"
+                />
+                <span className={classNames('error-message')}>{errors.planningIT?.message}</span>
               </div>
             </div>
           </div>
