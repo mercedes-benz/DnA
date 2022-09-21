@@ -225,7 +225,6 @@ const TransNationalDataTransfer = ({ onSave }) => {
           </div>
         </div>
       </div>
-      {/* <DataOriginating onSave={onSave} /> */}
       <div className={Styles.wrapper}>
         <div className={Styles.firstPanel}>
           <div>
