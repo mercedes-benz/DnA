@@ -421,25 +421,31 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <div className={Styles.infoIcon}>
-            <label className="switch">
-              <span className="label" style={{ marginRight: '5px' }}>
-                {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
-              </span>
-              <span className="wrapper">
-                <input
-                  type="checkbox"
-                  className="ff-only"
-                  onChange={() => this.changeQuickPath(this.state.report.usingQuickPath)}
-                  checked={this.state.report.usingQuickPath}
-                />
-              </span>
-            </label>
+          <div className=''>
+            <div className=''>
+              Create Report
+            </div>
+            <div className={Styles.infoIcon}>
+              <label className="switch">
+                <span className="label" style={{ marginRight: '5px' }}>
+                  {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
+                </span>
+                <span className="wrapper">
+                  <input
+                    type="checkbox"
+                    className="ff-only"
+                    onChange={() => this.changeQuickPath(this.state.report.usingQuickPath)}
+                    checked={this.state.report.usingQuickPath}
+                  />
+                </span>
+              </label>
+            </div>
           </div>
           <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
             {this.state.report.description.productName}
           </h3>
           <div id="create-report-tabs" className="tabs-panel">
+            {!this.state.report.usingQuickPath ?
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
@@ -497,6 +503,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 </ul>
               </nav>
             </div>
+            : ''}
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
                 <Description
@@ -516,6 +523,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                   setSubDivisions={(subDivisions: ISubDivision[]) =>
                     this.setState({ subDivisions }, () => SelectBox.defaultSetup())
                   }
+                  enableQuickPath={this.state.report.usingQuickPath}
                 />
               </div>
               <div id="tab-content-2" className="tab-content">
@@ -650,6 +658,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       this.saveDataFunction();
     } else if (currentTab === 'members') {
       this.saveMembers();
+    } else if (currentTab === 'quickpath') {
+      this.saveDescriptionWithQuickPath();
     } else {
       // If multiple clicks on save happens then the currenttab doesnt get updated in that case
       // just save not moving to another tab.
@@ -688,6 +698,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         this.setState({ showAlertChangesModal: true, clickedTab: target.id });
       }
     }
+  };
+  protected saveDescriptionWithQuickPath = () => {
+    // this.state.report.openSegments.push('Description');
+    this.setState({ publishFlag: true });
+    this.callApiToSave(true, null);
   };
   protected saveDescription = () => {
     this.state.report.openSegments.push('Description');
