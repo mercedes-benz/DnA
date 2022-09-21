@@ -42,6 +42,7 @@ export interface IDescriptionProps {
   tags: ITag[];
   departmentTags: IDepartment[];
   setSubDivisions: (subDivisions: ISubDivision[]) => void;
+  enableQuickPath: boolean;
 }
 
 export interface IDescriptionState {
@@ -377,6 +378,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout)}>
+                  {!this.props.enableQuickPath ? 
                   <div>
                     <div>
                       <div className={classNames(Styles.flexLayout)}>
@@ -543,6 +545,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       </div>
                     </div>
                   </div>
+                  :''}
                   <div>
                     <div>
                       <div className={Styles.departmentTags}>
@@ -587,6 +590,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           </span>
                         </div>
                       </div>
+                      {!this.props.enableQuickPath ?
                       <div className={classNames('input-field-group include-error', artError.length ? 'error' : '')}>
                         <label id="ARTLabel" htmlFor="ARTField" className="input-label">
                           Agile Release Train
@@ -608,6 +612,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         </div>
                         <span className={classNames('error-message', artError.length ? '' : 'hide')}>{artError}</span>
                       </div>
+                      : ''}
                       <div>
                         <div
                           className={classNames(
@@ -648,6 +653,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               </div>
             </div>
           </div>
+          {!this.props.enableQuickPath ?
           <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
             <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
               <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
@@ -669,10 +675,17 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               </div>
             </div>
           </div>
+          : ''}
           <div className="btnConatiner">
+          {!this.props.enableQuickPath ?
             <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmit}>
               Save & Next
             </button>
+          : 
+          <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
+            Publish Report
+          </button>
+          }  
           </div>
         </div>
       </React.Fragment>
@@ -684,6 +697,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.props.modifyReportDescription(this.props.description);
       this.props.onSaveDraft('description');
     }
+  };
+
+  protected onDescriptionSubmitWithQuickPath = () => {
+    // if (this.validateDescriptionForm()) {
+      this.props.modifyReportDescription(this.props.description);
+      this.props.onSaveDraft('quickpath');
+    // }
   };
 
   protected validateDescriptionForm = () => {
