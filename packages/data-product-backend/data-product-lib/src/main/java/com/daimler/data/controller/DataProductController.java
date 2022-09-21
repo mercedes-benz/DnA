@@ -53,6 +53,7 @@ import com.daimler.data.dto.dataproduct.DataProductProviderRequestVO;
 import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.service.dataproduct.DataProductService;
+import com.daimler.data.util.ConstantsUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -140,12 +141,14 @@ public class DataProductController implements DataproductsApi {
 				sortOrder = "asc";
 			}
 
-			Long count = dataProductService.getCount(published);
+			String recordStatus = ConstantsUtility.OPEN;
+
+			Long count = dataProductService.getCount(published, recordStatus);
 			if (count < offset)
 				offset = 0;
 
 			List<DataProductVO> dataProducts = dataProductService.getAllWithFilters(published, offset, limit, sortBy,
-					sortOrder);
+					sortOrder, recordStatus);
 			LOGGER.info("DataProducts fetched successfully");
 			if (!ObjectUtils.isEmpty(dataProducts)) {
 				dataProductCollection.setTotalCount(count.intValue());
@@ -178,7 +181,7 @@ public class DataProductController implements DataproductsApi {
 	public ResponseEntity<DataProductVO> getById(
 			@ApiParam(value = "DataProduct ID to be fetched", required = true) @PathVariable("id") String id) {
 		DataProductVO dataProductVO = dataProductService.getById(id);
-		if (dataProductVO != null) {
+		if (dataProductVO != null && !dataProductVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 			LOGGER.info("DataProduct with id {} fetched successfully", id);
 			return new ResponseEntity<>(dataProductVO, HttpStatus.OK);
 		} else {
