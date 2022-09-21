@@ -64,6 +64,7 @@ import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.department.DepartmentService;
+import com.daimler.data.util.ConstantsUtility;
 
 import io.jsonwebtoken.lang.Strings;
 
@@ -115,9 +116,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	@Override
 	public List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder) {
+			String sortOrder, String recordStatus) {
 		List<DataProductNsql> dataProductEntities = dataProductCustomRepository
-				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder);
+				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus);
 		if (!ObjectUtils.isEmpty(dataProductEntities))
 			return dataProductEntities.stream().map(n -> dataProductAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -125,8 +126,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	}
 
 	@Override
-	public Long getCount(Boolean published) {
-		return dataProductCustomRepository.getCountUsingNativeQuery(published);
+	public Long getCount(Boolean published, String recordStatus) {
+		return dataProductCustomRepository.getCountUsingNativeQuery(published, recordStatus);
 	}
 
 	private void updateDepartments(String department) {
@@ -178,8 +179,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			dataProductVO.setDataProductName(uniqueProductName);
 			dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 			dataProductVO.setPublish(false);
-			dataProductVO.setDataProductId("DP-" + String.format("%04d", dataProductRepository.getNextSeqId()));
-			dataProductVO.setRecordStatus("OPEN");
+			dataProductVO.setDataProductId("DPF-" + String.format("%05d", dataProductRepository.getNextSeqId()));
+			dataProductVO.setRecordStatus(ConstantsUtility.OPEN);
 			dataProductVO.setId(null);
 			if (providerResponseVO != null && providerResponseVO.getContactInformation() != null) {
 				updateDepartments(providerResponseVO.getContactInformation().getDepartment());
@@ -268,7 +269,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			if (providerResponseVO.isProviderFormSubmitted() == null) {
 				providerResponseVO.setProviderFormSubmitted(false);
 			}
-			if (existingVO != null && existingVO.getId() != null) {
+			if (existingVO != null && existingVO.getRecordStatus() != null
+					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
 				if (hasProviderAccess(createdBy)) {
 					providerResponseVO.setCreatedBy(createdBy);
@@ -280,7 +282,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setDataProductName(requestVO.getDataProductName());
 					dataProductVO.setPublish(existingVO.isPublish());
 					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
-					dataProductVO.setRecordStatus("OPEN");
+					dataProductVO.setRecordStatus(existingVO.getRecordStatus());
 					dataProductVO.setId(id);
 					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
 					if (providerResponseVO != null && providerResponseVO.getContactInformation() != null) {
@@ -355,7 +357,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			if (requestVO.isPublish() == null) {
 				requestVO.setPublish(false);
 			}
-			if (existingVO != null && existingVO.getId() != null) {
+			if (existingVO != null && existingVO.getRecordStatus() != null
+					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 				if (hasConsumeAccess(existingVO.getProviderInformation().getUsers())) {
 					if (existingVO.getConsumerInformation() == null) {
 						consumerResponseVO.setCreatedBy(this.userStore.getVO());
@@ -370,7 +373,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setConsumerInformation(consumerResponseVO);
 					dataProductVO.setDataProductName(existingVO.getDataProductName());
 					dataProductVO.setPublish(requestVO.isPublish());
-					dataProductVO.setRecordStatus("OPEN");
+					dataProductVO.setRecordStatus(existingVO.getRecordStatus());
 					dataProductVO.setDataProductId(existingVO.getDataProductId());
 					dataProductVO.setId(id);
 					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
@@ -518,15 +521,32 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	@Transactional
 	public ResponseEntity<GenericMessage> deleteDataProduct(String id) {
 		try {
-			DataProductVO dataProduct = super.getById(id);
-			if (dataProduct != null && dataProduct.getId() != null) {
-				CreatedByVO createdBy = dataProduct.getProviderInformation().getCreatedBy();
+			DataProductVO existingVO = super.getById(id);
+			DataProductVO dataProductVO = null;
+			if (existingVO != null && existingVO.getId() != null) {
+				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
 				if (hasProviderAccess(createdBy)) {
-					this.deleteById(id);
-					GenericMessage successMsg = new GenericMessage();
-					successMsg.setSuccess("success");
-					LOGGER.info("DataProduct with id {} deleted successfully", id);
-					return new ResponseEntity<>(successMsg, HttpStatus.OK);
+					ProviderResponseVO providerResponseVO = existingVO.getProviderInformation();
+					providerResponseVO.lastModifiedDate(new Date());
+					providerResponseVO.setModifiedBy(this.userStore.getVO());
+					existingVO.setProviderInformation(providerResponseVO);
+					existingVO.setRecordStatus(ConstantsUtility.DELETED);
+					dataProductVO = super.create(existingVO);
+					if (dataProductVO != null && dataProductVO.getId() != null) {
+						GenericMessage successMsg = new GenericMessage();
+						successMsg.setSuccess("success");
+						LOGGER.info("DataProduct with id {} deleted successfully", id);
+						return new ResponseEntity<>(successMsg, HttpStatus.OK);
+					} else {
+						MessageDescription exceptionMsg = new MessageDescription(
+								"Failed to delete dataProduct due to internal error");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.addErrors(exceptionMsg);
+						LOGGER.debug("DataProduct with id {} cannot be deleted. Failed with unknown internal error",
+								id);
+						return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+					}
+
 				} else {
 					MessageDescription notAuthorizedMsg = new MessageDescription();
 					notAuthorizedMsg.setMessage("Not authorized to delete dataProduct.");
