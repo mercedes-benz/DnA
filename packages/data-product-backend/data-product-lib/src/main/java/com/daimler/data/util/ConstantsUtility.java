@@ -25,18 +25,9 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.dataproduct;
+package com.daimler.data.util;
 
-import java.util.List;
-
-import com.daimler.data.db.entities.DataProductNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
-
-public interface DataProductCustomRepository extends CommonDataRepository<DataProductNsql, String> {
-
-	List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit, String sortBy,
-			String sortOrder, String recordStatus);
-
-	Long getCountUsingNativeQuery(Boolean published, String recordStatus);
-
+public class ConstantsUtility {
+	public static final String OPEN = "OPEN";
+	public static final String DELETED = "DELETED";
 }
