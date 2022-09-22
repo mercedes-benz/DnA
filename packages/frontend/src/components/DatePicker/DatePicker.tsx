@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import Styles from './styles.scss';
+import Styles from './DatePicker.scss';
 
 import 'dayjs/locale/en-gb';
 import 'dayjs/locale/en';
@@ -20,9 +20,16 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 
-let language = ['en-gb', 'en', 'de', 'fr', 'it', 'pl', 'sv', 'tr', 'nl', 'nb', 'ko'];
+const language = ['en-gb', 'en', 'de', 'fr', 'it', 'pl', 'sv', 'tr', 'nl', 'nb', 'ko'];
 
-const DatePicker = ({ label, value, name, onChange, requiredError }) => {
+type IDatePickerProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  requiredError: string;
+};
+
+const DatePicker = ({ label, value, onChange, requiredError }: IDatePickerProps) => {
   const browserLang = navigator.language.toLowerCase();
   const datePickerLang = language.includes(browserLang) ? browserLang : navigator.language.split('-')?.[0];
 
@@ -31,9 +38,9 @@ const DatePicker = ({ label, value, name, onChange, requiredError }) => {
       <MUIDatePicker
         label={label}
         value={value || ''}
-        name={name}
-        maxDate={dayjs()}
-        onChange={(newValue) => {
+        views={['year', 'month', 'day']}
+        maxDate={dayjs().format()}
+        onChange={(newValue: string) => {
           onChange(newValue);
         }}
         renderInput={({ inputRef, inputProps, InputProps }) => {
