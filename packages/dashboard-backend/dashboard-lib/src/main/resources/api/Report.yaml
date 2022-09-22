@@ -358,7 +358,11 @@ paths:
 definitions:
   DescriptionVO:
     type: object
-    properties:  
+    properties:
+      reportLink:
+        type: string
+        description: "Report Link"   
+        minLength: 1   
       productDescription: 
         description: "Description about the report"
         type: string
@@ -400,6 +404,7 @@ definitions:
       - status
       - frontendTechnologies
       - department
+      - reportLink
   
   CustomerVO:
     type: object
@@ -580,6 +585,8 @@ definitions:
     properties:
       id:
         type: string
+      reportId:
+        type: string        
       productName:
         type: string
         description: "Name of the Report"
