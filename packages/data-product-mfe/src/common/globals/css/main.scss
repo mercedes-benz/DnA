@@ -1149,7 +1149,9 @@
     &.review-outline:before {
       content: "\e953";
     }
-
+    &.delete-new::before {
+      content: "\e946";
+    }
     &.new-tab:before {
       content: "\e94f";
     }
@@ -1158,6 +1160,9 @@
     }
     &.copy:before {
       content: "\e923";
+    }
+    &.copy-new:before {
+      content: "\e942";
     }
     &.visibility-hide:before {
       content: "\e926";
@@ -1182,6 +1187,30 @@
     }
     &.document:before {
       content: "\e910";
+    }
+    &.light_bulb::before {
+      content: "\e94a";
+    }
+    &.back_files::before {
+      content: "\e937";
+    }
+    &.storage::before {
+      content: "\e939";
+    }
+    &.trino_cancel::before {
+      content: "\e93b";
+    }
+    &.trino_shared-folder::before {
+      content: "\e93e";
+    }
+    &.add_folder::before {
+      content: "\e941";
+    }
+    &.data-sharing::before {
+      content: "\e945";
+    }
+    &.share::before {
+      content: "\e94e";
     }
   }
   .airflowexpansionPanel {

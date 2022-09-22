@@ -13,6 +13,7 @@ module.exports = {
     rules: [
       {
         test: /\.(eot|woff2|woff|svg|otf)/,
+        dependency: { not: ['url'] },
         use: [
           {
             loader: 'url-loader',
@@ -25,6 +26,7 @@ module.exports = {
       },
       {
         test: /\.(ttf)/,
+        dependency: { not: ['url'] },
         use: [
           {
             loader: 'url-loader',
