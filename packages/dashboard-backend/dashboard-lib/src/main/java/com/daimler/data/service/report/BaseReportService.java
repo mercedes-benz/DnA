@@ -98,7 +98,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	@Autowired
 	private UserStore userStore;
-	
+
 	@Autowired
 	private KafkaProducerService kafkaProducer;
 
@@ -110,7 +110,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
-	
+
 	public BaseReportService() {
 		super();
 	}
@@ -130,6 +130,20 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		updateTags(vo);
 		updateDepartments(vo);
 		return super.create(vo);
+	}
+
+	@Override
+	@Transactional
+	public ReportVO getById(String id) {
+		if (StringUtils.hasText(id)) {
+			ReportVO existingVO = super.getByUniqueliteral("reportId", id);
+			if (existingVO != null && existingVO.getReportId() != null) {
+				return existingVO;
+			} else {
+				return super.getById(id);
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -694,7 +708,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			requestReportVO.setCreatedBy(this.userStore.getVO());
 			requestReportVO.setCreatedDate(new Date());
 			requestReportVO.setId(null);
-
+			requestReportVO.setReportId("REP-" + String.format("%05d", reportRepository.getNextSeqId()));
 			if (requestReportVO.isPublish() == null)
 				requestReportVO.setPublish(false);
 
@@ -732,7 +746,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		ReportResponseVO response = new ReportResponseVO();
 		try {
 			String id = requestReportVO.getId();
-			ReportVO existingReportVO = this.getById(id);
+			ReportVO existingReportVO = super.getById(id);
 			ReportVO mergedReportVO = null;
 			if (requestReportVO.isPublish() == null) {
 				requestReportVO.setPublish(false);
@@ -743,55 +757,60 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					requestReportVO.setCreatedBy(createdBy);
 					requestReportVO.setCreatedDate(existingReportVO.getCreatedDate());
 					requestReportVO.lastModifiedDate(new Date());
+					requestReportVO.setReportId(existingReportVO.getReportId());
 					mergedReportVO = this.create(requestReportVO);
 					if (mergedReportVO != null && mergedReportVO.getId() != null) {
 						response.setData(mergedReportVO);
 						response.setErrors(null);
 						LOGGER.info("Report with id {} updated successfully", id);
-						
 						try {
-							if(mergedReportVO.isPublish()) {
+							if (mergedReportVO.isPublish()) {
 								CreatedByVO modifyingUser = this.userStore.getVO();
 								String eventType = "Dashboard-Report Update";
 								String resourceID = mergedReportVO.getId();
 								String reportName = mergedReportVO.getProductName();
 								String publishingUserId = "dna_system";
 								String publishingUserName = "";
-								if(modifyingUser!=null) {
+								if (modifyingUser != null) {
 									publishingUserId = modifyingUser.getId();
-									publishingUserName = modifyingUser.getFirstName() + " " + modifyingUser.getLastName();
-									if(publishingUserName==null || "".equalsIgnoreCase(publishingUserName))
+									publishingUserName = modifyingUser.getFirstName() + " "
+											+ modifyingUser.getLastName();
+									if (publishingUserName == null || "".equalsIgnoreCase(publishingUserName))
 										publishingUserName = publishingUserId;
 								}
 								List<String> membersId = new ArrayList<>();
 								List<String> membersEmail = new ArrayList<>();
 								MemberVO memberVO = mergedReportVO.getMembers();
-								
+
 								List<TeamMemberVO> members = new ArrayList<>();
 								members.addAll(memberVO.getAdmin());
 								members.addAll(memberVO.getDevelopers());
 								members.addAll(memberVO.getProductOwners());
 								CustomerVO customerVO = mergedReportVO.getCustomer();
-								if(customerVO!=null && customerVO.getProcessOwners()!= null)
+								if (customerVO != null && customerVO.getProcessOwners() != null)
 									members.addAll(customerVO.getProcessOwners());
-								for(TeamMemberVO member : members) {
-									if(member!=null) {
-										String memberId = member.getShortId()!= null ? member.getShortId() : "";
-										if(!membersId.contains(memberId)) {
+								for (TeamMemberVO member : members) {
+									if (member != null) {
+										String memberId = member.getShortId() != null ? member.getShortId() : "";
+										if (!membersId.contains(memberId)) {
 											membersId.add(memberId);
-											String emailId = member.getEmail()!= null ? member.getEmail() : "";
+											String emailId = member.getEmail() != null ? member.getEmail() : "";
 											membersEmail.add(emailId);
 										}
 									}
 								}
-								String eventMessage = "Dashboard report " + reportName + " has been updated by " + publishingUserName;
-								kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true, membersId,membersEmail,null);
-								LOGGER.info("Published successfully event {} for report {} with message {}",eventType, resourceID, eventMessage);
+								String eventMessage = "Dashboard report " + reportName + " has been updated by "
+										+ publishingUserName;
+								kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
+										membersId, membersEmail, null);
+								LOGGER.info("Published successfully event {} for report {} with message {}", eventType,
+										resourceID, eventMessage);
 							}
-						}catch(Exception e) {
-							LOGGER.error("Failed while publishing dashboard report update event msg. Exception is {} ", e.getMessage());
+						} catch (Exception e) {
+							LOGGER.error("Failed while publishing dashboard report update event msg. Exception is {} ",
+									e.getMessage());
 						}
-						
+
 						return new ResponseEntity<>(response, HttpStatus.OK);
 					} else {
 						List<MessageDescription> messages = new ArrayList<>();
@@ -884,7 +903,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Transactional
 	public ResponseEntity<GenericMessage> deleteReport(String id) {
 		try {
-			ReportVO report = this.getById(id);
+			ReportVO report = super.getById(id);
 			if (canProceedToEdit(report)) {
 				this.deleteById(id);
 				GenericMessage successMsg = new GenericMessage();
