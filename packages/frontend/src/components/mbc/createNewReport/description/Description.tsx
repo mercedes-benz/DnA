@@ -125,6 +125,14 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     SelectBox.defaultSetup();
   }
 
+  componentDidUpdate(prevProps: IDescriptionProps, prevState: IDescriptionState) {
+    if (prevProps.enableQuickPath !== this.props.enableQuickPath) {
+      if(!this.props.enableQuickPath){
+        SelectBox.defaultSetup();
+      }      
+    }
+  }
+
   public onProductNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
     const productName = e.currentTarget.value;
     const description = this.props.description;
