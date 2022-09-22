@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { regionalDateFormat } from '../../../Utility/utils';
@@ -37,6 +37,7 @@ const DataProductListItem = ({ product, history, user }) => {
     ProgressIndicator.show();
     dataProductsApi.deleteDataProduct(product?.id).then(() => {
       dispatch(GetDataProducts());
+      setShowContextMenu(false);
       setShowDeleteModal(false);
     });
   };
@@ -45,10 +46,23 @@ const DataProductListItem = ({ product, history, user }) => {
   };
 
   const onShare = (id) => {
+    setShowContextMenu(false);
     navigator.clipboard.writeText(`${window.location.href}consume/${id}`).then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
+
+  const handleContextMenuOutside = (e) => {
+    const withinContextMenuWrapper =
+      e.target.parentElement.classList.contains('contextMenuWrapper') ||
+      e.target.parentElement.classList.contains('contextList');
+    !withinContextMenuWrapper && setShowContextMenu(false);
+  };
+
+  useEffect(() => {
+    document.addEventListener('click', handleContextMenuOutside);
+    return () => document.removeEventListener('click', handleContextMenuOutside);
+  }, []);
 
   return (
     <React.Fragment>
