@@ -119,7 +119,7 @@ paths:
           description: "Request Body that contains data required for intialize chronos project for user"
           required: true
           schema:
-            $ref: "#/definitions/ForecastProjectCreateRequestVO"
+            $ref: "#/definitions/ForecastProjectCreateRequestWrapperVO"
       responses:
         201:
           description: "Returns message of success or failure "
@@ -210,11 +210,16 @@ paths:
     post:
       tags:
         - "forecast-runs"
-      summary: "Run job for forecast project."
-      description: "Create job for forecast project"
-      operationId: "createForecastJob"
+      summary: "Create new run for forecast project."
+      description: "Create run for forecast project"
+      operationId: "createForecastRun"
       parameters:
-        - name: "forecastJobRequestVO"
+        - in: formData
+          name: file
+          type: file
+          description: The file to upload.
+          required: false 
+        - name: "forecastRunRequestVO"
           in: "body"
           description: "Request Body that contains data required for intialize chronos project for user"
           required: true
@@ -246,42 +251,42 @@ paths:
 
   
   /forecasts/{id}/inputs: 
-    post:
-       tags:
-        - "forecast-inputs"
-       summary: "Upload input csv file"
-       description: "Upload input csv file"
-       operationId: "uploadInput"
-       consumes:
-             - multipart/form-data
-       parameters:
-        - in: "path"
-          name: "id"
-          description: "forecast project ID "
-          required: true
-          type: "string"
-        - in: formData
-          name: file
-          type: file
-          description: The file to upload.
-          required: true 
-       responses:
-        200: 
-         description: "Returns message of succes or failure " 
-         schema:
-           $ref: "#/definitions/GenericMessage"
-        400:
-         description: "Bad Request"
-         schema:
-           $ref: "#/definitions/GenericMessage"
-        401:
-         description: "Request does not have sufficient credentials."
-        403:
-         description: "Request is not authorized."
-        405:
-         description: "Method not allowed"
-        500:
-         description: "Internal error"
+#    post:
+#       tags:
+#        - "forecast-inputs"
+#       summary: "Upload input csv file"
+#       description: "Upload input csv file"
+#       operationId: "uploadInput"
+#       consumes:
+#             - multipart/form-data
+#       parameters:
+#        - in: "path"
+#          name: "id"
+#          description: "forecast project ID "
+#          required: true
+#          type: "string"
+#        - in: formData
+#          name: file
+#          type: file
+#          description: The file to upload.
+#          required: true 
+#       responses:
+#        200: 
+#         description: "Returns message of succes or failure " 
+#         schema:
+#           $ref: "#/definitions/GenericMessage"
+#        400:
+#         description: "Bad Request"
+#         schema:
+#           $ref: "#/definitions/GenericMessage"
+#        401:
+#         description: "Request does not have sufficient credentials."
+#        403:
+#         description: "Request is not authorized."
+#        405:
+#         description: "Method not allowed"
+#        500:
+#         description: "Internal error"
      
     get:
       tags:
@@ -440,16 +445,6 @@ paths:
           
 definitions:
 
-#ForecastCollectionVO--
-#ForecastProjectRequestVO
-#ForecastProjectUpdateRequestVO
-#ForecastVO
-#ForecastRunRequestVO
-#ForecastRunResponseVO
-#InputFilesCollectionVO
-#ForecastRunCollectionVO
-#RunVisualizationVO
-
   InputFilesCollectionVO:
     type: object 
     properties:
@@ -489,6 +484,12 @@ definitions:
         items:
           $ref: "#/definitions/ForecastVO"
   
+  ForecastProjectCreateRequestWrapperVO:
+    type: object 
+    properties:
+      data:
+        $ref: "#/definitions/ForecastProjectCreateRequestVO"
+        
   ForecastProjectCreateRequestVO:
     type: object
     properties: 
@@ -527,7 +528,7 @@ definitions:
   CollaboratorVO:
     type: object
     properties:
-      shortId:
+      id:
         type: string
         description: "Short id of the user"
 #      permissions:
@@ -574,6 +575,9 @@ definitions:
         name:
             type: string
             description: name of the forecast project
+        bucketName:
+            type: string
+            description: returns the name of storage bucket where forecast artifacts are stored
 #        permission:
 #            $ref: "#/definitions/ForecastPermissionVO"
         collaborators:
@@ -602,9 +606,12 @@ definitions:
   ForecastRunRequestVO:
     type: object
     properties:
-        inputFile:
+        savedInputPath:
             type: string
-            description: path of file in minio system
+            description: path of file in minio system, if not giving file in request part
+        saveRequestPart:
+            type: boolean
+            description: flag whether to save file in request part to storage bucket for further runs
         runName:
             type: string
             description: name of the run sample. Example YYYY-MM-DD_run_topic

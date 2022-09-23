@@ -98,9 +98,9 @@ sourceSets {
 
 
 dependencies {
-	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
-	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
-	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7'
+	//implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
+	//implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
+	//implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7'
 
 	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
@@ -127,7 +127,7 @@ dependencies {
         exclude (group: 'com.fasterxml.jackson.core')
     }
 	
-	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.3'
+	//implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.12.3'
 	
 	implementation group: 'com.graphql-java', name: 'graphql-java-extended-scalars', version: '1.0'
 	
