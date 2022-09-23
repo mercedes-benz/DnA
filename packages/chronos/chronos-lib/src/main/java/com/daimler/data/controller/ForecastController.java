@@ -37,6 +37,7 @@ import com.daimler.data.dto.forecast.ForecastRunResponseVO;
 import com.daimler.data.dto.forecast.ForecastVO;
 import com.daimler.data.dto.forecast.InputFileVO;
 import com.daimler.data.dto.forecast.InputFilesCollectionVO;
+import com.daimler.data.dto.forecast.RunUpdateRequestWrapperVO;
 import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.service.forecast.ForecastService;
 
@@ -104,23 +105,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		return new ResponseEntity<>(collection, responseStatus);
 	}
 
-
-//	@Override
-//    @ApiOperation(value = "Upload input csv file", nickname = "uploadInput", notes = "Upload input csv file", response = GenericMessage.class, tags={ "forecast-inputs", })
-//    @ApiResponses(value = { 
-//        @ApiResponse(code = 200, message = "Returns message of succes or failure ", response = GenericMessage.class),
-//        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-//        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-//        @ApiResponse(code = 403, message = "Request is not authorized."),
-//        @ApiResponse(code = 405, message = "Method not allowed"),
-//        @ApiResponse(code = 500, message = "Internal error") })
-//    @RequestMapping(value = "/forecasts/{id}/inputs",
-//        produces = { "application/json" }, 
-//        consumes = { "multipart/form-data" },
-//        method = RequestMethod.POST)
-//    public ResponseEntity<GenericMessage> uploadInput(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=true) MultipartFile file){
-//    	return null;
-//    }
     
 	@Override
 	@ApiOperation(value = "Initialize/Create forecast project for user.", nickname = "createForecastProject", notes = "Create forecast project for user ", response = ForecastProjectResponseVO.class, tags = {
@@ -233,8 +217,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			if (limit == null || limit < 0) {
 				limit = defaultLimit;
 			}
-			//CreatedByVO requestUser = this.userStore.getVO();
-			String user = "fjoebse".toUpperCase();//requestUser.getId();
+			CreatedByVO requestUser = this.userStore.getVO();
+			String user = requestUser.getId();
 			List<ForecastVO> records = service.getAll(limit, offset, user);
 			Long count = service.getCount(user);
 			HttpStatus responseCode = HttpStatus.NO_CONTENT;
@@ -358,6 +342,24 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
     public ResponseEntity<ForecastRunResponseVO> createForecastRun(@ApiParam(value = "Request Body that contains data required for intialize chronos project for user" ,required=true )  @Valid @RequestBody ForecastRunRequestVO forecastRunRequestVO,
     		@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=false) MultipartFile file){
 		
+		return null;
+	}
+
+
+	@Override
+	@ApiOperation(value = "api for databricks to update the run details upon finishing the run", nickname = "updateRun", notes = "", response = GenericMessage.class, tags={ "forecast-runs", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/forecasts/{id}/runs/{rid}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+    public ResponseEntity<GenericMessage> updateRun(@ApiParam(value = "Request Body that contains updated details of run" ,required=true )  @Valid @RequestBody RunUpdateRequestWrapperVO forecastRunUpdateRequestVO){
 		return null;
 	}
 
