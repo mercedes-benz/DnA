@@ -88,6 +88,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
+          reportLink: '',
         },
         kpis: [],
         customer: {
@@ -105,7 +106,8 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
         },
         publish: false,
         openSegments: [],
-        usingQuickPath: false
+        usingQuickPath: false,
+        reportId: null
       },
       publish: false,
       showDeleteReportModal: false,

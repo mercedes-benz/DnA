@@ -163,6 +163,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
+          reportLink: '',
         },
         kpis: [],
         customer: {
@@ -181,6 +182,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         publish: false,
         openSegments: [],
         usingQuickPath: false,
+        reportId: null
       },
       currentState: null,
       showAlertChangesModal: false,
@@ -359,6 +361,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.tags = res.description.tags;
               report.description.division = res.description.division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
+              report.description.reportLink = res.description.reportLink;
               report.customer.customerDetails = res.customer?.customerDetails || [];
               report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
@@ -378,6 +381,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.members.admin = res.members.admin || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
+              report.reportId = res.reportId;
               let subDivisions: ISubDivision[] = [{ id: '0', name: 'None' }];
               const divisionId = res.description.division?.id;
               if (divisionId) {
@@ -421,11 +425,13 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <div className=''>
-            <div className=''>
-              Create Report
+          <div className={Styles.flexLayout}>
+            <div>
+              <div className={Styles.screenLabel}>
+                {this.state.report.reportId ? 'Edit Report' : 'Create Report'}
+              </div>
             </div>
-            <div className={Styles.infoIcon}>
+            <div className={Styles.switchButton}>
               <label className="switch">
                 <span className="label" style={{ marginRight: '5px' }}>
                   {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
@@ -703,6 +709,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     // this.state.report.openSegments.push('Description');
     this.setState({ publishFlag: true });
     this.callApiToSave(true, null);
+    history.push('/allreports');
   };
   protected saveDescription = () => {
     this.state.report.openSegments.push('Description');
@@ -750,7 +757,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         members: report.members,
         publish: isPublished,
         openSegments: report.openSegments,
-        usingQuickPath: report.usingQuickPath
+        usingQuickPath: report.usingQuickPath,
+        reportId: report.reportId
       },
     };
     // create deep copy of an object (won't alter original object)
