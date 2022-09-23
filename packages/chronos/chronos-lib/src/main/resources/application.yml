@@ -27,18 +27,39 @@ spring:
     url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dbname}
     username: ${API_DB_USER:username_XXXXX}
     password: ${API_DB_PASS:password_XXXXX}
+
     driverClassName: org.postgresql.Driver
+    
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+      
+#  cloud:
+#    stream:
+#      default-binder: kafka
+#      kafka:
+#        binder:
+#          brokers: ${NAAS_BROKER:hostXXXX:portXXXX}   
+#
+#
+#kafka:
+#  centralTopic:
+#    name: dnaCentralEventTopic
     
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+
   
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:XXXXXX}
 
 server:
-  port: 9191
+  port: 8989
+
+storage.uri : ${STORAGE_API_BASE_URL:XXXXXX}
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
