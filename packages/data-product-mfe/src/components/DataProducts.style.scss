@@ -90,6 +90,7 @@
     position: relative;
     border: 1px solid #383f49;
     cursor: pointer;
+    min-height: 250px;
     .addicon {
         top: calc(50% - 31px);
         width: 63px;
@@ -174,10 +175,9 @@
     .addlabel {
         font-size: var(--font-size-headline);
         line-height: 23px;
-        margin: 0px 20px;
+        margin: auto 20px;
         position: relative;
         width: auto;
-        top: 10px;
         cursor: pointer;
         word-break: break-word;
     }
