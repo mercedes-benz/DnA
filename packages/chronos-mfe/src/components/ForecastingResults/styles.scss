@@ -36,25 +36,12 @@
   margin: 15px 0;
   padding:  25px 38px;
   position: relative;
+}
 
-  .contextMenu {
-    position: absolute;
-    top: 0;
-    right: -10px;
-    &.open .contextMenuTrigger {
-      z-index: 10;
-      position: relative;
-    }
-
-    .contextMenuTrigger {
-      padding: 12px 10px;
-      cursor: pointer;
-
-      &:hover {
-        color: #00adef;
-      }
-    }
-  }
+.actionMenu {
+  position: absolute;
+  top: 20px;
+  right: 0;
 }
   
 .firstPanel {
