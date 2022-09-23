@@ -1,7 +1,6 @@
 package com.daimler.data.db.json;
 
 import java.util.Date;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -13,15 +12,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Forecast {
+public class UserDetails {
 
-	private String name;
-	private String apiKey;
-	private String bucketName;
-	private UserDetails createdBy;
-	private Date createdOn;
-	private List<UserDetails> collaborators;
-	private List<File> savedInputs;
-	private List<RunDetails> runs;
+	private String id;
+	private String firstName;
+	private String lastName;
+	private String department;
+	private String email;
+	private String mobileNumber;
 	
 }
