@@ -102,7 +102,10 @@ const DataProductCardItem = ({ product, history, user }) => {
               ) : (
                 <div className={Styles.icon}>
                   <i
-                    className={classNames('icon mbc-icon comparison', !isProviderFormSubmitted ? Styles.disabled : '')}
+                    className={classNames(
+                      'icon mbc-icon data-sharing',
+                      !isProviderFormSubmitted ? Styles.disabled : '',
+                    )}
                   />
                 </div>
               )}
@@ -122,10 +125,10 @@ const DataProductCardItem = ({ product, history, user }) => {
             {isCreator ? (
               <>
                 <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-                  <i className="icon delete" tooltip-data="Delete"></i>
+                  <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>
                 </button>
                 <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.dataProductId}`)}>
-                  <i className="icon mbc-icon edit" tooltip-data="Edit"></i>
+                  <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>
                 </button>
               </>
             ) : null}
@@ -133,18 +136,14 @@ const DataProductCardItem = ({ product, history, user }) => {
               className="btn btn-primary"
               onClick={() => history.push({ pathname: '/create', state: { copyId: product?.dataProductId } })}
             >
-              <i className="icon mbc-icon copy" tooltip-data="Create Copy"></i>
+              <i className="icon mbc-icon copy-new" tooltip-data="Create Copy"></i>
             </button>
             <button
-              className={classNames(
-                'btn btn-primary',
-                Styles.shareIcon,
-                !isProviderFormSubmitted ? Styles.disabled : '',
-              )}
+              className={classNames('btn btn-primary', !isProviderFormSubmitted ? Styles.disabled : '')}
               disabled={!isProviderFormSubmitted}
               onClick={() => onShare(product?.dataProductId)}
             >
-              <span tooltip-data="Share"></span>
+              <i className={'icon mbc-icon share'} tooltip-data="Share"></i>
             </button>
           </div>
         </div>
