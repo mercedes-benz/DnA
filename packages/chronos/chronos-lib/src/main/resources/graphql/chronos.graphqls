@@ -1,0 +1,68 @@
+scalar ISODate
+
+type ForecastCollectionVO{
+   totalCount: Int,
+   records: [ForecastVO]
+}
+                
+type ForecastVO {
+    id: ID!,
+    name: String,
+    bucketName: String,
+    apiKey: String,
+    collaborators: [CollaboratorVO],
+    createdBy: CreatedByVO,
+    createdOn: ISODate,
+    savedInputs: [InputFileVO],
+    runs: [RunVO]  
+}
+
+type Query {
+    forecastProjects(offset: Int, limit: Int): ForecastCollectionVO!
+    forecastProject(string: ID):ForecastVO
+}
+
+type SolutionAnalyticsVO{
+	languages: [LanguageVO],
+	algorithms: [AlgorithmVO],
+	visualizations: [VisualizationVO]
+}
+
+type CreatedByVO{
+    id:String!,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String
+}
+        
+type CollaboratorVO{
+    id: String,
+    firstName: String,
+    lastName: String,
+    department: String,
+    email: String,
+    mobileNumber: String
+}
+
+enum ConfigurationFileEnum{
+    DEFAULT_SETTINGS
+}
+
+type RunVO{
+        id: String,
+        jobId: Long,
+        runId: Long,
+        inputFile: String,
+        runName: String,
+        configurationFile: ConfigurationFileEnum
+}
+       
+type InputFileVO{
+	id: String,
+	name: String,
+	path: String,
+	createdBy: String,
+	createdOn: ISODate
+}
