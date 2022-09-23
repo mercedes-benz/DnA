@@ -69,7 +69,6 @@ import com.daimler.data.util.ConstantsUtility;
 import io.jsonwebtoken.lang.Strings;
 
 @Service
-@SuppressWarnings(value = "unused")
 public class BaseDataProductService extends BaseCommonService<DataProductVO, DataProductNsql, String>
 		implements DataProductService {
 
@@ -150,18 +149,26 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	public ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO requestVO) {
 		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
 		DataProductVO dataProductVO = new DataProductVO();
-		ProviderVO providerVO = new ProviderVO();
 		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String uniqueProductName = requestVO.getDataProductName();
+			if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
+				if (providerResponseVO.getUsers().stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Provider cannot be added as a consumer");
+					messages.add(message);
+					responseVO.setData(requestVO);
+					responseVO.setErrors(messages);
+					LOGGER.error("DataProduct {} , failed to create", uniqueProductName);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}
 			DataProductVO existingVO = super.getByUniqueliteral("dataProductName", uniqueProductName);
 			if (existingVO != null && existingVO.getDataProductName() != null) {
-				providerVO.setProviderInformation(existingVO.getProviderInformation());
-				providerVO.setId(existingVO.getId());
-				providerVO.setDataProductId(existingVO.getDataProductId());
-				providerVO.setDataProductName(existingVO.getDataProductName());
-				providerVO.setRecordStatus(existingVO.getRecordStatus());
-				responseVO.setData(providerVO);
+				responseVO.setData(getProviderVOFromDataProductVO(existingVO));
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("DataProduct already exists.");
@@ -172,9 +179,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			}
 			providerResponseVO.setCreatedBy(this.userStore.getVO());
 			providerResponseVO.setCreatedDate(new Date());
-			if (providerResponseVO.isProviderFormSubmitted() == null)
+			if (providerResponseVO.isProviderFormSubmitted() == null) {
 				providerResponseVO.setProviderFormSubmitted(false);
-
+			}
 			dataProductVO.setProviderInformation(providerResponseVO);
 			dataProductVO.setDataProductName(uniqueProductName);
 			dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
@@ -182,18 +189,11 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			dataProductVO.setDataProductId("DPF-" + String.format("%05d", dataProductRepository.getNextSeqId()));
 			dataProductVO.setRecordStatus(ConstantsUtility.OPEN);
 			dataProductVO.setId(null);
-			if (providerResponseVO != null && providerResponseVO.getContactInformation() != null) {
-				updateDepartments(providerResponseVO.getContactInformation().getDepartment());
-			}
+			updateDepartments(providerResponseVO.getContactInformation().getDepartment());
+
 			DataProductVO vo = this.create(dataProductVO);
 			if (vo != null && vo.getId() != null) {
-				providerVO.setProviderInformation(vo.getProviderInformation());
-				providerVO.setId(vo.getId());
-				providerVO.setDataProductId(vo.getDataProductId());
-				providerVO.setDataProductName(vo.getDataProductName());
-				providerVO.setRecordStatus(vo.getRecordStatus());
-				providerVO.setNotifyUsers(vo.isNotifyUsers());
-				responseVO.setData(providerVO);
+				responseVO.setData(getProviderVOFromDataProductVO(vo));
 				LOGGER.info("DataProduct {} created successfully", uniqueProductName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 			} else {
@@ -260,10 +260,23 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	public ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO requestVO) {
 		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
 		DataProductVO dataProductVO = new DataProductVO();
-		ProviderVO providerVO = new ProviderVO();
 		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String id = requestVO.getId();
+			if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
+				if (providerResponseVO.getUsers().stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
+					List<MessageDescription> messages = new ArrayList<>();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Provider cannot be added as a consumer");
+					messages.add(message);
+					responseVO.setData(requestVO);
+					responseVO.setErrors(messages);
+					LOGGER.error("DataProduct with id {} , failed to update", id);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+			}
 			DataProductVO existingVO = super.getById(id);
 			DataProductVO mergedVO = null;
 			if (providerResponseVO.isProviderFormSubmitted() == null) {
@@ -285,19 +298,11 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setRecordStatus(existingVO.getRecordStatus());
 					dataProductVO.setId(id);
 					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
-					if (providerResponseVO != null && providerResponseVO.getContactInformation() != null) {
-						updateDepartments(providerResponseVO.getContactInformation().getDepartment());
-					}
+
+					updateDepartments(providerResponseVO.getContactInformation().getDepartment());
 					mergedVO = this.create(dataProductVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
-						providerVO.setProviderInformation(mergedVO.getProviderInformation());
-						providerVO.setId(mergedVO.getId());
-						providerVO.setDataProductName(mergedVO.getDataProductName());
-						providerVO.setRecordStatus(mergedVO.getRecordStatus());
-						providerVO.setNotifyUsers(mergedVO.isNotifyUsers());
-						providerVO.setDataProductId(mergedVO.getDataProductId());
-						responseVO.setData(providerVO);
-						responseVO.setErrors(null);
+						responseVO.setData(getProviderVOFromDataProductVO(mergedVO));
 						LOGGER.info("DataProduct with id {} updated successfully", id);
 						this.publishEventMessages(existingVO, mergedVO);
 						return new ResponseEntity<>(responseVO, HttpStatus.OK);
@@ -378,9 +383,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					dataProductVO.setId(id);
 					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
 					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
-					if (consumerResponseVO != null && consumerResponseVO.getContactInformation() != null) {
-						updateDepartments(consumerResponseVO.getContactInformation().getDepartment());
-					}
+					updateDepartments(consumerResponseVO.getContactInformation().getDepartment());
 					mergedVO = this.create(dataProductVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
 						consumerVO.setConsumerInformation(mergedVO.getConsumerInformation());
@@ -391,7 +394,6 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						consumerVO.setDataProductName(mergedVO.getDataProductName());
 						consumerVO.setRecordStatus(mergedVO.getRecordStatus());
 						responseVO.setData(consumerVO);
-						responseVO.setErrors(null);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
 						this.publishEventMessages(existingVO, mergedVO);
 						return new ResponseEntity<>(responseVO, HttpStatus.OK);
@@ -440,16 +442,15 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	private void publishEventMessages(DataProductVO prevDataProductVO, DataProductVO currDataProductVO) {
 		try {
 			ProviderResponseVO currProviderVO = currDataProductVO.getProviderInformation();
-			ConsumerResponseVO currConsumerVO = currDataProductVO.getConsumerInformation();
-			ConsumerResponseVO prevConsumerVO = prevDataProductVO.getConsumerInformation();
 			if (currDataProductVO.isNotifyUsers()) {
 				CreatedByVO currentUser = this.userStore.getVO();
-				String resourceID = currDataProductVO.getId();
+				String resourceID = currDataProductVO.getDataProductId();
 				String dataProductName = currDataProductVO.getDataProductName();
 				String eventType = "";
 				String eventMessage = "";
 				String userName = super.currentUserName(currentUser);
 				String userId = currentUser != null ? currentUser.getId() : "dna_system";
+				String userEmailId = currentUser != null ? currentUser.getEmail() : "";
 				List<ChangeLogVO> changeLogs = new ArrayList<>();
 				List<String> teamMembers = new ArrayList<>();
 				List<String> teamMembersEmails = new ArrayList<>();
@@ -457,11 +458,13 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					for (TeamMemberVO user : currProviderVO.getUsers()) {
 						if (user != null) {
 							String shortId = user.getShortId();
-							if (StringUtils.hasText(shortId) && !teamMembers.contains(shortId)) {
+							if (StringUtils.hasText(shortId) && !teamMembers.contains(shortId)
+									&& !shortId.equalsIgnoreCase(userId)) {
 								teamMembers.add(shortId);
 							}
 							String emailId = user.getEmail();
-							if (StringUtils.hasText(emailId) && !teamMembersEmails.contains(emailId)) {
+							if (StringUtils.hasText(emailId) && !teamMembersEmails.contains(emailId)
+									&& !emailId.equalsIgnoreCase(userEmailId)) {
 								teamMembersEmails.add(emailId);
 							}
 						}
@@ -472,19 +475,19 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					String providerUserId = currProviderVO.getCreatedBy().getId();
 					String providerEmailId = currProviderVO.getCreatedBy().getEmail();
 
-					if (StringUtils.hasText(providerUserId)) {
+					if (StringUtils.hasText(providerUserId) && !teamMembers.contains(providerUserId)
+							&& !providerUserId.equalsIgnoreCase(userId)) {
 						teamMembers.add(providerUserId);
 					}
 
-					if (StringUtils.hasText(providerEmailId)) {
+					if (StringUtils.hasText(providerEmailId) && !teamMembersEmails.contains(providerEmailId)
+							&& !providerEmailId.equalsIgnoreCase(userEmailId)) {
 						teamMembersEmails.add(providerEmailId);
 					}
 				}
 
 				if (!prevDataProductVO.isPublish() && currDataProductVO.isPublish()) {
 					eventType = "DataProduct - Consumer form Published";
-					// teamMembers.remove(publishingUserId);
-					teamMembersEmails.remove(0);
 					eventMessage = "A Minimum Information Documentation data transfer is complete. [view]("
 							+ dataProductBaseUrl + "summary/" + resourceID + ")";
 					LOGGER.info("Publishing message on consumer form submission for dataProduct {} by userId {}",
@@ -569,6 +572,18 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			LOGGER.error("Failed to delete dataProduct with id {} , due to internal error.", id);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	private ProviderVO getProviderVOFromDataProductVO(DataProductVO vo) {
+		ProviderVO providerVO = new ProviderVO();
+		providerVO.setProviderInformation(vo.getProviderInformation());
+		providerVO.setId(vo.getId());
+		providerVO.setDataProductId(vo.getDataProductId());
+		providerVO.setDataProductName(vo.getDataProductName());
+		providerVO.setRecordStatus(vo.getRecordStatus());
+		providerVO.setNotifyUsers(vo.isNotifyUsers());
+		return providerVO;
+
 	}
 
 }
