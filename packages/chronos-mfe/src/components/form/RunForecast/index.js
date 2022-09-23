@@ -16,13 +16,15 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import { Link } from 'react-router-dom';
 
+import IconUpload from '../../../assets/icon_upload.png';
+
 const SelectedFile = ({ setFiles }) => {
   return (
     <>
       <div className={Styles.selectedFile}>
         <div>
           <span>Input File</span>
-          <span>{'MS_tms_fc.xls'}</span>
+          <span>{'MS_tms_fc.xlsx'}</span>
         </div>
         <span>
           <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
@@ -36,7 +38,7 @@ const SelectedFile = ({ setFiles }) => {
   );
 };
 
-const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) => {
+const RunForecast = ({ onSave, configurationFile, frequency }) => {
   const {
     register,
     formState: { errors, isSubmitting },
@@ -50,7 +52,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
   const [showExistingFiles, setShowExistingFiles] = useState(false);
   const [existingFiles, setExistingFiles] = useState([]);
 
-  const isValidFile = (file) => ['csv', 'xls', 'xlsx'].includes(file?.name?.split('.')[1]);
+  const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
 
   const frequencyTooltipContent =
     'Please select a frequency for your data in the field below.\n Make sure the datetimes in the first column of the data you upload matches the frequency selected here.\n If your data has no inherent frequency or the frequency is not available in the list, select "No frequency".\n In this case, the first column of your data should contain sortable indices like [1, 2, 3...].';
@@ -76,7 +78,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
   };
 
   const uploadProps = {
-    accept: '.xls,.csv,.xlsx',
+    accept: '.csv,.xlsx',
     action: ``,
     onStart: () => {
       ProgressIndicator.show(1);
@@ -151,8 +153,8 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
               <option id="existingFileOption" value={0}>
                 Choose
               </option>
-              <option value={1}>MS_tms_fc.xls</option>
-              <option value={2}>MS_tms_fc2.xls</option>
+              <option value={1}>MS_tms_fc.xlsx</option>
+              <option value={2}>MS_tms_fc2.xlsx</option>
               {existingFiles?.map((obj) => (
                 <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                   {obj.name}
@@ -163,7 +165,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
           <span className={classNames('error-message')}>{errors?.existingFile?.message}</span>
         </div>
       </div>
-      <p>MS_tms_fc.xls</p>
+      <p>MS_tms_fc.xlsx</p>
       <div className={Styles.flexLayout}>
         <div>
           <div className={Styles.uploadInfo}>
@@ -213,7 +215,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                 <Link to="help">forecasting guidelines</Link>.
               </p>
               <p>
-                For a quick start you can download the default template (.xls) <a href="#/">right here</a>.
+                For a quick start you can download the default template (.xlsx) <a href="#/">right here</a>.
               </p>
             </div>
             {!isSelectedFile ? (
@@ -227,14 +229,13 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                   <Upload {...uploadProps} className={Styles.rcUpload}>
                     <div className={Styles.dragDrop}>
                       <div className={Styles.icon}>
-                        <button style={{ display: 'none' }}></button>
+                        <img src={IconUpload} />
                       </div>
                       <h4>Drag & Drop your Input File here to upload</h4>
                     </div>
                     <div className={Styles.helperTextContainer}>
                       <div className={Styles.browseHelperText}>
-                        You can also <button className={Styles.selectExisitingFiles}>browse local files</button> (.xls,
-                        .csv)
+                        You can also <button className={Styles.selectExisitingFiles}>browse local files</button> (.xlsx)
                       </div>
                       <div
                         className={Styles.browseHelperText}
@@ -368,9 +369,11 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                       <option id="frequencyOption" value={0}>
                         Choose
                       </option>
-                      <option value={1}>Daily</option>
-                      <option value={2}>Weekly</option>
-                      <option value={3}>Monthly</option>
+                      <option value={'D'}>Daily</option>
+                      <option value={'W'}>Weekly</option>
+                      <option value={'M'}>Monthly</option>
+                      <option value={'Y'}>Yearly</option>
+                      <option value={'no_frequency'}>No Frequency</option>
                       {frequency?.map((obj) => (
                         <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                           {obj.name}
@@ -382,37 +385,21 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                 </div>
               </div>
               <div className={Styles.forecastHorizonContainer}>
-                <div
-                  className={classNames(
-                    `input-field-group include-error ${errors?.forecastHorizon?.message ? 'error' : ''}`,
-                    Styles.tooltipIcon,
-                  )}
-                >
+                <div className={classNames('input-field-group include-error', errors.forecastHorizon ? 'error' : '', Styles.tooltipIcon)}>
                   <label id="forecastHorizonLabel" htmlFor="forecastHorizonField" className="input-label">
                     Forecast Horizon <sup>*</sup>
                     <i className="icon mbc-icon info" tooltip-data={forecastHorizonTooltipContent} />
                   </label>
-                  <div className="custom-select" onBlur={() => trigger('forecastHorizon')}>
-                    <select
-                      id="forecastHorizonField"
-                      required={true}
-                      required-error={'*Missing entry'}
-                      {...register('forecastHorizon', {
-                        validate: (value) => value !== '0' || '*Missing entry',
-                      })}
-                    >
-                      <option id="forecastHorizonOption" value={0}>
-                        Choose
-                      </option>
-                      <option value={1}>2033</option>
-                      {forecastHorizon?.map((obj) => (
-                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                          {obj.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <span className={classNames('error-message')}>{errors?.forecastHorizon?.message}</span>
+                  <input
+                    {...register('forecastHorizon', { required: '*Missing entry'})}
+                    type="number"
+                    className="input-field"
+                    id="forecastHorizonField"
+                    defaultValue={1}
+                    placeholder="eg. 1"
+                    autoComplete="off"
+                  />
+                  <span className={classNames('error-message')}>{errors.forecastHorizon?.message}</span>
                 </div>
               </div>
             </div>

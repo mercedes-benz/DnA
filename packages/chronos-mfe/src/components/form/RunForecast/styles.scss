@@ -16,7 +16,7 @@
         }
         .dragDrop {
             position: absolute;
-            top: 50%;
+            top: 45%;
             left: 50%;
             transform: translate(-50%, -50%);
             display: block;
@@ -25,19 +25,11 @@
         }
     }
     .icon {
-        display: flex;
-        justify-content: center;
-        width: 75px;
         margin-left: auto;
         margin-right: auto;
-        height: 75px;
-        border-radius: 50%;
-        border: 3px solid #697582;
-        border-bottom-style: none;
-        &::after {
-            content: "\2191";
-            font-size: 4rem;
-            color: #00adef;
+        margin-bottom: 30px;
+        img {
+            max-width: 90px;
         }
     }
     h4 {
@@ -170,4 +162,13 @@
             cursor: pointer;
         }
     }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
 }
