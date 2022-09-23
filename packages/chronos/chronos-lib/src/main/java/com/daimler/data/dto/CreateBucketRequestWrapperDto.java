@@ -1,6 +1,6 @@
-package com.daimler.data.db.json;
+package com.daimler.data.dto;
 
-import java.util.Date;
+import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -12,11 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class File {
+public class CreateBucketRequestWrapperDto implements Serializable{
 
-	private String createdBy;
-	private Date createdOn;
-	private String name;
-	private String path;
+	private static final long serialVersionUID = 1L;
+	private CreateBucketRequestDto data;
 	
 }
