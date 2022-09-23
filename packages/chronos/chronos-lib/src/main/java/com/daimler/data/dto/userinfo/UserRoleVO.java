@@ -14,93 +14,91 @@ import javax.validation.constraints.*;
  */
 @Validated
 
+public class UserRoleVO {
+	@JsonProperty("id")
+	private String id = null;
 
-public class UserRoleVO   {
-  @JsonProperty("id")
-  private String id = null;
+	@JsonProperty("name")
+	private String name = null;
 
-  @JsonProperty("name")
-  private String name = null;
+	public UserRoleVO id(String id) {
+		this.id = id;
+		return this;
+	}
 
-  public UserRoleVO id(String id) {
-    this.id = id;
-    return this;
-  }
+	/**
+	 * ID of User Role
+	 * 
+	 * @return id
+	 **/
+	@ApiModelProperty(value = "ID of User Role")
 
-  /**
-   * ID of User Role
-   * @return id
-  **/
-  @ApiModelProperty(value = "ID of User Role")
+	public String getId() {
+		return id;
+	}
 
+	public void setId(String id) {
+		this.id = id;
+	}
 
-  public String getId() {
-    return id;
-  }
+	public UserRoleVO name(String name) {
+		this.name = name;
+		return this;
+	}
 
-  public void setId(String id) {
-    this.id = id;
-  }
+	/**
+	 * Name of the User Role
+	 * 
+	 * @return name
+	 **/
+	@ApiModelProperty(value = "Name of the User Role")
 
-  public UserRoleVO name(String name) {
-    this.name = name;
-    return this;
-  }
+	@Pattern(regexp = "[a-zA-Z\\s]+")
+	@Size(min = 1)
+	public String getName() {
+		return name;
+	}
 
-  /**
-   * Name of the User Role
-   * @return name
-  **/
-  @ApiModelProperty(value = "Name of the User Role")
+	public void setName(String name) {
+		this.name = name;
+	}
 
-@Pattern(regexp="[a-zA-Z\\s]+") @Size(min=1) 
-  public String getName() {
-    return name;
-  }
+	@Override
+	public boolean equals(java.lang.Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		UserRoleVO userRoleVO = (UserRoleVO) o;
+		return Objects.equals(this.id, userRoleVO.id) && Objects.equals(this.name, userRoleVO.name);
+	}
 
-  public void setName(String name) {
-    this.name = name;
-  }
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, name);
+	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("class UserRoleVO {\n");
 
-  @Override
-  public boolean equals(java.lang.Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    UserRoleVO userRoleVO = (UserRoleVO) o;
-    return Objects.equals(this.id, userRoleVO.id) &&
-        Objects.equals(this.name, userRoleVO.name);
-  }
+		sb.append("    id: ").append(toIndentedString(id)).append("\n");
+		sb.append("    name: ").append(toIndentedString(name)).append("\n");
+		sb.append("}");
+		return sb.toString();
+	}
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, name);
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class UserRoleVO {\n");
-    
-    sb.append("    id: ").append(toIndentedString(id)).append("\n");
-    sb.append("    name: ").append(toIndentedString(name)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(java.lang.Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
+	/**
+	 * Convert the given object to string with each line indented by 4 spaces
+	 * (except the first line).
+	 */
+	private String toIndentedString(java.lang.Object o) {
+		if (o == null) {
+			return "null";
+		}
+		return o.toString().replace("\n", "\n    ");
+	}
 }
-

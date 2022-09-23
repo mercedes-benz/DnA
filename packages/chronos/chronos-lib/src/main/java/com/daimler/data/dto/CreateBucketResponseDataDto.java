@@ -1,6 +1,4 @@
-package com.daimler.data.db.json;
-
-import java.util.Date;
+package com.daimler.data.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -12,11 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class File {
+public class CreateBucketResponseDataDto {
 
-	private String createdBy;
-	private Date createdOn;
-	private String name;
-	private String path;
+	private String id;
+	private String bucketName;
 	
 }
