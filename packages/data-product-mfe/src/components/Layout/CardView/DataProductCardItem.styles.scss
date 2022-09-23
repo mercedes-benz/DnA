@@ -86,18 +86,18 @@
       }
       .icon {
         font-size: 20px;
-        transform: scale(2, -1) translate(0px, 10px);
+        transform: scale(-1, -1) translate(0px, 10px);
         color: #00adef;
       }
       .customIcon {
         div {
           position: relative;
           font-size: 30px;
-          transform: scale(1.3);
+          transform: scale(1);
           &::after {
             content: "\21C0";
             position: absolute;
-            transform: rotate(180deg) translate(27px, -2px);
+            transform: rotate(180deg) translate(27px, -5px);
             color: #697582;
           }
           &::before {
@@ -128,19 +128,10 @@
   div:first-child {
     margin: 7px 0px;
   }
-  .shareIcon {
-    span::after {
-      content: "\027A6";
-      color: #697582;
-      font-size: 22px;
-    }
-    &.disabled {
-      background: transparent !important;
-      cursor: not-allowed;
-      span::after {
-        color: #383f49;
-      }
-    }
+  .disabled {
+    background: transparent !important;
+    cursor: not-allowed;
+    color: #697582;
   }
 }
 .btnGrp {

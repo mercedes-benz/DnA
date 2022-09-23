@@ -60,8 +60,8 @@ const DataProductListItem = ({ product, history, user }) => {
   };
 
   useEffect(() => {
-    document.addEventListener('click', handleContextMenuOutside);
-    return () => document.removeEventListener('click', handleContextMenuOutside);
+    document.addEventListener('click', handleContextMenuOutside, true);
+    return () => document.removeEventListener('click', handleContextMenuOutside, true);
   }, []);
 
   return (
@@ -169,7 +169,7 @@ const DataProductListItem = ({ product, history, user }) => {
                   <div className={Styles.icon}>
                     <i
                       className={classNames(
-                        'icon mbc-icon comparison',
+                        'icon mbc-icon data-sharing',
                         !isProviderFormSubmitted ? Styles.disabled : '',
                       )}
                     />
