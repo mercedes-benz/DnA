@@ -1,8 +1,8 @@
-package com.daimler.data.db.json;
+package com.daimler.data.dto;
 
-import java.util.Date;
 import java.util.List;
 
+import com.daimler.data.dto.forecast.CreatedByVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -13,15 +13,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Forecast {
+public class CreateBucketRequestDto {
 
-	private String name;
-	private String apiKey;
 	private String bucketName;
-	private UserDetails createdBy;
-	private Date createdOn;
-	private List<UserDetails> collaborators;
-	private List<File> savedInputs;
-	private List<RunDetails> runs;
+	private List<CollaboratorsDto> collaborators;
+	private String classificationType;
+	private Boolean piiData;
+	private CreatedByVO creator;
+	private Boolean termsOfUse;
 	
 }
