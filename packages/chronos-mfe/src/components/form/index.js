@@ -19,6 +19,7 @@ import RunForecast from './RunForecast';
 import ForecastResults from './ForecastResults';
 import ManageConnections from './ManageConnections';
 import ProjectDetails from './ProjectDetails';
+import Breadcrumb from '../shared/breadcrumb/Breadcrumb';
 
 const tabs = {
   runForecast: { runName: '', configuration: '0', frequency: '0', forecastHorizon: '0', comment: '' },
@@ -107,14 +108,10 @@ const ForecastForm = ({ user }) => {
   return (
     <FormProvider {...methods}>
       <div className={classNames(Styles.mainPanel)}>
-        <div className={classNames(Styles.breadcrumb)}>
-          <ol>
-            <li><a href='#/'>Start</a></li>
-            <li><a href='#/services'>My Services</a></li>
-            <li><Link to='/'>Chronos Forecasting</Link></li>
-            <li>Project Name</li>
-          </ol>
-        </div>
+        <Breadcrumb>
+          <li><Link to='/'>Chronos Forecasting</Link></li>
+          <li>Project Name</li>
+        </Breadcrumb>
         <h3 className={classNames(Styles.title)}>Forecasting Project Name</h3>
         <div id="data-product-tabs" className="tabs-panel">
           <div className="tabs-wrapper">
