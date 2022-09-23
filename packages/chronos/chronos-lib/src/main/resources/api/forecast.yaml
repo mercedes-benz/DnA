@@ -243,51 +243,14 @@ paths:
         500:
           description: "Internal error"
  
-  # Fetch all valid userinfo or by intent
+  
   #
-  #  supported http methods GET, POST and DELETE
+  #  supported http methods GET
   #
-  # path example ../forecasts/{id}
+  # path example ../forecasts/{id}/inputs
 
   
   /forecasts/{id}/inputs: 
-#    post:
-#       tags:
-#        - "forecast-inputs"
-#       summary: "Upload input csv file"
-#       description: "Upload input csv file"
-#       operationId: "uploadInput"
-#       consumes:
-#             - multipart/form-data
-#       parameters:
-#        - in: "path"
-#          name: "id"
-#          description: "forecast project ID "
-#          required: true
-#          type: "string"
-#        - in: formData
-#          name: file
-#          type: file
-#          description: The file to upload.
-#          required: true 
-#       responses:
-#        200: 
-#         description: "Returns message of succes or failure " 
-#         schema:
-#           $ref: "#/definitions/GenericMessage"
-#        400:
-#         description: "Bad Request"
-#         schema:
-#           $ref: "#/definitions/GenericMessage"
-#        401:
-#         description: "Request does not have sufficient credentials."
-#        403:
-#         description: "Request is not authorized."
-#        405:
-#         description: "Method not allowed"
-#        500:
-#         description: "Internal error"
-     
     get:
       tags:
         - "forecast-inputs"
@@ -405,7 +368,36 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+    
+    put:
+      tags:
+        - "forecast-runs"
+      summary: "api for databricks to update the run details upon finishing the run"
+      operationId: "updateRun"
+      parameters:
+        - name: "forecastRunUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains updated details of run"
+          required: true
+          schema:
+            $ref: "#/definitions/RunUpdateRequestWrapperVO" 
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"   
           
     delete:
       tags:
@@ -496,8 +488,8 @@ definitions:
         name:
             type: string
             description: name of the forecast project
-#        permission:
-#            $ref: "#/definitions/ForecastPermissionVO"
+        permission:
+            $ref: "#/definitions/ForecastPermissionVO"
         collaborators:
             type: array
             items:
@@ -523,7 +515,6 @@ definitions:
             type: boolean
         write:
             type: boolean
-            
             
   CollaboratorVO:
     type: object
@@ -654,6 +645,50 @@ definitions:
             type: string
             description: error message if fails
   
+  RunStateVO:
+    type: object
+    properties:
+      life_cycle_state: 
+        type: string
+        enum: [PENDING,RUNNING,TERMINATING,TERMINATED,INTERNAL_ERROR,SKIPPED]
+      result_state:
+        type: string
+        enum: [SUCCESS,FAILED,TIMEDOUT,CANCELED]
+      state_message:
+        type: string
+      user_cancelled_or_timedout:
+        type: boolean
+  
+  RunUpdateRequestWrapperVO:
+    type: object
+    properties:
+        data:
+          $ref: "#/definitions/RunUpdateRequestVO"
+          
+  RunUpdateRequestVO:
+    type: object
+    properties:
+        state:
+          $ref: "#/definitions/RunStateVO"
+        ranBy:
+            type: string
+            description: "Short Id of user who triggered the run"
+        createdBy:
+            type: string
+            description: "user who created the run"
+        startTime:
+            type: string
+            description: "time when run started"
+        endTime:
+            type: string
+            description: "time when run ended"
+        setupDuration:
+            type: string
+            description: "time taken for setup"
+        executionDuration:
+            type: string
+            description: "time taken to execute"
+                  
   RunVO:
     type: object
     properties:
@@ -687,36 +722,26 @@ definitions:
         comment:
             type: string
             description: "Comments for the run"
-        runType:
+        state:
+          $ref: "#/definitions/RunStateVO"
+        ranBy:
             type: string
-            description:
-        attemptNumber:
-            type: number
-            description:
-        numberInJob:
-            type: number
-            description:
-        creatorUserName:
+            description: "Short Id of user who triggered the run"
+        createdBy:
             type: string
-            description:
-        originalAttemptRunId:
-            type: number
-            description:
+            description: "user who created the run"
         startTime:
             type: string
-            description:
+            description: "time when run started"
         endTime:
             type: string
-            description:
-        trigger:
-            type: string
-            description:
+            description: "time when run ended"
         setupDuration:
             type: string
-            description:
+            description: "time taken for setup"
         executionDuration:
             type: string
-            description:
+            description: "time taken to execute"
 
   
   ForecastRunResponseVO:
@@ -766,8 +791,7 @@ definitions:
       message:
         type: string
         description: "message"
-
-          
+     
   CreatedByVO:
     type: object
     properties:
