@@ -17,6 +17,7 @@ import ProjectsCardItem from './ProjectCardItem';
 import { IconAvatarNew } from './shared/icons/iconAvatarNew/IconAvatarNew';
 import FirstRun from './shared/firstRun/FirstRun';
 import Notification from '../common/modules/uilab/js/src/notification';
+import Breadcrumb from './shared/breadcrumb/Breadcrumb';
 
 const MOCK_FORECAST = {
   id: 1,
@@ -499,13 +500,9 @@ const ForeCastingProjects = () => {
             <FirstRun openCreateProjectModal={() => setCreateProject(true)} />
           ) : (
             <>
-              <div className={classNames(Styles.breadcrumb)}>
-                <ol>
-                  <li><a href='#/'>Start</a></li>
-                  <li><a href='#/services'>My Services</a></li>
-                  <li>Chronos Forecasting</li>
-                </ol>
-              </div>
+              <Breadcrumb>
+                <li>Chronos Forecasting</li>
+              </Breadcrumb>
 
               <div className={classNames(Styles.caption)}>
                 <h3>My Forecasting Projects</h3>
