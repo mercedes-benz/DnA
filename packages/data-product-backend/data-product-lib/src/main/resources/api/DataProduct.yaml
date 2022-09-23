@@ -468,7 +468,8 @@ definitions:
       providerInformation:
         $ref: "#/definitions/ProviderResponseVO"
     required:
-      - dataProductName         
+      - dataProductName
+      - providerInformation    
       
   ProviderResponseVO:
     type: object
@@ -513,6 +514,8 @@ definitions:
               "IdentifiyingTransnationalDataTransfer",
               "SpecifyDeletionRequirements"
             ]
+    required:
+      - contactInformation         
                      
             
   ConsumerVO:
@@ -540,7 +543,7 @@ definitions:
         description: "Flag to notify users."                        
     required:
       - id
-      - publish
+      - consumerInformation
       
   ConsumerResponseVO:
     type: object
@@ -568,7 +571,9 @@ definitions:
             [
               "ContactInformation",
               "IdentifyingPersonalRelatedData"
-            ]                                                                                                  
+            ]
+    required:
+      - contactInformation                                                                                                              
 
   DataProductVO:
     type: object
