@@ -15,21 +15,6 @@
     padding: 5px 8px;
     background-color: #1c2026;
 }
-.contextMenu {
-    position: relative;
-    &.open .contextMenuTrigger {
-      z-index: 10;
-      position: relative;
-    }
-    .contextMenuTrigger {
-      padding: 12px 10px;
-      cursor: pointer;
-      margin-right: -14px;
-      &:hover {
-        color: #00adef;
-      }
-    }
-}
 .dataRow {
   &:hover {
     background-color: #1c2026;
