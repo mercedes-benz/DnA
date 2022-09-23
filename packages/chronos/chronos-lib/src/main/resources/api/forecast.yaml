@@ -516,13 +516,13 @@ definitions:
 #            description: id of forecast project
 #        manageconnections 
             
-#  ForecastPermissionVO:
-#    type: object
-#    properties:
-#        read:
-#            type: boolean
-#        write:
-#            type: boolean
+  ForecastPermissionVO:
+    type: object
+    properties:
+        read:
+            type: boolean
+        write:
+            type: boolean
             
             
   CollaboratorVO:
@@ -531,9 +531,9 @@ definitions:
       id:
         type: string
         description: "Short id of the user"
-#      permissions:
-#        $ref: "#/definitions/ForecastPermissionVO"
-#        description: "Read write permissions"
+      permissions:
+        $ref: "#/definitions/ForecastPermissionVO"
+        description: "Read write permissions"
       firstName:
         type: string
         description: "First Name of the user"
@@ -552,7 +552,7 @@ definitions:
         description: "Mobile number of the user"
      
       required:
-        - shortId
+        - id
         - firstName
         - lastName
         - department
@@ -578,8 +578,8 @@ definitions:
         bucketName:
             type: string
             description: returns the name of storage bucket where forecast artifacts are stored
-#        permission:
-#            $ref: "#/definitions/ForecastPermissionVO"
+        permission:
+            $ref: "#/definitions/ForecastPermissionVO"
         collaborators:
             type: array
             items:
@@ -678,12 +678,12 @@ definitions:
             description: "Chronos default config yml"
         frequency:
             type: string
-            enum: [Monthly]
-            description: "frequency parameter. For now supported only Monthly-M"
+            enum: [Daily,Weekly,Monthly,Yearly,No_Frequency]
+            description: "frequency parameter."
         forecastHorizon:
             type: string
-            enum: [Default-Settings]
-            description: "Chronos default config yml"
+            minimum: 1
+            description: "Any number greater than 1"
         comment:
             type: string
             description: "Comments for the run"
