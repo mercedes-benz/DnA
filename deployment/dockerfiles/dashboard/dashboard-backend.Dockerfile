@@ -5,9 +5,8 @@ WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 #Step-2
 FROM openjdk:17-jdk
+USER 1000
 ENV ARTIFACT_NAME=dashboard-lib-1.0.0.jar
-ENV APP_HOME=/usr/app/
-WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/dashboard-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
 
 EXPOSE 7173
