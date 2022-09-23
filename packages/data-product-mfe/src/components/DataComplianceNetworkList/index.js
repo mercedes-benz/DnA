@@ -177,7 +177,11 @@ const DataComplianceNetworkList = (props) => {
     setData();
     dataComplianceNetworkListApi.getEntityList(0, 0, sortBy.name, 'asc')
     .then((res) => {
-      setEntityList(res.data.records);
+      res.data?.records?.map((item) => {
+        item['name'] = item.entityId.toString() + ' - ' + item.entityName.toString();
+        return item;
+      });
+      setEntityList(res.data);
     })
     .catch((err) => {
       console.log(err);
@@ -202,7 +206,6 @@ const DataComplianceNetworkList = (props) => {
     
     await dataComplianceNetworkListApi.getDataComplianceNetworkList(0, 0, sortBy.name, 'asc')
       .then((res) => {
-        console.log(res.data.records);
         if(res.data.records) {
           results = [...res.data.records];
         }
@@ -559,13 +562,14 @@ const DataComplianceNetworkList = (props) => {
         { entitySearch ? 
             <>
               <TypeAheadBox
+                controlId={'entity'}
                 label={'Entity'}
                 placeholder={"Search Entity ID or Entity Name"}
-                list={entityList}
-                defaultValue={(updateMode && entity.entityId.length > 0 && entity.entityName.length > 0) ? entity.entityId + ' - ' + entity.entityName : ''}
-                onItemSelect={onEntitySelect}
                 required={true}
-                entityError={entityError}
+                defaultValue={(updateMode && entity.entityId.length > 0 && entity.entityName.length > 0) ? entity.entityId + ' - ' + entity.entityName : ''}
+                list={entityList.records}
+                setSelected={onEntitySelect}
+                showError={entityError}
               />
             </> : 
             <>
