@@ -18,6 +18,21 @@
   color: #697582;
   padding-left: 112px;
 }
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 7px);
+  }
+}
+.screenLabel{
+  line-height: 40px;
+  font-size: 20px;
+}
+.switchButton{
+  text-align: right;
+}
+
 :global {
   .flexLayout {
     display: flex;
