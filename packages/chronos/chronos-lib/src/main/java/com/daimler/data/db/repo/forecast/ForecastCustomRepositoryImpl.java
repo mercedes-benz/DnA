@@ -27,105 +27,71 @@
 
 package com.daimler.data.db.repo.forecast;
 
+import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.persistence.Query;
+
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.ForecastNsql;
+import com.daimler.data.db.json.File;
+import com.daimler.data.db.json.Forecast;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Repository
+@Slf4j
 public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<ForecastNsql, String>
 		implements ForecastCustomRepository {
 
+	@Override
+	public long getTotalCount(String userId) {
+		String user = userId.toLowerCase();
+		String getCountStmt = " select count(*) from forecast_nsql where  ((lower(jsonb_extract_path_text(data,'createdBy','id')) = '" + user +
+										"') or (lower(jsonb_extract_path_text(data,'collaborators')) similar to '%"+ user + "%'))";
+		Query q = em.createNativeQuery(getCountStmt);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.longValue();
+	}
 	
-//	@Override
-//	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
-//		CriteriaBuilder cb = em.getCriteriaBuilder();
-//		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
-//		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
-//		CriteriaQuery<CodeServerWorkspaceNsql> getAll = cq.select(root);
-//		Predicate p1 = cb.equal(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
-//				userId.toLowerCase());
-//		Predicate p2 = cb.notEqual(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-//				"DELETED".toLowerCase());
-//		Predicate pMain = cb.and(p1,p2);
-//		cq.where(pMain);
-//		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
-//		if (offset >= 0)
-//			getAllQuery.setFirstResult(offset);
-//		if (limit > 0)
-//			getAllQuery.setMaxResults(limit);
-//		return getAllQuery.getResultList();
-//	}
-//
-//	@Override
-//	public Integer getCount(String userId) {
-//		CriteriaBuilder cb = em.getCriteriaBuilder();
-//		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-//		Root<CodeServerWorkspaceNsql> root = cq.from(CodeServerWorkspaceNsql.class);
-//		CriteriaQuery<Long> getAll = cq.select(cb.count(root));
-//		Predicate p1 = cb.equal(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
-//				userId.toLowerCase());
-//		Predicate p2 = cb.notEqual(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-//				"DELETED".toLowerCase());
-//		Predicate pMain = cb.and(p1,p2);
-//		cq.where(pMain);
-//		TypedQuery<Long> getAllQuery = em.createQuery(getAll);
-//		Long count = getAllQuery.getSingleResult();
-//		return Integer.valueOf(count.intValue());
-//	}
-//
-//	@Override
-//	public CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value) {
-//		CriteriaBuilder cb = em.getCriteriaBuilder();
-//		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
-//		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
-//		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
-//		Predicate con1 = cb.equal(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal(uniqueLiteral))),
-//				value.toLowerCase());
-//		Predicate con2 = cb.equal(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
-//				userId.toLowerCase());
-//		Predicate con3 = cb.notEqual(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-//				"DELETED".toLowerCase());
-//		Predicate pMain = cb.and(con1, con2, con3);
-//		cq.where(pMain);
-//		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
-//		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
-//		if (entities != null && entities.size() > 0)
-//			return entities.get(0);
-//		else
-//			return null;
-//	}
-//
-//	@Override
-//	public CodeServerWorkspaceNsql findById(String userId, String id) {
-//		CriteriaBuilder cb = em.getCriteriaBuilder();
-//		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
-//		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
-//		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
-//		Predicate con1 = cb.equal(root.get("id"),id);
-//		Predicate con2 = cb.equal(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
-//				userId.toLowerCase());
-//		Predicate con3 = cb.notEqual(cb.lower(
-//				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
-//				"DELETED".toLowerCase());
-//		Predicate pMain = cb.and(con1, con2, con3);
-//		cq.where(pMain);
-//		cq.orderBy(cb.desc(cb.function("jsonb_extract_path_text", Date.class, root.get("data"), cb.literal("intiatedOn"))));
-//		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
-//		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
-//		if (entities != null && entities.size() > 0)
-//			return entities.get(0);
-//		else
-//			return null;
-//	}
+	@Override
+	public List<ForecastNsql> getAll(String userId, int offset, int limit){
+		String user = userId.toLowerCase();
+		String getAllStmt = " select cast(id as text), cast(data as text) from forecast_nsql where  ((lower(jsonb_extract_path_text(data,'createdBy','id')) = '" + user +
+										"') or (lower(jsonb_extract_path_text(data,'collaborators')) similar to '%"+ user + "%'))";
+		if (limit > 0)
+			getAllStmt = getAllStmt + " limit " + limit;
+		if (offset >= 0)
+			getAllStmt = getAllStmt + " offset " + offset;
+		Query q = em.createNativeQuery(getAllStmt);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();
+		List<ForecastNsql> convertedResults = results.stream().map(temp -> {
+			ForecastNsql entity = new ForecastNsql();
+			try {
+				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				Forecast tempForecast = mapper.readValue(jsonData, Forecast.class);
+				entity.setData(tempForecast);
+			} catch (Exception e) {
+				log.error("Failed while fetching all forecast projects using native query with exception {} ", e.getMessage());
+			}
+			String id = temp[0] != null ? temp[0].toString() : "";
+			entity.setId(id);
+			return entity;
+		}).collect(Collectors.toList());
+		return convertedResults;
+	}
+	
+	@Override
+	public List<File> getSavedFiles( String id) {
+		String getFilesStatement = " select jsonb_extract_path_text(data,'savedInputs') from forecast_nsql where id = '"+id+"'";
+		Query q = em.createNativeQuery(getFilesStatement);
+		List<File> files = q.getResultList();
+		return files;
+	}
 
-	
 }

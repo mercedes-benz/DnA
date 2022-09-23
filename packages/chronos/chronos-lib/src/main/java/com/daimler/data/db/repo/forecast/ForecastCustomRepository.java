@@ -27,9 +27,18 @@
 
 package com.daimler.data.db.repo.forecast;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.ForecastNsql;
+import com.daimler.data.db.json.File;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface ForecastCustomRepository extends CommonDataRepository<ForecastNsql, String> {
+
+	List<File> getSavedFiles(String id);
+
+	List<ForecastNsql> getAll(String userId, int offset, int limit);
+
+	long getTotalCount(String userId);
 
 }

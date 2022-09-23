@@ -111,10 +111,9 @@ public class UserStore {
 			return this.getUserRole().stream().anyMatch(
 					n -> "Admin".equalsIgnoreCase(n.getName()) || "ReportAdmin".equalsIgnoreCase(n.getName()));
 		}
-		
+
 		public boolean hasSuperAdminAccess() {
-			return this.getUserRole().stream().anyMatch(
-					n -> "Admin".equalsIgnoreCase(n.getName()));
+			return this.getUserRole().stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
 		}
 
 	}
