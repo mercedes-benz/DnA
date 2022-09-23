@@ -62,18 +62,17 @@
     }
     .icon {
         font-size: 20px;
-        transform: scale(1.2, -1) translate(0px, 10px);
+        transform: scale(-1.2, -1) translate(0px, 10px);
         color: #00adef;
     }
     .customIcon {
         div {
             position: relative;
-            font-size: 30px;
-            transform: scale(1.1);
+            transform: scale(2.6) translate(1px, 5px);
             &::after {
                 content: "\21C0";
                 position: absolute;
-                transform: rotate(180deg) translate(0, -2px);
+                transform: rotate(180deg) translate(0, -1px);
                 color: #697582;
             }
             &::before {
