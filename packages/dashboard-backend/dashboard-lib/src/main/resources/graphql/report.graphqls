@@ -14,6 +14,7 @@ type ReportCollection{
 
 type ReportVO {
 	id: ID!,
+	reportId: String,
     productName: String,
     createdDate: ISODate,
     lastModifiedDate: ISODate,
@@ -37,6 +38,7 @@ type CreatedByVO{
 }
 
 type DescriptionVO{
+    reportLink: String
 	productDescription: String,
 	productPhase: String,
 	status: String,
