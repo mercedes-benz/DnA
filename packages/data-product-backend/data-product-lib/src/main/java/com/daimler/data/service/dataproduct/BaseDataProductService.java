@@ -265,18 +265,6 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			String userId = currentUser != null ? currentUser.getId() : "";
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String id = requestVO.getId();
-			if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
-				if (providerResponseVO.getUsers().stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
-					List<MessageDescription> messages = new ArrayList<>();
-					MessageDescription message = new MessageDescription();
-					message.setMessage("Provider cannot be added as a consumer");
-					messages.add(message);
-					responseVO.setData(requestVO);
-					responseVO.setErrors(messages);
-					LOGGER.error("DataProduct with id {} , failed to update", id);
-					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-				}
-			}
 			DataProductVO existingVO = super.getById(id);
 			DataProductVO mergedVO = null;
 			if (providerResponseVO.isProviderFormSubmitted() == null) {
@@ -286,6 +274,18 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
 				if (hasProviderAccess(createdBy)) {
+					if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
+						if (providerResponseVO.getUsers().stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
+							List<MessageDescription> messages = new ArrayList<>();
+							MessageDescription message = new MessageDescription();
+							message.setMessage("Provider cannot be added as a consumer");
+							messages.add(message);
+							responseVO.setData(requestVO);
+							responseVO.setErrors(messages);
+							LOGGER.error("DataProduct with id {} , failed to update", id);
+							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+						}
+					}
 					providerResponseVO.setCreatedBy(createdBy);
 					providerResponseVO.setCreatedDate(existingVO.getProviderInformation().getCreatedDate());
 					providerResponseVO.lastModifiedDate(new Date());
