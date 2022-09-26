@@ -42,6 +42,7 @@ export interface IDescriptionProps {
   tags: ITag[];
   departmentTags: IDepartment[];
   setSubDivisions: (subDivisions: ISubDivision[]) => void;
+  enableQuickPath: boolean;
 }
 
 export interface IDescriptionState {
@@ -70,6 +71,8 @@ export interface IDescriptionState {
   tags: string[];
   showDepartmentMissingError: boolean;
   departmentTags: string[];
+  reportLink: string;
+  reportLinkError: string;
 }
 
 export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
@@ -117,11 +120,21 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       tags: [],
       showDepartmentMissingError: false,
       departmentTags: [],
+      reportLink: null,
+      reportLinkError: null
     };
   }
 
   public componentDidMount() {
     SelectBox.defaultSetup();
+  }
+
+  componentDidUpdate(prevProps: IDescriptionProps, prevState: IDescriptionState) {
+    if (prevProps.enableQuickPath !== this.props.enableQuickPath) {
+      if(!this.props.enableQuickPath){
+        SelectBox.defaultSetup();
+      }      
+    }
   }
 
   public onProductNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -298,6 +311,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const integratedPortalError = this.state.integratedPortalError || '';
     const designGuidError = this.state.designGuideError || '';
     const frontEndTechError = this.state.frontEndTechError || '';
+    const reportLinkError = this.state.reportLinkError || '';
 
     const requiredError = '*Missing entry';
 
@@ -377,6 +391,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout)}>
+                  {!this.props.enableQuickPath ? 
                   <div>
                     <div>
                       <div className={classNames(Styles.flexLayout)}>
@@ -543,6 +558,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       </div>
                     </div>
                   </div>
+                  :''}
                   <div>
                     <div>
                       <div className={Styles.departmentTags}>
@@ -587,6 +603,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           </span>
                         </div>
                       </div>
+                      {!this.props.enableQuickPath ?
                       <div className={classNames('input-field-group include-error', artError.length ? 'error' : '')}>
                         <label id="ARTLabel" htmlFor="ARTField" className="input-label">
                           Agile Release Train
@@ -608,6 +625,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         </div>
                         <span className={classNames('error-message', artError.length ? '' : 'hide')}>{artError}</span>
                       </div>
+                      : ''}
                       <div>
                         <div
                           className={classNames(
@@ -648,6 +666,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               </div>
             </div>
           </div>
+          {!this.props.enableQuickPath ?
+          (
           <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
             <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
               <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
@@ -669,10 +689,41 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               </div>
             </div>
           </div>
+          ): ''}
+          <div id="linkWrapper" className={classNames(Styles.wrapper)}>
+              <div id="linkPanel" className={classNames(Styles.firstPanel)}>
+                <div id="linkContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
+                  <h3 id="linkHeading">Link</h3>
+                  <span id="linkDesc" className={classNames(Styles.textDesc)}>
+                    Link the report here
+                  </span>
+                  <div>
+                    <TextBox
+                      type="text"
+                      controlId={'reportLinkInput'}
+                      labelId={'reportLinkLabel'}
+                      label={'Report Link'}
+                      placeholder={"Type here"}
+                      value={this.state.reportLink}
+                      required={true}
+                      maxLength={200}
+                      onChange={this.onGitUrl}
+                      errorText={reportLinkError}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           <div className="btnConatiner">
+          {!this.props.enableQuickPath ?
             <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmit}>
               Save & Next
             </button>
+          : 
+          <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
+            Publish Report
+          </button>
+          }  
           </div>
         </div>
       </React.Fragment>
@@ -684,6 +735,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.props.modifyReportDescription(this.props.description);
       this.props.onSaveDraft('description');
     }
+  };
+
+  protected onDescriptionSubmitWithQuickPath = () => {
+    // if (this.validateDescriptionForm()) {
+      this.props.modifyReportDescription(this.props.description);
+      this.props.onSaveDraft('quickpath');
+    // }
   };
 
   protected validateDescriptionForm = () => {
@@ -756,6 +814,14 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }
+    if (!this.state.reportLinkError || this.state.reportLink === '') {
+      this.setState({ reportLinkError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.reportLinkError && this.state.reportLink) {
+      this.setState({ reportLinkError: '' });
+      formValid = true;
+    }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');
       anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -781,5 +847,15 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.department = arr?.map((item) => item.toUpperCase());
     this.setState({ showDepartmentMissingError: arr.length === 0 });
+  };
+
+  protected onGitUrl = (e: React.FormEvent<HTMLInputElement>) => {
+    const gitUrl = e.currentTarget.value;
+    const description = this.props.description;
+    description.reportLink = gitUrl;
+    // this.setState({
+    //   description,
+    // });
+    this.props.modifyReportDescription(description);
   };
 }
