@@ -163,6 +163,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
+          reportLink: '',
         },
         kpis: [],
         customer: {
@@ -180,6 +181,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         },
         publish: false,
         openSegments: [],
+        usingQuickPath: false,
+        reportId: null
       },
       currentState: null,
       showAlertChangesModal: false,
@@ -358,6 +361,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.tags = res.description.tags;
               report.description.division = res.description.division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
+              report.description.reportLink = res.description.reportLink;
               report.customer.customerDetails = res.customer?.customerDetails || [];
               report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
@@ -377,6 +381,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.members.admin = res.members.admin || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
+              report.reportId = res.reportId;
               let subDivisions: ISubDivision[] = [{ id: '0', name: 'None' }];
               const divisionId = res.description.division?.id;
               if (divisionId) {
@@ -409,15 +414,44 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     }
   }
 
+  public changeQuickPath = (value: boolean) => {
+    const report = {...this.state.report};
+    report.usingQuickPath = !value;
+    this.setState({report});
+  }
+
   public render() {
     const currentTab = this.state.currentTab;
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
+          <div className={Styles.flexLayout}>
+            <div>
+              <div className={Styles.screenLabel}>
+                {this.state.report.reportId ? 'Edit Report' : 'Create Report'}
+              </div>
+            </div>
+            <div className={Styles.switchButton}>
+              <label className="switch">
+                <span className="label" style={{ marginRight: '5px' }}>
+                  {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
+                </span>
+                <span className="wrapper">
+                  <input
+                    type="checkbox"
+                    className="ff-only"
+                    onChange={() => this.changeQuickPath(this.state.report.usingQuickPath)}
+                    checked={this.state.report.usingQuickPath}
+                  />
+                </span>
+              </label>
+            </div>
+          </div>
           <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
             {this.state.report.description.productName}
           </h3>
           <div id="create-report-tabs" className="tabs-panel">
+            {!this.state.report.usingQuickPath ?
             <div className="tabs-wrapper">
               <nav>
                 <ul className="tabs">
@@ -475,6 +509,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 </ul>
               </nav>
             </div>
+            : ''}
             <div className="tabs-content-wrapper">
               <div id="tab-content-1" className="tab-content">
                 <Description
@@ -494,6 +529,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                   setSubDivisions={(subDivisions: ISubDivision[]) =>
                     this.setState({ subDivisions }, () => SelectBox.defaultSetup())
                   }
+                  enableQuickPath={this.state.report.usingQuickPath}
                 />
               </div>
               <div id="tab-content-2" className="tab-content">
@@ -628,6 +664,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       this.saveDataFunction();
     } else if (currentTab === 'members') {
       this.saveMembers();
+    } else if (currentTab === 'quickpath') {
+      this.saveDescriptionWithQuickPath();
     } else {
       // If multiple clicks on save happens then the currenttab doesnt get updated in that case
       // just save not moving to another tab.
@@ -666,6 +704,12 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         this.setState({ showAlertChangesModal: true, clickedTab: target.id });
       }
     }
+  };
+  protected saveDescriptionWithQuickPath = () => {
+    // this.state.report.openSegments.push('Description');
+    this.setState({ publishFlag: true });
+    this.callApiToSave(true, null);
+    history.push('/allreports');
   };
   protected saveDescription = () => {
     this.state.report.openSegments.push('Description');
@@ -713,6 +757,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         members: report.members,
         publish: isPublished,
         openSegments: report.openSegments,
+        usingQuickPath: report.usingQuickPath,
+        reportId: report.reportId
       },
     };
     // create deep copy of an object (won't alter original object)
