@@ -87,6 +87,7 @@ const ProviderForm = ({ user, history }) => {
         res.data.notifyUsers = false;
         res.data.publish = false;
         res.data.providerInformation.providerFormSubmitted = false;
+        res.data.providerInformation.users = [];
         delete res.data.providerInformation.createdBy;
         delete res.data.providerInformation.createdDate;
         delete res.data.providerInformation.lastModifiedDate;
