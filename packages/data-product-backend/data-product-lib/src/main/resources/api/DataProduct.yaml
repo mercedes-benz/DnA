@@ -703,6 +703,9 @@ definitions:
       teamMemberPosition:
         type: string
         description: "Position of team member in project"
+      addedByProvider:
+        type: boolean
+        description: "Flag to identify if consumer is added by provider or not."
     required:
       - shortId 
       
