@@ -576,6 +576,7 @@ export interface IDescriptionRequest {
   designGuideImplemented: IDesignGuide[] | any;
   frontendTechnologies: IFrontEndTech[];
   tags: string[];
+  reportLink: string;
 }
 
 export interface ICustomers {
@@ -643,6 +644,8 @@ export interface ICreateNewReport {
   createdBy?: IUserInfo;
   id?: string;
   productName: string;
+  usingQuickPath: boolean;
+  reportId: string;
 }
 export interface IProductPhase {
   id: string;
