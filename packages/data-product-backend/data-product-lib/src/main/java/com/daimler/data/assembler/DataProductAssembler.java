@@ -379,6 +379,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		if (vo != null) {
 			teamMember = new TeamMember();
 			BeanUtils.copyProperties(vo, teamMember);
+			teamMember.setAddedByProvider(vo.isAddedByProvider());
 			if (vo.getUserType() != null) {
 				teamMember.setUserType(vo.getUserType().name());
 			}
