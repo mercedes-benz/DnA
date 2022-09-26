@@ -78,6 +78,7 @@ const OtherRelevantInfo = ({ onSave, history, user }) => {
   };
 
   const updateTeamMemberList = (teamMemberObj) => {
+    teamMemberObj['addedByProvider'] = true;
     if (editTeamMember) {
       teamMembers.splice(editTeamMemberIndex, 1);
       teamMembers.splice(editTeamMemberIndex, 0, teamMemberObj);
