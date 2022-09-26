@@ -19,7 +19,7 @@ const DataProductCardItem = ({ product, history, user }) => {
   const dispatch = useDispatch();
 
   const isProviderFormSubmitted = product?.providerInformation?.providerFormSubmitted;
-  const isCreator = product.providerInformation?.createdBy?.id === user?.id || true;
+  const isCreator = product.providerInformation?.createdBy?.id === user?.id;
 
   useEffect(() => {
     Tooltip.defaultSetup();
