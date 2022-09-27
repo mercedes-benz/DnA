@@ -9,9 +9,12 @@ import Pagination from 'dna-container/Pagination';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import RowItem from './rowItem/RowItem';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParam } from 'react-router-dom';
+import { chronosApi } from '../../../apis/chronos.api';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 const ForecastResults = ({ forecastRuns }) => {
+  const { id: projectId } = useParam();
   /* Pagination */
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -50,6 +53,15 @@ const ForecastResults = ({ forecastRuns }) => {
   const showDeleteConfirmModal = (item) => {
     setShowDeleteModal(true);
     console.log(item);
+    ProgressIndicator.show();
+    chronosApi.deleteForecastRun(projectId, item.runId).then((res) => {
+      // setProject(res);
+      console.log(res);
+      ProgressIndicator.hide();
+    }).catch(error => {
+      console.log(error.message);
+      ProgressIndicator.hide();
+    });
   };
   const onCancelDelete = () => {
     setShowDeleteModal(false);

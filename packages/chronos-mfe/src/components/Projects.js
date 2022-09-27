@@ -65,7 +65,7 @@ const ForeCastingProjects = ({ user }) => {
     ProgressIndicator.show();
     const data = {
         "apiKey": "123823",
-        "collaborators": teamMembers,
+        "collaborators": teamMembers.map(teamMember => {delete teamMember.userType; delete teamMember.shortId; return teamMember}),
         "name": values.name,
         "permission": {
           "read": true,
@@ -79,13 +79,13 @@ const ForeCastingProjects = ({ user }) => {
       dispatch(GetProjects());
       ProgressIndicator.hide();
       setCreateProject(false);
+      reset({ name: '' });
+      setTeamMembers([]);
     }).catch(error => {
       ProgressIndicator.hide();
       console.log(error);
       Notification.show(error.message, 'alert');
     });
-    reset({ name: '' });
-    setTeamMembers([]);
   };
   const handleEditProject = (values) => {
     values.permission = values.permission.reduce((acc, curr) => {
@@ -159,6 +159,7 @@ const ForeCastingProjects = ({ user }) => {
   const updateTeamMemberList = (teamMember) => {
     onAddTeamMemberModalCancel();
     const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
+    delete teamMemberTemp.teamMemberPosition;
     const teamMembersTemp = [...teamMembers, teamMemberTemp];
     setTeamMembers(teamMembersTemp);
   }
