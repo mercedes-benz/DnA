@@ -11,82 +11,7 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import RowItem from './rowItem/RowItem';
 import { useHistory } from 'react-router-dom';
 
-const MOCK_RESULTS = [
-  {
-    id: 1,
-    new: true,
-    name: '2022-07-29_Test-Run',
-    status: 'in progress',
-    datetime: '2022/07/27',
-    ranBy: 'JANNIC1',
-    inputFile: 'MS_tms_fc.xls',
-    forecastHorizon: '2033',
-    exogenousData: 'Yes' 
-  },
-  {
-    id: 2,
-    new: true,
-    name: '2022-07-29_Test-Run',
-    status: 'in progress',
-    datetime: '2022/07/27',
-    ranBy: 'JANNIC1',
-    inputFile: 'MS_tms_fc.xls',
-    forecastHorizon: '2033',
-    exogenousData: 'Yes' 
-  },
-  {
-    id: 3,
-    new: false,
-    name: '2022-07-29_Test-Run',
-    status: 'failed',
-    datetime: '2022/07/27',
-    ranBy: 'JANNIC1',
-    inputFile: 'MS_tms_fc.xls',
-    forecastHorizon: '2033',
-    exogenousData: 'Yes' 
-  },
-  {
-    id: 4,
-    new: false,
-    name: '2022-07-29_Test-Run',
-    status: 'success',
-    datetime: '2022/07/27',
-    ranBy: 'JANNIC1',
-    inputFile: 'MS_tms_fc.xls',
-    forecastHorizon: '2033',
-    exogenousData: 'Yes' 
-  },
-  {
-    id: 5,
-    new: false,
-    name: '2022-07-29_Test-Run',
-    status: 'success',
-    datetime: '2022/07/27',
-    ranBy: 'JANNIC1',
-    inputFile: 'MS_tms_fc.xls',
-    forecastHorizon: '2033',
-    exogenousData: 'Yes' 
-  },
-  {
-    id: 6,
-    new: false,
-    name: '2022-07-29_Test-Run',
-    status: 'success',
-    datetime: '2022/07/27',
-    ranBy: 'JANNIC1',
-    inputFile: 'MS_tms_fc.xls',
-    forecastHorizon: '2033',
-    exogenousData: 'Yes' 
-  },
-];
-
-const ForecastResults = () => {
-  const [forecastResultList, setForecastResultList] = useState([]);
-
-  useEffect(() => {
-    setForecastResultList(MOCK_RESULTS);
-  }, []);
-
+const ForecastResults = ({ forecastRuns }) => {
   /* Pagination */
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -159,8 +84,8 @@ const ForecastResults = () => {
 
           <div className={Styles.forecastResultListWrapper}>
             <div className={Styles.listContent}>
-              { forecastResultList?.length == 0 ? (
-                <div className={Styles.forecastResultListEmpty}>Forecast Results are not available</div>
+              { forecastRuns?.length == 0 ? (
+                <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
               ) : (
                 <React.Fragment>
                   <div className={Styles.forecastResultList}>
@@ -278,7 +203,7 @@ const ForecastResults = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {forecastResultList?.map((item) => {
+                        {forecastRuns?.map((item) => {
                           return (
                             <RowItem
                               item={item}
@@ -296,7 +221,7 @@ const ForecastResults = () => {
             </div>
           </div>
         </div>
-        {forecastResultList?.length && (
+        {forecastRuns?.length && (
           <Pagination
             totalPages={totalNumberOfPages}
             pageNumber={currentPageNumber}

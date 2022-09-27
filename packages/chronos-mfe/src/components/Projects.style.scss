@@ -120,6 +120,11 @@
     height: 5px;
   }
 }
+.noMembers p {
+  margin: 0;
+  text-align: center;
+  color: #99a5b3;
+}
 .btnContainer {
     display: flex;
     justify-content: flex-end;
@@ -129,7 +134,7 @@
     border-top: 1px solid #383f49;
     margin: 8px 0 0;
     padding-top: 18px;
-    font-size: 16px;
+    font-size: 15px;
     padding-bottom: 12px;
 }
 .collabContent {
