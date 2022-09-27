@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -235,26 +236,6 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		return false;
 	}
 
-	/*
-	 * To check if user has access to proceed with consume of the provider form.
-	 * 
-	 */
-	private boolean hasConsumeAccess(List<TeamMemberVO> users) {
-		boolean canProceed = true;
-		CreatedByVO currentUser = this.userStore.getVO();
-		String userId = currentUser != null ? currentUser.getId() : "";
-		if (StringUtils.hasText(userId)) {
-			// To check if user is valid consumer
-			if (!ObjectUtils.isEmpty(users)) {
-				canProceed = users.stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()));
-			}
-			return canProceed;
-
-		}
-
-		return false;
-	}
-
 	@Override
 	@Transactional
 	public ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO requestVO) {
@@ -275,7 +256,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
 				if (hasProviderAccess(createdBy)) {
 					if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
-						if (providerResponseVO.getUsers().stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
+						if (providerResponseVO.getUsers().stream()
+								.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
 							List<MessageDescription> messages = new ArrayList<>();
 							MessageDescription message = new MessageDescription();
 							message.setMessage("Provider cannot be added as a consumer");
@@ -289,7 +271,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					providerResponseVO.setCreatedBy(createdBy);
 					providerResponseVO.setCreatedDate(existingVO.getProviderInformation().getCreatedDate());
 					providerResponseVO.lastModifiedDate(new Date());
-					providerResponseVO.setModifiedBy(this.userStore.getVO());
+					providerResponseVO.setModifiedBy(currentUser);
 					dataProductVO.setProviderInformation(providerResponseVO);
 					dataProductVO.setDataProductId(existingVO.getDataProductId());
 					dataProductVO.setDataProductName(requestVO.getDataProductName());
@@ -348,6 +330,46 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	}
 
+	/*
+	 * To check if user has access to proceed with consume of the provider form.
+	 * 
+	 */
+	private boolean hasConsumeAccess(DataProductVO existingVO) {
+		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : "";
+		boolean canProceed = false;
+		CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
+		List<TeamMemberVO> users = existingVO.getProviderInformation().getUsers();
+		if (StringUtils.hasText(userId) && !userId.equalsIgnoreCase(createdBy.getId())) {
+			TeamMemberVO vo = new TeamMemberVO();
+			BeanUtils.copyProperties(currentUser, vo);
+			vo.setAddedByProvider(false);
+			vo.setShortId(userId);
+			if (users == null) {
+				users = new ArrayList<>();
+				users.add(vo);
+				existingVO.getProviderInformation().setUsers(users);
+				canProceed = true;
+			} else {
+				boolean isAddedByProvider = false;
+				for (TeamMemberVO member : users) {
+					if (userId.equalsIgnoreCase(member.getShortId())) {
+						canProceed = true;
+						break;
+					}
+					if (Boolean.TRUE.equals(member.isAddedByProvider())) {
+						isAddedByProvider = true;
+					}
+				}
+				if (!canProceed && !isAddedByProvider) {
+					users.add(vo);
+					canProceed = true;
+				}
+			}
+		}
+		return canProceed;
+	}
+
 	@Override
 	@Transactional
 	public ResponseEntity<DataProductConsumerResponseVO> updateDataProductConsumer(ConsumerVO requestVO) {
@@ -364,7 +386,12 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			}
 			if (existingVO != null && existingVO.getRecordStatus() != null
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
-				if (hasConsumeAccess(existingVO.getProviderInformation().getUsers())) {
+				List<TeamMemberVO> existingUsers = null;
+				if (existingVO.getProviderInformation().getUsers() != null) {
+					existingUsers = existingVO.getProviderInformation().getUsers().stream()
+							.collect(Collectors.toList());
+				}
+				if (hasConsumeAccess(existingVO)) {
 					if (existingVO.getConsumerInformation() == null) {
 						consumerResponseVO.setCreatedBy(this.userStore.getVO());
 						consumerResponseVO.setCreatedDate(new Date());
@@ -395,6 +422,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						consumerVO.setRecordStatus(mergedVO.getRecordStatus());
 						responseVO.setData(consumerVO);
 						LOGGER.info("DataProduct with id {} updated successfully", id);
+						existingVO.getProviderInformation().setUsers(existingUsers);
 						this.publishEventMessages(existingVO, mergedVO);
 						return new ResponseEntity<>(responseVO, HttpStatus.OK);
 					} else {
@@ -413,7 +441,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					notAuthorizedMsg.setMessage("Not authorized to consume dataProduct.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					responseVO.setErrors(notAuthorizedMsgs);
-					LOGGER.debug("DataProduct with id {} cannot be edited. User not authorized", id);
+					LOGGER.debug("User not authorized to consume data product with id {}", id);
 					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}
 			} else {
