@@ -15,26 +15,28 @@ import lombok.NoArgsConstructor;
 public class RunDetails {
 
 	 private String id;
+	 private String jobId;
+	 private String runId;
+	 private String numberInJob;
+	 
+	 private RunState runState;
+	 private Boolean isDelete;
+	 
+	 private String triggeredBy;
+	 private Date triggeredOn;
 	 
 	 private String comment;
 	 private String runName;
-	 private String creatorUserName;
 	 private String forecastHorizon;
 	 private String frequency;
-	 private String runType;
 	 private String inputFile;
 	 private String configurationFile;
 	 
-	 private String jobId;
-	 private String runId;
-	 private String originalAttemptRunId;
-	 private Long numberInJob;
-	 private String attemptNumber;
+	 private String creatorUserName;
 	 private Long setupDuration;
 	 private Long executionDuration;
 	 private Long startTime;
 	 private Long endTime;
-	 private String trigger;
 	 
 	 
 }

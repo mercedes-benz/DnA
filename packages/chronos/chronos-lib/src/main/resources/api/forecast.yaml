@@ -207,43 +207,7 @@ paths:
         500:
           description: "Internal error"
   
-    post:
-      tags:
-        - "forecast-runs"
-      summary: "Create new run for forecast project."
-      description: "Create run for forecast project"
-      operationId: "createForecastRun"
-      parameters:
-        - in: formData
-          name: file
-          type: file
-          description: The file to upload.
-          required: false 
-        - name: "forecastRunRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for intialize chronos project for user"
-          required: true
-          schema:
-            $ref: "#/definitions/ForecastRunRequestVO"
-      responses:
-        201:
-          description: "Returns message of success or failure "
-          schema:
-            $ref: "#/definitions/ForecastRunResponseVO"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
- 
-  
+
   #
   #  supported http methods GET
   #
@@ -327,7 +291,82 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+
+    post:
+      tags:
+        - "forecast-runs"
+      summary: "Create new run for forecast project."
+      description: "Create run for forecast project"
+      operationId: "createForecastRun"    
+      consumes:
+         - multipart/form-data
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID "
+          required: true
+          type: "string"
+        - in: formData
+          name: file
+          type: file
+          description: The file to upload.
+          required: false 
+        - in: formData
+          name: savedInputPath
+          type: string
+          description: path of file in minio system, if not giving file in request part
+          required: false 
+        - in: formData
+          name: saveRequestPart
+          type: boolean
+          description: flag whether to save file in request part to storage bucket for further runs
+          required: false 
+        - in: formData
+          name: runName
+          type: string
+          description: name of the run sample. Example YYYY-MM-DD_run_topic
+          required: true
+        - in: formData
+          name: configurationFile
+          type: string
+          enum: [Default-Settings]
+          description: "Chronos default config yml"
+          required: true
+        - in: formData
+          name: frequency
+          type: string
+          enum: [Daily,Weekly,Monthly,Yearly,No_Frequency]
+          description: "frequency parameter."
+          required: true
+        - in: formData
+          name: forecastHorizon
+          type: number
+          minimum: 1
+          description: "Any number greater than 1"
+          required: true 
+        - in: formData
+          name: comment
+          type: string
+          description: "Comments for the run"
+          required: false 
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ForecastRunResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+                    
   #
   #  supported http methods GET
   #
@@ -368,36 +407,6 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-    
-    put:
-      tags:
-        - "forecast-runs"
-      summary: "api for databricks to update the run details upon finishing the run"
-      operationId: "updateRun"
-      parameters:
-        - name: "forecastRunUpdateRequestVO"
-          in: "body"
-          description: "Request Body that contains updated details of run"
-          required: true
-          schema:
-            $ref: "#/definitions/RunUpdateRequestWrapperVO" 
-      responses:
-        201:
-          description: "Returns message of success or failure "
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"   
           
     delete:
       tags:
@@ -629,6 +638,17 @@ definitions:
             -frequency
             -forecastHorizon
             
+            
+  DataBricksErrorResponseVO: 
+    type: object
+    properties:
+        error_code:
+            type: string
+            description: error code if fails
+        message:
+            type: string
+            description: error message if fails
+            
   RunNowResponseVO: 
     type: object
     properties:
@@ -669,25 +689,44 @@ definitions:
     type: object
     properties:
         state:
+         type: string
+         enum: [SUCCESS,FAILED]
+        stateMessage:
+            type: string
+            description: "Message of state, details of run status"
+ 
+  RunDetailsVO:
+    type: object
+    properties:
+        job_id: 
+          type: string
+        run_id:
+          type: string
+        state:
           $ref: "#/definitions/RunStateVO"
-        ranBy:
-            type: string
-            description: "Short Id of user who triggered the run"
-        createdBy:
-            type: string
-            description: "user who created the run"
         startTime:
-            type: string
-            description: "time when run started"
+            type: number 
+            format: int64
         endTime:
-            type: string
-            description: "time when run ended"
+            type: number
+            format: int64
         setupDuration:
-            type: string
-            description: "time taken for setup"
+            type: number
+            format: int64
         executionDuration:
-            type: string
-            description: "time taken to execute"
+            type: number
+            format: int64
+        cleanup_duration:
+            type: number
+            format: int64
+            
+  JobRunsListVO:
+    type: object
+    properties:
+      runs:
+        type: array
+        items:
+          $ref: "#/definitions/RunDetailsVO"
                   
   RunVO:
     type: object
@@ -696,10 +735,10 @@ definitions:
             type: string
             description: unique id for the run, used as correlation id 
         jobId:
-            type: number
+            type: string
             description:
         runId:
-            type: number
+            type: string
             description:
         inputFile:
             type: string
@@ -724,12 +763,15 @@ definitions:
             description: "Comments for the run"
         state:
           $ref: "#/definitions/RunStateVO"
-        ranBy:
+        triggeredBy:
             type: string
             description: "Short Id of user who triggered the run"
-        createdBy:
+        triggeredOn:
             type: string
-            description: "user who created the run"
+            format: date
+        creatorUserName:
+            type: string
+            description: "user who created the run in databricks system"
         startTime:
             type: string
             description: "time when run started"
@@ -742,25 +784,26 @@ definitions:
         executionDuration:
             type: string
             description: "time taken to execute"
-
   
   ForecastRunResponseVO:
     type: object
     properties:
-        runDetails:
+        data:
             $ref: "#/definitions/RunNowResponseVO"
-        responseMessage:
+        response:
             $ref: "#/definitions/GenericMessage"
             
   ForecastRunCollectionVO:
     type: object
     properties:  
-        runs:
+        totalCount:
+            type: integer
+            description: "Total Record Count"
+        records:
             type: array
             items:
                 $ref: "#/definitions/RunVO"
-           
-    
+              
   RunVisualizationVO:
     type: object
     properties:  
