@@ -1,4 +1,4 @@
-package com.daimler.data.dto;
+package com.daimler.data.db.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -10,9 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateBucketResponseDataDto {
+public class RunState {
 
-	private String id;
-	private String bucketName;
+	private String life_cycle_state;
+	private String result_state;
+	private String state_message;
+	private Boolean user_cancelled_or_timedout;
 	
 }
