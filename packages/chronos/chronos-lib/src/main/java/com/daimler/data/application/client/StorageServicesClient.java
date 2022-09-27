@@ -63,8 +63,10 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 				HttpHeaders headers = new HttpHeaders();
+				String jwt = httpRequest.getHeader("Authorization");
 				headers.set("Accept", "application/json");
-				headers.set("Authorization", dataBricksAuth);
+				headers.set("Authorization", jwt);
+				headers.set("chronos-api-key",dataBricksAuth);
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				
 				String uploadFileUrl = storageBaseUri + BUCKETS_PATH;
@@ -92,6 +94,11 @@ public class StorageServicesClient {
 				creatorAsCollab.setAccesskey(creator.getId());
 				creatorAsCollab.setPermission(permissions);
 				data.getCollaborators().add(creatorAsCollab);
+				
+				CreatedByVO creatorChronosSystemUser = new CreatedByVO();
+				creatorChronosSystemUser.setId(dataBricksUser);
+				data.setCreator(creatorChronosSystemUser);
+				
 				requestWrapper.setData(data);
 				HttpEntity<CreateBucketRequestWrapperDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
 				ResponseEntity<CreateBucketResponseWrapperDto> response = restClient.exchange(uploadFileUrl, HttpMethod.POST,
@@ -114,8 +121,10 @@ public class StorageServicesClient {
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
 			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
 			headers.set("Accept", "application/json");
-			headers.set("Authorization", dataBricksAuth);
+			headers.set("Authorization", jwt);
+			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 			LinkedMultiValueMap<String, Object> multipartRequest = new LinkedMultiValueMap<>();
 	
