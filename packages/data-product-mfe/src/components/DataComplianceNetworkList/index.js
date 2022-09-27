@@ -15,7 +15,7 @@ import Tags from 'dna-container/Tags';
 import RowItem from './rowItem/RowItem';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import ProgressIndicator from'../../common/modules/uilab/js/src/progress-indicator';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 import { SESSION_STORAGE_KEYS, USER_ROLE } from '../../Utility/constants';
 
@@ -46,14 +46,15 @@ const MOCK = [
     oldValue: 'lorem ipsum',
     newValue: 'lorem ipsum',
     changeDescription: 'lorem ipsum',
-  }
+  },
 ];
 
 const classNames = cn.bind(Styles);
 
 const DataComplianceNetworkList = (props) => {
-
-  const isAdmin = props.user.roles.find((role) => role.id === USER_ROLE.ADMIN) !== undefined;
+  const isAdmin =
+    props.user.roles.find((role) => role.id === USER_ROLE.ADMIN || role.id === USER_ROLE.DATACOMPLIANCEADMIN) !==
+    undefined;
 
   const [loading, setLoading] = useState(false);
 
@@ -67,8 +68,10 @@ const DataComplianceNetworkList = (props) => {
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
   const [currentPageOffset, setCurrentPageOffset] = useState(0);
-  const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15);
-  
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(
+    parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
+  );
+
   const [searchTerm, setSearchTerm] = useState('');
 
   const [dataComplianceNetworkList, setDataComplianceNetworkList] = useState([]);
@@ -83,7 +86,7 @@ const DataComplianceNetworkList = (props) => {
 
   const [showChangeLog, setShowChangeLog] = useState(false);
   const [changeLogs, setChangeLogs] = useState([]);
-  
+
   const [entity, setEntity] = useState({
     id: '',
     entityId: '',
@@ -111,7 +114,7 @@ const DataComplianceNetworkList = (props) => {
       department: '',
     },
   });
-  
+
   const dummyTags = [];
 
   /* error states */
@@ -128,74 +131,75 @@ const DataComplianceNetworkList = (props) => {
   /* Email Validation */
   const setLocalComplianceOfficer = (arr) => {
     setLocalComplianceOfficerError(false);
-    arr.map(item => {
-      if(validateEmail(item)) {
+    arr.map((item) => {
+      if (validateEmail(item)) {
         return item;
       } else {
         setLocalComplianceOfficerError(true);
       }
     });
-    setEntity({...entity, localComplianceOfficer: arr});
+    setEntity({ ...entity, localComplianceOfficer: arr });
   };
   const setLocalComplianceResponsible = (arr) => {
     setLocalComplianceResponsibleError(false);
-    arr.map(item => {
-      if(validateEmail(item)) {
+    arr.map((item) => {
+      if (validateEmail(item)) {
         return item;
       } else {
         setLocalComplianceResponsibleError(true);
       }
     });
-    setEntity({...entity, localComplianceResponsible: arr});
+    setEntity({ ...entity, localComplianceResponsible: arr });
   };
   const setDataProtectionCoordinator = (arr) => {
     setDataProtectionCoordinatorError(false);
-    arr.map(item => {
-      if(validateEmail(item)) {
+    arr.map((item) => {
+      if (validateEmail(item)) {
         return item;
       } else {
         setDataProtectionCoordinatorError(true);
       }
     });
-    setEntity({...entity, dataProtectionCoordinator: arr});
+    setEntity({ ...entity, dataProtectionCoordinator: arr });
   };
   const setLocalComplianceSpecialist = (arr) => {
     setLocalComplianceSpecialistError(false);
-    arr.map(item => {
-      if(validateEmail(item)) {
+    arr.map((item) => {
+      if (validateEmail(item)) {
         return item;
       } else {
         setLocalComplianceSpecialistError(true);
       }
     });
-    setEntity({...entity, localComplianceSpecialist: arr});
+    setEntity({ ...entity, localComplianceSpecialist: arr });
   };
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    setLoading(true)
+    setLoading(true);
     setData();
-    dataComplianceNetworkListApi.getEntityList(0, 0, sortBy.name, 'asc')
-    .then((res) => {
-      res.data?.records?.map((item) => {
-        item['name'] = item.entityId.toString() + ' - ' + item.entityName.toString();
-        return item;
+    dataComplianceNetworkListApi
+      .getEntityList(0, 0, sortBy.name, 'asc')
+      .then((res) => {
+        res.data?.records?.map((item) => {
+          item['name'] = item.entityId.toString() + ' - ' + item.entityName.toString();
+          return item;
+        });
+        setEntityList(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
       });
-      setEntityList(res.data);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
 
     setChangeLogs(MOCK);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const setData = async() => {
+  const setData = async () => {
     await getResults('');
-  }
+  };
 
   /* getResults */
-  const getResults = async(action) => {
+  const getResults = async (action) => {
     const showProgressIndicator = ['add', 'update', 'delete'].includes(action);
     const showContentLoader = ['reset', 'categoryChange', 'search', 'pagination'].includes(action);
 
@@ -203,10 +207,11 @@ const DataComplianceNetworkList = (props) => {
     showContentLoader && setLoading(true);
 
     let results = [];
-    
-    await dataComplianceNetworkListApi.getDataComplianceNetworkList(0, 0, sortBy.name, 'asc')
+
+    await dataComplianceNetworkListApi
+      .getDataComplianceNetworkList(0, 0, sortBy.name, 'asc')
       .then((res) => {
-        if(res.data.records) {
+        if (res.data.records) {
           results = [...res.data.records];
         }
       })
@@ -215,19 +220,24 @@ const DataComplianceNetworkList = (props) => {
         setDataComplianceNetworkList([]);
       });
 
-    if(searchTerm) {
+    if (searchTerm) {
       results = results.filter((result) => {
         const localComplianceOfficers = result.localComplianceOfficer.toString();
         const localComplianceResponsibles = result.localComplianceResponsible.toString();
         const dataProtectionCoordinators = result.dataProtectionCoordinator.toString();
         const localComplianceSpecialists = result.localComplianceSpecialist.toString();
-        return result.entityName.toLowerCase().includes(searchTerm) || result.entityId.toLowerCase().includes(searchTerm) ||
-                localComplianceOfficers.includes(searchTerm) || localComplianceResponsibles.includes(searchTerm) || dataProtectionCoordinators.includes(searchTerm)
-                || localComplianceSpecialists.includes(searchTerm);
+        return (
+          result.entityName.toLowerCase().includes(searchTerm) ||
+          result.entityId.toLowerCase().includes(searchTerm) ||
+          localComplianceOfficers.includes(searchTerm) ||
+          localComplianceResponsibles.includes(searchTerm) ||
+          dataProtectionCoordinators.includes(searchTerm) ||
+          localComplianceSpecialists.includes(searchTerm)
+        );
       });
     }
 
-    if(sortBy) {
+    if (sortBy) {
       if (sortBy.name === 'entityId') {
         results = results.sort((a, b) => {
           if (sortBy.currentSortType === 'asc') {
@@ -250,10 +260,8 @@ const DataComplianceNetworkList = (props) => {
     setDataComplianceNetworkList(
       results.slice(
         currentPageOffset > results.length ? 0 : currentPageOffset,
-        currentPageOffset + maxItemsPerPage < results.length
-          ? currentPageOffset + maxItemsPerPage
-          : results.length
-      )
+        currentPageOffset + maxItemsPerPage < results.length ? currentPageOffset + maxItemsPerPage : results.length,
+      ),
     );
     setTotalNumberOfPages(Math.ceil(results.length / maxItemsPerPage));
     setCurrentPageNumber(
@@ -261,12 +269,12 @@ const DataComplianceNetworkList = (props) => {
         ? Math.ceil(results.length / maxItemsPerPage) > 0
           ? Math.ceil(results.length / maxItemsPerPage)
           : 1
-        : currentPageNumber
+        : currentPageNumber,
     );
     showProgressIndicator && ProgressIndicator.hide();
     showContentLoader && setLoading(false);
-  }
-  
+  };
+
   /* Sort */
   const sortEntities = (propName, sortOrder) => {
     const tempSortBy = {
@@ -279,11 +287,11 @@ const DataComplianceNetworkList = (props) => {
   useEffect(() => {
     getResults('sort');
   }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
-  
+
   useEffect(() => {
     getResults('pagination');
   }, [maxItemsPerPage, currentPageOffset, currentPageNumber]); // eslint-disable-line react-hooks/exhaustive-deps
-  
+
   /* Search */
   useEffect(() => {
     getResults('search');
@@ -297,11 +305,11 @@ const DataComplianceNetworkList = (props) => {
   /* Pagination */
   const onPaginationPreviousClick = () => {
     const currentPageNum = currentPageNumber - 1;
-      const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
-      setCurrentPageNumber(currentPageNum);
-      setCurrentPageOffset(currentPageOffset);
-    };
-    const onPaginationNextClick = () => {
+    const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNum);
+    setCurrentPageOffset(currentPageOffset);
+  };
+  const onPaginationNextClick = () => {
     const currentPageOffset = currentPageNumber * maxItemsPerPage;
     setCurrentPageNumber(currentPageNumber + 1);
     setCurrentPageOffset(currentPageOffset);
@@ -335,7 +343,7 @@ const DataComplianceNetworkList = (props) => {
       dataProtectionCoordinator: entity.dataProtectionCoordinator,
       localComplianceSpecialist: entity.localComplianceSpecialist,
       createdDate: entity.createdDate,
-      createdBy: entity.createdBy
+      createdBy: entity.createdBy,
     });
 
     setEntityIdError(null);
@@ -347,10 +355,11 @@ const DataComplianceNetworkList = (props) => {
   const onAcceptDeleteChanges = () => {
     setShowDeleteEntityConfirmModal(false);
     ProgressIndicator.show();
-    const newArr = dataComplianceNetworkList.filter(object => {
+    const newArr = dataComplianceNetworkList.filter((object) => {
       return object.id !== entity.id;
     });
-    dataComplianceNetworkListApi.deleteDataComplianceNetworkList(entity.id)
+    dataComplianceNetworkListApi
+      .deleteDataComplianceNetworkList(entity.id)
       .then((response) => {
         console.log(response);
         setDataComplianceNetworkList(newArr);
@@ -378,20 +387,20 @@ const DataComplianceNetworkList = (props) => {
     let formValid = true;
     let errorMessage = 'Please fill Entity ID and Entity Name';
 
-    if(entitySearch) {
-      if(entity.entityId.length === 0 && entity.entityName.length === 0) {
+    if (entitySearch) {
+      if (entity.entityId.length === 0 && entity.entityName.length === 0) {
         errorMessage = 'Please select entity';
         formValid = false;
         setEntityError(true);
       }
     } else {
-      if(entity.entityId.length > 0) {
+      if (entity.entityId.length > 0) {
         setEntityIdError(null);
       } else {
         setEntityIdError('*Missing entry');
         formValid = false;
       }
-      if(entity.entityName.length > 0) {
+      if (entity.entityName.length > 0) {
         setEntityNameError(null);
       } else {
         setEntityNameError('*Missing entry');
@@ -399,19 +408,24 @@ const DataComplianceNetworkList = (props) => {
       }
     }
 
-    if(localComplianceOfficerError || localComplianceResponsibleError || dataProtectionCoordinatorError || localComplianceSpecialistError) {
+    if (
+      localComplianceOfficerError ||
+      localComplianceResponsibleError ||
+      dataProtectionCoordinatorError ||
+      localComplianceSpecialistError
+    ) {
       formValid = false;
       errorMessage = 'Please enter emails in correct format';
     }
-    if(formValid) {
-      setUpdateConfirmModalOverlay(true); 
+    if (formValid) {
+      setUpdateConfirmModalOverlay(true);
     } else {
       Notification.show(errorMessage, 'alert');
     }
   };
   const onEntitySelect = (entity) => {
-    setEntity((prev) => ({...prev, entityId: entity.entityId, entityName: entity.entityName}));
-  }
+    setEntity((prev) => ({ ...prev, entityId: entity.entityId, entityName: entity.entityName }));
+  };
   const resetEntity = () => {
     setEntity({
       ...entity,
@@ -428,46 +442,52 @@ const DataComplianceNetworkList = (props) => {
     setEntityNameError(null);
 
     setEntitySearch(true);
-  }
+  };
   const onEntityAdd = () => {
     let formValid = true;
     let errorMessage = 'Please fill Entity ID and Entity Name';
-    if(entitySearch) {
-      if(entity.entityId.length === 0 && entity.entityName.length === 0) {
+    if (entitySearch) {
+      if (entity.entityId.length === 0 && entity.entityName.length === 0) {
         errorMessage = 'Please select entity';
         formValid = false;
         setEntityError(true);
       }
     } else {
-      if(entity.entityId.length > 0) {
+      if (entity.entityId.length > 0) {
         setEntityIdError(null);
       } else {
         setEntityIdError('*Missing entry');
         formValid = false;
       }
-      if(entity.entityName.length > 0) {
+      if (entity.entityName.length > 0) {
         setEntityNameError(null);
       } else {
         setEntityNameError('*Missing entry');
         formValid = false;
       }
     }
-    if(localComplianceOfficerError || localComplianceResponsibleError || dataProtectionCoordinatorError || localComplianceSpecialistError) {
+    if (
+      localComplianceOfficerError ||
+      localComplianceResponsibleError ||
+      dataProtectionCoordinatorError ||
+      localComplianceSpecialistError
+    ) {
       formValid = false;
       errorMessage = 'Please enter emails in correct format';
     }
-    if(formValid) {
+    if (formValid) {
       ProgressIndicator.show();
       setUpdateConfirmModalOverlay(false);
       const data = {
-          dataProtectionCoordinator: entity.dataProtectionCoordinator,
-          entityId: entity.entityId,
-          entityName: entity.entityName,
-          localComplianceOfficer: entity.localComplianceOfficer,
-          localComplianceResponsible: entity.localComplianceResponsible,
-          localComplianceSpecialist: entity.localComplianceSpecialist
-      }
-      dataComplianceNetworkListApi.saveDataComplianceNetworkList(data)
+        dataProtectionCoordinator: entity.dataProtectionCoordinator,
+        entityId: entity.entityId,
+        entityName: entity.entityName,
+        localComplianceOfficer: entity.localComplianceOfficer,
+        localComplianceResponsible: entity.localComplianceResponsible,
+        localComplianceSpecialist: entity.localComplianceSpecialist,
+      };
+      dataComplianceNetworkListApi
+        .saveDataComplianceNetworkList(data)
         .then((response) => {
           console.log(response);
           getResults('add');
@@ -488,33 +508,34 @@ const DataComplianceNetworkList = (props) => {
   const onEntityUpdate = () => {
     setUpdateConfirmModalOverlay(false);
     ProgressIndicator.show();
-    const newState = dataComplianceNetworkList.map(obj => {
+    const newState = dataComplianceNetworkList.map((obj) => {
       if (obj.id === entity.id) {
         return {
-          ...obj, 
+          ...obj,
           id: entity.id,
-          entityId: entity.entityId, 
+          entityId: entity.entityId,
           entityName: entity.entityName,
           localComplianceOfficer: entity.localComplianceOfficer,
           localComplianceResponsible: entity.localComplianceResponsible,
           dataProtectionCoordinator: entity.dataProtectionCoordinator,
-          localComplianceSpecialist: entity.localComplianceSpecialist 
+          localComplianceSpecialist: entity.localComplianceSpecialist,
         };
       }
       return obj;
     });
     const data = {
-        id: entity.id,
-        dataProtectionCoordinator: entity.dataProtectionCoordinator,
-        createdDate: entity.createdDate,
-        createdBy: entity.createdBy,
-        entityId: entity.entityId,
-        entityName: entity.entityName,
-        localComplianceOfficer: entity.localComplianceOfficer,
-        localComplianceResponsible: entity.localComplianceResponsible,
-        localComplianceSpecialist: entity.localComplianceSpecialist
-    }
-    dataComplianceNetworkListApi.updateDataComplianceNetworkList(data)
+      id: entity.id,
+      dataProtectionCoordinator: entity.dataProtectionCoordinator,
+      createdDate: entity.createdDate,
+      createdBy: entity.createdBy,
+      entityId: entity.entityId,
+      entityName: entity.entityName,
+      localComplianceOfficer: entity.localComplianceOfficer,
+      localComplianceResponsible: entity.localComplianceResponsible,
+      localComplianceSpecialist: entity.localComplianceSpecialist,
+    };
+    dataComplianceNetworkListApi
+      .updateDataComplianceNetworkList(data)
       .then((response) => {
         console.log(response);
         Notification.show('Legal entity updated successfully.');
@@ -529,16 +550,16 @@ const DataComplianceNetworkList = (props) => {
       });
   };
   const onChangeEntityId = (e) => {
-    setEntity({...entity, entityId: e.currentTarget.value});
-    if(e.currentTarget.value.length > 0) {
+    setEntity({ ...entity, entityId: e.currentTarget.value });
+    if (e.currentTarget.value.length > 0) {
       setEntityIdError(null);
     } else {
       setEntityIdError('*Missing entry');
     }
   };
   const onChangeEntityName = (e) => {
-    setEntity({...entity, entityName: e.currentTarget.value});
-    if(e.currentTarget.value.length > 0) {
+    setEntity({ ...entity, entityName: e.currentTarget.value });
+    if (e.currentTarget.value.length > 0) {
       setEntityNameError(null);
     } else {
       setEntityNameError('*Missing entry');
@@ -550,53 +571,59 @@ const DataComplianceNetworkList = (props) => {
     <div id="contentparentdiv" className={Styles.modalContentWrapper}>
       <div className={Styles.modalTitle}>Delete Entity</div>
       <div className={Styles.modalContent}>
-        <p>The entity &laquo;{entity.entityName ? entity.entityName : ''}&raquo; will be removed
-        permanently.</p>
+        <p>The entity &laquo;{entity.entityName ? entity.entityName : ''}&raquo; will be removed permanently.</p>
       </div>
     </div>
   );
   const entityFormModalContent = (
     <div id="addOrUpdateFormWrapper" className={Styles.infoPopup}>
       <div className={classNames(Styles.modalContent, Styles.formWrapperMain)}>
-        <button className={Styles.btnSwitch} onClick={() => setEntitySearch(!entitySearch)}>{ entitySearch ? 'Add New Entity' : 'Back to Search' }</button>
-        { entitySearch ? 
-            <>
-              <TypeAheadBox
-                controlId={'entity'}
-                label={'Entity'}
-                placeholder={"Search Entity ID or Entity Name"}
-                required={true}
-                defaultValue={(updateMode && entity.entityId.length > 0 && entity.entityName.length > 0) ? entity.entityId + ' - ' + entity.entityName : ''}
-                list={entityList.records}
-                setSelected={onEntitySelect}
-                showError={entityError}
-              />
-            </> : 
-            <>
-              <TextBox
-                type="text"
-                controlId={'entity-id'}
-                label={'Entity ID'}
-                placeholder={"Type here"}
-                value={entity.entityId}
-                errorText={entityIdError}
-                required={true}
-                maxLength={200}
-                onChange={onChangeEntityId}
-              />
-              <TextBox
-                type="text"
-                controlId={'entity-name'}
-                label={'Entity Name'}
-                placeholder={"Type here"}
-                value={entity.entityName}
-                errorText={entityNameError}
-                required={true}
-                maxLength={200}
-                onChange={onChangeEntityName}
-              />
-           </>
-        }
+        <button className={Styles.btnSwitch} onClick={() => setEntitySearch(!entitySearch)}>
+          {entitySearch ? 'Add New Entity' : 'Back to Search'}
+        </button>
+        {entitySearch ? (
+          <>
+            <TypeAheadBox
+              controlId={'entity'}
+              label={'Entity'}
+              placeholder={'Search Entity ID or Entity Name'}
+              required={true}
+              defaultValue={
+                updateMode && entity.entityId.length > 0 && entity.entityName.length > 0
+                  ? entity.entityId + ' - ' + entity.entityName
+                  : ''
+              }
+              list={entityList.records}
+              setSelected={onEntitySelect}
+              showError={entityError}
+            />
+          </>
+        ) : (
+          <>
+            <TextBox
+              type="text"
+              controlId={'entity-id'}
+              label={'Entity ID'}
+              placeholder={'Type here'}
+              value={entity.entityId}
+              errorText={entityIdError}
+              required={true}
+              maxLength={200}
+              onChange={onChangeEntityId}
+            />
+            <TextBox
+              type="text"
+              controlId={'entity-name'}
+              label={'Entity Name'}
+              placeholder={'Type here'}
+              value={entity.entityName}
+              errorText={entityNameError}
+              required={true}
+              maxLength={200}
+              onChange={onChangeEntityName}
+            />
+          </>
+        )}
         <div className={Styles.tagControl}>
           <Tags
             title={'Local Compliance Officer (LCO)'}
@@ -607,7 +634,9 @@ const DataComplianceNetworkList = (props) => {
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { localComplianceOfficerError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          {localComplianceOfficerError && (
+            <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
+          )}
         </div>
         <div className={Styles.tagControl}>
           <Tags
@@ -619,7 +648,9 @@ const DataComplianceNetworkList = (props) => {
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { localComplianceResponsibleError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          {localComplianceResponsibleError && (
+            <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
+          )}
         </div>
         <div className={Styles.tagControl}>
           <Tags
@@ -631,7 +662,9 @@ const DataComplianceNetworkList = (props) => {
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { dataProtectionCoordinatorError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          {dataProtectionCoordinatorError && (
+            <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
+          )}
         </div>
         <div className={Styles.tagControl}>
           <Tags
@@ -643,7 +676,9 @@ const DataComplianceNetworkList = (props) => {
             isMandatory={false}
             showMissingEntryError={false}
           />
-          { localComplianceSpecialistError && <span className={classNames("error-message", Styles.tagError)}>Please enter valid email address.</span> }
+          {localComplianceSpecialistError && (
+            <span className={classNames('error-message', Styles.tagError)}>Please enter valid email address.</span>
+          )}
         </div>
         <div className={Styles.addBtn}>
           <button
@@ -657,9 +692,7 @@ const DataComplianceNetworkList = (props) => {
       </div>
       {updateConfirmModalOverlay && (
         <div className={Styles.updateModelOverlayContent}>
-          <p>
-            Do you want to proceed with updating &lt;&lt;{entity.entityName ? entity.entityName : ''}&gt;&gt;?
-          </p>
+          <p>Do you want to proceed with updating &lt;&lt;{entity.entityName ? entity.entityName : ''}&gt;&gt;?</p>
           <div>
             <button
               className={Styles.actionBtn + ' btn btn-default'}
@@ -701,40 +734,35 @@ const DataComplianceNetworkList = (props) => {
               disabled={loading}
             />
           </div>
-          {
-            isAdmin &&
-              <div
-                className={classNames(
-                  Styles.addItemButton,
-                  loading ? Styles.disabledAddItemBtn : '',
-                )}
-              >
+          {isAdmin && (
+            <>
+              <div className={classNames(Styles.addItemButton, loading ? Styles.disabledAddItemBtn : '')}>
                 <button onClick={onEntityFormModalOpen}>
                   <i className="icon mbc-icon plus" />
                   <span>Add New Entity</span>
                 </button>
               </div>
-          }
-          <div className={Styles.addItemButton}>
-            <button onClick={() => setShowChangeLog(prev => !prev)}>
-              <i className="icon mbc-icon link" />
-              <span>{showChangeLog ? 'Hide Change Log' : 'See Change Log'}</span>
-            </button>
-          </div>
+              <div className={Styles.addItemButton}>
+                <button onClick={() => setShowChangeLog((prev) => !prev)}>
+                  <i className="icon mbc-icon link" />
+                  <span>{showChangeLog ? 'Hide Change Log' : 'See Change Log'}</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
-        { loading && <Spinner /> }
-        { !loading && dataComplianceNetworkList.length === 0 && <div className={Styles.tagIsEmpty}>There is no list available</div> }
-        { !loading && !showChangeLog && dataComplianceNetworkList.length > 0 && 
+        {loading && <Spinner />}
+        {!loading && dataComplianceNetworkList.length === 0 && (
+          <div className={Styles.tagIsEmpty}>There is no list available</div>
+        )}
+        {!loading && !showChangeLog && dataComplianceNetworkList.length > 0 && (
           <div className={Styles.tablePanel}>
             <table className="ul-table">
               <thead>
                 <tr className="header-row">
                   <th onClick={() => sortEntities('entityId', sortBy.nextSortType)}>
                     <label
-                      className={
-                        'sortable-column-header ' +
-                        (sortBy.name === 'entityId' ? sortBy.currentSortType : '')
-                      }
+                      className={'sortable-column-header ' + (sortBy.name === 'entityId' ? sortBy.currentSortType : '')}
                     >
                       <i className="icon sort" />
                       Entity ID
@@ -743,8 +771,7 @@ const DataComplianceNetworkList = (props) => {
                   <th onClick={() => sortEntities('entityName', sortBy.nextSortType)}>
                     <label
                       className={
-                        'sortable-column-header ' +
-                        (sortBy.name === 'entityName' ? sortBy.currentSortType : '')
+                        'sortable-column-header ' + (sortBy.name === 'entityName' ? sortBy.currentSortType : '')
                       }
                     >
                       <i className="icon sort" />
@@ -753,57 +780,66 @@ const DataComplianceNetworkList = (props) => {
                   </th>
                   <th>
                     <label>
-                        <i className={classNames("icon mbc-icon info iconsmd", Styles.infoIcon)} tooltip-data="- First point of contact for data compliance question
-                      - Reporting line to IL/C" />
-                        Local Compliance Officer (LCO)
+                      <i
+                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                        tooltip-data="- First point of contact for data compliance question
+                      - Reporting line to IL/C"
+                      />
+                      Local Compliance Officer (LCO)
                     </label>
                   </th>
                   <th>
                     <label>
-                        <i className={classNames("icon mbc-icon info iconsmd", Styles.infoIcon)} tooltip-data="- First point of contact for data compliance question
-                        - Employee of the respective Group entity" />
-                        Local Compliance Responsible (LCR)
+                      <i
+                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                        tooltip-data="- First point of contact for data compliance question
+                        - Employee of the respective Group entity"
+                      />
+                      Local Compliance Responsible (LCR)
                     </label>
                   </th>
                   <th>
                     <label>
-                        <i className={classNames("icon mbc-icon info iconsmd", Styles.infoIcon)} tooltip-data="(old role, sucessive to be 
-                          replaced by LCO/LCR)" />
-                        Data Protection Coordinator (DPC)
+                      <i
+                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                        tooltip-data="(old role, sucessive to be 
+                          replaced by LCO/LCR)"
+                      />
+                      Data Protection Coordinator (DPC)
                     </label>
                   </th>
                   <th>
                     <label>
-                        <i className={classNames("icon mbc-icon info iconsmd", Styles.infoIcon)} tooltip-data="- In case of reporting line to LCO, Local Compliance Specialist.
-                        - In all other cases Local Compliance Support" />
-                        Local Compliance Support / Specialist (LCS)
+                      <i
+                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                        tooltip-data="- In case of reporting line to LCO, Local Compliance Specialist.
+                        - In all other cases Local Compliance Support"
+                      />
+                      Local Compliance Support / Specialist (LCS)
                     </label>
                   </th>
-                  {
-                    isAdmin &&
-                      <th className={Styles.actionLinksTD}>
-                        <label>Action</label>
-                      </th>
-                  }
+                  {isAdmin && (
+                    <th className={Styles.actionLinksTD}>
+                      <label>Action</label>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {
-                  dataComplianceNetworkList.map((result) => {
-                    return (
-                      <RowItem
-                        item={result}
-                        key={result.id}
-                        isAdmin={isAdmin}
-                        showDeleteConfirmModal={showDeleteConfirmModal}
-                        showUpdateConfirmModal={showUpdateConfirmModal}
-                      />
-                    );
-                  })
-                }
+                {dataComplianceNetworkList.map((result) => {
+                  return (
+                    <RowItem
+                      item={result}
+                      key={result.id}
+                      isAdmin={isAdmin}
+                      showDeleteConfirmModal={showDeleteConfirmModal}
+                      showUpdateConfirmModal={showUpdateConfirmModal}
+                    />
+                  );
+                })}
               </tbody>
             </table>
-            {dataComplianceNetworkList.length &&
+            {dataComplianceNetworkList.length && (
               <Pagination
                 totalPages={totalNumberOfPages}
                 pageNumber={currentPageNumber}
@@ -812,29 +848,23 @@ const DataComplianceNetworkList = (props) => {
                 onViewByNumbers={onViewByPageNum}
                 displayByPage={true}
               />
-            }
+            )}
           </div>
-        }
-        { !loading && showChangeLog &&
+        )}
+        {!loading && showChangeLog && (
           <div className={Styles.changeLogContainer}>
             <div className={Styles.tablePanel}>
               <table className="ul-table solutions">
                 <thead>
                   <tr className="header-row">
                     <th>
-                      <label>
-                          Change Date
-                      </label>
+                      <label>Change Date</label>
                     </th>
                     <th>
-                      <label>
-                          Modified By
-                      </label>
+                      <label>Modified By</label>
                     </th>
                     <th>
-                      <label>
-                          Change Description
-                      </label>
+                      <label>Change Description</label>
                     </th>
                   </tr>
                 </thead>
@@ -859,7 +889,7 @@ const DataComplianceNetworkList = (props) => {
               </table>
             </div>
           </div>
-        }
+        )}
         <ConfirmModal
           title="Delete Entity"
           acceptButtonTitle="Delete"
@@ -871,19 +901,18 @@ const DataComplianceNetworkList = (props) => {
           onCancel={onCancelDeleteChanges}
           onAccept={onAcceptDeleteChanges}
         />
-        {
-          showEntityFormModal &&
-            <InfoModal
-              title={updateMode ? 'Update Entity' : 'Add New Entity'}
-              modalWidth={'35vw'}
-              show={showEntityFormModal}
-              content={entityFormModalContent}
-              onCancel={onShowEntityFormModalCancel}
-            />
-        }
+        {showEntityFormModal && (
+          <InfoModal
+            title={updateMode ? 'Update Entity' : 'Add New Entity'}
+            modalWidth={'35vw'}
+            show={showEntityFormModal}
+            content={entityFormModalContent}
+            onCancel={onShowEntityFormModalCancel}
+          />
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default DataComplianceNetworkList;
