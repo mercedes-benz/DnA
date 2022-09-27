@@ -1,9 +1,7 @@
-package com.daimler.data.dto;
+package com.daimler.data.dto.databricks;
 
 import java.io.Serializable;
-import java.util.List;
 
-import com.daimler.data.controller.exceptions.MessageDescription;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -14,11 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FileUploadResponseDto  implements Serializable{
+public class DatabricksJobRunNowRequestDto  implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private String status;
-	private List<MessageDescription> errors;
-	private List<MessageDescription> warnings;
+	
+	private String job_id;
+	private RunNowNotebookParamsDto notebook_params;
 	
 }
