@@ -75,7 +75,7 @@ export interface IDescriptionState {
   reportLinkError: string;
 }
 
-export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
+export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
   public static getDerivedStateFromProps(props: IDescriptionProps, state: IDescriptionState) {
     return {
       productName: props.description.productName,
@@ -90,6 +90,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       integratedPortalsValue: props.description.integratedPortal,
       tags: props.description.tags,
       departmentTags: props.description.department,
+      reportLink: props.description.reportLink
     };
   }
   constructor(props: IDescriptionProps) {
@@ -705,10 +706,10 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       label={'Report Link'}
                       placeholder={"Type here"}
                       value={this.state.reportLink}
+                      errorText={reportLinkError}
                       required={true}
                       maxLength={200}
-                      onChange={this.onGitUrl}
-                      errorText={reportLinkError}
+                      onChange={this.onChangeUrl}
                     />
                   </div>
                 </div>
@@ -720,7 +721,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               Save & Next
             </button>
           : 
-          <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
+          <button className="btn btn-tertiary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
             Publish Report
           </button>
           }  
@@ -738,10 +739,10 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   };
 
   protected onDescriptionSubmitWithQuickPath = () => {
-    // if (this.validateDescriptionForm()) {
+    if (this.validateQuickpathDescriptionForm()) {
       this.props.modifyReportDescription(this.props.description);
       this.props.onSaveDraft('quickpath');
-    // }
+    }
   };
 
   protected validateDescriptionForm = () => {
@@ -772,7 +773,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     }
     if (this.state.productNameError && this.state.productName) {
       this.setState({ productNameError: '' });
-      formValid = true;
+      // formValid = true;
     }
     if (!this.state.description || this.state.description === '') {
       this.setState({ descriptionError: errorMissingEntry });
@@ -780,7 +781,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     }
     if (this.state.descriptionError && this.state.description) {
       this.setState({ descriptionError: '' });
-      formValid = true;
+      // formValid = true;
     }
     if (!this.state.productPhaseValue || this.state.productPhaseValue[0].name === 'Choose') {
       this.setState({ productPhaseError: errorMissingEntry });
@@ -814,13 +815,62 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.reportLinkError || this.state.reportLink === '') {
+    if (!this.state.reportLink || this.state.reportLink === '') {
       this.setState({ reportLinkError: errorMissingEntry });
       formValid = false;
     }
     if (this.state.reportLinkError && this.state.reportLink) {
       this.setState({ reportLinkError: '' });
-      formValid = true;
+      // formValid = true;
+    }
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    return formValid;
+  };
+
+  protected validateQuickpathDescriptionForm = () => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+
+    if (!this.state.productName || this.state.productName === '') {
+      this.setState({ productNameError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.productNameError && this.state.productName) {
+      this.setState({ productNameError: '' });
+      // formValid = true;
+    }
+    if (!this.state.description || this.state.description === '') {
+      this.setState({ descriptionError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.descriptionError && this.state.description) {
+      this.setState({ descriptionError: '' });
+      // formValid = true;
+    }
+    
+    if (!this.state.statusValue || this.state.statusValue[0].name === 'Choose') {
+      this.setState({ statusError: errorMissingEntry });
+      formValid = false;
+    }
+    
+    if (!this.state.departmentTags?.length) {
+      this.setState({ showDepartmentMissingError: true });
+      formValid = false;
+    }
+    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0].name === 'Choose') {
+      this.setState({ frontEndTechError: errorMissingEntry });
+      formValid = false;
+    }
+    if (!this.state.reportLink || this.state.reportLink === null || this.state.reportLink === '') {
+      this.setState({ reportLinkError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.reportLinkError && this.state.reportLink) {
+      this.setState({ reportLinkError: '' });
+      // formValid = true;
     }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');
@@ -849,12 +899,17 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     this.setState({ showDepartmentMissingError: arr.length === 0 });
   };
 
-  protected onGitUrl = (e: React.FormEvent<HTMLInputElement>) => {
-    const gitUrl = e.currentTarget.value;
+  protected onChangeUrl = (e: React.FormEvent<HTMLInputElement>) => {
+    const reportLink = e.currentTarget.value;
     const description = this.props.description;
-    description.reportLink = gitUrl;
+    description.reportLink = reportLink;
+    if (reportLink === '' || reportLink === null) {
+      this.setState({ reportLinkError: '*Missing Entry' });
+    } else {
+      this.setState({ reportLinkError: '' });
+    }
     // this.setState({
-    //   description,
+    //   reportLink,
     // });
     this.props.modifyReportDescription(description);
   };

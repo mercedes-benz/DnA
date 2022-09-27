@@ -912,6 +912,7 @@ export interface IAllReportsListItemCSV {
   productName: string;
   createdDate?: string;
   lastModifiedDate?: string;
+  reportId: string;
 }
 
 export interface IAllSolutionsResult {
