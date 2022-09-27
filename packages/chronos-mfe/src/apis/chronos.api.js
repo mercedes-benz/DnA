@@ -25,8 +25,14 @@ const getAllInputFiles = (id) => {
 };
 
 const createForecastRun = (data, id) => {
-  return server.post(`/forecasts/${id}`, {
+  return server.post(`/forecasts/${id}/runs`, {
     data,
+  });
+};
+
+const deleteForecastRun = (id, rid) => {
+  return server.delete(`/forecasts/${id}/runs/${rid}`, {
+    data: {},
   });
 };
 
@@ -35,5 +41,6 @@ export const chronosApi = {
     getForecastProjectById,
     createForecastProject,
     getAllInputFiles,
-    createForecastRun
+    createForecastRun,
+    deleteForecastRun,
 };
