@@ -218,7 +218,7 @@ export default class AllReports extends React.Component<
         <ReportListRowItem
           key={report?.id}
           report={report}
-          reportId={report?.id}
+          reportId={report?.reportId}
           bookmarked={false}
           canEdit={
             isReportAdmin !== undefined ||

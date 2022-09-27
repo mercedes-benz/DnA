@@ -16,9 +16,11 @@ export const getDataForCSV = (
   const reportsCSVData: string | Data = [];
 
   const csvHeaders: string | Data = [
+    { label: 'Report ID', key: 'reportId' },
     { label: 'Name', key: 'name' },
     { label: 'Phase', key: 'productPhase' },
     { label: 'Description', key: 'description' },
+    { label: 'Report Link', key: 'reportLink' },
     { label: 'Tags', key: 'tags' },
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
@@ -74,9 +76,11 @@ export const getDataForCSV = (
       if (reportsCSV.records) {
         reportsCSV.records.forEach((report) => {
           reportsCSVData.push({
+            reportId: report.reportId ? sanitize(report.reportId) : 'NA', 
             name: report.productName ? sanitize(report.productName) : 'NA',
             productPhase: report.description.productPhase ? report.description.productPhase : 'NA',
             description: report.description.productDescription ? sanitize(report.description.productDescription) : 'NA',
+            reportLink: report.description.reportLink ? sanitize(report.description.reportLink) : 'NA',
             tags:
               report.description.tags && report.description.tags.length > 0
                 ? sanitize(report.description.tags.join(', '))
