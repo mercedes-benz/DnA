@@ -1,18 +1,13 @@
 import classNames from 'classnames';
 import React, { createRef, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Styles from './Form.style.scss';
 
 import { useForm, FormProvider } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 import Tabs from '../../common/modules/uilab/js/src/tabs';
-// import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-
-import { mapOpenSegments } from '../../Utility/formData';
-
-// Container Components
-import ConfirmModal from 'dna-container/ConfirmModal';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 // Form Components
 import RunForecast from './RunForecast';
@@ -20,6 +15,7 @@ import ForecastResults from './ForecastResults';
 import ManageConnections from './ManageConnections';
 import ProjectDetails from './ProjectDetails';
 import Breadcrumb from '../shared/breadcrumb/Breadcrumb';
+import { chronosApi } from '../../apis/chronos.api';
 
 const tabs = {
   runForecast: { runName: '', configuration: '0', frequency: '0', forecastHorizon: '0', comment: '' },
@@ -29,23 +25,16 @@ const tabs = {
 };
 
 const ForecastForm = ({ user }) => {
-  const projects = useSelector((state) => state.projects);
+  const { id: projectId } = useParams();
 
   const [currentTab, setCurrentTab] = useState('runForecast');
-  // const [savedTabs, setSavedTabs] = useState([]);
   const [savedTabs, setSavedTabs] = useState(['forecastResults','manageConnections','projectDetails']);
   const methods = useForm();
-  const { formState, reset } = methods;
-
-  const [configurationFile, setConfigurationFile] = useState([]);
-  const [frequency, setFrequency] = useState([]);
-  const [forecastHorizon, setForecastHorizon] = useState([]);
-  const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
+  // const { formState, reset } = methods;
 
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
-  const dispatch = useDispatch();
 
-  const getDataProductById = () => {};
+  const [project, setProject] = useState();
 
   useEffect(() => {
     if (user?.roles?.length) {
@@ -58,35 +47,159 @@ const ForecastForm = ({ user }) => {
   }, [user]);
 
   useEffect(() => {
-    // const { id } = provideDataProducts.selectedProject;
-    // if (isCreatePage) {
-    //   if (id) {
-    //     let defaultValues = { ...provideDataProducts.selectedProject };
-    //     reset(defaultValues); // setting default values
-    //   } else {
-    const data = tabs[currentTab];
-    reset(data); // setting default values
-    // }
-    // }
-    //eslint-disable-next-line
-  }, [dispatch, projects]);
-
-  useEffect(() => {
-    setConfigurationFile([]);
-    setFrequency([]);
-    setForecastHorizon([]);
+    getProjectById();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getProjectById = () => {
+    ProgressIndicator.show();
+    chronosApi.getForecastProjectById(projectId).then((res) => {
+      setProject(res);
+      ProgressIndicator.hide();
+    }).catch(error => {
+      console.log(error.message);
+      setProject({
+        "id": "1",
+        "name": "Forecast Two",
+        "bucketName": "chronos-Forecast One",
+        "permission": {
+          "read": true,
+          "write": true
+        },
+        "collaborators": [
+          {
+            "id": "1",
+            "permissions": {
+              "read": true,
+              "write": true
+            },
+            "firstName": "Aniruddha",
+            "lastName": "Khartade",
+            "department": "IT",
+            "email": "anirudh@mercedes-benz.com",
+            "mobileNumber": "123456780"
+          }
+        ],
+        "apiKey": "28392839283nfsdisdi823",
+        "createdBy": {
+          "id": "DEMUSER",
+          "firstName": "Demo",
+          "lastName": "User",
+          "department": "TE/ST",
+          "email": "demouser@web.de",
+          "mobileNumber": "01701234567"
+        },
+        "createdOn": "2022-09-24T12:14:47.511+00:00",
+        "savedInputs": [
+          {
+            "id": null,
+            "name": "sample",
+            "path": "path/sample",
+            "createdBy": "DEMUSER",
+            "createdOn": "2022-09-24T12:36:36.301+00:00"
+          }
+        ],
+        "runs": [
+          {
+            "id": "1",
+            "jobId": 1,
+            "ranBy": "DEMUSER",
+            "runId": 1,
+            "state": {
+              "result_state": "IN PROGRESS",
+              "state_message": "string",
+              "life_cycle_state": "INTERNAL_ERROR",
+              "user_cancelled_or_timedout": true
+            },
+            "comment": "test run",
+            "endTime": null,
+            "runName": "runtest",
+            "createdBy": "DEMUSER",
+            "frequency": "Daily",
+            "inputFile": "path/file",
+            "startTime": "2022-09-24T12:14:47.511+00:00",
+            "setupDuration": null,
+            "forecastHorizon": "12",
+            "configurationFile": "Default-Settings",
+            "executionDuration": null
+          },
+          {
+            "id": "2",
+            "jobId": 2,
+            "ranBy": "DEMUSER",
+            "runId": 2,
+            "state": {
+              "result_state": "IN PROGRESS",
+              "state_message": "string",
+              "life_cycle_state": "INTERNAL_ERROR",
+              "user_cancelled_or_timedout": true
+            },
+            "comment": "test run",
+            "endTime": null,
+            "runName": "runtest",
+            "createdBy": "DEMUSER",
+            "frequency": "Daily",
+            "inputFile": "path/file",
+            "startTime": "2022-09-24T12:14:47.511+00:00",
+            "setupDuration": null,
+            "forecastHorizon": "12",
+            "configurationFile": "Default-Settings",
+            "executionDuration": null
+          },
+          {
+            "id": "3",
+            "jobId": 3,
+            "ranBy": "DEMUSER",
+            "runId": 3,
+            "state": {
+              "result_state": "CANCELED",
+              "state_message": "string",
+              "life_cycle_state": "INTERNAL_ERROR",
+              "user_cancelled_or_timedout": true
+            },
+            "comment": "test run",
+            "endTime": null,
+            "runName": "runtest",
+            "createdBy": "DEMUSER",
+            "frequency": "Daily",
+            "inputFile": "path/file",
+            "startTime": "2022-09-24T12:14:47.511+00:00",
+            "setupDuration": null,
+            "forecastHorizon": "12",
+            "configurationFile": "Default-Settings",
+            "executionDuration": null
+          },
+          {
+            "id": "4",
+            "jobId": 4,
+            "ranBy": "DEMUSER",
+            "runId": 4,
+            "state": {
+              "result_state": "SUCCESS",
+              "state_message": "string",
+              "life_cycle_state": "INTERNAL_ERROR",
+              "user_cancelled_or_timedout": true
+            },
+            "comment": "test run",
+            "endTime": null,
+            "runName": "runtest",
+            "createdBy": "DEMUSER",
+            "frequency": "Daily",
+            "inputFile": "path/file",
+            "startTime": "2022-09-24T12:14:47.511+00:00",
+            "setupDuration": null,
+            "forecastHorizon": "12",
+            "configurationFile": "Default-Settings",
+            "executionDuration": null
+          },
+        ]
+      });
+      ProgressIndicator.hide();
+    });
+  };
+
   const setTab = (e) => {
-    const id = e.target.id;
-    if (currentTab !== id) {
-      const isFieldsDirty = formState.isDirty || Object.keys(formState.dirtyFields).length > 0;
-      if (isFieldsDirty) {
-        setShowChangeAlert({ modal: true, switchingTab: id });
-      } else {
-        setCurrentTab(id);
-      }
-    }
+    setCurrentTab(e.target.id);
   };
 
   const switchTabs = (currentTab) => {
@@ -95,13 +208,6 @@ const ForecastForm = ({ user }) => {
     if (currentTab !== 'projectDetails') {
       setCurrentTab(Object.keys(tabs)[tabIndex]);
       elementRef.current[tabIndex].click();
-    }
-  };
-
-  const onSave = (currentTab, values) => {
-    const saveSegments = mapOpenSegments[currentTab];
-    if (values.openSegments.indexOf(saveSegments) === -1) {
-      values.openSegments.push(saveSegments);
     }
   };
 
@@ -167,51 +273,21 @@ const ForecastForm = ({ user }) => {
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (
-                <ForecastResults
-                  onSave={(values) => onSave('forecastResults', values)}
-                  configurationFile={configurationFile}
-                  frequency={frequency}
-                  forecastHorizon={forecastHorizon}
-                />
+                <ForecastResults forecastRuns={project?.runs ? project?.runs : []} />
               )}
             </div>
             <div id="tab-content-3" className="tab-content">
               {currentTab === 'manageConnections' && (
-                <ManageConnections onSave={(values) => onSave('manageConnections', values)} />
+                <ManageConnections />
               )}
             </div>
             <div id="tab-content-4" className="tab-content">
               {currentTab === 'projectDetails' && (
-                <ProjectDetails onSave={(values) => onSave('projectDetails', values)} />
+                <ProjectDetails project={project} />
               )}
             </div>
           </div>
         </div>
-        <ConfirmModal
-          title="Save Changes?"
-          acceptButtonTitle="Close"
-          cancelButtonTitle="Cancel"
-          showAcceptButton={true}
-          showCancelButton={true}
-          show={showChangeAlert?.modal}
-          content={
-            <div id="contentparentdiv">
-              Press &#187;Close&#171; to save your changes or press
-              <br />
-              &#187;Cancel&#171; to discard changes.
-            </div>
-          }
-          onCancel={() => {
-            getDataProductById();
-            setCurrentTab(showChangeAlert.switchingTab);
-            elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-          }}
-          onAccept={() => {
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-            elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
-          }}
-        />
       </div>
       {currentTab !== 'basic-info' && <div className={Styles.mandatoryInfo}>* mandatory fields</div>}
     </FormProvider>

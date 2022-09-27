@@ -43,13 +43,16 @@ const ProjectCardItem = ({
       ?.join(' / ');
   };
 
+  console.log('project details');
+  console.log(project);
+
   return (
     <>
       <div className={Styles.projectCard}>
         <div
           className={Styles.cardHead}
           onClick={() => {
-            history.push('/project');
+            history.push(`/project/${project?.id}`);
           }}
         >
           <div className={Styles.cardHeadInfo}>
@@ -64,11 +67,11 @@ const ProjectCardItem = ({
           <div>
             <div>
               <div>Permission</div>
-              <div>{displayPermission(project?.permission)}</div>
+              <div>{project?.permission !== null ? 'N/A' : displayPermission(project?.permission)}</div>
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(project?.createdDate)}</div>
+              <div>{regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
             </div>
             <div>
               <div>Created by</div>
@@ -77,7 +80,7 @@ const ProjectCardItem = ({
           </div>
         </div>
         <div className={Styles.cardFooter}>
-          <div>{!project?.publish && <span className={Styles.draftIndicator}>DRAFT</span>}</div>
+          <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
             <button className="btn btn-primary" onClick={() => onEdit(project)}>
               <i className="icon mbc-icon edit"></i>
