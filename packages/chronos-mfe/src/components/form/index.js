@@ -24,23 +24,6 @@ const tabs = {
   projectDetails: {},
 };
 
-const savedInputs = [
-  {
-    "createdBy": "***REMOVED***",
-    "createdOn": "2022-09-27T06:22:38.111+00:00",
-    "id": "***REMOVED***",
-    "name": "y.csv",
-    "path": "chronos-forecastone/inputs/y.csv"
-  },
-  {
-    "createdBy": "***REMOVED***",
-    "createdOn": "2022-09-27T06:22:38.111+00:00",
-    "id": "***REMOVED***",
-    "name": "yx.csv",
-    "path": "chronos-forecastone/inputs/yx.csv"
-  }
-];
-
 const ForecastForm = ({ user }) => {
   const { id: projectId } = useParams();
 
@@ -140,8 +123,8 @@ const ForecastForm = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              {/* <RunForecast savedFiles={project?.savedInputs ? project?.savedInputs : []} /> */}
-              <RunForecast savedFiles={savedInputs} />
+              <RunForecast savedFiles={project?.savedInputs ? project?.savedInputs : []} />
+              {/* <RunForecast savedFiles={savedInputs} /> */}
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (
