@@ -20,6 +20,7 @@ export interface ITeamMemberListItemProps {
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
   hidePosition?: boolean;
+  showInfoStacked?: boolean;
 }
 
 export interface ITeamMemberListItemState {
@@ -111,9 +112,10 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                 </div>
                 <div>
                   <a href={`mailto:${teamMember.email}`}>{teamMember.email}</a>
+                  { this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div> }
                 </div>
-                <div>{teamMember.mobileNumber}</div>
-                {Envs.ENABLE_INTERNAL_USER_INFO ? (
+                { !this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div> }
+                {Envs.ENABLE_INTERNAL_USER_INFO && !this.props?.showInfoStacked ? (
                   <div>
                     <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>Teams Profile</a>
                   </div>
