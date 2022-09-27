@@ -18,22 +18,22 @@ const createForecastProject = (data) => {
   });
 };
 
-const uploadInputFile = (id, data) => {
-  return server.post(`/forecasts/${id}/inputs`, {
-    data,
-  });
-};
-
 const getAllInputFiles = (id) => {
   return server.get(`/forecasts/${id}/inputs`, {
     data: {},
   });
 };
 
-export const dataProductsApi = {
+const createForecastRun = (data, id) => {
+  return server.post(`/forecasts/${id}`, {
+    data,
+  });
+};
+
+export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
     createForecastProject,
-    uploadInputFile,
     getAllInputFiles,
+    createForecastRun
 };
