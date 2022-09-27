@@ -4,6 +4,7 @@ import Styles from './RowItem.scss';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import CircularProgressBar from '../../../shared/circularProgressBar/CircularProgressBar';
 import ContextMenu from '../../../shared/contextMenu/ContextMenu';
+import { regionalDateAndTimeConversionSolution } from '../../../../Utility/utils';
 
 const classNames = classnames.bind(Styles);
 
@@ -87,15 +88,16 @@ const RowItem = (props) => {
           </label>
         </td>
         <td>
-          { item.new && <span className={Styles.badge}>New</span> } {item.name}
+          {/* { item.new && <span className={Styles.badge}>New</span> }  */}
+          {item.runName}
         </td>
         <td>
-          {item.status === 'success' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />}
-          {item.status === 'failed' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
-          {item.status === 'in progress' && <CircularProgressBar />}
+          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />}
+          {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
+          {item.state.result_state === 'IN PROGRESS' && <CircularProgressBar />}
         </td>
         <td>
-          {item.datetime}
+          {regionalDateAndTimeConversionSolution(item.startTime)}
         </td>
         <td>
           {item.ranBy}
@@ -107,7 +109,7 @@ const RowItem = (props) => {
           {item.forecastHorizon}
         </td>
         <td>
-          {item.exogenousData}
+          {item.comment}
         </td>
         <td>
           <ContextMenu id={item.id} items={contextMenuItems} isMenuOpen={handleShowContextMenu} />

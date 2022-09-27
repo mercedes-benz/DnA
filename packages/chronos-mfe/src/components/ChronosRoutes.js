@@ -25,7 +25,7 @@ const protectedRoutes = [
   {
     component: ForecastForm,
     exact: true,
-    path: '/project',
+    path: '/project/:id',
   },
   {
     component: ForecastingResults,

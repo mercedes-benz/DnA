@@ -6,7 +6,7 @@ const jwt = sessionStorage?.length ? sessionStorage.getItem(SESSION_STORAGE_KEYS
 
 export const baseURL = Envs.CHRONOS_API_BASEURL
   ? Envs.CHRONOS_API_BASEURL
-  : `http://${window.location.hostname}:7185/api`;
+  : `http://${window.location.hostname}:8989/api`;
 
 const headers = {
   Accept: 'application/json',
