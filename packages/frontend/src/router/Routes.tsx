@@ -40,7 +40,7 @@ const AllCodeSpaces = React.lazy(() => import('../components/mbc/codeSpace/AllCo
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
 // @ts-ignore
-const DataComplianceNetworkListComponent = React.lazy(() => import('data-product-mfe/DataComplianceNetworkList')); 
+const DataComplianceNetworkListComponent = React.lazy(() => import('data-product-mfe/DataComplianceNetworkList'));
 const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 
 const UserAndAdminRole = [
@@ -49,6 +49,7 @@ const UserAndAdminRole = [
   USER_ROLE.ADMIN,
   USER_ROLE.REPORTADMIN,
   USER_ROLE.DIVISIONADMIN,
+  USER_ROLE.DATACOMPLIANCEADMIN,
 ];
 const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 

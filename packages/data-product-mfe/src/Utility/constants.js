@@ -14,4 +14,5 @@ export const USER_ROLE = {
   ADMIN: '3',
   REPORTADMIN: '4',
   DIVISIONADMIN: '5',
-}
+  DATACOMPLIANCEADMIN: '6',
+};
