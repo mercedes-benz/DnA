@@ -8,64 +8,24 @@ import Modal from 'dna-container/Modal';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 
-
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import { IconAvatarNew } from '../../shared/icons/iconAvatarNew/IconAvatarNew';
+import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 
-// const MOCK_DETAILS = {
-//   id: 1,
-//   new: true,
-//   name: '2022-07-29_Test-Run',
-//   status: 'in progress',
-//   datetime: '2022/07/27',
-//   ranBy: 'JANNIC1',
-//   inputFile: 'MS_tms_fc.xls',
-//   forecastHorizon: '2033',
-//   exogenousData: 'Yes' 
-// };
-
-const MOCK_MEMBERS = [
-  {
-    company: "Company1",
-    department: "Department1",
-    email: "ab@mock.com",
-    firstName: "John",
-    lastName: "Doe",
-    mobileNumber: "+2839283928",
-    shortId: "DEMOONE",
-    teamMemberPosition: "Team1",
-    userType: "internal",
-  },
-  {
-    company: "Company2",
-    department: "Department2",
-    email: "cd@mock.com",
-    firstName: "Jane",
-    lastName: "Doe",
-    mobileNumber: "+2839283928",
-    shortId: "DEMOTWO",
-    teamMemberPosition: "Team2",
-    userType: "internal",
-  },
-];
-
-const ProjectDetails = () => {
-  // const [projectDetails, setProjectDetails] = useState();
-
-  // useEffect(() => {
-  //   setProjectDetails(MOCK_DETAILS);
-  // }, []);
-
+const ProjectDetails = ({ project }) => {
   const [createProject, setCreateProject] = useState(false);
   const [editProject, setEditProject] = useState(false);
 
   const [showApiKey, setShowApiKey] = useState(false);
-  // const [forecast, setForecast] = useState();
   const [teamMembers, setTeamMembers] = useState();
 
+  console.log('project');
+  console.log(project);
+
   useEffect(() => {
-    setTeamMembers(MOCK_MEMBERS);
-  }, []);
+    const members = project.collaborators.map(member => ({...member, userType: 'internal'}));
+    setTeamMembers(members);
+  }, [project]);
 
   const copyApiKey = () => {
     navigator.clipboard.writeText('dummy api key').then(() => {
@@ -98,12 +58,14 @@ const ProjectDetails = () => {
   };
 
   const teamMembersList = teamMembers?.map((member, index) => {
+    console.log('oye hoye');
     return (
       <TeamMemberListItem
         key={index}
         itemIndex={index}
         teamMember={member}
         hidePosition={true}
+        showInfoStacked={true}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers?.length}
         onMoveUp={onTeamMemberMoveUp}
@@ -198,17 +160,17 @@ const ProjectDetails = () => {
               <div id="productDescription">
                 <label className="input-label summary">Project Name</label>
                 <br />                    
-                Lorem Ipsum Dolor
+                {project?.name}
               </div>
               <div id="tags">
                 <label className="input-label summary">Created on</label>
                 <br />
-                27/03/2022
+                {regionalDateAndTimeConversionSolution(project?.createdOn)}
               </div>
               <div id="isExistingSolution">
                 <label className="input-label summary">Created by</label>
                 <br />
-                John Doe
+                {project.createdBy.firstName} {project.createdBy.lastName}
               </div>
             </div>
           </div>
@@ -232,7 +194,7 @@ const ProjectDetails = () => {
               </div> */}
             </div>
             <div className={Styles.membersList}>
-              {teamMembersList}
+              {teamMembers?.length > 0 && teamMembersList}
             </div>
           </div>
         </div>
