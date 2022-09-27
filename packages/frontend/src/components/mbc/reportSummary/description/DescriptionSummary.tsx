@@ -20,6 +20,7 @@ export interface IDescriptionReportProps {
   onDelete: (reportId: string) => void;
   onExportToPDFDocument: JSX.Element;
   bookmarked?: boolean;
+  reportLink?: string;
 }
 export interface IDescriptionReportRequest {
   reportName: string;
@@ -139,6 +140,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
           })
         : 'NA';
     const pdfFileName = reportName?.replace(/[/|\\:*?"<>]/g, '').replace(/ /g, '-');
+    const reportLink = this.props.reportLink;
 
     return (
       <React.Fragment>
@@ -201,6 +203,15 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <label className="input-label summary">Tags</label>
                     <br />
                     <div className={Styles.tagColumn}>{chips}</div>
+                  </div>
+                  <div id="reportLink">
+                    <label className="input-label summary">Report Link</label>
+                    <br />
+                    <div className={Styles.reportLinkColumn}>
+                      <a href={reportLink} target="_blank" rel="noreferrer">
+                        {reportLink}
+                      </a>
+                    </div>
                   </div>
                 </div>
                 <hr className="divider1" />
