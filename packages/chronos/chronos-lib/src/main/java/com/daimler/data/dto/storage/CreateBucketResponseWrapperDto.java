@@ -1,4 +1,4 @@
-package com.daimler.data.dto;
+package com.daimler.data.dto.storage;
 
 import java.io.Serializable;
 import java.util.List;

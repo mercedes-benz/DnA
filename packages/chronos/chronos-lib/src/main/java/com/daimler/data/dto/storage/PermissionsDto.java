@@ -1,6 +1,4 @@
-package com.daimler.data.db.json;
-
-import java.util.Date;
+package com.daimler.data.dto.storage;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -12,12 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class File {
+public class PermissionsDto {
 
-	private String id;
-	private String createdBy;
-	private Date createdOn;
-	private String name;
-	private String path;
+	private Boolean read;
+	private Boolean write;
 	
 }
