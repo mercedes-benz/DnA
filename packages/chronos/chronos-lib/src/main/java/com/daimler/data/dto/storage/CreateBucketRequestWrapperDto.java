@@ -1,4 +1,4 @@
-package com.daimler.data.dto;
+package com.daimler.data.dto.storage;
 
 import java.io.Serializable;
 
@@ -12,17 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RunNowNotebookParamsDto  implements Serializable{
+public class CreateBucketRequestWrapperDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
+	private CreateBucketRequestDto data;
 	
-	private String y;
-	private String X;
-	private String X_pred;
-	private String Config;
-	private String fh;
-	private String freq;
-	private String results_folder;
-	private String excel;
-	private String correlationId;
 }
