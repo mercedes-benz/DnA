@@ -302,7 +302,7 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={[styles.flexCol2, styles.firstCol]}>
         <Text style={styles.sectionTitle}>Division</Text>
-        <Text>{description.division?.name || 'NA'}</Text>
+        <Text>{description.division?.name || description.division?.name === 'Choose' ? 'NA' : description.division?.name}</Text>
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Sub Division</Text>
