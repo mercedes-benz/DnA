@@ -4,8 +4,8 @@ spring:
     name: dna-chronos-service
 
   flyway:
-    enabled: ${FLYWAY_ENABLED:false}
-    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
     schemas: ${FLYWAY_SCHEMA:public}   
         
