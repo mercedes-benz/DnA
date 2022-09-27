@@ -7,8 +7,7 @@ RUN gradle build --no-daemon
 #Step-2
 FROM openjdk:17-jdk
 ENV ARTIFACT_NAME=model-registry-lib-1.0.0.jar
-ENV APP_HOME=/usr/app/
-WORKDIR $APP_HOME
+USER 1000
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/model-registry-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
 
 EXPOSE 7373
