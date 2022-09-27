@@ -94,6 +94,7 @@ export class ReportsApiClient {
     }
     const resQuery = `totalCount
       records {id,
+        reportId,
         productName,
         description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrains, status },
         members {
@@ -131,7 +132,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, productPhase, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, designGuideImplemented  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, productPhase, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, designGuideImplemented, reportLink  },
         customer {
           customerDetails { hierarchy, ressort, department, comment },
           processOwners { shortId }
@@ -154,6 +155,7 @@ export class ReportsApiClient {
           id,
           email
         },
+        reportId
       }`;
     const apiQuery = {
       query: `query {
