@@ -137,6 +137,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
       (teamMember: ITeams) => teamMember.shortId === userInfo.id,
     )?.shortId;
     const reportName = this.state.report.productName;
+    const reportId = this.state.report.reportId;
     // const logoDetails = this.state.report.description.logoDetails;
 
     const deleteModalContent: React.ReactNode = (
@@ -169,7 +170,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
               Back
             </button>
             <div className={Styles.summeryBannerTitle}>
-              <h2>{reportName}</h2>
+              <h2>{reportName}{' '}({reportId})</h2>
             </div>
           </div>
           <div id="report-summary-tabs" className="tabs-panel">
@@ -222,10 +223,11 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
                         isProductOwner !== undefined ||
                         userInfo.id === this.checkUserCanEditReport(userInfo)
                       }
-                      reportId={this.state.response.data ? this.state.response.data.id : ''}
+                      reportId={this.state.response.data ? this.state.response.data.reportId : ''}
                       onEdit={this.onEditReport}
                       onDelete={this.onDeleteReport}
                       onExportToPDFDocument={pdfContent}
+                      reportLink={this.state.response.data ? this.state.response.data.description.reportLink : ''}
                     />
                   </React.Fragment>
                 ) : (
@@ -306,6 +308,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
             report.members.admin = res.members.admin || [];
             report.publish = res.publish;
             report.openSegments = res.openSegments || [];
+            report.reportId = res.reportId;
             this.setState(
               {
                 response,

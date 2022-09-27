@@ -257,7 +257,7 @@ const teamMembersList = (members: ITeams[]) => {
             <View>
               <Text>
                 <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
-                  {member.firstName} {member.lastName}
+                  <Text>{member.firstName} {member.lastName}</Text>
                 </Link>
               </Text>
               <Text>{member.department}</Text>
@@ -288,6 +288,14 @@ const Description = (description: IDescriptionRequest) => (
       <View style={[styles.flexCol2]}>
         <Text style={styles.sectionTitle}>Tags</Text>
         {description.tags?.length ? <Text>{description.tags?.join(', ')}</Text> : <Text>NA</Text>}
+      </View>
+      <View style={[styles.flexCol2]}>
+        <Text style={styles.sectionTitle}>Report Link</Text>
+        <Text>
+          <Link src={description.reportLink}>
+            <Text>{description.reportLink}</Text>
+          </Link>
+        </Text>
       </View>
     </View>
     <View style={styles.seperatorLine} />
@@ -565,7 +573,7 @@ export const ReportPdfDoc = (props: Props) => (
   <Document {...props}>
     <Page style={styles.page} wrap={true} {...props}>
       <View style={styles.view}>
-        <Text style={styles.title}>{props.report.productName}</Text>
+        <Text style={styles.title}>{props.report.productName}{' '}({props.report.reportId})</Text>
         <Text style={styles.subTitle}>Report Summary</Text>
         <Description {...props.report.description} />
         <Customer customer={props.report.customer} showCustomer={props.canShowCustomer} />

@@ -181,7 +181,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         },
         publish: false,
         openSegments: [],
-        usingQuickPath: false,
+        usingQuickPath: true,
         reportId: null
       },
       currentState: null,
@@ -196,7 +196,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     }
   }
   public componentDidMount() {
-    Tabs.defaultSetup();
+    // Tabs.defaultSetup();
     InputFields.defaultSetup();
     ProgressIndicator.show();
 
@@ -290,6 +290,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       () => {
         this.setOpenTabs(report.openSegments);
         SelectBox.defaultSetup();
+        Tabs.defaultSetup();
         ProgressIndicator.hide();
         resetChildComponents();
         this.setState({
@@ -415,9 +416,15 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
   }
 
   public changeQuickPath = (value: boolean) => {
+    
     const report = {...this.state.report};
     report.usingQuickPath = !value;
-    this.setState({report});
+    // this.setOpenTabs(report.openSegments);
+    this.setState({report},()=>{
+      Tabs.defaultSetup();
+      // document.getElementById(this.state.currentTab).click();
+    });
+    
   }
 
   public render() {
@@ -431,6 +438,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 {this.state.report.reportId ? 'Edit Report' : 'Create Report'}
               </div>
             </div>
+            {!this.state.report.reportId && currentTab==='description' ? 
             <div className={Styles.switchButton}>
               <label className="switch">
                 <span className="label" style={{ marginRight: '5px' }}>
@@ -446,144 +454,167 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 </span>
               </label>
             </div>
+            :''}
           </div>
           <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
-            {this.state.report.description.productName}
+            {this.state.report.description.productName}{' '}{this.state.report.reportId?'('+this.state.report.reportId+')': ''}
           </h3>
-          <div id="create-report-tabs" className="tabs-panel">
-            {!this.state.report.usingQuickPath ?
-            <div className="tabs-wrapper">
-              <nav>
-                <ul className="tabs">
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Description')
-                        ? this.state.tabClassNames.get('Description')
-                        : 'tab active'
+          {this.state.report.usingQuickPath && !this.state.report.reportId ?  
+            <Description
+              divisions={this.state.divisions}
+              subDivisions={this.state.subDivisions}
+              productPhases={this.state.productPhases}
+              statuses={this.state.statuses}
+              arts={this.state.arts}
+              integratedPortals={this.state.integratedPortals}
+              designGuideImplemented={this.state.designGuideImplemented}
+              frontEndTechnologies={this.state.frontEndTechnologies}
+              description={this.state.report.description}
+              modifyReportDescription={this.modifyReportDescription}
+              onSaveDraft={this.onSaveDraft}
+              tags={this.state.tags}
+              departmentTags={this.state.departmentTags}
+              setSubDivisions={(subDivisions: ISubDivision[]) =>
+                this.setState({ subDivisions }, () => SelectBox.defaultSetup())
+              }
+              enableQuickPath={this.state.report.usingQuickPath}
+            /> 
+            : 
+            <div id="create-report-tabs" className="tabs-panel">           
+              <div className="tabs-wrapper">            
+                <nav>
+                  <ul className="tabs">
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Description')
+                          ? this.state.tabClassNames.get('Description')
+                          : 'tab active'
+                      }
+                    >
+                      <a href="#tab-content-1" id="description" onClick={this.setCurrentTab}>
+                        Description
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Customer')
+                          ? this.state.tabClassNames.get('Customer')
+                          : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-2" id="customer" onClick={this.setCurrentTab}>
+                        Customer
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Kpis') ? this.state.tabClassNames.get('Kpis') : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-3" id="kpi" onClick={this.setCurrentTab}>
+                        KPIs
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('DataAndFunctions')
+                          ? this.state.tabClassNames.get('DataAndFunctions')
+                          : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-4" id="datafunction" onClick={this.setCurrentTab}>
+                        Data & Functions
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Members') ? this.state.tabClassNames.get('Members') : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-5" id="members" onClick={this.setCurrentTab}>
+                        Members
+                      </a>
+                    </li>
+                  </ul>
+                </nav>             
+              </div>            
+              <div className="tabs-content-wrapper">
+                <div id="tab-content-1" className="tab-content">
+                {currentTab === 'description' && (<Description
+                    divisions={this.state.divisions}
+                    subDivisions={this.state.subDivisions}
+                    productPhases={this.state.productPhases}
+                    statuses={this.state.statuses}
+                    arts={this.state.arts}
+                    integratedPortals={this.state.integratedPortals}
+                    designGuideImplemented={this.state.designGuideImplemented}
+                    frontEndTechnologies={this.state.frontEndTechnologies}
+                    description={this.state.report.description}
+                    modifyReportDescription={this.modifyReportDescription}
+                    onSaveDraft={this.onSaveDraft}
+                    tags={this.state.tags}
+                    departmentTags={this.state.departmentTags}
+                    setSubDivisions={(subDivisions: ISubDivision[]) =>
+                      this.setState({ subDivisions }, () => SelectBox.defaultSetup())
                     }
-                  >
-                    <a href="#tab-content-1" id="description" onClick={this.setCurrentTab}>
-                      Description
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Customer')
-                        ? this.state.tabClassNames.get('Customer')
-                        : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-2" id="customer" onClick={this.setCurrentTab}>
-                      Customer
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Kpis') ? this.state.tabClassNames.get('Kpis') : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-3" id="kpi" onClick={this.setCurrentTab}>
-                      KPIs
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('DataAndFunctions')
-                        ? this.state.tabClassNames.get('DataAndFunctions')
-                        : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-4" id="datafunction" onClick={this.setCurrentTab}>
-                      Data & Functions
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Members') ? this.state.tabClassNames.get('Members') : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-5" id="members" onClick={this.setCurrentTab}>
-                      Members
-                    </a>
-                  </li>
-                </ul>
-              </nav>
+                    enableQuickPath={false}
+                  />
+                  )}
+                </div>
+                <div id="tab-content-2" className="tab-content">
+                  {currentTab === 'customer' && (
+                    <Customer
+                      customer={this.state.report.customer}
+                      hierarchies={this.state.hierarchies}
+                      departments={this.state.departments}
+                      ressort={this.state.ressort}
+                      modifyCustomer={this.modifyCustomer}
+                      onSaveDraft={this.onSaveDraft}
+                      ref={this.customerComponent}
+                    />
+                  )}
+                </div>
+                <div id="tab-content-3" className="tab-content">
+                  {currentTab === 'kpi' && (
+                    <Kpi
+                      kpis={this.state.report.kpis}
+                      kpiNames={this.state.kpiNames}
+                      reportingCause={this.state.reportingCauses}
+                      modifyKpi={this.modifyKpi}
+                      onSaveDraft={this.onSaveDraft}
+                      ref={this.kpiComponent}
+                    />
+                  )}
+                </div>
+                <div id="tab-content-4" className="tab-content">
+                  {currentTab === 'datafunction' && (
+                    <DataFunction
+                      dataAndFunctions={this.state.report.dataAndFunctions}
+                      dataSources={this.state.dataSources}
+                      connectionTypes={this.state.connectionTypes}
+                      dataWarehouses={this.state.dataWarehouses}
+                      subSystems={this.state.subSystems}
+                      modifyDataFunction={this.modifyDataFunction}
+                      onSaveDraft={this.onSaveDraft}
+                      ref={this.dataFunctionComponent}
+                    />
+                  )}
+                </div>
+                <div id="tab-content-5" className="tab-content">
+                  {currentTab === 'members' && (
+                    <Members
+                      members={this.state.report.members}
+                      modifyMember={this.modifyMember}
+                      onSaveDraft={this.onSaveDraft}
+                      onPublish={this.onPublish}
+                      ref={this.membersComponent}
+                    />
+                  )}
+                </div>
+              </div>
             </div>
-            : ''}
-            <div className="tabs-content-wrapper">
-              <div id="tab-content-1" className="tab-content">
-                <Description
-                  divisions={this.state.divisions}
-                  subDivisions={this.state.subDivisions}
-                  productPhases={this.state.productPhases}
-                  statuses={this.state.statuses}
-                  arts={this.state.arts}
-                  integratedPortals={this.state.integratedPortals}
-                  designGuideImplemented={this.state.designGuideImplemented}
-                  frontEndTechnologies={this.state.frontEndTechnologies}
-                  description={this.state.report.description}
-                  modifyReportDescription={this.modifyReportDescription}
-                  onSaveDraft={this.onSaveDraft}
-                  tags={this.state.tags}
-                  departmentTags={this.state.departmentTags}
-                  setSubDivisions={(subDivisions: ISubDivision[]) =>
-                    this.setState({ subDivisions }, () => SelectBox.defaultSetup())
-                  }
-                  enableQuickPath={this.state.report.usingQuickPath}
-                />
-              </div>
-              <div id="tab-content-2" className="tab-content">
-                {currentTab === 'customer' && (
-                  <Customer
-                    customer={this.state.report.customer}
-                    hierarchies={this.state.hierarchies}
-                    departments={this.state.departments}
-                    ressort={this.state.ressort}
-                    modifyCustomer={this.modifyCustomer}
-                    onSaveDraft={this.onSaveDraft}
-                    ref={this.customerComponent}
-                  />
-                )}
-              </div>
-              <div id="tab-content-3" className="tab-content">
-                {currentTab === 'kpi' && (
-                  <Kpi
-                    kpis={this.state.report.kpis}
-                    kpiNames={this.state.kpiNames}
-                    reportingCause={this.state.reportingCauses}
-                    modifyKpi={this.modifyKpi}
-                    onSaveDraft={this.onSaveDraft}
-                    ref={this.kpiComponent}
-                  />
-                )}
-              </div>
-              <div id="tab-content-4" className="tab-content">
-                {currentTab === 'datafunction' && (
-                  <DataFunction
-                    dataAndFunctions={this.state.report.dataAndFunctions}
-                    dataSources={this.state.dataSources}
-                    connectionTypes={this.state.connectionTypes}
-                    dataWarehouses={this.state.dataWarehouses}
-                    subSystems={this.state.subSystems}
-                    modifyDataFunction={this.modifyDataFunction}
-                    onSaveDraft={this.onSaveDraft}
-                    ref={this.dataFunctionComponent}
-                  />
-                )}
-              </div>
-              <div id="tab-content-5" className="tab-content">
-                {currentTab === 'members' && (
-                  <Members
-                    members={this.state.report.members}
-                    modifyMember={this.modifyMember}
-                    onSaveDraft={this.onSaveDraft}
-                    onPublish={this.onPublish}
-                    ref={this.membersComponent}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
+          }
+          
           <ConfirmModal
             title="Save Changes?"
             acceptButtonTitle="Close"
@@ -901,5 +932,19 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     this.setState({
       report: currentReportObject,
     });
+  };
+
+  protected ResetTabs = () => {
+    const tabActiveIndicator = document.querySelector('.active-indicator') as HTMLSpanElement;
+    const firstTabContent = document.querySelector('.tab-content');
+    const activeTabContent = document.querySelector('.tab-content.active');
+
+    if (tabActiveIndicator && firstTabContent && activeTabContent) {
+      tabActiveIndicator.style.left = '0px';
+      if (!firstTabContent.classList.contains('active')) {
+        firstTabContent.classList.add('active');
+        activeTabContent.classList.remove('active');
+      }
+    }
   };
 }
