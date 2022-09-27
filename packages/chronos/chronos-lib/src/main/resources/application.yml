@@ -46,7 +46,21 @@ spring:
 #kafka:
 #  centralTopic:
 #    name: dnaCentralEventTopic
-    
+
+
+databricks:
+  userid: ${DATABRICKS_USERID:XXXXXX}
+  userauth: ${DATABRICKS_USER_AUTH:XXXXX}
+  pat: ${DATABRICKS_PAT:XXXXX}
+  jobId: ${DATABRICKS_JOBID:XXXXX}
+  defaultConfigYml: ${DATABRICKS_DEFAULTCONFIGYML_PATH:XXXXX}
+  uri:
+    base: ${DATABRICKS_BASE_URI:XXXXX}
+    runnow: ${DATABRICKS_RUNNOW_URI:/api/2.1/jobs/run-now}
+    deleterun: ${DATABRICKS_DELETERUN_URI:/api/2.1/jobs/runs/delete}
+    getrun: ${DATABRICKS_GETRUN_URI:/api/2.1/jobs/runs/get}
+    jobrunlist: ${DATABRICKS_JOBRUNLIST_URI:/api/2.1/jobs/get}
+   
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
