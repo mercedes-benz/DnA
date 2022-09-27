@@ -1,4 +1,4 @@
-package com.daimler.data.dto;
+package com.daimler.data.dto.storage;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
