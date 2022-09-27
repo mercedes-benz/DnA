@@ -190,4 +190,9 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 		return userName;
 	}
 
+	@Override
+	public boolean verifyUserRoles() {
+		return this.userStore.getUserInfo().hasDataComplianceAdminAccess();
+	}
+
 }

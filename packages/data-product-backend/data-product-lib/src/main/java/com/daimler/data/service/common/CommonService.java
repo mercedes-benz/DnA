@@ -60,4 +60,6 @@ public interface CommonService<V, T, ID> {
 	Long getCount();
 
 	String currentUserName(CreatedByVO currentUser);
+
+	boolean verifyUserRoles();
 }
