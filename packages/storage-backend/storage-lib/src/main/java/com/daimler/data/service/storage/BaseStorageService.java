@@ -37,6 +37,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +115,16 @@ public class BaseStorageService implements StorageService {
 	@Value("${storage.connect.host}")
 	private String storageConnectHost;
 	
+    @Autowired
+	HttpServletRequest httpRequest;
+	
+	@Value("${databricks.userid}")
+	private String dataBricksUser;
+	
+	@Value("${databricks.usertoken}")
+	private String dataBricksAuth;
+	
+	
 	@Value("${minio.clientApi}")
 	private String minioClientApi;
 	
@@ -166,6 +179,14 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		String ownerEmail = userStore.getUserInfo().getEmail();
+		
+		if(bucketVo!=null && bucketVo.getCreatedBy()!=null && dataBricksUser.equals(bucketVo.getCreatedBy().getId()) && !dataBricksUser.equals(currentUser)) {
+			String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+			if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+				currentUser = dataBricksUser;
+			}
+		}
+			
 		PermissionVO permissionVO = null;
 
 		LOGGER.debug("Validate Bucket before create.");
@@ -502,6 +523,10 @@ public class BaseStorageService implements StorageService {
 			String prefix) {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
+		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+		if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+			currentUser = dataBricksUser;
+		}
 		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 		BucketResponseWrapperVO bucketResponseWrapperVO = new BucketResponseWrapperVO();
 		List<MessageDescription> errors = validateForUpload(uploadfile);
