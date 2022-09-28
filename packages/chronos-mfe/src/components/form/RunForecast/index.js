@@ -117,7 +117,7 @@ const RunForecast = ({ savedFiles }) => {
           <>
             <p>{selectedInputFile?.name}</p>
             <div className={Styles.flexLayout}>
-              <div>
+              <div className={Styles.fullWidth}>
                 <div className={Styles.uploadInfo}>
                   <span>Uploaded On</span>
                   <span>{regionalDateAndTimeConversionSolution(selectedInputFile?.createdOn)}</span>
