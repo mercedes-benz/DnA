@@ -71,7 +71,7 @@ const ProjectCardItem = ({
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
+              <div>{project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
             </div>
             <div>
               <div>Created by</div>
