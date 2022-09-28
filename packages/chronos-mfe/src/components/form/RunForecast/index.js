@@ -113,7 +113,7 @@ const RunForecast = ({ savedFiles }) => {
         </div>
       </div>
       {
-        selectedInputFile?.name !== undefined &&
+        selectedInputFile?.path !== undefined &&
           <>
             <p>{selectedInputFile?.name}</p>
             <div className={Styles.flexLayout}>
@@ -153,6 +153,7 @@ const RunForecast = ({ savedFiles }) => {
     const isValid = isValidFile(file);
     if (!isValid) Notification.show('File is not valid.', 'alert');
     setIsSelectedFile(true);
+    setSelectedInputFile({name: e.dataTransfer.files?.[0].name});
   };
 
   const onFileDrop = (e) => {
@@ -171,7 +172,11 @@ const RunForecast = ({ savedFiles }) => {
     formData.append("forecastHorizon", data.forecastHorizon);
     formData.append("comment", data.comment);
     formData.append("saveRequestPart", keepExistingFiles);
-    formData.append("savedInputPath", null); // todo file path
+    if(selectedInputFile?.path !== undefined) {
+      formData.append("savedInputPath", selectedInputFile.path);
+    } else {
+      formData.append("savedInputPath", null); // todo file path
+    }
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
@@ -208,7 +213,7 @@ const RunForecast = ({ savedFiles }) => {
                   onDragLeave={onFileDrop}
                   className={classNames('upload-container', Styles.uploadContainer)}
                 >
-                  <input type="file" id="file" name="file" {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); console.log(e.target.value) }})} />
+                  <input type="file" id="file" name="file" {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}) }})} />
                   <div className={Styles.rcUpload}>
                     <div className={Styles.dragDrop}>
                       <div className={Styles.icon}>
