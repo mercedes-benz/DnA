@@ -1,4 +1,5 @@
 import { server } from '../server/api';
+import { formServer } from '../server/formApi';
 
 const getAllForecastProjects = () => {
   return server.get('/forecasts?limit=0&offset=0', {
@@ -25,7 +26,7 @@ const getAllInputFiles = (id) => {
 };
 
 const createForecastRun = (data, id) => {
-  return server.post(`/forecasts/${id}/runs`, {
+  return formServer.post(`/forecasts/${id}/runs`, {
     data,
   });
 };
