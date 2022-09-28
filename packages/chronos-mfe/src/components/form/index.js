@@ -18,7 +18,7 @@ import Breadcrumb from '../shared/breadcrumb/Breadcrumb';
 import { chronosApi } from '../../apis/chronos.api';
 
 const tabs = {
-  runForecast: { runName: '', configuration: '0', frequency: '0', forecastHorizon: '0', comment: '' },
+  runForecast: {},
   forecastResults: {},
   manageConnections: {},
   projectDetails: {},
@@ -28,7 +28,6 @@ const ForecastForm = ({ user }) => {
   const { id: projectId } = useParams();
 
   const [currentTab, setCurrentTab] = useState('runForecast');
-  const [savedTabs, setSavedTabs] = useState(['forecastResults','manageConnections','projectDetails']);
   const methods = useForm();
   // const { formState, reset } = methods;
 
@@ -58,157 +57,12 @@ const ForecastForm = ({ user }) => {
       ProgressIndicator.hide();
     }).catch(error => {
       console.log(error.message);
-      setProject({
-        "id": "1",
-        "name": "Forecast Two",
-        "bucketName": "chronos-Forecast One",
-        "permission": {
-          "read": true,
-          "write": true
-        },
-        "collaborators": [
-          {
-            "id": "1",
-            "permissions": {
-              "read": true,
-              "write": true
-            },
-            "firstName": "Aniruddha",
-            "lastName": "Khartade",
-            "department": "IT",
-            "email": "anirudh@mercedes-benz.com",
-            "mobileNumber": "123456780"
-          }
-        ],
-        "apiKey": "28392839283nfsdisdi823",
-        "createdBy": {
-          "id": "DEMUSER",
-          "firstName": "Demo",
-          "lastName": "User",
-          "department": "TE/ST",
-          "email": "demouser@web.de",
-          "mobileNumber": "01701234567"
-        },
-        "createdOn": "2022-09-24T12:14:47.511+00:00",
-        "savedInputs": [
-          {
-            "id": null,
-            "name": "sample",
-            "path": "path/sample",
-            "createdBy": "DEMUSER",
-            "createdOn": "2022-09-24T12:36:36.301+00:00"
-          }
-        ],
-        "runs": [
-          {
-            "id": "1",
-            "jobId": 1,
-            "ranBy": "DEMUSER",
-            "runId": 1,
-            "state": {
-              "result_state": "IN PROGRESS",
-              "state_message": "string",
-              "life_cycle_state": "INTERNAL_ERROR",
-              "user_cancelled_or_timedout": true
-            },
-            "comment": "test run",
-            "endTime": null,
-            "runName": "runtest",
-            "createdBy": "DEMUSER",
-            "frequency": "Daily",
-            "inputFile": "path/file",
-            "startTime": "2022-09-24T12:14:47.511+00:00",
-            "setupDuration": null,
-            "forecastHorizon": "12",
-            "configurationFile": "Default-Settings",
-            "executionDuration": null
-          },
-          {
-            "id": "2",
-            "jobId": 2,
-            "ranBy": "DEMUSER",
-            "runId": 2,
-            "state": {
-              "result_state": "IN PROGRESS",
-              "state_message": "string",
-              "life_cycle_state": "INTERNAL_ERROR",
-              "user_cancelled_or_timedout": true
-            },
-            "comment": "test run",
-            "endTime": null,
-            "runName": "runtest",
-            "createdBy": "DEMUSER",
-            "frequency": "Daily",
-            "inputFile": "path/file",
-            "startTime": "2022-09-24T12:14:47.511+00:00",
-            "setupDuration": null,
-            "forecastHorizon": "12",
-            "configurationFile": "Default-Settings",
-            "executionDuration": null
-          },
-          {
-            "id": "3",
-            "jobId": 3,
-            "ranBy": "DEMUSER",
-            "runId": 3,
-            "state": {
-              "result_state": "CANCELED",
-              "state_message": "string",
-              "life_cycle_state": "INTERNAL_ERROR",
-              "user_cancelled_or_timedout": true
-            },
-            "comment": "test run",
-            "endTime": null,
-            "runName": "runtest",
-            "createdBy": "DEMUSER",
-            "frequency": "Daily",
-            "inputFile": "path/file",
-            "startTime": "2022-09-24T12:14:47.511+00:00",
-            "setupDuration": null,
-            "forecastHorizon": "12",
-            "configurationFile": "Default-Settings",
-            "executionDuration": null
-          },
-          {
-            "id": "4",
-            "jobId": 4,
-            "ranBy": "DEMUSER",
-            "runId": 4,
-            "state": {
-              "result_state": "SUCCESS",
-              "state_message": "string",
-              "life_cycle_state": "INTERNAL_ERROR",
-              "user_cancelled_or_timedout": true
-            },
-            "comment": "test run",
-            "endTime": null,
-            "runName": "runtest",
-            "createdBy": "DEMUSER",
-            "frequency": "Daily",
-            "inputFile": "path/file",
-            "startTime": "2022-09-24T12:14:47.511+00:00",
-            "setupDuration": null,
-            "forecastHorizon": "12",
-            "configurationFile": "Default-Settings",
-            "executionDuration": null
-          },
-        ]
-      });
       ProgressIndicator.hide();
     });
   };
 
   const setTab = (e) => {
     setCurrentTab(e.target.id);
-  };
-
-  const switchTabs = (currentTab) => {
-    const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
-    setSavedTabs([...new Set([...savedTabs, currentTab])]);
-    if (currentTab !== 'projectDetails') {
-      setCurrentTab(Object.keys(tabs)[tabIndex]);
-      elementRef.current[tabIndex].click();
-    }
   };
 
   return (
@@ -223,12 +77,12 @@ const ForecastForm = ({ user }) => {
           <div className="tabs-wrapper">
             <nav>
               <ul className="tabs">
-                <li className={savedTabs?.includes('runForecast') ? 'tab valid' : 'tab active'}>
+                <li className={'tab active'}>
                   <a href="#tab-content-1" id="runForecast" ref={elementRef} onClick={setTab}>
                     Run Forecast
                   </a>
                 </li>
-                <li className={savedTabs?.includes('forecastResults') ? 'tab valid' : 'tab disabled'}>
+                <li className={'tab valid'}>
                   <a
                     href="#tab-content-2"
                     id="forecastResults"
@@ -252,7 +106,7 @@ const ForecastForm = ({ user }) => {
                     Manage Connections
                   </a>
                 </li> */}
-                <li className={savedTabs?.includes('projectDetails') ? 'tab valid' : 'tab disabled'}>
+                <li className={'tab valid'}>
                   <a
                     href="#tab-content-4"
                     id="projectDetails"
@@ -269,7 +123,8 @@ const ForecastForm = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              <RunForecast onSave={() => switchTabs('runForecast')} />
+              <RunForecast savedFiles={project?.savedInputs ? project?.savedInputs : []} />
+              {/* <RunForecast savedFiles={savedInputs} /> */}
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (
