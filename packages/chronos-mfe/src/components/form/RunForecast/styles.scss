@@ -106,7 +106,8 @@
     background: none;
     border: none;
     color: #00adef;
-    padding-top: 0;
+    padding: 0 5px;
+    cursor: pointer;
     &:focus {
         outline: none;
     }
@@ -150,7 +151,7 @@
     display: flex;
     justify-content: space-between;
     > div {
-        width: calc(50% - 7px);
+        width: 64%;
     }
 }
 .tooltipIcon {
@@ -171,4 +172,8 @@ input::-webkit-inner-spin-button {
 }
 input[type=number] {
   -moz-appearance: textfield;
+}
+
+input[type=file] {
+    visibility: hidden;
 }
