@@ -180,18 +180,14 @@ public class BaseStorageService implements StorageService {
 		String currentUser = userStore.getUserInfo().getId();
 		String ownerEmail = userStore.getUserInfo().getEmail();
 		
-		boolean flag = bucketVo!=null && bucketVo.getCreatedBy()!=null && dataBricksUser.equals(bucketVo.getCreatedBy().getId()) && !dataBricksUser.equals(currentUser);
-		LOGGER.info("user details: current {} , databricks {}, creator {}, flag {} ", currentUser, dataBricksUser, bucketVo.getCreatedBy().getId(), flag);
 		
-		if(bucketVo!=null && bucketVo.getCreatedBy()!=null && dataBricksUser.equals(bucketVo.getCreatedBy().getId()) && !dataBricksUser.equals(currentUser)) {
 			String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
 			if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 				currentUser = dataBricksUser;
 			}
 			LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
-		}
-		LOGGER.info("currentuser {} ", currentUser);
+		
 		
 			
 		PermissionVO permissionVO = null;
