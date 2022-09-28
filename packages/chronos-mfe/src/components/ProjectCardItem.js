@@ -67,7 +67,7 @@ const ProjectCardItem = ({
           <div>
             <div>
               <div>Permission</div>
-              <div>{project?.permission !== null ? 'N/A' : displayPermission(project?.permission)}</div>
+              <div>{project?.permission === null ? 'N/A' : displayPermission(project?.permission)}</div>
             </div>
             <div>
               <div>Created on</div>
