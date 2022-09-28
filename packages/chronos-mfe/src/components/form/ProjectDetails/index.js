@@ -43,8 +43,10 @@ const ProjectDetails = () => {
   };
 
   useEffect(() => {
-    const members = project.collaborators.map(member => ({...member, userType: 'internal'}));
-    setTeamMembers(members);
+    if(project !== undefined) {
+      const members = project.collaborators.map(member => ({...member, userType: 'internal'}));
+      setTeamMembers(members);
+    }
   }, [project]);
 
   const copyApiKey = () => {
