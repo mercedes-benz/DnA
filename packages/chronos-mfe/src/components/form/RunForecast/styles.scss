@@ -151,7 +151,11 @@
     display: flex;
     justify-content: space-between;
     > div {
-        width: 64%;
+        width: calc(50% - 7px);
+    }
+    .fullWidth {
+        width: 100%; 
+        min-width: 100%;
     }
 }
 .tooltipIcon {
