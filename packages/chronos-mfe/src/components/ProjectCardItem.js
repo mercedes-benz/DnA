@@ -67,11 +67,11 @@ const ProjectCardItem = ({
           <div>
             <div>
               <div>Permission</div>
-              <div>{project?.permission !== null ? 'N/A' : displayPermission(project?.permission)}</div>
+              <div>{project?.permission === null ? 'N/A' : displayPermission(project?.permission)}</div>
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
+              <div>{project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
             </div>
             <div>
               <div>Created by</div>

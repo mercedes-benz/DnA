@@ -123,12 +123,11 @@ const ForecastForm = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              <RunForecast savedFiles={project?.savedInputs ? project?.savedInputs : []} />
-              {/* <RunForecast savedFiles={savedInputs} /> */}
+              <RunForecast savedFiles={(project?.savedInputs && project?.savedInputs !== null) ? project?.savedInputs : []} />
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (
-                <ForecastResults forecastRuns={project?.runs ? project?.runs : []} />
+                <ForecastResults forecastRuns={(project?.runs && project?.runs !== null) ? project?.runs : []} />
               )}
             </div>
             <div id="tab-content-3" className="tab-content">
