@@ -19,9 +19,6 @@ const ProjectDetails = ({ project }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [teamMembers, setTeamMembers] = useState();
 
-  console.log('project');
-  console.log(project);
-
   useEffect(() => {
     const members = project.collaborators.map(member => ({...member, userType: 'internal'}));
     setTeamMembers(members);
@@ -58,7 +55,6 @@ const ProjectDetails = ({ project }) => {
   };
 
   const teamMembersList = teamMembers?.map((member, index) => {
-    console.log('oye hoye');
     return (
       <TeamMemberListItem
         key={index}
@@ -148,11 +144,11 @@ const ProjectDetails = ({ project }) => {
   return (
     <React.Fragment>
       <div className={Styles.content}>
-        <div className={classNames(Styles.contextMenu)}>
+        {/* <div className={classNames(Styles.contextMenu)}>
           <span onClick={() => { setCreateProject(true) }} className={classNames('trigger', Styles.contextMenuTrigger)}>
             <i className="icon mbc-icon edit context" />
           </span>
-        </div>
+        </div> */}
         <h3 id="productName">Project Details</h3>
         <div className={Styles.firstPanel}>
           <div className={Styles.formWrapper}>
@@ -280,6 +276,7 @@ const ProjectDetails = ({ project }) => {
         <AddTeamMemberModal
           ref={addTeamMemberModalRef}
           modalTitleText={'Collaborator'}
+          hideTeamPosition={true}
           showOnlyInteral={true}
           // editMode={editTeamMember}
           showAddTeamMemberModal={showAddTeamMemberModal}
