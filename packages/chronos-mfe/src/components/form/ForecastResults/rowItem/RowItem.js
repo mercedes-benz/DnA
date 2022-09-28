@@ -94,13 +94,15 @@ const RowItem = (props) => {
         <td>
           {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />}
           {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
-          {item.state.result_state === 'IN PROGRESS' && <CircularProgressBar />}
+          {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
+          {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
+          {item.state.result_state === null && <CircularProgressBar />}
         </td>
         <td>
-          {regionalDateAndTimeConversionSolution(item.startTime)}
+          {regionalDateAndTimeConversionSolution(item.triggeredOn)}
         </td>
         <td>
-          {item.ranBy}
+          {item.triggeredBy}
         </td>
         <td>
           {item.inputFile}
@@ -109,7 +111,7 @@ const RowItem = (props) => {
           {item.forecastHorizon}
         </td>
         <td>
-          {item.comment}
+          Yes
         </td>
         <td>
           <ContextMenu id={item.id} items={contextMenuItems} isMenuOpen={handleShowContextMenu} />
