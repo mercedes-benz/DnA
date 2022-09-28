@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
 import Styles from './styles.scss';
 
 // import from DNA Container
@@ -11,13 +12,35 @@ import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import { IconAvatarNew } from '../../shared/icons/iconAvatarNew/IconAvatarNew';
 import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import { chronosApi } from '../../../apis/chronos.api';
 
-const ProjectDetails = ({ project }) => {
+const ProjectDetails = () => {
+  const {id: projectId} = useParams();
   const [createProject, setCreateProject] = useState(false);
   const [editProject, setEditProject] = useState(false);
 
   const [showApiKey, setShowApiKey] = useState(false);
   const [teamMembers, setTeamMembers] = useState();
+
+  const [project, setProject] = useState();
+  useEffect(() => {
+    getProjectById();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getProjectById = () => {
+    ProgressIndicator.show();
+      chronosApi.getForecastProjectById(projectId).then((res) => {
+      if(res.runs !== null) {
+        setProject(res);
+      }
+      ProgressIndicator.hide();
+    }).catch(error => {
+      console.log(error.message);
+      ProgressIndicator.hide();
+    });
+  };
 
   useEffect(() => {
     const members = project.collaborators.map(member => ({...member, userType: 'internal'}));
@@ -161,12 +184,12 @@ const ProjectDetails = ({ project }) => {
               <div id="tags">
                 <label className="input-label summary">Created on</label>
                 <br />
-                {regionalDateAndTimeConversionSolution(project?.createdOn)}
+                {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
               </div>
               <div id="isExistingSolution">
                 <label className="input-label summary">Created by</label>
                 <br />
-                {project.createdBy.firstName} {project.createdBy.lastName}
+                {project?.createdBy.firstName} {project?.createdBy.lastName}
               </div>
             </div>
           </div>
