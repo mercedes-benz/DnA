@@ -9,12 +9,12 @@ import Pagination from 'dna-container/Pagination';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import RowItem from './rowItem/RowItem';
-import { useHistory, useParam } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { chronosApi } from '../../../apis/chronos.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
-const ForecastResults = ({ forecastRuns }) => {
-  const { id: projectId } = useParam();
+const ForecastResults = () => {
+  const { id: projectId } = useParams();
   /* Pagination */
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -46,6 +46,25 @@ const ForecastResults = ({ forecastRuns }) => {
       nextSortType: sortBy.currentSortType,
     };
     setSortBy(tempSortBy);
+  };
+
+  const [forecastRuns, setForecastRuns] = useState([]);
+  useEffect(() => {
+    getProjectById();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getProjectById = () => {
+    ProgressIndicator.show();
+    chronosApi.getForecastProjectById(projectId).then((res) => {
+      if(res.runs !== null) {
+        setForecastRuns(res.runs);
+      }
+      ProgressIndicator.hide();
+    }).catch(error => {
+      console.log(error.message);
+      ProgressIndicator.hide();
+    });
   };
 
   /* Delete */
