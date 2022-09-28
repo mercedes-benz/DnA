@@ -115,13 +115,13 @@ public class BaseStorageService implements StorageService {
 	@Value("${storage.connect.host}")
 	private String storageConnectHost;
 	
-    @Autowired
+    	@Autowired
 	HttpServletRequest httpRequest;
 	
 	@Value("${databricks.userid}")
 	private String dataBricksUser;
 	
-	@Value("${databricks.usertoken}")
+	@Value("${databricks.userauth}")
 	private String dataBricksAuth;
 	
 	
