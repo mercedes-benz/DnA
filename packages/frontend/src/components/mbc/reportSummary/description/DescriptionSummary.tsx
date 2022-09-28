@@ -219,7 +219,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {description.division?.name || 'N/A'}
+                    {(description.division?.name || description.division?.name === 'Choose') ? 'N/A' : description.division?.name}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>
@@ -236,7 +236,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="productPhase">
                     <label className="input-label summary">Product Phase</label>
                     <br />
-                    {description.productPhase}
+                    {description.productPhase ? description.productPhase : 'N/A'}
                   </div>
                   <div id="status">
                     <label className="input-label summary">Status </label>
@@ -258,7 +258,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="designguideimplemented">
                     <label className="input-label summary">Design Guide Implemented</label>
                     <br />
-                    {description.designGuideImplemented}
+                    {description.designGuideImplemented ? description.designGuideImplemented : 'N/A'}
                   </div>
                   <div id="frmonEndTech">
                     <label className="input-label summary">Frontend Technologies</label>
