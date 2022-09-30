@@ -1,6 +1,6 @@
 import { Document, Font, Page, StyleSheet, Text, View, Image, Link } from '@react-pdf/renderer';
 import * as React from 'react';
-import { PropsWithChildren } from "react";
+import { PropsWithChildren } from 'react';
 // @ts-ignore
 import ImgAttachment from '../../../../assets/images/attachment.jpg';
 // @ts-ignore
@@ -21,7 +21,7 @@ import ImgTick from '../../../../assets/images/tick.jpg';
 import ImgUseCaseCheckReady from '../../../../assets/images/UseCsae-Check-Ready.png';
 // @ts-ignore
 import ImgUseCaseCheck from '../../../../assets/images/UseCsae-Check.png';
-import { TeamMemberType } from '../../../../globals/Enums';
+import { TeamMemberType } from 'globals/Enums';
 
 // @ts-ignore
 import ImgIdeation from '../../../../assets/images/ideation.jpg';
@@ -44,8 +44,8 @@ import {
   IMembers,
   ITeams,
   IUserInfo,
-} from '../../../../globals/types';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
+} from 'globals/types';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -257,7 +257,9 @@ const teamMembersList = (members: ITeams[]) => {
             <View>
               <Text>
                 <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
-                  <Text>{member.firstName} {member.lastName}</Text>
+                  <Text>
+                    {member.firstName} {member.lastName}
+                  </Text>
                 </Link>
               </Text>
               <Text>{member.department}</Text>
@@ -302,7 +304,9 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={[styles.flexCol2, styles.firstCol]}>
         <Text style={styles.sectionTitle}>Division</Text>
-        <Text>{description.division?.name || description.division?.name === 'Choose' ? 'NA' : description.division?.name}</Text>
+        <Text>
+          {description.division?.name || description.division?.name === 'Choose' ? 'NA' : description.division?.name}
+        </Text>
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Sub Division</Text>
@@ -567,13 +571,15 @@ const Members = ({ showMembers, members }: IMembersProps) => {
   );
 };
 
-type Props = PropsWithChildren<IReportPDFProps|any>;
+type Props = PropsWithChildren<IReportPDFProps | any>;
 
 export const ReportPdfDoc = (props: Props) => (
   <Document {...props}>
     <Page style={styles.page} wrap={true} {...props}>
       <View style={styles.view}>
-        <Text style={styles.title}>{props.report.productName}{' '}({props.report.reportId})</Text>
+        <Text style={styles.title}>
+          {props.report.productName} ({props.report.reportId})
+        </Text>
         <Text style={styles.subTitle}>Report Summary</Text>
         <Description {...props.report.description} />
         <Customer customer={props.report.customer} showCustomer={props.canShowCustomer} />

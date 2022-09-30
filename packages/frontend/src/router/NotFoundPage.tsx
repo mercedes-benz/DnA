@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { getTranslatedLabel } from './../globals/i18n/TranslationsProvider';
+import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 
 const NotFoundPage = () => (
   <div className="container">

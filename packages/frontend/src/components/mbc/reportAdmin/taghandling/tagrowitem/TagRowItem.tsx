@@ -2,7 +2,7 @@ import cn from 'classnames';
 
 import * as React from 'react';
 
-import { ITagResult } from '../../../../../globals/types';
+import { ITagResult } from 'globals/types';
 
 import Styles from './TagRowItem.scss';
 

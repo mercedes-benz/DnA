@@ -9,8 +9,8 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
-import { IAllSolutionsListItem, IAllSolutionsResult, IUserInfo } from '../../../globals/types';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import { IAllSolutionsListItem, IAllSolutionsResult, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import { getQueryParameterByName } from '../../../services/Query';

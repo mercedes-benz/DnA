@@ -1,12 +1,12 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
-import { TeamMemberType } from '../../../../globals/Enums';
-import { ITeams } from '../../../../globals/types';
-import { IconAvatar } from '../../../icons/IconAvatar';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+import { TeamMemberType } from 'globals/Enums';
+import { ITeams } from 'globals/types';
+import { IconAvatar } from 'components/icons/IconAvatar';
 // import { Modal } from '../../../formElements/modal/Modal';
 import Styles from './TeamMemberListItem.scss';
-import { Envs } from '../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -102,9 +102,7 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
               <IconAvatar className={Styles.avatarIcon} />
             </div>
             <div className={Styles.details}>
-              {
-                this.props?.hidePosition ? null : <h6>{teamMember?.teamMemberPosition}</h6>
-              }
+              {this.props?.hidePosition ? null : <h6>{teamMember?.teamMemberPosition}</h6>}
               <div className={Styles.memberDetails}>
                 <div>
                   {teamMember?.firstName} {teamMember?.lastName} <br />
@@ -112,9 +110,9 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                 </div>
                 <div>
                   <a href={`mailto:${teamMember.email}`}>{teamMember.email}</a>
-                  { this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div> }
+                  {this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div>}
                 </div>
-                { !this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div> }
+                {!this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div>}
                 {Envs.ENABLE_INTERNAL_USER_INFO && !this.props?.showInfoStacked ? (
                   <div>
                     <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>Teams Profile</a>
