@@ -18,13 +18,13 @@ import {
   ISubDivision,
   IDivisionAndSubDivision,
   IDepartment,
-} from 'globals/types';
+} from '../../../../globals/types';
 import Styles from './Description.scss';
-import Tags from 'components/formElements/tags/Tags';
-import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import Tags from '../../../formElements/tags/Tags';
+import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
-import TextBox from 'components/mbc/shared/textBox/TextBox';
-import TextArea from 'components/mbc/shared/textArea/TextArea';
+import TextBox from '../../shared/textBox/TextBox';
+import TextArea from '../../shared/textArea/TextArea';
 const classNames = cn.bind(Styles);
 
 export interface IDescriptionProps {
@@ -361,7 +361,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
           <div className={classNames(Styles.wrapper)}>
             <div className={classNames(Styles.firstPanel, 'decriptionSection')}>
               <h3>Please give a detailed report description</h3>
-              <div className={classNames(Styles.formWrapper)}>
+              <div className={classNames(Styles.formWrapper, this.props.enableQuickPath ? Styles.flexLayout : '')}>
                 <div>
                   <div>
                     <TextBox
@@ -391,11 +391,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     />
                   </div>
                 </div>
-                <div className={classNames(Styles.flexLayout)}>
+                <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
                   {!this.props.enableQuickPath ? (
                     <div>
                       <div>
-                        <div className={classNames(Styles.flexLayout)}>
+                        <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
                           <div className={Styles.divisionContainer}>
                             <div
                               className={classNames(
