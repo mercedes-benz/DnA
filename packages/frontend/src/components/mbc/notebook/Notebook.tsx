@@ -5,19 +5,19 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 
 // @ts-ignore
-import { Envs } from '../../../globals/Envs';
-import { ProvisionSource } from '../../../globals/Enums';
-import { IUserInfo, INotebookInfo, INotebookInfoData } from '../../../globals/types';
+import { Envs } from 'globals/Envs';
+import { ProvisionSource } from 'globals/Enums';
+import { IUserInfo, INotebookInfo, INotebookInfoData } from 'globals/types';
 import { history } from '../../../router/History';
 import { attachEllipsis, trackEvent } from '../../../services/utils';
 import { ApiClient } from '../../../services/ApiClient';
-import Modal from '../../formElements/modal/Modal';
+import Modal from 'components/formElements/modal/Modal';
 import NewSandbox from '../newSandbox/NewSandbox';
 import { Editdetails } from './editdetails/Editdetails';
 import Styles from './Notebook.scss';
 import NotebookWorkspace from './NotebookWorkspace';
 import Provisionsolution from '../provisionsolution/Provisionsolution';
-import FullScreenModeIcon from '../../icons/fullScreenMode/FullScreenModeIcon';
+import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';

@@ -198,6 +198,8 @@ const base = {
       process: 'process/browser',
       stream: 'stream-browserify',
       zlib: 'browserify-zlib',
+      components: path.resolve(__dirname, '../../src/components/'),
+      globals: path.resolve(__dirname, '../../src/globals/'),
     },
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.png', '.svg', '.jpg', '.gif'],
     fallback: {

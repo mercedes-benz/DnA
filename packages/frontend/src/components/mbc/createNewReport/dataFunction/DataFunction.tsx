@@ -9,13 +9,13 @@ import {
   ISubSystems,
   IDataWarehouseInUse,
   ISingleDataSources,
-} from '../../../../globals/types';
-import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
-import Modal from '../../../formElements/modal/Modal';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+} from 'globals/types';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import Modal from 'components/formElements/modal/Modal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-import { ErrorMsg } from '../../../../globals/Enums';
+import { ErrorMsg } from 'globals/Enums';
 import { SingleDataSourceList } from './SingleDataSourceList';
 import { DataWarehouseList } from './DataWarehouseList';
 import { DataWarehouse } from './DataFunctionModal/DataWarehouse';

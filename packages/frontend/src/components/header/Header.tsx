@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import * as React from 'react';
-import { IUserInfo } from '../../globals/types';
+import { IUserInfo } from 'globals/types';
 import { history } from './../../router/History';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './Header.scss';
@@ -9,7 +9,7 @@ import HeaderUserPanel from './headerUserPanel/HeaderUserPanel';
 import HeaderContactPanel from './headerContactPanel/HeaderContactPanel';
 import { NotificationPanel } from './notificationpanel/NotificationPanel';
 import { NotificationApiClient } from '../../services/NotificationApiClient';
-import { Envs } from '../../globals/Envs';
+import { Envs } from 'globals/Envs';
 import AppContext from '../context/ApplicationContext';
 
 export interface IHeaderProps {
