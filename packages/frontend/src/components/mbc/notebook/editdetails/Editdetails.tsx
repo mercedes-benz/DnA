@@ -3,10 +3,10 @@ import Styles from './Editdetails.scss';
 
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { INotebookInfo, INotebookInfoData } from '../../../../globals/types';
+import { INotebookInfo, INotebookInfoData } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
-import TextBox from '../../shared/textBox/TextBox';
-import TextArea from '../../shared/textArea/TextArea';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
+import TextArea from 'components/mbc/shared/textArea/TextArea';
 
 export interface IeditDetalsProps {
   notebookexistingDetails: INotebookInfo;
@@ -94,7 +94,7 @@ export function Editdetails(props: IeditDetalsProps) {
           controlId={'solutionNameInput'}
           labelId={'solutionNameLabel'}
           label={'Workspace Name'}
-          placeholder={"Type here"}
+          placeholder={'Type here'}
           value={solutionName}
           errorText={solutionNameErr}
           required={true}

@@ -1,10 +1,10 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IAllSolutionsListItem, ILocation } from '../../../../globals/types';
+import { IAllSolutionsListItem, ILocation } from 'globals/types';
 import { history } from '../../../../router/History';
 import Styles from './SearchListRowItem.scss';
-import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
-import { SOLUTION_LOGO_IMAGE_TYPES } from '../../../../globals/constants';
+import LogoImage from 'components/mbc/createNewSolution/description/logoManager/LogoImage/LogoImage';
+import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 

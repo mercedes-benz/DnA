@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import Styles from './Pagination.scss';
 
 export interface IPaginationProps {

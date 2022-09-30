@@ -5,7 +5,7 @@ import { ApiClient } from '../../../services/ApiClient';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { trackEvent } from '../../../services/utils';
-import { INotebookInfo } from '../../../globals/types';
+import { INotebookInfo } from 'globals/types';
 import TextBox from '../shared/textBox/TextBox';
 import TextArea from '../shared/textArea/TextArea';
 
@@ -103,7 +103,7 @@ const Newsandbox = forwardRef((props: INewSanboxProps, ref: Ref<INewSandBoxRef>)
           controlId={'solutionNameInput'}
           labelId={'solutionNameLabel'}
           label={'Workspace Name'}
-          placeholder={"Type here"}
+          placeholder={'Type here'}
           value={solutionName}
           errorText={solutionNameErr}
           required={true}

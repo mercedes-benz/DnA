@@ -1,6 +1,6 @@
 import React from 'react';
 import Styles from './Services.scss';
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 import Tile from '../shared/tile/Tile';
 import MainPanel from '../shared/mainPanel/MainPanel';
 import malwarescan from '../../../assets/images/Malware_Scan.jpg';

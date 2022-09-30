@@ -21,19 +21,19 @@ import {
   IRelatedProduct,
   ISubDivision,
   ITag,
-} from '../../../../globals/types';
+} from 'globals/types';
 import AddRelatedProductModal from './addRelatedProductModal/AddRelatedProductModal';
 import Styles from './Description.scss';
 import LogoManager from './logoManager/LogoManager';
-import Tags from '../../../formElements/tags/Tags';
-import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
-import { Envs } from '../../../../globals/Envs';
-import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent } from '../../../../globals/constants';
-import { InfoList } from '../../../formElements/modal/infoModal/InfoList';
+import Tags from 'components/formElements/tags/Tags';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import { Envs } from 'globals/Envs';
+import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent } from 'globals/constants';
+import { InfoList } from 'components/formElements/modal/infoModal/InfoList';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-import TextBox from '../../shared/textBox/TextBox';
-import TextArea from '../../shared/textArea/TextArea';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
+import TextArea from 'components/mbc/shared/textArea/TextArea';
 
 const classNames = cn.bind(Styles);
 
@@ -151,7 +151,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       relatedProductValue: props.description.relatedProducts,
       dataStrategyDomain: props.description.dataStrategyDomain,
       numberOfRequestedFTE: props.description.requestedFTECount,
-      additionalResource: props.description.additionalResource
+      additionalResource: props.description.additionalResource,
     };
   }
 
@@ -206,7 +206,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       showExistingSolutionInfo: false,
       dataStrategyDomainMaster: [],
       additionalResourcesMasterList: [],
-      additionalResource: 'No'
+      additionalResource: 'No',
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -255,7 +255,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.reasonForHoldOrClose = reasonForHoldOrClose;
     // this.props.onStateChange();
-    if (reasonForHoldOrClose === '' ||reasonForHoldOrClose === null) {
+    if (reasonForHoldOrClose === '' || reasonForHoldOrClose === null) {
       this.setState({ onHoldError: '*Missing Entry' });
     } else {
       this.setState({ onHoldError: '' });
@@ -542,7 +542,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                       controlId={'productNameInput'}
                       labelId={'productNameLabel'}
                       label={'Solution Name'}
-                      placeholder={"Type here"}
+                      placeholder={'Type here'}
                       value={this.state.productName}
                       errorText={productNameError}
                       required={true}
@@ -615,17 +615,11 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     </div>
                   </div>
                   <div>
-                    <div
-                      className={classNames(
-                        Styles.existingSolution,
-                        'input-field-group include-error'
-                      )}
-                    >
+                    <div className={classNames(Styles.existingSolution, 'input-field-group include-error')}>
                       <label id="newSolutionLabel" htmlFor="newSolutionInput" className="input-label">
                         Register support of additional resources &nbsp;
-                        <i className="icon mbc-icon info"
-                        tooltip-data={AdditionalResourceTooltipContent} />
-                      </label>    
+                        <i className="icon mbc-icon info" tooltip-data={AdditionalResourceTooltipContent} />
+                      </label>
                       <div id="existingSolution" className="custom-select">
                         <select
                           id="isNewSolution"
@@ -965,7 +959,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
         this.setState({
           newBusinessGoalMaster: response[0].data,
           dataStrategyDomainMaster: response[1].data,
-          additionalResourcesMasterList: response[2].data
+          additionalResourcesMasterList: response[2].data,
         });
       }
     });
@@ -1112,5 +1106,4 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   protected onDataStrategyDomainsInfoModalCancel = () => {
     this.setState({ showDataStrategyDomainsInfo: false });
   };
-
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import cn from 'classnames';
 import Styles from './DataFunction.scss';
-import { IDataWarehouseInUse, ISingleDataSources } from '../../../../globals/types';
+import { IDataWarehouseInUse, ISingleDataSources } from 'globals/types';
 
 const classNames = cn.bind(Styles);
 

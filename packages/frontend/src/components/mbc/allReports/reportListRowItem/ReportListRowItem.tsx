@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IAllReportsListItem, ITeams } from '../../../../globals/types';
+import { IAllReportsListItem, ITeams } from 'globals/types';
 import { history } from '../../../../router/History';
 import Styles from './ReportListRowItem.scss';
 // import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
