@@ -18,13 +18,13 @@ import {
   ISubDivision,
   IDivisionAndSubDivision,
   IDepartment,
-} from '../../../../globals/types';
+} from 'globals/types';
 import Styles from './Description.scss';
-import Tags from '../../../formElements/tags/Tags';
-import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
+import Tags from 'components/formElements/tags/Tags';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
-import TextBox from '../../shared/textBox/TextBox';
-import TextArea from '../../shared/textArea/TextArea';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
+import TextArea from 'components/mbc/shared/textArea/TextArea';
 const classNames = cn.bind(Styles);
 
 export interface IDescriptionProps {
