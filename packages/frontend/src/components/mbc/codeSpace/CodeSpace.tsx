@@ -5,26 +5,25 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 
 // @ts-ignore
-import { Envs } from '../../../globals/Envs';
-import { IUserInfo } from '../../../globals/types';
+import { Envs } from 'globals/Envs';
+import { IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
 import { trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
-import Modal from '../../formElements/modal/Modal';
+import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
-import FullScreenModeIcon from '../../icons/fullScreenMode/FullScreenModeIcon';
+import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
-import ProgressWithMessage from '../../../components/progressWithMessage/ProgressWithMessage';
+import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 import { getParams } from '../../../router/RouterUtils';
 import classNames from 'classnames';
 // import { HTTP_METHOD } from '../../../globals/constants';
-
 
 export interface ICodeSpaceProps {
   user: IUserInfo;
@@ -52,7 +51,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const { id } = getParams();
   const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
     url: undefined,
-    running: false
+    running: false,
   });
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -68,47 +67,49 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
 
   useEffect(() => {
-    CodeSpaceApiClient.getCodeSpaceStatus(id).then((res: any) => {
-      setLoading(false);
-      const status = res.status;
-      if (
-        status !== 'CREATE_REQUESTED' &&
-        status !== 'CREATE_FAILED' &&
-        status !== 'DELETE_REQUESTED' &&
-        status !== 'DELETED' &&
-        status !== 'DELETE_FAILED'
-      ) {
-        const deployed = res.status === 'DEPLOYED';
-        const deployedUrl = res.deploymentUrl;
-        setCodeSpaceData({
-          id: res.id,
-          name: res.name,
-          recipe:
-            res.recipeId !== 'default'
-              ? `Microservice using Spring Boot (${res.operatingSystem}, ${res.ramSize}${res.ramMetrics} RAM, ${res.cpuCapacity}CPU)`
-              : 'Default',
-          environment: res.cloudServiceProvider,
-          deployed: deployed,
-          deployedUrl: deployedUrl,
-          createdDate: res.intiatedOn,
-          lastDeployedDate: res.lastDeployedOn,
-          url: res.workspaceUrl,
-          running: !!res.intiatedOn,
-          status: res.status,
-        });
-        setCodeDeployed(deployed);
-        setCodeDeployedUrl(deployedUrl);
-        Tooltip.defaultSetup();
-        if (res.status === 'DEPLOY_REQUESTED') {
-          setCodeDeploying(true);
-          enableDeployLivelinessCheck(res.name);
+    CodeSpaceApiClient.getCodeSpaceStatus(id)
+      .then((res: any) => {
+        setLoading(false);
+        const status = res.status;
+        if (
+          status !== 'CREATE_REQUESTED' &&
+          status !== 'CREATE_FAILED' &&
+          status !== 'DELETE_REQUESTED' &&
+          status !== 'DELETED' &&
+          status !== 'DELETE_FAILED'
+        ) {
+          const deployed = res.status === 'DEPLOYED';
+          const deployedUrl = res.deploymentUrl;
+          setCodeSpaceData({
+            id: res.id,
+            name: res.name,
+            recipe:
+              res.recipeId !== 'default'
+                ? `Microservice using Spring Boot (${res.operatingSystem}, ${res.ramSize}${res.ramMetrics} RAM, ${res.cpuCapacity}CPU)`
+                : 'Default',
+            environment: res.cloudServiceProvider,
+            deployed: deployed,
+            deployedUrl: deployedUrl,
+            createdDate: res.intiatedOn,
+            lastDeployedDate: res.lastDeployedOn,
+            url: res.workspaceUrl,
+            running: !!res.intiatedOn,
+            status: res.status,
+          });
+          setCodeDeployed(deployed);
+          setCodeDeployedUrl(deployedUrl);
+          Tooltip.defaultSetup();
+          if (res.status === 'DEPLOY_REQUESTED') {
+            setCodeDeploying(true);
+            enableDeployLivelinessCheck(res.name);
+          }
+        } else {
+          Notification.show(`Code space ${res.name} is getting created. Please try again later.`, 'warning');
         }
-      } else {
-        Notification.show(`Code space ${res.name} is getting created. Please try again later.`, 'warning');
-      }
-    }).catch((err: Error) => {
-      Notification.show("Error in validating code space - " + err.message, 'alert');
-    });
+      })
+      .catch((err: Error) => {
+        Notification.show('Error in validating code space - ' + err.message, 'alert');
+      });
     // ApiClient.getCodeSpace().then((res: any) => {
     //   setLoading(false);
     //   const codeSpaceRunning = (res.success === 'true');
@@ -147,32 +148,32 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setShowNewCodeSpaceModal(!status);
     setCodeSpaceData(codeSpaceData);
     Tooltip.defaultSetup();
-  }
+  };
 
   const toggleProgressMessage = (show: boolean) => {
     setIsApiCallTakeTime(show);
-  }
+  };
 
   const onNewCodeSpaceModalCancel = () => {
     setShowNewCodeSpaceModal(false);
     clearInterval(livelinessInterval);
     Tooltip.clear();
     history.goBack();
-  }
+  };
 
   const onShowCodeDeployModal = () => {
     setShowCodeDeployModal(true);
-  }
+  };
 
   const onCodeDeployModalCancel = () => {
     setShowCodeDeployModal(false);
-  }
+  };
 
   const enableDeployLivelinessCheck = (name: string) => {
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
-        .then((res:any) => {
+        .then((res: any) => {
           try {
             if (res.status === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
@@ -191,7 +192,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setShowCodeDeployModal(false);
               Notification.show(`Code from code space ${res.name} succesfully deployed.`);
             }
-          } catch(err:any) {
+          } catch (err: any) {
             console.log(err);
           }
         })
@@ -207,28 +208,35 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const onAcceptCodeDeploy = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id).then((res: any) => {
-      trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
-      if(res.success === 'SUCCESS') {
-        // setCreatedCodeSpaceName(res.data.name);
-        setCodeDeploying(true);
-        if (acceptContinueCodingOnDeployment) {
-          ProgressIndicator.hide();
-          Notification.show(`Code space '${codeSpaceData.name}' deployment successfully started. Please check the status later.`);
-          setShowCodeDeployModal(false);
+    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id)
+      .then((res: any) => {
+        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+        if (res.success === 'SUCCESS') {
+          // setCreatedCodeSpaceName(res.data.name);
+          setCodeDeploying(true);
+          if (acceptContinueCodingOnDeployment) {
+            ProgressIndicator.hide();
+            Notification.show(
+              `Code space '${codeSpaceData.name}' deployment successfully started. Please check the status later.`,
+            );
+            setShowCodeDeployModal(false);
+          } else {
+            setIsApiCallTakeTime(true);
+          }
+          enableDeployLivelinessCheck(codeSpaceData.name);
         } else {
-          setIsApiCallTakeTime(true);
+          setIsApiCallTakeTime(false);
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in deploying code space. Please try again later.\n' + res.errors[0].message,
+            'alert',
+          );
         }
-        enableDeployLivelinessCheck(codeSpaceData.name);
-      } else {
-        setIsApiCallTakeTime(false);
+      })
+      .catch((err: Error) => {
         ProgressIndicator.hide();
-        Notification.show('Error in deploying code space. Please try again later.\n' + res.errors[0].message, 'alert');
-      }
-    }).catch((err: Error) => {
-      ProgressIndicator.hide();
-      Notification.show('Error in deploying code space. Please try again later.\n' + err.message, 'alert');
-    });
+        Notification.show('Error in deploying code space. Please try again later.\n' + err.message, 'alert');
+      });
   };
 
   const goBack = () => {
@@ -266,7 +274,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                     </div>
                   )}
                   <div>
-                    <button className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')} onClick={onShowCodeDeployModal}>
+                    <button
+                      className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')}
+                      onClick={onShowCodeDeployModal}
+                    >
                       {codeDeployed && '(Re)'}Deploy{codeDeploying && 'ing...'}
                     </button>
                   </div>
@@ -360,7 +371,9 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           onCancel={onCodeDeployModalCancel}
         />
       )}
-      {isApiCallTakeTime && <ProgressWithMessage message={'Please wait as this process can take up 2 to 5 minutes....'} />}
+      {isApiCallTakeTime && (
+        <ProgressWithMessage message={'Please wait as this process can take up 2 to 5 minutes....'} />
+      )}
     </div>
   );
 };

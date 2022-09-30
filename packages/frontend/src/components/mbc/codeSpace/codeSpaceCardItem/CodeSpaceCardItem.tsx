@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
-import ConfirmModal from '../../../../components/formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { history } from '../../../../router/History';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
@@ -27,32 +27,41 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const deleteCodeSpaceContent = (
     <div>
-      <h3>Are you sure you want to delete {codeSpace.name} Code Space?<br />You will be loosing your code as well as the deployed code instance.</h3>
+      <h3>
+        Are you sure you want to delete {codeSpace.name} Code Space?
+        <br />
+        You will be loosing your code as well as the deployed code instance.
+      </h3>
     </div>
   );
 
   const deleteCodeSpaceAccept = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.deleteCodeSpace(codeSpace.id).then((res: any) => {
-      trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
-      if(res.success === 'SUCCESS') {
-        props.onDeleteSuccess();
-        setShowDeleteModal(false);
+    CodeSpaceApiClient.deleteCodeSpace(codeSpace.id)
+      .then((res: any) => {
+        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+        if (res.success === 'SUCCESS') {
+          props.onDeleteSuccess();
+          setShowDeleteModal(false);
+          ProgressIndicator.hide();
+          // setCreatedCodeSpaceName(res.data.name);
+          // setIsApiCallTakeTime(true);
+          // enableDeployLivelinessCheck(codeSpaceData.name);
+        } else {
+          // setIsApiCallTakeTime(false);
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in deploying code space. Please try again later.\n' + res.errors[0].message,
+            'alert',
+          );
+        }
+        //props.getCodeSpaces();
+        //setShowDeleteModal(false);
+      })
+      .catch((err: Error) => {
         ProgressIndicator.hide();
-        // setCreatedCodeSpaceName(res.data.name);
-        // setIsApiCallTakeTime(true);
-        // enableDeployLivelinessCheck(codeSpaceData.name);
-      } else {
-        // setIsApiCallTakeTime(false);
-        ProgressIndicator.hide();
-        Notification.show('Error in deploying code space. Please try again later.\n' + res.errors[0].message, 'alert');
-      }
-      //props.getCodeSpaces();
-      //setShowDeleteModal(false);
-    }).catch((err: Error) => {
-      ProgressIndicator.hide();
-      Notification.show('Error in deleting code space. Please try again later.\n' + err.message, 'alert');
-    });
+        Notification.show('Error in deleting code space. Please try again later.\n' + err.message, 'alert');
+      });
   };
   const deleteCodeSpaceClose = () => {
     setShowDeleteModal(false);
@@ -60,13 +69,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
 
   const onCardNameClick = () => {
     history.push(`codespace/${codeSpace.name}`);
-  }
+  };
 
   return (
     <>
       <div className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}>
         <div className={Styles.cardHead}>
-          <div className={classNames(Styles.cardHeadInfo, deleteInProgress || createInProgress ? Styles.disable : null)}>
+          <div
+            className={classNames(Styles.cardHeadInfo, deleteInProgress || createInProgress ? Styles.disable : null)}
+          >
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
               {codeSpace?.name}
             </div>

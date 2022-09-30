@@ -10,13 +10,13 @@ import ImgMaturityLevel from '../../../../assets/images/maturity-level-info.png'
 import ImgRiskAssesment from '../../../../assets/images/risk-assesment-info.png';
 // @ts-ignore
 import ImgValueDriver from '../../../../assets/images/value-driver-info.png';
-import IconAvatarNew from '../../../../components/icons/IconAvatarNew';
-import { IAttachment, IMembers, ITeams } from '../../../../globals/types';
-import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
+import { IAttachment, IMembers, ITeams } from 'globals/types';
+import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import Styles from './Members.scss';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
-import { ErrorMsg } from '../../../../globals/Enums';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import { ErrorMsg } from 'globals/Enums';
 
 const classNames = cn.bind(Styles);
 

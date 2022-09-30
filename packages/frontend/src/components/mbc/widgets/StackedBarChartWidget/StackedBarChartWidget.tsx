@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { IStackedBarChartDataItem } from '../../../../globals/types';
+import { IStackedBarChartDataItem } from 'globals/types';
 import { DataFormater } from '../../../../services/utils';
 
 export interface IStackedBarChartWidgetProps {

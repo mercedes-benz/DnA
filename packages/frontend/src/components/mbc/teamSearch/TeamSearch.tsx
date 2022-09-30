@@ -2,8 +2,8 @@ import cn from 'classnames';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { debounce } from 'lodash';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
-import { ITeams } from '../../../globals/types';
-import { TeamMemberType } from '../../../globals/Enums';
+import { ITeams } from 'globals/types';
+import { TeamMemberType } from 'globals/Enums';
 import { ApiClient } from '../../../services/ApiClient';
 import Styles from './TeamSearch.scss';
 

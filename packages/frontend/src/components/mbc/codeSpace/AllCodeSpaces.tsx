@@ -4,10 +4,10 @@ import Styles from './AllCodeSpaces.scss';
 import { ICodeSpaceData } from './CodeSpace';
 import CodeSpaceCardItem from './codeSpaceCardItem/CodeSpaceCardItem';
 import Pagination from '../pagination/Pagination';
-import Modal from '../../../components/formElements/modal/Modal';
+import Modal from 'components/formElements/modal/Modal';
 import NewCodeSpace from './newCodeSpace/NewCodeSpace';
-import { IUserInfo } from '../../../globals/types';
-import ProgressWithMessage from '../../../components/progressWithMessage/ProgressWithMessage';
+import { IUserInfo } from 'globals/types';
+import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
 import { history } from '../../../router/History';
 // import { ApiClient } from '../../../services/ApiClient';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
@@ -59,17 +59,19 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
 
   const getCodeSpacesData = () => {
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpacesList().then((res: any) => {
-      setLoading(false);
-      setCodeSpaces(Array.isArray(res) ? res : formatCodeSpaceData(res.records) as ICodeSpaceData[]);
-      setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
-    }).catch((err: Error) => {
-      setLoading(false);
-      Notification.show("Error in loading your code spaces - " + err.message, 'alert');
-    });
+    CodeSpaceApiClient.getCodeSpacesList()
+      .then((res: any) => {
+        setLoading(false);
+        setCodeSpaces(Array.isArray(res) ? res : (formatCodeSpaceData(res.records) as ICodeSpaceData[]));
+        setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
+      })
+      .catch((err: Error) => {
+        setLoading(false);
+        Notification.show('Error in loading your code spaces - ' + err.message, 'alert');
+      });
     setCodeSpacesListResponse([]);
   };
-  
+
   useEffect(() => {
     // ApiClient.getCodeSpace().then((res: any) => {
     //   setLoading(false);
@@ -102,7 +104,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = pagination.currentPageNumber - 1;
     const currentPageOffset = (currentPageNumberTemp - 1) * pagination.maxItemsPerPage;
-    const modifiedData = codeSpacesListResponse.slice(currentPageOffset, pagination.maxItemsPerPage * currentPageNumberTemp);
+    const modifiedData = codeSpacesListResponse.slice(
+      currentPageOffset,
+      pagination.maxItemsPerPage * currentPageNumberTemp,
+    );
     setCodeSpaces(modifiedData);
     setPagination({ ...pagination, currentPageNumber: currentPageNumberTemp });
   };
@@ -110,7 +115,10 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     let currentPageNumberTemp = pagination.currentPageNumber;
     const currentPageOffset = pagination.currentPageNumber * pagination.maxItemsPerPage;
     currentPageNumberTemp = pagination.currentPageNumber + 1;
-    const modifiedData = codeSpacesListResponse.slice(currentPageOffset, pagination.maxItemsPerPage * currentPageNumberTemp);
+    const modifiedData = codeSpacesListResponse.slice(
+      currentPageOffset,
+      pagination.maxItemsPerPage * currentPageNumberTemp,
+    );
     setCodeSpaces(modifiedData);
     setPagination({ ...pagination, currentPageNumber: currentPageNumberTemp });
   };
@@ -127,7 +135,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
 
   const onShowNewCodeSpaceModal = () => {
     setShowNewCodeSpaceModal(true);
-  }
+  };
 
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
     if (showNewCodeSpaceModal) {
@@ -136,15 +144,15 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     } else {
       getCodeSpacesData();
     }
-  }
+  };
 
   const toggleProgressMessage = (show: boolean) => {
     setIsApiCallTakeTime(show);
-  }
+  };
 
   const onNewCodeSpaceModalCancel = () => {
     setShowNewCodeSpaceModal(false);
-  }
+  };
 
   const onDeleteSuccess = () => {
     getCodeSpacesData();
@@ -271,7 +279,9 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
             <>
               'Please wait as this process can take up to a minute....'
               <br />
-              <button className="btn btn-text back arrow" onClick={switchBackToCodeSpace}>Back to Code Spaces</button>
+              <button className="btn btn-text back arrow" onClick={switchBackToCodeSpace}>
+                Back to Code Spaces
+              </button>
             </>
           }
         />

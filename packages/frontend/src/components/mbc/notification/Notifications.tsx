@@ -3,7 +3,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { withRouter } from 'react-router-dom';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
-import { IChangeLogData, IUserInfo } from '../../../globals/types';
+import { IChangeLogData, IUserInfo } from 'globals/types';
 import Styles from './Notifications.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
@@ -17,14 +17,14 @@ import { history } from '../../../router/History';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import Pagination from '../pagination/Pagination';
-import SelectBox from '../../formElements/SelectBox/SelectBox';
-import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { getQueryParameterByName } from '../../../services/Query';
 import NotificationListItem from './notificationListItem/NotificationListItem';
-import { IconGear } from '../../icons/IconGear';
+import { IconGear } from 'components/icons/IconGear';
 // import { INotificationDetails } from '../../../globals/types';
-import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
-import AppContext from '../../context/ApplicationContext';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import AppContext from 'components/context/ApplicationContext';
 import { markdownParser } from '../../../utils/MarkdownParser';
 
 export interface INotificationProps {
@@ -467,19 +467,27 @@ const Notifications = (props: any) => {
                 <div className={Styles.notificationTitle}>
                   <p
                     dangerouslySetInnerHTML={{
-                      __html: notificationDetails ? JSON.parse(notificationDetails).message ? markdownParser(JSON.parse(notificationDetails).message) : '' : '',
+                      __html: notificationDetails
+                        ? JSON.parse(notificationDetails).message
+                          ? markdownParser(JSON.parse(notificationDetails).message)
+                          : ''
+                        : '',
                     }}
                   />
                 </div>
                 <div className={Styles.notificationContent}>
                   {/* <p>Hey John Doe,</p> */}
-                  
+
                   <p
                     dangerouslySetInnerHTML={{
-                      __html: notificationDetails ? JSON.parse(notificationDetails).messageDetails ? markdownParser(JSON.parse(notificationDetails).messageDetails) : '' : '',
+                      __html: notificationDetails
+                        ? JSON.parse(notificationDetails).messageDetails
+                          ? markdownParser(JSON.parse(notificationDetails).messageDetails)
+                          : ''
+                        : '',
                     }}
                   />
-                  
+
                   {notificationDetails ? (
                     JSON.parse(notificationDetails).eventType === 'Solution Updated' ? (
                       JSON.parse(notificationDetails)?.changeLogs ? (
