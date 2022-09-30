@@ -226,8 +226,8 @@ export default class AllReports extends React.Component<
             isProductOwner !== undefined ||
             userInfo.id === this.checkUserCanEditReport(userInfo, report)
           }
-          onEdit={this.onEditReport}
-          onDelete={this.onDeleteReport}
+          onEdit={()=>this.onEditReport(report?.reportId)}
+          onDelete={()=>this.onDeleteReport(report?.id)}
         />
       );
     });
