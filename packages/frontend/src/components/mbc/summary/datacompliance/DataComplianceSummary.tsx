@@ -12,7 +12,7 @@ import ImgQuickCheck from '../../../../assets/images/Quick-Check.png';
 import ImgUseCaseCheckReady from '../../../../assets/images/UseCsae-Check-Ready.png';
 // @ts-ignore
 import ImgUseCaseCheck from '../../../../assets/images/UseCsae-Check.png';
-import { IDataCompliance, ITeams } from '../../../../globals/types';
+import { IDataCompliance, ITeams } from 'globals/types';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import AttachmentsListItem from './attachments/AttachmentsListItems';
 import Styles from './DataComplianceSummary.scss';

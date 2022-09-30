@@ -7,7 +7,7 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import { ApiClient } from '../../../../services/ApiClient';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import DigitalValuePopupContent from './DigitalValuePopupContent';
@@ -22,9 +22,9 @@ import {
   ITeams,
   IValueFactor,
   IValueRampUp,
-} from '../../../../globals/types';
+} from 'globals/types';
 import Styles from './DigitalValueSummary.scss';
-import {IntlProvider, FormattedNumber} from 'react-intl';
+import { IntlProvider, FormattedNumber } from 'react-intl';
 
 const classNames = cn.bind(Styles);
 
@@ -279,7 +279,8 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                       <span onClick={this.openChangeLog}>Change Log</span>
                     </li>
                     <li className="contextListItem">
-                      {// @ts-ignore
+                      {
+                        // @ts-ignore
                         <PDFDownloadLink
                           document={this.props.onExportToPDFDocument}
                           className={Styles.pdfLink}
@@ -349,12 +350,12 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                         </div>
                                         <div>
                                           <label>Value</label>
-                                            <div>
-                                              <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
-                                              </IntlProvider>
-                                              &euro;
-                                            </div>
+                                          <div>
+                                            <IntlProvider locale={navigator.language} defaultLocale="en">
+                                              {item.value ? <FormattedNumber value={Number(item.value)} /> : ''}
+                                            </IntlProvider>
+                                            &euro;
+                                          </div>
                                         </div>
                                         <div>
                                           <label>Source</label>
@@ -376,7 +377,11 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                                   <strong>{costDriver.year}</strong>
                                                   <div>
                                                     <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                      {costDriver.value ? <FormattedNumber value={Number(costDriver.value)} /> : ''}
+                                                      {costDriver.value ? (
+                                                        <FormattedNumber value={Number(costDriver.value)} />
+                                                      ) : (
+                                                        ''
+                                                      )}
                                                     </IntlProvider>
                                                     &euro;
                                                   </div>
@@ -474,12 +479,21 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                                   <strong>{valueDriver.year}</strong>
                                                   <div>
                                                     <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                      {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
-                                                    </IntlProvider>%
+                                                      {valueDriver.percent ? (
+                                                        <FormattedNumber value={Number(valueDriver.percent)} />
+                                                      ) : (
+                                                        ''
+                                                      )}
+                                                    </IntlProvider>
+                                                    %
                                                   </div>
                                                   <div>
                                                     <IntlProvider locale={navigator.language} defaultLocale="en">
-                                                      {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
+                                                      {valueDriver.value ? (
+                                                        <FormattedNumber value={Number(valueDriver.value)} />
+                                                      ) : (
+                                                        ''
+                                                      )}
                                                     </IntlProvider>
                                                     &euro;
                                                   </div>
@@ -541,14 +555,19 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                                     <strong>{valueDriver.year}</strong>
                                     <div>
                                       <IntlProvider locale={navigator.language} defaultLocale="en">
-                                        {valueDriver.percent ? <FormattedNumber value={Number(valueDriver.percent)} /> : ''}
-                                      </IntlProvider>%
+                                        {valueDriver.percent ? (
+                                          <FormattedNumber value={Number(valueDriver.percent)} />
+                                        ) : (
+                                          ''
+                                        )}
+                                      </IntlProvider>
+                                      %
                                     </div>
                                     <div>
                                       <IntlProvider locale={navigator.language} defaultLocale="en">
                                         {valueDriver.value ? <FormattedNumber value={Number(valueDriver.value)} /> : ''}
                                       </IntlProvider>
-                                      &euro;                                    
+                                      &euro;
                                     </div>
                                   </div>
                                 );
@@ -565,14 +584,16 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                     <div className={classNames(Styles.flexLayout, Styles.calculatedValue)}>
                       <div id="valueAt100Percent">
                         <label>Digital Value at {calculatedDigitalValue ? calculatedDigitalValue.valueAt : ''}%</label>
-                        <div>  
-                        {calculatedDigitalValue.year} {calculatedDigitalValue ? '(' : ''}                           
-                          {calculatedDigitalValue ?                             
+                        <div>
+                          {calculatedDigitalValue.year} {calculatedDigitalValue ? '(' : ''}
+                          {calculatedDigitalValue ? (
                             <IntlProvider locale={navigator.language} defaultLocale="en">
                               <FormattedNumber value={Number(calculatedDigitalValue.value)} /> &euro;
-                            </IntlProvider>                             
-                          : 'N/A'}  
-                          {calculatedDigitalValue ? ')' : ''}                   
+                            </IntlProvider>
+                          ) : (
+                            'N/A'
+                          )}
+                          {calculatedDigitalValue ? ')' : ''}
                         </div>
                       </div>
 
@@ -582,7 +603,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                           <IntlProvider locale={navigator.language} defaultLocale="en">
                             {costFactorSummary ? <FormattedNumber value={Number(costFactorSummary.value)} /> : ''}
                           </IntlProvider>
-                          &euro; 
+                          &euro;
                         </div>
                       </div>
 

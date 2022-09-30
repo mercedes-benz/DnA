@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 // @ts-ignore
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 // @ts-ignore
@@ -13,7 +13,7 @@ import ImgMaturityLevel from '../../../../assets/images/maturity-level-info.png'
 import ImgRiskAssesment from '../../../../assets/images/risk-assesment-info.png';
 // @ts-ignore
 import ImgValueDriver from '../../../../assets/images/value-driver-info.png';
-import IconAvatarNew from '../../../../components/icons/IconAvatarNew';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
 import {
   IAssessment,
   IAttachment,
@@ -26,14 +26,14 @@ import {
   ITeams,
   IValueFactor,
   IValueRampUp,
-} from '../../../../globals/types';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+} from 'globals/types';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import AttachmentUploader from '../AttachmentUploader/AttachmentUploader';
-import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
+import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import AddOrEditFactorModal from './addOrEditFactorModal/AddOrEditFactorModal';
 import Styles from './DigitalValue.scss';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { IntlProvider, FormattedNumber } from 'react-intl';
 
 const classNames = cn.bind(Styles);

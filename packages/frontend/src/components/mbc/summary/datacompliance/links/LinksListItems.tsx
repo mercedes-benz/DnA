@@ -4,7 +4,7 @@ import * as React from 'react';
 import Notification from '../../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progress-indicator';
-import { ILink } from '../../../../../globals/types';
+import { ILink } from 'globals/types';
 import Styles from './LinksListItems.scss';
 
 const classNames = cn.bind(Styles);
