@@ -224,8 +224,8 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
                         userInfo.id === this.checkUserCanEditReport(userInfo)
                       }
                       reportId={this.state.response.data ? this.state.response.data.reportId : ''}
-                      onEdit={this.onEditReport}
-                      onDelete={this.onDeleteReport}
+                      onEdit={()=>this.onEditReport(this.state.response.data.reportId)}
+                      onDelete={()=>this.onDeleteReport(this.state.response.data.id)}
                       onExportToPDFDocument={pdfContent}
                       reportLink={this.state.response.data ? this.state.response.data.description.reportLink : ''}
                     />
