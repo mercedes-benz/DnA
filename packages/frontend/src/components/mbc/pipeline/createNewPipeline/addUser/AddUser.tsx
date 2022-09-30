@@ -4,12 +4,12 @@ import * as React from 'react';
 import Button from '../../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progress-indicator';
-import { IUserDetails } from '../../../../../globals/types';
+import { IUserDetails } from 'globals/types';
 // @ts-ignore
-import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
 
-import TeamSearch from '../../../../mbc/teamSearch/TeamSearch';
-import { Envs } from '../../../../../globals/Envs';
+import TeamSearch from 'components/mbc/teamSearch/TeamSearch';
+import { Envs } from 'globals/Envs';
 
 export interface IAddUserProps {
   getCollabarators: (teamMemberObj: IUserDetails, dagId: string) => void;

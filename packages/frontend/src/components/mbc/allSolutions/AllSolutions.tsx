@@ -9,8 +9,8 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import SelectBox from '../../../components/formElements/SelectBox/SelectBox';
-import { SESSION_STORAGE_KEYS, USER_ROLE } from '../../../globals/constants';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import { SESSION_STORAGE_KEYS, USER_ROLE } from 'globals/constants';
 
 import {
   IAllSolutionsListItem,
@@ -28,7 +28,7 @@ import {
   IUserInfo,
   INotebookInfoSolutionId,
   IFilterParams,
-} from '../../../globals/types';
+} from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import Pagination from '../pagination/Pagination';
@@ -44,7 +44,7 @@ import { getDataForCSV } from '../../../services/SolutionsCSV';
 
 import SolutionsFilter from '../filters/SolutionsFilter';
 import filterStyle from '../filters/Filter.scss';
-import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
+import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 // import {getDropDownData} from '../../../services/FetchMasterData';
 
 const classNames = cn.bind(Styles);
@@ -577,13 +577,15 @@ export default class AllSolutions extends React.Component<
               onCancel={this.onCancellingDeleteChanges}
               onAccept={this.onAcceptDeleteChanges}
             />
-          </div>          
+          </div>
           <SolutionsFilter
             userId={this.props.user.id}
-            getFilterQueryParams={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter? false : true)}
+            getFilterQueryParams={(queryParams: IFilterParams) =>
+              this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
+            }
             solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
-            showSolutionsFilter = {this.state.showSolutionsFilter}
+            showSolutionsFilter={this.state.showSolutionsFilter}
             // getValuesFromFilter={(value: any) => {
             //   this.setState({ locations: value.locations ? value.locations : [] });
             //   this.setState({ phases: value.phases ? value.phases : [] });
@@ -805,39 +807,28 @@ export default class AllSolutions extends React.Component<
       }
       // const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
       // const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
-      this.setState({ queryParams,
-        currentPageOffset: 0,
-        currentPageNumber: 1, }, () => {
+      this.setState({ queryParams, currentPageOffset: 0, currentPageNumber: 1 }, () => {
         this.getSolutions(true);
       });
-    } 
-    else if (window.location.href.indexOf('allsolutions') !== -1) {
-      this.setState({ showSolutionsFilter: true,
-        queryParams,
-        currentPageOffset: 0,
-        currentPageNumber: 1 }, () => {
+    } else if (window.location.href.indexOf('allsolutions') !== -1) {
+      this.setState({ showSolutionsFilter: true, queryParams, currentPageOffset: 0, currentPageNumber: 1 }, () => {
         this.getSolutions();
       });
-    } 
-    else if (
-      window.location.href.indexOf('bookmarks') !== -1 ||
-      window.location.href.indexOf('mysolutions') !== -1
-    ) {
+    } else if (window.location.href.indexOf('bookmarks') !== -1 || window.location.href.indexOf('mysolutions') !== -1) {
       queryParams = this.state.queryParams;
       queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
       this.setState(
         {
           currentPageOffset: 0,
           currentPageNumber: 1,
-          allSolutionsFilterApplied: false, 
-          queryParams
+          allSolutionsFilterApplied: false,
+          queryParams,
         },
-        () => {          
+        () => {
           SelectBox.defaultSetup();
-          this.getSolutions();          
+          this.getSolutions();
         },
       );
-      
     } else {
       this.setState(
         {
@@ -849,9 +840,7 @@ export default class AllSolutions extends React.Component<
           this.getSolutions(getPublished);
         },
       );
-      
     }
-    
   };
 
   protected getSolutions = (getPublished?: boolean) => {
@@ -861,7 +850,11 @@ export default class AllSolutions extends React.Component<
     const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
     const status = queryParams.status.join(',');
     const useCaseType = queryParams.useCaseType.join(',');
-    const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
+    const dataVolumes = this.state.enablePortfolioSolutionsView
+      ? queryParams.dataVolume
+        ? queryParams.dataVolume.join(',')
+        : ''
+      : '';
     const tags = queryParams.tag.join(',');
 
     const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
@@ -881,7 +874,7 @@ export default class AllSolutions extends React.Component<
       this.state.sortBy.currentSortType,
       getPublished,
       isDigitalValueContributionEnabled,
-      isNotificationEnabled
+      isNotificationEnabled,
     )
       .then((res) => {
         if (res) {
@@ -1060,7 +1053,7 @@ export default class AllSolutions extends React.Component<
     } else if (solution?.createdBy?.id === userInfo.id) {
       userId = solution.createdBy.id;
     } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(solution?.division?.name)) {
-      userId = userInfo.id;    
+      userId = userInfo.id;
     } else {
       userId = '';
     }

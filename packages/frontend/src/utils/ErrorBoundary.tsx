@@ -1,7 +1,7 @@
 import React from 'react';
 import NotFoundPage from '../router/NotFoundPage';
 import { Link } from 'react-router-dom';
-import { getTranslatedLabel } from './../globals/i18n/TranslationsProvider';
+import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 interface IErrorState {
   hasError: boolean;
   error: any;

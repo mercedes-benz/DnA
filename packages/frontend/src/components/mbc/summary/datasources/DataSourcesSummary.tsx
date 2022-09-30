@@ -7,8 +7,8 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import Styles from './DataSourcesSummary.scss';
 const classNames = cn.bind(Styles);
 
-import { IAnalytics, IDataSource, IPortfolio, ISharing } from '../../../../globals/types';
-import { Envs } from '../../../../globals/Envs';
+import { IAnalytics, IDataSource, IPortfolio, ISharing } from 'globals/types';
+import { Envs } from 'globals/Envs';
 
 export interface IDataSourcesSummaryProps {
   datasources: IDataSource;
@@ -60,16 +60,20 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
         ? this.props.datasources.dataSources.map((chip: any, index: number) => {
             const lastIndex: boolean = index === this.props.datasources.dataSources.length - 1;
 
-            let dsBadge:any = Envs.DNA_APPNAME_HEADER;
-            if(this.props.dsList.length > 0) {
-              const dataSource = this.props.dsList.filter((ds:any) => ds.name === chip.dataSource);
-              if(dataSource.length === 1) {
-                if(dataSource[0].source !== null && dataSource[0].dataType !== null) {
-                  if(dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
-                    if(dataSource[0].dataType === "Not set") {
+            let dsBadge: any = Envs.DNA_APPNAME_HEADER;
+            if (this.props.dsList.length > 0) {
+              const dataSource = this.props.dsList.filter((ds: any) => ds.name === chip.dataSource);
+              if (dataSource.length === 1) {
+                if (dataSource[0].source !== null && dataSource[0].dataType !== null) {
+                  if (dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+                    if (dataSource[0].dataType === 'Not set') {
                       dsBadge = dataSource[0].source;
                     } else {
-                      dsBadge = dataSource[0].source + '-' + dataSource[0].dataType.charAt(0).toUpperCase() + dataSource[0].dataType.slice(1);
+                      dsBadge =
+                        dataSource[0].source +
+                        '-' +
+                        dataSource[0].dataType.charAt(0).toUpperCase() +
+                        dataSource[0].dataType.slice(1);
                     }
                   }
                 }
@@ -78,7 +82,13 @@ export default class DataSourcesSummary extends React.Component<IDataSourcesSumm
 
             return (
               <React.Fragment key={index}>
-                {chip.dataSource} <span className={Styles.badge}>{dsBadge}{chip.weightage !== 0 && ' / '}<strong className={Styles.bold}>{chip.weightage !== 0 ? (chip.weightage + '%') : ''}</strong></span>&nbsp;{!lastIndex && `\u002F\xa0`}&nbsp;
+                {chip.dataSource}{' '}
+                <span className={Styles.badge}>
+                  {dsBadge}
+                  {chip.weightage !== 0 && ' / '}
+                  <strong className={Styles.bold}>{chip.weightage !== 0 ? chip.weightage + '%' : ''}</strong>
+                </span>
+                &nbsp;{!lastIndex && `\u002F\xa0`}&nbsp;
               </React.Fragment>
             );
           })

@@ -10,11 +10,11 @@ const classNames = cn.bind(Styles);
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 // import Pagination from '../pagination/Pagination';
 import ModelRegistryList from './modelRegistryList/ModelRegistryList';
 import { ModelRegistryApiClient } from '../../../services/ModelRegistryApiClient';
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 const MyModelRegistry = (props: any) => {
   const [modelsList, setModelsList] = useState([]);
