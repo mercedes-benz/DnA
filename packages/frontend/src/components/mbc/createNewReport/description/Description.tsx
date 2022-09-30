@@ -361,7 +361,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
           <div className={classNames(Styles.wrapper)}>
             <div className={classNames(Styles.firstPanel, 'decriptionSection')}>
               <h3>Please give a detailed report description</h3>
-              <div className={classNames(Styles.formWrapper)}>
+              <div className={classNames(Styles.formWrapper, this.props.enableQuickPath ? Styles.flexLayout : '')}>
                 <div>
                   <div>
                     <TextBox
@@ -391,11 +391,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                     />
                   </div>
                 </div>
-                <div className={classNames(Styles.flexLayout)}>
+                <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
                   {!this.props.enableQuickPath ? 
                   <div>
                     <div>
-                      <div className={classNames(Styles.flexLayout)}>
+                      <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
                         <div className={Styles.divisionContainer}>
                           <div
                             className={classNames(
