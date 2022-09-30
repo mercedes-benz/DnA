@@ -14,7 +14,7 @@ import {
   IFilterPreferences,
   IUserPreference,
   IDataVolume,
-} from '../../../globals/types';
+} from 'globals/types';
 // @ts-ignore
 import Button from '../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
@@ -23,10 +23,10 @@ import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
-import SelectBox from '../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../services/ApiClient';
-import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
-import Tags from '../../formElements/tags/Tags';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import Tags from 'components/formElements/tags/Tags';
 import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
 

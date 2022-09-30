@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IAnalytics, ITag } from '../../../../globals/types';
-import Tags from '../../../formElements/tags/Tags';
+import { IAnalytics, ITag } from 'globals/types';
+import Tags from 'components/formElements/tags/Tags';
 import Styles from './Analytics.scss';
 const classNames = cn.bind(Styles);
 

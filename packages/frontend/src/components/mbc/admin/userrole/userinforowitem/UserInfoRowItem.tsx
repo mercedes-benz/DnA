@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
 
-import { IRole, IUserInfo } from '../../../../../globals/types';
+import { IRole, IUserInfo } from 'globals/types';
 import Styles from './UserInfoRowItem.scss';
 
 const classNames = cn.bind(Styles);
