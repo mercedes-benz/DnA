@@ -7,19 +7,19 @@ import Styles from './EditCode.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 const classNames = cn.bind(Styles);
-import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import { history } from '../../../../router/History';
 import AceEditor from 'react-ace';
 import { PipelineApiClient } from '../../../../services/PipelineApiClient';
-import { IPipelineProjectDag, IError, IPipelineProjectDetail } from '../../../../globals/types';
+import { IPipelineProjectDag, IError, IPipelineProjectDetail } from 'globals/types';
 import { getParams } from '../../../../router/RouterUtils';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-import FullScreenModeIcon from '../../../icons/fullScreenMode/FullScreenModeIcon';
+import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
 import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/theme-solarized_dark';
 import 'ace-builds/src-noconflict/ext-language_tools';
-import { Envs } from '../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 const EditCode = () => {
   const [dagNameFieldInput, setDagNameFieldInput] = useState<string>('');

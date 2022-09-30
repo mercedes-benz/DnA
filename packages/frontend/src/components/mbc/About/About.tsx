@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { OPEN_SOURCE_TOOLS } from '../../../globals/constants';
-import { Envs } from '../../../globals/Envs';
+import { OPEN_SOURCE_TOOLS } from 'globals/constants';
+import { Envs } from 'globals/Envs';
 import Styles from './About.scss';
 
 // @ts-ignore
@@ -14,7 +14,9 @@ const About = () => {
       <div>
         <img className="logo" src={Envs.DNA_APP_LOGO_URL} />
         <br />
-        <h4 className="name">{Envs.DNA_APPNAME_HEADER} - Version {applicationVersion}</h4>
+        <h4 className="name">
+          {Envs.DNA_APPNAME_HEADER} - Version {applicationVersion}
+        </h4>
         <p>
           Data and Analytics Platform provides A-Z solution for enterprises in Analytics area, from transparency
           <br />

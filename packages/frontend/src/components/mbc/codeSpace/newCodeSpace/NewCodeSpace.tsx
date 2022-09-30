@@ -7,13 +7,13 @@ import Styles from './NewCodeSpace.scss';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import { Notification } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 import { trackEvent } from '../../../../services/utils';
 import TextBox from '../../shared/textBox/TextBox';
 import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
-import { IUserInfo } from '../../../../globals/types';
+import { IUserInfo } from 'globals/types';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 
 const classNames = cn.bind(Styles);
@@ -35,7 +35,6 @@ export interface ICreateCodeSpaceData {
 }
 
 const NewCodeSpace = (props: ICodeSpaceProps) => {
-
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
@@ -76,14 +75,14 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     };
   }, [livelinessInterval]);
 
-  const sanitizedRepositoryName = (name: string) => { 
+  const sanitizedRepositoryName = (name: string) => {
     return name.replace(/[^\w.-]/g, '-');
-  } 
+  };
 
   const onProjectNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
     setProjectName(projectNameVal);
-    const noSpaceNoSpecialChars = (/[A-Za-z0-9_.-]/).test(projectNameVal);
+    const noSpaceNoSpecialChars = /[A-Za-z0-9_.-]/.test(projectNameVal);
     setProjectNameError(
       !noSpaceNoSpecialChars
         ? projectNameVal.length
@@ -91,7 +90,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           : requiredError
         : '',
     );
-  }
+  };
 
   const onEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     setEnvironment(evnt.currentTarget.value.trim());
@@ -99,7 +98,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues:string[] = [];
+    const selectedValues: string[] = [];
     // this.props.onStateChange();
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
@@ -135,19 +134,17 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       let errMsg = '';
       if (passwordLength === 0) {
         errMsg = 'Password is empty';
-      }
-      /*else if (!uppercasePassword) {
+      } else if (!digitsPassword) {
+        /*else if (!uppercasePassword) {
         errMsg = 'At least one Uppercase';
       } else if (!lowercasePassword) {
         errMsg = 'At least one Lowercase';
       }*/
-      else if (!digitsPassword) {
         errMsg = 'At least one digit';
-      } 
-      /*else if (!specialCharPassword) {
+      } else if (!minLengthPassword) {
+        /*else if (!specialCharPassword) {
         errMsg = 'At least one Special Characters';
       }*/
-      else if (!minLengthPassword) {
         errMsg = 'At least minumum 8 characters';
       } else {
         errMsg = '';
@@ -197,21 +194,21 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
-        .then((res:any) => {
+        .then((res: any) => {
           try {
             if (res.status === 'CREATED') {
-                props.toggleProgressMessage(false);
-                ProgressIndicator.hide();
-                clearInterval(livelinessInterval);
-                props.isCodeSpaceCreationSuccess(true, {
-                  id: res.id,
-                  name: res.name,
-                  url: res.workspaceUrl,
-                  running: true,
-                });
-                Notification.show('Code space succesfully created.');
+              props.toggleProgressMessage(false);
+              ProgressIndicator.hide();
+              clearInterval(livelinessInterval);
+              props.isCodeSpaceCreationSuccess(true, {
+                id: res.id,
+                name: res.name,
+                url: res.workspaceUrl,
+                running: true,
+              });
+              Notification.show('Code space succesfully created.');
             }
-          } catch(err: any) {
+          } catch (err: any) {
             console.log(err);
           }
         })
@@ -266,21 +263,27 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.createCodeSpace(createCodeSpaceRequest)
         .then((res) => {
           trackEvent('DnA Code Space', 'Create', 'New code space');
-          if(res.data.status === 'CREATE_REQUESTED') {
+          if (res.data.status === 'CREATE_REQUESTED') {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
             enableLivelinessCheck(res.data.name);
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();
-            Notification.show('Error in creating new code space. Please try again later.\n' + res.errors[0].message, 'alert');
+            Notification.show(
+              'Error in creating new code space. Please try again later.\n' + res.errors[0].message,
+              'alert',
+            );
           }
         })
         .catch((err: Error) => {
           props.toggleProgressMessage(false);
           ProgressIndicator.hide();
-          if(err.message === 'Value or Item already exist!') {
-            Notification.show(`Given Code Space Name '${projectName}' already in use. Please use another name.`, 'alert');
+          if (err.message === 'Value or Item already exist!') {
+            Notification.show(
+              `Given Code Space Name '${projectName}' already in use. Please use another name.`,
+              'alert',
+            );
           } else {
             Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
           }
@@ -312,7 +315,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     //     });
     // }
   };
-  
+
   return (
     <React.Fragment>
       <div className={Styles.newCodeSpacePanel}>

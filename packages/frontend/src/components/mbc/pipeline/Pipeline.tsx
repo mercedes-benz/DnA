@@ -2,7 +2,7 @@ import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
-import { IPipelineProjectDetail } from '../../../globals/types';
+import { IPipelineProjectDetail } from 'globals/types';
 import Styles from './Pipeline.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
@@ -12,12 +12,12 @@ const classNames = cn.bind(Styles);
 // import PipelineSubModel from './pipelineSubModel/PipelineSubModel';
 import PipelineSubList from './pipelineSubList/PipelineSubList';
 import Pagination from '../pagination/Pagination';
-import { SESSION_STORAGE_KEYS } from '../../../globals/constants';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import { PipelineApiClient } from '../../../services/PipelineApiClient';
-import InfoModal from '../../formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 
 const Pipeline = () => {
   // const [subscribePopup, setSubscribePopup] = useState(false);
@@ -102,7 +102,7 @@ const Pipeline = () => {
       .catch((err) => {
         ProgressIndicator.hide();
       });
-  },[]);
+  }, []);
 
   const contentForInfo = (
     <div className={Styles.infoPopup}>

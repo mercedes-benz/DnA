@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { Envs } from '../../../globals/Envs';
-import { ITag } from '../../../globals/types';
+import { Envs } from 'globals/Envs';
+import { ITag } from 'globals/types';
 import Styles from './Tags.scss';
 
 const classNames = cn.bind(Styles);

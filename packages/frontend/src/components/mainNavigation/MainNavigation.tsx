@@ -3,11 +3,11 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 // @ts-ignore
 import Navigation from './../../assets/modules/uilab/js/src/navigation';
-import { getTranslatedLabel } from '../../globals/i18n/TranslationsProvider';
-import { USER_ROLE } from './../../globals/constants';
+import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
+import { USER_ROLE } from 'globals/constants';
 import { getPath } from './../../router/RouterUtils';
 import Styles from './MainNavigation.scss';
-import { Envs } from './../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 export interface IMainNavigationProps {
   showExpandEffect: boolean;

@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IDataAndFunctions } from '../../../../globals/types';
+import { IDataAndFunctions } from 'globals/types';
 // @ts-ignore
 import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore

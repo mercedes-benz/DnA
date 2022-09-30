@@ -2,14 +2,14 @@ import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { TeamMemberType } from '../../../../globals/Enums';
-import { ITeams } from '../../../../globals/types';
+import { TeamMemberType } from 'globals/Enums';
+import { ITeams } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 // @ts-ignore
-import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
-import Modal from '../../../formElements/modal/Modal';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
+import Modal from 'components/formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
-import { Envs } from '../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 import * as Validation from '../../../../utils/Validation';
 import TeamSearch from '../../teamSearch/TeamSearch';
 

@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 import { history } from '../../../router/History';
 import Styles from './Footer.scss';
 
