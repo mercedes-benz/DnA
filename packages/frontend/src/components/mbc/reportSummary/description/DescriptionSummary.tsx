@@ -6,7 +6,7 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { history } from '../../../../router/History';
-import { IDescriptionRequest, ILogoDetails } from '../../../../globals/types';
+import { IDescriptionRequest, ILogoDetails } from 'globals/types';
 import Styles from './DescriptionSummary.scss';
 
 const classNames = cn.bind(Styles);
@@ -172,7 +172,8 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     </li>
                   )}
                   <li className="contextListItem">
-                    {// @ts-ignore
+                    {
+                      // @ts-ignore
                       <PDFDownloadLink
                         document={this.props.onExportToPDFDocument}
                         className={Styles.pdfLink}
@@ -194,9 +195,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <label className="input-label summary">Description</label>
                     <br />
                     <div>
-                      <pre className={Styles.reportPre}>
-                        {description.productDescription}
-                      </pre>
+                      <pre className={Styles.reportPre}>{description.productDescription}</pre>
                     </div>
                   </div>
                   <div id="tags">
@@ -219,7 +218,9 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {(description.division?.name || description.division?.name === 'Choose') ? 'N/A' : description.division?.name}
+                    {description.division?.name || description.division?.name === 'Choose'
+                      ? 'N/A'
+                      : description.division?.name}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>

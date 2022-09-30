@@ -2,7 +2,7 @@ import cn from 'classnames';
 import * as React from 'react';
 import { history } from '../../../../router/History';
 import Styles from './License.scss';
-import { IUserInfo } from '../../../../globals/types';
+import { IUserInfo } from 'globals/types';
 import ModuleUsage from '../License/moduleUsage/ModuleUsage';
 
 // @ts-ignore

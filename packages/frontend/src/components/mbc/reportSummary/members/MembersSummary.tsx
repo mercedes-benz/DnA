@@ -5,8 +5,8 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import Styles from './MembersSummary.scss';
-import { IMembers, ITeams } from '../../../../globals/types';
-import TeamMemberListItem from '../../summary/team/teamMemberListItem/TeamMemberListItem';
+import { IMembers, ITeams } from 'globals/types';
+import TeamMemberListItem from 'components/mbc/summary/team/teamMemberListItem/TeamMemberListItem';
 
 const classNames = cn.bind(Styles);
 

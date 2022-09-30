@@ -9,7 +9,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import { SESSION_STORAGE_KEYS, USER_ROLE } from '../../../globals/constants';
+import { SESSION_STORAGE_KEYS, USER_ROLE } from 'globals/constants';
 
 // @ts-ignore
 import ImgDataikuIcon from '../../../assets/images/dataiku-icon.png';
@@ -31,7 +31,7 @@ import {
   IART,
   IDepartment,
   ITeams,
-} from '../../../globals/types';
+} from 'globals/types';
 import { history } from '../../../router/History';
 import Pagination from '../pagination/Pagination';
 
@@ -705,7 +705,7 @@ export default class AllReports extends React.Component<
     if (report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(report?.description?.division?.name)) {
-      userId = userInfo.id;       
+      userId = userInfo.id;
     }
     // else if (report.createdBy) {
     //   userId = report.createdBy.id;

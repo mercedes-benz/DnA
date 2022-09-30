@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IInfoItem } from '../../../../globals/types';
+import { IInfoItem } from 'globals/types';
 
 export interface IInfoListProps {
   list: IInfoItem[];
