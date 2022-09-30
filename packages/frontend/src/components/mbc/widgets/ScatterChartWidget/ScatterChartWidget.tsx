@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
-import { IScatterChartDataItem } from '../../../../globals/types';
+import { IScatterChartDataItem } from 'globals/types';
 
 export interface IScatterChartWidgetProps {
   data: IScatterChartDataItem[];

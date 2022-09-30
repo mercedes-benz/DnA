@@ -7,7 +7,7 @@ import Styles from '../ModelRegistry.scss';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import { ModelRegistryApiClient } from '../../../../services/ModelRegistryApiClient';
 
 export interface IModelRegistryProps {

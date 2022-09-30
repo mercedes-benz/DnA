@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import Styles from './AdminNotifications.scss';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { NotificationApiClient } from '../../../../services/NotificationApiClient';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
-import { Envs } from '../../../../globals/Envs';
-import Modal from '../../../../components/formElements/modal/Modal';
+import { Envs } from 'globals/Envs';
+import Modal from 'components/formElements/modal/Modal';
 
 interface IAdminNotificationProps {
   userId: string;

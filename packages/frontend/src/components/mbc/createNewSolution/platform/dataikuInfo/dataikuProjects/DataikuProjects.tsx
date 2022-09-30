@@ -1,9 +1,9 @@
 import cn from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { ApiClient } from '../../../../../../services/ApiClient';
-import { IDataiku, IGetDataikuResult } from '../../../../../../globals/types';
+import { IDataiku, IGetDataikuResult } from 'globals/types';
 import Styles from './DataikuProjects.scss';
-import { SUPPORT_EMAIL_ID } from '../../../../../../globals/constants';
+import { SUPPORT_EMAIL_ID } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
