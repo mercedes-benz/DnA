@@ -1,5 +1,5 @@
 import { server } from '../server/api';
-import { formServer } from '../server/formApi';
+// import { formServer } from '../server/formApi';
 
 const getAllForecastProjects = () => {
   return server.get('/forecasts?limit=0&offset=0', {
@@ -26,8 +26,14 @@ const getAllInputFiles = (id) => {
 };
 
 const createForecastRun = (data, id) => {
-  return formServer.post(`/forecasts/${id}/runs`, {
+  return server.post(`/forecasts/${id}/runs`, {
     data,
+  });
+};
+
+const getForecastRuns = (id) => {
+  return server.get(`/forecasts/${id}/runs`, {
+    data: {},
   });
 };
 
@@ -44,4 +50,5 @@ export const chronosApi = {
     getAllInputFiles,
     createForecastRun,
     deleteForecastRun,
+    getForecastRuns
 };

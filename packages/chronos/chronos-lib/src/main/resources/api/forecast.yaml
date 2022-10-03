@@ -368,45 +368,45 @@ paths:
           description: "Internal error"
                     
   #
-  #  supported http methods GET
+  #  supported http methods DELETE
   #
   # path example ../forecasts/{id}/runs/{rid}
 
   /forecasts/{id}/runs/{rid}:
-    get:
-      tags:
-        - "forecast-runs"
-      summary: "Get all forecast projects for the user."
-      description:  "Get all forecasts projects for the user."
-      operationId: "getRunVisualizationData"
-      parameters:
-          - in: "path"
-            name: "id"
-            description: "forecast project ID "
-            required: true
-            type: "string"
-          - in: "path"
-            name: "rid"
-            description: "run id "
-            required: true
-            type: "string"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/RunVisualizationVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+#    get:
+#      tags:
+#        - "forecast-runs"
+#      summary: "Get all forecast projects for the user."
+#      description:  "Get all forecasts projects for the user."
+#      operationId: "getRunVisualizationData"
+#      parameters:
+#          - in: "path"
+#            name: "id"
+#            description: "forecast project ID "
+#            required: true
+#            type: "string"
+#          - in: "path"
+#            name: "rid"
+#            description: "run id "
+#            required: true
+#            type: "string"
+#      responses:
+#        201:
+#          description: "Returns message of success or failure"
+#          schema:
+#            $ref: "#/definitions/RunVisualizationVO"
+#        204:
+#          description: "Fetch complete, no content found."
+#        400:
+#          description: "Bad request."
+#        401:
+#          description: "Request does not have sufficient credentials."
+#        403:
+#          description: "Request is not authorized."
+#        405:
+#          description: "Method not allowed"
+#        500:
+#          description: "Internal error"
           
     delete:
       tags:
@@ -701,6 +701,8 @@ definitions:
         job_id: 
           type: string
         run_id:
+          type: string
+        creator_user_name:
           type: string
         state:
           $ref: "#/definitions/RunStateVO"

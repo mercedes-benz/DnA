@@ -171,7 +171,7 @@ const RunForecast = ({ savedFiles }) => {
     formData.append("frequency", data.frequency);
     formData.append("forecastHorizon", data.forecastHorizon);
     formData.append("comment", data.comment);
-    formData.append("saveRequestPart", keepExistingFiles);
+    formData.append("saveRequestPart", keepExistingFiles.toString());
     if(selectedInputFile?.path !== undefined) {
       formData.append("savedInputPath", selectedInputFile.path);
     } else {

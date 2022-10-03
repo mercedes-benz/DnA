@@ -94,4 +94,12 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 		return files;
 	}
 
+	@Override
+	public long getTotalRunsCount(String id) {
+		String getCountStmt = " select count(*) from forecast_nsql where  id = '" + id + "' and (jsonb_extract_path_text(data,'isDelete') is null or  jsonb_extract_path_text(data,'isDelete') in ('true'))";;
+		Query q = em.createNativeQuery(getCountStmt);
+		BigInteger results = (BigInteger) q.getSingleResult();
+		return results.longValue();
+	}
+
 }
