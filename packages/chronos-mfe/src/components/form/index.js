@@ -74,9 +74,9 @@ const ForecastForm = ({ user }) => {
       <div className={classNames(Styles.mainPanel)}>
         <Breadcrumb>
           <li><Link to='/'>Chronos Forecasting</Link></li>
-          <li>{!loading && project.name}</li>
+          <li>{!loading && project?.name}</li>
         </Breadcrumb>
-        <h3 className={classNames(Styles.title)}>{!loading && project.name}</h3>
+        <h3 className={classNames(Styles.title)}>{!loading && project?.name}</h3>
         <div id="data-product-tabs" className="tabs-panel">
           <div className="tabs-wrapper">
             <nav>

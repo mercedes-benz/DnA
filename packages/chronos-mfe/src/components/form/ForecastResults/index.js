@@ -60,7 +60,11 @@ const ForecastResults = () => {
   const getProjectForecastRuns = () => {
     ProgressIndicator.show();
     chronosApi.getForecastRuns(projectId).then((res) => {
-      setForecastRuns(res.records);
+      if(res.status === 204) {
+        setForecastRuns([]);
+      } else {
+        setForecastRuns(res.records);
+      }
       setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
