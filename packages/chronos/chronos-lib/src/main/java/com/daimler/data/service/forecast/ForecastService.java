@@ -8,6 +8,7 @@ import javax.validation.Valid;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.ForecastNsql;
 import com.daimler.data.dto.forecast.CreatedByVO;
 import com.daimler.data.dto.forecast.ForecastRunRequestVO;
@@ -36,7 +37,9 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	Long getRunsCount(String id);
 
-	List<RunVO> getAllRunsForProject( Integer limit,  Integer offset, ForecastVO existingForecast);
+	List<RunVO> getAllRunsForProject( int limit,  int offset, ForecastVO existingForecast);
+
+	GenericMessage deletRunByUUID(String id, String rid);
 
 
 }
