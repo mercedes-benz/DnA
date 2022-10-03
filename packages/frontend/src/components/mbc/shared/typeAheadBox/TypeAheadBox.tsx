@@ -90,7 +90,7 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
   useEffect(() => {
     if(!props.onInputChange) {
       if(searchTerm.length > 1) {
-        const filteredResults = props.list.filter((item:any) => item.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1);
+        const filteredResults = props.list?.filter((item:any) => item.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1);
         setFilteredList(filteredResults);
         setShowNoResultsError(filteredResults.length === 0 ? true : false);
         setTimeout(() => {
