@@ -21,6 +21,9 @@ const DataProductCardItem = ({ product, history, user }) => {
   const isProviderFormSubmitted = product?.providerInformation?.providerFormSubmitted;
   const isCreator = product.providerInformation?.createdBy?.id === user?.id;
 
+  const name = product?.providerInformation?.contactInformation?.name;
+  const productOwnerName = `${name?.firstName} ${name?.lastName}`;
+
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
@@ -77,7 +80,7 @@ const DataProductCardItem = ({ product, history, user }) => {
             </div>
             <div>
               <div>Created by</div>
-              <div>{product?.providerInformation?.contactInformation?.name}</div>
+              <div>{productOwnerName}</div>
             </div>
             <div>
               <div>Created on</div>
