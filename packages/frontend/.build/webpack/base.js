@@ -169,6 +169,7 @@ const base = {
         './Spinner': './src/components/mbc/shared/spinner/Spinner.tsx',
         './TypeAheadBox': './src/components/mbc/shared/typeAheadBox/TypeAheadBox.tsx',
         './DatePicker': './src/components/DatePicker/DatePicker.tsx',
+        './TeamSearch': './src/components/mbc/teamSearch/TeamSearch.tsx',
       },
       remotes: {
         // object key is used to import
