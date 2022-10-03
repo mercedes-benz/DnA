@@ -1,11 +1,9 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import Styles from './styles.scss';
 
 // import from DNA Container
-import Modal from 'dna-container/Modal';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 
@@ -14,16 +12,16 @@ import { IconAvatarNew } from '../../shared/icons/iconAvatarNew/IconAvatarNew';
 import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../../apis/chronos.api';
+import Spinner from '../../shared/spinner/Spinner';
 
 const ProjectDetails = () => {
   const {id: projectId} = useParams();
-  const [createProject, setCreateProject] = useState(false);
-  const [editProject, setEditProject] = useState(false);
-
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [teamMembers, setTeamMembers] = useState();
-
+  
+  const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [showApiKey, setShowApiKey] = useState(false);
+
   useEffect(() => {
     getProjectById();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -32,22 +30,17 @@ const ProjectDetails = () => {
   const getProjectById = () => {
     ProgressIndicator.show();
       chronosApi.getForecastProjectById(projectId).then((res) => {
-      if(res.runs !== null) {
-        setProject(res);
-      }
+      setProject(res);
+      const members = res?.collaborators.map(member => ({...member, userType: 'internal'}));
+      setTeamMembers(members);
+      setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
-      console.log(error.message);
+      Notification.show(error.message, 'alert');
+      setLoading(false);
       ProgressIndicator.hide();
     });
   };
-
-  useEffect(() => {
-    if(project !== undefined) {
-      const members = project.collaborators.map(member => ({...member, userType: 'internal'}));
-      setTeamMembers(members);
-    }
-  }, [project]);
 
   const copyApiKey = () => {
     navigator.clipboard.writeText('dummy api key').then(() => {
@@ -109,93 +102,39 @@ const ProjectDetails = () => {
     onAddTeamMemberModalCancel();
   }
 
-  const methods = useForm();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = methods;
-
-  const handleCreateProject = (values) => {
-    console.log(values);
-    setCreateProject(false);
-  };
-  const handleEditProject = (values) => {
-    console.log(values);
-    setEditProject(false);
-  };
-
-  const addProjectContent = (
-    <FormProvider {...methods}>
+  return (
+    <React.Fragment>
       <div className={Styles.content}>
-        <div className={Styles.formGroup}>
-          <div className={Styles.flexLayout}>
-            <div>
-              <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Name of Project <sup>*</sup>
-                </label>
-                <div>
-                  <input
-                    type="text"
-                    className={classNames('input-field', Styles.projectNameField)}
-                    id="projectName"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    defaultValue={'Forecast project'}
-                    {...register('name', { required: '*Missing entry' })}
-                  />
-                  <span className={classNames('error-message')}>{errors?.name?.message}</span>
+        <div className={classNames(Styles.contextMenu)}>
+          <span className={classNames('trigger', Styles.contextMenuTrigger)}>
+            <i className="icon mbc-icon edit context" />
+          </span>
+        </div>
+        <h3 id="productName">Project Details</h3>
+        { loading && <Spinner /> }
+        { !loading && 
+          <div className={Styles.firstPanel}>
+            <div className={Styles.formWrapper}>
+              <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                <div id="productDescription">
+                  <label className="input-label summary">Project Name</label>
+                  <br />                    
+                  {project?.name}
+                </div>
+                <div id="tags">
+                  <label className="input-label summary">Created on</label>
+                  <br />
+                  {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
+                </div>
+                <div id="isExistingSolution">
+                  <label className="input-label summary">Created by</label>
+                  <br />
+                  {project?.createdBy?.firstName} {project?.createdBy?.lastName}
                 </div>
               </div>
             </div>
           </div>
-          <div className={Styles.btnContainer}>
-            <button
-              className="btn btn-tertiary"
-              type="button"
-              onClick={handleSubmit((values) => {
-                createProject ? handleCreateProject(values) : handleEditProject(values);
-              })}
-            >
-              {createProject ? 'Save Project' : editProject && 'Save Project'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </FormProvider>
-  );
-
-  return (
-    <React.Fragment>
-      <div className={Styles.content}>
-        {/* <div className={classNames(Styles.contextMenu)}>
-          <span onClick={() => { setCreateProject(true) }} className={classNames('trigger', Styles.contextMenuTrigger)}>
-            <i className="icon mbc-icon edit context" />
-          </span>
-        </div> */}
-        <h3 id="productName">Project Details</h3>
-        <div className={Styles.firstPanel}>
-          <div className={Styles.formWrapper}>
-            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-              <div id="productDescription">
-                <label className="input-label summary">Project Name</label>
-                <br />                    
-                {project?.name}
-              </div>
-              <div id="tags">
-                <label className="input-label summary">Created on</label>
-                <br />
-                {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
-              </div>
-              <div id="isExistingSolution">
-                <label className="input-label summary">Created by</label>
-                <br />
-                {project?.createdBy.firstName} {project?.createdBy.lastName}
-              </div>
-            </div>
-          </div>
-        </div>
+        }
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Collaborators</h3>
@@ -210,12 +149,9 @@ const ProjectDetails = () => {
                 <i className="icon mbc-icon plus" />
                 <span>Add team member</span>
               </button>
-              {/* <div className={classNames(Styles.teamsErrorMessage, teamMemberError.length ? '' : 'hide')}>
-                <span className="error-message">{teamMemberError}</span>
-              </div> */}
             </div>
             <div className={Styles.membersList}>
-              {teamMembers?.length > 0 && teamMembersList}
+              {!loading && teamMembersList}
             </div>
           </div>
         </div>
@@ -275,28 +211,6 @@ const ProjectDetails = () => {
           </div>
         </div>
       </div>
-      { (createProject || editProject) &&
-        <Modal
-          title={'Edit Forecasting Project'}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'60%'}
-          buttonAlignment="right"
-          show={createProject || editProject}
-          content={addProjectContent}
-          scrollableContent={false}
-          onCancel={() => {
-            setCreateProject(false);
-            setEditProject(false);
-          }}
-          modalStyle={{
-            padding: '50px 35px 35px 35px',
-            minWidth: 'unset',
-            width: '60%',
-            maxWidth: '50vw'
-          }}
-        />
-      }
       {showAddTeamMemberModal && (
         <AddTeamMemberModal
           ref={addTeamMemberModalRef}
