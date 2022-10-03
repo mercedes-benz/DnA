@@ -50,16 +50,14 @@ const ForecastResults = () => {
 
   const [forecastRuns, setForecastRuns] = useState([]);
   useEffect(() => {
-    getProjectById();
+    getProjectForecastRuns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getProjectById = () => {
+  const getProjectForecastRuns = () => {
     ProgressIndicator.show();
-    chronosApi.getForecastProjectById(projectId).then((res) => {
-      if(res.runs !== null) {
-        setForecastRuns(res.runs);
-      }
+    chronosApi.getForecastRuns(projectId).then((res) => {
+      setForecastRuns(res.records);
       ProgressIndicator.hide();
     }).catch(error => {
       console.log(error.message);
@@ -115,7 +113,7 @@ const ForecastResults = () => {
 
           <div className={Styles.forecastResultListWrapper}>
             <div className={Styles.listContent}>
-              { forecastRuns?.length == 0 ? (
+              { forecastRuns?.length === 0 ? (
                 <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
               ) : (
                 <React.Fragment>
