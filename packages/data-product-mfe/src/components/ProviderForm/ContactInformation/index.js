@@ -7,6 +7,7 @@ import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
 import DatePicker from 'dna-container/DatePicker';
+import TeamSearch from 'dna-container/TeamSearch';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
@@ -31,7 +32,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
-  const { division, department, complianceOfficer: selectedcomplianceOfficer } = watch();
+  const { division, department, complianceOfficer: selectedcomplianceOfficer, name } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
@@ -40,6 +41,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   const [complianceOfficer, setComplianceOfficer] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [fieldValue, setFieldValue] = useState('');
 
   useEffect(() => {
     const id = watch('division');
@@ -122,6 +126,22 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     setSelectedDepartment(department);
   }, [department]);
 
+  useEffect(() => {
+    let nameStr = typeof name === 'string' ? name : `${name?.firstName} ${name?.lastName}`;
+    name && setFieldValue(nameStr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
+
+  const handleName = (field, value) => {
+    let name = '';
+    if (value) {
+      value['addedByProvider'] = true;
+      name = `${value.firstName} ${value.lastName}`;
+    }
+    field.onChange(value);
+    setFieldValue(name);
+  };
+
   return (
     <>
       <div className={Styles.wrapper}>
@@ -176,17 +196,28 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.name ? 'error' : '')}>
-                <label id="nameLabel" htmlFor="nameInput" className="input-label">
-                  Your Name <sup>*</sup>
-                </label>
-                <input
-                  {...register('name', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="nameInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="name"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <TeamSearch
+                      label={
+                        <>
+                          Your Name <sup>*</sup>
+                        </>
+                      }
+                      fieldMode={true}
+                      fieldValue={fieldValue}
+                      setFieldValue={(val) => setFieldValue(val)}
+                      onAddTeamMember={(value) => handleName(field, value)}
+                      btnText="Add User"
+                      searchTerm={searchTerm}
+                      setSearchTerm={(value) => setSearchTerm(value)}
+                      showUserDetails={false}
+                      setShowUserDetails={() => {}}
+                    />
+                  )}
                 />
                 <span className={classNames('error-message')}>{errors.name?.message}</span>
               </div>
