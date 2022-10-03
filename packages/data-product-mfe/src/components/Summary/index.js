@@ -143,7 +143,7 @@ const Summary = ({ history }) => {
                       <div>
                         <label className="input-label summary">Name</label>
                         <br />
-                        {data.name}
+                        {data.name?.firstName} {data.name?.lastName}
                       </div>
                       <div>
                         <label className="input-label summary">Division</label>
@@ -344,7 +344,7 @@ const Summary = ({ history }) => {
                           <div>
                             <label className="input-label summary">Business and/or Information Owner </label>
                             <br />
-                            {data?.consumer?.businessOwnerName}
+                            {data?.consumer?.businessOwnerName?.firstName} {data?.consumer?.businessOwnerName?.lastName}
                           </div>
                           <div>
                             <label className="input-label summary">Date of Agreement</label>
