@@ -82,6 +82,7 @@ const ForeCastingProjects = ({ user }) => {
       setCreateProject(false);
       reset({ name: '' });
       setTeamMembers([]);
+      Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
       console.log(error);
