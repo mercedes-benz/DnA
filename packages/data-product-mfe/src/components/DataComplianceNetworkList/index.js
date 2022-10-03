@@ -757,88 +757,90 @@ const DataComplianceNetworkList = (props) => {
         )}
         {!loading && !showChangeLog && dataComplianceNetworkList.length > 0 && (
           <div className={Styles.tablePanel}>
-            <table className="ul-table">
-              <thead>
-                <tr className="header-row">
-                  <th onClick={() => sortEntities('entityId', sortBy.nextSortType)}>
-                    <label
-                      className={'sortable-column-header ' + (sortBy.name === 'entityId' ? sortBy.currentSortType : '')}
-                    >
-                      <i className="icon sort" />
-                      Entity ID
-                    </label>
-                  </th>
-                  <th onClick={() => sortEntities('entityName', sortBy.nextSortType)}>
-                    <label
-                      className={
-                        'sortable-column-header ' + (sortBy.name === 'entityName' ? sortBy.currentSortType : '')
-                      }
-                    >
-                      <i className="icon sort" />
-                      Entity Name
-                    </label>
-                  </th>
-                  <th>
-                    <label>
-                      <i
-                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
-                        tooltip-data="- First point of contact for data compliance question
-                      - Reporting line to IL/C"
-                      />
-                      Local Compliance Officer (LCO)
-                    </label>
-                  </th>
-                  <th>
-                    <label>
-                      <i
-                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
-                        tooltip-data="- First point of contact for data compliance question
-                        - Employee of the respective Group entity"
-                      />
-                      Local Compliance Responsible (LCR)
-                    </label>
-                  </th>
-                  <th>
-                    <label>
-                      <i
-                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
-                        tooltip-data="(old role, sucessive to be 
-                          replaced by LCO/LCR)"
-                      />
-                      Data Protection Coordinator (DPC)
-                    </label>
-                  </th>
-                  <th>
-                    <label>
-                      <i
-                        className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
-                        tooltip-data="- In case of reporting line to LCO, Local Compliance Specialist.
-                        - In all other cases Local Compliance Support"
-                      />
-                      Local Compliance Support / Specialist (LCS)
-                    </label>
-                  </th>
-                  {isAdmin && (
-                    <th className={Styles.actionLinksTD}>
-                      <label>Action</label>
+            <div className={Styles.tableResponsive}>
+              <table className="ul-table">
+                <thead>
+                  <tr className="header-row">
+                    <th onClick={() => sortEntities('entityId', sortBy.nextSortType)}>
+                      <label
+                        className={'sortable-column-header ' + (sortBy.name === 'entityId' ? sortBy.currentSortType : '')}
+                      >
+                        <i className="icon sort" />
+                        Entity ID
+                      </label>
                     </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {dataComplianceNetworkList.map((result) => {
-                  return (
-                    <RowItem
-                      item={result}
-                      key={result.id}
-                      isAdmin={isAdmin}
-                      showDeleteConfirmModal={showDeleteConfirmModal}
-                      showUpdateConfirmModal={showUpdateConfirmModal}
-                    />
-                  );
-                })}
-              </tbody>
-            </table>
+                    <th onClick={() => sortEntities('entityName', sortBy.nextSortType)}>
+                      <label
+                        className={
+                          'sortable-column-header ' + (sortBy.name === 'entityName' ? sortBy.currentSortType : '')
+                        }
+                      >
+                        <i className="icon sort" />
+                        Entity Name
+                      </label>
+                    </th>
+                    <th>
+                      <label>
+                        <i
+                          className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                          tooltip-data="- First point of contact for data compliance question
+                        - Reporting line to IL/C"
+                        />
+                        Local Compliance Officer (LCO)
+                      </label>
+                    </th>
+                    <th>
+                      <label>
+                        <i
+                          className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                          tooltip-data="- First point of contact for data compliance question
+                          - Employee of the respective Group entity"
+                        />
+                        Local Compliance Responsible (LCR)
+                      </label>
+                    </th>
+                    <th>
+                      <label>
+                        <i
+                          className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                          tooltip-data="(old role, sucessive to be 
+                            replaced by LCO/LCR)"
+                        />
+                        Data Protection Coordinator (DPC)
+                      </label>
+                    </th>
+                    <th>
+                      <label>
+                        <i
+                          className={classNames('icon mbc-icon info iconsmd', Styles.infoIcon)}
+                          tooltip-data="- In case of reporting line to LCO, Local Compliance Specialist.
+                          - In all other cases Local Compliance Support"
+                        />
+                        Local Compliance Support / Specialist (LCS)
+                      </label>
+                    </th>
+                    {isAdmin && (
+                      <th className={Styles.actionLinksTD}>
+                        <label>Action</label>
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dataComplianceNetworkList.map((result) => {
+                    return (
+                      <RowItem
+                        item={result}
+                        key={result.id}
+                        isAdmin={isAdmin}
+                        showDeleteConfirmModal={showDeleteConfirmModal}
+                        showUpdateConfirmModal={showUpdateConfirmModal}
+                      />
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
             {dataComplianceNetworkList.length && (
               <Pagination
                 totalPages={totalNumberOfPages}
