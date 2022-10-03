@@ -12,9 +12,11 @@ import RowItem from './rowItem/RowItem';
 import { useHistory, useParams } from 'react-router-dom';
 import { chronosApi } from '../../../apis/chronos.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import Spinner from '../../shared/spinner/Spinner';
 
 const ForecastResults = () => {
   const { id: projectId } = useParams();
+
   /* Pagination */
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -48,6 +50,7 @@ const ForecastResults = () => {
     setSortBy(tempSortBy);
   };
 
+  const [loading, setLoading] = useState(true);
   const [forecastRuns, setForecastRuns] = useState([]);
   useEffect(() => {
     getProjectForecastRuns();
@@ -58,9 +61,11 @@ const ForecastResults = () => {
     ProgressIndicator.show();
     chronosApi.getForecastRuns(projectId).then((res) => {
       setForecastRuns(res.records);
+      setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
       console.log(error.message);
+      setLoading(false);
       ProgressIndicator.hide();
     });
   };
@@ -113,9 +118,12 @@ const ForecastResults = () => {
 
           <div className={Styles.forecastResultListWrapper}>
             <div className={Styles.listContent}>
-              { forecastRuns?.length === 0 ? (
-                <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
-              ) : (
+              {loading && <Spinner />}
+              {!loading && (
+                forecastRuns?.length === 0 &&
+                  <div className={Styles.forecastResultListEmpty}>Forecast Runs are not available</div>
+              )}
+              {!loading && forecastRuns?.length > 0 &&
                 <React.Fragment>
                   <div className={Styles.forecastResultList}>
                     <table className={'ul-table'}>
@@ -246,11 +254,11 @@ const ForecastResults = () => {
                     </table>
                   </div>
                 </React.Fragment>
-              )}
+              }
             </div>
           </div>
         </div>
-        {forecastRuns?.length && (
+        {!loading && forecastRuns?.length > 0 &&
           <Pagination
             totalPages={totalNumberOfPages}
             pageNumber={currentPageNumber}
@@ -259,7 +267,7 @@ const ForecastResults = () => {
             onViewByNumbers={onViewByPageNum}
             displayByPage={true}
           />
-        )}
+        }
         {
           showDeleteModal && (
             <ConfirmModal
@@ -294,7 +302,6 @@ const ForecastResults = () => {
             />
           )
         }
-      
     </React.Fragment>
   );
 }
