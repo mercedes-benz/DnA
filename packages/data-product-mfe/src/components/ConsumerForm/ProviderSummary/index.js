@@ -44,7 +44,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Name</label>
                 <br />
-                {data.name}
+                {data.name?.firstName} {data.name?.lastName}
               </div>
               <div>
                 <label className="input-label summary">Division</label>
