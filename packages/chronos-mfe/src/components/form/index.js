@@ -16,6 +16,7 @@ import ManageConnections from './ManageConnections';
 import ProjectDetails from './ProjectDetails';
 import Breadcrumb from '../shared/breadcrumb/Breadcrumb';
 import { chronosApi } from '../../apis/chronos.api';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const tabs = {
   runForecast: {},
@@ -33,6 +34,7 @@ const ForecastForm = ({ user }) => {
 
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
 
+  const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
 
   useEffect(() => {
@@ -54,9 +56,11 @@ const ForecastForm = ({ user }) => {
     ProgressIndicator.show();
     chronosApi.getForecastProjectById(projectId).then((res) => {
       setProject(res);
+      setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
-      console.log(error.message);
+      Notification.show(error.message, 'alert');
+      setLoading(false);
       ProgressIndicator.hide();
     });
   };
@@ -70,9 +74,9 @@ const ForecastForm = ({ user }) => {
       <div className={classNames(Styles.mainPanel)}>
         <Breadcrumb>
           <li><Link to='/'>Chronos Forecasting</Link></li>
-          <li>Project Name</li>
+          <li>{!loading && project.name}</li>
         </Breadcrumb>
-        <h3 className={classNames(Styles.title)}>Forecasting Project Name</h3>
+        <h3 className={classNames(Styles.title)}>{!loading && project.name}</h3>
         <div id="data-product-tabs" className="tabs-panel">
           <div className="tabs-wrapper">
             <nav>
@@ -127,7 +131,7 @@ const ForecastForm = ({ user }) => {
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (
-                <ForecastResults forecastRuns={(project?.runs && project?.runs !== null) ? project?.runs : []} />
+                <ForecastResults />
               )}
             </div>
             <div id="tab-content-3" className="tab-content">
@@ -137,7 +141,7 @@ const ForecastForm = ({ user }) => {
             </div>
             <div id="tab-content-4" className="tab-content">
               {currentTab === 'projectDetails' && (
-                <ProjectDetails project={project} />
+                <ProjectDetails />
               )}
             </div>
           </div>
