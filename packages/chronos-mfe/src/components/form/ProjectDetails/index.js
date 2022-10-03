@@ -8,7 +8,7 @@ import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 
 import Notification from '../../../common/modules/uilab/js/src/notification';
-import { IconAvatarNew } from '../../shared/icons/iconAvatarNew/IconAvatarNew';
+// import { IconAvatarNew } from '../../shared/icons/iconAvatarNew/IconAvatarNew';
 import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../../apis/chronos.api';
@@ -92,9 +92,9 @@ const ProjectDetails = () => {
 
   const addTeamMemberModalRef = React.createRef();
   const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
-  const showAddTeamMemberModalView = () => {
-    setShowAddTeamMemberModal(true);
-  }
+  // const showAddTeamMemberModalView = () => {
+  //   setShowAddTeamMemberModal(true);
+  // }
   const onAddTeamMemberModalCancel = () => {
     setShowAddTeamMemberModal(false);
   }
@@ -141,16 +141,8 @@ const ProjectDetails = () => {
         <div className={Styles.firstPanel}>
         <div className={Styles.collabAvatar}>
           <div className={Styles.teamListWrapper}>
-            <div className={Styles.addTeamMemberWrapper}>
-              <IconAvatarNew className={Styles.avatarIcon} />
-              <button id="AddTeamMemberBtn" 
-                onClick={showAddTeamMemberModalView}
-                >
-                <i className="icon mbc-icon plus" />
-                <span>Add team member</span>
-              </button>
-            </div>
             <div className={Styles.membersList}>
+              { loading && <Spinner /> }
               {!loading && teamMembersList}
             </div>
           </div>
