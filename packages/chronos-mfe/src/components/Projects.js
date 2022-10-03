@@ -30,6 +30,9 @@ const ForeCastingProjects = ({ user }) => {
   const [generateApiKey, setGenerateApiKey] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [editTeamMember, setEditTeamMember] = useState(false);
+  const [selectedTeamMember, setSelectedTeamMember] = useState();
+  const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
 
   const methods = useForm();
   const {
@@ -108,8 +111,38 @@ const ForeCastingProjects = ({ user }) => {
     });
   };
 
+  const addTeamMemberModalRef = React.createRef();
+  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
+  const showAddTeamMemberModalView = () => {
+    setShowAddTeamMemberModal(true);
+  }
+  const onAddTeamMemberModalCancel = () => {
+    setShowAddTeamMemberModal(false);
+  }
+  const updateTeamMemberList = (teamMember) => {
+    onAddTeamMemberModalCancel();
+    const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
+    delete teamMemberTemp.teamMemberPosition;
+    let teamMembersTemp = [...teamMembers];
+    if(editTeamMember) {
+      teamMembersTemp.splice(editTeamMemberIndex, 1);
+      teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
+    } else {
+      teamMembersTemp.push(teamMemberTemp);
+    }
+    setTeamMembers(teamMembersTemp);
+  }
+  const validateMembersList = (teamMemberObj) => {
+    let duplicateMember = false;
+    duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    return duplicateMember;
+  };
   const onTeamMemberEdit = (index) => {
-    console.log(index);
+    setEditTeamMember(true);
+    setShowAddTeamMemberModal(true);
+    const teamMemberTemp = teamMembers[index];
+    setSelectedTeamMember(teamMemberTemp);
+    setEditTeamMemberIndex(index);
   };
 
   const onTeamMemberDelete = (index) => {
@@ -149,22 +182,6 @@ const ForeCastingProjects = ({ user }) => {
       />
     );
   });
-
-  const addTeamMemberModalRef = React.createRef();
-  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
-  const showAddTeamMemberModalView = () => {
-    setShowAddTeamMemberModal(true);
-  }
-  const onAddTeamMemberModalCancel = () => {
-    setShowAddTeamMemberModal(false);
-  }
-  const updateTeamMemberList = (teamMember) => {
-    onAddTeamMemberModalCancel();
-    const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
-    delete teamMemberTemp.teamMemberPosition;
-    const teamMembersTemp = [...teamMembers, teamMemberTemp];
-    setTeamMembers(teamMembersTemp);
-  }
 
   const addProjectContent = (
     <FormProvider {...methods}>
@@ -373,11 +390,12 @@ const ForeCastingProjects = ({ user }) => {
           modalTitleText={'Collaborator'}
           showOnlyInteral={true}
           hideTeamPosition={true}
+          editMode={editTeamMember}
           showAddTeamMemberModal={showAddTeamMemberModal}
-          // teamMember={teamMemberObj}
+          teamMember={selectedTeamMember}
           onUpdateTeamMemberList={updateTeamMemberList}
           onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
-          // validateMemebersList={validateMembersList}
+          validateMemebersList={validateMembersList}
         />
       )}
     </>
