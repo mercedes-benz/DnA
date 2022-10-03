@@ -113,11 +113,13 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 							.collect(Collectors.toList());
 					providerVO.setUsers(users);
 				}
-				if (provider.getContactInformation() != null) {
+				
+				ProviderContactInformation providerContactInformation = provider.getContactInformation();
+				if (providerContactInformation != null) {
 					ProviderContactInformationVO contactInformationVO = new ProviderContactInformationVO();
-					BeanUtils.copyProperties(provider.getContactInformation(), contactInformationVO);
+					BeanUtils.copyProperties(providerContactInformation, contactInformationVO);
 					DivisionVO divisionvo = new DivisionVO();
-					Division division = provider.getContactInformation().getDivision();
+					Division division = providerContactInformation.getDivision();
 					if (division != null) {
 						BeanUtils.copyProperties(division, divisionvo);
 						SubdivisionVO subdivisionVO = new SubdivisionVO();
@@ -126,6 +128,8 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						divisionvo.setSubdivision(subdivisionVO);
 						contactInformationVO.setDivision(divisionvo);
 					}
+
+					contactInformationVO.setName(toTeamMemberVO(providerContactInformation.getName()));
 					providerVO.setContactInformation(contactInformationVO);
 				}
 
@@ -176,11 +180,12 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					BeanUtils.copyProperties(consumer.getModifiedBy(), updatedByVO);
 					consumerVO.setModifiedBy(updatedByVO);
 				}
-				if (consumer.getContactInformation() != null) {
+				ConsumerContactInformation consumerContactInformation = consumer.getContactInformation();
+				if (consumerContactInformation != null) {
 					ConsumerContactInformationVO contactInformationVO = new ConsumerContactInformationVO();
-					BeanUtils.copyProperties(consumer.getContactInformation(), contactInformationVO);
+					BeanUtils.copyProperties(consumerContactInformation, contactInformationVO);
 					DivisionVO divisionvo = new DivisionVO();
-					Division division = consumer.getContactInformation().getDivision();
+					Division division = consumerContactInformation.getDivision();
 					if (division != null) {
 						BeanUtils.copyProperties(division, divisionvo);
 						SubdivisionVO subdivisionVO = new SubdivisionVO();
@@ -189,6 +194,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						divisionvo.setSubdivision(subdivisionVO);
 						contactInformationVO.setDivision(divisionvo);
 					}
+					contactInformationVO.setOwnerName(toTeamMemberVO(consumerContactInformation.getOwnerName()));
 					consumerVO.setContactInformation(contactInformationVO);
 				}
 
@@ -245,10 +251,11 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 							.collect(Collectors.toList());
 					provider.setUsers(users);
 				}
-				if (providerVO.getContactInformation() != null) {
+				ProviderContactInformationVO providerContactInformationVO = providerVO.getContactInformation();
+				if (providerContactInformationVO != null) {
 					ProviderContactInformation contactInformation = new ProviderContactInformation();
-					BeanUtils.copyProperties(providerVO.getContactInformation(), contactInformation);
-					DivisionVO divisionVO = providerVO.getContactInformation().getDivision();
+					BeanUtils.copyProperties(providerContactInformationVO, contactInformation);
+					DivisionVO divisionVO = providerContactInformationVO.getDivision();
 					if (divisionVO != null) {
 						Division division = new Division();
 						BeanUtils.copyProperties(divisionVO, division);
@@ -259,6 +266,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
+					contactInformation.setName(toTeamMemberJson(providerContactInformationVO.getName()));
 					provider.setContactInformation(contactInformation);
 				}
 
@@ -336,6 +344,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						}
 						contactInformation.setDivision(division);
 					}
+					contactInformation.setOwnerName(toTeamMemberJson(consumerContactInformationVO.getOwnerName()));
 					consumer.setContactInformation(contactInformation);
 				}
 
