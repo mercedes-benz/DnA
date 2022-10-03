@@ -19,6 +19,9 @@ const DataProductListItem = ({ product, history, user }) => {
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetRight, setContextMenuOffsetRight] = useState(0);
 
+  const name = product?.providerInformation?.contactInformation?.name;
+  const productOwnerName = `${name?.firstName} ${name?.lastName}`;
+
   const toggleContextMenu = (e) => {
     e.stopPropagation();
     const elemRect = e.currentTarget.getBoundingClientRect();
@@ -139,7 +142,7 @@ const DataProductListItem = ({ product, history, user }) => {
               <div>
                 <div>
                   <label className={Styles.label}>Created by</label>
-                  <span>{product?.providerInformation?.contactInformation?.name}</span>
+                  <span>{productOwnerName}</span>
                 </div>
 
                 <div>
