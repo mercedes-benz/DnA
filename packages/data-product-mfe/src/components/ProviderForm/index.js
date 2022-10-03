@@ -127,6 +127,7 @@ const ProviderForm = ({ user, history }) => {
         reset(defaultValues); // setting default values
       } else {
         const data = tabs['contact-info'];
+        data.name = `${user.firstName} ${user.lastName}`;
         reset(data); // setting default values
       }
     }
