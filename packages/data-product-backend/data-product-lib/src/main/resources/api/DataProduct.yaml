@@ -300,9 +300,7 @@ definitions:
         type: string
         format: date
       name:
-        type: string
-        description: ""
-        minLength: 1
+        $ref: "#/definitions/TeamMemberVO"           
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -397,9 +395,7 @@ definitions:
         type: boolean
         description: "Is LCO/LCR needed to be involved to check legal basis of usage of personal data"
       ownerName:
-        type: string
-        description: ""
-        minLength: 1
+        $ref: "#/definitions/TeamMemberVO"
       division:
         $ref: "#/definitions/DivisionVO"
       department:
