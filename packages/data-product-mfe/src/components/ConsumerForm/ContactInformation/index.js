@@ -7,6 +7,7 @@ import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
 import DatePicker from 'dna-container/DatePicker';
+import TeamSearch from 'dna-container/TeamSearch';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
@@ -28,7 +29,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  const { division, department, complianceOfficer: selectedcomplianceOfficer } = watch();
+  const { division, department, complianceOfficer: selectedcomplianceOfficer, businessOwnerName } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
@@ -37,6 +38,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   const [complianceOfficer, setComplianceOfficer] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [fieldValue, setFieldValue] = useState('');
 
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
@@ -118,6 +122,25 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     setSelectedDepartment(department);
   }, [department]);
 
+  useEffect(() => {
+    let nameStr =
+      typeof businessOwnerName === 'string'
+        ? businessOwnerName
+        : `${businessOwnerName?.firstName} ${businessOwnerName?.lastName}`;
+    businessOwnerName && setFieldValue(nameStr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessOwnerName]);
+
+  const handleBusinessOwner = (field, value) => {
+    let name = '';
+    if (value) {
+      value['addedByProvider'] = true;
+      name = `${value.firstName} ${value.lastName}`;
+    }
+    field.onChange(value);
+    setFieldValue(name);
+  };
+
   return (
     <>
       <div className={Styles.wrapper}>
@@ -131,17 +154,28 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
           <div className={Styles.formWrapper}>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.businessOwnerName ? 'error' : '')}>
-                <label id="businessOwnerLabel" htmlFor="businessOwnerInput" className="input-label">
-                  Business and/or Information Owner <sup>*</sup>
-                </label>
-                <input
-                  {...register('businessOwnerName', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="businessOwnerInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="businessOwnerName"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <TeamSearch
+                      label={
+                        <>
+                          Business and/or Information Owner <sup>*</sup>
+                        </>
+                      }
+                      fieldMode={true}
+                      fieldValue={fieldValue}
+                      setFieldValue={(val) => setFieldValue(val)}
+                      onAddTeamMember={(value) => handleBusinessOwner(field, value)}
+                      btnText="Add User"
+                      searchTerm={searchTerm}
+                      setSearchTerm={(value) => setSearchTerm(value)}
+                      showUserDetails={false}
+                      setShowUserDetails={() => {}}
+                    />
+                  )}
                 />
                 <span className={classNames('error-message')}>{errors.businessOwnerName?.message}</span>
               </div>
