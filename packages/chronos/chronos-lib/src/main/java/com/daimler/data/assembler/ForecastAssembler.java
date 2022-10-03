@@ -54,19 +54,29 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 					vo.setSavedInputs(files);
 				}
 				if(data.getRuns()!=null && !data.getRuns().isEmpty()) {
-					List<RunVO> runs = data.getRuns().stream().map
-							(n -> { RunVO run = new RunVO();
-									BeanUtils.copyProperties(n,run);
-									RunStateVO stateVO = toStateVO(n.getRunState());
-									run.setState(stateVO);
-									run.setFrequency(toFrequencyEnum(n.getFrequency()));
-									return run;
-							}).collect(Collectors.toList());
+					List<RunVO> runs = toRunsVO(data.getRuns());
 					vo.setRuns(runs);
 				}
 			}
 		}
 		return vo;
+	}
+	
+	public List<RunVO> toRunsVO(List<RunDetails> runs){
+		List<RunVO> runsVOList = new ArrayList<>();
+		if(runs!=null && !runs.isEmpty()) {
+			for(RunDetails run: runs) {
+				if(run.getIsDelete()==null || !run.getIsDelete()) {
+					RunVO runVO = new RunVO();
+					BeanUtils.copyProperties(run,runVO);
+					RunStateVO stateVO = toStateVO(run.getRunState());
+					runVO.setState(stateVO);
+					runVO.setFrequency(toFrequencyEnum(run.getFrequency()));
+					runsVOList.add(runVO);
+				}
+			}
+		}
+		return runsVOList;
 	}
 	
 	private RunStateVO toStateVO(RunState runState) {
