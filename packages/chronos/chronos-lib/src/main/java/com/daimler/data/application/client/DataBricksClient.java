@@ -102,7 +102,8 @@ public class DataBricksClient {
 					deleteRunResponse = response.getBody();
 				}
 				}catch(Exception e) {
-					e.printStackTrace();
+					deleteRunResponse = new DataBricksErrorResponseVO();
+					deleteRunResponse.setMessage(e.getMessage());
 				}
 			return deleteRunResponse;
 	}
@@ -118,7 +119,7 @@ public class DataBricksClient {
 				
 				String getSingleRunUrl = dataBricksBaseUri + dataBricksJobGetRunPath + "?run_id=" + runId;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<RunDetailsVO> response = restClient.exchange(getSingleRunUrl, HttpMethod.POST,
+				ResponseEntity<RunDetailsVO> response = restClient.exchange(getSingleRunUrl, HttpMethod.GET,
 						requestEntity, RunDetailsVO.class);
 				if (response.hasBody()) {
 					getSingleRunResponse = response.getBody();
