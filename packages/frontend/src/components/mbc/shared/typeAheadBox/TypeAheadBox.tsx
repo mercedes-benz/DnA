@@ -4,20 +4,25 @@ import Styles from './TypeAheadBox.scss';
 
 const classNames = cn.bind(Styles);
 
+interface IList {
+  name: string;
+  [key: string]: any;
+}
+
 export interface IRowItemProps {
   controlId: string;
   label: string;
   placeholder: string;
   required: boolean;
   defaultValue: string;
-  list: any;
-  setSelected: (item:any) => void;
+  list: IList[];
+  setSelected: (item: any) => void;
   render?: (item: any) => React.ReactNode;
   showError: boolean;
-  onInputChange?: (value:any) => void;
+  onInputChange?: (value: any) => void;
 }
 
-const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
+const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
   const KEY_CODE = {
     backspace: 8,
     tab: 9,
@@ -38,19 +43,19 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
   const [errorText, setErrorText] = useState(null);
 
   useEffect(() => {
-    if(props.defaultValue.length > 0) {
+    if (props.defaultValue.length > 0) {
       setSelectedItem(props.defaultValue);
     }
   }, [props.defaultValue]);
 
   useEffect(() => {
-    if(props.showError) {
+    if (props.showError) {
       setErrorText('*Missing Entry');
     }
   }, [props.showError]);
-  
+
   useEffect(() => {
-    if(props.onInputChange) {
+    if (props.onInputChange) {
       setFilteredList(props.list);
       setShowNoResultsError(props.list.length === 0 ? true : false);
       setTimeout(() => {
@@ -74,12 +79,12 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
       </li>
     );
   });
-  
+
   const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
     setSearchTerm(event.currentTarget.value);
     props.onInputChange && props.onInputChange(event.currentTarget.value);
     setShowNoResultsError(false);
-    if(event.currentTarget.value.length > 0) {
+    if (event.currentTarget.value.length > 0) {
       setErrorText('');
       setSelectedItem('');
     } else {
@@ -88,9 +93,11 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
   };
 
   useEffect(() => {
-    if(!props.onInputChange) {
-      if(searchTerm.length > 1) {
-        const filteredResults = props.list?.filter((item:any) => item.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1);
+    if (!props.onInputChange) {
+      if (searchTerm.length > 1) {
+        const filteredResults = props.list?.filter(
+          (item: any) => item.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1,
+        );
         setFilteredList(filteredResults);
         setShowNoResultsError(filteredResults.length === 0 ? true : false);
         setTimeout(() => {
@@ -116,8 +123,7 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
     const query = searchTerm;
 
     if (keyPressed === KEY_CODE.enter && query.length) {
-      
-      if(cursor === -1) {
+      if (cursor === -1) {
         console.log('');
       } else {
         setHideSuggestion(true);
@@ -130,45 +136,43 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
         }
       }
     } else if (keyPressed === KEY_CODE.upArrow && cursor > 0) {
-      setCursor((prevState) => (prevState - 1));
+      setCursor((prevState) => prevState - 1);
       const containerHeight = suggestionContainer.current.getBoundingClientRect().height;
       const activeElem = suggestionContainer.current.querySelector('li.active') as HTMLLIElement;
       if (activeElem) {
         const activeElemHeight = activeElem.getBoundingClientRect().height;
         suggestionContainer.current.scrollTop = 0;
-        if(containerHeight < activeElem.offsetTop) {
+        if (containerHeight < activeElem.offsetTop) {
           suggestionContainer.current.scrollTop = activeElem.offsetTop - activeElemHeight * 2;
         }
       }
     } else if (keyPressed === KEY_CODE.downArrow && cursor < filteredList.length - 1) {
-      setCursor((prevState) => (prevState + 1));
+      setCursor((prevState) => prevState + 1);
       const containerHeight = suggestionContainer.current.getBoundingClientRect().height;
       const activeElem = suggestionContainer.current.querySelector('li.active') as HTMLLIElement;
       if (activeElem) {
         const activeElemHeight = activeElem.getBoundingClientRect().height;
         suggestionContainer.current.scrollTop = 0;
-        if(containerHeight - 80 < activeElem.offsetTop) {
+        if (containerHeight - 80 < activeElem.offsetTop) {
           suggestionContainer.current.scrollTop = activeElem.offsetTop - activeElemHeight * 1;
-        } 
+        }
       }
     }
   };
-  
+
   return (
     <div className={classNames(Styles.searchWrapper)}>
-      <div className={classNames(
-        'input-field-group include-error',
-        errorText && 'error',
-      )}>
+      <div className={classNames('input-field-group include-error', errorText && 'error')}>
         <label htmlFor={props.controlId} className="input-label">
-          {props.label}{props.required && <span>*</span>}
+          {props.label}
+          {props.required && <span>*</span>}
         </label>
 
-        <div id='searchPanel' className={Styles.searchPanel}>
+        <div id="searchPanel" className={Styles.searchPanel}>
           <span className={Styles.selectedItem}>{selectedItem}</span>
           <input
             type="text"
-            className={"input-field"}
+            className={'input-field'}
             ref={searchInput}
             id={props.controlId}
             required={true}
@@ -179,27 +183,28 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
             maxLength={200}
             autoComplete="off"
           />
-          {showNoResultsError && 
-            <p className={Styles.searchError}>No results found.</p>
-          }
-          {!hideSuggestion && searchTerm.length > 0 && (
-            <ul
-              ref={suggestionContainer}
-              className={Styles.suggestionList}
+          {selectedItem.length > 0 ? (
+            <button
+              onClick={() => {
+                setSelectedItem('');
+                props.setSelected('');
+                searchInput.current.focus();
+              }}
             >
+              <i className={classNames('icon mbc-icon close circle')} />
+            </button>
+          ) : null}
+          {showNoResultsError && <p className={Styles.searchError}>No results found.</p>}
+          {!hideSuggestion && searchTerm.length > 0 && (
+            <ul ref={suggestionContainer} className={cn(Styles.suggestionList, 'mbc-scroll')}>
               {suggestionList}
             </ul>
           )}
         </div>
-        {
-          errorText &&
-            <span className="error-message">
-              {errorText}
-            </span>
-        }
+        {errorText && <span className="error-message">{errorText}</span>}
       </div>
     </div>
   );
-}
+};
 
 export default TypeAheadBox;
