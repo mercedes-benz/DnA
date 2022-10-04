@@ -154,46 +154,21 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
             </div>
           </div>
           <div className={Styles.formWrapper}>
-            <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>
-                <label id="productNameLabel" htmlFor="productNameInput" className="input-label">
-                  Data Product Name <sup>*</sup>
-                </label>
-                <input
-                  {...register('productName', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="productNameInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
-                />
-                <span className={classNames('error-message')}>{errors.productName?.message}</span>
-              </div>
-              <div className={Styles.flexLayout}>
-                <div
-                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
-                >
-                  <label id="dateOfAgreementLabel" htmlFor="dateOfDataTransferInput" className="input-label">
-                    Date of Data Transfer <sup>*</sup>
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfDataTransfer"
-                    rules={{ required: '*Missing entry' }}
-                    render={({ field }) => (
-                      <DatePicker
-                        label="Date of Data Transfer"
-                        value={watch('dateOfDataTransfer')}
-                        name={field.name}
-                        onChange={(value) => field.onChange(value)}
-                        requiredError={errors.dateOfDataTransfer?.message}
-                      />
-                    )}
-                  />
-                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
-                </div>
-              </div>
+            {/* <div className={Styles.flexLayout}> */}
+            <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>
+              <label id="productNameLabel" htmlFor="productNameInput" className="input-label">
+                Data Product Name <sup>*</sup>
+              </label>
+              <input
+                {...register('productName', { required: '*Missing entry' })}
+                type="text"
+                className="input-field"
+                id="productNameInput"
+                maxLength={200}
+                placeholder="Type here"
+                autoComplete="off"
+              />
+              <span className={classNames('error-message')}>{errors.productName?.message}</span>
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.name ? 'error' : '')}>
@@ -305,6 +280,26 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                     />
                   )}
                 />
+              </div>
+              <div className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}>
+                <label id="dateOfAgreementLabel" htmlFor="dateOfDataTransferInput" className="input-label">
+                  Date of Data Transfer <sup>*</sup>
+                </label>
+                <Controller
+                  control={control}
+                  name="dateOfDataTransfer"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <DatePicker
+                      label="Date of Data Transfer"
+                      value={watch('dateOfDataTransfer')}
+                      name={field.name}
+                      onChange={(value) => field.onChange(value)}
+                      requiredError={errors.dateOfDataTransfer?.message}
+                    />
+                  )}
+                />
+                <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
               </div>
             </div>
             <div className={Styles.flexLayout}>

@@ -51,6 +51,11 @@
             color: #00adef;
         }
     }
+    #data-product-tabs .scrollable.tabs-wrapper,
+    #data-product-tabs .scrollable.tabs-wrapper nav,
+    #data-product-tabs .tabs {
+        height: 44px;
+    }
 
     .btnContainer {
         min-height: 40px;
