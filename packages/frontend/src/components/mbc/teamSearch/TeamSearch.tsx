@@ -186,6 +186,7 @@ const TeamSearch = (props: TeamSearchProps) => {
     setFieldValue('');
     setSearchTerm('');
     props.onAddTeamMember(null);
+    searchInput.current.focus();
   };
 
   const onSearchInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
