@@ -127,7 +127,20 @@ const ProviderForm = ({ user, history }) => {
         reset(defaultValues); // setting default values
       } else {
         const data = tabs['contact-info'];
-        data.name = `${user.firstName} ${user.lastName}`;
+        // set default "Your name" as logged in user name
+        const userInfo = {
+          addedByProvider: true,
+          company: user.company || '',
+          department: user.department,
+          email: user.eMail || user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          mobileNumber: user.mobileNumber,
+          shortId: user.id || user.shortId,
+          teamMemberPosition: user.teamMemberPosition || '',
+          userType: user.userType || '',
+        };
+        data.name = userInfo;
         reset(data); // setting default values
       }
     }
