@@ -27,6 +27,8 @@
 
 package com.daimler.data.db.jsonb.dataproduct;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,9 +39,10 @@ import lombok.NoArgsConstructor;
 public class ConsumerContactInformation {
 
 	private boolean lcoNeeded;
-	private String ownerName;
+	private TeamMember ownerName;
 	private Division division;
 	private String department;
 	private String localComplianceOfficer;
 	private String appId;
+	private Date agreementDate;
 }

@@ -5,8 +5,8 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 
 // import { history } from '../../../router/History';
 import Styles from './Administration.scss';
-import { IUserInfo, IRole } from '../../../globals/types';
-import { USER_ROLE } from '../../../globals/constants';
+import { IUserInfo, IRole } from 'globals/types';
+import { USER_ROLE } from 'globals/constants';
 
 // @ts-ignore
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
@@ -16,7 +16,7 @@ import { MalwareScanapikeys } from './malwarescanapikeys/MalwareScanapikeys';
 import { ReportTagHandling } from '../reportAdmin/taghandling/ReportTagHandling';
 import { AdminNotifications } from './notifications/AdminNotifications';
 
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 export interface IAdministrationProps {
   user: IUserInfo;
@@ -32,14 +32,14 @@ export default class Administration extends React.Component<IAdministrationProps
     super(props);
     this.state = {
       currentUserRole: '',
-      currentTab: 'userrole'
+      currentTab: 'userrole',
     };
   }
   public componentDidMount() {
     const isReportAdmin = this.props.user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN) !== undefined;
     Tabs.defaultSetup();
-    if(isReportAdmin){
-      this.setState({ currentTab: 'reporttaghandling'});
+    if (isReportAdmin) {
+      this.setState({ currentTab: 'reporttaghandling' });
     }
   }
 
@@ -60,18 +60,18 @@ export default class Administration extends React.Component<IAdministrationProps
                 <ul className="tabs">
                   {isAdmin && (
                     <React.Fragment>
-                      <li className={Styles.tab + ' tab active'} onClick={()=>this.setNewTab('userrole')}>
+                      <li className={Styles.tab + ' tab active'} onClick={() => this.setNewTab('userrole')}>
                         <a href="#tab-content-1" id="userRoles">
                           User Roles
                         </a>
                       </li>
-                      <li className={Styles.tab + ' tab'} onClick={()=>this.setNewTab('taghandling')}>
+                      <li className={Styles.tab + ' tab'} onClick={() => this.setNewTab('taghandling')}>
                         <a href="#tab-content-2" id="tagHandling">
                           Solution MDM
                         </a>
                       </li>
                       {Envs.ENABLE_MALWARE_SCAN_SERVICE ? (
-                        <li className={Styles.tab + ' tab'} onClick={()=>this.setNewTab('malwarescan')}>
+                        <li className={Styles.tab + ' tab'} onClick={() => this.setNewTab('malwarescan')}>
                           <a href="#tab-content-3" id="malwarescanapikeys">
                             Malware Scan API Keys
                           </a>
@@ -82,14 +82,20 @@ export default class Administration extends React.Component<IAdministrationProps
                     </React.Fragment>
                   )}
                   {(isAdmin || isReportAdmin) && (
-                    <li className={Styles.tab + ' tab ' + (isReportAdmin && 'tab active')} onClick={()=>this.setNewTab('reporttaghandling')}>
+                    <li
+                      className={Styles.tab + ' tab ' + (isReportAdmin && 'tab active')}
+                      onClick={() => this.setNewTab('reporttaghandling')}
+                    >
                       <a href="#tab-content-4" id="reporttagHandling">
                         Report MDM
                       </a>
                     </li>
                   )}
                   {isAdmin && (
-                    <li className={Styles.tab + ' tab ' + (isReportAdmin && 'tab active')} onClick={()=>this.setNewTab('adminnotification')}>
+                    <li
+                      className={Styles.tab + ' tab ' + (isReportAdmin && 'tab active')}
+                      onClick={() => this.setNewTab('adminnotification')}
+                    >
                       <a href="#tab-content-5" id="notificationTagHandling">
                         Notification
                       </a>
@@ -123,7 +129,11 @@ export default class Administration extends React.Component<IAdministrationProps
               )}
               {isAdmin && (
                 <div id="tab-content-5" className={'tab-content ' + Styles.contentTab}>
-                  {this.state.currentTab === 'adminnotification' ? <AdminNotifications userId={this.props.user.id} /> : ''}
+                  {this.state.currentTab === 'adminnotification' ? (
+                    <AdminNotifications userId={this.props.user.id} />
+                  ) : (
+                    ''
+                  )}
                 </div>
               )}
             </div>
@@ -137,7 +147,7 @@ export default class Administration extends React.Component<IAdministrationProps
     Notification.show(message, 'alert');
   }
 
-  protected setNewTab(tabName: string){
-    this.setState({currentTab: tabName});
+  protected setNewTab(tabName: string) {
+    this.setState({ currentTab: tabName });
   }
 }

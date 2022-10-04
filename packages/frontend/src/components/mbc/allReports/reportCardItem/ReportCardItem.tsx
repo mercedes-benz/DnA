@@ -1,10 +1,10 @@
 import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { SOLUTION_LOGO_IMAGE_TYPES } from '../../../../globals/constants';
+import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import Styles from './ReportCardItem.scss';
-import { IAllReportsListItem } from '../../../../globals/types';
+import { IAllReportsListItem } from 'globals/types';
 import { history } from '../../../../router/History';
-import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
+import LogoImage from 'components/mbc/createNewSolution/description/logoManager/LogoImage/LogoImage';
 // @ts-ignore
 import ImgDataikuIcon from '../../../../assets/images/dataiku-icon.png';
 // @ts-ignore

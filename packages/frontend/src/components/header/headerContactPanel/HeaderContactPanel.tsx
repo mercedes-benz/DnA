@@ -1,8 +1,8 @@
 import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { Envs } from '../../../globals/Envs';
-import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
-import About from '../../../components/mbc/About/About';
+import { Envs } from 'globals/Envs';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import About from 'components/mbc/About/About';
 // import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
 import { history } from '../../../router/History';
 import Styles from './HeaderContactPanel.scss';

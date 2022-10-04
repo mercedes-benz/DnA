@@ -8,16 +8,9 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
-import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
-import { USER_ROLE } from '../../../globals/constants';
-import {
-  ICreateNewReportResult,
-  IRole,
-  IUserInfo,
-  ILogoDetails,
-  ICreateNewReport,
-  ITeams,
-} from '../../../globals/types';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import { USER_ROLE } from 'globals/constants';
+import { ICreateNewReportResult, IRole, IUserInfo, ILogoDetails, ICreateNewReport, ITeams } from 'globals/types';
 import { history } from '../../../router/History';
 import { ReportPdfDoc } from './pdfdoc/ReportPdfDoc';
 import Styles from './ReportSummary.scss';
@@ -107,7 +100,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
         publish: false,
         openSegments: [],
         usingQuickPath: false,
-        reportId: null
+        reportId: null,
       },
       publish: false,
       showDeleteReportModal: false,
@@ -170,7 +163,9 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
               Back
             </button>
             <div className={Styles.summeryBannerTitle}>
-              <h2>{reportName}{' '}({reportId})</h2>
+              <h2>
+                {reportName} ({reportId})
+              </h2>
             </div>
           </div>
           <div id="report-summary-tabs" className="tabs-panel">
@@ -360,7 +355,10 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
     let userId = '';
     if (this.state.report.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
       userId = this.state.report.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(this.state.report?.description?.division?.name)) { 
+    } else if (
+      userInfo?.divisionAdmins &&
+      userInfo?.divisionAdmins.includes(this.state.report?.description?.division?.name)
+    ) {
       userId = userInfo.id;
     }
     // else if (this.state.report.createdBy) {

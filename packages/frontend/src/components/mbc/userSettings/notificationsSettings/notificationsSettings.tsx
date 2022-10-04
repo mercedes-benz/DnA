@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ApiClient } from '../../../../services/ApiClient';
-import { IUserInfo } from '../../../../globals/types';
-import { INoticationModules } from '../../../../globals/types';
+import { IUserInfo } from 'globals/types';
+import { INoticationModules } from 'globals/types';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore

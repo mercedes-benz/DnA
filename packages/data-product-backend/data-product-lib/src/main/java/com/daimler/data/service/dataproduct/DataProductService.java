@@ -33,8 +33,11 @@ import org.springframework.http.ResponseEntity;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DataProductNsql;
-import com.daimler.data.dto.dataproduct.DataProductResponseVO;
+import com.daimler.data.dto.dataproduct.ConsumerVO;
+import com.daimler.data.dto.dataproduct.DataProductConsumerResponseVO;
+import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
+import com.daimler.data.dto.dataproduct.ProviderVO;
 import com.daimler.data.service.common.CommonService;
 
 public interface DataProductService extends CommonService<DataProductVO, DataProductNsql, String> {
@@ -43,13 +46,16 @@ public interface DataProductService extends CommonService<DataProductVO, DataPro
 
 	}
 
-	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder);
+	List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy, String sortOrder,
+			String recordStatus);
 
-	Long getCount(Boolean published);
+	Long getCount(Boolean published, String recordStatus);
 
-	ResponseEntity<DataProductResponseVO> createDataProduct(DataProductVO requestDataProductVO);
+	ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO providerVO);
 
-	ResponseEntity<DataProductResponseVO> updateDataProduct(DataProductVO requestDataProductVO);
+	ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO providerVO);
+
+	ResponseEntity<DataProductConsumerResponseVO> updateDataProductConsumer(ConsumerVO consumerVO);
 
 	ResponseEntity<GenericMessage> deleteDataProduct(String id);
 }

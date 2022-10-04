@@ -6,6 +6,8 @@ import Styles from './styles.scss';
 import SelectBox from 'dna-container/SelectBox';
 import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
+import DatePicker from 'dna-container/DatePicker';
+import TeamSearch from 'dna-container/TeamSearch';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
@@ -30,13 +32,18 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
-  const { division, complianceOfficer: selectedcomplianceOfficer } = watch();
+  const { division, department, complianceOfficer: selectedcomplianceOfficer, name } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
     totalCount: 0,
   });
   const [complianceOfficer, setComplianceOfficer] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [fieldValue, setFieldValue] = useState('');
 
   useEffect(() => {
     const id = watch('division');
@@ -101,6 +108,40 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     }
   }, [selectedcomplianceOfficer]);
 
+  useEffect(() => {
+    ProgressIndicator.show();
+    dataProductsApi
+      .getDepartments()
+      .then((res) => {
+        setDepartments(res?.data?.data);
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        Notification.show(e?.response?.data?.errors[0]?.message || 'Error while fetching department list', 'alert');
+        ProgressIndicator.hide();
+      });
+  }, []);
+
+  useEffect(() => {
+    setSelectedDepartment(department);
+  }, [department]);
+
+  useEffect(() => {
+    let nameStr = typeof name === 'string' ? name : `${name?.firstName} ${name?.lastName}`;
+    name && setFieldValue(nameStr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name]);
+
+  const handleName = (field, value) => {
+    let name = '';
+    if (value) {
+      value['addedByProvider'] = true;
+      name = `${value.firstName} ${value.lastName}`;
+    }
+    field.onChange(value);
+    setFieldValue(name);
+  };
+
   return (
     <>
       <div className={Styles.wrapper}>
@@ -108,7 +149,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
           <div>
             <h3>Contact Information</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>
@@ -128,37 +169,55 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 />
                 <span className={classNames('error-message')}>{errors.productName?.message}</span>
               </div>
-              <div className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}>
-                <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
-                  Date of Data Transfer <sup>*</sup>
-                </label>
-                <input
-                  {...register('dateOfDataTransfer', {
-                    required: '*Missing entry',
-                  })}
-                  type="text"
-                  className="input-field"
-                  id="dateOfDataTransferInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
-                />
-                <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}
+                >
+                  <label id="dateOfAgreementLabel" htmlFor="dateOfDataTransferInput" className="input-label">
+                    Date of Data Transfer <sup>*</sup>
+                  </label>
+                  <Controller
+                    control={control}
+                    name="dateOfDataTransfer"
+                    rules={{ required: '*Missing entry' }}
+                    render={({ field }) => (
+                      <DatePicker
+                        label="Date of Data Transfer"
+                        value={watch('dateOfDataTransfer')}
+                        name={field.name}
+                        onChange={(value) => field.onChange(value)}
+                        requiredError={errors.dateOfDataTransfer?.message}
+                      />
+                    )}
+                  />
+                  <span className={classNames('error-message')}>{errors.dateOfDataTransfer?.message}</span>
+                </div>
               </div>
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.name ? 'error' : '')}>
-                <label id="nameLabel" htmlFor="nameInput" className="input-label">
-                  Your Name <sup>*</sup>
-                </label>
-                <input
-                  {...register('name', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="nameInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="name"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <TeamSearch
+                      label={
+                        <>
+                          Your Name <sup>*</sup>
+                        </>
+                      }
+                      fieldMode={true}
+                      fieldValue={fieldValue}
+                      setFieldValue={(val) => setFieldValue(val)}
+                      onAddTeamMember={(value) => handleName(field, value)}
+                      btnText="Add User"
+                      searchTerm={searchTerm}
+                      setSearchTerm={(value) => setSearchTerm(value)}
+                      showUserDetails={false}
+                      setShowUserDetails={() => {}}
+                    />
+                  )}
                 />
                 <span className={classNames('error-message')}>{errors.name?.message}</span>
               </div>
@@ -225,37 +284,29 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
             </div>
             <div className={Styles.flexLayout}>
               <div className={classNames('input-field-group include-error', errors.department ? 'error' : '')}>
-                <label id="departmentLabel" htmlFor="departmentInput" className="input-label">
-                  Department <sup>*</sup>
-                </label>
-                <input
-                  {...register('department', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="departmentInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="department"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <Tags
+                      title={'Department'}
+                      max={1}
+                      chips={selectedDepartment}
+                      tags={departments}
+                      setTags={(selectedTags) => {
+                        let dept = selectedTags?.map((item) => item.toUpperCase());
+                        setSelectedDepartment(dept);
+                        field.onChange(dept);
+                      }}
+                      isMandatory={true}
+                      showMissingEntryError={errors.department?.message}
+                    />
+                  )}
                 />
-                <span className={classNames('error-message')}>{errors.department?.message}</span>
               </div>
             </div>
             <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
-                <label id="planningITLabel" htmlFor="planningITInput" className="input-label">
-                  planningIT App-ID <sup>*</sup>
-                </label>
-                <input
-                  {...register('planningIT', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="planningITInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
-                />
-                <span className={classNames('error-message')}>{errors.planningIT?.message}</span>
-              </div>
               <div className={classNames('input-field-group include-error', errors.complianceOfficer ? 'error' : '')}>
                 <Controller
                   control={control}
@@ -285,6 +336,21 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                     />
                   )}
                 />
+              </div>
+              <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
+                <label id="planningITLabel" htmlFor="planningITInput" className="input-label">
+                  planningIT App-ID <sup>*</sup>
+                </label>
+                <input
+                  {...register('planningIT', { required: '*Missing entry' })}
+                  type="text"
+                  className="input-field"
+                  id="planningITInput"
+                  maxLength={200}
+                  placeholder="Type here"
+                  autoComplete="off"
+                />
+                <span className={classNames('error-message')}>{errors.planningIT?.message}</span>
               </div>
             </div>
           </div>

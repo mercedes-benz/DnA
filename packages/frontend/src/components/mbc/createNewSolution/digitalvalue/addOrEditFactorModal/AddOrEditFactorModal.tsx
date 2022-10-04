@@ -9,14 +9,14 @@ import {
   IValueFactor,
   IValueRampUp,
   IValueRampUpError,
-} from '../../../../../globals/types';
+} from 'globals/types';
 // @ts-ignore
-import InputFieldsUtils from '../../../../formElements/InputFields/InputFieldsUtils';
-import  Modal from '../../../../formElements/modal/Modal';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
+import Modal from 'components/formElements/modal/Modal';
 import Styles from './AddOrEditFactorModal.scss';
 import NumberFormat from 'react-number-format';
-import {thousandSeparator, decimalSeparator} from '../../../../../services/utils'
-import TextBox from '../../../shared/textBox/TextBox';
+import { thousandSeparator, decimalSeparator } from '../../../../../services/utils';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
 
 const classNames = cn.bind(Styles);
 
@@ -185,22 +185,20 @@ export default class AddOrEditFactorModal extends React.Component<
                     /> */}
                     {/* @ts-ignore */}
                     <NumberFormat
-                        className={classNames('input-field', Styles.fteField)}
-                        id={'factorYear-' + index}
-                        required={true}
-                        required-error={requiredError}
-                        name="year"
-                        placeholder="Type here"
-                        value={                                              
-                          costFactor.year === null ? '' : costFactor.year
-                        }
-                        thousandSeparator={false}
-                        decimalScale={0}
-                        maxLength={4}
-                        minLength={4}
-                        // decimalSeparator={''}
-                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
-                        onBlur={this.validateYearLength}
+                      className={classNames('input-field', Styles.fteField)}
+                      id={'factorYear-' + index}
+                      required={true}
+                      required-error={requiredError}
+                      name="year"
+                      placeholder="Type here"
+                      value={costFactor.year === null ? '' : costFactor.year}
+                      thousandSeparator={false}
+                      decimalScale={0}
+                      maxLength={4}
+                      minLength={4}
+                      // decimalSeparator={''}
+                      onValueChange={(values: any, sourceInfo: any) => this.textOnChangeRampup(values, sourceInfo)}
+                      onBlur={this.validateYearLength}
                     />
                     <span
                       className={classNames(
@@ -250,19 +248,21 @@ export default class AddOrEditFactorModal extends React.Component<
                     />*/}
                     {/* @ts-ignore */}
                     <NumberFormat
-                        className={classNames('input-field', Styles.fteField)}
-                        id={'factorValue-' + index}
-                        required={true}
-                        required-error={requiredError}
-                        name="value"
-                        placeholder="Type here"
-                        value={                                              
-                          costFactor.value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(costFactor.value))
-                        }
-                        decimalScale={2}
-                        thousandSeparator={thousandSeparator(navigator.language)}                  
-                        decimalSeparator={decimalSeparator(navigator.language)}
-                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
+                      className={classNames('input-field', Styles.fteField)}
+                      id={'factorValue-' + index}
+                      required={true}
+                      required-error={requiredError}
+                      name="value"
+                      placeholder="Type here"
+                      value={
+                        costFactor.value === ''
+                          ? ''
+                          : new Intl.NumberFormat(navigator.language).format(Number(costFactor.value))
+                      }
+                      decimalScale={2}
+                      thousandSeparator={thousandSeparator(navigator.language)}
+                      decimalSeparator={decimalSeparator(navigator.language)}
+                      onValueChange={(values: any, sourceInfo: any) => this.textOnChangeRampup(values, sourceInfo)}
                     />
                     <span
                       className={classNames(
@@ -333,22 +333,20 @@ export default class AddOrEditFactorModal extends React.Component<
                     /> */}
                     {/* @ts-ignore */}
                     <NumberFormat
-                        className={classNames('input-field', Styles.fteField)}
-                        id={'factorYear-' + index}
-                        required={true}
-                        required-error={requiredError}
-                        name="year"
-                        placeholder="Type here"
-                        value={                                              
-                          valueFactor.year === null ? '' : valueFactor.year
-                        }
-                        thousandSeparator={false}
-                        decimalScale={0}
-                        maxLength={4}
-                        minLength={4}
-                        // decimalSeparator={''}
-                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
-                        onBlur={this.validateYearLength}
+                      className={classNames('input-field', Styles.fteField)}
+                      id={'factorYear-' + index}
+                      required={true}
+                      required-error={requiredError}
+                      name="year"
+                      placeholder="Type here"
+                      value={valueFactor.year === null ? '' : valueFactor.year}
+                      thousandSeparator={false}
+                      decimalScale={0}
+                      maxLength={4}
+                      minLength={4}
+                      // decimalSeparator={''}
+                      onValueChange={(values: any, sourceInfo: any) => this.textOnChangeRampup(values, sourceInfo)}
+                      onBlur={this.validateYearLength}
                     />
                     <span
                       className={classNames(
@@ -398,19 +396,21 @@ export default class AddOrEditFactorModal extends React.Component<
                     /> */}
                     {/* @ts-ignore */}
                     <NumberFormat
-                        className={classNames('input-field', Styles.fteField)}
-                        id={'factorPercent-' + index}
-                        required={true}
-                        required-error={requiredError}
-                        name="percent"
-                        placeholder="Type here"
-                        value={                                              
-                          valueFactor.percent === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(valueFactor.percent))
-                        }
-                        decimalScale={2}
-                        thousandSeparator={thousandSeparator(navigator.language)}                  
-                        decimalSeparator={decimalSeparator(navigator.language)}
-                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
+                      className={classNames('input-field', Styles.fteField)}
+                      id={'factorPercent-' + index}
+                      required={true}
+                      required-error={requiredError}
+                      name="percent"
+                      placeholder="Type here"
+                      value={
+                        valueFactor.percent === ''
+                          ? ''
+                          : new Intl.NumberFormat(navigator.language).format(Number(valueFactor.percent))
+                      }
+                      decimalScale={2}
+                      thousandSeparator={thousandSeparator(navigator.language)}
+                      decimalSeparator={decimalSeparator(navigator.language)}
+                      onValueChange={(values: any, sourceInfo: any) => this.textOnChangeRampup(values, sourceInfo)}
                     />
                     <span
                       className={classNames(
@@ -460,19 +460,21 @@ export default class AddOrEditFactorModal extends React.Component<
                     /> */}
                     {/* @ts-ignore */}
                     <NumberFormat
-                        className={classNames('input-field', Styles.fteField)}
-                        id={'factorValue-' + index}
-                        required={true}
-                        required-error={requiredError}
-                        name="value"
-                        placeholder="Type here"
-                        value={                                              
-                          valueFactor.value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(valueFactor.value))
-                        }
-                        decimalScale={2}
-                        thousandSeparator={thousandSeparator(navigator.language)}                  
-                        decimalSeparator={decimalSeparator(navigator.language)}
-                        onValueChange={(values: any , sourceInfo: any) => this.textOnChangeRampup(values,sourceInfo)}
+                      className={classNames('input-field', Styles.fteField)}
+                      id={'factorValue-' + index}
+                      required={true}
+                      required-error={requiredError}
+                      name="value"
+                      placeholder="Type here"
+                      value={
+                        valueFactor.value === ''
+                          ? ''
+                          : new Intl.NumberFormat(navigator.language).format(Number(valueFactor.value))
+                      }
+                      decimalScale={2}
+                      thousandSeparator={thousandSeparator(navigator.language)}
+                      decimalSeparator={decimalSeparator(navigator.language)}
+                      onValueChange={(values: any, sourceInfo: any) => this.textOnChangeRampup(values, sourceInfo)}
                     />
                     <span
                       className={classNames(
@@ -512,7 +514,7 @@ export default class AddOrEditFactorModal extends React.Component<
                 controlId={'factorDescription'}
                 name={'description'}
                 label={'Description'}
-                placeholder={"Type here"}
+                placeholder={'Type here'}
                 value={description}
                 errorText={descriptionError}
                 required={true}
@@ -526,7 +528,7 @@ export default class AddOrEditFactorModal extends React.Component<
                 controlId={'factorCategory'}
                 name={'category'}
                 label={'Category'}
-                placeholder={"Type here"}
+                placeholder={'Type here'}
                 value={category}
                 errorText={categoryError}
                 required={true}
@@ -562,13 +564,11 @@ export default class AddOrEditFactorModal extends React.Component<
                   required-error={requiredError}
                   name="value"
                   placeholder="Type here"
-                  value={ 
-                    value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(value))
-                   }
-                  thousandSeparator={thousandSeparator(navigator.language)}                  
+                  value={value === '' ? '' : new Intl.NumberFormat(navigator.language).format(Number(value))}
+                  thousandSeparator={thousandSeparator(navigator.language)}
                   decimalSeparator={decimalSeparator(navigator.language)}
                   decimalScale={2}
-                  onValueChange={(values: any , sourceInfo: any) => this.textInputOnChangeValueField(values,sourceInfo)}
+                  onValueChange={(values: any, sourceInfo: any) => this.textInputOnChangeValueField(values, sourceInfo)}
                 />
                 <span className={classNames('error-message', valueError.length ? '' : 'hide')}>{valueError}</span>
               </div>
@@ -579,7 +579,7 @@ export default class AddOrEditFactorModal extends React.Component<
                 controlId={'factorSource'}
                 name={'source'}
                 label={'Source'}
-                placeholder={"Type here"}
+                placeholder={'Type here'}
                 value={source}
                 errorText={sourceError}
                 required={true}
@@ -596,7 +596,9 @@ export default class AddOrEditFactorModal extends React.Component<
             <hr />
 
             <div>
-              <div className={classNames(Styles.costList, 'mbc-scroll')}>{this.props.factorId === 'Cost' ? costsList : valuesList}</div>
+              <div className={classNames(Styles.costList, 'mbc-scroll')}>
+                {this.props.factorId === 'Cost' ? costsList : valuesList}
+              </div>
 
               <div>
                 <div className={classNames(Styles.addButtonWrapper)}>
@@ -709,7 +711,7 @@ export default class AddOrEditFactorModal extends React.Component<
             // if (!this.validateFloatKeyPress(e.target, e)) {
             //   e.preventDefault();
             // } else {
-              item[name] = value;
+            item[name] = value;
             // }
           }
 
@@ -738,7 +740,7 @@ export default class AddOrEditFactorModal extends React.Component<
             // if (!this.validateFloatKeyPress(e.target, e)) {
             //   e.preventDefault();
             // } else {
-              item[name] = value;
+            item[name] = value;
             // }
           }
 

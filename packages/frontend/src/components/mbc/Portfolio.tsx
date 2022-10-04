@@ -10,7 +10,7 @@ import ProgressIndicator from '../../assets/modules/uilab/js/src/progress-indica
 // @ts-ignore
 import Tooltip from '../../assets/modules/uilab/js/src/tooltip';
 
-import countriesdata from '../../globals/maps/countries.json';
+import countriesdata from 'globals/maps/countries.json';
 import {
   IBarChartDataItem,
   IFilterParams,
@@ -20,7 +20,7 @@ import {
   IStackedBarChartDataItem,
   IUserInfo,
   IWidgetsResponse,
-} from '../../globals/types';
+} from 'globals/types';
 import { history } from '../../router/History';
 import { ApiClient } from '../../services/ApiClient';
 import { attachEllipsis, DataFormater, trackEvent } from '../../services/utils';
@@ -522,7 +522,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   <label className="hidden">
                     <i className="icon mbc-icon listItem context" />
                   </label>
-                  <label className={classNames(Styles.portNav)} onClick={this.onSummaryDigitalValueContributionBtnClick}>
+                  <label
+                    className={classNames(Styles.portNav)}
+                    onClick={this.onSummaryDigitalValueContributionBtnClick}
+                  >
                     <i className="icon mbc-icon arrow small right" />
                   </label>
                 </div>
@@ -718,7 +721,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             useCaseType: string,
             tags: string,
           ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
-          showSolutionsFilter = {true}
+          showSolutionsFilter={true}
           solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
           setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
         />

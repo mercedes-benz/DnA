@@ -49,9 +49,9 @@ import {
   ISingleDataSources,
   IDivision,
   ISubDivision,
-} from '../../../globals/types';
+} from 'globals/types';
 import Styles from './CreateNewReport.scss';
-import SelectBox from '../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 import Customer from './customer/Customer';
 import Description from './description/Description';
@@ -60,8 +60,8 @@ import DataFunction from './dataFunction/DataFunction';
 import Members from './members/Members';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import { serializeReportRequestBody } from './utility/Utility';
-import { USER_ROLE } from '../../../globals/constants';
-import { TeamMemberType } from '../../../globals/Enums';
+import { USER_ROLE } from 'globals/constants';
+import { TeamMemberType } from 'globals/Enums';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewReportState {
@@ -182,7 +182,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         publish: false,
         openSegments: [],
         usingQuickPath: true,
-        reportId: null
+        reportId: null,
       },
       currentState: null,
       showAlertChangesModal: false,
@@ -436,8 +436,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         document.getElementById('description').click();
       }
     });
-    
-  }
+  };
 
   public render() {
     const currentTab = this.state.currentTab;
@@ -446,32 +445,33 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         <div className={classNames(Styles.mainPanel)}>
           <div className={Styles.flexLayout}>
             <div>
-              <div className={Styles.screenLabel}>
-                {this.state.report.reportId ? 'Edit Report' : 'Create Report'}
+              <div className={Styles.screenLabel}>{this.state.report.reportId ? 'Edit Report' : 'Create Report'}</div>
+            </div>
+            {!this.state.report.reportId && currentTab === 'description' ? (
+              <div className={Styles.switchButton}>
+                <label className="switch">
+                  <span className="label" style={{ marginRight: '5px' }}>
+                    {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
+                  </span>
+                  <span className="wrapper">
+                    <input
+                      type="checkbox"
+                      className="ff-only"
+                      onChange={() => this.changeQuickPath(this.state.report.usingQuickPath)}
+                      checked={this.state.report.usingQuickPath}
+                    />
+                  </span>
+                </label>
               </div>
-            </div>
-            {!this.state.report.reportId && currentTab==='description' ? 
-            <div className={Styles.switchButton}>
-              <label className="switch">
-                <span className="label" style={{ marginRight: '5px' }}>
-                  {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
-                </span>
-                <span className="wrapper">
-                  <input
-                    type="checkbox"
-                    className="ff-only"
-                    onChange={() => this.changeQuickPath(this.state.report.usingQuickPath)}
-                    checked={this.state.report.usingQuickPath}
-                  />
-                </span>
-              </label>
-            </div>
-            :''}
+            ) : (
+              ''
+            )}
           </div>
           <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
-            {this.state.report.description.productName}{' '}{this.state.report.reportId?'('+this.state.report.reportId+')': ''}
+            {this.state.report.description.productName}{' '}
+            {this.state.report.reportId ? '(' + this.state.report.reportId + ')' : ''}
           </h3>
-          {this.state.report.usingQuickPath && !this.state.report.reportId ?  
+          {this.state.report.usingQuickPath && !this.state.report.reportId ? (
             <Description
               divisions={this.state.divisions}
               subDivisions={this.state.subDivisions}
@@ -490,10 +490,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 this.setState({ subDivisions }, () => SelectBox.defaultSetup())
               }
               enableQuickPath={this.state.report.usingQuickPath}
-            /> 
-            : 
-            <div id="create-report-tabs" className="tabs-panel">           
-              <div className="tabs-wrapper">            
+            />
+          ) : (
+            <div id="create-report-tabs" className="tabs-panel">
+              <div className="tabs-wrapper">
                 <nav>
                   <ul className="tabs">
                     <li
@@ -540,7 +540,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                     </li>
                     <li
                       className={
-                        this.state.tabClassNames.has('Members') ? this.state.tabClassNames.get('Members') : 'tab disabled'
+                        this.state.tabClassNames.has('Members')
+                          ? this.state.tabClassNames.get('Members')
+                          : 'tab disabled'
                       }
                     >
                       <a href="#tab-content-5" id="members" onClick={this.setCurrentTab}>
@@ -548,29 +550,30 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       </a>
                     </li>
                   </ul>
-                </nav>             
-              </div>            
+                </nav>
+              </div>
               <div className="tabs-content-wrapper">
                 <div id="tab-content-1" className="tab-content">
-                {currentTab === 'description' && (<Description
-                    divisions={this.state.divisions}
-                    subDivisions={this.state.subDivisions}
-                    productPhases={this.state.productPhases}
-                    statuses={this.state.statuses}
-                    arts={this.state.arts}
-                    integratedPortals={this.state.integratedPortals}
-                    designGuideImplemented={this.state.designGuideImplemented}
-                    frontEndTechnologies={this.state.frontEndTechnologies}
-                    description={this.state.report.description}
-                    modifyReportDescription={this.modifyReportDescription}
-                    onSaveDraft={this.onSaveDraft}
-                    tags={this.state.tags}
-                    departmentTags={this.state.departmentTags}
-                    setSubDivisions={(subDivisions: ISubDivision[]) =>
-                      this.setState({ subDivisions }, () => SelectBox.defaultSetup())
-                    }
-                    enableQuickPath={false}
-                  />
+                  {currentTab === 'description' && (
+                    <Description
+                      divisions={this.state.divisions}
+                      subDivisions={this.state.subDivisions}
+                      productPhases={this.state.productPhases}
+                      statuses={this.state.statuses}
+                      arts={this.state.arts}
+                      integratedPortals={this.state.integratedPortals}
+                      designGuideImplemented={this.state.designGuideImplemented}
+                      frontEndTechnologies={this.state.frontEndTechnologies}
+                      description={this.state.report.description}
+                      modifyReportDescription={this.modifyReportDescription}
+                      onSaveDraft={this.onSaveDraft}
+                      tags={this.state.tags}
+                      departmentTags={this.state.departmentTags}
+                      setSubDivisions={(subDivisions: ISubDivision[]) =>
+                        this.setState({ subDivisions }, () => SelectBox.defaultSetup())
+                      }
+                      enableQuickPath={false}
+                    />
                   )}
                 </div>
                 <div id="tab-content-2" className="tab-content">
@@ -625,8 +628,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 </div>
               </div>
             </div>
-          }
-          
+          )}
+
           <ConfirmModal
             title="Save Changes?"
             acceptButtonTitle="Close"
@@ -801,7 +804,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         publish: isPublished,
         openSegments: report.openSegments,
         usingQuickPath: report.usingQuickPath,
-        reportId: report.reportId
+        reportId: report.reportId,
       },
     };
     // create deep copy of an object (won't alter original object)
@@ -846,16 +849,15 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           );
           if (fieldsMissing) {
             const tempArr = error.message.split('data.');
-            tempArr.splice(0,1);
+            tempArr.splice(0, 1);
             tempArr.forEach((element: string) => {
               this.showErrorNotification(parseMessage(element));
             });
-            
+
             this.setState({
               fieldsMissing,
             });
-          }
-          else {
+          } else {
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
           }
         });

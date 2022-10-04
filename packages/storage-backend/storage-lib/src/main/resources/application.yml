@@ -83,6 +83,10 @@ minio:
   secretKey: ${MINIO_ROOT_PASSWORD:XXXXXX}
   version: ${MINIO_POLICY_VERSION:2012-10-17}
 
+databricks:
+  userid: ${DATABRICKS_USERID:XXXXX}
+  userauth: ${DATABRICKS_USER_AUTH:XXXXX}
+  
 # For dataiku connection  
 dataiku:
   connectionsUriPath: ${DATAIKU_CONNECTION_URI_PATH:/admin/connections}

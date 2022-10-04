@@ -2,6 +2,21 @@
     position: relative;
     flex: 1 auto;
     background: none!important;
+
+    .selectedItem {
+      color: #c0c8d0;
+      font-size: var(--font-size-default);
+      letter-spacing: 0.5px;
+      padding-left: 16px;
+      padding-right: 16px;
+      padding-top: 10px;
+      pointer-events: none;
+      position: absolute;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: 100%;
+      overflow: hidden;
+    }
     
     .searchInputField {
       background: none;
