@@ -9,7 +9,7 @@ import InfoModal from 'dna-container/InfoModal';
 
 import { Envs } from '../../../Utility/envs';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLegalBasis } from '../../redux/consumeDataProduct.services';
+import { getLegalBasis } from '../../redux/getDropdowns.services';
 
 const PersonalRelatedData = ({ onSave, setIsEditing }) => {
   const {
@@ -24,7 +24,7 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   const dispatch = useDispatch();
-  const { legalBasisList } = useSelector((state) => state.consumeDataProducts);
+  const { legalBasisList } = useSelector((state) => state.dropdowns);
 
   const isValid = (value) =>
     !watch('personalRelatedData') || watch('personalRelatedData') === 'No' || value?.length > 0 || '*Missing entry';

@@ -1,15 +1,15 @@
 /* tslint:disable */
 import * as React from 'react';
-import { SESSION_STORAGE_KEYS } from '../globals/constants';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { Redirect, Route, RouteProps } from 'react-router-dom';
-import { LOCAL_STORAGE_KEY, USER_ROLE } from './../globals/constants';
-import { IUserInfo } from '../globals/types';
+import { LOCAL_STORAGE_KEY, USER_ROLE } from 'globals/constants';
+import { IUserInfo } from 'globals/types';
 import { ApiClient } from './../services/ApiClient';
 import { Layout } from './Layout';
 import { Pkce } from '../../src/services/Pkce';
-import Progress from '../components/progress/Progress';
+import Progress from 'components/progress/Progress';
 import { trackPageView } from '../services/utils';
-import AppContext from '../components/context/ApplicationContext';
+import AppContext from 'components/context/ApplicationContext';
 import ErrorBoundary from '../utils/ErrorBoundary';
 
 interface IProtectedRouteProps extends RouteProps {

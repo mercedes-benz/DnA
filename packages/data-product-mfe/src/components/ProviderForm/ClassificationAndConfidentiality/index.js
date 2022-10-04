@@ -5,7 +5,7 @@ import Styles from '../Form.common.styles.scss';
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
 import { useDispatch, useSelector } from 'react-redux';
-import { getClassificationTypes } from '../../redux/consumeDataProduct.services';
+import { getClassificationTypes } from '../../redux/getDropdowns.services';
 
 const Classification = ({ onSave }) => {
   const {
@@ -19,7 +19,7 @@ const Classification = ({ onSave }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   const dispatch = useDispatch();
-  const { classificationTypes } = useSelector((state) => state.consumeDataProducts);
+  const { classificationTypes } = useSelector((state) => state.dropdowns);
 
   useEffect(() => {
     dispatch(getClassificationTypes());
@@ -32,7 +32,7 @@ const Classification = ({ onSave }) => {
           <div>
             <h3>Data Description & Classification</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>

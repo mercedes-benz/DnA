@@ -1,12 +1,12 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IAllSolutionsListItem, ILocation, INotebookInfoSolutionId } from '../../../../globals/types';
+import { IAllSolutionsListItem, ILocation, INotebookInfoSolutionId } from 'globals/types';
 import { history } from '../../../../router/History';
 import Styles from './SolutionListRowItem.scss';
-import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
-import { SOLUTION_LOGO_IMAGE_TYPES } from '../../../../globals/constants';
+import LogoImage from 'components/mbc/createNewSolution/description/logoManager/LogoImage/LogoImage';
+import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import { DataFormater } from '../../../../services/utils';
-import { Envs } from '../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 

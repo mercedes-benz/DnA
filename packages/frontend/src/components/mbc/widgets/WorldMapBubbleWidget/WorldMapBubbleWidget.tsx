@@ -1,8 +1,8 @@
 import Popper from 'popper.js';
 import * as React from 'react';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
-import * as geodata from '../../../../globals/maps/countries-110m.json';
-import { ILocationsMapChartDataItem } from '../../../../globals/types.js';
+import * as geodata from 'globals/maps/countries-110m.json';
+import { ILocationsMapChartDataItem } from 'globals/types.js';
 
 export interface IWorldMapBubbleWidgetProps {
   data: ILocationsMapChartDataItem[];
