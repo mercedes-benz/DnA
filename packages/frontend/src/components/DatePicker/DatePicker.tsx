@@ -39,7 +39,7 @@ const DatePicker = ({ label, value, onChange, requiredError }: IDatePickerProps)
         label={label}
         value={value || ''}
         views={['year', 'month', 'day']}
-        maxDate={dayjs().format()}
+        minDate={dayjs().format()}
         onChange={(newValue: string) => {
           onChange(newValue);
         }}
