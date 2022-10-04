@@ -43,6 +43,7 @@ import lombok.NoArgsConstructor;
 public class Report {
 
 	private String productName;
+	private String reportId;
 	private Description description;
 	private Customer customer;
 	private List<KPI> kpis;

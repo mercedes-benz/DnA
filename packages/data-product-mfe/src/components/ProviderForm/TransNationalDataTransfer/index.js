@@ -4,15 +4,17 @@ import Styles from '../Form.common.styles.scss';
 
 import { useFormContext } from 'react-hook-form';
 import InfoModal from 'dna-container/InfoModal';
-import DataOriginating from '../DataOriginating';
+import { Envs } from '../../../Utility/envs';
 
 const TransNationalDataTransfer = ({ onSave }) => {
   const {
     register,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     watch,
     setValue,
     clearErrors,
+    handleSubmit,
+    reset,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -50,7 +52,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
           <div>
             <h3>Identifiying Trans-national Data Transfer</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>
@@ -223,7 +225,77 @@ const TransNationalDataTransfer = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <DataOriginating onSave={onSave} />
+      <div className={Styles.wrapper}>
+        <div className={Styles.firstPanel}>
+          <div>
+            <h3>Identifiying data originating from China</h3>
+            <div className={Styles.infoIcon}>
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
+            </div>
+          </div>
+          <div className={Styles.formWrapper}>
+            <div
+              className={classNames(
+                `input-field-group include-error ${errors?.dataOriginatedFromChina ? 'error' : ''}`,
+              )}
+              style={{ minHeight: '50px' }}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Is data from China included? <sup>*</sup>
+              </label>
+              <div className={Styles.radioBtns}>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('dataOriginatedFromChina', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="dataOriginatedFromChina"
+                      value="No"
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('dataOriginatedFromChina', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="dataOriginatedFromChina"
+                      value="Yes"
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+              </div>
+              <span className={classNames('error-message')}>{errors?.dataOriginatedFromChina?.message}</span>
+            </div>
+            <div dangerouslySetInnerHTML={{ __html: Envs.DATA_GOVERNANCE_HTML_FOR_CHINA_DATA }}></div>
+          </div>
+        </div>
+      </div>
+      <div className="btnContainer">
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={isSubmitting}
+          onClick={handleSubmit((data) => {
+            const isPublished = watch('publish');
+            setValue('notifyUsers', isPublished ? true : false);
+            onSave(watch());
+            reset(data, {
+              keepDirty: false,
+            });
+          })}
+        >
+          Save & Next
+        </button>
+      </div>
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

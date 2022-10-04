@@ -39,7 +39,7 @@ import lombok.NoArgsConstructor;
 public class ProviderContactInformation {
 
 	private Date dataTransferDate;
-	private String name;
+	private TeamMember name;
 	private String appId;
 	private String localComplianceOfficer;
 	private String department;

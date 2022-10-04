@@ -1,9 +1,9 @@
 import cn from 'classnames';
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, Ref } from 'react';
 import { ApiClient } from '../../../../../services/ApiClient';
-import { INotebookInfo } from '../../../../../globals/types';
+import { INotebookInfo } from 'globals/types';
 import Styles from './NotebookInfo.scss';
-import Newsandbox, { INewSandBoxRef } from '../../../../../components/mbc/newSandbox/NewSandbox';
+import Newsandbox, { INewSandBoxRef } from 'components/mbc/newSandbox/NewSandbox';
 import { getDateFromTimestamp } from '../../../../../services/utils';
 import { Link } from 'react-router-dom';
 

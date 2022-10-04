@@ -46,5 +46,6 @@ public class TeamMember {
 	private String mobileNumber;
 	private String company;
 	private String teamMemberPosition;
+	private boolean addedByProvider;
 
 }

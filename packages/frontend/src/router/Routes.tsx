@@ -1,46 +1,46 @@
 import * as React from 'react';
 import { Route, Router, Switch } from 'react-router-dom';
-import { Envs } from '../globals/Envs';
-import Progress from '../components/progress/Progress';
+import { Envs } from 'globals/Envs';
+import Progress from 'components/progress/Progress';
 import { ProtectedRoute } from './../decorators/ProtectedRoute';
-import { USER_ROLE } from './../globals/constants';
+import { USER_ROLE } from 'globals/constants';
 import { history } from './History';
 import NotFoundPage from './NotFoundPage';
 import { SessionExpired } from './SessionExpired';
 import UnAuthorised from './UnAuthorised';
 
-const Administration = React.lazy(() => import('../components/mbc/admin/Administration'));
+const Administration = React.lazy(() => import('components/mbc/admin/Administration'));
 const AuthRedirector = React.lazy(() => import('./AuthRedirector'));
-const AllSolutions = React.lazy(() => import('../components/mbc/allSolutions/AllSolutions'));
-const CreateNewSolution = React.lazy(() => import('../components/mbc/createNewSolution/CreateNewSolution'));
-const DssProjectsList = React.lazy(() => import('../components/mbc/dataiku/ListProjects'));
-const License = React.lazy(() => import('../components/mbc/footer/License/License'));
-const Home = React.lazy(() => import('../components/mbc/home/Home'));
-const Notebook = React.lazy(() => import('../components/mbc/notebook/Notebook'));
-const Portfolio = React.lazy(() => import('../components/mbc/Portfolio'));
-const SearchResults = React.lazy(() => import('../components/mbc/searchResults/SearchResults'));
-const Summary = React.lazy(() => import('../components/mbc/summary/Summary'));
-const MalwareScanService = React.lazy(() => import('../components/mbc/malwareScanService/MalwareScanService'));
-const ModelRegistry = React.lazy(() => import('../components/mbc/modelRegistry/ModelRegistry'));
-const Notifications = React.lazy(() => import('../components/mbc/notification/Notifications'));
-const Pipeline = React.lazy(() => import('../components/mbc/pipeline/Pipeline'));
-const Workspaces = React.lazy(() => import('../components/mbc/workspaces/Workspaces'));
-const Services = React.lazy(() => import('../components/mbc/services/Services'));
-const CreateNewPipeline = React.lazy(() => import('../components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
-const EditCode = React.lazy(() => import('../components/mbc/pipeline/editCode/EditCode'));
-const Comingsoon = React.lazy(() => import('../components/mbc/comingsoon/Comingsoon'));
-const AllReports = React.lazy(() => import('../components/mbc/allReports/AllReports'));
-const CreateNewReport = React.lazy(() => import('../components/mbc/createNewReport/CreateNewReport'));
-const ReportSummary = React.lazy(() => import('../components/mbc/reportSummary/ReportSummary'));
-const UserSettings = React.lazy(() => import('../components/mbc/userSettings/userSettings'));
-const CodeSpace = React.lazy(() => import('../components/mbc/codeSpace/CodeSpace'));
-const AllCodeSpaces = React.lazy(() => import('../components/mbc/codeSpace/AllCodeSpaces'));
+const AllSolutions = React.lazy(() => import('components/mbc/allSolutions/AllSolutions'));
+const CreateNewSolution = React.lazy(() => import('components/mbc/createNewSolution/CreateNewSolution'));
+const DssProjectsList = React.lazy(() => import('components/mbc/dataiku/ListProjects'));
+const License = React.lazy(() => import('components/mbc/footer/License/License'));
+const Home = React.lazy(() => import('components/mbc/home/Home'));
+const Notebook = React.lazy(() => import('components/mbc/notebook/Notebook'));
+const Portfolio = React.lazy(() => import('components/mbc/Portfolio'));
+const SearchResults = React.lazy(() => import('components/mbc/searchResults/SearchResults'));
+const Summary = React.lazy(() => import('components/mbc/summary/Summary'));
+const MalwareScanService = React.lazy(() => import('components/mbc/malwareScanService/MalwareScanService'));
+const ModelRegistry = React.lazy(() => import('components/mbc/modelRegistry/ModelRegistry'));
+const Notifications = React.lazy(() => import('components/mbc/notification/Notifications'));
+const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
+const Workspaces = React.lazy(() => import('components/mbc/workspaces/Workspaces'));
+const Services = React.lazy(() => import('components/mbc/services/Services'));
+const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
+const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
+const Comingsoon = React.lazy(() => import('components/mbc/comingsoon/Comingsoon'));
+const AllReports = React.lazy(() => import('components/mbc/allReports/AllReports'));
+const CreateNewReport = React.lazy(() => import('components/mbc/createNewReport/CreateNewReport'));
+const ReportSummary = React.lazy(() => import('components/mbc/reportSummary/ReportSummary'));
+const UserSettings = React.lazy(() => import('components/mbc/userSettings/userSettings'));
+const CodeSpace = React.lazy(() => import('components/mbc/codeSpace/CodeSpace'));
+const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeSpaces'));
 
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
 // @ts-ignore
-const DataComplianceNetworkListComponent = React.lazy(() => import('data-product-mfe/DataComplianceNetworkList')); 
+const DataComplianceNetworkListComponent = React.lazy(() => import('data-product-mfe/DataComplianceNetworkList'));
 const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 
 const UserAndAdminRole = [
@@ -49,6 +49,7 @@ const UserAndAdminRole = [
   USER_ROLE.ADMIN,
   USER_ROLE.REPORTADMIN,
   USER_ROLE.DIVISIONADMIN,
+  USER_ROLE.DATACOMPLIANCEADMIN,
 ];
 const AdminRole = [USER_ROLE.ADMIN, USER_ROLE.REPORTADMIN];
 

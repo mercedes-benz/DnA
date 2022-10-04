@@ -5,8 +5,8 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import Styles from './CustomerSummary.scss';
-import { ICustomers, ITeams } from '../../../../globals/types';
-import TeamMemberListItem from '../../summary/team/teamMemberListItem/TeamMemberListItem';
+import { ICustomers, ITeams } from 'globals/types';
+import TeamMemberListItem from 'components/mbc/summary/team/teamMemberListItem/TeamMemberListItem';
 const classNames = cn.bind(Styles);
 
 interface ICustomerSummaryProps {
@@ -55,7 +55,9 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                           </div>
                           <div className={Styles.commentSection}>
                             <label className="input-label summary">Comment</label>
-                            <p><pre className={Styles.commentPre}>{customer.comment}</pre></p>
+                            <p>
+                              <pre className={Styles.commentPre}>{customer.comment}</pre>
+                            </p>
                           </div>
                           {(this.props.customers.customerDetails?.length > 1 ||
                             this.props.customers.processOwners?.length) && <hr className="divider1" />}

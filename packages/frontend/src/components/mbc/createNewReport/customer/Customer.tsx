@@ -1,17 +1,17 @@
 import classNames from 'classnames';
 import * as React from 'react';
 import Styles from './Customer.scss';
-import Modal from '../../../formElements/modal/Modal';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
-import IconAvatarNew from '../../../../components/icons/IconAvatarNew';
-import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, ICustomerDetails } from '../../../../globals/types';
-import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
+import Modal from 'components/formElements/modal/Modal';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
+import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, ICustomerDetails } from 'globals/types';
+import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-import { ErrorMsg } from '../../../../globals/Enums';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
-import TextArea from '../../shared/textArea/TextArea';
+import { ErrorMsg } from 'globals/Enums';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import TextArea from 'components/mbc/shared/textArea/TextArea';
 
 export interface ICustomerProps {
   customer: ICustomers;

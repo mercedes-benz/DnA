@@ -8,17 +8,9 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
-import ConfirmModal from '../../../components/formElements/modal/confirmModal/ConfirmModal';
-import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES } from '../../../globals/constants';
-import {
-  IBookMarks,
-  ICreateNewSolutionResult,
-  IPhase,
-  IRole,
-  IUserInfo,
-  INotebookInfo,
-  IDataiku,
-} from '../../../globals/types';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import { USER_ROLE, SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
+import { IBookMarks, ICreateNewSolutionResult, IPhase, IRole, IUserInfo, INotebookInfo, IDataiku } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import { ICreateNewSolutionData } from '../createNewSolution/CreateNewSolution';
@@ -181,7 +173,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
         bookmarked: false,
         neededRoles: [],
         createdDate: '',
-        lastModifiedDate: ''
+        lastModifiedDate: '',
       },
       canShowDataSources: false,
       canShowDigitalValue: false,
@@ -197,7 +189,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       dnaNotebookEnabled: false,
       dnaDataIkuProjectEnabled: false,
       notebookAndDataIkuNotEnabled: true,
-      dataSources: ''
+      dataSources: '',
     };
   }
 
@@ -595,8 +587,11 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       userId = this.state.solution.team.team.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (this.state.solution?.createdBy?.id === userInfo.id) {
       userId = this.state.solution.createdBy.id;
-    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)) {
-      userId = userInfo.id;  
+    } else if (
+      userInfo?.divisionAdmins &&
+      userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)
+    ) {
+      userId = userInfo.id;
     } else {
       userId = '';
     }
@@ -621,8 +616,11 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
       } else if (this.state.solution.createdBy) {
         userId = this.state.solution.createdBy.id;
       }
-    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)) {
-      userId = userInfo.id;  
+    } else if (
+      userInfo?.divisionAdmins &&
+      userInfo?.divisionAdmins.includes(this.state.solution?.description?.division?.name)
+    ) {
+      userId = userInfo.id;
     } else {
       userId = '';
     }

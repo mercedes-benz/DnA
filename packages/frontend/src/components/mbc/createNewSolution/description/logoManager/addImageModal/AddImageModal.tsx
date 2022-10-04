@@ -2,10 +2,10 @@ import cn from 'classnames';
 // import Upload from 'rc-upload';
 // import { RcFile } from 'rc-upload/lib/interface';
 import React, { useEffect, useState } from 'react';
-import  Modal  from '../../../../../../components/formElements/modal/Modal';
-import { IconImage } from '../../../../../../components/icons/IconImage';
-import { PredefinedSolutionLogoImagesInfo, SOLUTION_LOGO_IMAGE_TYPES } from '../../../../../../globals/constants';
-import { ILogoDetails } from '../../../../../../globals/types';
+import Modal from 'components/formElements/modal/Modal';
+import { IconImage } from 'components/icons/IconImage';
+import { PredefinedSolutionLogoImagesInfo, SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
+import { ILogoDetails } from 'globals/types';
 import LogoImage from '../LogoImage/LogoImage';
 import Styles from './AddImageModal.scss';
 

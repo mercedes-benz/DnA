@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IconAttention } from '../../../../components/icons/IconAttention';
+import { IconAttention } from 'components/icons/IconAttention';
 import Styles from './ConfirmModal.scss';
 
 export interface IConfirmModalProps {

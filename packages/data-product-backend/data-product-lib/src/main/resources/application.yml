@@ -46,8 +46,8 @@ dna:
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
 dataproduct:
-  consume:
-    url: ${DATAPRODUCT_CONSUME_URL:XXXXXX}   
+  base:
+    url: ${DATAPRODUCT_BASE_URL:XXXXXX}   
   
 
 server:

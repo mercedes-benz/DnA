@@ -4,26 +4,26 @@ import * as React from 'react';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
-import Pagination from '../../pagination/Pagination';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import Pagination from 'components/mbc/pagination/Pagination';
 import Styles from './ReportTagHandling.scss';
 
-import { IFitlerCategory, ITagResult, IDatawarehouseInItem } from '../../../../globals/types';
+import { IFitlerCategory, ITagResult, IDatawarehouseInItem } from 'globals/types';
 import { ReportsApiClient } from '../../../../services/ReportsApiClient';
-import { ISortField } from '../../allSolutions/AllSolutions';
+import { ISortField } from 'components/mbc/allSolutions/AllSolutions';
 import { TagRowItem } from './tagrowitem/TagRowItem';
 
-import { SESSION_STORAGE_KEYS } from '../../../../globals/constants';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
-import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
-import Tags from '../../../formElements/tags/Tags';
-import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import Tags from 'components/formElements/tags/Tags';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
 
 const classNames = cn.bind(Styles);
 // @ts-ignore
 import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
 import { debounce } from 'lodash';
-import TextBox from '../../shared/textBox/TextBox';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
 // import { workerData } from 'worker_threads';
 
 export interface ITagHandlingState {
@@ -1191,7 +1191,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                   controlId={'carlaInputField'}
                   labelId={'ApplicationName'}
                   label={'Data warehouse'}
-                  placeholder={"Type here"}
+                  placeholder={'Type here'}
                   value={this.state.datawareHouseItems?.dataWarehouse}
                   errorText={dataWareHouseNameError}
                   required={true}

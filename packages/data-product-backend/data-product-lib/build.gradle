@@ -103,7 +103,46 @@ swaggerSources {
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
         }
-    }      
+    }   
+    
+    department {
+        def departmentyaml = "${rootDir}/data-product-lib/src/main/resources/api/Department.yaml"
+        def departmentJson = "${rootDir}/data-product-lib/src/main/resources/api/Department.json"
+        inputFile = file(departmentyaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(departmentJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }  
+    
+    classification {
+        def classificationYaml = "${rootDir}/data-product-lib/src/main/resources/api/Classification.yaml"
+        def classificationJson = "${rootDir}/data-product-lib/src/main/resources/api/Classification.json"
+        inputFile = file(classificationYaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(classificationJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+           }
+      } 
+      
+    legalbasis {
+        def legalbasisYaml = "${rootDir}/data-product-lib/src/main/resources/api/LegalBasis.yaml"
+        def legalbasisJson = "${rootDir}/data-product-lib/src/main/resources/api/LegalBasis.json"
+        inputFile = file(legalbasisYaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(legalbasisJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+           }
+      }               
         
 }
 
@@ -115,7 +154,13 @@ compileJava {
     dependsOn swaggerSources.entityid.code
     source "${swaggerSources.entityid.code.outputDir}/src/main/java"  
     dependsOn swaggerSources.dataproduct.code
-    source "${swaggerSources.dataproduct.code.outputDir}/src/main/java"        
+    source "${swaggerSources.dataproduct.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.department.code
+    source "${swaggerSources.department.code.outputDir}/src/main/java"  
+    dependsOn swaggerSources.classification.code
+    source "${swaggerSources.classification.code.outputDir}/src/main/java"  
+    dependsOn swaggerSources.legalbasis.code
+    source "${swaggerSources.legalbasis.code.outputDir}/src/main/java"                
 }
 
 sourceSets {
@@ -128,6 +173,9 @@ sourceSets {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.entityid.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.dataproduct.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.classification.code.outputDir}/src/main/java"}
+    	  java { srcDirs += "${swaggerSources.legalbasis.code.outputDir}/src/main/java"}
     }
 }
 
@@ -137,8 +185,15 @@ dependencies {
 	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
-	//implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
-	
+
+    implementation group: 'com.graphql-java', name: 'graphql-spring-boot-starter', version: '5.0.2'
+    
+	implementation (group: 'com.graphql-java', name: 'graphql-java-tools', version: '5.2.4'){
+        exclude (group: 'com.fasterxml.jackson.core')
+    }
+    	
+    implementation group: 'com.graphql-java', name: 'graphql-java-extended-scalars', version: '1.0'
+    
 	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
 	
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
