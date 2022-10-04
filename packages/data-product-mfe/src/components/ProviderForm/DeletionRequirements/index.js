@@ -7,7 +7,7 @@ import InfoModal from 'dna-container/InfoModal';
 
 import OtherRelevant from '../OtherRelavantInfo';
 
-const DeletionRequirements = ({ onSave }) => {
+const DeletionRequirements = ({ onSave, user }) => {
   const {
     register,
     formState: { errors },
@@ -32,7 +32,7 @@ const DeletionRequirements = ({ onSave }) => {
           <div>
             <h3> Specify deletion requirements</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>
@@ -103,7 +103,7 @@ const DeletionRequirements = ({ onSave }) => {
           </div>
         </div>
       </div>
-      <OtherRelevant onSave={onSave} />
+      <OtherRelevant onSave={onSave} user={user} />
       {showInfoModal && (
         <InfoModal
           title="Info Modal"

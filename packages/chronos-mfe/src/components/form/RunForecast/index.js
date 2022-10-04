@@ -1,56 +1,61 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 
-import Upload from 'rc-upload';
 import Styles from './styles.scss';
 import { useFormContext } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
 
 // Container components
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 
-import { fileObj } from '../../../Utility/utils';
+import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 import { Link } from 'react-router-dom';
 
-const SelectedFile = ({ setFiles }) => {
+import IconUpload from '../../../assets/icon_upload.png';
+import { chronosApi } from '../../../apis/chronos.api';
+
+const SelectedFile = ({ selectedFile, setSelected }) => {
   return (
     <>
       <div className={Styles.selectedFile}>
         <div>
           <span>Input File</span>
-          <span>{'MS_tms_fc.xls'}</span>
+          <span>{selectedFile.name}</span>
         </div>
         <span>
           <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
           <span>File is ready to use.</span>
         </span>
         <span>
-          <i onClick={() => setFiles([])} className={classNames('icon delete', Styles.deleteIcon)} />
+          <i onClick={() => setSelected(false)} className={classNames('icon delete', Styles.deleteIcon)} />
         </span>
       </div>
     </>
   );
 };
 
-const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) => {
+const RunForecast = ({ savedFiles }) => {
+  const { id: projectId } = useParams();
+  
   const {
     register,
     formState: { errors, isSubmitting },
     handleSubmit,
     trigger,
-    reset,
+    // reset,
   } = useFormContext();
-  const [fileList, setFiles] = useState([]);
   const [keepExistingFiles, setKeepExistingFiles] = useState(false);
 
   const [showExistingFiles, setShowExistingFiles] = useState(false);
-  const [existingFiles, setExistingFiles] = useState([]);
 
-  const isValidFile = (file) => ['csv', 'xls', 'xlsx'].includes(file?.name?.split('.')[1]);
+  const [expertView, setExpertView] = useState(false);
+
+  const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
 
   const frequencyTooltipContent =
     'Please select a frequency for your data in the field below.\n Make sure the datetimes in the first column of the data you upload matches the frequency selected here.\n If your data has no inherent frequency or the frequency is not available in the list, select "No frequency".\n In this case, the first column of your data should contain sortable indices like [1, 2, 3...].';
@@ -60,74 +65,19 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
   useEffect(() => {
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
-    console.log(fileList);
-    // reset(watch());
     //eslint-disable-next-line
   }, []);
 
-  const onChange = (info) => {
-    const { status } = info.file;
-
-    if (status === 'done') {
-      Notification.show(`${info.file.name} file uploaded successfully.`);
-    } else if (status === 'error') {
-      Notification.show(`${info.file.name} file upload failed.`, 'alert');
-    }
-  };
-
-  const uploadProps = {
-    accept: '.xls,.csv,.xlsx',
-    action: ``,
-    onStart: () => {
-      ProgressIndicator.show(1);
-    },
-    onSuccess(response, file, xhr) {
-      ProgressIndicator.hide();
-      const targetItem = fileObj(file);
-      targetItem.status = 'done';
-      targetItem.percent = 100;
-      targetItem.response = response;
-      targetItem.xhr = xhr;
-      const info = {
-        file: targetItem,
-      };
-      onChange(info);
-    },
-    onError(error, response, file) {
-      const targetItem = fileObj(file);
-      targetItem.error = error;
-      targetItem.response = response;
-      targetItem.status = 'error';
-      onChange({ file: targetItem });
-      ProgressIndicator.hide();
-    },
-    onProgress: (e, file) => {
-      ProgressIndicator.show(e.percent);
-      const targetItem = fileObj(file);
-      targetItem.status = 'uploading';
-      targetItem.percent = e.percent;
-      onChange({ file: targetItem, e });
-    },
-    beforeUpload: (file) => {
-      let isValid = isValidFile(file);
-      if (!isValid) Notification.show('File is not valid.', 'alert');
-      return isValid;
-    },
-  };
-
-  const onDrop = (e) => {
-    console.log('Dropped files', e.dataTransfer.files);
-    const file = e.dataTransfer.files?.[0];
-    const isValid = isValidFile(file);
-    if (!isValid) Notification.show('File is not valid.', 'alert');
-  };
-
-  const onFileDrop = (e) => {
-    e.preventDefault();
-    if (e.type === 'drop') {
-      onDrop?.(e);
-    }
-  };
+  const [selectedInputFile, setSelectedInputFile] = useState();
+  const selectedSavedFile = (e) => {
+    const selectedOne = savedFiles.filter(item => item.path === e.target.value);
+    const selectedInput = {...selectedOne[0]};
+    setSelectedInputFile(selectedInput);
+  }
+  const setSelectedInput = (value) => {
+    setIsSelectedFile(value);
+    setSelectedInputFile({});
+  }
 
   const [isSelectedFile, setIsSelectedFile] = useState(false);
 
@@ -135,58 +85,57 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
     <div className={Styles.existingFilesContainer}>
       <div className={Styles.flexLayout}>
         {' '}
-        <div className={classNames(`input-field-group include-error ${errors?.existingFile?.message ? 'error' : ''}`)}>
-          <label id="existingFileLabel" htmlFor="existingFilenField" className="input-label">
+        <div className={classNames(`input-field-group include-error ${errors?.savedInputPath?.message ? 'error' : ''}`)}>
+          <label id="savedInputPathLabel" htmlFor="existingFilenField" className="input-label">
             Input File <sup>*</sup>
           </label>
-          <div className="custom-select" onBlur={() => trigger('existingFile')}>
+          <div className="custom-select" onBlur={() => trigger('savedInputPath')}>
             <select
-              id="existingFileField"
+              id="savedInputPathField"
               required={true}
               required-error={'*Missing entry'}
-              {...register('existingFile', {
-                validate: (value) => value !== '0' || '*Missing entry',
+              {...register('savedInputPath', {
+                // validate: (value) => value !== '0' || '*Missing entry',
+                onChange: (e) => { selectedSavedFile(e) }
               })}
             >
-              <option id="existingFileOption" value={0}>
+              <option id="savedInputPathOption" value={0}>
                 Choose
               </option>
-              <option value={1}>MS_tms_fc.xls</option>
-              <option value={2}>MS_tms_fc2.xls</option>
-              {existingFiles?.map((obj) => (
-                <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                  {obj.name}
+              {savedFiles?.map((file) => (
+                <option id={file.id} key={file.id} value={file.path}>
+                  {file.name}
                 </option>
               ))}
             </select>
           </div>
-          <span className={classNames('error-message')}>{errors?.existingFile?.message}</span>
+          <span className={classNames('error-message')}>{errors?.savedInputPath?.message}</span>
         </div>
       </div>
-      <p>MS_tms_fc.xls</p>
-      <div className={Styles.flexLayout}>
-        <div>
-          <div className={Styles.uploadInfo}>
-            <span>Uploaded On</span>
-            <span>27/03/2022</span>
-          </div>
-          <div className={Styles.uploadInfo}>
-            <span>Uploaded By</span>
-            <span>John Doe</span>
-          </div>
-        </div>
-      </div>
+      {
+        selectedInputFile?.path !== undefined &&
+          <>
+            <p>{selectedInputFile?.name}</p>
+            <div className={Styles.flexLayout}>
+              <div className={Styles.fullWidth}>
+                <div className={Styles.uploadInfo}>
+                  <span>Uploaded On</span>
+                  <span>{regionalDateAndTimeConversionSolution(selectedInputFile?.createdOn)}</span>
+                </div>
+                <div className={Styles.uploadInfo}>
+                  <span>Uploaded By</span>
+                  <span>{selectedInputFile?.createdBy}</span>
+                </div>
+              </div>
+            </div>
+          </>
+      }
       <hr />
       <div className={Styles.btnContinue}>
         <button
           className="btn btn-primary"
           type="submit"
           disabled={isSubmitting}
-          // onClick={handleSubmit((values) => {
-          //   reset(values, {
-          //     keepDirty: false,
-          //   });
-          // })}
           onClick={() => {
             setShowExistingFiles(false);
             setIsSelectedFile(true);
@@ -197,6 +146,46 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
       </div>
     </div>
   );
+
+  const onDrop = (e) => {
+    console.log('Dropped files', e.dataTransfer.files);
+    const file = e.dataTransfer.files?.[0];
+    const isValid = isValidFile(file);
+    if (!isValid) Notification.show('File is not valid.', 'alert');
+    setIsSelectedFile(true);
+    setSelectedInputFile({name: e.dataTransfer.files?.[0].name});
+  };
+
+  const onFileDrop = (e) => {
+    e.preventDefault();
+    if (e.type === 'drop') {
+      onDrop?.(e);
+    }
+  };
+
+  const onSave = (data) => {
+    const formData = new FormData();
+    formData.append("file", data.file[0]);
+    formData.append("runName", data.runName);
+    formData.append("configurationFile", data.configurationFile);
+    formData.append("frequency", data.frequency);
+    formData.append("forecastHorizon", data.forecastHorizon);
+    formData.append("comment", data.comment);
+    formData.append("saveRequestPart", keepExistingFiles.toString());
+    if(selectedInputFile?.path !== undefined) {
+      formData.append("savedInputPath", selectedInputFile.path);
+    } else {
+      formData.append("savedInputPath", null); // todo file path
+    }
+    ProgressIndicator.show();
+    chronosApi.createForecastRun(formData, projectId).then((res) => {
+        console.log(res);
+        ProgressIndicator.hide();
+      }).catch(error => {
+        console.log(error.message);
+        ProgressIndicator.hide();
+      });
+  }
 
   return (
     <>
@@ -213,7 +202,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                 <Link to="help">forecasting guidelines</Link>.
               </p>
               <p>
-                For a quick start you can download the default template (.xls) <a href="#/">right here</a>.
+                For a quick start you can download the default template (.xlsx) <a href="#/">right here</a>.
               </p>
             </div>
             {!isSelectedFile ? (
@@ -224,37 +213,36 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                   onDragLeave={onFileDrop}
                   className={classNames('upload-container', Styles.uploadContainer)}
                 >
-                  <Upload {...uploadProps} className={Styles.rcUpload}>
+                  <input type="file" id="file" name="file" {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}) }})} />
+                  <div className={Styles.rcUpload}>
                     <div className={Styles.dragDrop}>
                       <div className={Styles.icon}>
-                        <button style={{ display: 'none' }}></button>
+                        <img src={IconUpload} />
                       </div>
                       <h4>Drag & Drop your Input File here to upload</h4>
                     </div>
                     <div className={Styles.helperTextContainer}>
                       <div className={Styles.browseHelperText}>
-                        You can also <button className={Styles.selectExisitingFiles}>browse local files</button> (.xls,
-                        .csv)
+                        You can also <label htmlFor="file" className={Styles.selectExisitingFiles}>browse local files</label> (.xlsx)
                       </div>
                       <div
                         className={Styles.browseHelperText}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setExistingFiles([]);
                           setShowExistingFiles(true);
                         }}
                       >
                         <p>
-                          or <button className={Styles.selectExisitingFiles}>select an existing file</button> to run
+                          or<button className={Styles.selectExisitingFiles}>select an existing file</button>to run
                           forecast
                         </p>
                       </div>
                     </div>
-                  </Upload>
+                  </div>
                 </div>
               </div>
             ) : (
-              <SelectedFile setFiles={setFiles} />
+              <SelectedFile selectedFile={selectedInputFile} setSelected={setSelectedInput} />
             )}
             <div className={Styles.checkbox}>
               <label className="checkbox">
@@ -285,11 +273,11 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
               </span>
               <span className="wrapper">
                 <input
-                  value={keepExistingFiles}
+                  value={expertView}
                   type="checkbox"
                   className="ff-only"
-                  onChange={() => setKeepExistingFiles(!keepExistingFiles)}
-                  checked={keepExistingFiles}
+                  onChange={() => setExpertView(!expertView)}
+                  checked={expertView}
                 />
               </span>
             </label>
@@ -314,33 +302,28 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
               <div className={Styles.configurationContainer}>
                 <div
                   className={classNames(
-                    `input-field-group include-error ${errors?.configuration?.message ? 'error' : ''}`,
+                    `input-field-group include-error ${errors?.configurationFile?.message ? 'error' : ''}`,
                   )}
                 >
                   <label id="configurationLabel" htmlFor="configurationField" className="input-label">
                     Configuration File <sup>*</sup>
                   </label>
-                  <div className="custom-select" onBlur={() => trigger('configuration')}>
+                  <div className="custom-select" onBlur={() => trigger('configurationFile')}>
                     <select
                       id="configurationField"
                       required={true}
                       required-error={'*Missing entry'}
-                      {...register('configuration', {
+                      {...register('configurationFile', {
                         validate: (value) => value !== '0' || '*Missing entry',
                       })}
                     >
                       <option id="configurationOption" value={0}>
                         Choose
                       </option>
-                      <option value={1}>Default Configuration</option>
-                      {configurationFile?.map((obj) => (
-                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                          {obj.name}
-                        </option>
-                      ))}
+                      <option value={'Default-Settings'}>Default Configuration</option>
                     </select>
                   </div>
-                  <span className={classNames('error-message')}>{errors?.configuration?.message}</span>
+                  <span className={classNames('error-message')}>{errors?.configurationFile?.message}</span>
                 </div>
               </div>
             </div>
@@ -368,51 +351,32 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
                       <option id="frequencyOption" value={0}>
                         Choose
                       </option>
-                      <option value={1}>Daily</option>
-                      <option value={2}>Weekly</option>
-                      <option value={3}>Monthly</option>
-                      {frequency?.map((obj) => (
-                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                          {obj.name}
-                        </option>
-                      ))}
+                      <option value={'DAILY'}>Daily</option>
+                      <option value={'WEEKLY'}>Weekly</option>
+                      <option value={'MONTHLY'}>Monthly</option>
+                      <option value={'YEARLY'}>Yearly</option>
+                      <option value={'NO_FREQUENCY'}>No Frequency</option>
                     </select>
                   </div>
                   <span className={classNames('error-message')}>{errors?.frequency?.message}</span>
                 </div>
               </div>
               <div className={Styles.forecastHorizonContainer}>
-                <div
-                  className={classNames(
-                    `input-field-group include-error ${errors?.forecastHorizon?.message ? 'error' : ''}`,
-                    Styles.tooltipIcon,
-                  )}
-                >
+                <div className={classNames('input-field-group include-error', errors.forecastHorizon ? 'error' : '', Styles.tooltipIcon)}>
                   <label id="forecastHorizonLabel" htmlFor="forecastHorizonField" className="input-label">
                     Forecast Horizon <sup>*</sup>
                     <i className="icon mbc-icon info" tooltip-data={forecastHorizonTooltipContent} />
                   </label>
-                  <div className="custom-select" onBlur={() => trigger('forecastHorizon')}>
-                    <select
-                      id="forecastHorizonField"
-                      required={true}
-                      required-error={'*Missing entry'}
-                      {...register('forecastHorizon', {
-                        validate: (value) => value !== '0' || '*Missing entry',
-                      })}
-                    >
-                      <option id="forecastHorizonOption" value={0}>
-                        Choose
-                      </option>
-                      <option value={1}>2033</option>
-                      {forecastHorizon?.map((obj) => (
-                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                          {obj.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <span className={classNames('error-message')}>{errors?.forecastHorizon?.message}</span>
+                  <input
+                    {...register('forecastHorizon', { required: '*Missing entry'})}
+                    type="number"
+                    className="input-field"
+                    id="forecastHorizonField"
+                    defaultValue={1}
+                    placeholder="eg. 1"
+                    autoComplete="off"
+                  />
+                  <span className={classNames('error-message')}>{errors.forecastHorizon?.message}</span>
                 </div>
               </div>
             </div>
@@ -436,12 +400,7 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
           className="btn btn-tertiary"
           type="submit"
           disabled={isSubmitting}
-          onClick={handleSubmit((values) => {
-            reset(values, {
-              keepDirty: false,
-            });
-            onSave(values);
-          })}
+          onClick={handleSubmit(onSave)}
         >
           Run Forecast
         </button>
@@ -457,7 +416,6 @@ const RunForecast = ({ onSave, configurationFile, frequency, forecastHorizon }) 
         scrollableContent={false}
         onCancel={() => {
           setShowExistingFiles(false);
-          reset(['existingFile']);
         }}
       />
     </>

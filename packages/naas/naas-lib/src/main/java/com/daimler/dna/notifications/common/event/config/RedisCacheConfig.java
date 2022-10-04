@@ -1,6 +1,7 @@
 package com.daimler.dna.notifications.common.event.config;
 
 import java.time.Duration;
+import java.util.List;
 
 import javax.annotation.PreDestroy;
 
@@ -19,6 +20,7 @@ import com.daimler.dna.notifications.dto.NotificationVO;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import lombok.extern.slf4j.Slf4j;
 
 @EnableCaching
@@ -39,6 +41,8 @@ public class RedisCacheConfig {
 	private String redisPassword;
 	
 	private RedisClient redisClient = null;
+	
+	private RedisCommands<String, NotificationVO> syncCommands = null;
 	
 	private StatefulRedisConnection<String, NotificationVO> statefulRedisConnection = null;
 	
@@ -70,8 +74,26 @@ public class RedisCacheConfig {
 	@Bean
 	public RedisClient getRedisLettuceClient(){
 		String redisUrl = "redis://"+redisUser+":"+redisPassword+"@"+redisHost+":"+redisPort+"/0";
+		try {
 		redisClient = RedisClient.create(redisUrl);
+		log.info("Successfully fetched redis client for host {} and port {} and user {}", redisHost, redisPort, redisUser);
+		}catch(Exception e) {
+			log.error("Failed while fetching redis client for host {} and port {} and user {} with exception {}", redisHost, 
+					redisPort, redisUser, e.getMessage());
+		}
+		try {
+		statefulRedisConnection = redisClient.connect(new NotificationRedisCodec());
+		syncCommands = statefulRedisConnection.sync();
+		log.info("Successfully fetched statefulRedisConnection and syncCommands");
+		}catch(Exception e) {
+			log.error("Failed while fetching statefulRedisConnection with exception {}", e.getMessage());
+		}
 		return redisClient;
+	}
+	
+	public List<String> getKeys(String userId){
+		List<String> keys = syncCommands.keys(userId+"*");
+		return keys;
 	}
 	
 	@PreDestroy

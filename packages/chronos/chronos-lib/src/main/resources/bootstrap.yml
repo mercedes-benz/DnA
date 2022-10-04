@@ -1,0 +1,3 @@
+spring:
+ application: 
+  name: dna-chronos-service

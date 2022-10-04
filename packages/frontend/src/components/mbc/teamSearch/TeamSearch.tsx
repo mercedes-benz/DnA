@@ -2,8 +2,8 @@ import cn from 'classnames';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { debounce } from 'lodash';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
-import { ITeams } from '../../../globals/types';
-import { TeamMemberType } from '../../../globals/Enums';
+import { ITeams } from 'globals/types';
+import { TeamMemberType } from 'globals/Enums';
 import { ApiClient } from '../../../services/ApiClient';
 import Styles from './TeamSearch.scss';
 
@@ -22,6 +22,10 @@ export interface TeamSearchProps {
   setSearchTerm: (val: string) => void;
   showUserDetails: boolean;
   setShowUserDetails: (val: boolean) => void;
+  customUserErrorMsg?: string;
+  fieldMode?: boolean;
+  fieldValue?: string;
+  setFieldValue?: (val: string) => void;
 }
 
 const TeamSearch = (props: TeamSearchProps) => {
@@ -33,7 +37,12 @@ const TeamSearch = (props: TeamSearchProps) => {
     downArrow: 40,
   };
 
-  const { searchTerm, setSearchTerm, showUserDetails, setShowUserDetails } = props;
+  const { searchTerm, setSearchTerm, showUserDetails, setShowUserDetails, fieldMode, fieldValue, setFieldValue } =
+    props;
+
+  if (fieldMode && typeof fieldValue === 'undefined') {
+    throw Error(`If "fieldMode" is ${fieldMode}, fieldValue and setFieldValue props are required.`);
+  }
 
   const searchInput = useRef(null);
   const suggestionContainer = useRef(null);
@@ -54,7 +63,7 @@ const TeamSearch = (props: TeamSearchProps) => {
   const suggestions = results.map((item: any, index: number) => {
     return (
       <li
-        key={item.id}
+        key={item.id || item.shortId}
         onClick={() => onSuggestionItemClick(index)}
         className={cursor === index ? Styles.active + ' active' : null}
       >
@@ -71,7 +80,7 @@ const TeamSearch = (props: TeamSearchProps) => {
   };
 
   useEffect(() => {
-    if (searchTerm.length > 1) {
+    if (searchTerm?.length > 1) {
       debouncedFetchUser(searchTerm);
     } else {
       setResults([]);
@@ -115,14 +124,18 @@ const TeamSearch = (props: TeamSearchProps) => {
       department: results[shortId].department,
       email: results[shortId].email,
       firstName: results[shortId].firstName,
-      shortId: results[shortId].id,
+      shortId: results[shortId].id || results[shortId].shortId,
       lastName: results[shortId].lastName,
       mobileNumber: results[shortId].mobileNumber !== '' ? results[shortId].mobileNumber : '',
       userType: TeamMemberType.INTERNAL,
     };
     setTeamMemberObj(teamMemberObj);
     setShowNoResultsError(false);
-    setShowUserDetails(true);
+    if (fieldMode) {
+      props.onAddTeamMember(teamMemberObj);
+    } else {
+      setShowUserDetails(true);
+    }
     setSearchTerm('');
     searchInput.current.focus();
   };
@@ -143,8 +156,14 @@ const TeamSearch = (props: TeamSearchProps) => {
         };
 
         setTeamMemberObj(teamMemberObj);
-        setShowUserDetails(true);
-        setHideSuggestion(true);
+        if (fieldMode) {
+          setHideSuggestion(false);
+          setResults([teamMemberObj]);
+          props.onAddTeamMember(teamMemberObj);
+        } else {
+          setShowUserDetails(true);
+          setHideSuggestion(true);
+        }
         setShowNoResultsError(false);
         setShowNoUserFoundError(false);
 
@@ -161,6 +180,12 @@ const TeamSearch = (props: TeamSearchProps) => {
 
   const onSearchIconButtonClick = () => {
     dRDUserSearch();
+  };
+
+  const onCloseButtonClick = () => {
+    setFieldValue('');
+    setSearchTerm('');
+    props.onAddTeamMember(null);
   };
 
   const onSearchInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -186,7 +211,7 @@ const TeamSearch = (props: TeamSearchProps) => {
           };
 
           setTeamMemberObj(teamMemberObj);
-          setShowUserDetails(true);
+          !fieldMode && setShowUserDetails(true);
           setShowNoResultsError(false);
           setShowNoUserFoundError(false);
           setCursor(-1);
@@ -231,24 +256,49 @@ const TeamSearch = (props: TeamSearchProps) => {
             <div id="searchPanel" className={Styles.searchPanel}>
               <input
                 type="text"
-                className={classNames(Styles.searchInputField)}
+                className={classNames(Styles.searchInputField, fieldMode ? `input-field ${Styles.addBorder}` : '')}
                 ref={searchInput}
                 id="userId"
-                value={searchTerm}
+                value={searchTerm || fieldValue || ''}
                 placeholder="Short ID, first name, last name, email"
                 onChange={onSearchInputChange}
                 onKeyDown={onSearchInputKeyDown}
                 maxLength={200}
                 autoComplete="off"
               />
-              <button disabled={searchTerm.length ? false : true} onClick={onSearchIconButtonClick}>
-                <i className={classNames('icon mbc-icon search')} />
-              </button>
+              {fieldMode ? (
+                fieldValue?.length ? (
+                  <button
+                    className={classNames(Styles.fieldModeBtn, fieldValue ? '' : 'hide')}
+                    onClick={onCloseButtonClick}
+                  >
+                    <i className={classNames('icon mbc-icon close circle')} />
+                  </button>
+                ) : (
+                  <button
+                    className={Styles.fieldModeBtn}
+                    disabled={searchTerm.length ? false : true}
+                    onClick={onSearchIconButtonClick}
+                  >
+                    <i className={classNames('icon mbc-icon search')} />
+                  </button>
+                )
+              ) : (
+                <button
+                  className="search"
+                  disabled={searchTerm.length ? false : true}
+                  onClick={onSearchIconButtonClick}
+                >
+                  <i className={classNames('icon mbc-icon search')} />
+                </button>
+              )}
               {showNoResultsError && <p className={Styles.searchError}>No results found. Please try with Short ID.</p>}
               {showNoUserFoundError && (
                 <p className={Styles.searchError}>User details not found. Please provide valid User-ID.</p>
               )}
-              {props.userAlreadyExists && <p className={Styles.searchError}>User already exists.</p>}
+              {props.userAlreadyExists && (
+                <p className={Styles.searchError}>{props.customUserErrorMsg || 'User already exists.'}</p>
+              )}
               {!hideSuggestion && searchTerm.length > 0 ? (
                 <ul ref={suggestionContainer} className={Styles.suggestionList}>
                   {suggestions}

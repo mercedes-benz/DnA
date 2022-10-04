@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { IUserInfo } from '../../../globals/types';
+import { IUserInfo } from 'globals/types';
 import Styles from './Home.scss';
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 interface ILandingpageState {
   showInfoModal: boolean;

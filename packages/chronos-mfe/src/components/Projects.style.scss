@@ -120,50 +120,21 @@
     height: 5px;
   }
 }
+.noMembers p {
+  margin: 0;
+  text-align: center;
+  color: #99a5b3;
+}
 .btnContainer {
     display: flex;
     justify-content: flex-end;
-}
-
-.breadcrumb {
-    margin-top: -50px;
-    margin-bottom: 25px;
-
-    ol {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        align-items: center;
-
-        li {
-            color: #c8c9cb;
-            margin-right: 6px;
-            display: flex;
-            align-items: center;
-
-            &::after {
-                font-family: "dna-icons";
-                content: "\e91e";
-                margin-left: 6px;
-            }
-
-            &:last-child::after {
-                display: none;
-            }
-
-            a {
-                color: #c8c9cb;
-            }
-        }
-    }
 }
 
 .modalSubTitle {
     border-top: 1px solid #383f49;
     margin: 8px 0 0;
     padding-top: 18px;
-    font-size: 16px;
+    font-size: 15px;
     padding-bottom: 12px;
 }
 .collabContent {

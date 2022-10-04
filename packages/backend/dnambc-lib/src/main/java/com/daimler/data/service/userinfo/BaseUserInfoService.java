@@ -42,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import com.daimler.data.application.config.CodeServerClient;
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;
@@ -85,8 +84,6 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	@Autowired
 	private KafkaProducerService kafkaProducer;
 
-	@Autowired
-	private CodeServerClient codeServerClient;
 	
 	public BaseUserInfoService() {
 		super();
@@ -321,30 +318,5 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
 		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
 	}
-	
-	@Override
-	@Transactional
-	public GenericMessage initializeCodeServer(String userId, String password, String type) {
-		GenericMessage response = codeServerClient.createWorkbench(userId.toLowerCase(), password, type);
-		if(response!=null && "success".equalsIgnoreCase(response.getSuccess())){
-			logger.info("Workbench created successfully, saving workbench password for user {} in db.", userId);
-			try {
-			UserInfoNsql userinfo = customRepo.findById(userId).get();
-			UserInfo data = userinfo.getData();
-			data.setCodeServerPassword(password);
-			userinfo.setData(data);
-			customRepo.update(userinfo);
-			logger.info("Saved workbench password for user {} in db sucessfully.", userId);
-			}catch(Exception e) {
-				e.printStackTrace();
-				logger.error("Workbench created successfully, failed while saving workbench password for user {} in db with exception {} .", userId,e.getMessage());
-			}
-		}
-		return response;
-	}
 
-	@Override
-	public HttpStatus pollWorkBenchStatus(String userId) {
-		return codeServerClient.pollWorkBenchStatus(userId.toLowerCase());
-	}
 }

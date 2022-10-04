@@ -7,70 +7,32 @@ import { useForm, FormProvider } from 'react-hook-form';
 // import from DNA Container
 import Pagination from 'dna-container/Pagination';
 import Modal from 'dna-container/Modal';
-import AddUser from 'dna-container/AddUser';
 import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 
-import { setProjects, setPagination } from './redux/projectsSlice';
+import { setProjects } from './redux/projectsSlice';
 import { GetProjects } from './redux/projects.services';
 import ProjectsCardItem from './ProjectCardItem';
 import { IconAvatarNew } from './shared/icons/iconAvatarNew/IconAvatarNew';
 import FirstRun from './shared/firstRun/FirstRun';
 import Notification from '../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
+import Breadcrumb from './shared/breadcrumb/Breadcrumb';
+import { chronosApi } from '../apis/chronos.api';
 
-const MOCK_FORECAST = {
-  id: 1,
-  projectName: 'Forecast 1',
-  collaborators: [
-    {
-      id: 1,
-      username: 'DEMO1',
-      firstName: 'John',
-      lastName: 'Doe',
-    },
-    {
-      id: 2,
-      username: 'DEMO2',
-      firstName: 'Jane',
-      lastName: 'Doe',
-    },
-    {
-      id: 3,
-      username: 'DEMO3',
-      firstName: 'Harry',
-      lastName: 'Potter',
-    }
-  ]
-};
-
-const MOCK_MEMBERS = [
-  {
-    company: "Company1",
-    department: "Department1",
-    email: "ab@mock.com",
-    firstName: "John",
-    lastName: "Doe",
-    mobileNumber: "+2839283928",
-    shortId: "DEMOONE",
-    teamMemberPosition: "Team1",
-    userType: "internal",
-  },
-  {
-    company: "Company2",
-    department: "Department2",
-    email: "cd@mock.com",
-    firstName: "Jane",
-    lastName: "Doe",
-    mobileNumber: "+2839283928",
-    shortId: "DEMOTWO",
-    teamMemberPosition: "Team2",
-    userType: "internal",
-  },
-];
-
-const ForeCastingProjects = () => {
+const ForeCastingProjects = ({ user }) => {
   const [createProject, setCreateProject] = useState(false);
   const [editProject, setEditProject] = useState(false);
+
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1); 
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+
+  const [generateApiKey, setGenerateApiKey] = useState(true);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [editTeamMember, setEditTeamMember] = useState(false);
+  const [selectedTeamMember, setSelectedTeamMember] = useState();
+  const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
 
   const methods = useForm();
   const {
@@ -83,7 +45,6 @@ const ForeCastingProjects = () => {
   const dispatch = useDispatch();
   const {
     projects,
-    pagination: { projectListResponse, totalNumberOfPages, currentPageNumber, maxItemsPerPage },
   } = useSelector((state) => state.projects);
 
   useEffect(() => {
@@ -91,50 +52,45 @@ const ForeCastingProjects = () => {
   }, [dispatch]);
 
   const onPaginationPreviousClick = () => {
-    const currentPageNumberTemp = currentPageNumber - 1;
-    const currentPageOffset = (currentPageNumberTemp - 1) * maxItemsPerPage;
-    const modifiedData = projectListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setProjects(modifiedData));
-    dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
+    // todo
+    setCurrentPageNumber(1);
+    setTotalNumberOfPages(1);
   };
   const onPaginationNextClick = () => {
-    let currentPageNumberTemp = currentPageNumber;
-    const currentPageOffset = currentPageNumber * maxItemsPerPage;
-    currentPageNumberTemp = currentPageNumber + 1;
-    const modifiedData = projectListResponse.slice(currentPageOffset, maxItemsPerPage * currentPageNumberTemp);
-    dispatch(setProjects(modifiedData));
-    dispatch(setPagination({ currentPageNumber: currentPageNumberTemp }));
+    // todo
   };
   const onViewByPageNum = (pageNum) => {
-    const totalNumberOfPages = Math.ceil(projectListResponse?.length / pageNum);
-    const modifiedData = projectListResponse.slice(0, pageNum);
-    dispatch(setProjects(modifiedData));
-    dispatch(
-      setPagination({
-        totalNumberOfPages,
-        maxItemsPerPage: pageNum,
-        currentPageNumber: 1,
-      }),
-    );
+    // todo
+    console.log(pageNum);
   };
 
   const handleCreateProject = (values) => {
-    values.permission = values.permission.reduce((acc, curr) => {
-      acc[curr] = true;
-      return acc;
-    }, {});
-    // build mock data
-    const names = ['John Doe', 'Josip Skafar'];
-    const [firstName, lastName] = names[Math.floor(Math.random() * names.length)].split(' ');
-    values.createdDate = new Date().toISOString();
-    values.createdBy = {
-      firstName,
-      lastName,
+    ProgressIndicator.show();
+    const data = {
+        "apiKey": "123823",
+        // "collaborators": teamMembers.map(teamMember => {delete teamMember.userType; delete teamMember.shortId; return teamMember}),
+        "collaborators": teamMembers,
+        "name": values.name,
+        "permission": {
+          "read": true,
+          "write": true
+        }
     };
-    values.id = Math.floor(Math.random() * 10);
-    dispatch(setProjects([...projects, values]));
-    setCreateProject(false);
-    reset({ name: '' });
+    console.log('data');
+    console.log(data);
+    chronosApi.createForecastProject(data).then((res) => {
+      console.log(res);
+      dispatch(GetProjects());
+      ProgressIndicator.hide();
+      setCreateProject(false);
+      reset({ name: '' });
+      setTeamMembers([]);
+      Notification.show('Forecasting Project successfully created');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      console.log(error);
+      Notification.show(error.message, 'alert');
+    });
   };
   const handleEditProject = (values) => {
     values.permission = values.permission.reduce((acc, curr) => {
@@ -149,40 +105,44 @@ const ForeCastingProjects = () => {
     reset({ name: '' });
   };
 
-  /* new changes */
-  const [showAddTeamMemberBar, setShowAddTeamMemberBar] = useState(false);
-  const [generateApiKey, setGenerateApiKey] = useState(true);
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [forecast, setForecast] = useState();
-  const [teamMembers, setTeamMembers] = useState();
-
-  useEffect(() => {
-    setForecast(MOCK_FORECAST);
-  }, []);
-
-  useEffect(() => {
-    setTeamMembers(MOCK_MEMBERS);
-  }, []);
-
   const copyApiKey = () => {
     navigator.clipboard.writeText('dummy api key').then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
 
-  const onCollabaratorDelete = (dagName, index) => {
-    console.log(dagName, index);
+  const addTeamMemberModalRef = React.createRef();
+  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
+  const showAddTeamMemberModalView = () => {
+    setShowAddTeamMemberModal(true);
+  }
+  const onAddTeamMemberModalCancel = () => {
+    setShowAddTeamMemberModal(false);
+  }
+  const updateTeamMemberList = (teamMember) => {
+    onAddTeamMemberModalCancel();
+    const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
+    delete teamMemberTemp.teamMemberPosition;
+    let teamMembersTemp = [...teamMembers];
+    if(editTeamMember) {
+      teamMembersTemp.splice(editTeamMemberIndex, 1);
+      teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
+    } else {
+      teamMembersTemp.push(teamMemberTemp);
+    }
+    setTeamMembers(teamMembersTemp);
+  }
+  const validateMembersList = (teamMemberObj) => {
+    let duplicateMember = false;
+    duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    return duplicateMember;
   };
-  const onPermissionEdit = (dagId, index) => {
-    console.log(dagId, index);
-  };
-
-  const getCollabarators = (collaborators, dagId) => {
-    console.log(collaborators, dagId);
-  };
-
   const onTeamMemberEdit = (index) => {
-    console.log(index);
+    setEditTeamMember(true);
+    setShowAddTeamMemberModal(true);
+    const teamMemberTemp = teamMembers[index];
+    setSelectedTeamMember(teamMemberTemp);
+    setEditTeamMemberIndex(index);
   };
 
   const onTeamMemberDelete = (index) => {
@@ -212,6 +172,7 @@ const ForeCastingProjects = () => {
         itemIndex={index}
         teamMember={member}
         hidePosition={true}
+        showInfoStacked={true}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers?.length}
         onMoveUp={onTeamMemberMoveUp}
@@ -221,18 +182,6 @@ const ForeCastingProjects = () => {
       />
     );
   });
-
-  const addTeamMemberModalRef = React.createRef();
-  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
-  const showAddTeamMemberModalView = () => {
-    setShowAddTeamMemberModal(true);
-  }
-  const onAddTeamMemberModalCancel = () => {
-    setShowAddTeamMemberModal(false);
-  }
-  const updateTeamMemberList = () => {
-    onAddTeamMemberModalCancel();
-  }
 
   const addProjectContent = (
     <FormProvider {...methods}>
@@ -257,47 +206,6 @@ const ForeCastingProjects = () => {
                 </div>
               </div>
             </div>
-            <div className={Styles.flexLayout}>
-              <div>
-                <div className={classNames('input-field-group include-error')}>
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Permission <sup>*</sup>
-                  </label>
-                  <div className={Styles.permissionField}>
-                    <div className={Styles.checkboxContainer}>
-                      <label className={classNames('checkbox')}>
-                        <span className="wrapper">
-                          <input
-                            name="read"
-                            type="checkbox"
-                            className="ff-only"
-                            {...register('permission')}
-                            value="read"
-                            checked={true}
-                          />
-                        </span>
-                        <span className="label">Read</span>
-                      </label>
-                    </div>
-                    <div className={Styles.checkboxContainer}>
-                      <label className={classNames('checkbox')}>
-                        <span className="wrapper">
-                          <input
-                            name="write"
-                            type="checkbox"
-                            className="ff-only"
-                            {...register('permission')}
-                            value="write"
-                            checked={true}
-                          />
-                        </span>
-                        <span className="label">Write</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
           <div className={Styles.collabContainer}>
             <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
@@ -311,13 +219,13 @@ const ForeCastingProjects = () => {
                     <i className="icon mbc-icon plus" />
                     <span>Add team member</span>
                   </button>
-                  {/* <div className={classNames(Styles.teamsErrorMessage, teamMemberError.length ? '' : 'hide')}>
-                    <span className="error-message">{teamMemberError}</span>
-                  </div> */}
                 </div>
-                <div className={Styles.membersList}>
-                  {teamMembersList}
-                </div>
+                {
+                  teamMembers?.length > 0 &&
+                    <div className={Styles.membersList}>
+                      {teamMembersList}
+                    </div>
+                }
               </div>
             </div>
             <div className={Styles.apiKeySection}>
@@ -374,106 +282,6 @@ const ForeCastingProjects = () => {
                   </div>
               }
             </div>
-            <div className={Styles.collabContent}>
-              <div className={Styles.collabContentList}>
-                <div className={Styles.collabUsersList}>
-                  {forecast?.collaborators?.length > 0 ? (
-                    <React.Fragment>
-                      <div className={Styles.collUserTitle}>
-                        <div className={Styles.collUserTitleCol}>User ID</div>
-                        <div className={Styles.collUserTitleCol}>Name</div>
-                        <div className={Styles.collUserTitleCol}>Permission</div>
-                        <div className={Styles.colAction}></div>
-                      </div>
-                      <div className={Styles.collUserContent}>
-                        {forecast?.collaborators?.map(
-                          (item, collIndex) => {
-                            return (
-                              <div
-                                key={collIndex}
-                                className={Styles.collUserContentRow}
-                              >
-                                <div className={Styles.collUserTitleCol}>{item.username}</div>
-                                <div className={Styles.collUserTitleCol}>
-                                  {item.firstName + ' ' + item.lastName}
-                                </div>
-                                <div className={Styles.collUserTitleCol}>
-                                  <div
-                                    className={classNames(
-                                      'input-field-group include-error ' + Styles.inputGrp,
-                                    )}
-                                  >
-                                    <label className={'checkbox ' + Styles.checkBoxDisable}>
-                                      <span className="wrapper">
-                                        <input
-                                          type="checkbox"
-                                          className="ff-only"
-                                          value="can_dag_read"
-                                          checked={true}
-                                        />
-                                      </span>
-                                      <span className="label">Read</span>
-                                    </label>
-                                  </div>
-                                  &nbsp;&nbsp;&nbsp;
-                                  <div
-                                    className={classNames(
-                                      'input-field-group include-error ' + Styles.inputGrp,
-                                    )}
-                                  >
-                                    <label className={'checkbox ' + Styles.writeAccess}>
-                                      <span className="wrapper">
-                                        <input
-                                          type="checkbox"
-                                          className="ff-only"
-                                          value="can_dag_edit"
-                                          // checked={
-                                          //   item.permissions !== null
-                                          //     ? item.permissions.includes('can_dag_edit')
-                                          //     : false
-                                          // }
-                                          onClick={onPermissionEdit(forecast.projectName, collIndex)}
-                                        />
-                                      </span>
-                                      <span className="label">Write</span>
-                                    </label>
-                                  </div>
-                                </div>
-                                <div className={Styles.colAction}>
-                                  <div
-                                    className={Styles.deleteEntry}
-                                    onClick={onCollabaratorDelete(forecast.projectName, collIndex)}
-                                  >
-                                    <i className="icon mbc-icon trash-outline" />
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          },
-                        )}
-                      </div>
-                    </React.Fragment>
-                  ) : (
-                    <div className={Styles.collabContentEmpty}>
-                      <h6> Collaborators Not Exist!</h6>
-                    </div>
-                  )}
-                </div>
-                <div className={Styles.addCollabBtn}>
-                  <div className={classNames(Styles.addItemButton)}>
-                    <button onClick={() => { setShowAddTeamMemberBar(!showAddTeamMemberBar) }}>
-                      <i className="icon mbc-icon plus" />
-                      <span>Add Collaborator</span>
-                    </button>
-                  </div>
-                </div>
-                { showAddTeamMemberBar &&
-                  <div className={Styles.collabContentListAdd}>
-                    <AddUser getCollabarators={getCollabarators} />
-                  </div>
-                }
-              </div>
-            </div>
           </div>
           <div className={Styles.btnContainer}>
             <button
@@ -496,16 +304,12 @@ const ForeCastingProjects = () => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {projects?.length === 0 ? (
-            <FirstRun openCreateProjectModal={() => setCreateProject(true)} />
+            <FirstRun openCreateProjectModal={() => setCreateProject(true)} user={user} />
           ) : (
             <>
-              <div className={classNames(Styles.breadcrumb)}>
-                <ol>
-                  <li><a href='#/'>Start</a></li>
-                  <li><a href='#/services'>My Services</a></li>
-                  <li>Chronos Forecasting</li>
-                </ol>
-              </div>
+              <Breadcrumb>
+                <li>Chronos Forecasting</li>
+              </Breadcrumb>
 
               <div className={classNames(Styles.caption)}>
                 <h3>My Forecasting Projects</h3>
@@ -585,12 +389,13 @@ const ForeCastingProjects = () => {
           ref={addTeamMemberModalRef}
           modalTitleText={'Collaborator'}
           showOnlyInteral={true}
-          // editMode={editTeamMember}
+          hideTeamPosition={true}
+          editMode={editTeamMember}
           showAddTeamMemberModal={showAddTeamMemberModal}
-          // teamMember={teamMemberObj}
+          teamMember={selectedTeamMember}
           onUpdateTeamMemberList={updateTeamMemberList}
           onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
-          // validateMemebersList={validateMembersList}
+          validateMemebersList={validateMembersList}
         />
       )}
     </>

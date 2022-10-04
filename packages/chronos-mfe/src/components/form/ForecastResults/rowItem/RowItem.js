@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 import Styles from './RowItem.scss';
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import CircularProgressBar from '../../../shared/circularProgressBar/CircularProgressBar';
+import ContextMenu from '../../../shared/contextMenu/ContextMenu';
+import { regionalDateAndTimeConversionSolution } from '../../../../Utility/utils';
 
 const classNames = classnames.bind(Styles);
-let isTouch = false;
 
 const RowItem = (props) => {
   const item = props.item;
@@ -32,6 +33,11 @@ const RowItem = (props) => {
     event.nativeEvent.stopImmediatePropagation();
   };
 
+  const [showContextMenu, setShowContextMenu] = useState(false);
+
+  const handleShowContextMenu = (value) => {
+    setShowContextMenu(value);
+  }
   const onRowClick = (event) => {
     console.log(event)
     props.openDetails(item);
@@ -41,83 +47,16 @@ const RowItem = (props) => {
     event.stopPropagation();
   };
 
-  /* Context Menu */
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
-  const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
-  const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
-
-  useEffect(() => {
-    document.addEventListener('touchend', handleContextMenuOutside, true);
-    document.addEventListener('click', handleContextMenuOutside, true);
-
-    return () => {
-      document.removeEventListener('touchend', handleContextMenuOutside, true);
-      document.removeEventListener('click', handleContextMenuOutside, true);
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleContextMenuOutside = (event) => {
-    if (event.type === 'touchend') {
-      isTouch = true;
-    }
-
-    // Click event has been simulated by touchscreen browser.
-    if (event.type === 'click' && isTouch === true) {
-      return;
-    }
-
-    const target = event.target;
-    const elemClasses = target.classList;
-    const cardDivElement = document.querySelector('#card-' + item.id);
-    const contextMenuWrapper = cardDivElement.querySelector('.contextMenuWrapper');
-    const locationContextMenuWrapper = cardDivElement.querySelector('.contextMenuWrapper');
-
-    if (
-      cardDivElement &&
-      !target.classList.contains('trigger') &&
-      !target.classList.contains('context') &&
-      !target.classList.contains('contextList') &&
-      !target.classList.contains('contextListItem') &&
-      contextMenuWrapper !== null &&
-      contextMenuWrapper.contains(target) === false &&
-      (showContextMenu || showLocationsContextMenu)
-    ) {
-      setShowContextMenu(false);
-      setShowLocationsContextMenu(false);
-    } else if (cardDivElement.contains(target) === false) {
-      setShowContextMenu(false);
-      setShowLocationsContextMenu(false);
-    }
-
-    if (!contextMenuWrapper?.contains(target)) {
-      setShowContextMenu(false);
-    }
-
-    if (!locationContextMenuWrapper?.contains(target)) {
-      setShowLocationsContextMenu(false);
-    }
-
-    if (
-      (showContextMenu || showLocationsContextMenu) &&
-      (elemClasses.contains('contextList') ||
-        elemClasses.contains('contextListItem') ||
-        elemClasses.contains('contextMenuWrapper') ||
-        elemClasses.contains('locationsText'))
-    ) {
-      event.stopPropagation();
-    }
-  };
-  const toggleContextMenu = (e) => {
-    e.stopPropagation();
-    setContextMenuOffsetTop(e.currentTarget.offsetTop - 10);
-    setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 200);
-    setShowLocationsContextMenu(false);
-    setShowContextMenu(!showContextMenu);
-  };
   const onItemDelete = () => {
     props.showDeleteConfirmModal(props.item);
   };
+
+  const contextMenuItems = [
+    {
+      title: 'Delete Run/Results',
+      onClickFn: onItemDelete
+    }
+  ];
 
   return (
     <React.Fragment>
@@ -149,18 +88,21 @@ const RowItem = (props) => {
           </label>
         </td>
         <td>
-          { item.new && <span className={Styles.badge}>New</span> } {item.name}
+          {/* { item.new && <span className={Styles.badge}>New</span> }  */}
+          {item.runName}
         </td>
         <td>
-          {item.status === 'success' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />}
-          {item.status === 'failed' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
-          {item.status === 'in progress' && <CircularProgressBar />}
+          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />}
+          {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
+          {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
+          {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
+          {item.state.result_state === null && <CircularProgressBar />}
         </td>
         <td>
-          {item.datetime}
+          {regionalDateAndTimeConversionSolution(item.triggeredOn)}
         </td>
         <td>
-          {item.ranBy}
+          {item.triggeredBy}
         </td>
         <td>
           {item.inputFile}
@@ -169,29 +111,10 @@ const RowItem = (props) => {
           {item.forecastHorizon}
         </td>
         <td>
-          {item.exogenousData}
+          Yes
         </td>
         <td>
-          <div id={'card-' + item.id} className={Styles.actionMenus}>
-            <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
-              <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)} tooltip-data="More Action">
-                <i className="icon mbc-icon listItem context" />
-              </span>
-              <div
-                style={{
-                  top: contextMenuOffsetTop + 'px',
-                  left: contextMenuOffsetLeft + 'px',
-                }}
-                className={classNames('contextMenuWrapper', showContextMenu ? Styles.showMenu : 'hide')}
-              >
-                <ul className="contextList">
-                  <li className="contextListItem" onClick={onItemDelete}>
-                    <span>Delete Run/Results</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <ContextMenu id={item.id} items={contextMenuItems} isMenuOpen={handleShowContextMenu} />
         </td>
       </tr>
     </React.Fragment>

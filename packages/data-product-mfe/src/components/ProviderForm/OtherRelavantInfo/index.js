@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import Styles from './styles.scss';
 
 import { useFormContext } from 'react-hook-form';
+import { useSelector } from 'react-redux';
 
 // components from container app
 import InfoModal from 'dna-container/InfoModal';
@@ -14,7 +15,7 @@ import IconAvatarNew from 'dna-container/IconAvatarNew';
 import { Envs } from '../../../Utility/envs';
 import { withRouter } from 'react-router-dom';
 
-const OtherRelevantInfo = ({ onSave, history }) => {
+const OtherRelevantInfo = ({ onSave, history, user }) => {
   const {
     register,
     handleSubmit,
@@ -23,6 +24,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
     setValue,
     watch,
   } = useFormContext();
+  const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showAddConsumersModal, setShowAddConsumersModal] = useState(false);
@@ -43,8 +45,10 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(-1);
 
-  const isDisabled = !teamMembers?.length;
+  const isDisabled = !teamMembers.length && !provideDataProducts.selectedDataProduct.users?.length ? true : false;
   const hasUsers = watch('users');
+
+  const [isCreator, setIsCreator] = useState(false);
 
   const onTeamMemberMoveUp = (index) => {
     const teamMembersTemp = [...teamMembers];
@@ -74,6 +78,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   };
 
   const updateTeamMemberList = (teamMemberObj) => {
+    teamMemberObj['addedByProvider'] = true;
     if (editTeamMember) {
       teamMembers.splice(editTeamMemberIndex, 1);
       teamMembers.splice(editTeamMemberIndex, 0, teamMemberObj);
@@ -108,7 +113,9 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const validateMembersList = (teamMemberObj) => {
     let duplicateMember = false;
     duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
-    return duplicateMember;
+    const isCreator = teamMemberObj.shortId === user.id;
+    setIsCreator(isCreator);
+    return isCreator || duplicateMember;
   };
 
   const teamMembersList = teamMembers?.map((member, index) => {
@@ -176,6 +183,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
   const handleForwardMinInfo = () => {
     // trigger notification
     setValue('notifyUsers', true);
+    !watch('providerFormSubmitted') && setValue('providerFormSubmitted', true);
     setValue('users', teamMembers);
     onSave(watch(), () => {
       setShowAddConsumersModal(false);
@@ -190,7 +198,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
           <div>
             <h3>Specifying other relevant information</h3>
             <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              <i className={'icon mbc-icon info'} onClick={() => {}} />
             </div>
           </div>
           <div className={Styles.formWrapper}>
@@ -313,6 +321,7 @@ const OtherRelevantInfo = ({ onSave, history }) => {
         onUpdateTeamMemberList={updateTeamMemberList}
         onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
         validateMemebersList={validateMembersList}
+        customUserErrorMsg={isCreator ? 'You are the creator and not allowed to consume data product' : ''}
       />
     </>
   );

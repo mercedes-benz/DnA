@@ -1,11 +1,11 @@
 import cn from 'classnames';
 import React, { useState, useEffect, forwardRef, Ref, useImperativeHandle } from 'react';
 import { ApiClient } from '../../../../../services/ApiClient';
-import { IDataiku } from '../../../../../globals/types';
+import { IDataiku } from 'globals/types';
 import Styles from './DataikuInfo.scss';
 import DataikuProjects from './dataikuProjects/DataikuProjects';
 import { getDateFromTimestamp } from '../../../../../services/utils';
-import { Envs } from '../../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 

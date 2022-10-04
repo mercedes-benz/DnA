@@ -4,7 +4,7 @@ import * as React from 'react';
 import Notification from '../../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progress-indicator';
-import { IAttachment } from '../../../../../globals/types';
+import { IAttachment } from 'globals/types';
 import { ApiClient } from '../../../../../services/ApiClient';
 // import { Modal } from '../../../formElements/modal/Modal';
 import Styles from './AttachmentsListItems.scss';

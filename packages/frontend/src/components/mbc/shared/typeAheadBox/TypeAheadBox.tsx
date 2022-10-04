@@ -5,14 +5,16 @@ import Styles from './TypeAheadBox.scss';
 const classNames = cn.bind(Styles);
 
 export interface IRowItemProps {
+  controlId: string;
   label: string;
   placeholder: string;
-  list: any;
-  defaultValue: string;
-  onItemSelect: (entity:any) => void;
-  onError?: (error:boolean) => void;
   required: boolean;
-  entityError?: boolean;
+  defaultValue: string;
+  list: any;
+  setSelected: (item:any) => void;
+  render?: (item: any) => React.ReactNode;
+  showError: boolean;
+  onInputChange?: (value:any) => void;
 }
 
 const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
@@ -28,75 +30,85 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
   const suggestionContainer = useRef(null);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');
   const [cursor, setCursor] = useState(-1);
-  const [suggestions, setSuggestions] = useState([]);
+  const [filteredList, setFilteredList] = useState([]);
   const [hideSuggestion, setHideSuggestion] = useState(true);
   const [showNoResultsError, setShowNoResultsError] = useState(false);
   const [errorText, setErrorText] = useState(null);
-  const [isSelected, setIsSelected] = useState(false);
 
   useEffect(() => {
-    setIsSelected(true);
     if(props.defaultValue.length > 0) {
-      setSearchTerm(props.defaultValue);
-    } else {
-      setSearchTerm('');
+      setSelectedItem(props.defaultValue);
     }
   }, [props.defaultValue]);
 
   useEffect(() => {
-    if(props.entityError) {
+    if(props.showError) {
       setErrorText('*Missing Entry');
     }
-  }, [props.entityError]);
+  }, [props.showError]);
   
   useEffect(() => {
-    setSuggestions(props.list);
+    if(props.onInputChange) {
+      setFilteredList(props.list);
+      setShowNoResultsError(props.list.length === 0 ? true : false);
+      setTimeout(() => {
+        setShowNoResultsError(false);
+      }, 3000);
+      setHideSuggestion(props.list.length === 0);
+      setCursor(-1);
+    } else {
+      setFilteredList(props.list);
+    }
   }, [props.list]);
+
+  const suggestionList = filteredList.map((item: any, index: number) => {
+    return (
+      <li
+        key={item.id}
+        onClick={() => onSuggestionItemClick(index)}
+        className={cursor === index ? Styles.active + ' active' : null}
+      >
+        {props.render ? props.render(item) : item.name}
+      </li>
+    );
+  });
   
   const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
     setSearchTerm(event.currentTarget.value);
+    props.onInputChange && props.onInputChange(event.currentTarget.value);
     setShowNoResultsError(false);
-    setIsSelected(false);
     if(event.currentTarget.value.length > 0) {
       setErrorText('');
+      setSelectedItem('');
     } else {
       setErrorText('*Missing Entry');
-      const entity = {
-        entityId: '',
-        entityName: ''
-      }
-      props.onItemSelect(entity);
     }
   };
 
   useEffect(() => {
-    if(searchTerm.length > 1) {
-      const filteredResults = suggestions.filter((item:any) => {
-        const currentEntity = item.entityId + ' - ' + item.entityName;
-        return currentEntity.toLowerCase().includes(searchTerm.toLowerCase());
-      });
-      setSuggestions(filteredResults);
-      setShowNoResultsError(filteredResults.length === 0 ? true : false);
-      setTimeout(() => {
-        setShowNoResultsError(false);
-      }, 3000);
-      setHideSuggestion(filteredResults.length === 0);
-      setCursor(-1);
-    } else {
-      setSuggestions(props.list);
+    if(!props.onInputChange) {
+      if(searchTerm.length > 1) {
+        const filteredResults = props.list?.filter((item:any) => item.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1);
+        setFilteredList(filteredResults);
+        setShowNoResultsError(filteredResults.length === 0 ? true : false);
+        setTimeout(() => {
+          setShowNoResultsError(false);
+        }, 3000);
+        setHideSuggestion(filteredResults.length === 0);
+        setCursor(-1);
+      } else {
+        setFilteredList([]);
+      }
     }
   }, [searchTerm]);
 
   const onSuggestionItemClick = (id: number) => {
-    setSearchTerm(suggestions[id].entityId + ' - ' + suggestions[id].entityName);
+    setSelectedItem(filteredList[id].name);
+    setSearchTerm('');
     setHideSuggestion(true);
-    setIsSelected(true);
-    const entity = {
-      entityId: suggestions[id].entityId,
-      entityName: suggestions[id].entityName
-    }
-    props.onItemSelect(entity);
+    props.setSelected(filteredList[id]);
   };
 
   const onSearchInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -110,10 +122,11 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
       } else {
         setHideSuggestion(true);
 
-        if (cursor !== -1 && suggestions.length && !hideSuggestion) {
+        if (cursor !== -1 && filteredList.length && !hideSuggestion) {
           setShowNoResultsError(false);
           setCursor(-1);
-          setSearchTerm(suggestions[cursor].entityId + ' - ' + suggestions[cursor].entityName);
+          setSelectedItem(filteredList[cursor].name);
+          setSearchTerm('');
         }
       }
     } else if (keyPressed === KEY_CODE.upArrow && cursor > 0) {
@@ -127,7 +140,7 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
           suggestionContainer.current.scrollTop = activeElem.offsetTop - activeElemHeight * 2;
         }
       }
-    } else if (keyPressed === KEY_CODE.downArrow && cursor < suggestions.length - 1) {
+    } else if (keyPressed === KEY_CODE.downArrow && cursor < filteredList.length - 1) {
       setCursor((prevState) => (prevState + 1));
       const containerHeight = suggestionContainer.current.getBoundingClientRect().height;
       const activeElem = suggestionContainer.current.querySelector('li.active') as HTMLLIElement;
@@ -147,19 +160,20 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
         'input-field-group include-error',
         errorText && 'error',
       )}>
-        <label htmlFor="userId" className="input-label">
+        <label htmlFor={props.controlId} className="input-label">
           {props.label}{props.required && <span>*</span>}
         </label>
 
         <div id='searchPanel' className={Styles.searchPanel}>
+          <span className={Styles.selectedItem}>{selectedItem}</span>
           <input
             type="text"
             className={"input-field"}
             ref={searchInput}
-            id="userId"
+            id={props.controlId}
             required={true}
             value={searchTerm}
-            placeholder={props.placeholder}
+            placeholder={selectedItem.length > 0 ? undefined : props.placeholder}
             onChange={onSearchInputChange}
             onKeyDown={onSearchInputKeyDown}
             maxLength={200}
@@ -168,26 +182,14 @@ const TypeAheadBox:React.FC<IRowItemProps> = (props: IRowItemProps) => {
           {showNoResultsError && 
             <p className={Styles.searchError}>No results found.</p>
           }
-          {!hideSuggestion && searchTerm.length > 0 && !isSelected ? (
+          {!hideSuggestion && searchTerm.length > 0 && (
             <ul
               ref={suggestionContainer}
               className={Styles.suggestionList}
             >
-              {
-                suggestions.map((item: any, index: number) => {
-                  return (
-                    <li
-                      key={item.id}
-                      onClick={() => onSuggestionItemClick(index)}
-                      className={cursor === index ? Styles.active + ' active' : null}
-                    >
-                      {item.entityId} - {item.entityName}
-                    </li>
-                  );
-                })
-              }
+              {suggestionList}
             </ul>
-          ) : ''}
+          )}
         </div>
         {
           errorText &&

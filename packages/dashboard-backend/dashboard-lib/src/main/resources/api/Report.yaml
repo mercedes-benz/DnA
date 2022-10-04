@@ -358,7 +358,11 @@ paths:
 definitions:
   DescriptionVO:
     type: object
-    properties:  
+    properties:
+      reportLink:
+        type: string
+        description: "Report Link"   
+        minLength: 1   
       productDescription: 
         description: "Description about the report"
         type: string
@@ -366,7 +370,6 @@ definitions:
       productPhase:
         type: string
         description: "Product Phase of the report"
-        minLength: 1
       status:
         type: string
         description: "Status of the report"
@@ -398,12 +401,10 @@ definitions:
         description: "Flag to identify if design guide implemented or not"
     required:
       - productDescription
-      - productPhase
       - status
-      - designGuideImplemented
       - frontendTechnologies
-      - division
       - department
+      - reportLink
   
   CustomerVO:
     type: object
@@ -584,6 +585,8 @@ definitions:
     properties:
       id:
         type: string
+      reportId:
+        type: string        
       productName:
         type: string
         description: "Name of the Report"

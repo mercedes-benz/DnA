@@ -1,9 +1,9 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../../globals/constants';
-import { TeamMemberType } from '../../../../../globals/Enums';
-import { ITeams } from '../../../../../globals/types';
-import { IconAvatar } from '../../../../icons/IconAvatar';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+import { TeamMemberType } from 'globals/Enums';
+import { ITeams } from 'globals/types';
+import { IconAvatar } from 'components/icons/IconAvatar';
 // import { Modal } from '../../../formElements/modal/Modal';
 import Styles from './TeamMemberListItem.scss';
 
@@ -50,10 +50,26 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
             </div>
             <div className={Styles.details}>
               <h6>
-                {teamMember.teamMemberPosition} ({teamMember.userType})
+                {teamMember.teamMemberPosition} {teamMember.userType ? `(${teamMember.userType})` : null}
               </h6>
               <div className={Styles.memberDetails}>
-                <div>{teamMember.company}</div>
+                {teamMember.company ? (
+                  <div>{teamMember.company}</div>
+                ) : (
+                  <div>
+                    {teamMember.shortId ? (
+                      <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>
+                        {teamMember.firstName} {teamMember.lastName}
+                      </a>
+                    ) : (
+                      <>
+                        {teamMember.firstName} {teamMember.lastName}
+                        <br />
+                        {teamMember.email}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
