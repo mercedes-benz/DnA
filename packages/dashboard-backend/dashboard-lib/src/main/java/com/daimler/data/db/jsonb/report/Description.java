@@ -30,7 +30,6 @@ package com.daimler.data.db.jsonb.report;
 import java.io.Serializable;
 import java.util.List;
 
-import com.daimler.data.db.jsonb.userwidgetpref.Art;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -47,6 +46,7 @@ public class Description implements Serializable {
 
 	private String productDescription;
 	private String productPhase;
+	private String reportLink;
 	private String status;
 	private List<String> integratedPortal;
 	private List<String> frontendTechnologies;

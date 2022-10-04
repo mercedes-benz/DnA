@@ -2,16 +2,20 @@ import classNames from 'classnames';
 import React from 'react';
 import Styles from './FirstRun.scss';
 import computerIcon from '../../../assets/computer_icon.png';
+import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 
-const FirstRun = (props) => {
+const FirstRun = ({ user, ...props }) => {
+  let currentdate = new Date().toISOString();
+
   const openCreateProjectModal = () => {
     props.openCreateProjectModal();
   }
+
   return (
     <div className={classNames(Styles.content)}>
       <div className={classNames(Styles.header)}>
-        <p>Login on 23.02.2020, 14:12:15</p>
-        <p className={Styles.lead}>Hi <span>Lukas Jan</span>, this is the first time you are using the Forecasting Cockpit.</p>
+        <p className={Styles.loginTime}>Login on {regionalDateAndTimeConversionSolution(currentdate)}</p>
+        <p className={Styles.lead}>Hi <span>{user.firstName} {user.lastName}</span>, this is the first time you are using the Forecasting Cockpit.</p>
       </div>
       <div className={Styles.forecastContainer}>
         <div className={Styles.messageContainer}>

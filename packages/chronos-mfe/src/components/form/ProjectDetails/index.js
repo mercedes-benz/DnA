@@ -1,71 +1,61 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useForm, FormProvider } from 'react-hook-form';
 import Styles from './styles.scss';
 
 // import from DNA Container
-import Modal from 'dna-container/Modal';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
+import Modal from 'dna-container/Modal';
 import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
-
 
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import { IconAvatarNew } from '../../shared/icons/iconAvatarNew/IconAvatarNew';
-
-// const MOCK_DETAILS = {
-//   id: 1,
-//   new: true,
-//   name: '2022-07-29_Test-Run',
-//   status: 'in progress',
-//   datetime: '2022/07/27',
-//   ranBy: 'JANNIC1',
-//   inputFile: 'MS_tms_fc.xls',
-//   forecastHorizon: '2033',
-//   exogenousData: 'Yes' 
-// };
-
-const MOCK_MEMBERS = [
-  {
-    company: "Company1",
-    department: "Department1",
-    email: "ab@mock.com",
-    firstName: "John",
-    lastName: "Doe",
-    mobileNumber: "+2839283928",
-    shortId: "DEMOONE",
-    teamMemberPosition: "Team1",
-    userType: "internal",
-  },
-  {
-    company: "Company2",
-    department: "Department2",
-    email: "cd@mock.com",
-    firstName: "Jane",
-    lastName: "Doe",
-    mobileNumber: "+2839283928",
-    shortId: "DEMOTWO",
-    teamMemberPosition: "Team2",
-    userType: "internal",
-  },
-];
+import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import { chronosApi } from '../../../apis/chronos.api';
+import Spinner from '../../shared/spinner/Spinner';
 
 const ProjectDetails = () => {
-  // const [projectDetails, setProjectDetails] = useState();
-
-  // useEffect(() => {
-  //   setProjectDetails(MOCK_DETAILS);
-  // }, []);
-
-  const [createProject, setCreateProject] = useState(false);
+  const {id: projectId} = useParams();
   const [editProject, setEditProject] = useState(false);
 
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = methods;
+  
+  const [loading, setLoading] = useState(true);
+  const [project, setProject] = useState();
+  const [teamMembers, setTeamMembers] = useState([]);
   const [showApiKey, setShowApiKey] = useState(false);
-  // const [forecast, setForecast] = useState();
-  const [teamMembers, setTeamMembers] = useState();
+  const [generateApiKey, setGenerateApiKey] = useState(true);
+  const [editTeamMember, setEditTeamMember] = useState(false);
+  const [selectedTeamMember, setSelectedTeamMember] = useState();
+  const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
 
   useEffect(() => {
-    setTeamMembers(MOCK_MEMBERS);
+    getProjectById();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const getProjectById = () => {
+    ProgressIndicator.show();
+      chronosApi.getForecastProjectById(projectId).then((res) => {
+      setProject(res);
+      const members = res?.collaborators.map(member => ({...member, userType: 'internal'}));
+      setTeamMembers(members);
+      setLoading(false);
+      ProgressIndicator.hide();
+    }).catch(error => {
+      Notification.show(error.message, 'alert');
+      setLoading(false);
+      ProgressIndicator.hide();
+    });
+  };
 
   const copyApiKey = () => {
     navigator.clipboard.writeText('dummy api key').then(() => {
@@ -73,8 +63,38 @@ const ProjectDetails = () => {
     });
   };
 
+  const addTeamMemberModalRef = React.createRef();
+  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
+  const showAddTeamMemberModalView = () => {
+    setShowAddTeamMemberModal(true);
+  }
+  const onAddTeamMemberModalCancel = () => {
+    setShowAddTeamMemberModal(false);
+  }
+  const updateTeamMemberList = (teamMember) => {
+    onAddTeamMemberModalCancel();
+    const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
+    delete teamMemberTemp.teamMemberPosition;
+    let teamMembersTemp = [...teamMembers];
+    if(editTeamMember) {
+      teamMembersTemp.splice(editTeamMemberIndex, 1);
+      teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
+    } else {
+      teamMembersTemp.push(teamMemberTemp);
+    }
+    setTeamMembers(teamMembersTemp);
+  }
+  const validateMembersList = (teamMemberObj) => {
+    let duplicateMember = false;
+    duplicateMember = teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    return duplicateMember;
+  };
   const onTeamMemberEdit = (index) => {
-    console.log(index);
+    setEditTeamMember(true);
+    setShowAddTeamMemberModal(true);
+    const teamMemberTemp = teamMembers[index];
+    setSelectedTeamMember(teamMemberTemp);
+    setEditTeamMemberIndex(index);
   };
 
   const onTeamMemberDelete = (index) => {
@@ -104,6 +124,7 @@ const ProjectDetails = () => {
         itemIndex={index}
         teamMember={member}
         hidePosition={true}
+        showInfoStacked={true}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers?.length}
         onMoveUp={onTeamMemberMoveUp}
@@ -114,37 +135,9 @@ const ProjectDetails = () => {
     );
   });
 
-  const addTeamMemberModalRef = React.createRef();
-  const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
-  const showAddTeamMemberModalView = () => {
-    setShowAddTeamMemberModal(true);
-  }
-  const onAddTeamMemberModalCancel = () => {
-    setShowAddTeamMemberModal(false);
-  }
-  const updateTeamMemberList = () => {
-    onAddTeamMemberModalCancel();
-  }
-
-  const methods = useForm();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = methods;
-
-  const handleCreateProject = (values) => {
-    console.log(values);
-    setCreateProject(false);
-  };
-  const handleEditProject = (values) => {
-    console.log(values);
-    setEditProject(false);
-  };
-
-  const addProjectContent = (
+  const editProjectContent = (
     <FormProvider {...methods}>
-      <div className={Styles.content}>
+      <div className={Styles.modalContent}>
         <div className={Styles.formGroup}>
           <div className={Styles.flexLayout}>
             <div>
@@ -159,7 +152,7 @@ const ProjectDetails = () => {
                     id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
-                    defaultValue={'Forecast project'}
+                    defaultValue={project?.name}
                     {...register('name', { required: '*Missing entry' })}
                   />
                   <span className={classNames('error-message')}>{errors?.name?.message}</span>
@@ -167,15 +160,91 @@ const ProjectDetails = () => {
               </div>
             </div>
           </div>
+          <div className={Styles.collabContainer}>
+            <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
+            <div className={Styles.collabAvatar}>
+              <div className={Styles.teamListWrapper}>
+                <div className={Styles.addTeamMemberWrapper}>
+                  <IconAvatarNew className={Styles.avatarIcon} />
+                  <button id="AddTeamMemberBtn" 
+                    onClick={showAddTeamMemberModalView}
+                    >
+                    <i className="icon mbc-icon plus" />
+                    <span>Add team member</span>
+                  </button>
+                </div>
+                {
+                  teamMembers?.length > 0 &&
+                    <div className={Styles.membersList}>
+                      {teamMembersList}
+                    </div>
+                }
+              </div>
+            </div>
+            <div className={Styles.apiKeySection}>
+              <h3 className={Styles.modalSubTitle}>Generate API Key</h3>
+              {
+                generateApiKey &&
+                <div className={Styles.apiKey}>
+                  <p className={Styles.label}>API Key</p>
+                  <button className={Styles.generateApiKeyBtn} onClick={() => setGenerateApiKey(false)}>
+                    Generate API Key
+                  </button>
+                  <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p>
+                </div>
+              }
+              {
+                !generateApiKey &&
+                  <div className={Styles.apiKey}>
+                    <p className={Styles.label}>API Key</p>
+                    <div className={Styles.appIdParentDiv}>
+                      <div className={Styles.refreshedKey}>
+                        { showApiKey ? (
+                          <p>{project?.apiKey}</p>
+                        ) : (
+                          <React.Fragment>
+                            &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
+                          </React.Fragment>
+                        )}
+                      </div>
+                      <div className={Styles.refreshedKeyIcon}>
+                        {showApiKey ? (
+                          <React.Fragment>
+                            <i
+                              className={Styles.showAppId + ' icon mbc-icon visibility-hide'}
+                              onClick={() => { setShowApiKey(!showApiKey) }}
+                              tooltip-data="Hide"
+                            />
+                          </React.Fragment>
+                        ) : (
+                          <React.Fragment>
+                            <i
+                              className={Styles.showAppId + ' icon mbc-icon visibility-show ' + Styles.visiblityshow}
+                              onClick={() => { setShowApiKey(!showApiKey) }}
+                              tooltip-data="Show"
+                            />
+                          </React.Fragment>
+                        )}
+                        <i
+                          className={Styles.cpyStyle + ' icon mbc-icon copy'}
+                          onClick={copyApiKey}
+                          tooltip-data="Copy"
+                        />
+                      </div>
+                    </div>
+                  </div>
+              }
+            </div>
+          </div>
           <div className={Styles.btnContainer}>
             <button
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                createProject ? handleCreateProject(values) : handleEditProject(values);
+                handleEditProject(values);
               })}
             >
-              {createProject ? 'Save Project' : editProject && 'Save Project'}
+              {'Save Project'}
             </button>
           </div>
         </div>
@@ -183,56 +252,88 @@ const ProjectDetails = () => {
     </FormProvider>
   );
 
+  const handleEditProject = (values) => {
+    ProgressIndicator.show();
+    const data = {
+        "apiKey": "123823",
+        // "collaborators": teamMembers.map(teamMember => {delete teamMember.userType; delete teamMember.shortId; return teamMember}),
+        "collaborators": teamMembers,
+        "name": values.name,
+        "permission": {
+          "read": true,
+          "write": true
+        }
+    };
+    console.log('data');
+    console.log(data);
+    chronosApi.createForecastProject(data).then((res) => {
+      console.log(res);
+      // dispatch(GetProjects());
+      ProgressIndicator.hide();
+      setEditProject(false);
+      reset({ name: '' });
+      setTeamMembers([]);
+      Notification.show('Forecasting Project successfully created');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      console.log(error);
+      Notification.show(error.message, 'alert');
+    });
+
+    values.permission = values.permission.reduce((acc, curr) => {
+      acc[curr] = true;
+      return acc;
+    }, {});
+    // const copyProjects = [...projects];
+    // const findIndex = copyProjects.findIndex((item) => item.id === values.id);
+    // copyProjects[findIndex] = values;
+    // dispatch(setProjects(copyProjects));
+    // setEditProject(false);
+    reset({ name: '' });
+  };
+
   return (
     <React.Fragment>
       <div className={Styles.content}>
         <div className={classNames(Styles.contextMenu)}>
-          <span onClick={() => { setCreateProject(true) }} className={classNames('trigger', Styles.contextMenuTrigger)}>
-            <i className="icon mbc-icon edit context" />
+          <span className={classNames('trigger', Styles.contextMenuTrigger)}>
+            <i className="icon mbc-icon edit context" onClick={() => { setEditProject(true) }} />
           </span>
         </div>
         <h3 id="productName">Project Details</h3>
-        <div className={Styles.firstPanel}>
-          <div className={Styles.formWrapper}>
-            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-              <div id="productDescription">
-                <label className="input-label summary">Project Name</label>
-                <br />                    
-                Lorem Ipsum Dolor
-              </div>
-              <div id="tags">
-                <label className="input-label summary">Created on</label>
-                <br />
-                27/03/2022
-              </div>
-              <div id="isExistingSolution">
-                <label className="input-label summary">Created by</label>
-                <br />
-                John Doe
+        { loading && <Spinner /> }
+        { !loading && 
+          <div className={Styles.firstPanel}>
+            <div className={Styles.formWrapper}>
+              <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                <div id="productDescription">
+                  <label className="input-label summary">Project Name</label>
+                  <br />                    
+                  {project?.name}
+                </div>
+                <div id="tags">
+                  <label className="input-label summary">Created on</label>
+                  <br />
+                  {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
+                </div>
+                <div id="isExistingSolution">
+                  <label className="input-label summary">Created by</label>
+                  <br />
+                  {project?.createdBy?.firstName} {project?.createdBy?.lastName}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        }
       </div>
       <div className={Styles.content}>
         <h3 id="productName">Collaborators</h3>
         <div className={Styles.firstPanel}>
         <div className={Styles.collabAvatar}>
           <div className={Styles.teamListWrapper}>
-            <div className={Styles.addTeamMemberWrapper}>
-              <IconAvatarNew className={Styles.avatarIcon} />
-              <button id="AddTeamMemberBtn" 
-                onClick={showAddTeamMemberModalView}
-                >
-                <i className="icon mbc-icon plus" />
-                <span>Add team member</span>
-              </button>
-              {/* <div className={classNames(Styles.teamsErrorMessage, teamMemberError.length ? '' : 'hide')}>
-                <span className="error-message">{teamMemberError}</span>
-              </div> */}
-            </div>
             <div className={Styles.membersList}>
-              {teamMembersList}
+              {loading && <Spinner />}
+              {!loading && teamMembersList}
             </div>
           </div>
         </div>
@@ -247,7 +348,7 @@ const ProjectDetails = () => {
                 <div className={Styles.appIdParentDiv}>
                   <div className={Styles.refreshedKey}>
                     { showApiKey ? (
-                      <p>2983432j38293nf9sdjfsdhfs98</p>
+                      <p>{!loading && project?.apiKey}</p>
                     ) : (
                       <React.Fragment>
                         &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
@@ -281,29 +382,28 @@ const ProjectDetails = () => {
                 </div>
               </div>
             </div>
-            <div>
+            {/* <div>
               <div className={Styles.apiKey}>
                 <button className={Styles.generateApiKeyBtn} onClick={() => console.log('generate api key')}>
                   Generate API Key
                 </button>
                 <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
-      { (createProject || editProject) &&
+      { editProject &&
         <Modal
           title={'Edit Forecasting Project'}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'60%'}
           buttonAlignment="right"
-          show={createProject || editProject}
-          content={addProjectContent}
+          show={editProject}
+          content={editProjectContent}
           scrollableContent={false}
           onCancel={() => {
-            setCreateProject(false);
             setEditProject(false);
           }}
           modalStyle={{
@@ -318,13 +418,14 @@ const ProjectDetails = () => {
         <AddTeamMemberModal
           ref={addTeamMemberModalRef}
           modalTitleText={'Collaborator'}
+          hideTeamPosition={true}
           showOnlyInteral={true}
-          // editMode={editTeamMember}
+          editMode={editTeamMember}
           showAddTeamMemberModal={showAddTeamMemberModal}
-          // teamMember={teamMemberObj}
+          teamMember={selectedTeamMember}
           onUpdateTeamMemberList={updateTeamMemberList}
           onAddTeamMemberModalCancel={onAddTeamMemberModalCancel}
-          // validateMemebersList={validateMembersList}
+          validateMemebersList={validateMembersList}
         />
       )}
     </React.Fragment>

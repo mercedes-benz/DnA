@@ -53,8 +53,8 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 
 	@Override
 	public List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
-			String sortBy, String sortOrder) {
-		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder);
+			String sortBy, String sortOrder, String recordStatus) {
+		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<DataProductNsql> convertedResults = results.stream().map(temp -> {
@@ -74,21 +74,21 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 	}
 
 	@Override
-	public Long getCountUsingNativeQuery(Boolean published) {
+	public Long getCountUsingNativeQuery(Boolean published, String recordStatus) {
 
-		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc");
+		Query q = getNativeQueryWithFilters("select count(*) ", published, 0, 0, "", "asc", recordStatus);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
 
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, int offset, int limit,
-			String sortBy, String sortOrder) {
+			String sortBy, String sortOrder, String recordStatus) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from dataproduct_nsql";
 		String basicpredicate = " where (id is not null)";
-		String consolidatedPredicates = buildPredicateString(published);
+		String consolidatedPredicates = buildPredicateString(published, recordStatus);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
@@ -116,9 +116,15 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 		return q;
 	}
 
-	private String buildPredicateString(Boolean published) {
+	private String buildPredicateString(Boolean published, String recordStatus) {
+		return getPublishedAndAccessPredicate(published) + "\n" + getRecordStatusPredicateString(recordStatus);
+	}
 
-		return getPublishedAndAccessPredicate(published);
+	private String getRecordStatusPredicateString(String recordStatus) {
+		if (StringUtils.hasText(recordStatus)) {
+			return " and (jsonb_extract_path_text(data,'recordStatus') in ('" + recordStatus + "')) ";
+		}
+		return "";
 	}
 
 	private String getPublishedAndAccessPredicate(Boolean published) {
@@ -165,20 +171,22 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 				// occurrence of comma(,)
 				String[] divList = divSubdiv.trim().split(",", 2);
 				if (divList.length > 1) {
-					query += "(jsonb_extract_path_text(data,'description','division', 'id') in ('" + divList[0] + "')";
+					query += "(jsonb_extract_path_text(data, 'providerInformation', 'contactInformation', 'division', 'id') in ('"
+							+ divList[0] + "')";
 					String commaSeparatedinSubdivisions = Arrays.asList(divList[1].split(",")).stream()
 							.collect(Collectors.joining("','", "'", "'"));
 					if (isEmptySubdivision) {
-						query += " and (jsonb_extract_path_text(data,'description', 'division','subdivision','id') in ("
+						query += " and (jsonb_extract_path_text(data,'providerInformation','contactInformation', 'division','subdivision','id') in ("
 								+ commaSeparatedinSubdivisions + ")";
-						query += " or jsonb_extract_path_text(data, 'description', 'division','subdivision','id') is null)";
+						query += " or jsonb_extract_path_text(data, 'providerInformation', 'contactInformation','division','subdivision','id') is null)";
 					} else {
-						query += " and jsonb_extract_path_text(data, 'description','division','subdivision','id') in ("
+						query += " and jsonb_extract_path_text(data, 'providerInformation','contactInformation','division','subdivision','id') in ("
 								+ commaSeparatedinSubdivisions + ")";
 					}
 					query += ")";
 				} else {
-					query += "jsonb_extract_path_text(data,'description','division','id') in ('" + divList[0] + "')";
+					query += "jsonb_extract_path_text(data,'providerInformation','contactInformation','division','id') in ('"
+							+ divList[0] + "')";
 				}
 				if (divisionSplit.length > 1 && !consolidatedQuery.toString().isEmpty()) {
 					consolidatedQuery.append(" or " + query);

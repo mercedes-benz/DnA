@@ -10,27 +10,21 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import { Envs } from '../../../globals/Envs';
-import { ProvisionSource } from '../../../globals/Enums';
-import {
-  IDataiku,
-  IDataikuCheckList,
-  IDataikuCheckListItem,
-  IGetDataikuResult,
-  IUserInfo,
-} from '../../../globals/types';
+import { Envs } from 'globals/Envs';
+import { ProvisionSource } from 'globals/Enums';
+import { IDataiku, IDataikuCheckList, IDataikuCheckListItem, IGetDataikuResult, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
-import Modal from '../../formElements/modal/Modal';
+import Modal from 'components/formElements/modal/Modal';
 import Provisionsolution from '../provisionsolution/Provisionsolution';
 import Styles from './ListProjects.scss';
 import ProjectListRowItem from './projectListRowItem/ProjectListRowItem';
 import { getDateFromTimestamp, convertTextToLink } from '../../../services/utils';
 import Pagination from '../pagination/Pagination';
 import { getDataForCSV } from '../../../services/DataikuCSV';
-import DataNotExist from '../../dataNotExist/DataNotExist';
-import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
-import { SUPPORT_EMAIL_ID } from '../../../globals/constants';
+import DataNotExist from 'components/dataNotExist/DataNotExist';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import { SUPPORT_EMAIL_ID } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -179,7 +173,7 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
       );
     });
 
-    const contentForDetails =  this.state.showDetailsModal && (
+    const contentForDetails = this.state.showDetailsModal && (
       <React.Fragment>
         <h4>{this.state.projectData.name}</h4>
         <p className={Styles.projectDescription}>{this.state.projectData.shortDesc}</p>
@@ -219,7 +213,9 @@ export default class ListProjects extends React.Component<{ user: IUserInfo }, I
                 Owner Name
               </label>
               <br />
-              {this.state.projectData.ownerDisplayName ? this.state.projectData.ownerDisplayName : (this.state.projectData.ownerLogin || '-NA-')}
+              {this.state.projectData.ownerDisplayName
+                ? this.state.projectData.ownerDisplayName
+                : this.state.projectData.ownerLogin || '-NA-'}
             </div>
             <br />
             <br />

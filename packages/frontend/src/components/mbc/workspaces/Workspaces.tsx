@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Styles from './Workspaces.scss';
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 import Tile from '../shared/tile/Tile';
 import MainPanel from '../shared/mainPanel/MainPanel';
 import jupyter from '../../../assets/images/Jupyter.png';
@@ -36,7 +36,7 @@ const Workspaces = () => {
           route={'/mydataiku'}
           isEnabled={enableDataikuWorkspace}
         />
-        { enableSapAnalyticsCloud &&
+        {enableSapAnalyticsCloud && (
           <Tile
             title={'SAP Analytics Cloud'}
             background={sap}
@@ -44,12 +44,8 @@ const Workspaces = () => {
             link={sapAnalyticsUrl}
             isEnabled={enableSapAnalyticsCloud}
           />
-        }
-        <Tile
-          title={'My Code Space'}
-          route={'/codespaces'}
-          isEnabled={enableCodeSpace}
-        />
+        )}
+        <Tile title={'My Code Space'} route={'/codespaces'} isEnabled={enableCodeSpace} />
       </div>
     </MainPanel>
   );

@@ -1,50 +1,41 @@
 import classNames from 'classnames';
 import React, { createRef, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Styles from './Form.style.scss';
 
 import { useForm, FormProvider } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 import Tabs from '../../common/modules/uilab/js/src/tabs';
-// import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-
-import { mapOpenSegments } from '../../Utility/formData';
-
-// Container Components
-import ConfirmModal from 'dna-container/ConfirmModal';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 
 // Form Components
 import RunForecast from './RunForecast';
 import ForecastResults from './ForecastResults';
 import ManageConnections from './ManageConnections';
 import ProjectDetails from './ProjectDetails';
+import Breadcrumb from '../shared/breadcrumb/Breadcrumb';
+import { chronosApi } from '../../apis/chronos.api';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const tabs = {
-  runForecast: { runName: '', configuration: '0', frequency: '0', forecastHorizon: '0', comment: '' },
+  runForecast: {},
   forecastResults: {},
   manageConnections: {},
   projectDetails: {},
 };
 
 const ForecastForm = ({ user }) => {
-  const projects = useSelector((state) => state.projects);
+  const { id: projectId } = useParams();
 
   const [currentTab, setCurrentTab] = useState('runForecast');
-  // const [savedTabs, setSavedTabs] = useState([]);
-  const [savedTabs, setSavedTabs] = useState(['forecastResults','manageConnections','projectDetails']);
   const methods = useForm();
-  const { formState, reset } = methods;
-
-  const [configurationFile, setConfigurationFile] = useState([]);
-  const [frequency, setFrequency] = useState([]);
-  const [forecastHorizon, setForecastHorizon] = useState([]);
-  const [showChangeAlert, setShowChangeAlert] = useState({ modal: false, switchingTab: '' });
+  // const { formState, reset } = methods;
 
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
-  const dispatch = useDispatch();
 
-  const getDataProductById = () => {};
+  const [loading, setLoading] = useState(true);
+  const [project, setProject] = useState();
 
   useEffect(() => {
     if (user?.roles?.length) {
@@ -57,75 +48,45 @@ const ForecastForm = ({ user }) => {
   }, [user]);
 
   useEffect(() => {
-    // const { id } = provideDataProducts.selectedProject;
-    // if (isCreatePage) {
-    //   if (id) {
-    //     let defaultValues = { ...provideDataProducts.selectedProject };
-    //     reset(defaultValues); // setting default values
-    //   } else {
-    const data = tabs[currentTab];
-    reset(data); // setting default values
-    // }
-    // }
-    //eslint-disable-next-line
-  }, [dispatch, projects]);
-
-  useEffect(() => {
-    setConfigurationFile([]);
-    setFrequency([]);
-    setForecastHorizon([]);
+    getProjectById();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getProjectById = () => {
+    ProgressIndicator.show();
+    chronosApi.getForecastProjectById(projectId).then((res) => {
+      setProject(res);
+      setLoading(false);
+      ProgressIndicator.hide();
+    }).catch(error => {
+      Notification.show(error.message, 'alert');
+      setLoading(false);
+      ProgressIndicator.hide();
+    });
+  };
+
   const setTab = (e) => {
-    const id = e.target.id;
-    if (currentTab !== id) {
-      const isFieldsDirty = formState.isDirty || Object.keys(formState.dirtyFields).length > 0;
-      if (isFieldsDirty) {
-        setShowChangeAlert({ modal: true, switchingTab: id });
-      } else {
-        setCurrentTab(id);
-      }
-    }
-  };
-
-  const switchTabs = (currentTab) => {
-    const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
-    setSavedTabs([...new Set([...savedTabs, currentTab])]);
-    if (currentTab !== 'projectDetails') {
-      setCurrentTab(Object.keys(tabs)[tabIndex]);
-      elementRef.current[tabIndex].click();
-    }
-  };
-
-  const onSave = (currentTab, values) => {
-    const saveSegments = mapOpenSegments[currentTab];
-    if (values.openSegments.indexOf(saveSegments) === -1) {
-      values.openSegments.push(saveSegments);
-    }
+    setCurrentTab(e.target.id);
   };
 
   return (
     <FormProvider {...methods}>
       <div className={classNames(Styles.mainPanel)}>
-        <div className={classNames(Styles.breadcrumb)}>
-          <ol>
-            <li><a href='#/'>Start</a></li>
-            <li><a href='#/services'>My Services</a></li>
-            <li><Link to='/'>Chronos Forecasting</Link></li>
-            <li>Project Name</li>
-          </ol>
-        </div>
-        <h3 className={classNames(Styles.title)}>Forecasting Project Name</h3>
+        <Breadcrumb>
+          <li><Link to='/'>Chronos Forecasting</Link></li>
+          <li>{!loading && project?.name}</li>
+        </Breadcrumb>
+        <h3 className={classNames(Styles.title)}>{!loading && project?.name}</h3>
         <div id="data-product-tabs" className="tabs-panel">
           <div className="tabs-wrapper">
             <nav>
               <ul className="tabs">
-                <li className={savedTabs?.includes('runForecast') ? 'tab valid' : 'tab active'}>
+                <li className={'tab active'}>
                   <a href="#tab-content-1" id="runForecast" ref={elementRef} onClick={setTab}>
                     Run Forecast
                   </a>
                 </li>
-                <li className={savedTabs?.includes('forecastResults') ? 'tab valid' : 'tab disabled'}>
+                <li className={'tab valid'}>
                   <a
                     href="#tab-content-2"
                     id="forecastResults"
@@ -149,7 +110,7 @@ const ForecastForm = ({ user }) => {
                     Manage Connections
                   </a>
                 </li> */}
-                <li className={savedTabs?.includes('projectDetails') ? 'tab valid' : 'tab disabled'}>
+                <li className={'tab valid'}>
                   <a
                     href="#tab-content-4"
                     id="projectDetails"
@@ -166,55 +127,25 @@ const ForecastForm = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              <RunForecast onSave={() => switchTabs('runForecast')} />
+              <RunForecast savedFiles={(project?.savedInputs && project?.savedInputs !== null) ? project?.savedInputs : []} />
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (
-                <ForecastResults
-                  onSave={(values) => onSave('forecastResults', values)}
-                  configurationFile={configurationFile}
-                  frequency={frequency}
-                  forecastHorizon={forecastHorizon}
-                />
+                <ForecastResults />
               )}
             </div>
             <div id="tab-content-3" className="tab-content">
               {currentTab === 'manageConnections' && (
-                <ManageConnections onSave={(values) => onSave('manageConnections', values)} />
+                <ManageConnections />
               )}
             </div>
             <div id="tab-content-4" className="tab-content">
               {currentTab === 'projectDetails' && (
-                <ProjectDetails onSave={(values) => onSave('projectDetails', values)} />
+                <ProjectDetails />
               )}
             </div>
           </div>
         </div>
-        <ConfirmModal
-          title="Save Changes?"
-          acceptButtonTitle="Close"
-          cancelButtonTitle="Cancel"
-          showAcceptButton={true}
-          showCancelButton={true}
-          show={showChangeAlert?.modal}
-          content={
-            <div id="contentparentdiv">
-              Press &#187;Close&#171; to save your changes or press
-              <br />
-              &#187;Cancel&#171; to discard changes.
-            </div>
-          }
-          onCancel={() => {
-            getDataProductById();
-            setCurrentTab(showChangeAlert.switchingTab);
-            elementRef.current[Object.keys(tabs).indexOf(showChangeAlert.switchingTab)].click();
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-          }}
-          onAccept={() => {
-            setShowChangeAlert({ modal: false, switchingTab: '' });
-            elementRef.current[Object.keys(tabs).indexOf(currentTab)].click();
-          }}
-        />
       </div>
       {currentTab !== 'basic-info' && <div className={Styles.mandatoryInfo}>* mandatory fields</div>}
     </FormProvider>

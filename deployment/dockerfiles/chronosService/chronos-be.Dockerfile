@@ -6,11 +6,8 @@ RUN gradle build --no-daemon
 
 #Step-2
 FROM openjdk:17-jdk-alpine
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+USER 1000
 ENV ARTIFACT_NAME=chronos-lib-1.0.0.jar
-ENV APP_HOME=/usr/app/
-WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/chronos-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
 
 EXPOSE 7175

@@ -1,9 +1,9 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IResult, ISharing } from '../../../../globals/types';
+import { IResult, ISharing } from 'globals/types';
 import Styles from './Sharing.scss';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
-import TextBox from '../../shared/textBox/TextBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
 const classNames = cn.bind(Styles);
 
 export interface ISharingProps {
@@ -58,7 +58,7 @@ export default class Sharing extends React.Component<ISharingProps, ISharingStat
                       controlId={'gitrepoInput'}
                       labelId={'gitrepoLabel'}
                       label={'Git Repository'}
-                      placeholder={"Type here"}
+                      placeholder={'Type here'}
                       value={this.state.sharing.gitUrl}
                       required={false}
                       maxLength={200}
@@ -71,7 +71,7 @@ export default class Sharing extends React.Component<ISharingProps, ISharingStat
                       controlId={'resultsurl'}
                       labelId={'resultsurllabel'}
                       label={'Comment'}
-                      placeholder={"Type here"}
+                      placeholder={'Type here'}
                       value={this.state.sharing.resultUrl}
                       required={false}
                       maxLength={200}

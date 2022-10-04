@@ -1,0 +1,112 @@
+.datePicker {
+    position: relative;
+    > div {
+        position: absolute;
+        top: 20px;
+        right: 10px;
+        button {
+            color: #697582;
+            &:focus {
+                outline: none;
+            }
+            svg[data-testid="CalendarIcon"] {
+                font-size: var(--font-size-icon-medium);
+            }
+        }
+    }
+}
+
+:global {
+    .CalendarIcon-position > div {
+        right: 28px;
+    }
+
+    div[role="dialog"] {
+        .MuiPaper-root.MuiPaper-elevation {
+            background: #252a33;
+            color: #acb8c4;
+            .MuiCalendarPicker-root {
+                .MuiButtonBase-root {
+                    color: #acb8c4;
+                    &.Mui-disabled {
+                        color: #697582;
+                    }
+                }
+                .MuiPickersArrowSwitcher-root button:focus {
+                    outline: none;
+                }
+                div[role="presentation"] {
+                    .MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeSmall {
+                        outline: none;
+                    }
+                }
+                .MuiCalendarPicker-viewTransitionContainer {
+                    &::-webkit-scrollbar {
+                        display: block;
+                        width: 5px;
+                        height: 5px;
+                    }
+                    &::-webkit-scrollbar-track {
+                        background: #293f55;
+                    }
+                    &::-webkit-scrollbar-thumb {
+                        background: #00adef;
+                        border-radius: 10px;
+                    }
+                    div[role="row"] span {
+                        color: #acb8c4;
+                    }
+                    div[class*="SlideTransition"] {
+                        .MuiButtonBase-root {
+                            outline: none;
+                            &span.MuiTouchRipple-root {
+                                outline: none;
+                            }
+                        }
+                        .MuiPickersDay-root {
+                            background: #252a33;
+                            color: #acb8c4;
+                            &:hover {
+                                background-color: #383f49;
+                            }
+                            &.Mui-disabled {
+                                color: #697582;
+                            }
+                        }
+                        .MuiPickersDay-today {
+                            border: 1px solid #acb8c4;
+                            &:focus {
+                                outline: none;
+                            }
+                        }
+                        .Mui-selected {
+                            color: #fff;
+                            background-color: #00adef !important;
+                            font-weight: 500;
+                            &:focus {
+                                outline: none;
+                            }
+                        }
+                    }
+                }
+                .MuiMonthPicker-root .PrivatePickersMonth-root,
+                .PrivatePickersYear-root .PrivatePickersYear-yearButton {
+                    &:hover {
+                        background-color: #383f49;
+                    }
+                    &:focus {
+                        outline: none;
+                    }
+                    &.Mui-selected {
+                        color: #fff;
+                        background-color: #00adef !important;
+                        font-weight: 500;
+                        &:focus {
+                            outline: none;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -84,9 +84,6 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 	 */
 	Long getCountWithFilters(String searchTerm);
 
-	GenericMessage initializeCodeServer(String userId, String password, String type);
-
-	HttpStatus pollWorkBenchStatus(String userId);
 	
 	/**
 	 * To update/remove divisions from a user having role DivisionAdmin

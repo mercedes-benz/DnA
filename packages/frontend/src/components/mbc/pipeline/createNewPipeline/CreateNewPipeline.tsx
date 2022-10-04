@@ -9,12 +9,12 @@ import {
   IPipelineProjectDetail,
   IError,
   IUserInfo,
-} from '../../../../globals/types';
+} from 'globals/types';
 import Styles from './CreateNewPipeline.scss';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import Modal from '../../../formElements/modal/Modal';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import Modal from 'components/formElements/modal/Modal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { getParams } from '../../../../router/RouterUtils';
 import AddUser from './addUser/AddUser';
 const classNames = cn.bind(Styles);
@@ -25,7 +25,7 @@ import 'ace-builds/src-noconflict/ext-language_tools';
 
 import { PipelineApiClient } from '../../../../services/PipelineApiClient';
 import { history } from '../../../../router/History';
-import FullScreenModeIcon from '../../../icons/fullScreenMode/FullScreenModeIcon';
+import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
 
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
@@ -34,8 +34,8 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 
 // @ts-ignore
 import InputFields from '../../../../assets/modules/uilab/js/src/input-fields';
-import ProgressWithMessage from '../../../../components/progressWithMessage/ProgressWithMessage';
-import { Envs } from '../../../../globals/Envs';
+import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
+import { Envs } from 'globals/Envs';
 
 interface ICreateNewPipelineProps {
   user: IUserInfo;
