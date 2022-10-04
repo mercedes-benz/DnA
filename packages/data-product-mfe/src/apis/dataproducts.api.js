@@ -1,7 +1,7 @@
 import { server } from '../server/api';
 
-const getAllDataProducts = () => {
-  return server.get('/dataproducts?limit=0&offset=0', {
+const getAllDataProducts = (sortBy, sortOrder) => {
+  return server.get(`/dataproducts?limit=0&offset=0&sortBy=${sortBy}&sortOrder=${sortOrder}`, {
     data: {},
   });
 };

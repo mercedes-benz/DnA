@@ -8,6 +8,7 @@ import InfoModal from 'dna-container/InfoModal';
 import Tags from 'dna-container/Tags';
 import DatePicker from 'dna-container/DatePicker';
 import TeamSearch from 'dna-container/TeamSearch';
+import TypeAheadBox from 'dna-container/TypeAheadBox';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../server/api';
@@ -331,26 +332,24 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   name="complianceOfficer"
                   rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
-                    <Tags
-                      title={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
-                      max={1}
-                      chips={complianceOfficer}
-                      tags={complianceOfficerList.records}
-                      setTags={(selectedTags) => {
-                        setComplianceOfficer(selectedTags);
-                        field.onChange(selectedTags);
+                    <TypeAheadBox
+                      label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
+                      placeholder={'Select your (LCO/LCR)'}
+                      defaultValue={complianceOfficer}
+                      list={complianceOfficerList.records}
+                      setSelected={(selectedTags) => {
+                        setComplianceOfficer(selectedTags.localComplianceOfficer || []);
+                        field.onChange(selectedTags.localComplianceOfficer);
                       }}
-                      suggestionRender={(item) => (
+                      required={true}
+                      showError={errors.complianceOfficer?.message}
+                      render={(item) => (
                         <div className={Styles.optionContainer}>
                           <span className={Styles.optionText}>Entity ID: {item?.entityId}</span>
                           <span className={Styles.optionText}>Entiry Name: {item?.entityName}</span>
                           <span className={Styles.optionText}>LCO: {item?.name}</span>
                         </div>
                       )}
-                      isMandatory={true}
-                      showMissingEntryError={errors.complianceOfficer?.message}
-                      disableOnBlurAdd={true}
-                      suggestionPopupHeight={120}
                     />
                   )}
                 />
