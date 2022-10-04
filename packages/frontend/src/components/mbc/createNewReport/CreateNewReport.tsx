@@ -416,12 +416,25 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
   }
 
   public changeQuickPath = (value: boolean) => {
-    const report = { ...this.state.report };
+    const report = {...this.state.report};
     report.usingQuickPath = !value;
-    // this.setOpenTabs(report.openSegments);
-    this.setState({ report }, () => {
+    
+    // Following two if's are mentioned because when we switch quickview then its state gets changed
+    if (report.description.division.subdivision.id === null) {
+      report.description.division.subdivision.id = '0';
+      report.description.division.subdivision.name = 'Choose';
+      this.setState({currentState: JSON.parse(JSON.stringify(report))});
+    }
+    if (report.description.division.subdivision.id === '0') {
+      report.description.division.subdivision.id = '0';
+      report.description.division.subdivision.name = 'Choose';
+      this.setState({currentState: JSON.parse(JSON.stringify(report))});
+    }
+    this.setState({report},()=>{
       Tabs.defaultSetup();
-      // document.getElementById(this.state.currentTab).click();
+      if(!this.state.report.usingQuickPath){
+        document.getElementById('description').click();
+      }
     });
   };
 
