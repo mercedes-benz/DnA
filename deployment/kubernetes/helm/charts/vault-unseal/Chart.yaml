@@ -1,0 +1,12 @@
+apiVersion: v2
+appVersion: 0.4.0
+description: A chart for unseal Vault cron job
+keywords:
+- vault
+- unseal
+- cron
+name: vault-unseal-cronjob
+sources:
+- https://github.com/omegion/vault-unseal
+type: application
+version: 0.4.0
