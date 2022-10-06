@@ -10,6 +10,7 @@ import Modal from 'dna-container/Modal';
 import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 
+import { chronosApi } from '../apis/chronos.api';
 import { setProjects } from './redux/projectsSlice';
 import { GetProjects } from './redux/projects.services';
 import ProjectsCardItem from './ProjectCardItem';
@@ -18,7 +19,6 @@ import FirstRun from './shared/firstRun/FirstRun';
 import Notification from '../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import Breadcrumb from './shared/breadcrumb/Breadcrumb';
-import { chronosApi } from '../apis/chronos.api';
 
 const ForeCastingProjects = ({ user }) => {
   const [createProject, setCreateProject] = useState(false);
