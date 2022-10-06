@@ -55,7 +55,7 @@ const ForecastForm = ({ user }) => {
   const getProjectById = () => {
     ProgressIndicator.show();
     chronosApi.getForecastProjectById(projectId).then((res) => {
-      setProject(res);
+      setProject(res.data);
       setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
