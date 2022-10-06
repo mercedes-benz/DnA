@@ -22,10 +22,10 @@ spec:
           restartPolicy: {{ .Values.restartPolicy }}
           initContainers:
             - name: backup-secret
-              image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
-              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              image: "{{ .Values.backup.image.name }}:{{ .Values.backup.image.tag }}"
+              imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
               command: ["./medusa", "export", "$(VAULT_PATH)","--format", "json", "-o", "/backup/backup.json"]
-              {{- with .Values.envs }}            
+              {{- with .Values.backup.envs }}            
               env:
               {{- toYaml . | nindent 14 }}
               {{- end }} 
@@ -34,10 +34,10 @@ spec:
                   mountPath: /backup
           containers:
             - name: copy-secret-to-minio
-              image: bitnami/minio-client:2022.1.25-debian-10-r2
+              image: "{{ .Values.minio.image.name }}:{{ .Values.minio.image.tag }}"
               command: ["/bin/sh", "-c"]
-              args: [' mc alias set myminio {{ .Values.minio.endpoint }} {{ .Values.minio.access_key }} {{ .Values.minio.secret_key }} && mc --insecure cp /backup/backup.json myminio/{{ .Values.minio.bucket }}']
-              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              args: [' mc alias set myminio {{ .Values.minio.endpoint }} {{ .Values.minio.accessKey }} {{ .Values.minio.secretKey }} && mc --insecure cp /backup/backup.json myminio/{{ .Values.minio.bucket }}/{{ .Values.minio.fileName }}']
+              imagePullPolicy: {{ .Values.minio.image.pullPolicy }}
               volumeMounts:
                 - name: backup
                   mountPath: /backup              

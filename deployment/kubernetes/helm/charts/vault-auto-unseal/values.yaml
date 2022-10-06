@@ -1,6 +1,6 @@
-schedule: '"*/30 * * * *"'
+schedule: '"*/10 * * * *"'
 restartPolicy: OnFailure
-successfulJobsHistoryLimit: 2
+successfulJobsHistoryLimit: 1
 namespace: vault
 image:
   name: ghcr.io/omegion/vault-unseal
