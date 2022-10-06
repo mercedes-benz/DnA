@@ -577,6 +577,8 @@ export interface IDescriptionRequest {
   frontendTechnologies: IFrontEndTech[];
   tags: string[];
   reportLink: string;
+  reportType: IReportType[] | any;
+  pii: string;
 }
 
 export interface ICustomers {
@@ -648,6 +650,10 @@ export interface ICreateNewReport {
   reportId: string;
 }
 export interface IProductPhase {
+  id: string;
+  name: string;
+}
+export interface IReportType {
   id: string;
   name: string;
 }
