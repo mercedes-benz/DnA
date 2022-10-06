@@ -5,7 +5,7 @@ keywords:
 - vault
 - unseal
 - cron
-name: vault-unseal-cronjob
+name: vault-auto-unseal
 sources:
 - https://github.com/omegion/vault-unseal
 type: application
