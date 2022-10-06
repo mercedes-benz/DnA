@@ -45,3 +45,8 @@
   margin-top: 15px !important;
   padding: 25px 38px;
 }
+
+.isDisabled{
+  pointer-events: none;
+  opacity: 0.5;
+}
