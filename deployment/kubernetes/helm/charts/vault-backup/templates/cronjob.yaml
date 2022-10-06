@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  schedule: {{ .Values.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ .Chart.Name }}
+        spec:
+          securityContext:
+            runAsUser: 1000
+          restartPolicy: {{ .Values.restartPolicy }}
+          initContainers:
+            - name: backup-secret
+              image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["./medusa", "export", "$(VAULT_PATH)","--format", "json", "-o", "/backup/backup.json"]
+              {{- with .Values.envs }}            
+              env:
+              {{- toYaml . | nindent 14 }}
+              {{- end }} 
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: copy-secret-to-minio
+              image: bitnami/minio-client:2022.1.25-debian-10-r2
+              command: ["/bin/sh", "-c"]
+              args: [' mc alias set myminio {{ .Values.minio.endpoint }} {{ .Values.minio.access_key }} {{ .Values.minio.secret_key }} && mc --insecure cp /backup/backup.json myminio/{{ .Values.minio.bucket }}']
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup              
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup
+            emptyDir: {}
+
+
+
