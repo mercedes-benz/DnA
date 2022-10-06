@@ -63,7 +63,7 @@ const ForecastResults = () => {
       if(res.status === 204) {
         setForecastRuns([]);
       } else {
-        setForecastRuns(res.records);
+        setForecastRuns(res.data.records);
       }
       setLoading(false);
       ProgressIndicator.hide();
