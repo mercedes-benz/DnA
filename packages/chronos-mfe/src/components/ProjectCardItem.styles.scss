@@ -111,4 +111,8 @@
       background-color: transparent;
     }
   }
+  button:disabled {
+    background-color: unset;
+    cursor: not-allowed;
+  }
 }
