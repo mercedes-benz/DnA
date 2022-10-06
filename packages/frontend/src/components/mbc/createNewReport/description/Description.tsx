@@ -18,6 +18,7 @@ import {
   ISubDivision,
   IDivisionAndSubDivision,
   IDepartment,
+  IReportType,
 } from 'globals/types';
 import Styles from './Description.scss';
 import Tags from 'components/formElements/tags/Tags';
@@ -73,6 +74,10 @@ export interface IDescriptionState {
   departmentTags: string[];
   reportLink: string;
   reportLinkError: string;
+  reportTypeValue: IReportType[];
+  reportTypeError: string;
+  piiValue: IReportType[];
+  piiError: string;
 }
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
@@ -91,6 +96,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       tags: props.description.tags,
       departmentTags: props.description.department,
       reportLink: props.description.reportLink,
+      reportTypeValue: props.description.reportType,
+      piiValue: props.description.pii
     };
   }
   constructor(props: IDescriptionProps) {
@@ -123,6 +130,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: [],
       reportLink: null,
       reportLinkError: null,
+      reportTypeValue: null,
+      reportTypeError: null,
+      piiValue: null,
+      piiError: null
     };
   }
 
@@ -166,6 +177,22 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     this.setState({
       description: desc,
     });
+  };
+
+  public onReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    const selectedValues: IReportType[] = [];
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        const reportType: IReportType = { id: null, name: null };
+        reportType.id = option.value;
+        reportType.name = option.textContent;
+        selectedValues.push(reportType);
+      });
+    }
+    const description = this.props.description;
+    description.reportType = selectedValues;
+    this.setState({ productPhaseValue: selectedValues });
   };
 
   public onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -270,7 +297,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     description.status = selectedValues;
     this.setState({ statusValue: selectedValues });
   };
-  public onChangeDesignGuideInpl = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  public onChangePii = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
     const selectedValues: IDesignGuide[] = [];
     if (selectedOptions.length) {
@@ -282,8 +309,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       });
     }
     const description = this.props.description;
-    description.designGuideImplemented = selectedValues;
-    this.setState({ designGuideValue: selectedValues });
+    description.pii = selectedValues[0].id;
+    this.setState({ piiValue: selectedValues });
   };
 
   public onChangeFrontTechnologies = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -306,7 +333,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const divisionError = this.state.divisionError || '';
     const productNameError = this.state.productNameError || '';
     const descriptionError = this.state.descriptionError || '';
-    const productPhaseError = this.state.productPhaseError || '';
+    // const productPhaseError = this.state.productPhaseError || '';
     const statusError = this.state.statusError || '';
     const artError = this.state.artError || '';
     const integratedPortalError = this.state.integratedPortalError || '';
@@ -316,11 +343,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
     const requiredError = '*Missing entry';
 
-    const productPhaseValue = this.state.productPhaseValue
-      ?.map((productPhase: IProductPhase) => {
-        return productPhase.name;
-      })
-      ?.toString();
+    // const productPhaseValue = this.state.productPhaseValue
+    //   ?.map((productPhase: IProductPhase) => {
+    //     return productPhase.name;
+    //   })
+    //   ?.toString();
 
     const frontEndTechValue = this.state.frontEndTechValue
       ?.map((frontEndTech: IFrontEndTech) => {
@@ -333,6 +360,12 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
         return statusValue.name;
       })
       ?.toString();
+
+    const reportTypeValue = this.state.reportTypeValue
+      ?.map((reportTypeValue: IReportType) => {
+        return reportTypeValue.name;
+      })
+      ?.toString();  
 
     const designGuideValue = this.state.designGuideValue
       ?.map((designGuide: IDesignGuide) => {
@@ -360,22 +393,78 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
         <div>
           <div className={classNames(Styles.wrapper)}>
             <div className={classNames(Styles.firstPanel, 'decriptionSection')}>
-              <h3>Please give a detailed report description</h3>
+              <h3>Please give a report description</h3>
               <div className={classNames(Styles.formWrapper, this.props.enableQuickPath ? Styles.flexLayout : '')}>
                 <div>
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'reportNameInput'}
-                      labelId={'reportNameLabel'}
-                      label={'Report Name'}
-                      placeholder={'Type here'}
-                      value={this.state.productName}
-                      errorText={productNameError}
-                      required={true}
-                      maxLength={200}
-                      onChange={this.onProductNameOnChange}
-                    />
+                  <div className={!this.props.enableQuickPath ? Styles.flexLayout : ''}>
+                    <div>
+                      <TextBox
+                        type="text"
+                        controlId={'reportNameInput'}
+                        labelId={'reportNameLabel'}
+                        label={'Report Name'}
+                        placeholder={'Type here'}
+                        value={this.state.productName}
+                        errorText={productNameError}
+                        required={true}
+                        maxLength={200}
+                        onChange={this.onProductNameOnChange}
+                      />
+                    </div>
+                    {!this.props.enableQuickPath ?
+                      // <div>
+                      //   <TextBox
+                      //     type="text"
+                      //     controlId={'reportTypeInput'}
+                      //     labelId={'reportTypeLabel'}
+                      //     label={'Report Type'}
+                      //     placeholder={'Type here'}
+                      //     value={this.state.productName}
+                      //     errorText={productNameError}
+                      //     required={true}
+                      //     maxLength={200}
+                      //     onChange={this.onProductNameOnChange}
+                      //   />
+                      // </div>
+
+                      <div
+                        className={classNames(
+                          'input-field-group include-error',
+                          divisionError.length ? 'error' : '',
+                        )}
+                      >
+                        <label id="reportTypeLabel" htmlFor="reportTypeField" className="input-label">
+                          Report Type<sup>*</sup>
+                        </label>
+                        <div className="custom-select">
+                          <select
+                            id="reportTypeField"
+                            required={true}
+                            required-error={requiredError}
+                            onChange={this.onReportTypeChange}
+                            value={reportTypeValue}
+                          >
+                            <option id="reportTypeOption" value={0}>
+                              Choose
+                            </option>
+                            <option id='Standard Report' key={'Standard Report'} value={'Standard Report'}>
+                              Standard Report
+                            </option>
+                            <option id='Standard Report' key={'Self Service Report'} value={'Self Service Report'}>
+                              Self Service Report
+                            </option>
+                            {/* {this.props.divisions?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                {obj.name}
+                              </option>
+                            ))} */}
+                          </select>
+                        </div>
+                        <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                          {divisionError}
+                        </span>
+                      </div>
+                    : ''}
                   </div>
                   <div>
                     <TextArea
@@ -395,7 +484,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                   {!this.props.enableQuickPath ? (
                     <div>
                       <div>
-                        <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                        <div>
                           <div className={Styles.divisionContainer}>
                             <div
                               className={classNames(
@@ -429,40 +518,41 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               </span>
                             </div>
                           </div>
-                          <div className={Styles.subDivisionContainer}>
-                            <div className={classNames('input-field-group')}>
-                              <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
-                                Sub Division
-                              </label>
-                              <div className="custom-select">
-                                <select
-                                  id="subDivisionField"
-                                  onChange={this.onSubDivisionChange}
-                                  value={this.state.divisionValue?.subdivision?.id || '0'}
-                                >
-                                  {this.state.subDivisions.some((item) => item.id === '0' && item.name === 'None') ? (
+                        </div>
+                        
+
+                        <div className={Styles.subDivisionContainer}>
+                          <div className={classNames('input-field-group')}>
+                            <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
+                              Sub Division
+                            </label>
+                            <div className="custom-select">
+                              <select
+                                id="subDivisionField"
+                                onChange={this.onSubDivisionChange}
+                                value={this.state.divisionValue?.subdivision?.id || '0'}
+                              >
+                                {this.state.subDivisions.some((item) => item.id === '0' && item.name === 'None') ? (
+                                  <option id="subDivisionDefault" value={0}>
+                                    None
+                                  </option>
+                                ) : (
+                                  <>
                                     <option id="subDivisionDefault" value={0}>
-                                      None
+                                      Choose
                                     </option>
-                                  ) : (
-                                    <>
-                                      <option id="subDivisionDefault" value={0}>
-                                        Choose
+                                    {this.state.subDivisions?.map((obj) => (
+                                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                        {obj.name}
                                       </option>
-                                      {this.state.subDivisions?.map((obj) => (
-                                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                          {obj.name}
-                                        </option>
-                                      ))}
-                                    </>
-                                  )}
-                                </select>
-                              </div>
+                                    ))}
+                                  </>
+                                )}
+                              </select>
                             </div>
                           </div>
                         </div>
-
-                        <div>
+                        {/* <div>
                           <div
                             className={classNames(
                               'input-field-group include-error',
@@ -494,7 +584,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               {productPhaseError}
                             </span>
                           </div>
-                        </div>
+                        </div> */}
                         <div>
                           <div
                             className={classNames(
@@ -532,24 +622,30 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               designGuidError.length ? 'error' : '',
                             )}
                           >
-                            <label id="designGuidImplLabel" htmlFor="designGuidImplField" className="input-label">
-                              Design Guide Implemented<sup>*</sup>
+                            <label id="piiLabel" htmlFor="piiField" className="input-label">
+                              PII(Personally Identifiable Information)<sup>*</sup>
                             </label>
                             <div className="custom-select">
                               <select
-                                id="designGuidImplField"
+                                id="piiField"
                                 // multiple={true}
                                 required={true}
                                 required-error={requiredError}
-                                onChange={this.onChangeDesignGuideInpl}
+                                onChange={this.onChangePii}
                                 value={designGuideValue}
                               >
                                 <option value={''}>Choose</option>
-                                {this.props.designGuideImplemented?.map((obj) => (
+                                <option id='Yes' key={'Yes'} value={'Yes'}>
+                                  Yes
+                                </option>
+                                <option id='No' key={'No'} value={'No'}>
+                                  No
+                                </option>
+                                {/* {this.props.designGuideImplemented?.map((obj) => (
                                   <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                     {obj.name}
                                   </option>
-                                ))}
+                                ))} */}
                               </select>
                             </div>
                             <span className={classNames('error-message', designGuidError.length ? '' : 'hide')}>
@@ -564,9 +660,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                   )}
                   <div>
                     <div>
+                      
                       <div className={Styles.departmentTags}>
                         <Tags
-                          title={'Department'}
+                          title={'E2-Department'}
                           max={1}
                           chips={departmentValue}
                           tags={this.props.departmentTags}
@@ -575,6 +672,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           showMissingEntryError={this.state.showDepartmentMissingError}
                         />
                       </div>
+
+
                       <div>
                         <div
                           className={classNames('input-field-group include-error', statusError.length ? 'error' : '')}
@@ -607,11 +706,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         </div>
                       </div>
                       {!this.props.enableQuickPath ? (
-                        <div className={classNames('input-field-group include-error', artError.length ? 'error' : '')}>
+                        <div className={classNames('input-field-group include-error', artError.length ? 'error' : '', reportTypeValue === 'Self Service Report' ? Styles.isDisabled : '')}>
                           <label id="ARTLabel" htmlFor="ARTField" className="input-label">
                             Agile Release Train
                           </label>
-                          <div className="custom-select">
+                          <div className={classNames("custom-select")}>
                             <select
                               id="ARTField"
                               multiple={true}
@@ -812,8 +911,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     //   this.setState({ integratedPortalError: errorMissingEntry });
     //   formValid = false;
     // }
-    if (!this.state.designGuideValue || this.state.designGuideValue[0].name === 'Choose') {
-      this.setState({ designGuideError: errorMissingEntry });
+    if (!this.state.reportTypeValue || this.state.reportTypeValue[0].name === 'Choose') {
+      this.setState({ reportTypeError: errorMissingEntry });
       formValid = false;
     }
     if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0].name === 'Choose') {
