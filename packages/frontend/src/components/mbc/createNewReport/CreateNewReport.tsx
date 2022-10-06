@@ -164,6 +164,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           frontendTechnologies: [],
           tags: [],
           reportLink: '',
+          reportType: null,
+          pii: ''
         },
         kpis: [],
         customer: {
@@ -363,6 +365,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.division = res.description.division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
               report.description.reportLink = res.description.reportLink;
+              report.description.reportType = res.description?.reportType || [];
+              report.description.reportType = res.description?.pii;
               report.customer.customerDetails = res.customer?.customerDetails || [];
               report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
