@@ -1,35 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Styles from './ProjectCardItem.styles.scss';
 import { withRouter } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
-// import { chronosApi } fro../apis/chronosapi';
-// import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 
-import ConfirmModal from 'dna-container/ConfirmModal';
-
-const ProjectCardItem = ({
-  project,
-  onEdit,
-  history
-}) => {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const deleteProjectContent = (
-    <div>
-      <h3>Are you sure you want to delete {project?.name} ? </h3>
-    </div>
-  );
-
-  const deleteProjectAccept = () => {
-    // ProgressIndicator.show();
-    // chronosApi.deleteProject(project.id).then(() => {
-    //   setShowDeleteModal(false);
-    // });
-    setShowDeleteModal(false);
-  };
-  const deleteProjectClose = () => {
-    setShowDeleteModal(false);
-  };
+const ProjectCardItem = ({project, history}) => {
 
   const displayPermission = (item) => {
     return Object.entries(item)
@@ -42,9 +16,6 @@ const ProjectCardItem = ({
       ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
       ?.join(' / ');
   };
-
-  console.log('project details');
-  console.log(project);
 
   return (
     <>
@@ -82,26 +53,18 @@ const ProjectCardItem = ({
         <div className={Styles.cardFooter}>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary" onClick={() => onEdit(project)}>
-              <i className="icon mbc-icon edit"></i>
+            <button className="btn btn-primary" disabled={true}>
+              <i className="icon mbc-icon edit fill"></i>
             </button>
-            <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-              <i className="icon delete"></i>
+            <button className="btn btn-primary" disabled={true}>
+              <i className="icon mbc-icon share"></i>
+            </button>
+            <button className="btn btn-primary" disabled={true}>
+              <i className="icon mbc-icon data-sharing"></i>
             </button>
           </div>
         </div>
       </div>
-      <ConfirmModal
-        title={''}
-        acceptButtonTitle="Yes"
-        cancelButtonTitle="No"
-        showAcceptButton={true}
-        showCancelButton={true}
-        show={showDeleteModal}
-        content={deleteProjectContent}
-        onCancel={deleteProjectClose}
-        onAccept={deleteProjectAccept}
-      />
     </>
   );
 };
