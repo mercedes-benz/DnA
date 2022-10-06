@@ -419,9 +419,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     }
   }
 
-  public changeQuickPath = (value: boolean) => {
+  public changeQuickPath = () => {
     const report = {...this.state.report};
-    report.usingQuickPath = !value;
+    // report.usingQuickPath = !value;
+    report.usingQuickPath = false;
     
     // Following two if's are mentioned because when we switch quickview then its state gets changed
     if (report.description.division.subdivision.id === null) {
@@ -453,7 +454,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             </div>
             {!this.state.report.reportId && currentTab === 'description' ? (
               <div className={Styles.switchButton}>
-                <label className="switch">
+                {/* <label className="switch">
                   <span className="label" style={{ marginRight: '5px' }}>
                     {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
                   </span>
@@ -465,7 +466,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       checked={this.state.report.usingQuickPath}
                     />
                   </span>
-                </label>
+                </label> */}
               </div>
             ) : (
               ''
@@ -494,6 +495,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 this.setState({ subDivisions }, () => SelectBox.defaultSetup())
               }
               enableQuickPath={this.state.report.usingQuickPath}
+              refineReport={this.changeQuickPath}
             />
           ) : (
             <div id="create-report-tabs" className="tabs-panel">
