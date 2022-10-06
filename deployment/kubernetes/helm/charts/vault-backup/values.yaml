@@ -1,0 +1,25 @@
+schedule: '"*/30 * * * *"'
+restartPolicy: OnFailure
+successfulJobsHistoryLimit: 2
+namespace: vault
+image:
+  name: ghcr.io/jonasvinther/medusa
+  tag: latest
+  pullPolicy: IfNotPresent
+  
+#Add new env as array value with name/value field. Keep one tab indentation.
+envs:
+  - name: VAULT_SKIP_VERIFY
+    value: "true"
+  - name: VAULT_ADDR
+    value: "http://vault:8200"
+  - name: VAULT_PATH
+    value: "kv"
+  - name: VAULT_TOKEN
+    value: ""
+
+minio:
+  bucket: "vault"
+  endpoint: "http://minio.storage:9000"
+  access_key: ""
+  secret_key: ""
