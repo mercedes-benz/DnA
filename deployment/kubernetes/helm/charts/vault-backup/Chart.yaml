@@ -5,6 +5,6 @@ keywords:
 - vault
 - backup
 - cron
-name: vault-backup-cronjob
+name: vault-backup
 type: application
 version: 1.0.0
