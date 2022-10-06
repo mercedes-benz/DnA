@@ -45,8 +45,8 @@ const ProjectDetails = () => {
   const getProjectById = () => {
     ProgressIndicator.show();
       chronosApi.getForecastProjectById(projectId).then((res) => {
-      setProject(res);
-      const members = res?.collaborators.map(member => ({...member, userType: 'internal'}));
+      setProject(res.data);
+      const members = res.data.collaborators.map(member => ({...member, userType: 'internal'}));
       setTeamMembers(members);
       setLoading(false);
       ProgressIndicator.hide();
