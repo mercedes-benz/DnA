@@ -44,6 +44,7 @@ export interface IDescriptionProps {
   departmentTags: IDepartment[];
   setSubDivisions: (subDivisions: ISubDivision[]) => void;
   enableQuickPath: boolean;
+  refineReport?: () => void;
 }
 
 export interface IDescriptionState {
@@ -825,9 +826,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                 Save & Next
               </button>
             ) : (
-              <button className="btn btn-tertiary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
-                Publish Report
-              </button>
+              <div>
+                <button className={classNames("btn btn-primary", Styles.refineReportButton)} type="button" onClick={this.props.refineReport}>
+                  Refine Report
+                </button>
+                <button className="btn btn-tertiary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
+                  Publish Report
+                </button>
+              </div>
             )}
           </div>
         </div>
