@@ -271,6 +271,11 @@ const Summary = ({ history }) => {
                             {data.LCOApprovedDataTransfer}
                           </div>
                         ) : null}
+                        <div>
+                          <label className="input-label summary">Does product contain insider information?</label>
+                          <br />
+                          {data.insiderInformation}
+                        </div>
                       </div>
                       <div className={Styles.flexLayout}>
                         <div>
