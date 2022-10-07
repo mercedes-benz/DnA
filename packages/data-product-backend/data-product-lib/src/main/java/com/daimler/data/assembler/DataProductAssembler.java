@@ -289,9 +289,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						.getTransnationalDataTransfer();
 				if (transnationalDataTransferVO != null) {
 					ProviderTransnationalDataTransfer transnationalDataTransfer = new ProviderTransnationalDataTransfer();
+					BeanUtils.copyProperties(transnationalDataTransferVO, transnationalDataTransfer);
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
-					transnationalDataTransfer.setApproved(transnationalDataTransferVO.getApproved());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
 					provider.setTransnationalDataTransfer(transnationalDataTransfer);
 				}

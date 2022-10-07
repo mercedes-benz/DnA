@@ -39,5 +39,6 @@ public class ProviderTransnationalDataTransfer {
 	private boolean dataTransferred;
 	private boolean notWithinEU;
 	private String approved;
+	private String insiderInformation;
 	private boolean dataFromChina;
 }
