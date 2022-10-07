@@ -50,6 +50,7 @@ const tabs = {
     transnationalDataTransfer: '',
     transnationalDataTransferNotWithinEU: '',
     LCOApprovedDataTransfer: '',
+    insiderInformation: '',
     dataOriginatedFromChina: '',
   },
   'deletion-requirements': { deletionRequirement: '', deletionRequirementDescription: '', otherRelevantInfo: '' },
