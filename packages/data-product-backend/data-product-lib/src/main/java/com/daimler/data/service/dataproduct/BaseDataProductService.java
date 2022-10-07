@@ -473,7 +473,8 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			if (currDataProductVO.isNotifyUsers()) {
 				CreatedByVO currentUser = this.userStore.getVO();
 				String resourceID = currDataProductVO.getDataProductId();
-				String dataProductName = currDataProductVO.getDataProductName();
+				String existingDataProductName = prevDataProductVO.getDataProductName();
+				String currentDataProductName = currDataProductVO.getDataProductName();
 				String eventType = "";
 				String eventMessage = "";
 				String userName = super.currentUserName(currentUser);
@@ -519,28 +520,27 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					eventMessage = "A Minimum Information Documentation data transfer is complete. [view]("
 							+ dataProductBaseUrl + "summary/" + resourceID + ")";
 					LOGGER.info("Publishing message on consumer form submission for dataProduct {} by userId {}",
-							dataProductName, userId);
+							currentDataProductName, userId);
 
 				} else if (prevDataProductVO.isPublish() && currDataProductVO.isPublish()) {
 					eventType = "DataProduct_Update";
-					eventMessage = "DataProduct " + dataProductName + " is updated by user " + userName;
+					eventMessage = "DataProduct " + existingDataProductName + " is updated by user " + userName;
 					changeLogs = dataProductAssembler.jsonObjectCompare(currDataProductVO, prevDataProductVO,
 							currentUser);
-					LOGGER.info("Publishing message on update for dataProduct {} by userId {}", dataProductName,
+					LOGGER.info("Publishing message on update for dataProduct {} by userId {}", existingDataProductName,
 							userId);
-
 				} else if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
 					eventType = "DataProduct - Provider Form Submitted";
 					eventMessage = "A Minimum Information Documentation is ready for you. Please [provide information]("
 							+ dataProductBaseUrl + "consume/" + resourceID + ")"
 							+ " about the receiving side to finalise the Data Transfer.";
 					LOGGER.info("Publishing message on provider form submission for dataProduct {} by userId {}",
-							dataProductName, userId);
+							currentDataProductName, userId);
 				}
 				if (StringUtils.hasText(eventType)) {
 					kafkaProducer.send(eventType, resourceID, "", userId, eventMessage, true, teamMembers,
 							teamMembersEmails, changeLogs);
-					LOGGER.info("Published successfully event {} for data product {}", eventType, dataProductName);
+					LOGGER.info("Published successfully event {} for data product with id {}", eventType, resourceID);
 				}
 			}
 		} catch (Exception e) {
@@ -590,7 +590,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				MessageDescription invalidMsg = new MessageDescription("No dataProduct with the given id found");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(invalidMsg);
-				LOGGER.error("No dataProduct with the given id {} found.", id);
+				LOGGER.debug("No dataProduct with the given id {} found.", id);
 				return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {

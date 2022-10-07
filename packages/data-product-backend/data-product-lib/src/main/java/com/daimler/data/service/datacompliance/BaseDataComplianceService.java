@@ -43,13 +43,16 @@ import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DataComplianceAssembler;
+import com.daimler.data.assembler.DataProductAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataComplianceNsql;
 import com.daimler.data.db.repo.datacompliance.DataComplianceCustomRepository;
 import com.daimler.data.db.repo.datacompliance.DataComplianceRepository;
+import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.datacompliance.DataComplianceResponseVO;
 import com.daimler.data.dto.datacompliance.DataComplianceVO;
+import com.daimler.data.dto.dataproduct.ChangeLogVO;
 import com.daimler.data.service.common.BaseCommonService;
 
 @Service
@@ -63,6 +66,9 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 
 	@Autowired
 	private DataComplianceAssembler dataComplianceAssembler;
+
+	@Autowired
+	private DataProductAssembler dataProductAssembler;
 
 	@Autowired
 	private DataComplianceCustomRepository dataComplianceCustomRepository;
@@ -126,6 +132,16 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 
 				DataComplianceVO dataComplianceVO = this.create(requestDataComplianceVO);
 				if (dataComplianceVO != null && dataComplianceVO.getId() != null) {
+					String eventType = "DataCompliance_create";
+					List<ChangeLogVO> changeLogs = new ArrayList<>();
+					CreatedByVO currentUser = this.userStore.getVO();
+					String userId = currentUser.getId();
+					String userName = super.currentUserName(currentUser);
+					changeLogs = dataProductAssembler.jsonObjectCompare(dataComplianceVO, null, currentUser);
+					String eventMessage = "DataCompliance with entityID " + dataComplianceVO.getEntityId()
+							+ " and entityName " + dataComplianceVO.getEntityName() + " has been added by Admin "
+							+ userName;
+					super.notifyAllAdminUsers(eventType, dataComplianceVO.getId(), eventMessage, userId, changeLogs);
 					dataComplianceResponseVO.setData(dataComplianceVO);
 					LOGGER.info("DataCompliance entry {} created successfully", uniqueEntityId);
 					return new ResponseEntity<>(dataComplianceResponseVO, HttpStatus.CREATED);
@@ -188,6 +204,17 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 					requestDataComplianceVO.setModifiedBy(this.userStore.getVO());
 					mergedDataComplianceVO = super.create(requestDataComplianceVO);
 					if (mergedDataComplianceVO != null && mergedDataComplianceVO.getId() != null) {
+						String eventType = "DataCompliance_update";
+						List<ChangeLogVO> changeLogs = new ArrayList<>();
+						CreatedByVO currentUser = this.userStore.getVO();
+						String userId = currentUser.getId();
+						String userName = super.currentUserName(currentUser);
+						changeLogs = dataProductAssembler.jsonObjectCompare(mergedDataComplianceVO, existingEntityIdVO,
+								currentUser);
+						String eventMessage = "DataCompliance with entityID " + existingEntityIdVO.getEntityId()
+								+ " and entityName " + existingEntityIdVO.getEntityName()
+								+ " has been updated by Admin " + userName;
+						super.notifyAllAdminUsers(eventType, id, eventMessage, userId, changeLogs);
 						response.setData(mergedDataComplianceVO);
 						response.setErrors(null);
 						LOGGER.info("DataCompliance with id {} updated successfully", id);
@@ -240,11 +267,29 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 	public ResponseEntity<GenericMessage> deleteDataCompliance(String id) {
 		try {
 			if (verifyUserRoles()) {
-				this.deleteById(id);
-				GenericMessage successMsg = new GenericMessage();
-				successMsg.setSuccess("success");
-				LOGGER.info("DataCompliance entry with id {} deleted successfully", id);
-				return new ResponseEntity<>(successMsg, HttpStatus.OK);
+				CreatedByVO currentUser = this.userStore.getVO();
+				String userId = currentUser.getId();
+				DataComplianceVO existingVO = super.getById(id);
+				if (existingVO != null && existingVO.getId() != null) {
+					String userName = super.currentUserName(currentUser);
+					String eventMessage = "DataCompliance with entityID " + existingVO.getEntityId()
+							+ " and entityName " + existingVO.getEntityName() + " has been deleted by Admin "
+							+ userName;
+					this.deleteById(id);
+					super.notifyAllAdminUsers("DataCompliance_delete", id, eventMessage, userId, null);
+					GenericMessage successMsg = new GenericMessage();
+					successMsg.setSuccess("success");
+					LOGGER.info("DataCompliance entry with id {} deleted successfully", id);
+					return new ResponseEntity<>(successMsg, HttpStatus.OK);
+				} else {
+					MessageDescription invalidMsg = new MessageDescription(
+							"No dataCompliance entry with the given id found");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidMsg);
+					LOGGER.debug("No dataCompliance entry with the given id {} found.", id);
+					return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+				}
+
 			} else {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage("Not authorized to delete dataCompliance entry.");
