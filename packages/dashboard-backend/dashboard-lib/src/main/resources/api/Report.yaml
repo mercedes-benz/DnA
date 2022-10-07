@@ -79,12 +79,7 @@ paths:
           in: query
           description: Filtering reports based on publish state. Draft or published, values true or false
           required: false
-          type: boolean                                         
-        - name: productPhase
-          in: query
-          description: List of productPhase of reports, seperated by comma. Example 1,2,3
-          required: false
-          type: string
+          type: boolean
         - name: status
           in: query
           description: Project status of reports
@@ -112,10 +107,10 @@ paths:
           type: integer
         - name: sortBy
           in: query
-          description: Sort reports by a given variable like productName, productPhase or status
+          description: Sort reports by a given variable like productName, status
           required: false
           type: string
-          enum: [productName, productPhase, status, department, productOwner, art]
+          enum: [productName, status, department, productOwner, art]
         - name: sortOrder
           in: query
           description: Sort reports based on the given order, example asc,desc
@@ -367,9 +362,14 @@ definitions:
         description: "Description about the report"
         type: string
         minLength: 1
-      productPhase:
+      reportType: 
+        description: "Type of report"
         type: string
-        description: "Product Phase of the report"
+        minLength: 1
+      piiData: 
+        type: string
+        description: "Personally identifiable information."
+        minLength: 1
       status:
         type: string
         description: "Status of the report"
@@ -395,12 +395,11 @@ definitions:
       agileReleaseTrains:
         type: array
         items:
-          type: string    
-      designGuideImplemented:
-        type: string
-        description: "Flag to identify if design guide implemented or not"
+          type: string
     required:
       - productDescription
+      - reportType
+      - piiData
       - status
       - frontendTechnologies
       - department

@@ -63,10 +63,10 @@ public interface ReportService extends CommonService<ReportVO, ReportNsql, Strin
 	 * @param sortOrder
 	 * @return reports{List<ReportVO>}
 	 */
-	List<ReportVO> getAllWithFilters(Boolean published, List<String> productPhase, List<String> statuses, String userId,
-			Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy,
-			String sortOrder, String division, List<String> department, List<String> processOwner,
-			List<String> productOwner, List<String> art);
+	List<ReportVO> getAllWithFilters(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
+			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder,
+			String division, List<String> department, List<String> processOwner, List<String> productOwner,
+			List<String> art);
 
 	/**
 	 * To get Count of all the reports with given filters.
@@ -80,9 +80,9 @@ public interface ReportService extends CommonService<ReportVO, ReportNsql, Strin
 	 * @param tags
 	 * @return count{Long}
 	 */
-	Long getCount(Boolean published, List<String> productPhase, List<String> statuses, String userId, Boolean isAdmin,
-			List<String> searchTerms, List<String> tags, String division, List<String> department,
-			List<String> processOwner, List<String> productOwner, List<String> art);
+	Long getCount(Boolean published, List<String> statuses, String userId, Boolean isAdmin, List<String> searchTerms,
+			List<String> tags, String division, List<String> department, List<String> processOwner,
+			List<String> productOwner, List<String> art);
 
 	/**
 	 * To delete for each report.
