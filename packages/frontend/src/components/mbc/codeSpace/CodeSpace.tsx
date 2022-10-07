@@ -178,7 +178,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
             if (res.status === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
-              clearInterval(livelinessInterval);
+              clearInterval(livelinessIntervalRef.current);
               // setCodeSpaceData({
               //   ...codeSpaceData,
               //   deployed: true,
