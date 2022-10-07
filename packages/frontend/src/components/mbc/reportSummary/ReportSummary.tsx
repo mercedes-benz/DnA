@@ -83,7 +83,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
           tags: [],
           reportLink: '',
           reportType: '',
-          pii: ''
+          piiData: ''
         },
         kpis: [],
         customer: {
