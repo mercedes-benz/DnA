@@ -300,7 +300,7 @@ definitions:
         type: string
         format: date
       name:
-        $ref: "#/definitions/TeamMemberVO"           
+        $ref: "#/definitions/DataProductTeamMemberVO"           
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -398,7 +398,7 @@ definitions:
         type: boolean
         description: "Is LCO/LCR needed to be involved to check legal basis of usage of personal data"
       ownerName:
-        $ref: "#/definitions/TeamMemberVO"
+        $ref: "#/definitions/DataProductTeamMemberVO"
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -479,7 +479,7 @@ definitions:
       users:
         type: array
         items:
-          $ref: "#/definitions/TeamMemberVO"               
+          $ref: "#/definitions/DataProductTeamMemberVO"               
       createdDate:
         type: string
         format: date
@@ -670,7 +670,7 @@ definitions:
         type: string
         description: name of subdivision
         
-  TeamMemberVO:
+  DataProductTeamMemberVO:
     type: object
     properties:
       shortId:
@@ -706,9 +706,9 @@ definitions:
         type: boolean
         description: "Flag to identify if consumer is added by provider or not."
     required:
-      - shortId
+      - shortId 
       
-  NotificationTeamMemberVO:
+  TeamMemberVO:
     type: object
     properties:
       shortId:
@@ -741,7 +741,7 @@ definitions:
         type: string
         description: "Position of team member in project"
     required:
-      - shortId       
+      - shortId            
       
   ChangeLogVO:
     type: object
@@ -753,7 +753,7 @@ definitions:
         description: "Date on which this change occurred"
       modifiedBy:
         description: "User who changed the value"
-        $ref: "#/definitions/NotificationTeamMemberVO"
+        $ref: "#/definitions/TeamMemberVO"
       fieldChanged:
         type: string
         description: "Describe the attribute that changed"
