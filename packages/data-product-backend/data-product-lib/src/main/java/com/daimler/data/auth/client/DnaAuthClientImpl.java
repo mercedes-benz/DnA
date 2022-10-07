@@ -27,6 +27,8 @@
 
 package com.daimler.data.auth.client;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -40,6 +42,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.dto.userinfo.UsersCollection;
+
 @Component
 public class DnaAuthClientImpl implements DnaAuthClient {
 
@@ -49,9 +53,13 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 	private String dnaBaseUri;
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
+	private static final String GET_USERS = "/api/users?limit=0&offset=0";
 
 	@Autowired
 	RestTemplate restTemplate;
+
+	@Autowired
+	HttpServletRequest httpRequest;
 
 	@Override
 	public JSONObject verifyLogin(String jwt) {
@@ -77,6 +85,30 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 			throw e;
 		}
 		return res;
+	}
+
+	@Override
+	public UsersCollection getAllUsers() {
+		UsersCollection collection = new UsersCollection();
+		try {
+			String jwt = httpRequest.getHeader("Authorization");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", jwt);
+
+			String getUsersUri = dnaBaseUri + GET_USERS;
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<UsersCollection> response = restTemplate.exchange(getUsersUri, HttpMethod.GET, entity,
+					UsersCollection.class);
+			if (response != null && response.hasBody()) {
+				LOGGER.info("Success from dna getUsers");
+				collection = response.getBody();
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occured while calling dna getUsers {}, returning empty", e.getMessage());
+		}
+		return collection;
 	}
 
 }

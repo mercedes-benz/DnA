@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  schedule: {{ .Values.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ .Chart.Name }}
+        spec:
+          securityContext:
+            runAsUser: 1000
+          restartPolicy: {{ .Values.restartPolicy }}
+          initContainers:
+            - name: backup-secret
+              image: "{{ .Values.backup.image.name }}:{{ .Values.backup.image.tag }}"
+              imagePullPolicy: {{ .Values.backup.image.pullPolicy }}
+              command: ["./medusa", "export", "$(VAULT_PATH)","--format", "json", "-o", "/backup/backup.json"]
+              {{- with .Values.backup.envs }}            
+              env:
+              {{- toYaml . | nindent 14 }}
+              {{- end }} 
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: copy-secret-to-minio
+              image: "{{ .Values.minio.image.name }}:{{ .Values.minio.image.tag }}"
+              command: ["/bin/sh", "-c"]
+              args: [' mc alias set myminio {{ .Values.minio.endpoint }} {{ .Values.minio.accessKey }} {{ .Values.minio.secretKey }} && mc --insecure cp /backup/backup.json myminio/{{ .Values.minio.bucket }}/{{ .Values.minio.fileName }}']
+              imagePullPolicy: {{ .Values.minio.image.pullPolicy }}
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup              
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup
+            emptyDir: {}
+
+
+
