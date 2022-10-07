@@ -577,8 +577,8 @@ export interface IDescriptionRequest {
   frontendTechnologies: IFrontEndTech[];
   tags: string[];
   reportLink: string;
-  reportType: IReportType[] | any;
-  pii: string;
+  reportType: string;
+  piiData: string;
 }
 
 export interface ICustomers {
