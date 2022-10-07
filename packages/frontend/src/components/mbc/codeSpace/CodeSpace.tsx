@@ -78,8 +78,8 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           status !== 'DELETED' &&
           status !== 'DELETE_FAILED'
         ) {
-          const deployed = res.status === 'DEPLOYED';
           const deployedUrl = res.deploymentUrl;
+          const deployed = res.status === 'DEPLOYED' || deployedUrl;
           setCodeSpaceData({
             id: res.id,
             name: res.name,
@@ -191,6 +191,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               Tooltip.defaultSetup();
               setShowCodeDeployModal(false);
               Notification.show(`Code from code space ${res.name} succesfully deployed.`);
+            }
+            if (res.status === 'DEPLOYMENT_FAILED') {
+              clearInterval(livelinessIntervalRef.current);
+              setCodeDeploying(false);
+              setShowCodeDeployModal(false);
+              Notification.show(`Deployment faild for code space ${res.name}. Please try again.`, 'alert');
             }
           } catch (err: any) {
             console.log(err);
