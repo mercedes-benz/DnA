@@ -120,7 +120,7 @@
   i {
     font-size: var(--font-size-icon-tile);
     line-height: 20px;
-    margin: 0 25px 0 0;
+    margin: 0 25px 0 0 !important;
   }
 }
 .qcardThree:before {
