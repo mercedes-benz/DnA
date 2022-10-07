@@ -202,7 +202,7 @@ paths:
           description: Sort dataproducts by a given variable.
           required: false
           type: string
-          enum: [dataProductName]
+          enum: [dataProductName,dataProductId]
         - name: sortOrder
           in: query
           description: Sort dataproducts based on the given order, example asc,desc
