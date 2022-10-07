@@ -49,6 +49,7 @@ import {
   ISingleDataSources,
   IDivision,
   ISubDivision,
+  IDataClassification,
 } from 'globals/types';
 import Styles from './CreateNewReport.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
@@ -80,6 +81,7 @@ export interface ICreateNewReportState {
   statuses: IProductStatus[];
   designGuideImplemented: IDesignGuide[];
   connectionTypes: IConnectionType[];
+  dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
   subSystems: ISubSystems[];
   editMode: boolean;
@@ -131,6 +133,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       designGuideImplemented: [],
       tags: [],
       connectionTypes: [],
+      dataClassifications: [{id: 'Confidential', name: 'Confidential'},
+      {id: 'Internal', name: 'Internal'},
+      {id: 'Public', name: 'Public'}],
       dataWarehouses: [],
       subSystems: [],
       departmentTags: [],
@@ -218,6 +223,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const arts = response[11].data;
         const tags: ITag[] = response[12].data;
         const connectionTypes: IConnectionType[] = response[13].data;
+        const dataClassifications: IDataClassification[] = [{id: 'Confidential', name: 'Confidential'},
+        {id: 'Internal', name: 'Internal'},
+        {id: 'Public', name: 'Public'}];
         const dataWarehouses: IDataWarehouse[] = response[14].records;
         const subSystems: ISubSystems[] = response[15].data;
         const divisions: IDivision[] = response[16];
@@ -254,6 +262,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             departmentTags,
             divisions,
             connectionTypes,
+            dataClassifications,
             dataWarehouses,
             subSystems,
             report: {
@@ -339,7 +348,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 arts,
                 dataSources,
                 connectionTypes,
-                subSystems,
+                dataClassifications,
               } = this.state;
               response.data = res;
               const report = this.state.report;
@@ -375,10 +384,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
                   item.dataSources =
                     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
-                  item.subsystems =
-                    subSystems?.filter((subItem: any) => item.subsystems.indexOf(subItem.name) > -1) || [];
+                  item.dataClassifications =
+                  dataClassifications?.filter((subItem: any) => item.dataClassifications.indexOf(subItem.name) > -1) || [];
                   item.connectionTypes =
-                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || [];
+                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || [];  
                   return item;
                 }) || [];
               report.members.developers = res.members.developers || [];
@@ -613,6 +622,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       dataAndFunctions={this.state.report.dataAndFunctions}
                       dataSources={this.state.dataSources}
                       connectionTypes={this.state.connectionTypes}
+                      dataClassifications={this.state.dataClassifications}
                       dataWarehouses={this.state.dataWarehouses}
                       subSystems={this.state.subSystems}
                       modifyDataFunction={this.modifyDataFunction}

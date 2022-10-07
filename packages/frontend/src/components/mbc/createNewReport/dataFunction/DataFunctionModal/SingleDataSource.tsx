@@ -1,7 +1,7 @@
 import React from 'react';
 import cn from 'classnames';
 import Styles from '../DataFunction.scss';
-import { IConnectionType, IDataSourceMaster, ISingleDataSources, ISubSystems } from 'globals/types';
+import { IConnectionType, IDataClassification, IDataSourceMaster, ISingleDataSources } from 'globals/types';
 import { ISingleDataSourceErrors } from '../DataFunction';
 
 const classNames = cn.bind(Styles);
@@ -11,7 +11,7 @@ interface SingleDataSourceProps {
   errors: ISingleDataSourceErrors;
   onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   requiredError: string;
-  subSystems: ISubSystems[];
+  dataClassifications: IDataClassification[];
   dataSources: IDataSourceMaster[];
   connectionTypes: IConnectionType[];
   singleDataSourceInfo: ISingleDataSources;
@@ -22,8 +22,8 @@ export const SingleDataSource = ({
   errors,
   requiredError,
   connectionTypes,
+  dataClassifications,
   dataSources,
-  subSystems,
   singleDataSourceInfo,
   onDropdownChange,
 }: SingleDataSourceProps) => {
@@ -33,9 +33,11 @@ export const SingleDataSource = ({
     })
     ?.toString();
 
-  const singleSourceSubsystemValue = singleDataSourceInfo.subsystems?.map((subsystem: ISubSystems) => {
-    return subsystem.name;
-  });
+  const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassifications
+    ?.map((dataClassification: IDataClassification) => {
+      return dataClassification.name;
+    })
+    ?.toString();  
 
   const singleSourceDataSourceValue = singleDataSourceInfo.dataSources?.map((dataSource: IDataSourceMaster) => {
     return dataSource.name;
@@ -76,29 +78,34 @@ export const SingleDataSource = ({
           </div>
           <div>
             <div>
-              <div className={classNames('input-field-group include-error', errors.subsystems ? 'error' : '')}>
-                <label id="specificFunctionLabel" htmlFor="specificFunctionInput" className="input-label">
-                  Subsystem<sup>*</sup>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors.dataClassification ? 'error' : ''
+                )}
+              >
+                <label id="dataClassificationsLabel" htmlFor="dataClassificationsInput" className="input-label">
+                  Data Classification<sup>*</sup>
                 </label>
-                <div className="custom-select">
+                <div className={`custom-select ${dataClassifications?.length ? '' : ''}`}>
                   <select
-                    id="specificFunctionField"
-                    multiple={true}
+                    id="dataClassificationsField"
+                    name="dataClassifications"
+                    value={singleSourceDataClassificationsValue}
+                    onChange={onDropdownChange}
                     required={true}
                     required-error={requiredError}
-                    name="subsystems"
-                    value={singleSourceSubsystemValue}
-                    onChange={onDropdownChange}
                   >
-                    {subSystems?.map((obj) => (
+                    {<option value="">Choose</option>}
+                    {dataClassifications?.map((obj) => (
                       <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                         {obj.name}
                       </option>
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.subsystems ? '' : 'hide')}>
-                  {errors.subsystems}
+                <span className={classNames('error-message', errors.dataClassification ? '' : 'hide')}>
+                  {errors.dataClassification}
                 </span>
               </div>
             </div>

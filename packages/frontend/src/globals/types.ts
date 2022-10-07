@@ -607,16 +607,14 @@ export interface IDataAndFunctions {
 export interface IDataWarehouseInUse {
   commonFunctions: string[];
   connectionTypes: string[];
-  dataSources: string[];
   dataWarehouse: string;
-  queries: string[];
-  specificFunctions: string[];
+  dataClassification: string[];
 }
 
 export interface ISingleDataSources {
   connectionTypes: IConnectionType[];
   dataSources: IDataSourceMaster[];
-  subsystems: ISubSystems[];
+  dataClassifications: IDataClassification[];
 }
 export interface IUserNewInfo {
   company: string;
@@ -705,13 +703,16 @@ export interface IConnectionType {
   name: string;
 }
 
+export interface IDataClassification {
+  id: string;
+  name: string;
+}
+
 export interface IDataWarehouse {
   id: string;
   dataWarehouse: string;
   commonFunctions: string[];
-  specificFunctions: string[];
-  queries: string[];
-  dataSources: string[];
+  dataClassifications: string[];
   connectionTypes: string[];
 }
 
@@ -1357,9 +1358,7 @@ export interface IDatawarehouseInItem {
   id: string;
   dataWarehouse: string;
   commonFunctions: string[];
-  specificFunctions: string[];
-  queries: string[];
-  dataSources: string[];
+  dataClassification: string[];
   connectionTypes: string[];
 }
 
