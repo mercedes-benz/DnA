@@ -102,8 +102,9 @@ public class UserStore {
 			this.lastName = this.family_name = family_name;
 		}
 
-		public boolean hasDataComplianceAdminAccess() {
-			return this.getUserRole().stream().anyMatch(n -> "DataComplianceAdmin".equalsIgnoreCase(n.getName()));
+		public boolean hasAdminAccess() {
+			return this.getUserRole().stream().anyMatch(
+					n -> "DataComplianceAdmin".equalsIgnoreCase(n.getName()) || "Admin".equalsIgnoreCase(n.getName()));
 		}
 
 	}
