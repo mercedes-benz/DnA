@@ -57,10 +57,10 @@ import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
 import com.daimler.data.dto.dataproduct.ConsumerVO;
 import com.daimler.data.dto.dataproduct.DataProductConsumerResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.dto.dataproduct.ProviderResponseVO;
 import com.daimler.data.dto.dataproduct.ProviderVO;
-import com.daimler.data.dto.dataproduct.TeamMemberVO;
 import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
@@ -339,9 +339,9 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		String userId = currentUser != null ? currentUser.getId() : "";
 		boolean canProceed = false;
 		CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
-		List<TeamMemberVO> users = existingVO.getProviderInformation().getUsers();
+		List<DataProductTeamMemberVO> users = existingVO.getProviderInformation().getUsers();
 		if (StringUtils.hasText(userId) && !userId.equalsIgnoreCase(createdBy.getId())) {
-			TeamMemberVO vo = new TeamMemberVO();
+			DataProductTeamMemberVO vo = new DataProductTeamMemberVO();
 			BeanUtils.copyProperties(currentUser, vo);
 			vo.setAddedByProvider(false);
 			vo.setShortId(userId);
@@ -352,7 +352,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				canProceed = true;
 			} else {
 				boolean isAddedByProvider = false;
-				for (TeamMemberVO member : users) {
+				for (DataProductTeamMemberVO member : users) {
 					if (userId.equalsIgnoreCase(member.getShortId())) {
 						canProceed = true;
 						break;
@@ -386,7 +386,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			}
 			if (existingVO != null && existingVO.getRecordStatus() != null
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
-				List<TeamMemberVO> existingUsers = null;
+				List<DataProductTeamMemberVO> existingUsers = null;
 				if (existingVO.getProviderInformation().getUsers() != null) {
 					existingUsers = existingVO.getProviderInformation().getUsers().stream()
 							.collect(Collectors.toList());
@@ -484,7 +484,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				List<String> teamMembers = new ArrayList<>();
 				List<String> teamMembersEmails = new ArrayList<>();
 				if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
-					for (TeamMemberVO user : currProviderVO.getUsers()) {
+					for (DataProductTeamMemberVO user : currProviderVO.getUsers()) {
 						if (user != null) {
 							String shortId = user.getShortId();
 							if (StringUtils.hasText(shortId) && !teamMembers.contains(shortId)
