@@ -14,10 +14,8 @@ interface DataWarehouseProps {
   requiredError: string;
   dataWarehouses: IDataWarehouse[];
   commonFunctions: string[];
-  specificFunctions: string[];
-  queries: string[];
-  dataSources: string[];
   connectionTypes: string[];
+  dataClassifications: string[];
   dataWarehouseInUseInfo: IDataWarehouseInUse;
 }
 
@@ -30,16 +28,15 @@ export const DataWarehouse = ({
   requiredError,
   dataWarehouses,
   commonFunctions,
-  specificFunctions,
-  queries,
-  dataSources,
+  dataClassifications,
   connectionTypes,
 }: DataWarehouseProps) => {
   const commonFunctionsError = errors.commonFunctions || '';
-  const specificFunctionsError = errors.specificFunctions || '';
-  const queriesError = errors.queries || '';
-  const originalDataSourcesError = errors.dataSources || '';
+  // const specificFunctionsError = errors.specificFunctions || '';
+  // const queriesError = errors.queries || '';
+  // const originalDataSourcesError = errors.dataSources || '';
   const connectTypesError = errors.connectionTypes || '';
+  const dataClassificationError = errors.dataClassification || '';
 
   const selectedFilterValues = dataWarehouseInUseInfo;
 
@@ -49,15 +46,18 @@ export const DataWarehouse = ({
       : selectedFilterValues.dataWarehouse;
 
   const commonFunctionsValue = selectedFilterValues.commonFunctions;
-  const specificFunctionsValue = selectedFilterValues.specificFunctions;
-  const queriesValue = selectedFilterValues.queries;
-  const originalDataSourcesValue = selectedFilterValues.dataSources;
+  // const specificFunctionsValue = selectedFilterValues.specificFunctions;
+  // const queriesValue = selectedFilterValues.queries;
+  // const originalDataSourcesValue = selectedFilterValues.dataSources;
   const connectionTypesValue = selectedFilterValues.connectionTypes?.toString();
+  const dataClassificationValue = selectedFilterValues.dataClassification?.toString();
 
   const isCarla = selectedFilterValues.dataWarehouse?.toLowerCase() === 'carla';
   const conntectionTypesDropdown = isCarla
     ? connectionTypes?.filter((item) => item?.toLowerCase() === 'live connection')
     : connectionTypes;
+  
+  const dataClassificationDropdown = dataClassifications;
 
   return (
     dataSourceType === 'datawarehouse' && (
@@ -88,6 +88,41 @@ export const DataWarehouse = ({
               <span className={classNames('error-message', errors.dataWarehouse ? '' : 'hide')}>
                 {errors.dataWarehouse}
               </span>
+            </div>
+          </div>
+          <div>
+            <div>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  connectTypesError ? 'error' : '',
+                  connectionTypes?.length ? '' : 'disabled',
+                )}
+              >
+                <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
+                  Connection Type<sup>*</sup>
+                </label>
+                <div className={`custom-select ${connectionTypes?.length ? '' : 'disabled'}`}>
+                  <select
+                    id="connectionTypeField"
+                    name="connectionTypes"
+                    value={connectionTypesValue}
+                    onChange={onDropdownChange}
+                    required={!isCarla}
+                    required-error={!isCarla ? requiredError : ''}
+                  >
+                    {!isCarla && <option value="">Choose</option>}
+                    {conntectionTypesDropdown?.map((item, ind) => (
+                      <option id={item + ind} key={ind} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <span className={classNames('error-message', connectTypesError ? '' : 'hide')}>
+                  {connectTypesError}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -132,139 +167,32 @@ export const DataWarehouse = ({
               <div
                 className={classNames(
                   'input-field-group include-error',
-                  specificFunctionsError ? 'error' : '',
-                  specificFunctions?.length ? '' : 'disabled',
+                  dataClassificationError ? 'error' : '',
+                  dataClassifications?.length ? '' : 'disabled',
                 )}
               >
-                <label id="specificFunctionLabel" htmlFor="specificFunctionInput" className="input-label">
-                  Specific Functions<sup>*</sup>
+                <label id="dataClassificationLabel" htmlFor="dataClassificationInput" className="input-label">
+                  Data Classification<sup>*</sup>
                 </label>
-                <div className={`custom-select ${specificFunctions?.length ? '' : 'disabled'}`}>
+                <div className={`custom-select ${dataClassifications?.length ? '' : 'disabled'}`}>
                   <select
-                    id="specificFunctionField"
-                    multiple={true}
-                    required={true}
-                    required-error={requiredError}
-                    name="specificFunctions"
-                    value={specificFunctionsValue}
-                    onChange={onDropdownChange}
-                  >
-                    {specificFunctions?.map((item, ind) => (
-                      <option id={item + ind} key={ind} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', specificFunctionsError ? '' : 'hide')}>
-                  {specificFunctionsError}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className={Styles.flexLayout}>
-          <div>
-            <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  queriesError ? 'error' : '',
-                  queries?.length ? '' : 'disabled',
-                )}
-              >
-                <label id="queriesLabel" htmlFor="queriesInput" className="input-label">
-                  Queries<sup>*</sup>
-                </label>
-                <div className={`custom-select ${queries?.length ? '' : 'disabled'}`}>
-                  <select
-                    id="queriesField"
-                    multiple={true}
-                    required={true}
-                    required-error={requiredError}
-                    name="queries"
-                    value={queriesValue}
-                    onChange={onDropdownChange}
-                  >
-                    {queries?.map((item, ind) => (
-                      <option id={item + ind} key={ind} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', queriesError ? '' : 'hide')}>{queriesError}</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  originalDataSourcesError ? 'error' : '',
-                  dataSources?.length ? '' : 'disabled',
-                )}
-              >
-                <label id="dataSourceLabel" htmlFor="dataSourceInput" className="input-label">
-                  Original Data Sources<sup>*</sup>
-                </label>
-                <div className={`custom-select ${dataSources?.length ? '' : 'disabled'}`}>
-                  <select
-                    id="dataSourceInput"
-                    multiple={true}
-                    required={true}
-                    required-error={requiredError}
-                    name="dataSources"
-                    value={originalDataSourcesValue}
-                    onChange={onDropdownChange}
-                  >
-                    {dataSources?.map((item, ind) => (
-                      <option id={item + ind} key={ind} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <span className={classNames('error-message', originalDataSourcesError ? '' : 'hide')}>
-                  {originalDataSourcesError}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className={Styles.flexLayout}>
-          <div>
-            <div>
-              <div
-                className={classNames(
-                  'input-field-group include-error',
-                  connectTypesError ? 'error' : '',
-                  connectionTypes?.length ? '' : 'disabled',
-                )}
-              >
-                <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
-                  Connection Type<sup>*</sup>
-                </label>
-                <div className={`custom-select ${connectionTypes?.length ? '' : 'disabled'}`}>
-                  <select
-                    id="connectionTypeField"
-                    name="connectionTypes"
-                    value={connectionTypesValue}
+                    id="dataClassificationField"
+                    name="dataClassification"
+                    value={dataClassificationValue}
                     onChange={onDropdownChange}
                     required={!isCarla}
                     required-error={!isCarla ? requiredError : ''}
                   >
                     {!isCarla && <option value="">Choose</option>}
-                    {conntectionTypesDropdown?.map((item, ind) => (
+                    {dataClassificationDropdown?.map((item, ind) => (
                       <option id={item + ind} key={ind} value={item}>
                         {item}
                       </option>
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', connectTypesError ? '' : 'hide')}>
-                  {connectTypesError}
+                <span className={classNames('error-message', dataClassificationError ? '' : 'hide')}>
+                  {dataClassificationError}
                 </span>
               </div>
             </div>
