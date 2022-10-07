@@ -45,14 +45,14 @@ public class Description implements Serializable {
 	private static final long serialVersionUID = 152482308131566126L;
 
 	private String productDescription;
-	private String productPhase;
 	private String reportLink;
+	private String reportType;
+	private String piiData;
 	private String status;
 	private List<String> integratedPortal;
 	private List<String> frontendTechnologies;
 	private List<String> tags;
 	private List<String> agileReleaseTrains;
-	private String designGuideImplemented;
 	private String department;
 	private Division division;
 }

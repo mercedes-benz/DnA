@@ -147,13 +147,12 @@ public class ReportController implements ReportsApi {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<ReportCollection> getAll(
 			@ApiParam(value = "Filtering reports based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
-			@ApiParam(value = "List of productPhase of reports, seperated by comma. Example 1,2,3") @Valid @RequestParam(value = "productPhase", required = false) String productPhase,
 			@ApiParam(value = "Project status of reports") @Valid @RequestParam(value = "status", required = false) String status,
 			@ApiParam(value = "searchTerm to filter reports. SearchTerm is comma seperated search keywords which are used to search Tags and ProductName of reports. Example \"BAT, java\"") @Valid @RequestParam(value = "searchTerm", required = false) String searchTerm,
 			@ApiParam(value = "tags to filter reports. tags is comma seperated search keywords which are used to search Tags of reports. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags,
 			@ApiParam(value = "page number from which listing of reports should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of reports, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-			@ApiParam(value = "Sort reports by a given variable like productName, productPhase or status", allowableValues = "productName, productPhase, status, department, productOwner, art") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort reports by a given variable like productName, status", allowableValues = "productName, status, department, productOwner, art") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort reports based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
 			@ApiParam(value = "List of IDs of divisions and subdivisions under each division of reports. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division,
 			@ApiParam(value = "List of deparments. Example dep1,dep2,dep3") @Valid @RequestParam(value = "department", required = false) String department,
@@ -182,18 +181,16 @@ public class ReportController implements ReportsApi {
 			if (StringUtils.hasText(userId)) {
 				isAdmin = this.userStore.getUserInfo().hasAdminAccess();
 			}
-			Long count = reportService.getCount(published, reportAssembler.toList(productPhase),
-					reportAssembler.toList(status), userId, isAdmin, reportAssembler.toList(searchTerm),
-					reportAssembler.toList(tags), division, reportAssembler.toList(department),
-					reportAssembler.toList(processOwner), reportAssembler.toList(productOwner),
-					reportAssembler.toList(art));
+			Long count = reportService.getCount(published, reportAssembler.toList(status), userId, isAdmin,
+					reportAssembler.toList(searchTerm), reportAssembler.toList(tags), division,
+					reportAssembler.toList(department), reportAssembler.toList(processOwner),
+					reportAssembler.toList(productOwner), reportAssembler.toList(art));
 			if (count < offset)
 				offset = 0;
 
-			List<ReportVO> reports = reportService.getAllWithFilters(published, reportAssembler.toList(productPhase),
-					reportAssembler.toList(status), userId, isAdmin, reportAssembler.toList(searchTerm),
-					reportAssembler.toList(tags), offset, limit, sortBy, sortOrder, division,
-					reportAssembler.toList(department), reportAssembler.toList(processOwner),
+			List<ReportVO> reports = reportService.getAllWithFilters(published, reportAssembler.toList(status), userId,
+					isAdmin, reportAssembler.toList(searchTerm), reportAssembler.toList(tags), offset, limit, sortBy,
+					sortOrder, division, reportAssembler.toList(department), reportAssembler.toList(processOwner),
 					reportAssembler.toList(productOwner), reportAssembler.toList(art));
 			LOGGER.debug("Reports fetched successfully");
 			if (!ObjectUtils.isEmpty(reports)) {
