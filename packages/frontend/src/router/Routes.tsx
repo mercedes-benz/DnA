@@ -39,8 +39,6 @@ const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeS
 // Micro Front End Component
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
-// @ts-ignore
-const DataComplianceNetworkListComponent = React.lazy(() => import('data-product-mfe/DataComplianceNetworkList'));
 const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
 
 const UserAndAdminRole = [
@@ -82,7 +80,7 @@ const protectedRoutes = [
   {
     allowedRoles: UserAndAdminRole,
     component: Home,
-    exact: false,
+    exact: true,
     path: '/home',
     title: 'Home',
   },
@@ -291,13 +289,6 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
-    component: DataComplianceNetworkListComponent,
-    exact: false,
-    path: '/datacompliancenetworklist',
-    title: 'Data Compliance Network List',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
     component: CodeSpace,
     exact: false,
     path: '/codespace/:id?',
@@ -338,6 +329,7 @@ export class Routes extends React.Component<{}, {}> {
                 key={index}
                 allowedRoles={route.allowedRoles}
                 path={route.path}
+                exact={route.exact}
                 component={route.component}
                 title={appName + ' - ' + route.title}
               />
