@@ -109,7 +109,7 @@ export const DataWarehouseList = ({
                 ''
               )}
               {dataWarehouselist?.map((dataSourcesAndFunctions: IDataWarehouseInUse, index: number) => {
-                const { commonFunctions, specificFunctions, queries, dataSources, connectionTypes } =
+                const { commonFunctions, dataClassification, connectionTypes } =
                   dataSourcesAndFunctions;
                 return (
                   <div
@@ -128,9 +128,7 @@ export const DataWarehouseList = ({
                             {dataSourcesAndFunctions.dataWarehouse || '-'}
                           </div>
                           <div className={Styles.dataSourceTitleCol}>{commonFunctions?.join(', ') || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{specificFunctions?.join(', ') || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{queries?.join(', ') || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{dataSources?.join(', ') || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{dataClassification?.join(', ') || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}>{connectionTypes?.join(', ') || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}></div>
                         </div>
