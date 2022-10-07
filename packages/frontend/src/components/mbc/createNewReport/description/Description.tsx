@@ -309,10 +309,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
         selectedValues = option.value;
       });
     }
-    // const description = this.props.description;
-    // description.piiData = selectedValues[0].id;
+    const description = this.props.description;
+    description.piiData = selectedValues;
     this.setState({ piiValue: selectedValues });
   };
+
 
   public onChangeFrontTechnologies = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -338,7 +339,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const statusError = this.state.statusError || '';
     const artError = this.state.artError || '';
     const integratedPortalError = this.state.integratedPortalError || '';
-    const designGuidError = this.state.designGuideError || '';
+    const piiError = this.state.piiError || '';
     const frontEndTechError = this.state.frontEndTechError || '';
     const reportLinkError = this.state.reportLinkError || '';
 
@@ -612,7 +613,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           <div
                             className={classNames(
                               'input-field-group include-error',
-                              designGuidError.length ? 'error' : '',
+                              piiError.length ? 'error' : '',
                             )}
                           >
                             <label id="piiLabel" htmlFor="piiField" className="input-label">
@@ -641,8 +642,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                                 ))} */}
                               </select>
                             </div>
-                            <span className={classNames('error-message', designGuidError.length ? '' : 'hide')}>
-                              {designGuidError}
+                            <span className={classNames('error-message', piiError.length ? '' : 'hide')}>
+                              {piiError}
                             </span>
                           </div>
                         </div>
@@ -911,6 +912,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     // }
     if (!this.state.reportTypeValue || this.state.reportTypeValue === 'Choose') {
       this.setState({ reportTypeError: errorMissingEntry });
+      formValid = false;
+    }
+    if (!this.state.piiValue || this.state.piiValue === 'Choose') {
+      this.setState({ piiError: errorMissingEntry });
       formValid = false;
     }
     if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0].name === 'Choose') {
