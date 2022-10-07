@@ -156,20 +156,25 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
                 <br />
                 {data.transnationalDataTransfer}
               </div>
-              {data.transnationalDataTransfer == 'Yes' ? (
+              {data.transnationalDataTransfer === 'Yes' ? (
                 <div>
                   <label className="input-label summary">Is one of these countries not within the EU?</label>
                   <br />
                   {data.transnationalDataTransferNotWithinEU || 'No'}
                 </div>
               ) : null}
-              {data.transnationalDataTransfer == 'Yes' && data.transnationalDataTransferNotWithinEU == 'Yes' ? (
+              {data.transnationalDataTransfer === 'Yes' && data.transnationalDataTransferNotWithinEU === 'Yes' ? (
                 <div>
                   <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
                   <br />
                   {data.LCOApprovedDataTransfer}
                 </div>
               ) : null}
+              <div>
+                <label className="input-label summary">Does product contain insider information?</label>
+                <br />
+                {data.insiderInformation}
+              </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
