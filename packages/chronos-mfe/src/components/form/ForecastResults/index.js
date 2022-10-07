@@ -86,12 +86,13 @@ const ForecastResults = () => {
   };
   const onAcceptDelete = () => {
     setShowDeleteModal(false);
-    if(runToBeDeleted.runId !== '' || runToBeDeleted.runId !== null) {
+    if(runToBeDeleted.id !== '' || runToBeDeleted.id !== null) {
       ProgressIndicator.show();
-      chronosApi.deleteForecastRun(projectId, runToBeDeleted.runId).then((res) => {
+      chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
         console.log(res);
         Notification.show('Run deleted');
         ProgressIndicator.hide();
+        getProjectForecastRuns();
       }).catch(error => {
         Notification.show(error.message, 'alert');
         ProgressIndicator.hide();
