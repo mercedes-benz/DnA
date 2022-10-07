@@ -34,7 +34,7 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
             </div>
             <div className={`${Styles.bannerQuickLinks} ${!Envs.ENABLE_REPORTS ? Styles.noReportsSection : ''}`}>
               <div className={Styles.quicklinkCard}>
-                <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardOne}>
+                <div className={Styles.quicklinkCardtitle}>
                   <div>
                     <i className="icon mbc-icon solutions" />
                   </div>
@@ -98,17 +98,17 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                         </Link>
                       </li>
                       <li>
-                        <Link to="dataproduct/datacompliancenetworklist">
+                        <Link to="dataproduct/create">
                           <span>
-                            Data Compliance Network List
+                            Provide Data Transfer
                             <i className="icon mbc-icon arrow small right" />
                           </span>
                         </Link>
                       </li>
                       <li>
-                        <Link to="dataproduct/create">
+                        <Link to="dataproduct/datacompliancenetworklist">
                           <span>
-                            Provide Data Transfer
+                            Data Compliance Network List
                             <i className="icon mbc-icon arrow small right" />
                           </span>
                         </Link>
