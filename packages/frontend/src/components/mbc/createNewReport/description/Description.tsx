@@ -193,7 +193,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     }
     const description = this.props.description;
     description.reportType = selectedValues;
-    this.setState({ productPhaseValue: selectedValues });
+    this.setState({ reportTypeValue: selectedValues });
   };
 
   public onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -893,10 +893,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ descriptionError: '' });
       // formValid = true;
     }
-    if (!this.state.productPhaseValue || this.state.productPhaseValue[0].name === 'Choose') {
-      this.setState({ productPhaseError: errorMissingEntry });
-      formValid = false;
-    }
+    // if (!this.state.productPhaseValue || this.state.productPhaseValue[0].name === 'Choose') {
+    //   this.setState({ productPhaseError: errorMissingEntry });
+    //   formValid = false;
+    // }
     if (!this.state.statusValue || this.state.statusValue[0].name === 'Choose') {
       this.setState({ statusError: errorMissingEntry });
       formValid = false;
