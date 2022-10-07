@@ -123,7 +123,7 @@ public class DataProductController implements DataproductsApi {
 			@ApiParam(value = "Filtering dataproducts based on publish state. Draft or published, values true or false") @Valid @RequestParam(value = "published", required = false) Boolean published,
 			@ApiParam(value = "page number from which listing of dataproducts should start.") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of dataproducts.") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-			@ApiParam(value = "Sort dataproducts by a given variable.", allowableValues = "dataProductName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort dataproducts by a given variable.", allowableValues = "dataProductName, dataProductId") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort dataproducts based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		try {
 			DataProductCollection dataProductCollection = new DataProductCollection();
