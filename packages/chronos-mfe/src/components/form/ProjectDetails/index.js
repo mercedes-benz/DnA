@@ -299,7 +299,7 @@ const ProjectDetails = () => {
       <div className={Styles.content}>
         <div className={classNames(Styles.contextMenu)}>
           <span className={classNames('trigger', Styles.contextMenuTrigger)}>
-            <i className="icon mbc-icon edit context" onClick={() => { setEditProject(true) }} />
+            <i className="icon mbc-icon edit context" />
           </span>
         </div>
         <h3 id="productName">Project Details</h3>
