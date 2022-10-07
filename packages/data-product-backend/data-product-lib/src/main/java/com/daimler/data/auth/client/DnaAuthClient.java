@@ -29,7 +29,11 @@ package com.daimler.data.auth.client;
 
 import org.json.JSONObject;
 
+import com.daimler.data.dto.userinfo.UsersCollection;
+
 public interface DnaAuthClient {
 
 	public JSONObject verifyLogin(String jwt);
+
+	public UsersCollection getAllUsers();
 }
