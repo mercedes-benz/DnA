@@ -222,6 +222,59 @@ const TransNationalDataTransfer = ({ onSave }) => {
               </div>
               <span className={classNames('error-message')}>{errors?.LCOApprovedDataTransfer?.message}</span>
             </div>
+            <div
+              className={classNames(`input-field-group include-error ${errors?.insiderInformation ? 'error' : ''}`)}
+              style={{ minHeight: '50px' }}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Does product contain insider information? <sup>*</sup>
+              </label>
+              <div className={Styles.radioBtns}>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="N.A"
+                    />
+                  </span>
+                  <span className="label">N.A</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="No"
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="Yes"
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+              </div>
+              <span className={classNames('error-message')}>{errors?.insiderInformation?.message}</span>
+            </div>
           </div>
         </div>
       </div>

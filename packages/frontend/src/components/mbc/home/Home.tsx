@@ -35,36 +35,42 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
             <div className={`${Styles.bannerQuickLinks} ${!Envs.ENABLE_REPORTS ? Styles.noReportsSection : ''}`}>
               <div className={Styles.quicklinkCard}>
                 <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardOne}>
-                  <h6>Solutions</h6>
-                  <p> Easily manage and share your solutions</p>
+                  <div>
+                    <i className="icon mbc-icon solutions" />
+                  </div>
+                  <div>
+                    <h6>Solution Transparency</h6>
+                    <p> Overview of running solutions and reports</p>
+                  </div>
                 </div>
                 <div className={Styles.quicklinkCardNav}>
                   <ul>
                     <li>
                       <Link to="allsolutions">
                         <span>
-                          All solutions <i className="icon mbc-icon arrow small right" />
+                          All Solutions <i className="icon mbc-icon arrow small right" />
+                        </span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="allreports">
+                        <span>
+                          All Reports <i className="icon mbc-icon arrow small right" />
                         </span>
                       </Link>
                     </li>
                     <li>
                       <Link to="createnewsolution">
                         <span>
-                          Create new Solution <i className="icon mbc-icon arrow small right" />
+                          Create Solution <i className="icon mbc-icon arrow small right" />
                         </span>
                       </Link>
                     </li>
+
                     <li>
-                      <Link to="dataproduct">
+                      <Link to="createnewreport">
                         <span>
-                          Provide Data Product <i className="icon mbc-icon arrow small right" />
-                        </span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="datacompliancenetworklist">
-                        <span>
-                          Data Compliance Network List <i className="icon mbc-icon arrow small right" />
+                          Create Report <i className="icon mbc-icon arrow small right" />
                         </span>
                       </Link>
                     </li>
@@ -74,22 +80,36 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
               {Envs.ENABLE_REPORTS && (
                 <div className={Styles.quicklinkCard}>
                   <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardThree}>
-                    <h6>Reports</h6>
-                    <p>Quick access to any report running on any system</p>
+                    <div>
+                      <i className="icon mbc-icon document" />
+                    </div>
+                    <div>
+                      <h6>Data Transfers</h6>
+                      <p>A22 Minimal Information Documentation</p>
+                    </div>
                   </div>
                   <div className={Styles.quicklinkCardNav}>
-                    <ul className={Styles.qcardThreeul}>
+                    <ul>
                       <li>
-                        <Link to="allreports">
+                        <Link to="dataproduct">
                           <span>
-                            All Reports <i className="icon mbc-icon arrow small right " />
+                            Find Data Transfer <i className="icon mbc-icon arrow small right " />
                           </span>
                         </Link>
                       </li>
                       <li>
-                        <Link to="createnewreport">
+                        <Link to="dataproduct/datacompliancenetworklist">
                           <span>
-                            Create Reports <i className="icon mbc-icon arrow small right" />
+                            Data Compliance Network List
+                            <i className="icon mbc-icon arrow small right" />
+                          </span>
+                        </Link>
+                      </li>
+                      <li>
+                        <Link to="dataproduct/create">
+                          <span>
+                            Provide Data Transfer
+                            <i className="icon mbc-icon arrow small right" />
                           </span>
                         </Link>
                       </li>
@@ -99,11 +119,16 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
               )}
               <div className={Styles.quicklinkCard}>
                 <div className={Styles.quicklinkCardtitle + ' ' + Styles.qcardTwo}>
-                  <h6>Workspaces &amp; Services</h6>
-                  <p> Start working in a safe training environment and subscribe to services</p>
+                  <div>
+                    <i className="icon mbc-icon workspace" />
+                  </div>
+                  <div>
+                    <h6>Self Services</h6>
+                    <p> Workflows for Data Workers</p>
+                  </div>
                 </div>
                 <div className={Styles.quicklinkCardNav}>
-                  <ul>
+                  <ul className={Styles.qcardTwoli}>
                     <li>
                       <Link to="workspaces">
                         <span>
@@ -114,8 +139,7 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                     <li>
                       <Link to="services">
                         <span>
-                          My Services
-                          <i className="icon mbc-icon arrow small right" />
+                          My Services <i className="icon mbc-icon arrow small right" />
                         </span>
                       </Link>
                     </li>

@@ -49,6 +49,7 @@ export const serializeFormData = (values, division, type = 'provider') => {
             approved: values.LCOApprovedDataTransfer,
             dataTransferred: values.transnationalDataTransfer === 'Yes' ? true : false, //boolean
             notWithinEU: values.transnationalDataTransferNotWithinEU === 'Yes' ? true : false, //boolean
+            insiderInformation: values.insiderInformation,
             dataFromChina: values.dataOriginatedFromChina === 'Yes' ? true : false,
           },
           openSegments: values.openSegments,
@@ -92,6 +93,7 @@ export const deserializeFormData = (item, type = 'provider') => {
     LCOApprovedDataTransfer: item.providerInformation?.transnationalDataTransfer?.approved,
     transnationalDataTransfer: item.providerInformation?.transnationalDataTransfer?.dataTransferred ? 'Yes' : 'No',
     transnationalDataTransferNotWithinEU: item.providerInformation?.transnationalDataTransfer?.notWithinEU ? 'Yes' : '',
+    insiderInformation: item.providerInformation?.transnationalDataTransfer?.insiderInformation,
     notifyUsers: item?.notifyUsers,
     users: item.providerInformation?.users,
     providerFormSubmitted: item.providerInformation?.providerFormSubmitted,
