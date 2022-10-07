@@ -348,7 +348,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 arts,
                 dataSources,
                 connectionTypes,
-                dataClassifications,
+                // dataClassifications,
               } = this.state;
               response.data = res;
               const report = this.state.report;
@@ -384,10 +384,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
                   item.dataSources =
                     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
-                  item.dataClassifications =
-                  dataClassifications?.filter((subItem: any) => item.dataClassifications.indexOf(subItem.name) > -1) || [];
                   item.connectionTypes =
-                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || [];  
+                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || []; 
+                  item.dataClassification   
                   return item;
                 }) || [];
               report.members.developers = res.members.developers || [];

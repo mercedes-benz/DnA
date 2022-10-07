@@ -128,7 +128,7 @@ export const DataWarehouseList = ({
                             {dataSourcesAndFunctions.dataWarehouse || '-'}
                           </div>
                           <div className={Styles.dataSourceTitleCol}>{commonFunctions?.join(', ') || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{dataClassification?.join(', ') || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{dataClassification || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}>{connectionTypes?.join(', ') || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}></div>
                         </div>
