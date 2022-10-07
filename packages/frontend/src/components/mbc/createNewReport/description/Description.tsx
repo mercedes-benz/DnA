@@ -18,7 +18,6 @@ import {
   ISubDivision,
   IDivisionAndSubDivision,
   IDepartment,
-  IReportType,
 } from 'globals/types';
 import Styles from './Description.scss';
 import Tags from 'components/formElements/tags/Tags';
@@ -75,9 +74,9 @@ export interface IDescriptionState {
   departmentTags: string[];
   reportLink: string;
   reportLinkError: string;
-  reportTypeValue: IReportType[];
+  reportTypeValue: string;
   reportTypeError: string;
-  piiValue: IReportType[];
+  piiValue: string;
   piiError: string;
 }
 
@@ -98,7 +97,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: props.description.department,
       reportLink: props.description.reportLink,
       reportTypeValue: props.description.reportType,
-      piiValue: props.description.pii
+      piiValue: props.description.piiData
     };
   }
   constructor(props: IDescriptionProps) {
@@ -182,13 +181,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
   public onReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IReportType[] = [];
+    let selectedValues = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const reportType: IReportType = { id: null, name: null };
-        reportType.id = option.value;
-        reportType.name = option.textContent;
-        selectedValues.push(reportType);
+        // const reportType: IReportType = { id: null, name: null };
+        // reportType.id = option.value;
+        // reportType.name = option.textContent;
+        // selectedValues.push(reportType);
+        selectedValues = option.value;
       });
     }
     const description = this.props.description;
@@ -300,17 +300,17 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   };
   public onChangePii = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IDesignGuide[] = [];
+    let selectedValues = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const designGuide: IDesignGuide = { id: null, name: null };
-        designGuide.id = option.value;
-        designGuide.name = option.textContent;
-        selectedValues.push(designGuide);
+        // const designGuide: IDesignGuide = { id: null, name: null };
+        // designGuide.id = option.value;
+        // designGuide.name = option.textContent;
+        selectedValues = option.value;
       });
     }
-    const description = this.props.description;
-    description.pii = selectedValues[0].id;
+    // const description = this.props.description;
+    // description.piiData = selectedValues[0].id;
     this.setState({ piiValue: selectedValues });
   };
 
@@ -362,17 +362,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       })
       ?.toString();
 
-    const reportTypeValue = this.state.reportTypeValue
-      ?.map((reportTypeValue: IReportType) => {
-        return reportTypeValue.name;
-      })
-      ?.toString();  
+    const reportTypeValue = this.state.reportTypeValue;  
 
-    const designGuideValue = this.state.designGuideValue
-      ?.map((designGuide: IDesignGuide) => {
-        return designGuide.name;
-      })
-      ?.toString();
+    const piiValue = this.state.piiValue;
 
     const artValue = this.state.artValue?.map((art: IART) => {
       return art.name;
@@ -633,7 +625,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                                 required={true}
                                 required-error={requiredError}
                                 onChange={this.onChangePii}
-                                value={designGuideValue}
+                                value={piiValue}
                               >
                                 <option value={''}>Choose</option>
                                 <option id='Yes' key={'Yes'} value={'Yes'}>
@@ -917,7 +909,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     //   this.setState({ integratedPortalError: errorMissingEntry });
     //   formValid = false;
     // }
-    if (!this.state.reportTypeValue || this.state.reportTypeValue[0].name === 'Choose') {
+    if (!this.state.reportTypeValue || this.state.reportTypeValue === 'Choose') {
       this.setState({ reportTypeError: errorMissingEntry });
       formValid = false;
     }
