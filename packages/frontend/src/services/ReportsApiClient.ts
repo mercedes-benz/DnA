@@ -132,7 +132,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, productPhase, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, designGuideImplemented, reportLink  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, reportLink, reportType  },
         customer {
           customerDetails { hierarchy, ressort, department, comment },
           processOwners { shortId }
