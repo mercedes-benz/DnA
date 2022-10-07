@@ -2,7 +2,6 @@ import {
   IART,
   IConnectionType,
   ICreateNewReportRequest,
-  IDataClassification,
   IDataSourceMaster,
   IDatawarehouseInItem,
   IDesignGuide,
@@ -55,7 +54,7 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
       item.dataWarehouse = item.dataWarehouse || null;
       item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
       item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
-      item.dataClassification = item.dataClassification?.length ? item.dataClassification : null;
+      item.dataClassification = item.dataClassification ? item.dataClassification : null;
       item.connectionTypes = item.connectionTypes?.length ? item.connectionTypes : null;
       return item;
     },
@@ -65,9 +64,7 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
       item.dataSources = item.dataSources?.length
         ? (item.dataSources?.map((item: IDataSourceMaster) => item.name) as any[])
         : null;
-      item.dataClassifications = item.dataClassifications?.length
-        ? (item.dataClassifications?.map((item: IDataClassification) => item.name) as any[])
-        : null;
+      item.dataClassification = item.dataClassification
       item.connectionTypes = item.connectionTypes?.length
         ? (item.connectionTypes?.map((item: IConnectionType) => item.name) as any[])
         : null;

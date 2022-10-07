@@ -608,13 +608,13 @@ export interface IDataWarehouseInUse {
   commonFunctions: string[];
   connectionTypes: string[];
   dataWarehouse: string;
-  dataClassification: string[];
+  dataClassification: string;
 }
 
 export interface ISingleDataSources {
   connectionTypes: IConnectionType[];
   dataSources: IDataSourceMaster[];
-  dataClassifications: IDataClassification[];
+  dataClassification: string;
 }
 export interface IUserNewInfo {
   company: string;
@@ -1358,7 +1358,7 @@ export interface IDatawarehouseInItem {
   id: string;
   dataWarehouse: string;
   commonFunctions: string[];
-  dataClassification: string[];
+  dataClassification: string;
   connectionTypes: string[];
 }
 

@@ -33,11 +33,7 @@ export const SingleDataSource = ({
     })
     ?.toString();
 
-  const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassifications
-    ?.map((dataClassification: IDataClassification) => {
-      return dataClassification.name;
-    })
-    ?.toString();  
+  const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassification;  
 
   const singleSourceDataSourceValue = singleDataSourceInfo.dataSources?.map((dataSource: IDataSourceMaster) => {
     return dataSource.name;
@@ -90,7 +86,7 @@ export const SingleDataSource = ({
                 <div className={`custom-select ${dataClassifications?.length ? '' : ''}`}>
                   <select
                     id="dataClassificationsField"
-                    name="dataClassifications"
+                    name="dataClassification"
                     value={singleSourceDataClassificationsValue}
                     onChange={onDropdownChange}
                     required={true}
