@@ -42,23 +42,23 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           <br />
                           {data.commonFunctions?.join(', ')}
                         </div>
-                        <div id="specificFunctions">
+                        {/* <div id="specificFunctions">
                           <label className="input-label summary">Specific Functions</label>
                           <br />
                           {data.specificFunctions?.join(', ')}
-                        </div>
-                        <div id="queries">
+                        </div> */}
+                        {/* <div id="queries">
                           <label className="input-label summary">Queries</label>
                           <br />
                           {data.queries?.join(', ')}
-                        </div>
+                        </div> */}
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                        <div id="dataSources">
+                        {/* <div id="dataSources">
                           <label className="input-label summary">Original Data Sources</label>
                           <br />
                           {data.dataSources?.join(', ')}
-                        </div>
+                        </div> */}
                         <div id="connectionType">
                           <label className="input-label summary">Connection Type</label>
                           <br />
@@ -86,9 +86,9 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           {data.dataSources?.join(', ')}
                         </div>
                         <div id="commonFunctions">
-                          <label className="input-label summary">Subsystems</label>
+                          <label className="input-label summary">Data Classification</label>
                           <br />
-                          {data.subsystems?.join(', ')}
+                          {data.dataClassifications?.join(', ')}
                         </div>
                         <div id="specificFunctions">
                           <label className="input-label summary">Connection Type</label>

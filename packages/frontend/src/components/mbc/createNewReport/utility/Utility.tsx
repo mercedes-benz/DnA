@@ -2,6 +2,7 @@ import {
   IART,
   IConnectionType,
   ICreateNewReportRequest,
+  IDataClassification,
   IDataSourceMaster,
   IDatawarehouseInItem,
   IDesignGuide,
@@ -10,7 +11,6 @@ import {
   IProductPhase,
   IProductStatus,
   ISingleDataSources,
-  ISubSystems,
 } from 'globals/types';
 
 export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest) => {
@@ -54,10 +54,8 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
     (item: IDatawarehouseInItem) => {
       item.dataWarehouse = item.dataWarehouse || null;
       item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
-      item.specificFunctions = item.specificFunctions?.length ? item.specificFunctions : null;
-      item.queries = item.queries?.length ? item.queries : null;
       item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
-      item.dataSources = item.dataSources?.length ? item.dataSources : null;
+      item.dataClassification = item.dataClassification?.length ? item.dataClassification : null;
       item.connectionTypes = item.connectionTypes?.length ? item.connectionTypes : null;
       return item;
     },
@@ -67,8 +65,8 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
       item.dataSources = item.dataSources?.length
         ? (item.dataSources?.map((item: IDataSourceMaster) => item.name) as any[])
         : null;
-      item.subsystems = item.subsystems?.length
-        ? (item.subsystems?.map((item: ISubSystems) => item.name) as any[])
+      item.dataClassifications = item.dataClassifications?.length
+        ? (item.dataClassifications?.map((item: IDataClassification) => item.name) as any[])
         : null;
       item.connectionTypes = item.connectionTypes?.length
         ? (item.connectionTypes?.map((item: IConnectionType) => item.name) as any[])
