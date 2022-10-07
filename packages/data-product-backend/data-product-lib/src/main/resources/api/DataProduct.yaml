@@ -706,7 +706,42 @@ definitions:
         type: boolean
         description: "Flag to identify if consumer is added by provider or not."
     required:
-      - shortId 
+      - shortId
+      
+  NotificationTeamMemberVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+      userType:
+        type: string
+        description: "Internal or External"
+        enum: [internal, external]
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      company:
+        type: string
+        description: "Company name of the external member"
+      teamMemberPosition:
+        type: string
+        description: "Position of team member in project"
+    required:
+      - shortId       
       
   ChangeLogVO:
     type: object
@@ -718,7 +753,7 @@ definitions:
         description: "Date on which this change occurred"
       modifiedBy:
         description: "User who changed the value"
-        $ref: "#/definitions/TeamMemberVO"
+        $ref: "#/definitions/NotificationTeamMemberVO"
       fieldChanged:
         type: string
         description: "Describe the attribute that changed"
