@@ -47,7 +47,7 @@ const RunForecast = ({ savedFiles }) => {
     formState: { errors, isSubmitting },
     handleSubmit,
     trigger,
-    // reset,
+    reset,
   } = useFormContext();
   const [keepExistingFiles, setKeepExistingFiles] = useState(false);
 
@@ -177,12 +177,22 @@ const RunForecast = ({ savedFiles }) => {
     } else {
       formData.append("savedInputPath", null); // todo file path
     }
+
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
+        Notification.show('Run created successfully');
+        reset({
+          runName: '',
+          configurationFile: 0,
+          frequency: 0,
+          forecashorizon: 1,
+          comment: '',
+        });
+        setIsSelectedFile(false);
         ProgressIndicator.hide();
       }).catch(error => {
-        console.log(error.message);
+        Notification.show(error.message, 'alert');
         ProgressIndicator.hide();
       });
   }
