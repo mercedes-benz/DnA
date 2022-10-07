@@ -88,7 +88,7 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                         <div id="commonFunctions">
                           <label className="input-label summary">Data Classification</label>
                           <br />
-                          {data.dataClassifications?.join(', ')}
+                          {data.dataClassification}
                         </div>
                         <div id="specificFunctions">
                           <label className="input-label summary">Connection Type</label>
