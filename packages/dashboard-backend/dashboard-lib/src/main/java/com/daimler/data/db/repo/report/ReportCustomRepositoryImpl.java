@@ -111,9 +111,6 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			case "productName":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'productName')) ";
 				break;
-			case "productPhase":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','productPhase')) ";
-				break;
 			case "status":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','status')) ";
 				break;
@@ -218,10 +215,6 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 					+ "lower(jsonb_extract_path_text(data,'description','frontendTechnologies')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) similar to "
-					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'description','designGuideImplemented')) similar to "
-					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'description','productPhase')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'customer','customers')) similar to "
 					+ delimiterSeparatedSearchTerms + " or " + "lower(jsonb_extract_path_text(data,'kpis')) similar to "
