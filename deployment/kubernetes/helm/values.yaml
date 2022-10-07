@@ -2451,3 +2451,9 @@ kong:
 
 chronos-be: 
   enabled: true
+
+vault-auto-unseal: 
+  enabled: true
+
+vault-backup: 
+  enabled: true
