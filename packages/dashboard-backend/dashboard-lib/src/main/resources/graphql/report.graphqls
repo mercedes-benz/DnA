@@ -1,5 +1,5 @@
 type Query {
-    reports(published: Boolean, productPhase: String, status: String,
+    reports(published: Boolean, status: String,
     searchTerm: String, tags: String, offset: Int, limit: Int, sortBy: String,
     sortOrder: String, division: String, department: String, processOwner: String, productOwner: String, art: String): ReportCollection!
     report(string: ID):ReportVO
@@ -40,13 +40,13 @@ type CreatedByVO{
 type DescriptionVO{
     reportLink: String,
 	productDescription: String,
-	productPhase: String,
+	reportType: String,
+	piiData: String,
 	status: String,
 	integratedPortal: [String],
 	frontendTechnologies: [String],
 	tags:[String],
 	agileReleaseTrains:[String],
-	designGuideImplemented: String,
 	division : DivisionVO,
 	department: String
 }
