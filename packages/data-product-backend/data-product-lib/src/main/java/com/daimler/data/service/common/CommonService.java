@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
+import com.daimler.data.dto.dataproduct.ChangeLogVO;
 
 public interface CommonService<V, T, ID> {
 
@@ -62,4 +63,7 @@ public interface CommonService<V, T, ID> {
 	String currentUserName(CreatedByVO currentUser);
 
 	boolean verifyUserRoles();
+
+	void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs);
 }
