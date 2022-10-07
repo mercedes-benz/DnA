@@ -147,10 +147,10 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	}
 
 	@Override
-	public List<ReportVO> getAllWithFilters(Boolean published, List<String> productPhase, List<String> statuses,
-			String userId, Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit,
-			String sortBy, String sortOrder, String division, List<String> department, List<String> processOwner,
-			List<String> productOwner, List<String> art) {
+	public List<ReportVO> getAllWithFilters(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
+			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder,
+			String division, List<String> department, List<String> processOwner, List<String> productOwner,
+			List<String> art) {
 		List<ReportNsql> reportEntities = reportCustomRepository.getAllWithFiltersUsingNativeQuery(published, statuses,
 				userId, isAdmin, searchTerms, tags, offset, limit, sortBy, sortOrder, division, department,
 				processOwner, productOwner, art);
@@ -161,8 +161,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	}
 
 	@Override
-	public Long getCount(Boolean published, List<String> productPhase, List<String> statuses, String userId,
-			Boolean isAdmin, List<String> searchTerms, List<String> tags, String division, List<String> department,
+	public Long getCount(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
+			List<String> searchTerms, List<String> tags, String division, List<String> department,
 			List<String> processOwner, List<String> productOwner, List<String> art) {
 		return reportCustomRepository.getCountUsingNativeQuery(published, statuses, userId, isAdmin, searchTerms, tags,
 				division, department, processOwner, productOwner, art);
@@ -236,16 +236,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					String status = reportNsql.getData().getDescription().getStatus();
 					if (StringUtils.hasText(status) && status.equals(name)) {
 						reportNsql.getData().getDescription().setStatus(null);
-					}
-				} else if (category.equals(CATEGORY.PRODUCT_PHASE)) {
-					String productPhase = reportNsql.getData().getDescription().getProductPhase();
-					if (StringUtils.hasText(productPhase) && productPhase.equals(name)) {
-						reportNsql.getData().getDescription().setProductPhase(null);
-					}
-				} else if (category.equals(CATEGORY.DESIGN_GUIDE)) {
-					String designGuide = reportNsql.getData().getDescription().getDesignGuideImplemented();
-					if (StringUtils.hasText(designGuide) && designGuide.equals(name)) {
-						reportNsql.getData().getDescription().setDesignGuideImplemented(null);
 					}
 				} else if (category.equals(CATEGORY.CUST_DEPARTMENT)) {
 					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
@@ -438,16 +428,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					String status = reportNsql.getData().getDescription().getStatus();
 					if (StringUtils.hasText(status) && status.equals(oldValue)) {
 						reportNsql.getData().getDescription().setStatus(newValue);
-					}
-				} else if (category.equals(CATEGORY.PRODUCT_PHASE)) {
-					String productPhase = reportNsql.getData().getDescription().getProductPhase();
-					if (StringUtils.hasText(productPhase) && productPhase.equals(oldValue)) {
-						reportNsql.getData().getDescription().setProductPhase(newValue);
-					}
-				} else if (category.equals(CATEGORY.DESIGN_GUIDE)) {
-					String designGuide = reportNsql.getData().getDescription().getDesignGuideImplemented();
-					if (StringUtils.hasText(designGuide) && designGuide.equals(oldValue)) {
-						reportNsql.getData().getDescription().setDesignGuideImplemented(newValue);
 					}
 				} else if (category.equals(CATEGORY.CUST_DEPARTMENT)) {
 					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
