@@ -68,6 +68,7 @@ import com.daimler.data.dto.dataproduct.ConsumerPersonalRelatedDataVO;
 import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.dto.dataproduct.DivisionVO;
+import com.daimler.data.dto.dataproduct.NotificationTeamMemberVO;
 import com.daimler.data.dto.dataproduct.ProviderClassificationConfidentialityVO;
 import com.daimler.data.dto.dataproduct.ProviderContactInformationVO;
 import com.daimler.data.dto.dataproduct.ProviderDeletionRequirementVO;
@@ -113,7 +114,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 							.collect(Collectors.toList());
 					providerVO.setUsers(users);
 				}
-				
+
 				ProviderContactInformation providerContactInformation = provider.getContactInformation();
 				if (providerContactInformation != null) {
 					ProviderContactInformationVO contactInformationVO = new ProviderContactInformationVO();
@@ -416,7 +417,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 
 		MapDifference<String, Object> difference = Maps.difference(leftFlatMap, rightFlatMap);
 
-		TeamMemberVO teamMemberVO = new TeamMemberVO();
+		NotificationTeamMemberVO teamMemberVO = new NotificationTeamMemberVO();
 		BeanUtils.copyProperties(currentUser, teamMemberVO);
 		teamMemberVO.setShortId(currentUser.getId());
 		Date changeDate = new Date();
