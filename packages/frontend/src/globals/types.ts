@@ -587,10 +587,16 @@ export interface ICustomers {
 }
 
 export interface ICustomerDetails {
+  name: string;
+  customerType: string;
   comment: string;
-  department: string;
-  hierarchy: string;
-  ressort: string;
+  department?: string;
+  hierarchy?: string;
+  ressort?: string;
+  division?: string;
+  usRisk?: boolean | string;
+  processOwner?: string;
+  companyName?: string;
 }
 export interface IKpis {
   comment: string;

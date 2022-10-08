@@ -597,6 +597,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       hierarchies={this.state.hierarchies}
                       departments={this.state.departments}
                       ressort={this.state.ressort}
+                      divisions={this.state.divisions}
                       modifyCustomer={this.modifyCustomer}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.customerComponent}
