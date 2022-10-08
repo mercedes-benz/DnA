@@ -60,46 +60,24 @@ export const DataWarehouseList = ({
                       <label
                         className={
                           'sortable-column-header ' +
-                          (currentColumnToSort === 'specificFunctions' ? currentSortOrder : '')
-                        }
-                        // onClick={this.sortByColumn('specificFunctions', this.state.nextSortOrder)}
-                      >
-                        {/* <i className="icon sort" /> */}
-                        Specific Functions
-                      </label>
-                    </div>
-                    <div className={Styles.dataSourceTitleCol}>
-                      <label
-                        className={
-                          'sortable-column-header ' + (currentColumnToSort === 'queries' ? currentSortOrder : '')
-                        }
-                        // onClick={this.sortByColumn('queries', this.state.nextSortOrder)}
-                      >
-                        {/* <i className="icon sort" /> */}
-                        Queries
-                      </label>
-                    </div>
-                    <div className={Styles.dataSourceTitleCol}>
-                      <label
-                        className={
-                          'sortable-column-header ' + (currentColumnToSort === 'dataSources' ? currentSortOrder : '')
-                        }
-                        // onClick={this.sortByColumn('dataSources', this.state.nextSortOrder)}
-                      >
-                        {/* <i className="icon sort" /> */}
-                        Original Data Sources
-                      </label>
-                    </div>
-                    <div className={Styles.dataSourceTitleCol}>
-                      <label
-                        className={
-                          'sortable-column-header ' +
                           (currentColumnToSort === 'connectionTypes' ? currentSortOrder : '')
                         }
                         // onClick={this.sortByColumn('connectionTypes', this.state.nextSortOrder)}
                       >
                         {/* <i className="icon sort" /> */}
                         Connection Type
+                      </label>
+                    </div>
+                    <div className={Styles.dataSourceTitleCol}>
+                      <label
+                        className={
+                          'sortable-column-header ' +
+                          (currentColumnToSort === 'dataClassification' ? currentSortOrder : '')
+                        }
+                        // onClick={this.sortByColumn('dataClassification', this.state.nextSortOrder)}
+                      >
+                        {/* <i className="icon sort" /> */}
+                        Data Classification
                       </label>
                     </div>
                     <div className={Styles.dataSourceTitleCol}>Action</div>
@@ -127,9 +105,9 @@ export const DataWarehouseList = ({
                           <div className={Styles.dataSourceTitleCol}>
                             {dataSourcesAndFunctions.dataWarehouse || '-'}
                           </div>
-                          <div className={Styles.dataSourceTitleCol}>{commonFunctions?.join(', ') || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{dataClassification || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{commonFunctions?.join(', ') || '-'}</div>                          
                           <div className={Styles.dataSourceTitleCol}>{connectionTypes?.join(', ') || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{dataClassification || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}></div>
                         </div>
                         <i tooltip-data="Expand" className="icon down-up-flip"></i>
