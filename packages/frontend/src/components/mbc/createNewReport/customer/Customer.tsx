@@ -3,10 +3,10 @@ import * as React from 'react';
 import Styles from './Customer.scss';
 import Modal from 'components/formElements/modal/Modal';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
-import IconAvatarNew from 'components/icons/IconAvatarNew';
+// import IconAvatarNew from 'components/icons/IconAvatarNew';
 import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, ICustomerDetails, IDivision } from 'globals/types';
 import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
+// import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from 'globals/Enums';
@@ -529,23 +529,23 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       </div>
     );
 
-    const developerTeamMembersList = this.state.customer.processOwners
-      ? this.state.customer.processOwners?.map((member: ITeams, index: number) => {
-          return (
-            <TeamMemberListItem
-              key={index}
-              itemIndex={index}
-              teamMember={member}
-              showMoveUp={index !== 0}
-              showMoveDown={index + 1 !== this.state.customer.processOwners?.length}
-              onMoveUp={this.onTeamMemberMoveUp}
-              onMoveDown={this.onTeamMemberMoveDown}
-              onEdit={this.onSharingTeamMemberEdit}
-              onDelete={this.onSharingTeamMemberDelete}
-            />
-          );
-        })
-      : [];
+    // const developerTeamMembersList = this.state.customer.processOwners
+    //   ? this.state.customer.processOwners?.map((member: ITeams, index: number) => {
+    //       return (
+    //         <TeamMemberListItem
+    //           key={index}
+    //           itemIndex={index}
+    //           teamMember={member}
+    //           showMoveUp={index !== 0}
+    //           showMoveDown={index + 1 !== this.state.customer.processOwners?.length}
+    //           onMoveUp={this.onTeamMemberMoveUp}
+    //           onMoveDown={this.onTeamMemberMoveDown}
+    //           onEdit={this.onSharingTeamMemberEdit}
+    //           onDelete={this.onSharingTeamMemberDelete}
+    //         />
+    //       );
+    //     })
+    //   : [];
 
     const deleteModalContent: React.ReactNode = (
       <div id="contentparentdiv" className={Styles.modalContentWrapper}>
@@ -679,13 +679,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 )}
               </div>
               <br />
-              <div className={Styles.commentHeading}>
+              {/* <div className={Styles.commentHeading}>
                 Process Owner {this.state.customer.processOwners?.length == 1 ? '' : ' (if applicable)'}
               </div>
               <div className={Styles.productOwnerList}>
                 {developerTeamMembersList?.length ? developerTeamMembersList : ''}
-              </div>
-              {this.state.customer.processOwners?.length === 1 ? (
+              </div> */}
+              {/* {this.state.customer.processOwners?.length === 1 ? (
                 ''
               ) : (
                 <div className={Styles.addTeamMemberWrapper}>
@@ -695,7 +695,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     <span>Add Process Owner</span>
                   </button>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
