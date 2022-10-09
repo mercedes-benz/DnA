@@ -47,6 +47,7 @@ export interface ICustomerState {
   searchTerm: string;
   searchTermForName: string;
   nameToDisplay: string;
+  processOwnerToDisplay: string;
 }
 export default class Customer extends React.Component<ICustomerProps, ICustomerState> {
   public static getDerivedStateFromProps(props: ICustomerProps, state: ICustomerState) {
@@ -129,7 +130,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       showDeleteModal: false,
       searchTerm: '',
       searchTermForName: '',
-      nameToDisplay: ''
+      nameToDisplay: '',
+      processOwnerToDisplay: ''
     };
     this.onUsRiskChange = this.onUsRiskChange.bind(this);
   }
@@ -138,7 +140,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   public componentDidMount() {
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
-    this.setState({nameToDisplay: this.state.customerInfo.personalDetails.firstName +' '+ this.state.customerInfo.personalDetails.lastName});
+    this.setState({
+      nameToDisplay: this.state.customerInfo.personalDetails.firstName ? this.state.customerInfo.personalDetails.firstName +' '+ this.state.customerInfo.personalDetails.lastName : '',
+      processOwnerToDisplay: this.state.customerInfo.processOwner.firstName ? this.state.customerInfo.processOwner.firstName +' '+ this.state.customerInfo.processOwner.lastName : ''
+    });
   }
 
   public onCustomerNameChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -189,7 +194,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   }
                   fieldMode={true}
                   fieldValue={this.state.nameToDisplay}
-                  setFieldValue={(val) => this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, personalDetails:{...prevState.customerInfo.personalDetails, firstName: val}}}))}
+                  setFieldValue={(val) => this.setState({nameToDisplay: val})}
                   onAddTeamMember={(value) => this.addNameFromTeamSearch(value)}
                   btnText="Save"
                   searchTerm={this.state.searchTermForName}
@@ -489,8 +494,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     </>
                   }
                   fieldMode={true}
-                  fieldValue={this.state.customerInfo?.processOwner?.firstName +' '+this.state.customerInfo?.processOwner?.lastName}
-                  setFieldValue={(val) => this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, processOwner:{...prevState.customerInfo.processOwner, firstName: val}}}))}
+                  fieldValue={this.state.processOwnerToDisplay}
+                  setFieldValue={(val) => this.setState({processOwnerToDisplay: val})}
                   onAddTeamMember={(value) => this.addMemberFromTeamSearch(value)}
                   btnText="Save"
                   searchTerm={this.state.searchTerm}
@@ -857,6 +862,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected addMemberFromTeamSearch = (value: ITeams) => {
   this.setState((prevState) => ({
+      processOwnerToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
       customerInfo: {
         ...prevState.customerInfo,
         processOwner: value
@@ -865,8 +871,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   };
 
   protected addNameFromTeamSearch = (value: ITeams) => {
-    this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, name: value.firstName+' '+value.lastName}}));
     this.setState((prevState) => ({
+      nameToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
       customerInfo: {
         ...prevState.customerInfo,
         personalDetails: value
