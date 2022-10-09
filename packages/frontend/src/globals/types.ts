@@ -587,7 +587,8 @@ export interface ICustomers {
 }
 
 export interface ICustomerDetails {
-  name: string;
+  // name: string;
+  personalDetails?: ITeams;
   customerType: string;
   comment: string;
   department?: string;
@@ -595,7 +596,7 @@ export interface ICustomerDetails {
   ressort?: string;
   division?: string;
   usRisk?: boolean | string;
-  processOwner?: string;
+  processOwner?: ITeams;
   companyName?: string;
 }
 export interface IKpis {
