@@ -46,6 +46,7 @@ export interface ICustomerState {
   showDeleteModal: boolean;
   searchTerm: string;
   searchTermForName: string;
+  nameToDisplay: string;
 }
 export default class Customer extends React.Component<ICustomerProps, ICustomerState> {
   public static getDerivedStateFromProps(props: ICustomerProps, state: ICustomerState) {
@@ -65,11 +66,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         department: '',
         ressort: '',
         comment: '',
-        name: '',
+        personalDetails: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
         customerType: 'Internal',
         division: '',
-        usRisk: false,
-        processOwner: '',
+        usRisk: 'false',
+        processOwner: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
         companyName: ''
       },
       errors: {
@@ -77,11 +98,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         department: '',
         ressort: '',
         comment: '',
-        name: '',
         customerType: '',
         division: '',
         usRisk: '',
-        processOwner: '',
         companyName: ''
       },
       comment: null,
@@ -109,7 +128,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       customerTabError: '',
       showDeleteModal: false,
       searchTerm: '',
-      searchTermForName: ''
+      searchTermForName: '',
+      nameToDisplay: ''
     };
     this.onUsRiskChange = this.onUsRiskChange.bind(this);
   }
@@ -118,31 +138,21 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   public componentDidMount() {
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
+    this.setState({nameToDisplay: this.state.customerInfo.personalDetails.firstName +' '+ this.state.customerInfo.personalDetails.lastName});
   }
 
-  public onTextOnChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const name = e.currentTarget.name;
+  public onCustomerNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const fieldValue = e.currentTarget.value;
-    if (fieldValue === '' || fieldValue === null) {
-      this.setState((prevState) => ({
-        errors: {
-          ...prevState.errors,
-          name: '*Missing Entry',
-        },
-      }));
-    } else {
-      this.setState((prevState) => ({
-        errors: {
-          ...prevState.errors,
-          name: '',
-        },
-      }));
-    }
     
     this.setState((prevState) => ({
+      nameToDisplay: fieldValue,
       customerInfo: {
         ...prevState.customerInfo,
-        [name]: fieldValue,
+        personalDetails:{
+          ...prevState.customerInfo.personalDetails,
+        ['firstName']: fieldValue.split(' ')[0],
+        ['lastName']: fieldValue.split(' ')[1],
+        }
       },
     }));
   };
@@ -170,24 +180,23 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           <div className={Styles.flexLayout}>
             <div>
             { this.state.customerInfo.customerType === 'Internal'?
-              <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error')}>
                 <TeamSearch
                   label={
                     <>
-                      Process Owner
+                      Name
                     </>
                   }
                   fieldMode={true}
-                  fieldValue={this.state.customerInfo.name}
-                  setFieldValue={(val) => this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, name: val}}))}
+                  fieldValue={this.state.nameToDisplay}
+                  setFieldValue={(val) => this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, personalDetails:{...prevState.customerInfo.personalDetails, firstName: val}}}))}
                   onAddTeamMember={(value) => this.addNameFromTeamSearch(value)}
                   btnText="Save"
                   searchTerm={this.state.searchTermForName}
                   setSearchTerm={(value) => this.setState({searchTermForName: value})}
                   showUserDetails={false}
                   setShowUserDetails={() => {}}
-                />                  
-                <span className={classNames('error-message')}>{this.state.errors.name}</span>
+                />    
               </div>
               : 
               <div>
@@ -198,11 +207,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   labelId={'customerNameLabel'}
                   label={'Name'}
                   placeholder={'Type here'}
-                  value={this.state.customerInfo.name}
+                  value={this.state.nameToDisplay}
                   // errorText={this.state.errors.name}
                   required={false}
                   maxLength={200}
-                  onChange={this.onTextOnChange}
+                  onChange={this.onCustomerNameChange}
                 />
               </div>
               }
@@ -419,7 +428,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   <input type="radio"
                   name="usRisk"
                   value={'false'}
-                  checked={(this.state.customerInfo.usRisk).toString() == 'false'}
+                  checked={this.state.customerInfo.usRisk?.toString() == 'false'}
                   onChange={this.onUsRiskChange}
                   />
                 </span>
@@ -431,7 +440,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   <input type="radio" 
                   name="usRisk"
                   value={'true'}
-                  checked={(this.state.customerInfo.usRisk).toString() == 'true'}
+                  checked={this.state.customerInfo.usRisk?.toString() == 'true'}
                   onChange={this.onUsRiskChange}
                   />
                 </span>
@@ -480,8 +489,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     </>
                   }
                   fieldMode={true}
-                  fieldValue={this.state.customerInfo.processOwner}
-                  setFieldValue={(val) => this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, processOwner: val}}))}
+                  fieldValue={this.state.customerInfo?.processOwner?.firstName +' '+this.state.customerInfo?.processOwner?.lastName}
+                  setFieldValue={(val) => this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, processOwner:{...prevState.customerInfo.processOwner, firstName: val}}}))}
                   onAddTeamMember={(value) => this.addMemberFromTeamSearch(value)}
                   btnText="Save"
                   searchTerm={this.state.searchTerm}
@@ -802,10 +811,30 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 department: '',
                 ressort: '',
                 comment: '',
-                name: '',
+                personalDetails: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                },
                 division: '',
                 usRisk: false,
-                processOwner: '',
+                processOwner: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                },
                 companyName: ''
               },
               errors: {
@@ -813,11 +842,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 department: '',
                 ressort: '',
                 comment: '',
-                name: '',
                 customerType: '',
                 division: '',
                 usRisk: '',
-                processOwner: '',
                 companyName: ''
               }
             }
@@ -828,12 +855,23 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       }     
   }
 
-  protected addMemberFromTeamSearch = (value: any) => {
-    this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, processOwner: value.firstName+' '+value.lastName}}))
+  protected addMemberFromTeamSearch = (value: ITeams) => {
+  this.setState((prevState) => ({
+      customerInfo: {
+        ...prevState.customerInfo,
+        processOwner: value
+      },
+    }));
   };
 
-  protected addNameFromTeamSearch = (value: any) => {
-    this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, name: value.firstName+' '+value.lastName}}))
+  protected addNameFromTeamSearch = (value: ITeams) => {
+    this.setState((prevState) => ({ customerInfo: {...prevState.customerInfo, name: value.firstName+' '+value.lastName}}));
+    this.setState((prevState) => ({
+      customerInfo: {
+        ...prevState.customerInfo,
+        personalDetails: value
+      },
+    }));
   };
 
   protected addCustomerModelClose = () => {
@@ -846,11 +884,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         department: '',
         ressort: '',
         comment: '',
-        name: '',
+        personalDetails: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
         customerType: '',
         division: '',
         usRisk: false,
-        processOwner: ''
+        processOwner: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        }
         
       },
       errors: {
@@ -858,11 +916,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         ressort: '',
         department: '',
         comment: '',
-        name: '',
         customerType: '',
         division: '',
         usRisk: '',
-        processOwner: ''
       },
     });
   };
@@ -905,7 +961,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected onAddCustomer = () => {
     const { hierarchy, ressort, department, comment, 
-      name,
+      personalDetails,
       customerType,
       division,
       usRisk,
@@ -918,7 +974,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       ressort,
       department,
       comment,
-      name,
+      personalDetails,
       customerType,
       division,
       usRisk,
@@ -944,11 +1000,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
+            personalDetails: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             customerType: '',
             division: '',
             usRisk: false,
-            processOwner: '',
+            processOwner: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             companyName: ''
           },
           errors: {
@@ -956,11 +1032,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
             customerType: '',
             division: '',
             usRisk: '',
-            processOwner: '',
             companyName: ''
           },
         }),
@@ -979,7 +1053,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected onAddExternalCustomer = () => {
     const { hierarchy, ressort, department, comment, 
-      name,
+      personalDetails,
       customerType,
       division,
       usRisk,
@@ -992,7 +1066,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       ressort,
       department,
       comment,
-      name,
+      personalDetails,
       customerType,
       division,
       usRisk,
@@ -1018,11 +1092,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
+            personalDetails: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             customerType: '',
             division: '',
             usRisk: false,
-            processOwner: '',
+            processOwner: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             companyName: ''
           },
           errors: {
@@ -1030,11 +1124,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
             customerType: '',
             division: '',
             usRisk: '',
-            processOwner: '',
             companyName: ''
           },
         }),
@@ -1053,7 +1145,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected onEditCustomerOpen = (customer: ICustomerDetails) => {
     const { hierarchy, department, ressort, comment,
-      name,
+      personalDetails,
       customerType,
       division,
       usRisk,
@@ -1073,7 +1165,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           department,
           ressort,
           comment,
-          name,
+          personalDetails,
           customerType,
           division,
           usRisk,
@@ -1102,7 +1194,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   protected onEditCustomer = () => {
     const { editCustomerIndex } = this.state;
     const { hierarchy, department, ressort, comment,
-      name,
+      personalDetails,
       customerType,
       division,
       usRisk,
@@ -1116,7 +1208,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     if (this.validateCustomerModal()) {
       if ((customerExists && editCustomerIndex === newIndex) || !customerExists) {
         const customerList = [...addedCustomerList]; // create copy of original array
-        customerList[editCustomerIndex] = { hierarchy, department, ressort, comment,name,
+        customerList[editCustomerIndex] = { hierarchy, department, ressort, comment,
+          personalDetails,
           customerType,
           division,
           usRisk,
@@ -1136,11 +1229,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
+            personalDetails: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             customerType: '',
             division: '',
             usRisk: false,
-            processOwner: '',
+            processOwner: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             companyName: ''
           },
           customerInfo: {
@@ -1148,11 +1261,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
             customerType: '',
             division: '',
             usRisk: '',
-            processOwner: '',
             companyName: ''
           },
         }));
@@ -1168,7 +1279,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   protected onEditExternalCustomer = () => {
     const { editCustomerIndex } = this.state;
     const { hierarchy, department, ressort, comment,
-      name,
+      personalDetails,
       customerType,
       division,
       usRisk,
@@ -1182,7 +1293,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     if (this.validateExternalCustomerModal()) {
       if ((customerExists && editCustomerIndex === newIndex) || !customerExists) {
         const customerList = [...addedCustomerList]; // create copy of original array
-        customerList[editCustomerIndex] = { hierarchy, department, ressort, comment,name,
+        customerList[editCustomerIndex] = { hierarchy, department, ressort, comment,
+          personalDetails,
           customerType,
           division,
           usRisk,
@@ -1202,11 +1314,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
+            personalDetails: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             customerType: '',
             division: '',
             usRisk: false,
-            processOwner: '',
+            processOwner: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
             companyName: ''
           },
           customerInfo: {
@@ -1214,11 +1346,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             department: '',
             ressort: '',
             comment: '',
-            name: '',
             customerType: '',
             division: '',
             usRisk: '',
-            processOwner: '',
             companyName: ''
           },
         }));
