@@ -393,7 +393,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           <div className={Styles.flexLayout}>
           { this.state.customerInfo.customerType === 'External'?(
             <div>
-              <div
+              {/* <div
                 className={classNames('input-field-group include-error', this.state.errors.companyName ? 'error' : '')}
               >
                 <label id="companyNameLabel" htmlFor="companyNameField" className="input-label">
@@ -417,9 +417,24 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', this.state.errors.companyName?.length ? '' : 'hide')}>
+                <span className={classNames('error-message', this.state.errors.companyName ? '' : 'hide')}>
                   {this.state.errors.companyName}
-                </span>
+                </span>                
+              </div> */}
+              <div>
+                <TextBox
+                  type="text"
+                  name="companyName"
+                  controlId={'companyNameInput'}
+                  labelId={'companyNameLabel'}
+                  label={'Company Name'}
+                  placeholder={'Type here'}
+                  value={this.state.customerInfo.companyName}
+                  errorText={this.state.errors.companyName}
+                  required={true}
+                  maxLength={200}
+                  onChange={this.handleChangeInputField}
+                />
               </div>
             </div>
             ): ''}
@@ -780,7 +795,18 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     );
   };
 
-  protected handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement>) => {
+  protected handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
+    const name = e.target.name;
+    const value = e.target.value;
+    this.setState((prevState) => ({
+      customerInfo: {
+        ...prevState.customerInfo,
+        [name]: value,
+      },
+    }));
+  };
+
+  protected handleChangeInputField = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name;
     const value = e.target.value;
     this.setState((prevState) => ({
@@ -988,9 +1014,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       companyName
     });
 
-    const customerExists = this.isCustomerExist(addedCustomerList);
+    // const customerExists = this.isCustomerExist(addedCustomerList);
 
-    if (!customerExists && this.validateCustomerModal()) {
+    // if (!customerExists && this.validateCustomerModal()) {
+    if (this.validateCustomerModal()) {
       const customer = this.props.customer;
       customer.customerDetails = [...customer.customerDetails, ...selectedValues];
       this.setState(
