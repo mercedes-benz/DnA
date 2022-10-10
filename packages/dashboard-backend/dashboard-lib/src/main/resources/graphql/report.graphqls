@@ -43,10 +43,10 @@ type DescriptionVO{
 	reportType: String,
 	piiData: String,
 	status: String,
-	integratedPortal: [String],
+	integratedPortal: String,
 	frontendTechnologies: [String],
 	tags:[String],
-	agileReleaseTrains:[String],
+	agileReleaseTrain: String,
 	division : DivisionVO,
 	department: String
 }
@@ -62,14 +62,26 @@ type SubdivisionVO{
 }
 
 type CustomerVO{
-	customerDetails: [CustomerDetailsVO],
-	processOwners: [TeamMemberVO]
+	internalCustomers: [InternalCustomerVO],
+	externalCustomers: [ExternalCustomerVO]
 }
 
-type CustomerDetailsVO{
-	hierarchy: String,
-	ressort: String,
+type InternalCustomerVO{
+	name: TeamMemberVO,
+	customerRelation: String,
+	level: String,
+	division: DivisionVO,
 	department: String,
+	legalEntity: String,
+	accessToSensibleData: String,
+	comment: String,
+	processOwner: TeamMemberVO
+}
+
+type ExternalCustomerVO{
+	name: TeamMemberVO,
+	customerRelation: String,
+	companyName: String,
 	comment: String
 }
 
@@ -88,16 +100,14 @@ type DataAndFunctionVO{
 type DataWarehouseVO{
 	dataWarehouse: String,
 	commonFunctions: [String],
-	specificFunctions: [String],
-	queries: [String],
-	dataSources: [String],
-	connectionTypes: [String]
+	dataClassification: String,
+	connectionType: String
 }
 
 type SingleDataSourceVO{
-	dataSources: [String],
-	subsystems: [String],
-	connectionTypes: [String]
+	dataSource: String,
+	dataClassification: String,
+	connectionType: String
 }
 
 type MemberVO{

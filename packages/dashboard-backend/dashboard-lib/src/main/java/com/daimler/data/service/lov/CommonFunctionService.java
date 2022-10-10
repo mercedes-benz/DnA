@@ -25,12 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datawarehouse;
+package com.daimler.data.service.lov;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.daimler.data.db.entities.lov.CommonFunctionSql;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.CommonService;
 
-import com.daimler.data.db.entities.DataWarehouseNsql;
-
-public interface DataWarehouseRepository extends JpaRepository<DataWarehouseNsql, String> {
+public interface CommonFunctionService extends CommonService<LovVO, CommonFunctionSql, Long> {
 
 }

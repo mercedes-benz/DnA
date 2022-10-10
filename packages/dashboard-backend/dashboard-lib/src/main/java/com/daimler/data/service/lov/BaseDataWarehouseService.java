@@ -30,21 +30,22 @@ package com.daimler.data.service.lov;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.daimler.data.db.entities.lov.DesignGuideSql;
-import com.daimler.data.db.repo.lov.DesignGuideRepository;
+import com.daimler.data.db.entities.lov.DataWarehouseSql;
+import com.daimler.data.db.repo.lov.DataWarehouseRepository;
 import com.daimler.data.dto.lov.LovVO;
 import com.daimler.data.service.common.BaseCommonService;
 
 @Service
-public class BaseDesignGuideService extends BaseCommonService<LovVO, DesignGuideSql, Long>
-		implements DesignGuideService {
+public class BaseDataWarehouseService extends BaseCommonService<LovVO, DataWarehouseSql, Long>
+		implements DataWarehouseService {
 
-	public BaseDesignGuideService() {
+	public BaseDataWarehouseService() {
 		super();
 	}
 
 	@Autowired
-	public BaseDesignGuideService(DesignGuideRepository jpaRepo) {
+	public BaseDataWarehouseService(DataWarehouseRepository jpaRepo) {
 		super(jpaRepo);
 	}
+
 }

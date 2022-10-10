@@ -45,8 +45,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_phase_sql")
-public class ProductPhaseSql implements Serializable {
+@Table(name = "datawarehouse_sql")
+public class DataWarehouseSql implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
