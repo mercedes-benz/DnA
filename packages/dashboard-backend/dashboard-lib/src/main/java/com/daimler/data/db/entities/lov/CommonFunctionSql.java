@@ -25,10 +25,35 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.datawarehouse;
+package com.daimler.data.db.entities.lov;
 
-import com.daimler.data.db.entities.DataWarehouseNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import java.io.Serializable;
 
-public interface DataWarehouseCustomRepository extends CommonDataRepository<DataWarehouseNsql, String> {
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "common_function_sql")
+public class CommonFunctionSql implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lov_sequence_gen")
+	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "dashboard_sequence", allocationSize = 1)
+	private Long id;
+
+	@Column(name = "name")
+	private String name;
 }
