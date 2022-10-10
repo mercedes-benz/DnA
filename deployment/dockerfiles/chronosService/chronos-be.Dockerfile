@@ -6,6 +6,7 @@ RUN gradle build --no-daemon
 
 #Step-2
 FROM openjdk:17-jdk-alpine
+RUN apk --no-cache add curl
 USER 1000
 ENV ARTIFACT_NAME=chronos-lib-1.0.0.jar
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/chronos-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
