@@ -42,16 +42,15 @@ import com.daimler.data.service.common.CommonService;
 public interface ReportService extends CommonService<ReportVO, ReportNsql, String> {
 
 	enum CATEGORY {
-		TAG, DEPARTMENT, INTEGRATED_PORTAL, FRONTEND_TECH, ART, STATUS, PRODUCT_PHASE, DESIGN_GUIDE, CUST_DEPARTMENT,
-		HIERARCHIES, RESSORT, KPI_NAME, REPORTING_CAUSE, DATASOURCE, SUBSYSTEM, CONNECTION_TYPE, DATA_WAREHOUSE,
-		DIVISION;
+		TAG, DEPARTMENT, INTEGRATED_PORTAL, FRONTEND_TECH, ART, STATUS, DATA_WAREHOUSE, COMMON_FUNCTION,
+		CUST_DEPARTMENT, LEVEL, LEGAL_ENTITY, KPI_NAME, REPORTING_CAUSE, DATASOURCE, DATA_CLASSIFICATION,
+		CONNECTION_TYPE, DIVISION;
 	}
 
 	/**
 	 * To getAll Reports with given filters.
 	 * 
 	 * @param published
-	 * @param productPhase
 	 * @param statuses
 	 * @param userId
 	 * @param isAdmin
@@ -72,7 +71,6 @@ public interface ReportService extends CommonService<ReportVO, ReportNsql, Strin
 	 * To get Count of all the reports with given filters.
 	 * 
 	 * @param published
-	 * @param productPhase
 	 * @param statuses
 	 * @param userId
 	 * @param isAdmin

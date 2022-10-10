@@ -107,20 +107,7 @@ swaggerSources {
         }
     }
     
-      datawarehouse {
-        def datawarehouseyaml = "${rootDir}/dashboard-lib/src/main/resources/api/DataWarehouse.yaml"
-        def datawarehouseJson = "${rootDir}/dashboard-lib/src/main/resources/api/DataWarehouse.json"
-        inputFile = file(datawarehouseyaml)
-        def ignoreFile = "${rootDir}/dashboard-lib/src/main/resources/api/.swagger-codegen-ignore"
-        code {
-            language = 'spring'
-            configFile = file(datawarehouseJson)
-            rawOptions = ['--ignore-file-override', ignoreFile]
-            components = ['models', 'apis']
-        }
-    } 
-    
-      userwidgetpreference {
+    userwidgetpreference {
         def userWidgetPreferenceyaml = "${rootDir}/dashboard-lib/src/main/resources/api/UserWidgetPreference.yaml"
         def userWidgetPreferenceJson = "${rootDir}/dashboard-lib/src/main/resources/api/UserWidgetPreference.json"
         inputFile = file(userWidgetPreferenceyaml)
@@ -161,8 +148,6 @@ compileJava {
     source "${swaggerSources.tag.code.outputDir}/src/main/java"
     dependsOn swaggerSources.department.code
     source "${swaggerSources.department.code.outputDir}/src/main/java"  
-    dependsOn swaggerSources.datawarehouse.code
-    source "${swaggerSources.datawarehouse.code.outputDir}/src/main/java"
     dependsOn swaggerSources.userwidgetpreference.code
     source "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.division.code
@@ -180,7 +165,6 @@ sourceSets {
         java { srcDirs += "${swaggerSources.lov.code.outputDir}/src/main/java"}
         java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
-        java { srcDirs += "${swaggerSources.datawarehouse.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }
     }

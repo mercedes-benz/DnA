@@ -27,25 +27,10 @@
 
 package com.daimler.data.service.lov;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.daimler.data.db.entities.lov.ProductPhaseSql;
-import com.daimler.data.db.repo.lov.ProductPhaseRepository;
+import com.daimler.data.db.entities.lov.DataClassificationSql;
 import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.common.CommonService;
 
-@Service
-public class BaseProductPhaseService extends BaseCommonService<LovVO, ProductPhaseSql, Long>
-		implements ProductPhaseService {
-
-	public BaseProductPhaseService() {
-		super();
-	}
-
-	@Autowired
-	public BaseProductPhaseService(ProductPhaseRepository jpaRepo) {
-		super(jpaRepo);
-	}
+public interface DataClassificationService extends CommonService<LovVO, DataClassificationSql, Long> {
 
 }
