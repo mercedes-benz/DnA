@@ -25,28 +25,26 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.entities;
+package com.daimler.data.service.lov;
 
-import java.io.Serializable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import com.daimler.data.db.entities.lov.DataClassificationSql;
+import com.daimler.data.db.repo.lov.DataClassificationRepository;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.BaseCommonService;
 
-import com.daimler.data.db.jsonb.report.DataWarehouse;
+@Service
+public class BaseDataClassificationService extends BaseCommonService<LovVO, DataClassificationSql, Long>
+		implements DataClassificationService {
 
-@Entity
-@Table(name = "datawarehouse_nsql")
-public class DataWarehouseNsql extends BaseEntity<DataWarehouse> implements Serializable {
-
-	private static final long serialVersionUID = 4857908075537600169L;
-
-	public DataWarehouseNsql() {
+	public BaseDataClassificationService() {
 		super();
 	}
 
-	public DataWarehouseNsql(String id, DataWarehouse data) {
-		this.setId(id);
-		this.setData(data);
+	@Autowired
+	public BaseDataClassificationService(DataClassificationRepository jpaRepo) {
+		super(jpaRepo);
 	}
-
 }

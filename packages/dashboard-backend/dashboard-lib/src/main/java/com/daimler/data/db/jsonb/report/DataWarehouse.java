@@ -43,8 +43,6 @@ public class DataWarehouse implements Serializable {
 
 	private String dataWarehouse;
 	private List<String> commonFunctions;
-	private List<String> specificFunctions;
-	private List<String> queries;
-	private List<String> dataSources;
-	private List<String> connectionTypes;
+	private String dataClassification;
+	private String connectionType;
 }

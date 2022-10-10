@@ -41,37 +41,37 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.lov.LovApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.lov.AgileReleaseTrainSql;
+import com.daimler.data.db.entities.lov.CommonFunctionSql;
 import com.daimler.data.db.entities.lov.ConnectionTypeSql;
 import com.daimler.data.db.entities.lov.CustomerDepartmentSql;
+import com.daimler.data.db.entities.lov.DataClassificationSql;
 import com.daimler.data.db.entities.lov.DataSourceSql;
-import com.daimler.data.db.entities.lov.DesignGuideSql;
+import com.daimler.data.db.entities.lov.DataWarehouseSql;
 import com.daimler.data.db.entities.lov.FrontendTechnologySql;
 import com.daimler.data.db.entities.lov.HierarchySql;
 import com.daimler.data.db.entities.lov.IntegratedPortalSql;
 import com.daimler.data.db.entities.lov.KpiNameSql;
-import com.daimler.data.db.entities.lov.ProductPhaseSql;
 import com.daimler.data.db.entities.lov.ReportingCauseSql;
 import com.daimler.data.db.entities.lov.RessortSql;
 import com.daimler.data.db.entities.lov.StatusSql;
-import com.daimler.data.db.entities.lov.SubsystemSql;
 import com.daimler.data.dto.lov.LovRequestVO;
 import com.daimler.data.dto.lov.LovResponseVO;
 import com.daimler.data.dto.lov.LovUpdateRequestVO;
 import com.daimler.data.dto.lov.LovVOCollection;
 import com.daimler.data.service.lov.AgileReleaseTrainService;
+import com.daimler.data.service.lov.CommonFunctionService;
 import com.daimler.data.service.lov.ConnectionTypeService;
 import com.daimler.data.service.lov.CustomerDepartmentService;
+import com.daimler.data.service.lov.DataClassificationService;
 import com.daimler.data.service.lov.DataSourceService;
-import com.daimler.data.service.lov.DesignGuideService;
+import com.daimler.data.service.lov.DataWarehouseService;
 import com.daimler.data.service.lov.FrontendTechnologyService;
 import com.daimler.data.service.lov.HierarchyService;
 import com.daimler.data.service.lov.IntegratedPortalService;
 import com.daimler.data.service.lov.KpiNameService;
-import com.daimler.data.service.lov.ProductPhaseService;
 import com.daimler.data.service.lov.ReportingCauseService;
 import com.daimler.data.service.lov.RessortService;
 import com.daimler.data.service.lov.StatusService;
-import com.daimler.data.service.lov.SubsystemService;
 import com.daimler.data.service.report.ReportService;
 
 import io.swagger.annotations.Api;
@@ -104,7 +104,7 @@ public class LovController implements LovApi {
 	private KpiNameService kpiNameService;
 
 	@Autowired
-	private ProductPhaseService productPhaseService;
+	private DataWarehouseService dataWarehouseService;
 
 	@Autowired
 	private ReportingCauseService reportingCauseService;
@@ -116,7 +116,7 @@ public class LovController implements LovApi {
 	private StatusService statusService;
 
 	@Autowired
-	private DesignGuideService designGuideService;
+	private CommonFunctionService commonFunctionService;
 
 	@Autowired
 	private AgileReleaseTrainService agileReleaseTrainService;
@@ -125,7 +125,7 @@ public class LovController implements LovApi {
 	private ConnectionTypeService connectionTypeService;
 
 	@Autowired
-	private SubsystemService subsystemService;
+	private DataClassificationService dataClassificationService;
 
 	@Override
 	@ApiOperation(value = "Add a new agile release train.", nickname = "createAgileReleaseTrainLov", notes = "Add a new non existing agile release train.", response = LovResponseVO.class, tags = {
@@ -188,7 +188,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Add a new design guide.", nickname = "createDesignGuideLov", notes = "Add a new non existing design guide.", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Add a new common function.", nickname = "createCommonFunctionLov", notes = "Add a new non existing common function.", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
@@ -197,13 +197,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/designguides", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/commonfunctions", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createDesignGuideLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new design guide.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		DesignGuideSql entity = new DesignGuideSql();
+	public ResponseEntity<LovResponseVO> createCommonFunctionLov(
+			@ApiParam(value = "Request Body that contains data required for creating a new common function.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
+		CommonFunctionSql entity = new CommonFunctionSql();
 		entity.setName(lovRequestVO.getData().getName());
-		return designGuideService.createLov(lovRequestVO, entity);
+		return commonFunctionService.createLov(lovRequestVO, entity);
 	}
 
 	@Override
@@ -283,7 +283,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Add a new product phase.", nickname = "createProductPhaseLov", notes = "Add a new non existing product phase.", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Add a new dataWarehouse.", nickname = "createDataWarehouseLov", notes = "Add a new non existing dataWarehouse.", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
@@ -292,13 +292,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/productphases", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/datawarehouses", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createProductPhaseLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new product phase.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		ProductPhaseSql entity = new ProductPhaseSql();
+	public ResponseEntity<LovResponseVO> createDataWarehouseLov(
+			@ApiParam(value = "Request Body that contains data required for creating a new dataWarehouse.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
+		DataWarehouseSql entity = new DataWarehouseSql();
 		entity.setName(lovRequestVO.getData().getName());
-		return productPhaseService.createLov(lovRequestVO, entity);
+		return dataWarehouseService.createLov(lovRequestVO, entity);
 	}
 
 	@Override
@@ -359,7 +359,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Add a new subsystem.", nickname = "createSubsystemLov", notes = "Add a new non existing subsystem.", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Add a new data classification.", nickname = "createDataClassificationLov", notes = "Add a new non existing data classification.", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
@@ -368,13 +368,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/subsystems", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/dataclassifications", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createSubsystemLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new subsystem.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		SubsystemSql entity = new SubsystemSql();
+	public ResponseEntity<LovResponseVO> createDataClassificationLov(
+			@ApiParam(value = "Request Body that contains data required for creating a new data classification.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
+		DataClassificationSql entity = new DataClassificationSql();
 		entity.setName(lovRequestVO.getData().getName());
-		return subsystemService.createLov(lovRequestVO, entity);
+		return dataClassificationService.createLov(lovRequestVO, entity);
 	}
 
 	@Override
@@ -451,7 +451,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the design guide identified by given ID.", nickname = "deleteDesignGuideLov", notes = "Delete the design guide identified by given ID", response = GenericMessage.class, tags = {
+	@ApiOperation(value = "Delete the common function identified by given ID.", nickname = "deleteCommonFunctionLov", notes = "Delete the common function identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
@@ -460,12 +460,12 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/designguides/{id}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/commonfunctions/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteDesignGuideLov(
-			@ApiParam(value = "Id of the design guide", required = true) @PathVariable("id") Long id) {
-		DesignGuideSql entity = new DesignGuideSql();
-		return designGuideService.deleteLov(id, ReportService.CATEGORY.DESIGN_GUIDE, entity);
+	public ResponseEntity<GenericMessage> deleteCommonFunctionLov(
+			@ApiParam(value = "Id of the common function", required = true) @PathVariable("id") Long id) {
+		CommonFunctionSql entity = new CommonFunctionSql();
+		return commonFunctionService.deleteLov(id, ReportService.CATEGORY.COMMON_FUNCTION, entity);
 	}
 
 	@Override
@@ -501,7 +501,7 @@ public class LovController implements LovApi {
 	public ResponseEntity<GenericMessage> deleteHierarchyLov(
 			@ApiParam(value = "Id of the hierarchy", required = true) @PathVariable("id") Long id) {
 		HierarchySql entity = new HierarchySql();
-		return hierarchyService.deleteLov(id, ReportService.CATEGORY.HIERARCHIES, entity);
+		return hierarchyService.deleteLov(id, ReportService.CATEGORY.LEVEL, entity);
 	}
 
 	@Override
@@ -541,7 +541,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the product phase identified by given ID.", nickname = "deleteProductPhaseLov", notes = "Delete the product phase identified by given ID", response = GenericMessage.class, tags = {
+	@ApiOperation(value = "Delete the dataWarehouse identified by given ID.", nickname = "deleteDataWarehouseLov", notes = "Delete the dataWarehouse identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
@@ -550,12 +550,12 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/productphases/{id}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/datawarehouses/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteProductPhaseLov(
-			@ApiParam(value = "Id of the product phase", required = true) @PathVariable("id") Long id) {
-		ProductPhaseSql entity = new ProductPhaseSql();
-		return productPhaseService.deleteLov(id, ReportService.CATEGORY.PRODUCT_PHASE, entity);
+	public ResponseEntity<GenericMessage> deleteDataWarehouseLov(
+			@ApiParam(value = "Id of the dataWarehouse", required = true) @PathVariable("id") Long id) {
+		DataWarehouseSql entity = new DataWarehouseSql();
+		return dataWarehouseService.deleteLov(id, ReportService.CATEGORY.DATA_WAREHOUSE, entity);
 	}
 
 	@Override
@@ -591,7 +591,7 @@ public class LovController implements LovApi {
 	public ResponseEntity<GenericMessage> deleteRessortLov(
 			@ApiParam(value = "Id of the ressort", required = true) @PathVariable("id") Long id) {
 		RessortSql entity = new RessortSql();
-		return ressortService.deleteLov(id, ReportService.CATEGORY.RESSORT, entity);
+		return ressortService.deleteLov(id, ReportService.CATEGORY.LEGAL_ENTITY, entity);
 	}
 
 	@Override
@@ -613,7 +613,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the subsystem identified by given ID.", nickname = "deleteSubsystemLov", notes = "Delete the subsystem identified by given ID", response = GenericMessage.class, tags = {
+	@ApiOperation(value = "Delete the data classification identified by given ID.", nickname = "deleteDataClassificationLov", notes = "Delete the data classification identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
@@ -622,12 +622,12 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/subsystems/{id}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/dataclassifications/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteSubsystemLov(
-			@ApiParam(value = "Id of the subsystem", required = true) @PathVariable("id") Long id) {
-		SubsystemSql entity = new SubsystemSql();
-		return subsystemService.deleteLov(id, ReportService.CATEGORY.SUBSYSTEM, entity);
+	public ResponseEntity<GenericMessage> deleteDataClassificationLov(
+			@ApiParam(value = "Id of the data classification", required = true) @PathVariable("id") Long id) {
+		DataClassificationSql entity = new DataClassificationSql();
+		return dataClassificationService.deleteLov(id, ReportService.CATEGORY.DATA_CLASSIFICATION, entity);
 	}
 
 	@Override
@@ -697,7 +697,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all design guide.", nickname = "getAllDesignGuideLov", notes = "Get all design guide. This endpoints will be used to Get all valid available design guide.", response = LovVOCollection.class, tags = {
+	@ApiOperation(value = "Get all common function.", nickname = "getAllCommonFunctionLov", notes = "Get all common function. This endpoints will be used to Get all valid available common function.", response = LovVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
@@ -706,10 +706,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/designguides", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/commonfunctions", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllDesignGuideLov() {
-		return designGuideService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllCommonFunctionLov() {
+		return commonFunctionService.getAllLov();
 	}
 
 	@Override
@@ -777,7 +777,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all product phase.", nickname = "getAllProductPhaseLov", notes = "Get all product phases. This endpoints will be used to get all valid available product phases.", response = LovVOCollection.class, tags = {
+	@ApiOperation(value = "Get all dataWarehouse.", nickname = "getAllDataWarehouseLov", notes = "Get all dataWarehouse. This endpoints will be used to get all valid available dataWarehouse.", response = LovVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
@@ -786,10 +786,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/productphases", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/datawarehouses", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllProductPhaseLov() {
-		return productPhaseService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllDataWarehouseLov() {
+		return dataWarehouseService.getAllLov();
 	}
 
 	@Override
@@ -857,7 +857,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all subsystem.", nickname = "getAllSubsystemLov", notes = "Get all subsystem. This endpoints will be used to get all valid available subsystem.", response = LovVOCollection.class, tags = {
+	@ApiOperation(value = "Get all data classification.", nickname = "getAllDataClassificationLov", notes = "Get all data classification. This endpoints will be used to get all valid available data classification.", response = LovVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
@@ -866,10 +866,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/subsystems", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/dataclassifications", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllSubsystemLov() {
-		return subsystemService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllDataClassificationLov() {
+		return dataClassificationService.getAllLov();
 	}
 
 	@Override
@@ -927,7 +927,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update the design guide identified by given ID.", nickname = "updateDesignGuideLov", notes = "Update the design guide identified by given ID", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Update the common function identified by given ID.", nickname = "updateCommonFunctionLov", notes = "Update the common function identified by given ID", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad request"),
@@ -935,13 +935,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/designguides", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/commonfunctions", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateDesignGuideLov(
-			@ApiParam(value = "Request Body that contains data required for updating design guide.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		DesignGuideSql entity = new DesignGuideSql();
+	public ResponseEntity<LovResponseVO> updateCommonFunctionLov(
+			@ApiParam(value = "Request Body that contains data required for updating common function.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
+		CommonFunctionSql entity = new CommonFunctionSql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return designGuideService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.DESIGN_GUIDE);
+		return commonFunctionService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.COMMON_FUNCTION);
 	}
 
 	@Override
@@ -977,7 +977,7 @@ public class LovController implements LovApi {
 			@ApiParam(value = "Request Body that contains data required for updating hierarchy.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
 		HierarchySql entity = new HierarchySql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return hierarchyService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.HIERARCHIES);
+		return hierarchyService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.LEVEL);
 	}
 
 	@Override
@@ -1017,7 +1017,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update the product phase identified by given ID.", nickname = "updateProductPhaseLov", notes = "Update the product phase identified by given ID", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Update the dataWarehouse identified by given ID.", nickname = "updateDataWarehouseLov", notes = "Update the dataWarehouse identified by given ID", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad request"),
@@ -1025,13 +1025,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/productphases", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/datawarehouses", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateProductPhaseLov(
-			@ApiParam(value = "Request Body that contains data required for updating product phase.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		ProductPhaseSql entity = new ProductPhaseSql();
+	public ResponseEntity<LovResponseVO> updateDataWarehouseLov(
+			@ApiParam(value = "Request Body that contains data required for updating dataWarehouse.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
+		DataWarehouseSql entity = new DataWarehouseSql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return productPhaseService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.PRODUCT_PHASE);
+		return dataWarehouseService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.DATA_WAREHOUSE);
 	}
 
 	@Override
@@ -1067,7 +1067,7 @@ public class LovController implements LovApi {
 			@ApiParam(value = "Request Body that contains data required for updating ressort.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
 		RessortSql entity = new RessortSql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return ressortService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.RESSORT);
+		return ressortService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.LEGAL_ENTITY);
 	}
 
 	@Override
@@ -1108,7 +1108,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update the subsystem identified by given ID.", nickname = "updateSubsystemLov", notes = "Update the subsystem identified by given ID", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Update the data classification identified by given ID.", nickname = "updateDataClassificationLov", notes = "Update the data classification identified by given ID", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad request"),
@@ -1116,12 +1116,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/subsystems", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/dataclassifications", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateSubsystemLov(
-			@ApiParam(value = "Request Body that contains data required for updating subsystem.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		SubsystemSql entity = new SubsystemSql();
+	public ResponseEntity<LovResponseVO> updateDataClassificationLov(
+			@ApiParam(value = "Request Body that contains data required for updating data classification.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
+		DataClassificationSql entity = new DataClassificationSql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return subsystemService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.SUBSYSTEM);
+		return dataClassificationService.updateLov(lovUpdateRequestVO, entity,
+				ReportService.CATEGORY.DATA_CLASSIFICATION);
 	}
 }
