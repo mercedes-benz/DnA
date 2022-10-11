@@ -25,25 +25,14 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.lov;
+package com.daimler.data.db.repo.lov;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import com.daimler.data.db.entities.lov.SubsystemSql;
-import com.daimler.data.db.repo.lov.SubsystemRepository;
-import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.db.entities.lov.DataWarehouseSql;
 
-@Service
-public class BaseSubsystemService extends BaseCommonService<LovVO, SubsystemSql, Long> implements SubsystemService {
+@Repository
+public interface DataWarehouseRepository extends JpaRepository<DataWarehouseSql, Long> {
 
-	public BaseSubsystemService() {
-		super();
-	}
-
-	@Autowired
-	public BaseSubsystemService(SubsystemRepository jpaRepo) {
-		super(jpaRepo);
-	}
 }
