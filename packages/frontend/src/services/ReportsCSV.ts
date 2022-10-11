@@ -31,8 +31,8 @@ export const getDataForCSV = (
     { label: 'Agile Release Train', key: 'agileReleaseTrains' },
     // { label: 'Design Guide Implemented', key: 'designGuideImplemented' },
     { label: 'Frontend Technologies', key: 'frontendTechnologies' },
-    { label: 'Customers', key: 'customers' },
-    { label: 'Process Owner', key: 'processOwners' },
+    { label: 'Internal Customers', key: 'internalCustomers' },
+    { label: 'External Customers', key: 'externalCustomers' },
     { label: 'KPIs', key: 'kpis' },
     { label: 'Data Warehouse', key: 'datawarehouses' },
     { label: 'Single Datasource', key: 'singledatasources' },
@@ -101,11 +101,11 @@ export const getDataForCSV = (
             frontendTechnologies: report.description.frontendTechnologies?.length
               ? report.description.frontendTechnologies?.join(', ')
               : 'NA',
-            customers: report.customer?.customerDetails?.length
-              ? report.customer?.customerDetails?.map((customer) => Object.values(customer))?.join(' | ')
+            internalCustomers: report.customer?.internalCustomers?.length
+              ? report.customer?.internalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
               : 'NA',
-            processOwners: report.customer?.processOwners?.length
-              ? report.customer.processOwners?.map((member) => member.shortId)?.join(', ')
+            externalCustomers: report.customer?.externalCustomers?.length
+              ? report.customer.externalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
               : 'NA',
             kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi))?.join(' | ') : 'NA',
             datawarehouses: report.dataAndFunctions?.dataWarehouseInUse?.length

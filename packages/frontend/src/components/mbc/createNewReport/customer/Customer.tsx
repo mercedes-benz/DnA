@@ -4,7 +4,8 @@ import Styles from './Customer.scss';
 import Modal from 'components/formElements/modal/Modal';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 // import IconAvatarNew from 'components/icons/IconAvatarNew';
-import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, ICustomerDetails, IDivision } from 'globals/types';
+import { ITeams, ICustomers, IDepartment, IHierarchies, IRessort, IInternalCustomerDetails, 
+  IExternalCustomerDetails, IDivision, IDivisionAndSubDivision } from 'globals/types';
 import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
 // import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
@@ -27,9 +28,11 @@ export interface ICustomerProps {
 }
 export interface ICustomerState {
   customer: ICustomers;
-  customerInfo: ICustomerDetails;
+  internalCustomerInfo: IInternalCustomerDetails;
+  externalCustomerInfo: IExternalCustomerDetails;
   comment: string;
-  errors: ICustomerDetails;
+  internalCustomerErrors: IInternalCustomerDetails;
+  externalCustomerErrors: IExternalCustomerDetails;
   addCustomer: boolean;
   editCustomer: boolean;
   editCustomerIndex: number;
@@ -48,6 +51,7 @@ export interface ICustomerState {
   searchTermForName: string;
   nameToDisplay: string;
   processOwnerToDisplay: string;
+  customerType: string;
 }
 export default class Customer extends React.Component<ICustomerProps, ICustomerState> {
   public static getDerivedStateFromProps(props: ICustomerProps, state: ICustomerState) {
@@ -59,15 +63,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     super(props);
     this.state = {
       customer: {
-        customerDetails: [],
-        processOwners: [],
+        internalCustomers: [],
+        externalCustomers: [],
       },
-      customerInfo: {
-        hierarchy: '',
-        department: '',
-        ressort: '',
-        comment: '',
-        personalDetails: {
+      internalCustomerInfo: {
+        name: {
           company: '',
           department: '',
           email: '',
@@ -78,9 +78,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           teamMemberPosition: '',
           userType: ''
         },
-        customerType: 'Internal',
-        division: '',
-        usRisk: 'false',
+        customerRelation: 'Internal',
+        comment: '',
+        department: '',
+        level: '',
+        legalEntity: '',
+        division: {id: '', name: '', subdivision: {id: '', name: ''}},
+        accessToSensibleData: 'false',
         processOwner: {
           company: '',
           department: '',
@@ -91,18 +95,70 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           mobileNumber: '',
           teamMemberPosition: '',
           userType: ''
-        },
-        companyName: ''
+        }
       },
-      errors: {
-        hierarchy: '',
-        department: '',
-        ressort: '',
+      externalCustomerInfo:{
+        name: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
+        companyName: '',
+        customerRelation: 'External',
+        comment: ''
+      },
+      internalCustomerErrors: {
+        name: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
+        customerRelation: '',
         comment: '',
-        customerType: '',
+        department: '',
+        level: '',
+        legalEntity: '',
         division: '',
-        usRisk: '',
-        companyName: ''
+        accessToSensibleData: 'false',
+        processOwner: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        }
+      },
+      externalCustomerErrors:{
+        name: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
+        companyName: '',
+        customerRelation: '',
+        comment: ''
       },
       comment: null,
       addCustomer: false,
@@ -131,7 +187,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       searchTerm: '',
       searchTermForName: '',
       nameToDisplay: '',
-      processOwnerToDisplay: ''
+      processOwnerToDisplay: '',
+      customerType: 'Internal'
     };
     this.onUsRiskChange = this.onUsRiskChange.bind(this);
   }
@@ -141,8 +198,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
     this.setState({
-      nameToDisplay: this.state.customerInfo.personalDetails.firstName ? this.state.customerInfo.personalDetails.firstName +' '+ this.state.customerInfo.personalDetails.lastName : '',
-      processOwnerToDisplay: this.state.customerInfo.processOwner.firstName ? this.state.customerInfo.processOwner.firstName +' '+ this.state.customerInfo.processOwner.lastName : ''
+      nameToDisplay: this.state.internalCustomerInfo.name.firstName ? this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName : '',
+      processOwnerToDisplay: this.state.internalCustomerInfo.name.firstName ? this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName : ''
     });
   }
 
@@ -151,10 +208,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     
     this.setState((prevState) => ({
       nameToDisplay: fieldValue,
-      customerInfo: {
-        ...prevState.customerInfo,
-        personalDetails:{
-          ...prevState.customerInfo.personalDetails,
+      internalCustomerInfo: {
+        ...prevState.internalCustomerInfo,
+        name:{
+          ...prevState.internalCustomerInfo.name,
         ['firstName']: fieldValue.split(' ')[0],
         ['lastName']: fieldValue.split(' ')[1],
         }
@@ -166,8 +223,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     const name = e.currentTarget.name;
     const usRiskVal = e.currentTarget.value;
     this.setState((prevState) => ({
-      customerInfo: {
-        ...prevState.customerInfo,
+      internalCustomerInfo: {
+        ...prevState.internalCustomerInfo,
         [name]: usRiskVal,
       },
     }));
@@ -184,7 +241,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
           <div className={Styles.flexLayout}>
             <div>
-            { this.state.customerInfo.customerType === 'Internal'?
+            { this.state.customerType === 'Internal'?
               <div className={classNames('input-field-group include-error')}>
                 <TeamSearch
                   label={
@@ -221,9 +278,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               </div>
               }
             </div>
+
+            { this.state.customerType === 'Internal'?
             <div>
               <div
-                className={classNames('input-field-group include-error', this.state.errors.customerType ? 'error' : '')}
+                className={classNames('input-field-group include-error', this.state.internalCustomerErrors.customerRelation ? 'error' : '')}
               >
                 <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
                   Customer Relation<sup>*</sup>
@@ -231,30 +290,59 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 <div className="custom-select">
                   <select
                     id="customerTypeField"
-                    name="customerType"
+                    name="customerRelation"
                     multiple={false}
                     required-error={requiredError}
                     required={true}
-                    value={this.state.customerInfo.customerType}
-                    onChange={this.handleSelectChange}
+                    value={this.state.customerType}
+                    onChange={this.internalHandleSelectChange}
                   >
                     <option value={''}>Choose</option>
                     <option id={'Internal'} key={'Internal'} value={'Internal'}>Internal</option>
                     <option id={'External'} key={'External'} value={'External'}>External</option>
                   </select>
                 </div>
-                <span className={classNames('error-message', this.state.errors.customerType ? '' : 'hide')}>
-                  {this.state.errors.customerType}
+                <span className={classNames('error-message', this.state.internalCustomerErrors.customerRelation ? '' : 'hide')}>
+                  {this.state.internalCustomerErrors.customerRelation}
                 </span>
               </div>
             </div>
+            :
+            <div>
+              <div
+                className={classNames('input-field-group include-error', this.state.externalCustomerErrors.customerRelation ? 'error' : '')}
+              >
+                <label id="customerTypeLabel" htmlFor="customerTypeField" className="input-label">
+                  Customer Relation<sup>*</sup>
+                </label>
+                <div className="custom-select">
+                  <select
+                    id="customerTypeField"
+                    name="customerRelation"
+                    multiple={false}
+                    required-error={requiredError}
+                    required={true}
+                    value={this.state.customerType}
+                    onChange={this.externalHandleSelectChange}
+                  >
+                    <option value={''}>Choose</option>
+                    <option id={'Internal'} key={'Internal'} value={'Internal'}>Internal</option>
+                    <option id={'External'} key={'External'} value={'External'}>External</option>
+                  </select>
+                </div>
+                <span className={classNames('error-message', this.state.externalCustomerErrors.customerRelation ? '' : 'hide')}>
+                  {this.state.externalCustomerErrors.customerRelation}
+                </span>
+              </div>
+            </div>
+            }
           </div>
           
-          { this.state.customerInfo.customerType === 'Internal'?(
+          { this.state.customerType === 'Internal'?(
           <div className={Styles.flexLayout}>
             <div>
               <div
-                className={classNames('input-field-group include-error', this.state.errors.hierarchy ? 'error' : '')}
+                className={classNames('input-field-group include-error', this.state.internalCustomerErrors.level ? 'error' : '')}
               >
                 <label id="hirarchyLabel" htmlFor="hierarchyField" className="input-label">
                   Level<sup>*</sup>
@@ -262,12 +350,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 <div className="custom-select">
                   <select
                     id="hierarchyField"
-                    name="hierarchy"
+                    name="level"
                     multiple={false}
                     required-error={requiredError}
                     required={true}
-                    value={this.state.customerInfo.hierarchy}
-                    onChange={this.handleSelectChange}
+                    value={this.state.internalCustomerInfo.level}
+                    onChange={this.internalHandleSelectChange}
                   >
                     <option value={''}>Choose</option>
                     {this.props.hierarchies?.map((obj) => (
@@ -277,8 +365,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', this.state.errors.hierarchy ? '' : 'hide')}>
-                  {this.state.errors.hierarchy}
+                <span className={classNames('error-message', this.state.internalCustomerErrors.level ? '' : 'hide')}>
+                  {this.state.internalCustomerErrors.level}
                 </span>
               </div>
             </div>
@@ -287,7 +375,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    this.state.errors.division ? 'error' : '',
+                    this.state.internalCustomerInfo.division.id === '0' ? 'error' : '',
                   )}
                 >
                   <label id="divisionLabel" htmlFor="divisionField" className="input-label">
@@ -299,21 +387,21 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                       name="division"
                       required={true}
                       required-error={requiredError}
-                      onChange={this.handleSelectChange}
-                      value={this.state.customerInfo.division}
+                      onChange={this.onDivisionChange}
+                      value={this.state.internalCustomerInfo.division.name}
                     >
                       <option id="divisionOption" value={''}>
                         Choose
                       </option>
                       {this.props.divisions?.map((obj) => (
-                        <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
                           {obj.name}
                         </option>
                       ))}
                     </select>
                   </div>
-                  <span className={classNames('error-message', this.state.errors.division ? '' : 'hide')}>
-                    {this.state.errors.division}
+                  <span className={classNames('error-message', this.state.internalCustomerInfo.division.id === '0' ? '' : 'hide')}>
+                    *Missing entry
                   </span>
                 </div>
               </div>
@@ -322,11 +410,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           ): ''}
 
 
-          { this.state.customerInfo.customerType === 'Internal'?(
+          { this.state.customerType === 'Internal'?(
           <div className={Styles.flexLayout}>
             <div>
               <div
-                className={classNames('input-field-group include-error', this.state.errors.department ? 'error' : '')}
+                className={classNames('input-field-group include-error', this.state.internalCustomerErrors.department ? 'error' : '')}
               >
                 <label id="departmentLabel" htmlFor="departmentField" className="input-label">
                   Customer E2-Department<sup>*</sup>
@@ -338,8 +426,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     multiple={false}
                     required-error={requiredError}
                     required={true}
-                    value={this.state.customerInfo.department || ''}
-                    onChange={this.handleSelectChange}
+                    value={this.state.internalCustomerInfo.department || ''}
+                    onChange={this.internalHandleSelectChange}
                   >
                     <option value={''}>Choose</option>
                     {this.props.departments?.map((obj) => (
@@ -349,8 +437,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', this.state.errors.department?.length ? '' : 'hide')}>
-                  {this.state.errors.department}
+                <span className={classNames('error-message', this.state.internalCustomerErrors.department?.length ? '' : 'hide')}>
+                  {this.state.internalCustomerErrors.department}
                 </span>
               </div>
             </div>
@@ -358,7 +446,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               <div
                 className={classNames(
                   'input-field-group include-error',
-                  this.state.errors.ressort?.length ? 'error' : '',
+                  this.state.internalCustomerErrors.legalEntity ? 'error' : '',
                 )}
               >
                 <label id="ressortLabel" htmlFor="ressortField" className="input-label">
@@ -367,12 +455,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 <div className="custom-select">
                   <select
                     id="ressortField"
-                    name="ressort"
+                    name="legalEntity"
                     multiple={false}
                     required-error={requiredError}
                     required={true}
-                    value={this.state.customerInfo.ressort || ''}
-                    onChange={this.handleSelectChange}
+                    value={this.state.internalCustomerInfo.legalEntity || ''}
+                    onChange={this.internalHandleSelectChange}
                   >
                     <option value={''}>Choose</option>
                     {this.props.ressort?.map((obj) => (
@@ -382,8 +470,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', this.state.errors.ressort?.length ? '' : 'hide')}>
-                  {this.state.errors.ressort}
+                <span className={classNames('error-message', this.state.internalCustomerErrors.legalEntity?.length ? '' : 'hide')}>
+                  {this.state.internalCustomerErrors.legalEntity}
                 </span>
               </div>
             </div>
@@ -391,7 +479,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           ): ''}
 
           <div className={Styles.flexLayout}>
-          { this.state.customerInfo.customerType === 'External'?(
+          { this.state.customerType === 'External'?(
             <div>
               {/* <div
                 className={classNames('input-field-group include-error', this.state.errors.companyName ? 'error' : '')}
@@ -429,16 +517,16 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   labelId={'companyNameLabel'}
                   label={'Company Name'}
                   placeholder={'Type here'}
-                  value={this.state.customerInfo.companyName}
-                  errorText={this.state.errors.companyName}
+                  value={this.state.externalCustomerInfo.companyName}
+                  errorText={this.state.externalCustomerErrors.companyName}
                   required={true}
                   maxLength={200}
-                  onChange={this.handleChangeInputField}
+                  onChange={this.externalHandleChangeInputField}
                 />
               </div>
             </div>
             ): ''}
-            { this.state.customerInfo.customerType === 'Internal'?(
+            { this.state.customerType === 'Internal'?(
             <div>
               <div id="usRiskLabel" className={classNames("input-label", Styles.usRiskLabel)}>
                 US-Risk<sup>*</sup> (US-Access to sensible data)
@@ -446,9 +534,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               <label className="radio">
                 <span className="wrapper">
                   <input type="radio"
-                  name="usRisk"
+                  name="accessToSensibleData"
                   value={'false'}
-                  checked={this.state.customerInfo.usRisk?.toString() == 'false'}
+                  checked={this.state.internalCustomerInfo.accessToSensibleData?.toString() == 'false'}
                   onChange={this.onUsRiskChange}
                   />
                 </span>
@@ -458,9 +546,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               <label className="radio">
                 <span className="wrapper">
                   <input type="radio" 
-                  name="usRisk"
+                  name="accessToSensibleData"
                   value={'true'}
-                  checked={this.state.customerInfo.usRisk?.toString() == 'true'}
+                  checked={this.state.internalCustomerInfo.accessToSensibleData?.toString() == 'true'}
                   onChange={this.onUsRiskChange}
                   />
                 </span>
@@ -473,6 +561,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
 
           <div>
+          { this.state.customerType === 'Internal'?(
             <TextArea
               controlId={'customerComment'}
               containerId={'customerComment'}
@@ -480,12 +569,26 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               labelId={'customerCommentLabel'}
               label={'Comment'}
               rows={50}
-              value={this.state.customerInfo.comment}
+              value={this.state.internalCustomerInfo.comment}
               required={false}
-              onChange={this.handleChange}
+              onChange={this.internalHandleChange}
               // onBlur={this.validateCustomerModal}
             />
-            { this.state.customerInfo.customerType === 'Internal'?(
+          ):(
+            <TextArea
+              controlId={'customerComment'}
+              containerId={'customerComment'}
+              name={'comment'}
+              labelId={'customerCommentLabel'}
+              label={'Comment'}
+              rows={50}
+              value={this.state.externalCustomerInfo.comment}
+              required={false}
+              onChange={this.externalHandleChange}
+              // onBlur={this.validateCustomerModal}
+            />
+          )}
+            { this.state.customerType === 'Internal'?(
             <div className={Styles.flexLayout}>
               {/* <div>
                 <TextBox
@@ -501,7 +604,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   onChange={this.onTextOnChange}
                 />
               </div> */}
-              <div className={classNames('input-field-group include-error', this.state.errors.processOwner ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error')}>
                 <TeamSearch
                   label={
                     <>
@@ -518,7 +621,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   showUserDetails={false}
                   setShowUserDetails={() => {}}
                 />                  
-                <span className={classNames('error-message')}>{this.state.errors.processOwner}</span>
+                {/* <span className={classNames('error-message')}>{this.state.internalCustomerErrors.processOwner}</span> */}
               </div>
               <div></div>
             </div>
@@ -526,11 +629,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             
             {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''}
             <div className="btnConatiner">
-              { this.state.customerInfo.customerType === 'Internal'?
+              { this.state.customerType === 'Internal'?
                 <button
                   className="btn btn-primary"
                   type="button"
-                  onClick={this.state.addCustomer ? this.onAddCustomer : this.onEditCustomer}
+                  onClick={this.state.addCustomer ? this.onAddInternalCustomer : this.onEditInternalCustomer}
                 >
                   {this.state.addCustomer ? 'Add' : this.state.editCustomer && 'Save'}
                 </button>
@@ -584,7 +687,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 <div className={Styles.customerGrp}>
                   <div className={Styles.customerGrpList}>
                     <div className={Styles.customerGrpListItem}>
-                      {this.state.customer.customerDetails?.length ? (
+                      {this.state.customer.internalCustomers?.length ? (
                         <div className={Styles.customerCaption}>
                           <div className={Styles.customerTile}>
                             <div className={Styles.customerTitleCol}>
@@ -632,10 +735,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                       ) : (
                         ''
                       )}
-                      {this.state.customer.customerDetails?.map((customer, index) => {
+                      {this.state.customer.internalCustomers?.map((customer, index) => {
                         return (
                           <div
-                            key={index}
+                            key={customer.customerRelation + index}
                             className={'expansion-panel-group airflowexpansionPanel ' + Styles.customerGrpListItemPanel}
                           >
                             <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
@@ -647,8 +750,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                               >
                                 <div className={Styles.customerTile}>
                                   <div className={Styles.customerTitleCol}>{`Customer ${index + 1}`}</div>
-                                  <div className={Styles.customerTitleCol}>{customer.hierarchy || '-'}</div>
-                                  <div className={Styles.customerTitleCol}>{customer.ressort || '-'}</div>
+                                  <div className={Styles.customerTitleCol}>{customer.level || '-'}</div>
+                                  <div className={Styles.customerTitleCol}>{customer.legalEntity || '-'}</div>
                                   <div className={Styles.customerTitleCol}>{customer.department || '-'}</div>
                                   <div className={Styles.customerTitleCol}></div>
                                 </div>
@@ -663,7 +766,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                     <button
                                       className={'btn btn-primary'}
                                       type="button"
-                                      onClick={() => this.onEditCustomerOpen(customer)}
+                                      onClick={() => this.onInternalEditCustomerOpen(customer)}
                                     >
                                       <i className="icon mbc-icon edit"></i>
                                       <span>Edit Customer </span>
@@ -671,7 +774,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                     <button
                                       className={'btn btn-primary'}
                                       type="button"
-                                      onClick={() => this.onDeleteCustomer(customer)}
+                                      onClick={() => this.onDeleteInternalCustomer(customer)}
                                     >
                                       <i className="icon delete"></i>
                                       <span>Delete Customer </span>
@@ -692,7 +795,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   <i className="icon mbc-icon plus" />
                   <span>Add Customer</span>
                 </button>
-                {!this.state.customer.customerDetails?.length && (
+                {(!this.state.customer.internalCustomers?.length && !this.state.customer.externalCustomers?.length) && (
                   <div className={classNames(this.state.customerTabError ? '' : 'hide')}>
                     <span className="error-message">{this.state.customerTabError}</span>
                   </div>
@@ -735,7 +838,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           scrollableContent={false}
           onCancel={this.addCustomerModelClose}
         />
-        {this.state.showAddTeamMemberModal && (
+        {/* {this.state.showAddTeamMemberModal && (
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
             modalTitleText={'Process Owner'}
@@ -746,7 +849,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             onUpdateTeamMemberList={this.updateTeamMemberList}
             onAddTeamMemberModalCancel={this.onAddTeamMemberModalCancel}
           />
-        )}
+        )} */}
         <ConfirmModal
           title="Delete Customer"
           acceptButtonTitle="Delete"
@@ -756,7 +859,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           show={this.state.showDeleteModal}
           content={deleteModalContent}
           onCancel={this.onCancellingDeleteChanges}
-          onAccept={this.onAcceptDeleteChanges}
+          onAccept={this.onAcceptDeleteChangesInternal}
         />
       </React.Fragment>
     );
@@ -764,8 +867,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   public resetChanges = () => {
     if (this.props.customer) {
       const customer = this.props.customer;
-      customer.customerDetails = this.props.customer.customerDetails;
-      customer.processOwners = this.props.customer.processOwners;
+      customer.internalCustomers = this.props.customer.internalCustomers;
+      customer.externalCustomers = this.props.customer.externalCustomers;
     }
   };
   protected onCustomer = () => {
@@ -776,12 +879,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   };
 
   protected validateCustomerTab = () => {
-    const { customerDetails } = this.state.customer;
-    !customerDetails?.length &&
+    const { externalCustomers, internalCustomers } = this.state.customer;
+    (!internalCustomers?.length && !externalCustomers?.length) &&
       this.setState({
         customerTabError: ErrorMsg.CUSTOMER_TAB,
-      });
-    return customerDetails?.length;
+      });  
+    return (internalCustomers?.length || externalCustomers?.length);
   };
 
   protected addCustomerModel = () => {
@@ -795,29 +898,70 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     );
   };
 
-  protected handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
+  protected internalHandleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
     const name = e.target.name;
     const value = e.target.value;
     this.setState((prevState) => ({
-      customerInfo: {
-        ...prevState.customerInfo,
+      internalCustomerInfo: {
+        ...prevState.internalCustomerInfo,
         [name]: value,
       },
     }));
   };
 
-  protected handleChangeInputField = (e: React.ChangeEvent<HTMLInputElement>) => {
+  protected externalHandleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement>) => {
     const name = e.target.name;
     const value = e.target.value;
     this.setState((prevState) => ({
-      customerInfo: {
-        ...prevState.customerInfo,
+      externalCustomerInfo: {
+        ...prevState.externalCustomerInfo,
         [name]: value,
       },
     }));
   };
 
-  protected handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  // protected internalHandleChangeInputField = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const name = e.target.name;
+  //   const value = e.target.value;
+  //   this.setState((prevState) => ({
+  //     internalCustomerInfo: {
+  //       ...prevState.internalCustomerInfo,
+  //       [name]: value,
+  //     },
+  //   }));
+  // };
+
+  protected externalHandleChangeInputField = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.name;
+    const value = e.target.value;
+    this.setState((prevState) => ({
+      externalCustomerInfo: {
+        ...prevState.externalCustomerInfo,
+        [name]: value,
+      },
+    }));
+  };
+
+  protected onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.name;
+    const division: IDivisionAndSubDivision = { id: '0', name: null, subdivision: { id: null, name: null } };
+    const selectedOptions = e.currentTarget.selectedOptions;
+    if (selectedOptions.length) {
+      division.id = selectedOptions[0].value;
+      division.name = selectedOptions[0].label;
+
+      if (division.id !== '0') {
+        this.setState((prevState) => ({
+          internalCustomerInfo: {
+            ...prevState.internalCustomerInfo,
+            [name]: division,
+          },
+        }));
+      }
+    }
+  };
+
+  protected internalHandleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const name = e.target.name;
     let selectedValue = '';
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -826,23 +970,49 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           selectedValue = option.value;
         });
         this.setState((prevState) => ({
-          customerInfo: {
-            ...prevState.customerInfo,
+          internalCustomerInfo: {
+            ...prevState.internalCustomerInfo,
             [name]: selectedValue,
           },
         }),
         ()=>{
-          if(name === 'customerType'){
-            SelectBox.defaultSetup(true);
+          if(name === 'customerRelation'){
             this.setState((prevState) =>(
             {
-              customerInfo: {
-                ...prevState.customerInfo,
-                hierarchy: '',
-                department: '',
-                ressort: '',
-                comment: '',
-                personalDetails: {
+              customerType: selectedValue,
+              // internalCustomerInfo: {
+              //   ...prevState.internalCustomerInfo,
+              //   level: '',
+              //   department: '',
+              //   legalEntity: '',
+              //   comment: '',
+              //   name: {
+              //     company: '',
+              //     department: '',
+              //     email: '',
+              //     firstName: '',
+              //     shortId: '',
+              //     lastName: '',
+              //     mobileNumber: '',
+              //     teamMemberPosition: '',
+              //     userType: ''
+              //   },
+              //   division: '',
+              //   accessToSensibleData: false,
+              //   processOwner: {
+              //     company: '',
+              //     department: '',
+              //     email: '',
+              //     firstName: '',
+              //     shortId: '',
+              //     lastName: '',
+              //     mobileNumber: '',
+              //     teamMemberPosition: '',
+              //     userType: ''
+              //   }
+              // },
+              internalCustomerErrors: {
+                name: {
                   company: '',
                   department: '',
                   email: '',
@@ -853,8 +1023,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   teamMemberPosition: '',
                   userType: ''
                 },
+                customerRelation: '',
+                comment: '',
+                department: '',
+                level: '',
+                legalEntity: '',
                 division: '',
-                usRisk: false,
+                accessToSensibleData: 'false',
                 processOwner: {
                   company: '',
                   department: '',
@@ -865,21 +1040,165 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   mobileNumber: '',
                   teamMemberPosition: '',
                   userType: ''
-                },
-                companyName: ''
+                }
               },
-              errors: {
-                hierarchy: '',
+              externalCustomerInfo: {
+                ...prevState.externalCustomerInfo,
+                name: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                },
+                companyName: '',
+                customerRelation: '',
+                comment: ''
+              },
+              externalCustomerErrors:{
+                name: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                },
+                companyName: '',
+                customerRelation: '',
+                comment: ''
+              },
+            }
+            ),()=>{SelectBox.defaultSetup(true);});
+          }
+          
+        },);        
+      }     
+  }
+
+  protected externalHandleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.name;
+    let selectedValue = '';
+    const selectedOptions = e.currentTarget.selectedOptions;
+      if (selectedOptions.length) {
+        Array.from(selectedOptions).forEach((option) => {
+          selectedValue = option.value;
+        });
+        this.setState((prevState) => ({
+          externalCustomerInfo: {
+            ...prevState.externalCustomerInfo,
+            [name]: selectedValue,
+          },
+        }),
+        ()=>{
+          if(name === 'customerRelation'){
+            this.setState((prevState) =>(
+            {
+              customerType: selectedValue,
+              // externalCustomerInfo: {
+              //   ...prevState.externalCustomerInfo,
+              //   name: {
+              //     company: '',
+              //     department: '',
+              //     email: '',
+              //     firstName: '',
+              //     shortId: '',
+              //     lastName: '',
+              //     mobileNumber: '',
+              //     teamMemberPosition: '',
+              //     userType: ''
+              //   },
+              //   companyName: '',
+              //   customerRelation: '',
+              //   comment: ''
+              // },
+              externalCustomerErrors:{
+                name: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                },
+                companyName: '',
+                customerRelation: '',
+                comment: ''
+              },
+              internalCustomerInfo: {
+                ...prevState.internalCustomerInfo,
+                level: '',
                 department: '',
-                ressort: '',
+                legalEntity: '',
                 comment: '',
-                customerType: '',
+                name: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                },
                 division: '',
-                usRisk: '',
-                companyName: ''
+                accessToSensibleData: false,
+                processOwner: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                }
+              },
+              internalCustomerErrors: {
+                name: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                },
+                customerRelation: 'Internal',
+                comment: '',
+                department: '',
+                level: '',
+                legalEntity: '',
+                division: '',
+                accessToSensibleData: 'false',
+                processOwner: {
+                  company: '',
+                  department: '',
+                  email: '',
+                  firstName: '',
+                  shortId: '',
+                  lastName: '',
+                  mobileNumber: '',
+                  teamMemberPosition: '',
+                  userType: ''
+                }
               }
             }
-            ));
+            ),()=>{SelectBox.defaultSetup(true);});
           }
           
         },);        
@@ -889,8 +1208,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   protected addMemberFromTeamSearch = (value: ITeams) => {
   this.setState((prevState) => ({
       processOwnerToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
-      customerInfo: {
-        ...prevState.customerInfo,
+      internalCustomerInfo: {
+        ...prevState.internalCustomerInfo,
         processOwner: value
       },
     }));
@@ -899,8 +1218,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   protected addNameFromTeamSearch = (value: ITeams) => {
     this.setState((prevState) => ({
       nameToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
-      customerInfo: {
-        ...prevState.customerInfo,
+      internalCustomerInfo: {
+        ...prevState.internalCustomerInfo,
         personalDetails: value
       },
     }));
@@ -911,12 +1230,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       addCustomer: false,
       editCustomer: false,
       duplicateCustomerAdded: false,
-      customerInfo: {
-        hierarchy: '',
-        department: '',
-        ressort: '',
-        comment: '',
-        personalDetails: {
+      internalCustomerInfo: {
+        name: {
           company: '',
           department: '',
           email: '',
@@ -927,9 +1242,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           teamMemberPosition: '',
           userType: ''
         },
-        customerType: '',
+        customerRelation: 'Internal',
+        comment: '',
+        department: '',
+        level: '',
+        legalEntity: '',
         division: '',
-        usRisk: false,
+        accessToSensibleData: 'false',
         processOwner: {
           company: '',
           department: '',
@@ -941,16 +1260,69 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           teamMemberPosition: '',
           userType: ''
         }
-        
       },
-      errors: {
-        hierarchy: '',
-        ressort: '',
-        department: '',
+      externalCustomerInfo:{
+        name: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
+        companyName: '',
+        customerRelation: '',
+        comment: ''
+      },
+      internalCustomerErrors: {
+        name: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
+        customerRelation: 'Internal',
         comment: '',
-        customerType: '',
+        department: '',
+        level: '',
+        legalEntity: '',
         division: '',
-        usRisk: '',
+        accessToSensibleData: 'false',
+        processOwner: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        }
+      },
+      externalCustomerErrors:{
+        name: {
+          company: '',
+          department: '',
+          email: '',
+          firstName: '',
+          shortId: '',
+          lastName: '',
+          mobileNumber: '',
+          teamMemberPosition: '',
+          userType: ''
+        },
+        companyName: '',
+        customerRelation: '',
+        comment: ''
       },
     });
   };
@@ -959,11 +1331,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     this.setState({ showDeleteModal: false });
   };
 
-  protected onAcceptDeleteChanges = () => {
-    const customerList = [...this.state.customer.customerDetails];
+  protected onAcceptDeleteChangesInternal = () => {
+    const customerList = [...this.state.customer.internalCustomers];
     customerList.splice(this.state.editCustomerIndex, 1);
     const customerProps = this.props.customer;
-    customerProps.customerDetails = customerList;
+    customerProps.internalCustomers = customerList;
     this.setState((prevState) => ({
       customer: {
         ...prevState.customer,
@@ -973,14 +1345,28 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     }));
   };
 
-  protected isCustomerExist = (customerList: ICustomerDetails[]) => {
-    const { hierarchy, ressort, department } = this.state.customerInfo;
+  // protected onAcceptDeleteChangesExternal = () => {
+  //   const customerList = [...this.state.customer.externalCustomers];
+  //   customerList.splice(this.state.editCustomerIndex, 1);
+  //   const customerProps = this.props.customer;
+  //   customerProps.externalCustomers = customerList;
+  //   this.setState((prevState) => ({
+  //     customer: {
+  //       ...prevState.customer,
+  //       customerDetails: customerList,
+  //     },
+  //     showDeleteModal: false,
+  //   }));
+  // };
+
+  protected isCustomerExist = (customerList: IInternalCustomerDetails[]) => {
+    const { level, legalEntity, department } = this.state.internalCustomerInfo;
     let customerExists = false;
     for (let ind = 0; ind < customerList?.length; ind++) {
       if (
-        customerList[ind].hierarchy === hierarchy &&
+        customerList[ind].level === level &&
         customerList[ind].department === department &&
-        customerList[ind].ressort === ressort
+        customerList[ind].legalEntity === legalEntity
       ) {
         customerExists = true;
         break;
@@ -991,49 +1377,66 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     return customerExists;
   };
 
-  protected onAddCustomer = () => {
-    const { hierarchy, ressort, department, comment, 
-      personalDetails,
-      customerType,
+  protected isExternalCustomerExist = (customerList: IExternalCustomerDetails[]) => {
+    const { name, comment, companyName } = this.state.externalCustomerInfo;
+    let customerExists = false;
+    for (let ind = 0; ind < customerList?.length; ind++) {
+      if (
+        customerList[ind].name === name &&
+        customerList[ind].comment === comment &&
+        customerList[ind].companyName === companyName
+      ) {
+        customerExists = true;
+        break;
+      } else {
+        customerExists = false;
+      }
+    }
+    return customerExists;
+  };
+
+  protected onAddInternalCustomer = () => {
+    const { 
+      level, 
+      legalEntity, 
+      department, 
+      comment, 
+      name,
+      customerRelation,
       division,
-      usRisk,
-      processOwner,
-      companyName } = this.state.customerInfo;
-    const { customerDetails: addedCustomerList } = this.state.customer;
-    const selectedValues: ICustomerDetails[] = [];
+      accessToSensibleData,
+      processOwner
+    } = this.state.internalCustomerInfo;
+    const { internalCustomers: addedCustomerList } = this.state.customer;
+    const selectedValues: IInternalCustomerDetails[] = [];
     selectedValues.push({
-      hierarchy,
-      ressort,
+      level,
+      legalEntity,
       department,
       comment,
-      personalDetails,
-      customerType,
+      name,
+      customerRelation,
       division,
-      usRisk,
-      processOwner,
-      companyName
+      accessToSensibleData,
+      processOwner
     });
 
     // const customerExists = this.isCustomerExist(addedCustomerList);
 
     // if (!customerExists && this.validateCustomerModal()) {
-    if (this.validateCustomerModal()) {
+    if (this.validateInternalCustomerModal()) {
       const customer = this.props.customer;
-      customer.customerDetails = [...customer.customerDetails, ...selectedValues];
+      customer.internalCustomers = [...customer.internalCustomers, ...selectedValues];
       this.setState(
         (prevState: any) => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
           customer: {
             ...prevState.customer,
-            customerDetails: [...prevState.customer.customerDetails, ...selectedValues],
+            internalCustomers: [...prevState.customer.internalCustomers, ...selectedValues],
           },
-          customerInfo: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
-            comment: '',
-            personalDetails: {
+          internalCustomerInfo: {
+            name: {
               company: '',
               department: '',
               email: '',
@@ -1044,9 +1447,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               teamMemberPosition: '',
               userType: ''
             },
-            customerType: '',
+            customerRelation: 'Internal',
+            comment: '',
+            department: '',
+            level: '',
+            legalEntity: '',
             division: '',
-            usRisk: false,
+            accessToSensibleData: 'false',
             processOwner: {
               company: '',
               department: '',
@@ -1057,18 +1464,38 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               mobileNumber: '',
               teamMemberPosition: '',
               userType: ''
-            },
-            companyName: ''
+            }
           },
-          errors: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
+          internalCustomerErrors: {
+            name: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
+            customerRelation: 'Internal',
             comment: '',
-            customerType: '',
+            department: '',
+            level: '',
+            legalEntity: '',
             division: '',
-            usRisk: '',
-            companyName: ''
+            accessToSensibleData: 'false',
+            processOwner: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            }
           },
         }),
         () => {
@@ -1085,47 +1512,31 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   };
 
   protected onAddExternalCustomer = () => {
-    const { hierarchy, ressort, department, comment, 
-      personalDetails,
-      customerType,
-      division,
-      usRisk,
-      processOwner,
-      companyName } = this.state.customerInfo;
-    const { customerDetails: addedCustomerList } = this.state.customer;
-    const selectedValues: ICustomerDetails[] = [];
+    const {  
+      name,
+      comment, 
+      customerRelation,
+      companyName } = this.state.externalCustomerInfo;
+    const { externalCustomers: addedCustomerList } = this.state.customer;
+    const selectedValues: IExternalCustomerDetails[] = [];
     selectedValues.push({
-      hierarchy,
-      ressort,
-      department,
+      name,
       comment,
-      personalDetails,
-      customerType,
-      division,
-      usRisk,
-      processOwner,
+      customerRelation,
       companyName
     });
 
-    const customerExists = this.isCustomerExist(addedCustomerList);
+    const customerExists = this.isExternalCustomerExist(addedCustomerList);
 
     if (!customerExists && this.validateExternalCustomerModal()) {
       const customer = this.props.customer;
-      customer.customerDetails = [...customer.customerDetails, ...selectedValues];
+      customer.externalCustomers = [...customer.externalCustomers, ...selectedValues];
       this.setState(
         (prevState: any) => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
-          customer: {
-            ...prevState.customer,
-            customerDetails: [...prevState.customer.customerDetails, ...selectedValues],
-          },
-          customerInfo: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
-            comment: '',
-            personalDetails: {
+          externalCustomerInfo:{
+            name: {
               company: '',
               department: '',
               email: '',
@@ -1136,10 +1547,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               teamMemberPosition: '',
               userType: ''
             },
-            customerType: '',
-            division: '',
-            usRisk: false,
-            processOwner: {
+            companyName: '',
+            customerRelation: '',
+            comment: ''
+          },
+          externalCustomerErrors:{
+            name: {
               company: '',
               department: '',
               email: '',
@@ -1150,17 +1563,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               teamMemberPosition: '',
               userType: ''
             },
-            companyName: ''
-          },
-          errors: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
-            comment: '',
-            customerType: '',
-            division: '',
-            usRisk: '',
-            companyName: ''
+            companyName: '',
+            customerRelation: '',
+            comment: ''
           },
         }),
         () => {
@@ -1176,33 +1581,60 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     }
   };
 
-  protected onEditCustomerOpen = (customer: ICustomerDetails) => {
-    const { hierarchy, department, ressort, comment,
-      personalDetails,
-      customerType,
+  protected onInternalEditCustomerOpen = (customer: IInternalCustomerDetails) => {
+    const { level, department, legalEntity, comment,
+      name,
+      customerRelation,
       division,
-      usRisk,
+      accessToSensibleData,
       processOwner,
-      companyName } = customer;
-    const { customerDetails } = this.state.customer;
-    const editCustomerIndex = customerDetails.findIndex(
-      (item) => item.hierarchy === hierarchy && item.department === department && item.ressort === ressort,
+     } = customer;
+    const { internalCustomers } = this.state.customer;
+    const editCustomerIndex = internalCustomers.findIndex(
+      (item) => item.level === level && item.department === department && item.legalEntity === legalEntity,
     );
     this.setState(
       {
         addCustomer: false,
         editCustomer: true,
         editCustomerIndex,
-        customerInfo: {
-          hierarchy,
+        internalCustomerInfo: {
+          level,
           department,
-          ressort,
+          legalEntity,
           comment,
-          personalDetails,
-          customerType,
+          name,
+          customerRelation,
           division,
-          usRisk,
-          processOwner,
+          accessToSensibleData,
+          processOwner
+        },
+      },
+      () => {
+        SelectBox.defaultSetup();
+      },
+    );
+  };
+
+  protected onExternalEditCustomerOpen = (customer: IExternalCustomerDetails) => {
+    const {
+      name, 
+      comment,
+      customerRelation,
+      companyName } = customer;
+    const { externalCustomers } = this.state.customer;
+    const editCustomerIndex = externalCustomers.findIndex(
+      (item) => item.companyName === companyName && item.name === name && item.customerRelation === customerRelation,
+    );
+    this.setState(
+      {
+        addCustomer: false,
+        editCustomer: true,
+        editCustomerIndex,
+        externalCustomerInfo: {
+          name, 
+          comment,
+          customerRelation,
           companyName
         },
       },
@@ -1212,11 +1644,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     );
   };
 
-  protected onDeleteCustomer = (customer: ICustomerDetails) => {
-    const { hierarchy, department, ressort } = customer;
-    const { customerDetails } = this.state.customer;
-    const deleteCustomerIndex = customerDetails.findIndex(
-      (item) => item.hierarchy === hierarchy && item.department === department && item.ressort === ressort,
+  protected onDeleteInternalCustomer = (customer: IInternalCustomerDetails) => {
+    const { level, department, legalEntity } = customer;
+    const { internalCustomers } = this.state.customer;
+    const deleteCustomerIndex = internalCustomers.findIndex(
+      (item) => item.level === level && item.department === department && item.legalEntity === legalEntity,
     );
     this.setState({
       showDeleteModal: true,
@@ -1224,45 +1656,61 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     });
   };
 
-  protected onEditCustomer = () => {
+  protected onDeleteExternalCustomer = (customer: IExternalCustomerDetails) => {
+    const { companyName, customerRelation, name } = customer;
+    const { externalCustomers } = this.state.customer;
+    const deleteCustomerIndex = externalCustomers.findIndex(
+      (item) => item.companyName === companyName && item.customerRelation === customerRelation && item.name === name,
+    );
+    this.setState({
+      showDeleteModal: true,
+      editCustomerIndex: deleteCustomerIndex,
+    });
+  };
+
+  protected onEditInternalCustomer = () => {
     const { editCustomerIndex } = this.state;
-    const { hierarchy, department, ressort, comment,
-      personalDetails,
-      customerType,
+    const { 
+      level, 
+      department, 
+      legalEntity, 
+      comment,
+      name,
+      customerRelation,
       division,
-      usRisk,
-      processOwner,
-      companyName } = this.state.customerInfo;
-    const { customerDetails: addedCustomerList } = this.state.customer;
+      accessToSensibleData,
+      processOwner 
+    } = this.state.internalCustomerInfo;
+    const { internalCustomers: addedCustomerList } = this.state.customer;
     const customerExists = this.isCustomerExist(addedCustomerList);
     const newIndex = addedCustomerList.findIndex(
-      (item) => item.hierarchy === hierarchy && item.department === department && item.ressort === ressort,
+      (item) => item.level === level && item.department === department && item.legalEntity === legalEntity,
     );
-    if (this.validateCustomerModal()) {
+    if (this.validateInternalCustomerModal()) {
       if ((customerExists && editCustomerIndex === newIndex) || !customerExists) {
         const customerList = [...addedCustomerList]; // create copy of original array
-        customerList[editCustomerIndex] = { hierarchy, department, ressort, comment,
-          personalDetails,
-          customerType,
+        customerList[editCustomerIndex] = { 
+          level, 
+          department, 
+          legalEntity, 
+          comment,
+          name,
+          customerRelation,
           division,
-          usRisk,
+          accessToSensibleData,
           processOwner,
-          companyName }; // modify copied array
+        }; // modify copied array
         const customer = this.props.customer;
-        customer.customerDetails = customerList;
+        customer.internalCustomers = customerList;
         this.setState((prevState) => ({
           editCustomer: false,
           duplicateCustomerAdded: false,
           customer: {
             ...prevState.customer,
-            customerDetails: customerList,
+            internalCustomers: customerList,
           },
-          errors: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
-            comment: '',
-            personalDetails: {
+          internalCustomerInfo: {
+            name: {
               company: '',
               department: '',
               email: '',
@@ -1273,9 +1721,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               teamMemberPosition: '',
               userType: ''
             },
-            customerType: '',
+            customerRelation: 'Internal',
+            comment: '',
+            department: '',
+            level: '',
+            legalEntity: '',
             division: '',
-            usRisk: false,
+            accessToSensibleData: 'false',
             processOwner: {
               company: '',
               department: '',
@@ -1286,18 +1738,38 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               mobileNumber: '',
               teamMemberPosition: '',
               userType: ''
-            },
-            companyName: ''
+            }
           },
-          customerInfo: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
+          internalCustomerErrors: {
+            name: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            },
+            customerRelation: 'Internal',
             comment: '',
-            customerType: '',
+            department: '',
+            level: '',
+            legalEntity: '',
             division: '',
-            usRisk: '',
-            companyName: ''
+            accessToSensibleData: 'false',
+            processOwner: {
+              company: '',
+              department: '',
+              email: '',
+              firstName: '',
+              shortId: '',
+              lastName: '',
+              mobileNumber: '',
+              teamMemberPosition: '',
+              userType: ''
+            }
           },
         }));
       } else if (customerExists && this.state.editCustomerIndex !== newIndex) {
@@ -1311,43 +1783,35 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
 
   protected onEditExternalCustomer = () => {
     const { editCustomerIndex } = this.state;
-    const { hierarchy, department, ressort, comment,
-      personalDetails,
-      customerType,
-      division,
-      usRisk,
-      processOwner,
-      companyName } = this.state.customerInfo;
-    const { customerDetails: addedCustomerList } = this.state.customer;
-    const customerExists = this.isCustomerExist(addedCustomerList);
+    const { 
+      name, 
+      comment,
+      customerRelation,
+      companyName } = this.state.externalCustomerInfo;
+    const { externalCustomers: addedCustomerList } = this.state.customer;
+    const customerExists = this.isExternalCustomerExist(addedCustomerList);
     const newIndex = addedCustomerList.findIndex(
-      (item) => item.hierarchy === hierarchy && item.department === department && item.ressort === ressort,
+      (item) => item.name === name && item.companyName === companyName && item.comment === comment,
     );
     if (this.validateExternalCustomerModal()) {
       if ((customerExists && editCustomerIndex === newIndex) || !customerExists) {
         const customerList = [...addedCustomerList]; // create copy of original array
-        customerList[editCustomerIndex] = { hierarchy, department, ressort, comment,
-          personalDetails,
-          customerType,
-          division,
-          usRisk,
-          processOwner,
+        customerList[editCustomerIndex] = { 
+          name, 
+          comment,
+          customerRelation,
           companyName }; // modify copied array
         const customer = this.props.customer;
-        customer.customerDetails = customerList;
+        customer.externalCustomers = customerList;
         this.setState((prevState) => ({
           editCustomer: false,
           duplicateCustomerAdded: false,
           customer: {
             ...prevState.customer,
-            customerDetails: customerList,
+            externalCustomers: customerList,
           },
-          errors: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
-            comment: '',
-            personalDetails: {
+          externalCustomerInfo:{
+            name: {
               company: '',
               department: '',
               email: '',
@@ -1358,10 +1822,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               teamMemberPosition: '',
               userType: ''
             },
-            customerType: '',
-            division: '',
-            usRisk: false,
-            processOwner: {
+            companyName: '',
+            customerRelation: '',
+            comment: ''
+          },
+          externalCustomerErrors:{
+            name: {
               company: '',
               department: '',
               email: '',
@@ -1372,17 +1838,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               teamMemberPosition: '',
               userType: ''
             },
-            companyName: ''
-          },
-          customerInfo: {
-            hierarchy: '',
-            department: '',
-            ressort: '',
-            comment: '',
-            customerType: '',
-            division: '',
-            usRisk: '',
-            companyName: ''
+            companyName: '',
+            customerRelation: '',
+            comment: ''
           },
         }));
       } else if (customerExists && this.state.editCustomerIndex !== newIndex) {
@@ -1394,28 +1852,28 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     }
   };
 
-  protected validateCustomerModal = () => {
+  protected validateInternalCustomerModal = () => {
     let formValid = true;
-    const errors = this.state.errors;
+    const errors = this.state.internalCustomerErrors;
     const errorMissingEntry = '*Missing entry';
 
-    if (!this.state.customerInfo.hierarchy) {
-      errors.hierarchy = errorMissingEntry;
+    if (!this.state.internalCustomerInfo.level) {
+      errors.level = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.department) {
+    if (!this.state.internalCustomerInfo.department) {
       errors.department = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.ressort) {
-      errors.ressort = errorMissingEntry;
+    if (!this.state.internalCustomerInfo.legalEntity) {
+      errors.legalEntity = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.customerType) {
-      errors.customerType = errorMissingEntry;
+    if (!this.state.internalCustomerInfo.customerRelation) {
+      errors.customerRelation = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.division) {
+    if (this.state.internalCustomerInfo.division.id === '0') {
       errors.division = errorMissingEntry;
       formValid = false;
     }
@@ -1434,21 +1892,21 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       const anyErrorDetected = document.querySelector('.error');
       anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
-    this.setState({ errors });
+    this.setState({ internalCustomerErrors: errors });
     return formValid;
   };
 
   protected validateExternalCustomerModal = () => {
     let formValid = true;
-    const errors = this.state.errors;
+    const errors = this.state.externalCustomerErrors;
     const errorMissingEntry = '*Missing entry';
 
-    if (!this.state.customerInfo.companyName) {
-      errors.hierarchy = errorMissingEntry;
+    if (!this.state.externalCustomerInfo.companyName) {
+      errors.companyName = errorMissingEntry;
       formValid = false;
     }
-    if (!this.state.customerInfo.customerType) {
-      errors.customerType = errorMissingEntry;
+    if (!this.state.externalCustomerInfo.customerRelation) {
+      errors.customerRelation = errorMissingEntry;
       formValid = false;
     }
     
@@ -1459,7 +1917,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       const anyErrorDetected = document.querySelector('.error');
       anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
-    this.setState({ errors });
+    this.setState({ externalCustomerErrors: errors });
     return formValid;
   };
 
@@ -1469,32 +1927,32 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     });
   };
 
-  protected updateTeamMemberList = (teamMemberObj: ITeams) => {
-    const { editTeamMember, editTeamMemberIndex, customer, addProductOwnerInController } = this.state;
-    const teamMembers = customer.processOwners;
-    if (editTeamMember) {
-      teamMembers.splice(editTeamMemberIndex, 1);
-      teamMembers.splice(editTeamMemberIndex, 0, teamMemberObj);
-    } else {
-      teamMembers.push(teamMemberObj);
-    }
-    const stateUpdateObj = {
-      showAddTeamMemberModal: false,
-      customer: {
-        customerDetails: this.state.customer.customerDetails,
-        processOwners: this.state.customer.processOwners,
-      },
-    };
+  // protected updateTeamMemberList = (teamMemberObj: ITeams) => {
+  //   const { editTeamMember, editTeamMemberIndex, customer, addProductOwnerInController } = this.state;
+  //   const teamMembers = customer.processOwners;
+  //   if (editTeamMember) {
+  //     teamMembers.splice(editTeamMemberIndex, 1);
+  //     teamMembers.splice(editTeamMemberIndex, 0, teamMemberObj);
+  //   } else {
+  //     teamMembers.push(teamMemberObj);
+  //   }
+  //   const stateUpdateObj = {
+  //     showAddTeamMemberModal: false,
+  //     customer: {
+  //       customerDetails: this.state.customer.customerDetails,
+  //       processOwners: this.state.customer.processOwners,
+  //     },
+  //   };
 
-    if (addProductOwnerInController) {
-      stateUpdateObj.customer.processOwners = teamMembers;
-    } else {
-      stateUpdateObj.customer.processOwners = teamMembers;
-    }
-    this.setState(stateUpdateObj, () => {
-      this.resetAddTeamMemberState();
-    });
-  };
+  //   if (addProductOwnerInController) {
+  //     stateUpdateObj.customer.processOwners = teamMembers;
+  //   } else {
+  //     stateUpdateObj.customer.processOwners = teamMembers;
+  //   }
+  //   this.setState(stateUpdateObj, () => {
+  //     this.resetAddTeamMemberState();
+  //   });
+  // };
   protected addDeveloperMember = () => {
     this.setState({ addProductOwnerInController: true }, () => {
       this.showAddTeamMemberModalView();
@@ -1523,93 +1981,93 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     });
   }
 
-  protected onTeamMemberMoveUp = (index: number) => {
-    const processOwner = this.state.customer.processOwners;
-    const teamMember = processOwner.splice(index, 1)[0];
-    processOwner.splice(index - 1, 0, teamMember);
-    this.setState((prevState) => ({
-      ...prevState,
-      customer: {
-        ...prevState.customer,
-        processOwner,
-      },
-    }));
-  };
+  // protected onTeamMemberMoveUp = (index: number) => {
+  //   const processOwner = this.state.customer.processOwners;
+  //   const teamMember = processOwner.splice(index, 1)[0];
+  //   processOwner.splice(index - 1, 0, teamMember);
+  //   this.setState((prevState) => ({
+  //     ...prevState,
+  //     customer: {
+  //       ...prevState.customer,
+  //       processOwner,
+  //     },
+  //   }));
+  // };
 
-  protected onTeamMemberMoveDown = (index: number) => {
-    const processOwner = this.state.customer.processOwners;
-    const teamMember = processOwner.splice(index, 1)[0];
-    processOwner.splice(index + 1, 0, teamMember);
-    this.setState((prevState) => ({
-      ...prevState,
-      customer: {
-        ...prevState.customer,
-        processOwner,
-      },
-    }));
-  };
+  // protected onTeamMemberMoveDown = (index: number) => {
+  //   const processOwner = this.state.customer.processOwners;
+  //   const teamMember = processOwner.splice(index, 1)[0];
+  //   processOwner.splice(index + 1, 0, teamMember);
+  //   this.setState((prevState) => ({
+  //     ...prevState,
+  //     customer: {
+  //       ...prevState.customer,
+  //       processOwner,
+  //     },
+  //   }));
+  // };
 
-  protected onSharingTeamMemberEdit = (index: number) => {
-    this.setState({ addProductOwnerInController: false }, () => {
-      this.onTeamMemberEdit(index);
-    });
-  };
-  protected onSharingTeamMemberDelete = (index: number) => {
-    this.setState({ addProductOwnerInController: false }, () => {
-      this.onTeamMemberDelete(index);
-    });
-  };
+  // protected onSharingTeamMemberEdit = (index: number) => {
+  //   this.setState({ addProductOwnerInController: false }, () => {
+  //     this.onTeamMemberEdit(index);
+  //   });
+  // };
+  // protected onSharingTeamMemberDelete = (index: number) => {
+  //   this.setState({ addProductOwnerInController: false }, () => {
+  //     this.onTeamMemberDelete(index);
+  //   });
+  // };
 
-  protected onTeamMemberDelete = (index: number) => {
-    const {
-      customer: { processOwners },
-      addProductOwnerInController,
-    } = this.state;
-    const teamMembers = addProductOwnerInController ? processOwners : processOwners;
-    teamMembers.splice(index, 1);
-    if (addProductOwnerInController) {
-      this.setState((prevState) => ({
-        ...prevState,
-        customer: {
-          ...prevState.customer,
-          processOwner: teamMembers,
-        },
-      }));
-    } else {
-      this.setState((prevState) => ({
-        ...prevState,
-        customer: {
-          ...prevState.customer,
-          processOwner: teamMembers,
-        },
-      }));
-    }
-  };
+  // protected onTeamMemberDelete = (index: number) => {
+  //   const {
+  //     customer: { processOwners },
+  //     addProductOwnerInController,
+  //   } = this.state;
+  //   const teamMembers = addProductOwnerInController ? processOwners : processOwners;
+  //   teamMembers.splice(index, 1);
+  //   if (addProductOwnerInController) {
+  //     this.setState((prevState) => ({
+  //       ...prevState,
+  //       customer: {
+  //         ...prevState.customer,
+  //         processOwner: teamMembers,
+  //       },
+  //     }));
+  //   } else {
+  //     this.setState((prevState) => ({
+  //       ...prevState,
+  //       customer: {
+  //         ...prevState.customer,
+  //         processOwner: teamMembers,
+  //       },
+  //     }));
+  //   }
+  // };
 
-  protected onTeamMemberEdit = (index: number) => {
-    const {
-      customer: { processOwners },
-      addProductOwnerInController,
-    } = this.state;
-    const teamMemberObj = addProductOwnerInController ? processOwners[index] : processOwners[index];
-    this.setState(
-      {
-        teamMemberObj,
-        showAddTeamMemberModal: true,
-        editTeamMember: true,
-        editTeamMemberIndex: index,
-      },
-      () => {
-        this.addTeamMemberModalRef.current.setTeamMemberData(teamMemberObj, true);
-      },
-    );
-  };
+  // protected onTeamMemberEdit = (index: number) => {
+  //   const {
+  //     customer: { processOwners },
+  //     addProductOwnerInController,
+  //   } = this.state;
+  //   const teamMemberObj = addProductOwnerInController ? processOwners[index] : processOwners[index];
+  //   this.setState(
+  //     {
+  //       teamMemberObj,
+  //       showAddTeamMemberModal: true,
+  //       editTeamMember: true,
+  //       editTeamMemberIndex: index,
+  //     },
+  //     () => {
+  //       this.addTeamMemberModalRef.current.setTeamMemberData(teamMemberObj, true);
+  //     },
+  //   );
+  // };
   sortByColumn = (columnName: string, sortOrder: string) => {
     return () => {
-      let sortedArray: ICustomerDetails[] = [];
+      let sortedArray: IInternalCustomerDetails[] = [];
 
       if (columnName === columnName) {
-        sortedArray = this.state.customer.customerDetails?.sort((a, b) => {
+        sortedArray = this.state.customer.internalCustomers?.sort((a, b) => {
           const nameA = a[columnName]?.toString() ? a[columnName].toString().toUpperCase() : ''; // ignore upper and lowercase
           const nameB = b[columnName]?.toString() ? b[columnName].toString().toUpperCase() : ''; // ignore upper and lowercase
           if (nameA < nameB) {
