@@ -25,25 +25,35 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.db.entities.lov;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
+@Table(name = "level_sql")
+public class LevelSql implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-	private static final long serialVersionUID = 152482308131566126L;
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lov_sequence_gen")
+	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "dashboard_sequence", allocationSize = 1)
+	private Long id;
 
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
+	@Column(name = "name")
+	private String name;
 }

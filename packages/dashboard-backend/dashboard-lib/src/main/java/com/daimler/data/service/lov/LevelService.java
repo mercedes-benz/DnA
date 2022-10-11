@@ -25,25 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.service.lov;
 
-import java.io.Serializable;
+import com.daimler.data.db.entities.lov.LevelSql;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.CommonService;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+public interface LevelService extends CommonService<LovVO, LevelSql, Long> {
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
-
-	private static final long serialVersionUID = 152482308131566126L;
-
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
 }
