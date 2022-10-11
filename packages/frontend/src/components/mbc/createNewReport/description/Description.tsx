@@ -8,7 +8,7 @@ import {
   ITag,
   IProductPhase,
   IProductStatus,
-  IIntegratedInPortal,
+  // IIntegratedInPortal,
   IDesignGuide,
   IFrontEndTech,
   IIntegratedPortal,
@@ -59,9 +59,9 @@ export interface IDescriptionState {
   productPhaseError: string;
   statusValue: IProductStatus[];
   statusError: string;
-  artValue: IART[];
+  artValue: string;
   artError: string;
-  integratedPortalsValue: IIntegratedInPortal[];
+  integratedPortalsValue: string;
   integratedPortalError: string;
   designGuideValue: IDesignGuide[];
   designGuideError: string;
@@ -91,7 +91,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       frontEndTechValue: props.description.frontendTechnologies,
       statusValue: props.description.status,
       designGuideValue: props.description.designGuideImplemented,
-      artValue: props.description.agileReleaseTrains,
+      artValue: props.description.agileReleaseTrain,
       integratedPortalsValue: props.description.integratedPortal,
       tags: props.description.tags,
       departmentTags: props.description.department,
@@ -252,35 +252,57 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   };
 
   public onChangeART = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const selectedValues: IART[] = [];
+    // if (selectedOptions.length) {
+    //   Array.from(selectedOptions).forEach((option) => {
+    //     const art: IART = { id: null, name: null };
+    //     art.id = option.value;
+    //     art.name = option.textContent;
+    //     selectedValues.push(art);
+    //   });
+    // }
+    // const description = this.props.description;
+    // description.agileReleaseTrains = selectedValues;
+    // this.setState({ artValue: selectedValues });
+
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IART[] = [];
+    let selectedValue = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const art: IART = { id: null, name: null };
-        art.id = option.value;
-        art.name = option.textContent;
-        selectedValues.push(art);
+        selectedValue = option.value;
       });
     }
     const description = this.props.description;
-    description.agileReleaseTrains = selectedValues;
-    this.setState({ artValue: selectedValues });
+    description.agileReleaseTrain = selectedValue;
+    this.setState({ piiValue: selectedValue });
   };
 
   public onChangeItegratedPortal = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const selectedValues: IIntegratedPortal[] = [];
+    // if (selectedOptions.length) {
+    //   Array.from(selectedOptions).forEach((option) => {
+    //     const integratedPortal: IIntegratedPortal = { id: null, name: null };
+    //     integratedPortal.id = option.value;
+    //     integratedPortal.name = option.textContent;
+    //     selectedValues.push(integratedPortal);
+    //   });
+    // }
+    // const description = this.props.description;
+    // description.integratedPortal = selectedValues;
+    // this.setState({ integratedPortalsValue: selectedValues });
+    
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IIntegratedPortal[] = [];
+    let selectedValue = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const integratedPortal: IIntegratedPortal = { id: null, name: null };
-        integratedPortal.id = option.value;
-        integratedPortal.name = option.textContent;
-        selectedValues.push(integratedPortal);
+        selectedValue = option.value;
       });
     }
     const description = this.props.description;
-    description.integratedPortal = selectedValues;
-    this.setState({ integratedPortalsValue: selectedValues });
+    description.integratedPortal = selectedValue;
+    this.setState({ piiValue: selectedValue });
   };
 
   public onChangeStatus = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -367,13 +389,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
     const piiValue = this.state.piiValue;
 
-    const artValue = this.state.artValue?.map((art: IART) => {
-      return art.name;
-    });
+    const artValue = this.state.artValue;
 
-    const integratedInPortalValue = this.state.integratedPortalsValue?.map((integrated: IIntegratedPortal) => {
-      return integrated.name;
-    });
+    const integratedInPortalValue = this.state.integratedPortalsValue;
 
     const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
 
@@ -583,7 +601,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           <div
                             className={classNames(
                               'input-field-group include-error',
-                              integratedPortalError.length ? 'error' : '',
+                              integratedPortalError ? 'error' : '',
                             )}
                           >
                             <label id="integratedPortalLabel" htmlFor="integratedPortalField" className="input-label">
@@ -592,7 +610,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                             <div className="custom-select">
                               <select
                                 id="integratedPortalField"
-                                multiple={true}
+                                multiple={false}
                                 required={false}
                                 onChange={this.onChangeItegratedPortal}
                                 value={integratedInPortalValue}
@@ -604,7 +622,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                                 ))}
                               </select>
                             </div>
-                            <span className={classNames('error-message', integratedPortalError.length ? '' : 'hide')}>
+                            <span className={classNames('error-message', integratedPortalError ? '' : 'hide')}>
                               {integratedPortalError}
                             </span>
                           </div>
@@ -700,14 +718,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         </div>
                       </div>
                       {!this.props.enableQuickPath ? (
-                        <div className={classNames('input-field-group include-error', artError.length ? 'error' : '', reportTypeValue === 'Self Service Report' ? Styles.isDisabled : '')}>
+                        <div className={classNames('input-field-group include-error', artError ? 'error' : '')}>
                           <label id="ARTLabel" htmlFor="ARTField" className="input-label">
                             Agile Release Train
                           </label>
                           <div className={classNames("custom-select")}>
                             <select
                               id="ARTField"
-                              multiple={true}
+                              multiple={false}
                               required={false}
                               onChange={this.onChangeART}
                               value={artValue}
@@ -719,7 +737,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               ))}
                             </select>
                           </div>
-                          <span className={classNames('error-message', artError.length ? '' : 'hide')}>{artError}</span>
+                          <span className={classNames('error-message', artError ? '' : 'hide')}>{artError}</span>
                         </div>
                       ) : (
                         ''
