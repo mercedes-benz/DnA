@@ -36,12 +36,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerDetails implements Serializable {
+public class InternalCustomer implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
 
-	private String hierarchy;
-	private String ressort;
+	private TeamMember name;
+	private String customerRelation;
+	private String level;
+	private Division division;
 	private String department;
+	private String legalEntity;
+	private String accessToSensibleData;
 	private String comment;
+	private TeamMember processOwner;
 }
