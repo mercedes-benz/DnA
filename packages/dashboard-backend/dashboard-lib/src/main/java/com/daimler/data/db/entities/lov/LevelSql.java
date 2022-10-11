@@ -45,8 +45,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "ressort_sql")
-public class RessortSql implements Serializable {
+@Table(name = "level_sql")
+public class LevelSql implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -56,5 +56,4 @@ public class RessortSql implements Serializable {
 
 	@Column(name = "name")
 	private String name;
-
 }

@@ -45,8 +45,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "hierarchy_sql")
-public class HierarchySql implements Serializable {
+@Table(name = "legal_entity_sql")
+public class LegalEntitySql implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -56,4 +56,5 @@ public class HierarchySql implements Serializable {
 
 	@Column(name = "name")
 	private String name;
+
 }
