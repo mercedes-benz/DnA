@@ -91,12 +91,12 @@ export const SingleDataSource = ({
           <div>
             <div>
               <div className={classNames('input-field-group include-error', errors.dataSources ? 'error' : '')}>
-                <label id="commonFunctionLabel" htmlFor="commonFunctionInput" className="input-label">
+                <label id="dataSourcesLabel" htmlFor="dataSourcesInput" className="input-label">
                   Data Source<sup>*</sup>
                 </label>
                 <div className="custom-select">
                   <select
-                    id="commonFunctionField"
+                    id="dataSourcesField"
                     multiple={true}
                     required={true}
                     required-error={requiredError}
