@@ -21,6 +21,7 @@ export interface ITeamMemberListItemProps {
   onDelete: (index: number) => void;
   hidePosition?: boolean;
   showInfoStacked?: boolean;
+  hideContextMenu?: boolean;
 }
 
 export interface ITeamMemberListItemState {
@@ -122,19 +123,23 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                 )}
               </div>
             </div>
-            <span className={Styles.contextMenu} onClick={this.toggleContextMenu}>
-              <i className="icon mbc-icon listItem context" />
-            </span>
-            <div className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}>
-              <ul>
-                <li>
-                  <span onClick={this.onEdit}>Edit team member</span>
-                </li>
-                <li>
-                  <span onClick={this.onDelete}>Delete selected entry</span>
-                </li>
-              </ul>
-            </div>
+            {(this.props.hideContextMenu === undefined || this.props.hideContextMenu === false) &&
+              <>
+                <span className={Styles.contextMenu} onClick={this.toggleContextMenu}>
+                  <i className="icon mbc-icon listItem context" />
+                </span>
+                <div className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}>
+                  <ul>
+                    <li>
+                      <span onClick={this.onEdit}>Edit team member</span>
+                    </li>
+                    <li>
+                      <span onClick={this.onDelete}>Delete selected entry</span>
+                    </li>
+                  </ul>
+                </div>
+              </>
+            }
             <span onClick={this.onMoveUp} className={classNames(Styles.orderUp, this.props.showMoveUp ? '' : 'hide')}>
               <i className="icon mbc-icon arrow small up" />
             </span>
