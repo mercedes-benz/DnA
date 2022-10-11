@@ -52,7 +52,8 @@ export const DataWarehouse = ({
   const connectionTypesValue = selectedFilterValues.connectionTypes?.toString();
   const dataClassificationValue = selectedFilterValues.dataClassification?.toString();
 
-  const isCarla = selectedFilterValues.dataWarehouse?.toLowerCase() === 'carla';
+  // const isCarla = selectedFilterValues.dataWarehouse?.toLowerCase() === 'carla';
+  const isCarla = selectedFilterValues.dataWarehouse === 'carla';
   const conntectionTypesDropdown = isCarla
     ? connectionTypes?.filter((item) => item?.toLowerCase() === 'live connection')
     : connectionTypes;
@@ -74,13 +75,13 @@ export const DataWarehouse = ({
                   name="dataWarehouse"
                   required={true}
                   required-error={requiredError}
-                  onChange={onDataWarehouseChange}
+                  onChange={onDropdownChange}
                   value={dataWarehouseValue}
                 >
                   <option value={''}>Choose</option>
                   {dataWarehouses?.map((item) => (
-                    <option id={item.dataWarehouse + item.id} key={item.id} value={item.dataWarehouse}>
-                      {item.dataWarehouse}
+                    <option id={item.name + item.id} key={item.id} value={item.name}>
+                      {item.name}
                     </option>
                   ))}
                 </select>
@@ -96,13 +97,12 @@ export const DataWarehouse = ({
                 className={classNames(
                   'input-field-group include-error',
                   connectTypesError ? 'error' : '',
-                  connectionTypes?.length ? '' : 'disabled',
                 )}
               >
                 <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
                   Connection Type<sup>*</sup>
                 </label>
-                <div className={`custom-select ${connectionTypes?.length ? '' : 'disabled'}`}>
+                <div className={`custom-select`}>
                   <select
                     id="connectionTypeField"
                     name="connectionTypes"
@@ -133,13 +133,12 @@ export const DataWarehouse = ({
                 className={classNames(
                   'input-field-group include-error',
                   commonFunctionsError ? 'error' : '',
-                  commonFunctions?.length ? '' : 'disabled',
                 )}
               >
                 <label id="commonFunctionLabel" htmlFor="commonFunctionInput" className="input-label">
                   Common Functions<sup>*</sup>
                 </label>
-                <div className={`custom-select ${commonFunctions.length ? '' : 'disabled'}`}>
+                <div className={`custom-select`}>
                   <select
                     id="commonFunctionField"
                     multiple={true}
@@ -168,13 +167,12 @@ export const DataWarehouse = ({
                 className={classNames(
                   'input-field-group include-error',
                   dataClassificationError ? 'error' : '',
-                  dataClassifications?.length ? '' : 'disabled',
                 )}
               >
                 <label id="dataClassificationLabel" htmlFor="dataClassificationInput" className="input-label">
                   Data Classification<sup>*</sup>
                 </label>
-                <div className={`custom-select ${dataClassifications?.length ? '' : 'disabled'}`}>
+                <div className={`custom-select`}>
                   <select
                     id="dataClassificationField"
                     name="dataClassification"

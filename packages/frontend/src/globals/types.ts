@@ -721,13 +721,14 @@ export interface IDataClassification {
 
 export interface IDataWarehouse {
   id: string;
-  dataWarehouse: string;
-  commonFunctions: string[];
-  dataClassifications: string[];
-  connectionTypes: string[];
+  name: string;
+  // dataWarehouse: string;
+  // commonFunctions: string[];
+  // dataClassifications: string[];
+  // connectionTypes: string[];
 }
 
-export interface ISubSystems {
+export interface ICommonFunctions {
   id: string;
   name: string;
 }

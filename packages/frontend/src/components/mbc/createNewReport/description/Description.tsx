@@ -82,6 +82,7 @@ export interface IDescriptionState {
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
   public static getDerivedStateFromProps(props: IDescriptionProps, state: IDescriptionState) {
+    console.log(props.description);
     return {
       productName: props.description.productName,
       description: props.description.productDescription,
@@ -130,7 +131,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: [],
       reportLink: null,
       reportLinkError: null,
-      reportTypeValue: null,
+      reportTypeValue: 'Standard Report',
       reportTypeError: null,
       piiValue: null,
       piiError: null
@@ -364,6 +365,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const piiError = this.state.piiError || '';
     const frontEndTechError = this.state.frontEndTechError || '';
     const reportLinkError = this.state.reportLinkError || '';
+    const reportTypeError = this.state.reportTypeError || '';
 
     const requiredError = '*Missing entry';
 
@@ -375,9 +377,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
     const frontEndTechValue = this.state.frontEndTechValue
       ?.map((frontEndTech: IFrontEndTech) => {
-        return frontEndTech.name;
-      })
-      ?.toString();
+        return frontEndTech?.name;
+      });
 
     const statusValue = this.state.statusValue
       ?.map((statusValue: IProductStatus) => {
@@ -442,7 +443,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                       <div
                         className={classNames(
                           'input-field-group include-error',
-                          divisionError.length ? 'error' : '',
+                          reportTypeError ? 'error' : '',
                         )}
                       >
                         <label id="reportTypeLabel" htmlFor="reportTypeField" className="input-label">
@@ -472,8 +473,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                             ))} */}
                           </select>
                         </div>
-                        <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
-                          {divisionError}
+                        <span className={classNames('error-message', reportTypeError ? '' : 'hide')}>
+                          {reportTypeError}
                         </span>
                       </div>
                     : ''}
@@ -752,7 +753,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         <div
                           className={classNames(
                             'input-field-group include-error',
-                            frontEndTechError.length ? 'error' : '',
+                            frontEndTechError ? 'error' : '',
                           )}
                         >
                           <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
@@ -774,7 +775,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               ))}
                             </select>
                           </div>
-                          <span className={classNames('error-message', frontEndTechError.length ? '' : 'hide')}>
+                          <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
                             {frontEndTechError}
                           </span>
                         </div>
@@ -939,7 +940,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ piiError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0].name === 'Choose') {
+    if (this.state.frontEndTechValue.length === 0) {
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }

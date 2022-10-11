@@ -42,12 +42,12 @@ export class ReportsApiClient {
       this.get('lov/datasources'),
       this.get('lov/customer/departments'),
       this.get('lov/frontendtechnologies'),
-      this.get('lov/hierarchies'),
+      this.get('lov/levels'),
       this.get('lov/integratedportals'),
       this.get('lov/kpinames'),
       // this.get('lov/productphases'),
       this.get('lov/reportingcauses'),
-      this.get('lov/ressort'),
+      this.get('lov/legalentities'),
       this.get('lov/statuses'),
       // this.get('lov/designguides'),
       this.get('lov/agilereleasetrains'),
@@ -57,6 +57,7 @@ export class ReportsApiClient {
       // this.get('lov/subsystems'),
       ApiClient.get('divisions'),
       this.get('departments'),
+      // this.get('lov/commonFunctions'),
     ]);
   }
 
