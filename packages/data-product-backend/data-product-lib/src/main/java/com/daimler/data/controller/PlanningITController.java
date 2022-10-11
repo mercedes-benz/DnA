@@ -2,11 +2,14 @@ package com.daimler.data.controller;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.planningit.PlanningitApi;
@@ -16,6 +19,7 @@ import com.daimler.data.service.planningit.PlanningITService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -40,9 +44,10 @@ public class PlanningITController implements PlanningitApi {
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<PlanningITVOCollection> getAll(){
+    public ResponseEntity<PlanningITVOCollection> getAll(@ApiParam(value = "searchTerm to filter PlanningIT systems") @Valid 
+    			@RequestParam(value = "searchTerm", required = false) String searchTerm){
 		PlanningITVOCollection collection = new PlanningITVOCollection();
-		List<PlanningITVO> records = service.getAll();
+		List<PlanningITVO> records = service.getAllWithFilter(searchTerm);
 		HttpStatus responseCode = HttpStatus.NO_CONTENT;
 		if(records!=null && !records.isEmpty()) {
 			collection.setData(records);
