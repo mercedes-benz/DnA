@@ -174,8 +174,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         },
         kpis: [],
         customer: {
-          customerDetails: [],
-          processOwners: [],
+          internalCustomers: [],
+          externalCustomers: [],
         },
         dataAndFunctions: {
           dataWarehouseInUse: [],
@@ -212,12 +212,16 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataSources = response[0].data;
         const departments = response[1].data;
         const frontEndTechnologies = response[2].data;
-        const hierarchies = response[3].data;
+        // const hierarchies = response[3].data;
+        const hierarchies = [{id: 'Top Mangement FC (E1/E2)', name: 'Top Mangement FC (E1/E2)'},
+        {id: 'Mangement FC (E3/E4)', name: 'Mangement FC (E3/E4)'}];
         const integratedPortals = response[4].data;
         const kpiNames = response[5].data;
         // const productPhases = response[6].data;
         const reportingCauses = response[6].data;
-        const ressort = response[7].data;
+        // const ressort = response[7].data;
+        const ressort = [{id: 'FMB', name: 'FMB'},
+        {id: 'FMC', name: 'FMC'}];
         const statuses = response[8].data;
         // const designGuideImplemented = response[10].data;
         const arts = response[9].data;
@@ -372,8 +376,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.reportLink = res.description.reportLink;
               report.description.reportType = res.description?.reportType;
               report.description.piiData = res.description?.piiData;
-              report.customer.customerDetails = res.customer?.customerDetails || [];
-              report.customer.processOwners = res.customer?.processOwners || [];
+              report.customer.internalCustomers = res.customer?.internalCustomers || [];
+              report.customer.externalCustomers = res.customer?.externalCustomers || [];
+              // report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
               report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions?.dataWarehouseInUse || [];
               report.dataAndFunctions.singleDataSources =
