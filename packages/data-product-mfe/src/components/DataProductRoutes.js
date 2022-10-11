@@ -18,7 +18,7 @@ import DataProducts from './DataProducts';
 import Summary from './Summary';
 import DataComplianceNetworkList from './DataComplianceNetworkList';
 
-const protectedRoutes = [
+export const protectedRoutes = [
   {
     component: DataProducts,
     exact: true,
@@ -48,7 +48,7 @@ const protectedRoutes = [
     component: DataComplianceNetworkList,
     exact: true,
     path: '/datacompliancenetworklist',
-  }
+  },
 ];
 
 const Routes = ({ user }) => {

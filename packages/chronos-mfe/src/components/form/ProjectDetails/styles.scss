@@ -21,9 +21,11 @@
       padding: 12px 10px;
       cursor: pointer;
 
-      &:hover {
-        color: #00adef;
-      }
+      // &:hover {
+      //   color: #00adef;
+      // }
+      color: #99a5b3;
+      cursor: not-allowed;
     }
   }
 }
@@ -331,4 +333,8 @@
     display: flex;
     justify-content: flex-end;
   }
+}
+.noCollaborator {
+  padding-left: 40px;
+  color: #99A5B3;
 }

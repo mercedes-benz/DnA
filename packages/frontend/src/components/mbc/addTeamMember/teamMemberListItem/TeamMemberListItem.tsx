@@ -152,15 +152,33 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
             </div>
             <div className={Styles.details}>
               <h6>
-                {teamMember?.teamMemberPosition} ({teamMember?.userType})
+                {teamMember?.teamMemberPosition} {teamMember.userType ? `(${teamMember?.userType})` : null}
               </h6>
               <div className={Styles.memberDetails}>
-                <div>{teamMember?.company}</div>
-                <div>{''}</div>
-                <div>{''}</div>
-                {/* <div>
+                {teamMember?.company ? (
+                  <>
+                    <div>{teamMember?.company}</div>
+                    <div>{''}</div>
+                    <div>{''}</div>
+                    {/* <div>
                   <a href={`http://${teamMember.company}`}>{teamMember.company}.com</a>
                 </div> */}
+                  </>
+                ) : (
+                  <div>
+                    {teamMember.shortId ? (
+                      <a href={TEAMS_PROFILE_LINK_URL_PREFIX + teamMember.shortId}>
+                        {teamMember.firstName} {teamMember.lastName}
+                      </a>
+                    ) : (
+                      <>
+                        {teamMember.firstName} {teamMember.lastName}
+                        <br />
+                        {teamMember.email}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <span className={Styles.contextMenu} onClick={this.toggleContextMenu}>

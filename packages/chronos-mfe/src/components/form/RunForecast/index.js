@@ -41,13 +41,13 @@ const SelectedFile = ({ selectedFile, setSelected }) => {
 
 const RunForecast = ({ savedFiles }) => {
   const { id: projectId } = useParams();
-  
+
   const {
     register,
     formState: { errors, isSubmitting },
     handleSubmit,
     trigger,
-    // reset,
+    reset,
   } = useFormContext();
   const [keepExistingFiles, setKeepExistingFiles] = useState(false);
 
@@ -102,10 +102,11 @@ const RunForecast = ({ savedFiles }) => {
               <option id="savedInputPathOption" value={0}>
                 Choose
               </option>
-              {savedFiles?.map((file) => (
-                <option id={file.id} key={file.id} value={file.path}>
-                  {file.name}
-                </option>
+              {savedFiles.length > 0 && 
+                savedFiles.map((file) => (
+                  <option key={file.id} value={file.path}>
+                    {file.name}
+                  </option>
               ))}
             </select>
           </div>
@@ -177,12 +178,22 @@ const RunForecast = ({ savedFiles }) => {
     } else {
       formData.append("savedInputPath", null); // todo file path
     }
+
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
+        Notification.show('Run created successfully');
+        reset({
+          runName: '',
+          configurationFile: 0,
+          frequency: 0,
+          forecashorizon: 1,
+          comment: '',
+        });
+        setIsSelectedFile(false);
         ProgressIndicator.hide();
       }).catch(error => {
-        console.log(error.message);
+        Notification.show(error.response.data.errors[0].message, 'alert');
         ProgressIndicator.hide();
       });
   }
