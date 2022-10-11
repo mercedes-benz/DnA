@@ -66,6 +66,8 @@ import com.daimler.data.dto.dataproduct.ChangeLogVO;
 import com.daimler.data.dto.dataproduct.ConsumerContactInformationVO;
 import com.daimler.data.dto.dataproduct.ConsumerPersonalRelatedDataVO;
 import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
+import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO.UserTypeEnum;
 import com.daimler.data.dto.dataproduct.DataProductVO;
 import com.daimler.data.dto.dataproduct.DivisionVO;
 import com.daimler.data.dto.dataproduct.ProviderClassificationConfidentialityVO;
@@ -76,7 +78,6 @@ import com.daimler.data.dto.dataproduct.ProviderResponseVO;
 import com.daimler.data.dto.dataproduct.ProviderTransnationalDataTransferVO;
 import com.daimler.data.dto.dataproduct.SubdivisionVO;
 import com.daimler.data.dto.dataproduct.TeamMemberVO;
-import com.daimler.data.dto.dataproduct.TeamMemberVO.UserTypeEnum;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
@@ -109,11 +110,11 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 					providerVO.setModifiedBy(updatedByVO);
 				}
 				if (!ObjectUtils.isEmpty(provider.getUsers())) {
-					List<TeamMemberVO> users = provider.getUsers().stream().map(n -> toTeamMemberVO(n))
+					List<DataProductTeamMemberVO> users = provider.getUsers().stream().map(n -> toTeamMemberVO(n))
 							.collect(Collectors.toList());
 					providerVO.setUsers(users);
 				}
-				
+
 				ProviderContactInformation providerContactInformation = provider.getContactInformation();
 				if (providerContactInformation != null) {
 					ProviderContactInformationVO contactInformationVO = new ProviderContactInformationVO();
@@ -289,9 +290,9 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 						.getTransnationalDataTransfer();
 				if (transnationalDataTransferVO != null) {
 					ProviderTransnationalDataTransfer transnationalDataTransfer = new ProviderTransnationalDataTransfer();
+					BeanUtils.copyProperties(transnationalDataTransferVO, transnationalDataTransfer);
 					transnationalDataTransfer.setDataTransferred(transnationalDataTransferVO.isDataTransferred());
 					transnationalDataTransfer.setNotWithinEU(transnationalDataTransferVO.isNotWithinEU());
-					transnationalDataTransfer.setApproved(transnationalDataTransferVO.getApproved());
 					transnationalDataTransfer.setDataFromChina(transnationalDataTransferVO.isDataFromChina());
 					provider.setTransnationalDataTransfer(transnationalDataTransfer);
 				}
@@ -371,10 +372,10 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		return entity;
 	}
 
-	private TeamMemberVO toTeamMemberVO(TeamMember teamMember) {
-		TeamMemberVO vo = null;
+	private DataProductTeamMemberVO toTeamMemberVO(TeamMember teamMember) {
+		DataProductTeamMemberVO vo = null;
 		if (teamMember != null) {
-			vo = new TeamMemberVO();
+			vo = new DataProductTeamMemberVO();
 			BeanUtils.copyProperties(teamMember, vo);
 			if (StringUtils.hasText(teamMember.getUserType())) {
 				vo.setUserType(UserTypeEnum.valueOf(teamMember.getUserType()));
@@ -383,7 +384,7 @@ public class DataProductAssembler implements GenericAssembler<DataProductVO, Dat
 		return vo;
 	}
 
-	private TeamMember toTeamMemberJson(TeamMemberVO vo) {
+	private TeamMember toTeamMemberJson(DataProductTeamMemberVO vo) {
 		TeamMember teamMember = null;
 		if (vo != null) {
 			teamMember = new TeamMember();

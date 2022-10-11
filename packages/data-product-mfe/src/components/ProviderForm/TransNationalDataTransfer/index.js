@@ -15,6 +15,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
     clearErrors,
     handleSubmit,
     reset,
+    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -108,7 +109,8 @@ const TransNationalDataTransfer = ({ onSave }) => {
                 style={{ minHeight: '50px' }}
               >
                 <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Only if yes, is one of these countries not within the EU? <sup>*</sup>
+                  Only if yes, is one of these countries not within the EU?{' '}
+                  {getValues('transnationalDataTransfer') === 'Yes' ? <sup>*</sup> : null}
                 </label>
                 <div className={Styles.radioBtns}>
                   <label className={'radio'}>
@@ -167,7 +169,11 @@ const TransNationalDataTransfer = ({ onSave }) => {
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Has LCO/LCR approved this data transfer? <sup>*</sup>
+                Has LCO/LCR approved this data transfer?{' '}
+                {getValues('transnationalDataTransfer') === 'Yes' &&
+                getValues('transnationalDataTransferNotWithinEU') === 'Yes' ? (
+                  <sup>*</sup>
+                ) : null}
               </label>
               <div className={Styles.radioBtns}>
                 <label className={'radio'}>
@@ -221,6 +227,59 @@ const TransNationalDataTransfer = ({ onSave }) => {
                 </label>
               </div>
               <span className={classNames('error-message')}>{errors?.LCOApprovedDataTransfer?.message}</span>
+            </div>
+            <div
+              className={classNames(`input-field-group include-error ${errors?.insiderInformation ? 'error' : ''}`)}
+              style={{ minHeight: '50px' }}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Does product contain insider information? <sup>*</sup>
+              </label>
+              <div className={Styles.radioBtns}>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="N.A"
+                    />
+                  </span>
+                  <span className="label">N.A</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="No"
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+                <label className={'radio'}>
+                  <span className="wrapper">
+                    <input
+                      {...register('insiderInformation', {
+                        required: '*Missing entry',
+                      })}
+                      type="radio"
+                      className="ff-only"
+                      name="insiderInformation"
+                      value="Yes"
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+              </div>
+              <span className={classNames('error-message')}>{errors?.insiderInformation?.message}</span>
             </div>
           </div>
         </div>
