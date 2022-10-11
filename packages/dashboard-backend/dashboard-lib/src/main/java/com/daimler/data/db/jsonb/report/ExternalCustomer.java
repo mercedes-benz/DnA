@@ -25,24 +25,23 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.datawarehouse;
+package com.daimler.data.db.jsonb.report;
 
-import org.springframework.http.ResponseEntity;
+import java.io.Serializable;
 
-import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.db.entities.DataWarehouseNsql;
-import com.daimler.data.dto.datawarehouse.DataWarehouseCollection;
-import com.daimler.data.dto.datawarehouse.DataWarehouseInUseVO;
-import com.daimler.data.dto.datawarehouse.DataWarehouseResponseVO;
-import com.daimler.data.service.common.CommonService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface DataWarehouseService extends CommonService<DataWarehouseInUseVO, DataWarehouseNsql, String> {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExternalCustomer implements Serializable {
 
-	ResponseEntity<DataWarehouseResponseVO> createDataWarehouse(DataWarehouseInUseVO requestDataWarehouseVO);
+	private static final long serialVersionUID = 152482308131566126L;
 
-	ResponseEntity<DataWarehouseCollection> getAllDataWarehouse();
-
-	ResponseEntity<DataWarehouseResponseVO> updateDataWarehouse(DataWarehouseInUseVO dataWarehouseInUseVO);
-
-	ResponseEntity<GenericMessage> deleteDataWarehouse(String id);
+	private TeamMember name;
+	private String customerRelation;
+	private String companyName;
+	private String comment;
 }

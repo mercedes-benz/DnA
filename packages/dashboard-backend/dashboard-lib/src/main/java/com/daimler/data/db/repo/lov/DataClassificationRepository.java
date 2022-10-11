@@ -30,9 +30,9 @@ package com.daimler.data.db.repo.lov;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.daimler.data.db.entities.lov.SubsystemSql;
+import com.daimler.data.db.entities.lov.DataClassificationSql;
 
 @Repository
-public interface SubsystemRepository extends JpaRepository<SubsystemSql, Long> {
+public interface DataClassificationRepository extends JpaRepository<DataClassificationSql, Long> {
 
 }
