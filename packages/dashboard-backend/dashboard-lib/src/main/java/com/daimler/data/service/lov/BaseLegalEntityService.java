@@ -25,25 +25,25 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.service.lov;
 
-import java.io.Serializable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.lov.LegalEntitySql;
+import com.daimler.data.db.repo.lov.LegalEntityRepository;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.BaseCommonService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Service
+public class BaseLegalEntityService extends BaseCommonService<LovVO, LegalEntitySql, Long> implements LegalEntityService {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
+	public BaseLegalEntityService() {
+		super();
+	}
 
-	private static final long serialVersionUID = 152482308131566126L;
-
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
+	@Autowired
+	public BaseLegalEntityService(LegalEntityRepository jpaRepo) {
+		super(jpaRepo);
+	}
 }
