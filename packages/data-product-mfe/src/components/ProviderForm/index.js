@@ -37,7 +37,7 @@ const tabs = {
     subDivision: '0',
     department: '',
     complianceOfficer: '',
-    planningIT: 'APP-',
+    planningIT: '',
   },
   'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: 'Public' },
   'personal-data': {
@@ -195,6 +195,8 @@ const ProviderForm = ({ user, history }) => {
 
   const onSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
+    const openSegments = provideDataProducts.selectedDataProduct?.openSegments || [];
+    values.openSegments = [...openSegments];
     if (
       isCreatePage &&
       !createCopyId &&
@@ -202,7 +204,7 @@ const ProviderForm = ({ user, history }) => {
       currentTab === 'contact-info'
     ) {
       values.openSegments = ['ContactInformation'];
-    } else if (provideDataProducts.selectedDataProduct?.openSegments?.indexOf(saveSegments) === -1) {
+    } else if (values?.openSegments?.indexOf(saveSegments) === -1) {
       values.openSegments.push(saveSegments);
     }
     const data = {
