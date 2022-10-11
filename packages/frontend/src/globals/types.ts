@@ -586,23 +586,29 @@ export interface IDescriptionRequest {
 }
 
 export interface ICustomers {
-  customerDetails: ICustomerDetails[];
-  processOwners: ITeams[];
+  externalCustomers: IExternalCustomerDetails[];
+  internalCustomers: IInternalCustomerDetails[];
 }
 
-export interface ICustomerDetails {
-  // name: string;
-  personalDetails?: ITeams;
-  customerType: string;
+export interface IInternalCustomerDetails {
+  name: ITeams;
+  customerRelation: string;
   comment: string;
-  department?: string;
-  hierarchy?: string;
-  ressort?: string;
-  division?: string;
-  usRisk?: boolean | string;
-  processOwner?: ITeams;
-  companyName?: string;
+  department: string;
+  level: string;
+  legalEntity: string;
+  division: any;
+  accessToSensibleData: boolean | string;
+  processOwner: ITeams | string;
 }
+
+export interface IExternalCustomerDetails {
+  name: ITeams;
+  companyName: string;
+  customerRelation: string;
+  comment: string;
+}
+
 export interface IKpis {
   comment: string;
   name: string;
