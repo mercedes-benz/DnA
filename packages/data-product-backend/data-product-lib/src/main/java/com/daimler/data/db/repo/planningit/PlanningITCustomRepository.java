@@ -27,9 +27,13 @@
 
 package com.daimler.data.db.repo.planningit;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.PlanningITNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface PlanningITCustomRepository extends CommonDataRepository<PlanningITNsql, String> {
+
+	List<PlanningITNsql> getAllWithFilters(String searchTerm);
 
 }
