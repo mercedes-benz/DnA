@@ -126,6 +126,7 @@ const ProjectDetails = () => {
         itemIndex={index}
         teamMember={member}
         hidePosition={true}
+        hideContextMenu={true}
         showInfoStacked={true}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers?.length}
