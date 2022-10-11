@@ -51,7 +51,7 @@ public class PlanningITCustomRepositoryImpl extends CommonDataRepositoryImpl<Pla
 	public List<PlanningITNsql> getAllWithFilters(String searchTerm) {
 		String getAllStmt = " select cast(id as text), cast(data as text) from planningit_nsql ";
 		if(searchTerm!= null && !"".equalsIgnoreCase(searchTerm)) {
-			searchTerm = "%"+searchTerm.toLowerCase()+"%";
+			searchTerm = "'%"+searchTerm.toLowerCase()+"%'";
 			getAllStmt+= "where (" + "lower(jsonb_extract_path_text(data,'appReferenceStr')) similar to " 
 						+ searchTerm + " or " + "lower(jsonb_extract_path_text(data,'shortName')) similar to "
 						+ searchTerm + " or " + "lower(jsonb_extract_path_text(data,'name')) similar to "
