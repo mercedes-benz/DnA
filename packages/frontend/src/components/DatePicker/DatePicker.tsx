@@ -18,7 +18,6 @@ import 'dayjs/locale/ko';
 import { DatePicker as MUIDatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import dayjs from 'dayjs';
 
 const language = ['en-gb', 'en', 'de', 'fr', 'it', 'pl', 'sv', 'tr', 'nl', 'nb', 'ko'];
 
@@ -29,7 +28,7 @@ type IDatePickerProps = {
   requiredError: string;
 };
 
-const DatePicker = ({ label, value, onChange, requiredError }: IDatePickerProps) => {
+const DatePicker = ({ label, value, onChange, requiredError, ...restProps }: IDatePickerProps) => {
   const browserLang = navigator.language.toLowerCase();
   const datePickerLang = language.includes(browserLang) ? browserLang : navigator.language.split('-')?.[0];
 
@@ -39,7 +38,7 @@ const DatePicker = ({ label, value, onChange, requiredError }: IDatePickerProps)
         label={label}
         value={value || ''}
         views={['year', 'month', 'day']}
-        minDate={dayjs().format()}
+        {...restProps}
         onChange={(newValue: string) => {
           onChange(newValue);
         }}
