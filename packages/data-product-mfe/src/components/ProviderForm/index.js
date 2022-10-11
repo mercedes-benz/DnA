@@ -50,6 +50,7 @@ const tabs = {
     transnationalDataTransfer: '',
     transnationalDataTransferNotWithinEU: '',
     LCOApprovedDataTransfer: '',
+    insiderInformation: '',
     dataOriginatedFromChina: '',
   },
   'deletion-requirements': { deletionRequirement: '', deletionRequirementDescription: '', otherRelevantInfo: '' },
@@ -77,7 +78,7 @@ const ProviderForm = ({ user, history }) => {
   const createCopyId = history.location?.state?.copyId;
 
   const getDataProductById = () => {
-    const id = createCopyId || dataProductId;
+    const id = createCopyId || dataProductId || provideDataProducts?.selectedDataProduct?.id;
     dataProductsApi.getDataProductById(id).then((res) => {
       if (createCopyId) {
         // creating copy of existing data product
@@ -194,9 +195,14 @@ const ProviderForm = ({ user, history }) => {
 
   const onSave = (currentTab, values, callbackFn) => {
     const saveSegments = mapOpenSegments[currentTab];
-    if (isCreatePage && !createCopyId && currentTab === 'contact-info') {
+    if (
+      isCreatePage &&
+      !createCopyId &&
+      !provideDataProducts?.selectedDataProduct?.id &&
+      currentTab === 'contact-info'
+    ) {
       values.openSegments = ['ContactInformation'];
-    } else if (values.openSegments?.indexOf(saveSegments) === -1) {
+    } else if (provideDataProducts.selectedDataProduct?.openSegments?.indexOf(saveSegments) === -1) {
       values.openSegments.push(saveSegments);
     }
     const data = {

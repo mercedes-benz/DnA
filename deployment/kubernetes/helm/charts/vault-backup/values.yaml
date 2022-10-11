@@ -1,0 +1,32 @@
+schedule: '"0 23 * * *"'
+restartPolicy: OnFailure
+successfulJobsHistoryLimit: 1
+namespace: vault
+
+backup:
+  image:
+    name: ghcr.io/jonasvinther/medusa
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  #Add new env as array value with name/value field. Keep one tab indentation.
+  envs:
+    - name: VAULT_SKIP_VERIFY
+      value: "true"
+    - name: VAULT_ADDR
+      value: "http://vault:8200"
+    - name: VAULT_PATH
+      value: "kv"
+    - name: VAULT_TOKEN
+      value: ""
+
+minio:
+  image:
+    name: bitnami/minio-client
+    tag: 2022.1.25-debian-10-r2
+    pullPolicy: IfNotPresent
+  bucket: "vault"
+  endpoint: "http://minio.storage:9000"
+  accessKey: ""
+  secretKey: ""
+  fileName: "vault.secret.$(date +%Y.%m.%d-%H.%M.%S).json"

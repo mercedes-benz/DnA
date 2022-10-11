@@ -27,6 +27,7 @@
 
 package com.daimler.data.service.common;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,9 +44,14 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.GenericAssembler;
+import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
+import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.userinfo.UserInfoVO;
+import com.daimler.data.dto.userinfo.UsersCollection;
+import com.daimler.data.notifications.common.producer.KafkaProducerService;
 
 public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
@@ -53,6 +59,12 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private DnaAuthClient dnaAuthClient;
+
+	@Autowired
+	private KafkaProducerService kafkaProducer;
 
 	@Autowired
 	private CommonDataRepository<T, ID> customRepo;
@@ -192,7 +204,40 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 
 	@Override
 	public boolean verifyUserRoles() {
-		return this.userStore.getUserInfo().hasDataComplianceAdminAccess();
+		return this.userStore.getUserInfo().hasAdminAccess();
+	}
+
+	@Override
+	public void notifyAllAdminUsers(String eventType, String resourceId, String message, String triggeringUser,
+			List<ChangeLogVO> changeLogs) {
+		LOGGER.debug("Notifying all Admin users on " + eventType + " for " + message);
+		List<UserInfoVO> allUsers = null;
+		UsersCollection usersCollection = dnaAuthClient.getAllUsers();
+		if (usersCollection != null && !ObjectUtils.isEmpty(usersCollection.getRecords())) {
+			allUsers = usersCollection.getRecords();
+			List<String> adminUsersIds = new ArrayList<>();
+			List<String> adminUsersEmails = new ArrayList<>();
+			for (UserInfoVO user : allUsers) {
+				boolean isAdmin = false;
+				if (!ObjectUtils.isEmpty(user) && !ObjectUtils.isEmpty(user.getRoles())) {
+					isAdmin = user.getRoles().stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName())
+							|| "DataComplianceAdmin".equalsIgnoreCase(role.getName()));
+				}
+				if (isAdmin) {
+					adminUsersIds.add(user.getId());
+					adminUsersEmails.add(user.getEmail());
+				}
+			}
+			try {
+				kafkaProducer.send(eventType, resourceId, "", triggeringUser, message, true, adminUsersIds,
+						adminUsersEmails, changeLogs);
+				LOGGER.info("Successfully notified all admin users for event {} for {} ", eventType, message);
+			} catch (Exception e) {
+				LOGGER.error(
+						"Exception occured while notifying all Admin users on {}  for {} . Failed with exception {}",
+						eventType, message, e.getMessage());
+			}
+		}
 	}
 
 }

@@ -202,7 +202,7 @@ paths:
           description: Sort dataproducts by a given variable.
           required: false
           type: string
-          enum: [dataProductName]
+          enum: [dataProductName,dataProductId]
         - name: sortOrder
           in: query
           description: Sort dataproducts based on the given order, example asc,desc
@@ -300,7 +300,7 @@ definitions:
         type: string
         format: date
       name:
-        $ref: "#/definitions/TeamMemberVO"           
+        $ref: "#/definitions/DataProductTeamMemberVO"           
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -366,7 +366,10 @@ definitions:
         description: "Is one of these countries not within the EU"
       approved: 
         description: "Has LCO/LCR approved this data transfer"
-        type: string 
+        type: string
+      insiderInformation: 
+        description: "Does product contain insider information"
+        type: string         
       dataFromChina:
         type: boolean
         description: "Is data from China included"                
@@ -395,7 +398,7 @@ definitions:
         type: boolean
         description: "Is LCO/LCR needed to be involved to check legal basis of usage of personal data"
       ownerName:
-        $ref: "#/definitions/TeamMemberVO"
+        $ref: "#/definitions/DataProductTeamMemberVO"
       division:
         $ref: "#/definitions/DivisionVO"
       department:
@@ -476,7 +479,7 @@ definitions:
       users:
         type: array
         items:
-          $ref: "#/definitions/TeamMemberVO"               
+          $ref: "#/definitions/DataProductTeamMemberVO"               
       createdDate:
         type: string
         format: date
@@ -667,7 +670,7 @@ definitions:
         type: string
         description: name of subdivision
         
-  TeamMemberVO:
+  DataProductTeamMemberVO:
     type: object
     properties:
       shortId:
@@ -704,6 +707,41 @@ definitions:
         description: "Flag to identify if consumer is added by provider or not."
     required:
       - shortId 
+      
+  TeamMemberVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+      userType:
+        type: string
+        description: "Internal or External"
+        enum: [internal, external]
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      company:
+        type: string
+        description: "Company name of the external member"
+      teamMemberPosition:
+        type: string
+        description: "Position of team member in project"
+    required:
+      - shortId            
       
   ChangeLogVO:
     type: object

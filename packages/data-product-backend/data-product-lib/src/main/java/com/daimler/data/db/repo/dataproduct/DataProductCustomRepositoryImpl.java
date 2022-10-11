@@ -96,6 +96,9 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			case "dataProductName":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'dataProductName')) ";
 				break;
+			case "dataProductId":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'dataProductId')) ";
+				break;				
 			default:
 				sortQueryString = "";
 				break;
