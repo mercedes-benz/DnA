@@ -56,6 +56,10 @@ const getAllLegalBasis = () => {
   return server.get('/legalbasis', { data: {} });
 };
 
+const getPlanningIT = (searchTerm = '') => {
+  return server.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
+};
+
 export const dataProductsApi = {
   getAllDataProducts,
   createDataProduct,
@@ -67,4 +71,5 @@ export const dataProductsApi = {
   getDataComplianceList,
   getAllClassificationTypes,
   getAllLegalBasis,
+  getPlanningIT,
 };

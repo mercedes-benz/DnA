@@ -66,6 +66,15 @@
     }
 }
 
+.suggestionListBadge {
+    border: 1px solid #d9dfe4;
+    color: #d9dfe4;
+    position: absolute;
+    right: 10px;
+    font-size: 10px;
+    padding: 0 5px;
+}
+
 :global {
     #data-product-tabs #tab-content-2 .mbc-cfm-modal-wrapper footer .btn-set button:first-child {
         display: none;
