@@ -30,20 +30,20 @@ package com.daimler.data.service.lov;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.daimler.data.db.entities.lov.HierarchySql;
-import com.daimler.data.db.repo.lov.HierarchyRepository;
+import com.daimler.data.db.entities.lov.LevelSql;
+import com.daimler.data.db.repo.lov.LevelRepository;
 import com.daimler.data.dto.lov.LovVO;
 import com.daimler.data.service.common.BaseCommonService;
 
 @Service
-public class BaseHierarchyService extends BaseCommonService<LovVO, HierarchySql, Long> implements HierarchyService {
+public class BaseLevelService extends BaseCommonService<LovVO, LevelSql, Long> implements LevelService {
 
-	public BaseHierarchyService() {
+	public BaseLevelService() {
 		super();
 	}
 
 	@Autowired
-	public BaseHierarchyService(HierarchyRepository jpaRepo) {
+	public BaseLevelService(LevelRepository jpaRepo) {
 		super(jpaRepo);
 	}
 }
