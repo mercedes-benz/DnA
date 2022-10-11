@@ -20,6 +20,7 @@ import { useSelector } from 'react-redux';
 import { dataProductsApi } from '../../../apis/dataproducts.api';
 
 import dayjs from 'dayjs';
+import { debounce } from 'lodash';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }) => {
   const {
@@ -36,7 +37,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
-  const { division, department, complianceOfficer: selectedcomplianceOfficer, name } = watch();
+  const { division, department, complianceOfficer: selectedcomplianceOfficer, name, planningIT } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
@@ -45,6 +46,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   const [complianceOfficer, setComplianceOfficer] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
+
+  const [planningITList, setPlanningITList] = useState([]);
+  const [selectedPlanningIT, setSelectedPlanningIT] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
@@ -115,6 +119,12 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
   }, [selectedcomplianceOfficer]);
 
   useEffect(() => {
+    if (planningIT?.length) {
+      setSelectedPlanningIT(planningIT);
+    }
+  }, [planningIT]);
+
+  useEffect(() => {
     ProgressIndicator.show();
     dataProductsApi
       .getDepartments()
@@ -166,6 +176,25 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
       return value !== '' || '*Missing entry';
     }
   };
+
+  const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
+    if (searchTerm.length > 3) {
+      showSpinner(true);
+      dataProductsApi
+        .getPlanningIT(searchTerm)
+        .then((res) => {
+          setPlanningITList(res.data.data || []);
+          showSpinner(false);
+        })
+        .catch((e) => {
+          showSpinner(false);
+          Notification.show(
+            e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
+            'alert',
+          );
+        });
+    }
+  }, 500);
 
   return (
     <>
@@ -361,19 +390,37 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 />
               </div>
               <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
-                <label id="planningITLabel" htmlFor="planningITInput" className="input-label">
-                  planningIT App-ID <sup>*</sup>
-                </label>
-                <input
-                  {...register('planningIT', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="planningITInput"
-                  maxLength={200}
-                  placeholder="Type here"
-                  autoComplete="off"
+                <Controller
+                  control={control}
+                  name="planningIT"
+                  rules={{ required: '*Missing entry' }}
+                  render={({ field }) => (
+                    <TypeAheadBox
+                      label={'planningIT App-ID'}
+                      placeholder={'Select App-ID (Enter minimum 4 characters)'}
+                      defaultValue={selectedPlanningIT}
+                      list={planningITList}
+                      setSelected={(selectedTags) => {
+                        setSelectedPlanningIT(selectedTags.id || []);
+                        field.onChange(selectedTags.id);
+                      }}
+                      onInputChange={handlePlanningITSearch}
+                      required={true}
+                      showError={errors.planningIT?.message}
+                      render={(item) => (
+                        <div className={Styles.optionContainer}>
+                          <div>
+                            <span className={Styles.optionText}>
+                              {item?.id} {item.shortName ? `(${item?.shortName})` : null}
+                            </span>
+                            <span className={Styles.suggestionListBadge}>{item?.providerOrgShortname}</span>
+                          </div>
+                          <span className={Styles.optionText}>{item?.name}</span>
+                        </div>
+                      )}
+                    />
+                  )}
                 />
-                <span className={classNames('error-message')}>{errors.planningIT?.message}</span>
               </div>
             </div>
           </div>
