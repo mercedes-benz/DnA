@@ -25,25 +25,14 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.db.repo.lov;
 
-import java.io.Serializable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.lov.DataClassificationSql;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Repository
+public interface DataClassificationRepository extends JpaRepository<DataClassificationSql, Long> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
-
-	private static final long serialVersionUID = 152482308131566126L;
-
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
 }
