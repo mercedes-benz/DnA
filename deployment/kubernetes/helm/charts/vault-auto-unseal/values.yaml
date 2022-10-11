@@ -1,0 +1,14 @@
+schedule: '"*/10 * * * *"'
+restartPolicy: OnFailure
+successfulJobsHistoryLimit: 1
+namespace: vault
+image:
+  name: ghcr.io/omegion/vault-unseal
+  tag: v0.1.0
+  pullPolicy: IfNotPresent
+
+vault:
+  # Vault Server address with scheme e.g. https://vault.server.example.com
+  address: "http://vault:8200"
+  # Vault Server Unseal keys, suggested to enter at least 3
+  shards: []

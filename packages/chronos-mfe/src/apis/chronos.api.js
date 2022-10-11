@@ -26,9 +26,7 @@ const getAllInputFiles = (id) => {
 };
 
 const createForecastRun = (data, id) => {
-  return formServer.post(`/forecasts/${id}/runs`, {
-    data,
-  });
+  return formServer.post(`/forecasts/${id}/runs`, data);
 };
 
 const getForecastRuns = (id) => {

@@ -41,6 +41,6 @@ public class Customer implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
 
-	private List<CustomerDetails> customers;
-	private List<TeamMember> processOwners;
+	private List<InternalCustomer> internalCustomers;
+	private List<ExternalCustomer> externalCustomers;
 }

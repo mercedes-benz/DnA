@@ -76,25 +76,28 @@ const ForecastResults = () => {
 
   /* Delete */
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const showDeleteConfirmModal = (item) => {
+  const [runToBeDeleted, setRunToBeDeleted] = useState();
+  const showDeleteConfirmModal = (run) => {
     setShowDeleteModal(true);
-    console.log(item);
-    ProgressIndicator.show();
-    chronosApi.deleteForecastRun(projectId, item.runId).then((res) => {
-      // setProject(res);
-      console.log(res);
-      ProgressIndicator.hide();
-    }).catch(error => {
-      console.log(error.message);
-      ProgressIndicator.hide();
-    });
+    setRunToBeDeleted(run);
   };
   const onCancelDelete = () => {
     setShowDeleteModal(false);
   };
   const onAcceptDelete = () => {
     setShowDeleteModal(false);
-    Notification.show('Run deleted');
+    if(runToBeDeleted.id !== '' || runToBeDeleted.id !== null) {
+      ProgressIndicator.show();
+      chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
+        console.log(res);
+        Notification.show('Run deleted');
+        ProgressIndicator.hide();
+        getProjectForecastRuns();
+      }).catch(error => {
+        Notification.show(error.message, 'alert');
+        ProgressIndicator.hide();
+      });
+    }
   }
 
   /* Row actions */
