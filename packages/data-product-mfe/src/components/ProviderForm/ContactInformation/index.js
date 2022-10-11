@@ -19,6 +19,8 @@ import Notification from '../../../common/modules/uilab/js/src/notification';
 import { useSelector } from 'react-redux';
 import { dataProductsApi } from '../../../apis/dataproducts.api';
 
+import dayjs from 'dayjs';
+
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }) => {
   const {
     register,
@@ -29,6 +31,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     reset,
     setValue,
     control,
+    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
@@ -45,6 +48,8 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
 
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
+
+  const minDate = dayjs().format();
 
   useEffect(() => {
     const id = watch('division');
@@ -141,6 +146,25 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
     }
     field.onChange(value);
     setFieldValue(name);
+  };
+
+  const validateDate = () => {
+    const value = getValues('dateOfDataTransfer');
+    if (typeof value === 'object') {
+      const isValidDate = !isNaN(value?.get('date'));
+      const isBefore = dayjs(value).isBefore(minDate, 'date');
+      const error =
+        value === null || value === ''
+          ? '*Missing entry'
+          : !isValidDate
+          ? 'Invalid Date Format'
+          : isBefore
+          ? 'Is before the minimum date'
+          : null;
+      return (value === isValidDate && value !== isBefore) || error;
+    } else {
+      return value !== '' || '*Missing entry';
+    }
   };
 
   return (
@@ -288,13 +312,18 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 <Controller
                   control={control}
                   name="dateOfDataTransfer"
-                  rules={{ required: '*Missing entry' }}
+                  rules={{
+                    validate: validateDate,
+                  }}
                   render={({ field }) => (
                     <DatePicker
                       label="Date of Data Transfer"
                       value={watch('dateOfDataTransfer')}
                       name={field.name}
-                      onChange={(value) => field.onChange(value)}
+                      minDate={minDate}
+                      onChange={(value) => {
+                        field.onChange(value);
+                      }}
                       requiredError={errors.dateOfDataTransfer?.message}
                     />
                   )}
