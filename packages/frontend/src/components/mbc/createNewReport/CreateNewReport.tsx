@@ -163,8 +163,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           department: [],
           productPhase: null,
           status: null,
-          agileReleaseTrains: [],
-          integratedPortal: [],
+          agileReleaseTrain: '',
+          integratedPortal: '',
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
@@ -215,21 +215,21 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const hierarchies = response[3].data;
         const integratedPortals = response[4].data;
         const kpiNames = response[5].data;
-        const productPhases = response[6].data;
-        const reportingCauses = response[7].data;
-        const ressort = response[8].data;
-        const statuses = response[9].data;
-        const designGuideImplemented = response[10].data;
-        const arts = response[11].data;
-        const tags: ITag[] = response[12].data;
-        const connectionTypes: IConnectionType[] = response[13].data;
+        // const productPhases = response[6].data;
+        const reportingCauses = response[6].data;
+        const ressort = response[7].data;
+        const statuses = response[8].data;
+        // const designGuideImplemented = response[10].data;
+        const arts = response[9].data;
+        const tags: ITag[] = response[10].data;
+        const connectionTypes: IConnectionType[] = response[11].data;
         const dataClassifications: IDataClassification[] = [{id: 'Confidential', name: 'Confidential'},
         {id: 'Internal', name: 'Internal'},
         {id: 'Public', name: 'Public'}];
-        const dataWarehouses: IDataWarehouse[] = response[14].records;
-        const subSystems: ISubSystems[] = response[15].data;
-        const divisions: IDivision[] = response[16];
-        const departmentTags: IDepartment[] = response[17].data;
+        // const dataWarehouses: IDataWarehouse[] = response[14].records;
+        // const subSystems: ISubSystems[] = response[15].data;
+        const divisions: IDivision[] = response[12];
+        const departmentTags: IDepartment[] = response[13].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -252,19 +252,15 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             hierarchies,
             integratedPortals,
             kpiNames,
-            productPhases,
             reportingCauses,
             ressort,
             statuses,
-            designGuideImplemented,
             arts,
             tags,
             departmentTags,
             divisions,
             connectionTypes,
             dataClassifications,
-            dataWarehouses,
-            subSystems,
             report: {
               ...prevState.report,
               members: {
@@ -344,8 +340,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 statuses,
                 frontEndTechnologies,
                 designGuideImplemented,
-                integratedPortals,
-                arts,
+                // integratedPortals,
+                // arts,
                 dataSources,
                 connectionTypes,
                 // dataClassifications,
@@ -364,12 +360,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               report.description.designGuideImplemented = designGuideImplemented?.filter(
                 (item: any) => item.name === res.description.designGuideImplemented,
               );
-              report.description.agileReleaseTrains = arts?.filter(
-                (item: any) => res.description.agileReleaseTrains?.indexOf(item.name) > -1,
-              );
-              report.description.integratedPortal = integratedPortals?.filter(
-                (item: any) => res.description.integratedPortal?.indexOf(item.name) > -1,
-              );
+              report.description.agileReleaseTrain = res.description.agileReleaseTrain;
+              report.description.integratedPortal = res.description.integratedPortal;
               report.description.tags = res.description.tags;
               report.description.division = res.description.division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
