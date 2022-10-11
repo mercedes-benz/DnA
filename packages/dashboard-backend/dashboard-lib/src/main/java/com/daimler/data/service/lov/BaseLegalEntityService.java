@@ -25,14 +25,25 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.lov;
+package com.daimler.data.service.lov;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.daimler.data.db.entities.lov.HierarchySql;
+import com.daimler.data.db.entities.lov.LegalEntitySql;
+import com.daimler.data.db.repo.lov.LegalEntityRepository;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.BaseCommonService;
 
-@Repository
-public interface HierarchyRepository extends JpaRepository<HierarchySql, Long> {
+@Service
+public class BaseLegalEntityService extends BaseCommonService<LovVO, LegalEntitySql, Long> implements LegalEntityService {
 
+	public BaseLegalEntityService() {
+		super();
+	}
+
+	@Autowired
+	public BaseLegalEntityService(LegalEntityRepository jpaRepo) {
+		super(jpaRepo);
+	}
 }
