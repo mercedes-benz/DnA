@@ -6,7 +6,7 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ISubSystems,
+  ICommonFunctions,
   IDataWarehouseInUse,
   ISingleDataSources,
   IDataClassification,
@@ -46,7 +46,7 @@ export interface IDataFunctionProps {
   connectionTypes: IConnectionType[];
   dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  subSystems: ISubSystems[];
+  commonFunctions: ICommonFunctions[];
   modifyDataFunction: (modifyDataFunction: IDataAndFunctions) => void;
   onSaveDraft: (tabToBeSaved: string) => void;
 }
@@ -182,46 +182,46 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   protected handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const name = e.target.name;
-    const value = e.target.value;
-    const isEmpty = e.target.selectedOptions[e.target.selectedIndex]?.label === 'Choose';
-    isEmpty
-      ? this.setState({
-          dataWarehouseDropdownValues: {
-            commonFunctions: [],
-            connectionTypes: [],
-            dataClassifications: []
-          },
-        })
-      : this.props.dataWarehouses?.map((item) => {
-          if (item.dataWarehouse.toLowerCase() === value.toLowerCase()) {
-            const isCarla = item.dataWarehouse.toLowerCase() === 'carla';
-            const connectionTypes =
-              isCarla && item.connectionTypes?.filter((item) => item.toLowerCase() === 'live connection')?.length
-                ? item.connectionTypes
-                : isCarla
-                ? [...item.connectionTypes, 'live connection']
-                : item.connectionTypes;
-            const dataClassifications = this.props.dataClassifications.map((item: IDataClassification)=> item.name);    
-            this.setState((prevState) => ({
-              dataWarehouseDropdownValues: {
-                ...prevState.dataWarehouseDropdownValues,
-                commonFunctions: item.commonFunctions,
-                connectionTypes: connectionTypes,
-                dataClassifications: dataClassifications
-              },
-              dataWarehouseInUseInfo: {
-                ...prevState.dataWarehouseInUseInfo,
-                [name]: value,
-                ...(prevState.dataWarehouseInUseInfo?.dataWarehouse && { connectionTypes: [] }), //reset if value is not carLa
-              },
-              errors: {
-                ...prevState.errors,
-                connectionTypes: '',
-              },
-            }));
-          }
-        });
+    // const name = e.target.name;
+    // const value = e.target.value;
+    // const isEmpty = e.target.selectedOptions[e.target.selectedIndex]?.label === 'Choose';
+    // isEmpty
+    //   ? this.setState({
+    //       dataWarehouseDropdownValues: {
+    //         commonFunctions: [],
+    //         connectionTypes: [],
+    //         dataClassifications: []
+    //       },
+    //     })
+    //   : this.props.dataWarehouses?.map((item) => {
+    //       if (item.dataWarehouse.toLowerCase() === value.toLowerCase()) {
+    //         // const isCarla = item.dataWarehouse.toLowerCase() === 'carla';
+    //         // const connectionTypes =
+    //         //   isCarla && item.connectionTypes?.filter((item) => item.toLowerCase() === 'live connection')?.length
+    //         //     ? item.connectionTypes
+    //         //     : isCarla
+    //         //     ? [...item.connectionTypes, 'live connection']
+    //         //     : item.connectionTypes;
+    //         // const dataClassifications = this.props.dataClassifications.map((item: IDataClassification)=> item.name);    
+    //         // this.setState((prevState) => ({
+    //         //   dataWarehouseDropdownValues: {
+    //         //     ...prevState.dataWarehouseDropdownValues,
+    //         //     commonFunctions: item.commonFunctions,
+    //         //     connectionTypes: connectionTypes,
+    //         //     dataClassifications: dataClassifications
+    //         //   },
+    //         //   dataWarehouseInUseInfo: {
+    //         //     ...prevState.dataWarehouseInUseInfo,
+    //         //     [name]: value,
+    //         //     ...(prevState.dataWarehouseInUseInfo?.dataWarehouse && { connectionTypes: [] }), //reset if value is not carLa
+    //         //   },
+    //         //   errors: {
+    //         //     ...prevState.errors,
+    //         //     connectionTypes: '',
+    //         //   },
+    //         // }));
+    //       }
+    //     });
   };
 
   protected showDataSourceModal = () => {
@@ -355,25 +355,25 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   protected onEditDatasourceOpen = (dataSourcesAndFunctions: IDataWarehouseInUse, index: number) => {
     const { connectionTypes, commonFunctions, dataClassification, dataWarehouse } =
       dataSourcesAndFunctions;
-    this.props.dataWarehouses?.map((item) => {
-      if (item.dataWarehouse.toLowerCase() === dataWarehouse.toLowerCase()) {
-        const isCarla = item.dataWarehouse.toLowerCase() === 'carla';
-        const connectionTypes =
-          isCarla && item.connectionTypes?.filter((item) => item.toLowerCase() === 'live connection')?.length
-            ? item.connectionTypes
-            : isCarla
-            ? [...item.connectionTypes, 'live connection']
-            : item.connectionTypes;
-        this.setState((prevState) => ({
-          dataWarehouseDropdownValues: {
-            ...prevState.dataWarehouseDropdownValues,
-            commonFunctions: item.commonFunctions,
-            connectionTypes: connectionTypes,
-            dataClassifications: item.dataClassifications,
-          },
-        }));
-      }
-    });
+    // this.props.dataWarehouses?.map((item) => {
+    //   if (item.dataWarehouse.toLowerCase() === dataWarehouse.toLowerCase()) {
+    //     const isCarla = item.dataWarehouse.toLowerCase() === 'carla';
+    //     const connectionTypes =
+    //       isCarla && item.connectionTypes?.filter((item) => item.toLowerCase() === 'live connection')?.length
+    //         ? item.connectionTypes
+    //         : isCarla
+    //         ? [...item.connectionTypes, 'live connection']
+    //         : item.connectionTypes;
+    //     this.setState((prevState) => ({
+    //       dataWarehouseDropdownValues: {
+    //         ...prevState.dataWarehouseDropdownValues,
+    //         commonFunctions: commonFunctions,
+    //         connectionTypes: connectionTypes,
+    //         dataClassifications: this.props.dataClassifications,
+    //       },
+    //     }));
+    //   }
+    // });
     this.setState(
       {
         addDataSource: false,
@@ -503,50 +503,50 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   public onChangeSourceAndFunction = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const name = e.target.name;
-    let selectedValuesclassification = '';
-    const selectedValues: any[] = [];
-    if(name === 'dataClassification'){
-      const selectedOptions = e.currentTarget.selectedOptions;
-      if (selectedOptions.length) {
-        Array.from(selectedOptions).forEach((option) => {
-          selectedValuesclassification = option.value;
-        });
-      }      
-    }else{
-      const selectedOptions = e.currentTarget.selectedOptions;
-      if (selectedOptions.length) {
-        Array.from(selectedOptions).forEach((option) => {
-          if (this.state.dataSource === 'singledatasource') {
-            const dataWarehouse: any = { id: null, name: null };
-            dataWarehouse.id = option.value;
-            dataWarehouse.name = option.textContent;
-            selectedValues.push(dataWarehouse);
-          } else {
-            selectedValues.push(option.textContent);
-          }
-        });
-      }
-    }
+    // const name = e.target.name;
+    // let selectedValuesclassification = '';
+    // const selectedValues: any[] = [];
+    // if(name === 'dataClassification'){
+    //   const selectedOptions = e.currentTarget.selectedOptions;
+    //   if (selectedOptions.length) {
+    //     Array.from(selectedOptions).forEach((option) => {
+    //       selectedValuesclassification = option.value;
+    //     });
+    //   }      
+    // }else{
+    //   const selectedOptions = e.currentTarget.selectedOptions;
+    //   if (selectedOptions.length) {
+    //     Array.from(selectedOptions).forEach((option) => {
+    //       if (this.state.dataSource === 'singledatasource') {
+    //         const dataWarehouse: any = { id: null, name: null };
+    //         dataWarehouse.id = option.value;
+    //         dataWarehouse.name = option.textContent;
+    //         selectedValues.push(dataWarehouse);
+    //       } else {
+    //         selectedValues.push(option.textContent);
+    //       }
+    //     });
+    //   }
+    // }
     
 
-    this.setState((prevState) => ({
-      ...(this.state.dataSource === 'datawarehouse'
-        ? {
-            ...prevState,
-            dataWarehouseInUseInfo: {
-              ...prevState.dataWarehouseInUseInfo,
-              [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
-            },
-          }
-        : {
-            ...prevState,
-            singleDataSourceInfo: {
-              ...prevState.singleDataSourceInfo,
-              [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
-            },
-          }),
-    }));
+    // this.setState((prevState) => ({
+    //   ...(this.state.dataSource === 'datawarehouse'
+    //     ? {
+    //         ...prevState,
+    //         dataWarehouseInUseInfo: {
+    //           ...prevState.dataWarehouseInUseInfo,
+    //           [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
+    //         },
+    //       }
+    //     : {
+    //         ...prevState,
+    //         singleDataSourceInfo: {
+    //           ...prevState.singleDataSourceInfo,
+    //           [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
+    //         },
+    //       }),
+    // }));
   };
 
   protected validateDatasourceModal = () => {
@@ -766,9 +766,9 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           onDropdownChange={this.onChangeSourceAndFunction}
           requiredError={requiredError}
           dataWarehouses={this.props.dataWarehouses}
-          commonFunctions={this.state.dataWarehouseDropdownValues.commonFunctions}
-          connectionTypes={this.state.dataWarehouseDropdownValues.connectionTypes}
-          dataClassifications={this.state.dataWarehouseDropdownValues.dataClassifications}
+          commonFunctions={this.props.commonFunctions.map(item=>item.name)}
+          connectionTypes={this.props.connectionTypes.map(item=>item.name)}
+          dataClassifications={this.props.dataClassifications.map(item=>item.name)}
           onDataWarehouseChange={this.handleChange} 
         />
         <SingleDataSource
