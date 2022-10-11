@@ -31,7 +31,7 @@ const tabs = {
     subDivision: '0',
     department: '',
     dateOfAgreement: '',
-    planningIT: 'APP-',
+    planningIT: '',
     lcoNeeded: '',
     complianceOfficer: '',
   },
