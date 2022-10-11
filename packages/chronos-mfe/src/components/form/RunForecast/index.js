@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 
 import Styles from './styles.scss';
-import { useFormContext } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 
 // Container components
@@ -42,17 +42,10 @@ const SelectedFile = ({ selectedFile, setSelected }) => {
 const RunForecast = ({ savedFiles }) => {
   const { id: projectId } = useParams();
 
-  const {
-    register,
-    formState: { errors, isSubmitting },
-    handleSubmit,
-    trigger,
-    reset,
-  } = useFormContext();
+  const { register, handleSubmit, isSubmitting, reset, formState: { errors } } = useForm();
+
   const [keepExistingFiles, setKeepExistingFiles] = useState(false);
-
   const [showExistingFiles, setShowExistingFiles] = useState(false);
-
   const [expertView, setExpertView] = useState(false);
 
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
@@ -85,16 +78,18 @@ const RunForecast = ({ savedFiles }) => {
     <div className={Styles.existingFilesContainer}>
       <div className={Styles.flexLayout}>
         {' '}
-        <div className={classNames(`input-field-group include-error ${errors?.savedInputPath?.message ? 'error' : ''}`)}>
+        <div className={classNames(`input-field-group include-error ${errors?.savedInputPath ? 'error' : ''}`)}>
           <label id="savedInputPathLabel" htmlFor="existingFilenField" className="input-label">
             Input File <sup>*</sup>
           </label>
-          <div className="custom-select" onBlur={() => trigger('savedInputPath')}>
+          <div className="custom-select" 
+            // onBlur={() => trigger('savedInputPath')}
+            >
             <select
               id="savedInputPathField"
               required={true}
-              required-error={'*Missing entry'}
               {...register('savedInputPath', {
+                // required: true,
                 // validate: (value) => value !== '0' || '*Missing entry',
                 onChange: (e) => { selectedSavedFile(e) }
               })}
@@ -110,7 +105,7 @@ const RunForecast = ({ savedFiles }) => {
               ))}
             </select>
           </div>
-          <span className={classNames('error-message')}>{errors?.savedInputPath?.message}</span>
+          <span className={classNames('error-message')}>{errors?.savedInputPath && '*Missing entry'}</span>
         </div>
       </div>
       {
@@ -164,7 +159,7 @@ const RunForecast = ({ savedFiles }) => {
     }
   };
 
-  const onSave = (data) => {
+  const onSubmit = (data) => {
     const formData = new FormData();
     formData.append("file", data.file[0]);
     formData.append("runName", data.runName);
@@ -200,222 +195,228 @@ const RunForecast = ({ savedFiles }) => {
 
   return (
     <>
-      <div className={Styles.wrapper}>
-        <div className={Styles.firstPanel}>
-          <h3>Input File</h3>
-          <div className={Styles.infoIcon}>
-            <i className="icon mbc-icon info" onClick={() => {}} />
-          </div>
-          <div className={Styles.formWrapper}>
-            <div>
-              <p>
-                Please upload your Input File and make sure it&apos;s structured according to our{' '}
-                <Link to="help">forecasting guidelines</Link>.
-              </p>
-              <p>
-                For a quick start you can download the default template (.xlsx) <a href="#/">right here</a>.
-              </p>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className={Styles.wrapper}>
+          <div className={Styles.firstPanel}>
+            <h3>Input File</h3>
+            <div className={Styles.infoIcon}>
+              <i className="icon mbc-icon info" onClick={() => {}} />
             </div>
-            {!isSelectedFile ? (
-              <div className={Styles.container}>
-                <div
-                  onDrop={onFileDrop}
-                  onDragOver={onFileDrop}
-                  onDragLeave={onFileDrop}
-                  className={classNames('upload-container', Styles.uploadContainer)}
-                >
-                  <input type="file" id="file" name="file" {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}) }})} />
-                  <div className={Styles.rcUpload}>
-                    <div className={Styles.dragDrop}>
-                      <div className={Styles.icon}>
-                        <img src={IconUpload} />
+            <div className={Styles.formWrapper}>
+              <div>
+                <p>
+                  Please upload your Input File and make sure it&apos;s structured according to our{' '}
+                  <Link to="help">forecasting guidelines</Link>.
+                </p>
+                <p>
+                  For a quick start you can download the default template (.xlsx) <a href="#/">right here</a>.
+                </p>
+              </div>
+              {!isSelectedFile ? (
+                <div className={Styles.container}>
+                  <div
+                    onDrop={onFileDrop}
+                    onDragOver={onFileDrop}
+                    onDragLeave={onFileDrop}
+                    className={classNames('upload-container', Styles.uploadContainer)}
+                  >
+                    <input type="file" id="file" name="file" {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}) }})} />
+                    <div className={Styles.rcUpload}>
+                      <div className={Styles.dragDrop}>
+                        <div className={Styles.icon}>
+                          <img src={IconUpload} />
+                        </div>
+                        <h4>Drag & Drop your Input File here to upload</h4>
                       </div>
-                      <h4>Drag & Drop your Input File here to upload</h4>
-                    </div>
-                    <div className={Styles.helperTextContainer}>
-                      <div className={Styles.browseHelperText}>
-                        You can also <label htmlFor="file" className={Styles.selectExisitingFiles}>browse local files</label> (.xlsx)
-                      </div>
-                      <div
-                        className={Styles.browseHelperText}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowExistingFiles(true);
-                        }}
-                      >
-                        <p>
-                          or<button className={Styles.selectExisitingFiles}>select an existing file</button>to run
-                          forecast
-                        </p>
+                      <div className={Styles.helperTextContainer}>
+                        <div className={Styles.browseHelperText}>
+                          You can also <label htmlFor="file" className={Styles.selectExisitingFiles}>browse local files</label> (.xlsx)
+                        </div>
+                        <div
+                          className={Styles.browseHelperText}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowExistingFiles(true);
+                          }}
+                        >
+                          <p>
+                            or<button className={Styles.selectExisitingFiles}>select an existing file</button>to run
+                            forecast
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  {errors.file && <span className={Styles.errorMessage}>{errors.file?.message}</span>}
                 </div>
+              ) : (
+                <SelectedFile selectedFile={selectedInputFile} setSelected={setSelectedInput} />
+              )}
+              <div className={Styles.checkbox}>
+                <label className="checkbox">
+                  <span className="wrapper">
+                    <input
+                      value={keepExistingFiles}
+                      type="checkbox"
+                      className="ff-only"
+                      onChange={() => {
+                        setKeepExistingFiles(!keepExistingFiles);
+                      }}
+                      checked={keepExistingFiles}
+                    />
+                  </span>
+                  <span className="label">Keep file for future use</span>
+                </label>
               </div>
-            ) : (
-              <SelectedFile selectedFile={selectedInputFile} setSelected={setSelectedInput} />
-            )}
-            <div className={Styles.checkbox}>
-              <label className="checkbox">
+            </div>
+          </div>
+        </div>
+        <div className={Styles.wrapper}>
+          <div className={Styles.firstPanel}>
+            <h3>Run Parameters</h3>
+            <div className={Styles.infoIcon}>
+              <label className="switch">
+                <span className="label" style={{ marginRight: '5px' }}>
+                  Enable Expert View
+                </span>
                 <span className="wrapper">
                   <input
-                    value={keepExistingFiles}
+                    value={expertView}
                     type="checkbox"
                     className="ff-only"
-                    onChange={() => {
-                      setKeepExistingFiles(!keepExistingFiles);
-                    }}
-                    checked={keepExistingFiles}
+                    onChange={() => setExpertView(!expertView)}
+                    checked={expertView}
                   />
                 </span>
-                <span className="label">Keep file for future use</span>
               </label>
             </div>
-          </div>
-        </div>
-      </div>
-      <div className={Styles.wrapper}>
-        <div className={Styles.firstPanel}>
-          <h3>Run Parameters</h3>
-          <div className={Styles.infoIcon}>
-            <label className="switch">
-              <span className="label" style={{ marginRight: '5px' }}>
-                Enable Expert View
-              </span>
-              <span className="wrapper">
-                <input
-                  value={expertView}
-                  type="checkbox"
-                  className="ff-only"
-                  onChange={() => setExpertView(!expertView)}
-                  checked={expertView}
-                />
-              </span>
-            </label>
-          </div>
-          <div className={Styles.formWrapper}>
-            <div className={Styles.flexLayout}>
-              <div className={classNames('input-field-group include-error', errors.runName ? 'error' : '')}>
-                <label id="runNameLabel" htmlFor="runNameInput" className="input-label">
-                  Run Name <sup>*</sup>
-                </label>
-                <input
-                  {...register('runName', { required: '*Missing entry' })}
-                  type="text"
-                  className="input-field"
-                  id="runNameInput"
-                  maxLength={200}
-                  placeholder="eg. YYYY-MM-DD_run-topic"
-                  autoComplete="off"
-                />
-                <span className={classNames('error-message')}>{errors.runName?.message}</span>
-              </div>
-              <div className={Styles.configurationContainer}>
-                <div
-                  className={classNames(
-                    `input-field-group include-error ${errors?.configurationFile?.message ? 'error' : ''}`,
-                  )}
-                >
-                  <label id="configurationLabel" htmlFor="configurationField" className="input-label">
-                    Configuration File <sup>*</sup>
-                  </label>
-                  <div className="custom-select" onBlur={() => trigger('configurationFile')}>
-                    <select
-                      id="configurationField"
-                      required={true}
-                      required-error={'*Missing entry'}
-                      {...register('configurationFile', {
-                        validate: (value) => value !== '0' || '*Missing entry',
-                      })}
-                    >
-                      <option id="configurationOption" value={0}>
-                        Choose
-                      </option>
-                      <option value={'Default-Settings'}>Default Configuration</option>
-                    </select>
-                  </div>
-                  <span className={classNames('error-message')}>{errors?.configurationFile?.message}</span>
-                </div>
-              </div>
-            </div>
-            <div className={Styles.flexLayout}>
-              <div className={Styles.frequencyContainer}>
-                <div
-                  className={classNames(
-                    `input-field-group include-error ${errors?.frequency?.message ? 'error' : ''}`,
-                    Styles.tooltipIcon,
-                  )}
-                >
-                  <label id="frequencyLabel" htmlFor="frequencyField" className="input-label">
-                    Frequency <sup>*</sup>
-                    <i className="icon mbc-icon info" tooltip-data={frequencyTooltipContent} />
-                  </label>
-                  <div className="custom-select" onBlur={() => trigger('frequency')}>
-                    <select
-                      id="frequencyField"
-                      required={true}
-                      required-error={'*Missing entry'}
-                      {...register('frequency', {
-                        validate: (value) => value !== '0' || '*Missing entry',
-                      })}
-                    >
-                      <option id="frequencyOption" value={0}>
-                        Choose
-                      </option>
-                      <option value={'DAILY'}>Daily</option>
-                      <option value={'WEEKLY'}>Weekly</option>
-                      <option value={'MONTHLY'}>Monthly</option>
-                      <option value={'YEARLY'}>Yearly</option>
-                      <option value={'NO_FREQUENCY'}>No Frequency</option>
-                    </select>
-                  </div>
-                  <span className={classNames('error-message')}>{errors?.frequency?.message}</span>
-                </div>
-              </div>
-              <div className={Styles.forecastHorizonContainer}>
-                <div className={classNames('input-field-group include-error', errors.forecastHorizon ? 'error' : '', Styles.tooltipIcon)}>
-                  <label id="forecastHorizonLabel" htmlFor="forecastHorizonField" className="input-label">
-                    Forecast Horizon <sup>*</sup>
-                    <i className="icon mbc-icon info" tooltip-data={forecastHorizonTooltipContent} />
+            <div className={Styles.formWrapper}>
+              <div className={Styles.flexLayout}>
+                <div className={classNames('input-field-group include-error', errors.runName ? 'error' : '')}>
+                  <label id="runNameLabel" htmlFor="runNameInput" className="input-label">
+                    Run Name <sup>*</sup>
                   </label>
                   <input
-                    {...register('forecastHorizon', { required: '*Missing entry'})}
-                    type="number"
+                    {...register('runName', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
+                    type="text"
                     className="input-field"
-                    id="forecastHorizonField"
-                    defaultValue={1}
-                    placeholder="eg. 1"
+                    id="runNameInput"
+                    maxLength={200}
+                    placeholder="Type here"
                     autoComplete="off"
                   />
-                  <span className={classNames('error-message')}>{errors.forecastHorizon?.message}</span>
+                  <span className={classNames('error-message')}>{errors.runName?.message}{errors.runName?.type === 'pattern' && 'Only lowercase letters are allowed without spaces'}</span>
+                </div>
+                <div className={Styles.configurationContainer}>
+                  <div
+                    className={classNames(
+                      `input-field-group include-error ${errors?.configurationFile ? 'error' : ''}`,
+                    )}
+                  >
+                    <label id="configurationLabel" htmlFor="configurationField" className="input-label">
+                      Configuration File <sup>*</sup>
+                    </label>
+                    <div className="custom-select" 
+                      // onBlur={() => trigger('configurationFile')}
+                      >
+                      <select
+                        id="configurationField"
+                        required={true}
+                        {...register('configurationFile', {
+                          required: '*Missing entry',
+                          validate: (value) => value !== '0' || '*Missing entry',
+                        })}
+                      >
+                        <option id="configurationOption" value={0}>
+                          Choose
+                        </option>
+                        <option value={'Default-Settings'}>Default Configuration</option>
+                      </select>
+                    </div>
+                    <span className={classNames('error-message')}>{errors?.configurationFile?.message}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div>
-              <div
-                id="comment"
-                className={classNames('input-field-group include-error area', errors.comment ? 'error' : '')}
-              >
-                <label className="input-label" htmlFor="comment">
-                  Add comment
-                </label>
-                <textarea className="input-field-area" type="text" {...register('comment')} rows={50} id="comment" />
-                <span className={classNames('error-message')}>{errors?.comment?.message}</span>
+              <div className={Styles.flexLayout}>
+                <div className={Styles.frequencyContainer}>
+                  <div
+                    className={classNames(
+                      `input-field-group include-error ${errors?.frequency ? 'error' : ''}`,
+                      Styles.tooltipIcon,
+                    )}
+                  >
+                    <label id="frequencyLabel" htmlFor="frequencyField" className="input-label">
+                      Frequency <sup>*</sup>
+                      <i className="icon mbc-icon info" tooltip-data={frequencyTooltipContent} />
+                    </label>
+                    <div className="custom-select" 
+                      // onBlur={() => trigger('frequency')}
+                      >
+                      <select
+                        id="frequencyField"
+                        required={true}
+                        {...register('frequency', {
+                          required: '*Missing entry',
+                          validate: (value) => value !== '0' || '*Missing entry',
+                        })}
+                      >
+                        <option id="frequencyOption" value={0}>
+                          Choose
+                        </option>
+                        <option value={'DAILY'}>Daily</option>
+                        <option value={'WEEKLY'}>Weekly</option>
+                        <option value={'MONTHLY'}>Monthly</option>
+                        <option value={'YEARLY'}>Yearly</option>
+                        <option value={'NO_FREQUENCY'}>No Frequency</option>
+                      </select>
+                    </div>
+                    <span className={classNames('error-message')}>{errors?.frequency?.message}</span>
+                  </div>
+                </div>
+                <div className={Styles.forecastHorizonContainer}>
+                  <div className={classNames('input-field-group include-error', errors.forecastHorizon ? 'error' : '', Styles.tooltipIcon)}>
+                    <label id="forecastHorizonLabel" htmlFor="forecastHorizonField" className="input-label">
+                      Forecast Horizon <sup>*</sup>
+                      <i className="icon mbc-icon info" tooltip-data={forecastHorizonTooltipContent} />
+                    </label>
+                    <input
+                      {...register('forecastHorizon', { required: '*Missing entry' })}
+                      type="number"
+                      className="input-field"
+                      id="forecastHorizonField"
+                      defaultValue={1}
+                      placeholder="eg. 1"
+                      autoComplete="off"
+                    />
+                    <span className={classNames('error-message')}>{errors.forecastHorizon?.message}</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div
+                  id="comment"
+                  className={classNames('input-field-group include-error area')}
+                >
+                  <label className="input-label" htmlFor="comment">
+                    Add comment
+                  </label>
+                  <textarea className="input-field-area" type="text" {...register('comment')} rows={50} id="comment" />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="btnContainer">
-        <button
-          className="btn btn-tertiary"
-          type="submit"
-          disabled={isSubmitting}
-          onClick={handleSubmit(onSave)}
-        >
-          Run Forecast
-        </button>
-      </div>
+        <div className="btnContainer">
+          <button
+            className="btn btn-tertiary"
+            type="submit"
+            disabled={isSubmitting}
+          >
+            Run Forecast
+          </button>
+        </div>
+      </form>
+      
       <Modal
         title={'Select existing input file'}
         showAcceptButton={false}

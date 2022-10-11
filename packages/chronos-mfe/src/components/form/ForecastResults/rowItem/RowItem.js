@@ -105,7 +105,7 @@ const RowItem = (props) => {
           {item.triggeredBy}
         </td>
         <td>
-          {item.inputFile}
+          {item.inputFile.split("/")[2]}
         </td>
         <td>
           {item.forecastHorizon}
