@@ -27,23 +27,10 @@
 
 package com.daimler.data.service.lov;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.daimler.data.db.entities.lov.RessortSql;
-import com.daimler.data.db.repo.lov.RessortRepository;
+import com.daimler.data.db.entities.lov.LevelSql;
 import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.common.CommonService;
 
-@Service
-public class BaseRessortService extends BaseCommonService<LovVO, RessortSql, Long> implements RessortService {
+public interface LevelService extends CommonService<LovVO, LevelSql, Long> {
 
-	public BaseRessortService() {
-		super();
-	}
-
-	@Autowired
-	public BaseRessortService(RessortRepository jpaRepo) {
-		super(jpaRepo);
-	}
 }
