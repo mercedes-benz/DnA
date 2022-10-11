@@ -25,25 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.service.planningit;
 
-import java.io.Serializable;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.PlanningITNsql;
+import com.daimler.data.dto.planningit.PlanningITVO;
+import com.daimler.data.service.common.CommonService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public interface PlanningITService extends CommonService<PlanningITVO, PlanningITNsql, String> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
+	List<PlanningITVO> getAll();
+	
+	List<PlanningITVO> getAllWithFilter(String searchTerm);
 
-	private static final long serialVersionUID = 152482308131566126L;
+	void bulkInsert(List<PlanningITVO> volist) throws Exception;
 
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
 }

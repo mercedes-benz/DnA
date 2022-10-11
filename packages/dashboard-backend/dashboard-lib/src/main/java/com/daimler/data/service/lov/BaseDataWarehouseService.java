@@ -25,25 +25,27 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.service.lov;
 
-import java.io.Serializable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.lov.DataWarehouseSql;
+import com.daimler.data.db.repo.lov.DataWarehouseRepository;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.BaseCommonService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Service
+public class BaseDataWarehouseService extends BaseCommonService<LovVO, DataWarehouseSql, Long>
+		implements DataWarehouseService {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
+	public BaseDataWarehouseService() {
+		super();
+	}
 
-	private static final long serialVersionUID = 152482308131566126L;
+	@Autowired
+	public BaseDataWarehouseService(DataWarehouseRepository jpaRepo) {
+		super(jpaRepo);
+	}
 
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
 }

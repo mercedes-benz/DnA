@@ -25,25 +25,26 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.service.lov;
 
-import java.io.Serializable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.lov.CommonFunctionSql;
+import com.daimler.data.db.repo.lov.CommonFunctionRepository;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.BaseCommonService;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Service
+public class BaseCommonFunctionService extends BaseCommonService<LovVO, CommonFunctionSql, Long>
+		implements CommonFunctionService {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
+	public BaseCommonFunctionService() {
+		super();
+	}
 
-	private static final long serialVersionUID = 152482308131566126L;
-
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
+	@Autowired
+	public BaseCommonFunctionService(CommonFunctionRepository jpaRepo) {
+		super(jpaRepo);
+	}
 }

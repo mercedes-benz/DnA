@@ -25,25 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.report;
+package com.daimler.data.db.repo.planningit;
 
-import java.io.Serializable;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.PlanningITNsql;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public interface PlanningITRepository extends JpaRepository<PlanningITNsql, String> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SingleDataSource implements Serializable {
-
-	private static final long serialVersionUID = 152482308131566126L;
-
-	private String dataSource;
-	private String dataClassification;
-	private String connectionType;
 }
