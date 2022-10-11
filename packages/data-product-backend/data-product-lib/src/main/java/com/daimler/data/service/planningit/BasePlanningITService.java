@@ -79,5 +79,11 @@ public class BasePlanningITService extends BaseCommonService<PlanningITVO, Plann
 		}
 	}
 
+	@Override
+	public List<PlanningITVO> getAllWithFilter(String searchTerm) {
+		List<PlanningITNsql> entities = customRepository.getAllWithFilters(searchTerm);
+		return entities.stream().map(n -> planningItAssembler.toVo(n)).collect(Collectors.toList());
+	}
+
 
 }
