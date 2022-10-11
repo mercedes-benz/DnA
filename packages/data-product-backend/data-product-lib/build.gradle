@@ -142,6 +142,20 @@ swaggerSources {
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
            }
+      }   
+      
+      
+      planningit {
+        def palnningitYaml = "${rootDir}/data-product-lib/src/main/resources/api/PlanningIT.yaml"
+        def palnningitJson = "${rootDir}/data-product-lib/src/main/resources/api/PlanningIT.json"
+        inputFile = file(palnningitYaml)
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+        code {
+            language = 'spring'
+            configFile = file(palnningitJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+           }
       }               
         
 }
@@ -160,7 +174,9 @@ compileJava {
     dependsOn swaggerSources.classification.code
     source "${swaggerSources.classification.code.outputDir}/src/main/java"  
     dependsOn swaggerSources.legalbasis.code
-    source "${swaggerSources.legalbasis.code.outputDir}/src/main/java"                
+    source "${swaggerSources.legalbasis.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.planningit.code
+    source "${swaggerSources.planningit.code.outputDir}/src/main/java"                
 }
 
 sourceSets {
@@ -176,6 +192,7 @@ sourceSets {
     	  java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.classification.code.outputDir}/src/main/java"}
     	  java { srcDirs += "${swaggerSources.legalbasis.code.outputDir}/src/main/java"}
+    	  java { srcDirs += "${swaggerSources.planningit.code.outputDir}/src/main/java"}
     }
 }
 
