@@ -426,10 +426,14 @@ export interface IDataSources {
 }
 
 export interface IDataSourceMaster {
-  id: number;
-  name?: string;
-  source?: string;
-  dataType: string;
+  // id: number;
+  // name?: string;
+  // source?: string;
+  // dataType: string;
+  id: string;
+  name: string;
+  dataType?: null | string;
+  source?: null | string;
 }
 
 export interface IPlatform {
@@ -571,8 +575,8 @@ export interface IDescriptionRequest {
   productDescription: string;
   productPhase: IProductPhase[] | any;
   status: IProductStatus[] | any;
-  agileReleaseTrains: IART[];
-  integratedPortal: IIntegratedPortal[];
+  agileReleaseTrain: string;
+  integratedPortal: string;
   designGuideImplemented: IDesignGuide[] | any;
   frontendTechnologies: IFrontEndTech[];
   tags: string[];

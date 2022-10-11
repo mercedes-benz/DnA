@@ -28,7 +28,7 @@ export const getDataForCSV = (
     { label: 'E2-Department', key: 'department' },
     { label: 'Status', key: 'status' },
     { label: 'Integrated In Portal', key: 'integratedPortal' },
-    { label: 'Agile Release Trains', key: 'agileReleaseTrains' },
+    { label: 'Agile Release Train', key: 'agileReleaseTrains' },
     // { label: 'Design Guide Implemented', key: 'designGuideImplemented' },
     { label: 'Frontend Technologies', key: 'frontendTechnologies' },
     { label: 'Customers', key: 'customers' },
@@ -91,11 +91,11 @@ export const getDataForCSV = (
             subdivision: report.description.division?.subdivision ? report.description.division.subdivision.name : 'NA',
             department: report.description.department ? report.description.department : 'NA',
             status: report.description.status ? report.description.status : 'NA',
-            integratedPortal: report.description.integratedPortal?.length
-              ? report.description.integratedPortal?.join(', ')
+            integratedPortal: report.description.integratedPortal
+              ? report.description.integratedPortal
               : 'NA',
-            agileReleaseTrains: report.description.agileReleaseTrains?.length
-              ? report.description.agileReleaseTrains?.join(', ')
+            agileReleaseTrains: report.description.agileReleaseTrain
+              ? report.description.agileReleaseTrain
               : 'NA',
             // designGuideImplemented: report.description.designGuideImplemented || 'NA',
             frontendTechnologies: report.description.frontendTechnologies?.length
