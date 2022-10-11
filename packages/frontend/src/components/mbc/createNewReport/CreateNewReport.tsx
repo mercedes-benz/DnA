@@ -45,7 +45,7 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ISubSystems,
+  ICommonFunctions,
   ISingleDataSources,
   IDivision,
   ISubDivision,
@@ -83,7 +83,7 @@ export interface ICreateNewReportState {
   connectionTypes: IConnectionType[];
   dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  subSystems: ISubSystems[];
+  commonFunctions: ICommonFunctions[];
   editMode: boolean;
   currentTab: string;
   nextTab: string;
@@ -137,7 +137,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       {id: 'Internal', name: 'Internal'},
       {id: 'Public', name: 'Public'}],
       dataWarehouses: [],
-      subSystems: [],
+      commonFunctions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -226,10 +226,14 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataClassifications: IDataClassification[] = [{id: 'Confidential', name: 'Confidential'},
         {id: 'Internal', name: 'Internal'},
         {id: 'Public', name: 'Public'}];
-        // const dataWarehouses: IDataWarehouse[] = response[14].records;
-        // const subSystems: ISubSystems[] = response[15].data;
+        const dataWarehouses: IDataWarehouse[] = [{id: 'Confidential', name: 'Confidential'},
+        {id: 'Internal', name: 'Internal'},
+        {id: 'Public', name: 'Public'}];
         const divisions: IDivision[] = response[12];
         const departmentTags: IDepartment[] = response[13].data;
+        const commonFunctions: ICommonFunctions[] = [{id: 'Confidential', name: 'Confidential'},
+        {id: 'Internal', name: 'Internal'},
+        {id: 'Public', name: 'Public'}];
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -258,9 +262,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             arts,
             tags,
             departmentTags,
+            dataWarehouses,
             divisions,
             connectionTypes,
             dataClassifications,
+            commonFunctions,
             report: {
               ...prevState.report,
               members: {
@@ -338,7 +344,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               const {
                 productPhases,
                 statuses,
-                frontEndTechnologies,
+                // frontEndTechnologies,
                 designGuideImplemented,
                 // integratedPortals,
                 // arts,
@@ -354,9 +360,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 (item: any) => item.name === res.description.productPhase,
               );
               report.description.status = statuses?.filter((item: any) => item.name === res.description.status);
-              report.description.frontendTechnologies = frontEndTechnologies?.filter(
-                (item: any) => res.description.frontendTechnologies?.indexOf(item.name) > -1,
-              );
+              report.description.frontendTechnologies = res.description.frontendTechnologies;
               report.description.designGuideImplemented = designGuideImplemented?.filter(
                 (item: any) => item.name === res.description.designGuideImplemented,
               );
@@ -616,7 +620,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       connectionTypes={this.state.connectionTypes}
                       dataClassifications={this.state.dataClassifications}
                       dataWarehouses={this.state.dataWarehouses}
-                      subSystems={this.state.subSystems}
+                      commonFunctions={this.state.commonFunctions}
                       modifyDataFunction={this.modifyDataFunction}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.dataFunctionComponent}
