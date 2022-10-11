@@ -27,19 +27,56 @@
 
 package com.daimler.data.db.repo.planningit;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.persistence.Query;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.PlanningITNsql;
+import com.daimler.data.db.jsonb.PlanningIT;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Repository
 public class PlanningITCustomRepositoryImpl extends CommonDataRepositoryImpl<PlanningITNsql, String>
 		implements PlanningITCustomRepository {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(PlanningITCustomRepositoryImpl.class);
-	
+
+	@Override
+	public List<PlanningITNsql> getAllWithFilters(String searchTerm) {
+		String getAllStmt = " select cast(id as text), cast(data as text) from planningit_nsql ";
+		if(searchTerm!= null && !"".equalsIgnoreCase(searchTerm)) {
+			searchTerm = "%"+searchTerm.toLowerCase()+"%";
+			getAllStmt+= "where (" + "lower(jsonb_extract_path_text(data,'appReferenceStr')) similar to " 
+						+ searchTerm + " or " + "lower(jsonb_extract_path_text(data,'shortName')) similar to "
+						+ searchTerm + " or " + "lower(jsonb_extract_path_text(data,'name')) similar to "
+						+ searchTerm + " or " + "lower(id) similar to "
+						+ searchTerm + " ) ";
+			getAllStmt += " order by lower(jsonb_extract_path_text(data,'name')) asc";
+		}
+		Query q = em.createNativeQuery(getAllStmt);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();
+		List<PlanningITNsql> convertedResults = results.stream().map(temp -> {
+			PlanningITNsql entity = new PlanningITNsql();
+			try {
+				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				PlanningIT tempPlanningIT = mapper.readValue(jsonData, PlanningIT.class);
+				entity.setData(tempPlanningIT);
+			} catch (Exception e) {
+				LOGGER.error("Failed while fetching all planningIT systems using native query with exception {} ", e.getMessage());
+			}
+			String id = temp[0] != null ? temp[0].toString() : "";
+			entity.setId(id);
+			return entity;
+		}).collect(Collectors.toList());
+		return convertedResults;
+	}
 	
 	
 }
