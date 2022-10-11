@@ -48,11 +48,11 @@ import com.daimler.data.db.entities.lov.DataClassificationSql;
 import com.daimler.data.db.entities.lov.DataSourceSql;
 import com.daimler.data.db.entities.lov.DataWarehouseSql;
 import com.daimler.data.db.entities.lov.FrontendTechnologySql;
-import com.daimler.data.db.entities.lov.HierarchySql;
 import com.daimler.data.db.entities.lov.IntegratedPortalSql;
 import com.daimler.data.db.entities.lov.KpiNameSql;
+import com.daimler.data.db.entities.lov.LegalEntitySql;
+import com.daimler.data.db.entities.lov.LevelSql;
 import com.daimler.data.db.entities.lov.ReportingCauseSql;
-import com.daimler.data.db.entities.lov.RessortSql;
 import com.daimler.data.db.entities.lov.StatusSql;
 import com.daimler.data.dto.lov.LovRequestVO;
 import com.daimler.data.dto.lov.LovResponseVO;
@@ -66,11 +66,11 @@ import com.daimler.data.service.lov.DataClassificationService;
 import com.daimler.data.service.lov.DataSourceService;
 import com.daimler.data.service.lov.DataWarehouseService;
 import com.daimler.data.service.lov.FrontendTechnologyService;
-import com.daimler.data.service.lov.HierarchyService;
 import com.daimler.data.service.lov.IntegratedPortalService;
 import com.daimler.data.service.lov.KpiNameService;
+import com.daimler.data.service.lov.LegalEntityService;
+import com.daimler.data.service.lov.LevelService;
 import com.daimler.data.service.lov.ReportingCauseService;
-import com.daimler.data.service.lov.RessortService;
 import com.daimler.data.service.lov.StatusService;
 import com.daimler.data.service.report.ReportService;
 
@@ -95,7 +95,7 @@ public class LovController implements LovApi {
 	private FrontendTechnologyService frontendTechnologyService;
 
 	@Autowired
-	private HierarchyService hierarchyService;
+	private LevelService levelService;
 
 	@Autowired
 	private IntegratedPortalService integratedPortalService;
@@ -110,7 +110,7 @@ public class LovController implements LovApi {
 	private ReportingCauseService reportingCauseService;
 
 	@Autowired
-	private RessortService ressortService;
+	private LegalEntityService legalEntityService;
 
 	@Autowired
 	private StatusService statusService;
@@ -226,7 +226,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Add a new hierarchy.", nickname = "createHierarchyLov", notes = "Add a new non existing hierarchy.", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Add a new level.", nickname = "createLevelLov", notes = "Add a new non existing level.", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
@@ -235,13 +235,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/hierarchies", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/levels", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createHierarchyLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new hierarchy.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		HierarchySql entity = new HierarchySql();
+	public ResponseEntity<LovResponseVO> createLevelLov(
+			@ApiParam(value = "Request Body that contains data required for creating a new level.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
+		LevelSql entity = new LevelSql();
 		entity.setName(lovRequestVO.getData().getName());
-		return hierarchyService.createLov(lovRequestVO, entity);
+		return levelService.createLov(lovRequestVO, entity);
 	}
 
 	@Override
@@ -321,7 +321,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Add a new ressort.", nickname = "createRessortLov", notes = "Add a new non existing ressort.", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Add a new legal entity.", nickname = "createLegalEntityLov", notes = "Add a new non existing legal entity.", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
@@ -330,13 +330,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/ressort", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/legalentities", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createRessortLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new ressort.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		RessortSql entity = new RessortSql();
+	public ResponseEntity<LovResponseVO> createLegalEntityLov(
+			@ApiParam(value = "Request Body that contains data required for creating a new legal entity.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
+		LegalEntitySql entity = new LegalEntitySql();
 		entity.setName(lovRequestVO.getData().getName());
-		return ressortService.createLov(lovRequestVO, entity);
+		return legalEntityService.createLov(lovRequestVO, entity);
 	}
 
 	@Override
@@ -487,7 +487,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the hierarchy identified by given ID.", nickname = "deleteHierarchyLov", notes = "Delete the hierarchy identified by given ID", response = GenericMessage.class, tags = {
+	@ApiOperation(value = "Delete the level identified by given ID.", nickname = "deleteLevelLov", notes = "Delete the level identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
@@ -496,12 +496,12 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/hierarchies/{id}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/levels/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteHierarchyLov(
-			@ApiParam(value = "Id of the hierarchy", required = true) @PathVariable("id") Long id) {
-		HierarchySql entity = new HierarchySql();
-		return hierarchyService.deleteLov(id, ReportService.CATEGORY.LEVEL, entity);
+	public ResponseEntity<GenericMessage> deleteLevelLov(
+			@ApiParam(value = "Id of the level", required = true) @PathVariable("id") Long id) {
+		LevelSql entity = new LevelSql();
+		return levelService.deleteLov(id, ReportService.CATEGORY.LEVEL, entity);
 	}
 
 	@Override
@@ -577,7 +577,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the ressort identified by given ID.", nickname = "deleteRessortLov", notes = "Delete the ressort identified by given ID", response = GenericMessage.class, tags = {
+	@ApiOperation(value = "Delete the legal entity identified by given ID.", nickname = "deleteLegalEntityLov", notes = "Delete the legal entity identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
@@ -586,12 +586,12 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/ressort/{id}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/legalentities/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteRessortLov(
-			@ApiParam(value = "Id of the ressort", required = true) @PathVariable("id") Long id) {
-		RessortSql entity = new RessortSql();
-		return ressortService.deleteLov(id, ReportService.CATEGORY.LEGAL_ENTITY, entity);
+	public ResponseEntity<GenericMessage> deleteLegalEntityLov(
+			@ApiParam(value = "Id of the legal entity", required = true) @PathVariable("id") Long id) {
+		LegalEntitySql entity = new LegalEntitySql();
+		return legalEntityService.deleteLov(id, ReportService.CATEGORY.LEGAL_ENTITY, entity);
 	}
 
 	@Override
@@ -729,7 +729,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all hierarchies.", nickname = "getAllHierarchyLov", notes = "Get all hierarchies. This endpoints will be used to Get all valid available hierarchies.", response = LovVOCollection.class, tags = {
+	@ApiOperation(value = "Get all level.", nickname = "getAllLevelLov", notes = "Get all level. This endpoints will be used to Get all valid available level.", response = LovVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
@@ -738,10 +738,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/hierarchies", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/levels", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllHierarchyLov() {
-		return hierarchyService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllLevelLov() {
+		return levelService.getAllLov();
 	}
 
 	@Override
@@ -809,7 +809,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all ressort.", nickname = "getAllRessortLov", notes = "Get all ressort. This endpoints will be used to Get all valid available ressort.", response = LovVOCollection.class, tags = {
+	@ApiOperation(value = "Get all legal entity.", nickname = "getAllLegalEntityLov", notes = "Get all legal entity. This endpoints will be used to Get all valid available legal entity.", response = LovVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
@@ -818,10 +818,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/ressort", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/legalentities", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllRessortLov() {
-		return ressortService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllLegalEntityLov() {
+		return legalEntityService.getAllLov();
 	}
 
 	@Override
@@ -963,7 +963,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update the hierarchy identified by given ID.", nickname = "updateHierarchyLov", notes = "Update the hierarchy identified by given ID", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Update the level identified by given ID.", nickname = "updateLevelLov", notes = "Update the level identified by given ID", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad request"),
@@ -971,13 +971,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/hierarchies", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/levels", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateHierarchyLov(
-			@ApiParam(value = "Request Body that contains data required for updating hierarchy.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		HierarchySql entity = new HierarchySql();
+	public ResponseEntity<LovResponseVO> updateLevelLov(
+			@ApiParam(value = "Request Body that contains data required for updating level.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
+		LevelSql entity = new LevelSql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return hierarchyService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.LEVEL);
+		return levelService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.LEVEL);
 	}
 
 	@Override
@@ -1053,7 +1053,7 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Update the ressort identified by given ID.", nickname = "updateRessortLov", notes = "Update the ressort identified by given ID", response = LovResponseVO.class, tags = {
+	@ApiOperation(value = "Update the legal entity identified by given ID.", nickname = "updateLegalEntityLov", notes = "Update the legal entity identified by given ID", response = LovResponseVO.class, tags = {
 			"lov", })
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
 			@ApiResponse(code = 400, message = "Bad request"),
@@ -1061,13 +1061,13 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/ressort", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/legalentities", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateRessortLov(
-			@ApiParam(value = "Request Body that contains data required for updating ressort.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		RessortSql entity = new RessortSql();
+	public ResponseEntity<LovResponseVO> updateLegalEntityLov(
+			@ApiParam(value = "Request Body that contains data required for updating legal entity.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
+		LegalEntitySql entity = new LegalEntitySql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return ressortService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.LEGAL_ENTITY);
+		return legalEntityService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.LEGAL_ENTITY);
 	}
 
 	@Override
