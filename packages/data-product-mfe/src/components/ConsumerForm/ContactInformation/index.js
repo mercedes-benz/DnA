@@ -16,6 +16,7 @@ import { dataProductsApi } from '../../../apis/dataproducts.api';
 
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { useSelector } from 'react-redux';
+import dayjs from 'dayjs';
 
 const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, isFormMounted }) => {
   const {
@@ -27,6 +28,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     reset,
     control,
     setValue,
+    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -42,6 +44,8 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
 
   const [searchTerm, setSearchTerm] = useState('');
   const [fieldValue, setFieldValue] = useState('');
+
+  const minDate = dayjs().format();
 
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
@@ -140,6 +144,25 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     }
     field.onChange(value);
     setFieldValue(name);
+  };
+
+  const validateDate = () => {
+    const value = getValues('dateOfAgreement');
+    if (typeof value === 'object') {
+      const isValidDate = !isNaN(value?.get('date'));
+      const isBefore = dayjs(value).isBefore(minDate, 'date');
+      const error =
+        value === null || value === ''
+          ? '*Missing entry'
+          : !isValidDate
+          ? 'Invalid Date Format'
+          : isBefore
+          ? 'Is before the minimum date'
+          : null;
+      return (value === isValidDate && value !== isBefore) || error;
+    } else {
+      return value !== '' || '*Missing entry';
+    }
   };
 
   return (
@@ -272,11 +295,14 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   <Controller
                     control={control}
                     name="dateOfAgreement"
-                    rules={{ required: '*Missing entry' }}
+                    rules={{
+                      validate: validateDate,
+                    }}
                     render={({ field }) => (
                       <DatePicker
                         label="Date of Agreement"
                         value={watch('dateOfAgreement')}
+                        minDate={minDate}
                         onChange={(value) => field.onChange(value)}
                         requiredError={errors.dateOfAgreement?.message}
                       />

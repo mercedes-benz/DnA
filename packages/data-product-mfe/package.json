@@ -71,6 +71,7 @@
     "babel-loader": "^8.2.5",
     "classnames": "^2.3.1",
     "connected-react-router": "^6.9.3",
+    "dayjs": "^1.11.5",
     "env-cmd": "^10.1.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
