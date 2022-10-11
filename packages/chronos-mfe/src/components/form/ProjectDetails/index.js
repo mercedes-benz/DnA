@@ -46,8 +46,10 @@ const ProjectDetails = () => {
     ProgressIndicator.show();
       chronosApi.getForecastProjectById(projectId).then((res) => {
       setProject(res.data);
-      const members = res.data.collaborators.map(member => ({...member, userType: 'internal'}));
-      setTeamMembers(members);
+      if(res.data.collaborators !== null) {
+        const members = res.data.collaborators.map(member => ({...member, userType: 'internal'}));
+        setTeamMembers(members);
+      }
       setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
@@ -297,7 +299,7 @@ const ProjectDetails = () => {
       <div className={Styles.content}>
         <div className={classNames(Styles.contextMenu)}>
           <span className={classNames('trigger', Styles.contextMenuTrigger)}>
-            <i className="icon mbc-icon edit context" onClick={() => { setEditProject(true) }} />
+            <i className="icon mbc-icon edit context" />
           </span>
         </div>
         <h3 id="productName">Project Details</h3>
@@ -333,6 +335,7 @@ const ProjectDetails = () => {
           <div className={Styles.teamListWrapper}>
             <div className={Styles.membersList}>
               {loading && <Spinner />}
+              {!loading && teamMembers.length === 0 && <p className={Styles.noCollaborator}>No Collaborators</p>}
               {!loading && teamMembersList}
             </div>
           </div>

@@ -7,7 +7,7 @@ import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } 
 export const GetDataProducts = createAsyncThunk('products/GetDataProducts', async (arg, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.getAllDataProducts('dataProductName', 'asc');
+    const res = await dataProductsApi.getAllDataProducts('dataProductId', 'desc');
     ProgressIndicator.hide();
     const {
       provideDataProducts: { pagination },
