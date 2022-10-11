@@ -19,7 +19,7 @@ export interface IRowItemProps {
   setSelected: (item: any) => void;
   render?: (item: any) => React.ReactNode;
   showError: boolean;
-  onInputChange?: (value: any) => void;
+  onInputChange?: (value: any, showSpinner: (val: boolean) => void) => void;
 }
 
 const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
@@ -41,6 +41,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
   const [hideSuggestion, setHideSuggestion] = useState(true);
   const [showNoResultsError, setShowNoResultsError] = useState(false);
   const [errorText, setErrorText] = useState(null);
+  const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
     if (props.defaultValue.length > 0) {
@@ -57,18 +58,23 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
   useEffect(() => {
     if (props.onInputChange) {
       setFilteredList(props.list);
-      setShowNoResultsError(props.list.length === 0 ? true : false);
+      setShowNoResultsError(props.list?.length === 0 ? true : false);
       setTimeout(() => {
         setShowNoResultsError(false);
       }, 3000);
-      setHideSuggestion(props.list.length === 0);
+      setHideSuggestion(props.list?.length === 0);
       setCursor(-1);
     } else {
       setFilteredList(props.list);
     }
   }, [props.list]);
 
-  const suggestionList = filteredList.map((item: any, index: number) => {
+  useEffect(() => {
+    // clear errors
+    setShowNoResultsError(false);
+  }, []);
+
+  const suggestionList = filteredList?.map((item: any, index: number) => {
     return (
       <li
         key={item.id}
@@ -82,7 +88,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
 
   const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
     setSearchTerm(event.currentTarget.value);
-    props.onInputChange && props.onInputChange(event.currentTarget.value);
+    props.onInputChange && props.onInputChange(event.currentTarget.value, (val: boolean) => setShowSpinner(val));
     setShowNoResultsError(false);
     if (event.currentTarget.value.length > 0) {
       setErrorText('');
@@ -183,6 +189,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
             maxLength={200}
             autoComplete="off"
           />
+          {showSpinner && <div className={classNames('progress infinite', Styles.spinner)} />}
           {selectedItem.length > 0 ? (
             <button
               onClick={() => {
