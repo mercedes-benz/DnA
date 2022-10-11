@@ -25,14 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.lov;
+package com.daimler.data.service.lov;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.daimler.data.db.entities.lov.LegalEntitySql;
+import com.daimler.data.dto.lov.LovVO;
+import com.daimler.data.service.common.CommonService;
 
-import com.daimler.data.db.entities.lov.RessortSql;
-
-@Repository
-public interface RessortRepository extends JpaRepository<RessortSql, Long> {
+public interface LegalEntityService extends CommonService<LovVO, LegalEntitySql, Long> {
 
 }
