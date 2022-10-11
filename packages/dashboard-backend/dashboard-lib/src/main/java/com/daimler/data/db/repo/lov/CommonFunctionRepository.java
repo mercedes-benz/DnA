@@ -30,9 +30,9 @@ package com.daimler.data.db.repo.lov;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.daimler.data.db.entities.lov.DesignGuideSql;
+import com.daimler.data.db.entities.lov.CommonFunctionSql;
 
 @Repository
-public interface DesignGuideRepository extends JpaRepository<DesignGuideSql, Long> {
+public interface CommonFunctionRepository extends JpaRepository<CommonFunctionSql, Long> {
 
 }

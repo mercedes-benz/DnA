@@ -118,7 +118,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','department')) ";
 				break;
 			case "art":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) ";
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) ";
 				break;
 			case "productOwner":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'member','productOwners')) ";
@@ -214,9 +214,9 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'description','frontendTechnologies')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) similar to "
+					+ "lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'customer','customers')) similar to "
+					+ "lower(jsonb_extract_path_text(data,'customer','internalCustomers')) similar to "
 					+ delimiterSeparatedSearchTerms + " or " + "lower(jsonb_extract_path_text(data,'kpis')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'singleDataSources')) similar to "
@@ -256,7 +256,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			String delimiterSeparatedArts = arts.stream().map(n -> n.replaceAll(REGEX, "\\\\$0").toLowerCase())
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedArts = "'" + delimiterSeparatedArts + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) similar to "
+			return "  and (lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) similar to "
 					+ delimiterSeparatedArts + " ) ";
 		}
 		return "";
@@ -278,7 +278,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			String delimiterSeparatedProcessOwners = processOwners.stream().map(String::toLowerCase)
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedProcessOwners = "'" + delimiterSeparatedProcessOwners + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'customer','processOwners')) similar to "
+			return "  and (lower(jsonb_extract_path_text(data,'customer','internalCustomers','processOwner')) similar to "
 					+ delimiterSeparatedProcessOwners + " ) ";
 		}
 		return "";
@@ -294,8 +294,8 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 
 	@Override
 	public List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery() {
-		String prefix = "select cast(data -> 'customer' -> 'processOwners' as text) from report_nsql";
-		String basicpredicate = " where jsonb_extract_path_text(data,'customer','processOwners') is not null";
+		String prefix = "select cast(data -> 'customer' -> 'internalCustomers' as text) from report_nsql";
+		String basicpredicate = " where jsonb_extract_path_text(data,'customer','internalCustomers') is not null";
 		String query = prefix + basicpredicate;
 		return getReportOwners(query);
 	}
