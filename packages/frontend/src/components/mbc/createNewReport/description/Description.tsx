@@ -615,6 +615,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                                 onChange={this.onChangeItegratedPortal}
                                 value={integratedInPortalValue}
                               >
+                                <option id="integratedPortalOption" value={0}>
+                                  Choose
+                                </option>
                                 {this.props.integratedPortals?.map((obj) => (
                                   <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                     {obj.name}
@@ -730,6 +733,9 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               onChange={this.onChangeART}
                               value={artValue}
                             >
+                              <option id="agileReleaseTrainOption" value={0}>
+                                Choose
+                              </option>
                               {this.props.arts?.map((obj) => (
                                 <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                   {obj.name}
@@ -755,15 +761,12 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           <div className="custom-select">
                             <select
                               id="FrontEndTechnogiesField"
-                              // multiple={true}
+                              multiple={true}
                               required={true}
                               required-error={requiredError}
                               onChange={this.onChangeFrontTechnologies}
                               value={frontEndTechValue}
                             >
-                              <option id="reportFrontEnTechsOption" value={0}>
-                                Choose
-                              </option>
                               {this.props.frontEndTechnologies?.map((obj) => (
                                 <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                   {obj.name}
