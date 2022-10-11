@@ -155,8 +155,8 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
           </td>
           <td>
             <div className={Styles.locationDataWrapper}>
-              {report?.description.agileReleaseTrains?.[0] ? report?.description.agileReleaseTrains[0] : ''}
-              {report?.description.agileReleaseTrains?.length > 1 ? (
+              {report?.description.agileReleaseTrain ? report?.description.agileReleaseTrain : ''}
+              {/* {report?.description.agileReleaseTrain ? (
                 <div
                   className={classNames(
                     Styles.contextMenu,
@@ -185,15 +185,15 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
                     <ul className="contextList">
                       <li className="contextListItem">
                         <p className="locationsText">
-                          {report?.description.agileReleaseTrains?.length
-                            ? report?.description.agileReleaseTrains?.join(', ')
+                          {report?.description.agileReleaseTrain
+                            ? report?.description.agileReleaseTrain
                             : ''}
                         </p>
                       </li>
                     </ul>
                   </div>
                 </div>
-              ) : null}
+              ) : null} */}
             </div>
           </td>
           <td

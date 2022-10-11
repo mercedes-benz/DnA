@@ -1,12 +1,12 @@
 import {
-  IART,
+  // IART,
   IConnectionType,
   ICreateNewReportRequest,
   IDataSourceMaster,
   IDatawarehouseInItem,
   IDesignGuide,
   IFrontEndTech,
-  IIntegratedPortal,
+  // IIntegratedPortal,
   IProductPhase,
   IProductStatus,
   ISingleDataSources,
@@ -21,14 +21,14 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
       : (requestBody.data.description.frontendTechnologies
           ?.filter((item: IFrontEndTech) => item.name !== 'Choose')
           ?.map((item: IFrontEndTech) => item.name) as any[]);
-  requestBody.data.description.agileReleaseTrains =
-    requestBody.data.description.agileReleaseTrains?.length > 0
-      ? (requestBody.data.description.agileReleaseTrains?.map((item: IART) => item.name) as any[])
-      : null;
-  requestBody.data.description.integratedPortal =
-    requestBody.data.description.integratedPortal?.length > 0
-      ? (requestBody.data.description.integratedPortal?.map((item: IIntegratedPortal) => item.name) as any[])
-      : null;
+  requestBody.data.description.agileReleaseTrain = requestBody.data.description.agileReleaseTrain?.toString() as any; 
+    // requestBody.data.description.agileReleaseTrains?.length > 0
+    //   ? (requestBody.data.description.agileReleaseTrains?.map((item: IART) => item.name) as any[])
+    //   : null;
+  requestBody.data.description.integratedPortal = requestBody.data.description.integratedPortal?.toString() as any;
+    // requestBody.data.description.integratedPortal?.length > 0
+    //   ? (requestBody.data.description.integratedPortal?.map((item: IIntegratedPortal) => item.name) as any[])
+    //   : null;
   requestBody.data.description.designGuideImplemented =
     requestBody.data.description.designGuideImplemented?.length == 1 &&
     requestBody.data.description.designGuideImplemented.includes('Choose')
