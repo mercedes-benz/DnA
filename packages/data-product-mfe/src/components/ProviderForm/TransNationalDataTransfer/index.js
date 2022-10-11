@@ -15,6 +15,7 @@ const TransNationalDataTransfer = ({ onSave }) => {
     clearErrors,
     handleSubmit,
     reset,
+    getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
@@ -108,7 +109,8 @@ const TransNationalDataTransfer = ({ onSave }) => {
                 style={{ minHeight: '50px' }}
               >
                 <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Only if yes, is one of these countries not within the EU? <sup>*</sup>
+                  Only if yes, is one of these countries not within the EU?{' '}
+                  {getValues('transnationalDataTransfer') === 'Yes' ? <sup>*</sup> : null}
                 </label>
                 <div className={Styles.radioBtns}>
                   <label className={'radio'}>
@@ -167,7 +169,11 @@ const TransNationalDataTransfer = ({ onSave }) => {
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Has LCO/LCR approved this data transfer? <sup>*</sup>
+                Has LCO/LCR approved this data transfer?{' '}
+                {getValues('transnationalDataTransfer') === 'Yes' &&
+                getValues('transnationalDataTransferNotWithinEU') === 'Yes' ? (
+                  <sup>*</sup>
+                ) : null}
               </label>
               <div className={Styles.radioBtns}>
                 <label className={'radio'}>
