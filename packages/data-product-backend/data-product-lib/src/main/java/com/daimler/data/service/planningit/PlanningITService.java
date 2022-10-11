@@ -36,6 +36,8 @@ import com.daimler.data.service.common.CommonService;
 public interface PlanningITService extends CommonService<PlanningITVO, PlanningITNsql, String> {
 
 	List<PlanningITVO> getAll();
+	
+	List<PlanningITVO> getAllWithFilter(String searchTerm);
 
 	void bulkInsert(List<PlanningITVO> volist) throws Exception;
 
