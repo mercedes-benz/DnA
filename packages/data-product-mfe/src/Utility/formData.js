@@ -99,7 +99,7 @@ export const deserializeFormData = (item, type = 'provider') => {
     providerFormSubmitted: item.providerInformation?.providerFormSubmitted,
     ...((!isProvider || item.consumerInformation) && {
       consumer: {
-        planningIT: item.consumerInformation?.contactInformation?.appId || 'APP-',
+        planningIT: item.consumerInformation?.contactInformation?.appId,
         department: item.consumerInformation?.contactInformation?.department?.split(),
         division: item.consumerInformation?.contactInformation?.division.id,
         subDivision: item.consumerInformation?.contactInformation.division.subdivision.id || '0',
