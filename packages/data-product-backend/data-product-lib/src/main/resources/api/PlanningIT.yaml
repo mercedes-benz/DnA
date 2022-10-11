@@ -75,6 +75,12 @@ paths:
    summary: "Get all planningit systems."
    description:  "This endpoints will be used to Get all valid available planningit systems."
    operationId: "getAll"
+   parameters:
+      - name: searchTerm
+        in: query
+        description: searchTerm to filter PlanningIT systems
+        required: false
+        type: string
    responses:
     200:
      description: "Returns message of succes or failure"
