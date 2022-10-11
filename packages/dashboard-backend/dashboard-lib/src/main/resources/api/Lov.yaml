@@ -62,19 +62,19 @@ schemes:
 
 paths:
 
-# path to create, update and fetch all valid product phase
+# path to create, update and fetch all valid dataWarehouse
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
-# path example ../productphases
+# path example ../datawarehouses
 
- /productphases:
+ /datawarehouses:
   get:
    tags:
     - "lov"
-   summary: "Get all product phase."
-   description:  "Get all product phases. This endpoints will be used to get all valid available product phases."
-   operationId: "getAllProductPhaseLov"
+   summary: "Get all dataWarehouse."
+   description:  "Get all dataWarehouse. This endpoints will be used to get all valid available dataWarehouse."
+   operationId: "getAllDataWarehouseLov"
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -95,13 +95,13 @@ paths:
   post:
    tags:
     - "lov"
-   summary: "Add a new product phase."
-   description: "Add a new non existing product phase."
-   operationId: "createProductPhaseLov"
+   summary: "Add a new dataWarehouse."
+   description: "Add a new non existing dataWarehouse."
+   operationId: "createDataWarehouseLov"
    parameters:
     - name: "lovRequestVO" 
       in: "body" 
-      description: "Request Body that contains data required for creating a new product phase." 
+      description: "Request Body that contains data required for creating a new dataWarehouse." 
       required: true
       schema:
        $ref: "#/definitions/LovRequestVO"
@@ -125,13 +125,13 @@ paths:
   put:
     tags:
     - "lov"
-    summary: "Update the product phase identified by given ID."
-    description:  "Update the product phase identified by given ID"
-    operationId: "updateProductPhaseLov"
+    summary: "Update the dataWarehouse identified by given ID."
+    description:  "Update the dataWarehouse identified by given ID"
+    operationId: "updateDataWarehouseLov"
     parameters:
       - name: "lovUpdateRequestVO"
         in: "body" 
-        description: "Request Body that contains data required for updating product phase." 
+        description: "Request Body that contains data required for updating dataWarehouse." 
         required: true
         schema:
          $ref: "#/definitions/LovUpdateRequestVO"        
@@ -151,23 +151,23 @@ paths:
       500:
        description: "Internal error"         
      
-# path to delete existing product phase
+# path to delete existing dataWarehouse
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
-# path example ../productphases/xxx
+# path example ../datawarehouses/xxx
 
- /productphases/{id}:
+ /datawarehouses/{id}:
   delete:
     tags:
     - "lov"
-    summary: "Delete the product phase identified by given ID."
-    description:  "Delete the product phase identified by given ID"
-    operationId: "deleteProductPhaseLov"
+    summary: "Delete the dataWarehouse identified by given ID."
+    description:  "Delete the dataWarehouse identified by given ID"
+    operationId: "deleteDataWarehouseLov"
     parameters:
       - name: "id"
         in: "path"
-        description: "Id of the product phase"
+        description: "Id of the dataWarehouse"
         required: true
         type: integer
         format: int64
@@ -190,7 +190,7 @@ paths:
 
 # path to create, update and fetch all valid integrated portal
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../integratedportals
 
@@ -279,7 +279,7 @@ paths:
      
 # path to delete existing integrated portal
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../integratedportals/xxx
 
@@ -316,7 +316,7 @@ paths:
 
 # path to create, update and fetch all valid frontend technology
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../frontendtechnologies
 
@@ -405,7 +405,7 @@ paths:
      
 # path to delete existing frontend technology
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../frontendtechnologies/xxx
 
@@ -442,7 +442,7 @@ paths:
 
 # path to create, update and fetch all valid status
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../statuses
 
@@ -531,7 +531,7 @@ paths:
      
 # path to delete existing status
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../statuses/xxx
 
@@ -565,19 +565,19 @@ paths:
       500:
        description: "Internal error"            
 
-# path to create, update and fetch all valid hierarchy
+# path to create, update and fetch all valid level
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
-# path example ../hierarchies
+# path example ../levels
 
- /hierarchies:
+ /levels:
   get:
    tags:
     - "lov"
-   summary: "Get all hierarchies."
-   description:  "Get all hierarchies. This endpoints will be used to Get all valid available hierarchies."
-   operationId: "getAllHierarchyLov"
+   summary: "Get all level."
+   description:  "Get all level. This endpoints will be used to Get all valid available level."
+   operationId: "getAllLevelLov"
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -598,13 +598,13 @@ paths:
   post:
    tags:
     - "lov"
-   summary: "Add a new hierarchy."
-   description: "Add a new non existing hierarchy."
-   operationId: "createHierarchyLov"
+   summary: "Add a new level."
+   description: "Add a new non existing level."
+   operationId: "createLevelLov"
    parameters:
     - name: "lovRequestVO" 
       in: "body" 
-      description: "Request Body that contains data required for creating a new hierarchy." 
+      description: "Request Body that contains data required for creating a new level." 
       required: true
       schema:
        $ref: "#/definitions/LovRequestVO"
@@ -628,13 +628,13 @@ paths:
   put:
     tags:
     - "lov"
-    summary: "Update the hierarchy identified by given ID."
-    description:  "Update the hierarchy identified by given ID"
-    operationId: "updateHierarchyLov"
+    summary: "Update the level identified by given ID."
+    description:  "Update the level identified by given ID"
+    operationId: "updateLevelLov"
     parameters:
       - name: "lovUpdateRequestVO"
         in: "body" 
-        description: "Request Body that contains data required for updating hierarchy." 
+        description: "Request Body that contains data required for updating level." 
         required: true
         schema:
          $ref: "#/definitions/LovUpdateRequestVO"        
@@ -654,23 +654,23 @@ paths:
       500:
        description: "Internal error"         
      
-# path to delete existing hierarchy
+# path to delete existing level
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
-# path example ../hierarchies/xxx
+# path example ../levels/xxx
 
- /hierarchies/{id}:
+ /levels/{id}:
   delete:
     tags:
     - "lov"
-    summary: "Delete the hierarchy identified by given ID."
-    description:  "Delete the hierarchy identified by given ID"
-    operationId: "deleteHierarchyLov"
+    summary: "Delete the level identified by given ID."
+    description:  "Delete the level identified by given ID"
+    operationId: "deleteLevelLov"
     parameters:
       - name: "id"
         in: "path"
-        description: "Id of the hierarchy"
+        description: "Id of the level"
         required: true
         type: integer
         format: int64
@@ -690,19 +690,19 @@ paths:
       500:
        description: "Internal error"      
 
-# path to create, update and fetch all valid ressort
+# path to create, update and fetch all valid legal entity
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
-# path example ../ressort
+# path example ../legalentities
 
- /ressort:
+ /legalentities:
   get:
    tags:
     - "lov"
-   summary: "Get all ressort."
-   description:  "Get all ressort. This endpoints will be used to Get all valid available ressort."
-   operationId: "getAllRessortLov"
+   summary: "Get all legal entity."
+   description:  "Get all legal entity. This endpoints will be used to Get all valid available legal entity."
+   operationId: "getAllLegalEntityLov"
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -723,13 +723,13 @@ paths:
   post:
    tags:
     - "lov"
-   summary: "Add a new ressort."
-   description: "Add a new non existing ressort."
-   operationId: "createRessortLov"
+   summary: "Add a new legal entity."
+   description: "Add a new non existing legal entity."
+   operationId: "createLegalEntityLov"
    parameters:
     - name: "lovRequestVO" 
       in: "body" 
-      description: "Request Body that contains data required for creating a new ressort." 
+      description: "Request Body that contains data required for creating a new legal entity." 
       required: true
       schema:
        $ref: "#/definitions/LovRequestVO"
@@ -753,13 +753,13 @@ paths:
   put:
     tags:
     - "lov"
-    summary: "Update the ressort identified by given ID."
-    description:  "Update the ressort identified by given ID"
-    operationId: "updateRessortLov"
+    summary: "Update the legal entity identified by given ID."
+    description:  "Update the legal entity identified by given ID"
+    operationId: "updateLegalEntityLov"
     parameters:
       - name: "lovUpdateRequestVO"
         in: "body" 
-        description: "Request Body that contains data required for updating ressort." 
+        description: "Request Body that contains data required for updating legal entity." 
         required: true
         schema:
          $ref: "#/definitions/LovUpdateRequestVO"        
@@ -779,23 +779,23 @@ paths:
       500:
        description: "Internal error"         
      
-# path to delete existing ressort
+# path to delete existing legal entity
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
-# path example ../ressort/xxx
+# path example ../legalentities/xxx
 
- /ressort/{id}:
+ /legalentities/{id}:
   delete:
     tags:
     - "lov"
-    summary: "Delete the ressort identified by given ID."
-    description:  "Delete the ressort identified by given ID"
-    operationId: "deleteRessortLov"
+    summary: "Delete the legal entity identified by given ID."
+    description:  "Delete the legal entity identified by given ID"
+    operationId: "deleteLegalEntityLov"
     parameters:
       - name: "id"
         in: "path"
-        description: "Id of the ressort"
+        description: "Id of the legal entity"
         required: true
         type: integer
         format: int64
@@ -817,7 +817,7 @@ paths:
 
 # path to create, update and fetch all valid customer department
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../customer/departments
 
@@ -906,7 +906,7 @@ paths:
      
 # path to delete existing customer department
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../customer/departments/xxx
 
@@ -942,7 +942,7 @@ paths:
 
 # path to create, update and fetch all valid kpi name
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../kpinames
 
@@ -1031,7 +1031,7 @@ paths:
      
 # path to delete existing kpi name
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../kpinames/xxx
 
@@ -1067,7 +1067,7 @@ paths:
 
 # path to create, update and fetch all valid reporting cause
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../reportingcauses
 
@@ -1156,7 +1156,7 @@ paths:
      
 # path to delete existing reporting cause
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../reportingcauses/xxx
 
@@ -1192,7 +1192,7 @@ paths:
 
 # path to create, update and fetch all valid data source
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../datasources
 
@@ -1281,7 +1281,7 @@ paths:
      
 # path to delete existing data source
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../datasources/xxx
 
@@ -1315,19 +1315,19 @@ paths:
       500:
        description: "Internal error"
 
-# path to create, update and fetch all valid design guide
+# path to create, update and fetch all valid common functions
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
-# path example ../designguides
+# path example ../commonfunctions
 
- /designguides:
+ /commonfunctions:
   get:
    tags:
     - "lov"
-   summary: "Get all design guide."
-   description:  "Get all design guide. This endpoints will be used to Get all valid available design guide."
-   operationId: "getAllDesignGuideLov"
+   summary: "Get all common function."
+   description:  "Get all common function. This endpoints will be used to Get all valid available common function."
+   operationId: "getAllCommonFunctionLov"
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -1348,13 +1348,13 @@ paths:
   post:
    tags:
     - "lov"
-   summary: "Add a new design guide."
-   description: "Add a new non existing design guide."
-   operationId: "createDesignGuideLov"
+   summary: "Add a new common function."
+   description: "Add a new non existing common function."
+   operationId: "createCommonFunctionLov"
    parameters:
     - name: "lovRequestVO" 
       in: "body" 
-      description: "Request Body that contains data required for creating a new design guide." 
+      description: "Request Body that contains data required for creating a new common function." 
       required: true
       schema:
        $ref: "#/definitions/LovRequestVO"
@@ -1378,13 +1378,13 @@ paths:
   put:
     tags:
     - "lov"
-    summary: "Update the design guide identified by given ID."
-    description:  "Update the design guide identified by given ID"
-    operationId: "updateDesignGuideLov"
+    summary: "Update the common function identified by given ID."
+    description:  "Update the common function identified by given ID"
+    operationId: "updateCommonFunctionLov"
     parameters:
       - name: "lovUpdateRequestVO"
         in: "body" 
-        description: "Request Body that contains data required for updating design guide." 
+        description: "Request Body that contains data required for updating common function." 
         required: true
         schema:
          $ref: "#/definitions/LovUpdateRequestVO"        
@@ -1404,23 +1404,23 @@ paths:
       500:
        description: "Internal error"         
      
-# path to delete existing design guide
+# path to delete existing common function
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
-# path example ../designguides/xxx
+# path example ../commonfunctions/xxx
 
- /designguides/{id}:
+ /commonfunctions/{id}:
   delete:
     tags:
     - "lov"
-    summary: "Delete the design guide identified by given ID."
-    description:  "Delete the design guide identified by given ID"
-    operationId: "deleteDesignGuideLov"
+    summary: "Delete the common function identified by given ID."
+    description:  "Delete the common function identified by given ID"
+    operationId: "deleteCommonFunctionLov"
     parameters:
       - name: "id"
         in: "path"
-        description: "Id of the design guide"
+        description: "Id of the common function"
         required: true
         type: integer
         format: int64
@@ -1442,7 +1442,7 @@ paths:
 
 # path to create, update and fetch all valid agile release train
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../agilereleasetrains
 
@@ -1531,7 +1531,7 @@ paths:
      
 # path to delete existing agile release train
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../agilereleasetrains/xxx
 
@@ -1565,19 +1565,19 @@ paths:
       500:
        description: "Internal error"
       
-# path to create, update and fetch all valid subsystem
+# path to create, update and fetch all valid dataclassification
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
-# path example ../subsystems
+# path example ../dataclassifications
 
- /subsystems:
+ /dataclassifications:
   get:
    tags:
     - "lov"
-   summary: "Get all subsystem."
-   description:  "Get all subsystem. This endpoints will be used to get all valid available subsystem."
-   operationId: "getAllSubsystemLov"
+   summary: "Get all data classification."
+   description:  "Get all data classification. This endpoints will be used to get all valid available data classification."
+   operationId: "getAllDataClassificationLov"
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -1598,13 +1598,13 @@ paths:
   post:
    tags:
     - "lov"
-   summary: "Add a new subsystem."
-   description: "Add a new non existing subsystem."
-   operationId: "createSubsystemLov"
+   summary: "Add a new data classification."
+   description: "Add a new non existing data classification."
+   operationId: "createDataClassificationLov"
    parameters:
     - name: "lovRequestVO" 
       in: "body" 
-      description: "Request Body that contains data required for creating a new subsystem." 
+      description: "Request Body that contains data required for creating a new data classification." 
       required: true
       schema:
        $ref: "#/definitions/LovRequestVO"
@@ -1628,13 +1628,13 @@ paths:
   put:
     tags:
     - "lov"
-    summary: "Update the subsystem identified by given ID."
-    description:  "Update the subsystem identified by given ID"
-    operationId: "updateSubsystemLov"
+    summary: "Update the data classification identified by given ID."
+    description:  "Update the data classification identified by given ID"
+    operationId: "updateDataClassificationLov"
     parameters:
       - name: "lovUpdateRequestVO"
         in: "body" 
-        description: "Request Body that contains data required for updating subsystem." 
+        description: "Request Body that contains data required for updating data classification." 
         required: true
         schema:
          $ref: "#/definitions/LovUpdateRequestVO"        
@@ -1654,23 +1654,23 @@ paths:
       500:
        description: "Internal error"         
      
-# path to delete existing subsystem
+# path to delete existing data classification
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
-# path example ../subsystems/xxx
+# path example ../dataclassifications/xxx
 
- /subsystems/{id}:
+ /dataclassifications/{id}:
   delete:
     tags:
     - "lov"
-    summary: "Delete the subsystem identified by given ID."
-    description:  "Delete the subsystem identified by given ID"
-    operationId: "deleteSubsystemLov"
+    summary: "Delete the data classification identified by given ID."
+    description:  "Delete the data classification identified by given ID"
+    operationId: "deleteDataClassificationLov"
     parameters:
       - name: "id"
         in: "path"
-        description: "Id of the subsystem"
+        description: "Id of the data classification"
         required: true
         type: integer
         format: int64
@@ -1692,7 +1692,7 @@ paths:
        
 # path to create, update and fetch all valid connection type
 #
-#  supported http methods GET, POST, PUT
+# supported http methods GET, POST, PUT
 #
 # path example ../connectiontypes
 
@@ -1781,7 +1781,7 @@ paths:
      
 # path to delete existing connection type
 #
-#  supported http method DELETE
+# supported http method DELETE
 #
 # path example ../connectiontypes/xxx
 
