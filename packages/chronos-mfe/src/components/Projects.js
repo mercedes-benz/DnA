@@ -76,8 +76,6 @@ const ForeCastingProjects = ({ user }) => {
           "write": true
         }
     };
-    console.log('data');
-    console.log(data);
     chronosApi.createForecastProject(data).then((res) => {
       console.log(res);
       dispatch(GetProjects());
@@ -88,8 +86,7 @@ const ForeCastingProjects = ({ user }) => {
       Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
-      console.log(error);
-      Notification.show(error.message, 'alert');
+      Notification.show(error.response.data.response.errors[0].message, 'alert');
     });
   };
   const handleEditProject = (values) => {
@@ -200,9 +197,9 @@ const ForeCastingProjects = ({ user }) => {
                     id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
-                    {...register('name', { required: '*Missing entry' })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
                   />
-                  <span className={classNames('error-message')}>{errors?.name?.message}</span>
+                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Only lowercase letters are allowed without spaces'}</span>
                 </div>
               </div>
             </div>
