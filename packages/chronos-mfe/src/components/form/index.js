@@ -3,7 +3,6 @@ import React, { createRef, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Styles from './Form.style.scss';
 
-import { useForm, FormProvider } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 
 import Tabs from '../../common/modules/uilab/js/src/tabs';
@@ -29,8 +28,6 @@ const ForecastForm = ({ user }) => {
   const { id: projectId } = useParams();
 
   const [currentTab, setCurrentTab] = useState('runForecast');
-  const methods = useForm();
-  // const { formState, reset } = methods;
 
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
 
@@ -70,7 +67,7 @@ const ForecastForm = ({ user }) => {
   };
 
   return (
-    <FormProvider {...methods}>
+    <>
       <div className={classNames(Styles.mainPanel)}>
         <Breadcrumb>
           <li><Link to='/'>Chronos Forecasting</Link></li>
@@ -148,7 +145,7 @@ const ForecastForm = ({ user }) => {
         </div>
       </div>
       {currentTab !== 'basic-info' && <div className={Styles.mandatoryInfo}>* mandatory fields</div>}
-    </FormProvider>
+    </>
   );
 };
 export default ForecastForm;
