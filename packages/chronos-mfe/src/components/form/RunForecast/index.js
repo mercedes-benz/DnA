@@ -41,7 +41,7 @@ const SelectedFile = ({ selectedFile, setSelected }) => {
 
 const RunForecast = ({ savedFiles }) => {
   const { id: projectId } = useParams();
-  
+
   const {
     register,
     formState: { errors, isSubmitting },
@@ -102,10 +102,11 @@ const RunForecast = ({ savedFiles }) => {
               <option id="savedInputPathOption" value={0}>
                 Choose
               </option>
-              {savedFiles?.map((file) => (
-                <option id={file.id} key={file.id} value={file.path}>
-                  {file.name}
-                </option>
+              {savedFiles.length > 0 && 
+                savedFiles.map((file) => (
+                  <option key={file.id} value={file.path}>
+                    {file.name}
+                  </option>
               ))}
             </select>
           </div>
@@ -192,7 +193,7 @@ const RunForecast = ({ savedFiles }) => {
         setIsSelectedFile(false);
         ProgressIndicator.hide();
       }).catch(error => {
-        Notification.show(error.message, 'alert');
+        Notification.show(error.response.data.errors[0].message, 'alert');
         ProgressIndicator.hide();
       });
   }
