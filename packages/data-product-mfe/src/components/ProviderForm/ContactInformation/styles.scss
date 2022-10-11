@@ -10,3 +10,11 @@
         font-size: var(--font-size-small);
     }
 }
+.suggestionListBadge {
+    border: 1px solid #d9dfe4;
+    color: #d9dfe4;
+    position: absolute;
+    right: 10px;
+    font-size: 10px;
+    padding: 0 5px;
+}
