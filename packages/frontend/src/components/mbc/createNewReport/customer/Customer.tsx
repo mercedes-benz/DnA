@@ -1220,7 +1220,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       nameToDisplay: value?.firstName ? value?.firstName+' '+value?.lastName : '',
       internalCustomerInfo: {
         ...prevState.internalCustomerInfo,
-        personalDetails: value
+        name: value
       },
     }));
   };
