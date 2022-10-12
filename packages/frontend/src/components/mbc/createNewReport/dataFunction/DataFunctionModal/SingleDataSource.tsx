@@ -155,7 +155,7 @@ export const SingleDataSource = ({
         <div className={Styles.flexLayout}>
           <div>
             <div>
-              <div className={classNames('input-field-group include-error', errors.connectionTypes ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors.connectionType ? 'error' : '')}>
                 <label id="queriesLabel" htmlFor="queriesInput" className="input-label">
                   Connection Type<sup>*</sup>
                 </label>
@@ -176,8 +176,8 @@ export const SingleDataSource = ({
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.connectionTypes ? '' : 'hide')}>
-                  {errors.connectionTypes}
+                <span className={classNames('error-message', errors.connectionType ? '' : 'hide')}>
+                  {errors.connectionType}
                 </span>
               </div>
             </div>
