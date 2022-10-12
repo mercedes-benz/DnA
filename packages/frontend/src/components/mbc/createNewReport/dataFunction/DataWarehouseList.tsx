@@ -31,7 +31,7 @@ export const DataWarehouseList = ({
       className={classNames(
         Styles.formWrapper,
         Styles.dataWarehouseSection,
-        singleDataSourceList.length ? (!dataWarehouselist.length ? 'hide' : '') : '',
+        singleDataSourceList?.length ? (!dataWarehouselist?.length ? 'hide' : '') : '',
       )}
     >
       <div className={classNames('expanstion-table', Styles.dataSourceList)}>

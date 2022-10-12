@@ -3,7 +3,7 @@ import cn from 'classnames';
 import Styles from '../DataFunction.scss';
 import { IConnectionType, IDataClassification, IDataSourceMaster, ISingleDataSources } from 'globals/types';
 import { ISingleDataSourceErrors } from '../DataFunction';
-// import Tags from 'components/formElements/tags/Tags';
+import Tags from 'components/formElements/tags/Tags';
 
 const classNames = cn.bind(Styles);
 
@@ -16,6 +16,7 @@ interface SingleDataSourceProps {
   dataSources: IDataSourceMaster[];
   connectionTypes: IConnectionType[];
   singleDataSourceInfo: ISingleDataSources;
+  setDataSources: (e: any) => void;
 }
 
 export const SingleDataSource = ({
@@ -27,41 +28,24 @@ export const SingleDataSource = ({
   dataSources,
   singleDataSourceInfo,
   onDropdownChange,
+  setDataSources,
 }: SingleDataSourceProps) => {
   // const [dataSources, setDataSources] = useState(0);
-  const singleSourceConnectionTypesValue = singleDataSourceInfo.connectionTypes
-    ?.map((connectionType: IConnectionType) => {
-      return connectionType.name;
-    })
-    ?.toString();
+  const singleSourceConnectionTypesValue = singleDataSourceInfo.connectionType;
+    // ?.map((connectionType: IConnectionType) => {
+    //   return connectionType.name;
+    // })
+    // ?.toString();
 
   const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassification;  
 
-  const singleSourceDataSourceValue = singleDataSourceInfo.dataSources?.map((dataSource: IDataSourceMaster) => {
-    return dataSource.name;
-  });
+  const singleSourceDataSourceValue = singleDataSourceInfo.dataSources;
+  // ?.map((dataSource: IDataSourceMaster) => {
+  //   return dataSource.name;
+  // });
 
   // const setDataSources = (arr: string[]) => {
-  //   // let dataSources = dataSources;
-
-  //   arr.forEach((element) => {
-  //     dataSources.some((i) => i.dataSource.includes(element));
-  //     if (result) {
-  //       dataSources = [...this.state.dataSources];
-  //     } else {
-  //       dataSources = dataSources.concat([{ dataSource: element, weightage: 0 }]);
-  //     }
-  //   });
-
-  //   // const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
-  //   // this.setState({
-  //   //   totalWeightage,
-  //   // });
-
-  //   this.props.modifyDataSources({
-  //     dataSources,
-  //     // dataVolume: this.state.dataVolumeValue,
-  //   });
+    
   // };
 
   // const removeDataSource = (index: number) => {
@@ -90,7 +74,7 @@ export const SingleDataSource = ({
         <div className={Styles.flexLayout}>
           <div>
             <div>
-              <div className={classNames('input-field-group include-error', errors.dataSources ? 'error' : '')}>
+              {/* <div className={classNames('input-field-group include-error', errors.dataSources ? 'error' : '')}>
                 <label id="dataSourcesLabel" htmlFor="dataSourcesInput" className="input-label">
                   Data Source<sup>*</sup>
                 </label>
@@ -114,22 +98,22 @@ export const SingleDataSource = ({
                 <span className={classNames('error-message', errors.dataSources ? '' : 'hide')}>
                   {errors.dataSources}
                 </span>
-              </div>
+              </div> */}
               <div>
-                {/* <Tags
+                <Tags
                   title={'Data Source'}
                   max={100}
                   chips={
                     singleSourceDataSourceValue
                   }
                   setTags={setDataSources}
-                  removeTag={removeDataSource}
+                  // removeTag={removeDataSource}
                   tags={dataSources}
                   showMissingEntryError={false}
                   isDataSource={true}
                   suggestionPopupHeight={300}
                   // {...this.props}
-                /> */}
+                />
               </div>
             </div>
           </div>
@@ -149,7 +133,7 @@ export const SingleDataSource = ({
                     id="dataClassificationsField"
                     name="dataClassification"
                     value={singleSourceDataClassificationsValue}
-                    onChange={onDropdownChange}
+                    onChange={(e) => onDropdownChange(e)}
                     required={true}
                     required-error={requiredError}
                   >
