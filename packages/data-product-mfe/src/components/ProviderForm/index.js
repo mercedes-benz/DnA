@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 import { hostServer } from '../../server/api';
 import { dataProductsApi } from '../../apis/dataproducts.api';
@@ -94,36 +95,51 @@ const ProviderForm = ({ user, history }) => {
 
   const getDataProductById = () => {
     const id = createCopyId || dataProductId || provideDataProducts?.selectedDataProduct?.id;
-    dataProductsApi.getDataProductById(id).then((res) => {
-      if (createCopyId) {
-        // creating copy of existing data product
-        // below properties needs to be reset to new ones for the copy
-        res.data.dataProductId = '';
-        res.data.id = '';
-        res.data.providerInformation.contactInformation.name = userInfo;
-        res.data.notifyUsers = false;
-        res.data.publish = false;
-        res.data.providerInformation.providerFormSubmitted = false;
-        res.data.providerInformation.users = [];
-        delete res.data.providerInformation.createdBy;
-        delete res.data.providerInformation.createdDate;
-        delete res.data.providerInformation.lastModifiedDate;
-        delete res.data.providerInformation.modifiedBy;
-        delete res.data.consumerInformation;
-      }
-      const data = deserializeFormData(res.data);
-      dispatch(setDataProduct(data));
-      reset(data);
-      let segments = [];
-      res.data.providerInformation?.openSegments?.map((seg) => {
-        for (let key in mapOpenSegments) {
-          if (mapOpenSegments[key] === seg) {
-            segments.push(key);
-          }
+    ProgressIndicator.show();
+    dataProductsApi
+      .getDataProductById(id)
+      .then((res) => {
+        if (createCopyId) {
+          // creating copy of existing data product
+          // below properties needs to be reset to new ones for the copy
+          res.data.dataProductId = '';
+          res.data.id = '';
+          res.data.providerInformation.contactInformation.name = userInfo;
+          res.data.notifyUsers = false;
+          res.data.publish = false;
+          res.data.providerInformation.providerFormSubmitted = false;
+          res.data.providerInformation.users = [];
+          delete res.data.providerInformation.createdBy;
+          delete res.data.providerInformation.createdDate;
+          delete res.data.providerInformation.lastModifiedDate;
+          delete res.data.providerInformation.modifiedBy;
+          delete res.data.consumerInformation;
         }
+        if (res.status === 204) {
+          return history.push('/NotFound');
+        } else {
+          const data = deserializeFormData(res.data);
+          dispatch(setDataProduct(data));
+          reset(data);
+          let segments = [];
+          res.data.providerInformation?.openSegments?.map((seg) => {
+            for (let key in mapOpenSegments) {
+              if (mapOpenSegments[key] === seg) {
+                segments.push(key);
+              }
+            }
+          });
+          setSavedTabs(segments);
+        }
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        Notification.show(
+          e?.response?.data?.errors?.[0]?.message || 'Error while fetching selected data product',
+          'alert',
+        );
+        ProgressIndicator.hide();
       });
-      setSavedTabs(segments);
-    });
   };
 
   useEffect(() => {
