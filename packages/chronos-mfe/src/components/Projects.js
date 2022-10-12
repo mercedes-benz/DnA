@@ -200,7 +200,7 @@ const ForeCastingProjects = ({ user, history }) => {
                     id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9]+$/ })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
                   />
                   <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
                 </div>

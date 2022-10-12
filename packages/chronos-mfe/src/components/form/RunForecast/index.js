@@ -83,11 +83,10 @@ const RunForecast = () => {
   
   const getInputFiles = () => {
     chronosApi.getAllInputFiles(projectId).then((res) => {
-      console.log('input files');
-      console.log(res.data.files);
-      if(res.data.files !== null) {
+      if(res.data !== '') {
         setSavedFiles(res.data.files);
       }
+      SelectBox.defaultSetup();
     }).catch(error => {
       if(error?.response?.data?.errors[0]?.message) {
         Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
@@ -117,20 +116,32 @@ const RunForecast = () => {
                 onChange: (e) => { selectedSavedFile(e) }
               })}
             >
-              <option id="savedInputPathOption" value={0}>
-                Choose
-              </option>
-              {savedFiles.length > 0 && 
-                savedFiles.map((file) => (
-                  <option key={file.id} value={file.path}>
-                    {file.name}
+              {
+                savedFiles.length === 0 ? (
+                  <option id="savedInputPathOption" value={0}>
+                    None
                   </option>
-              ))}
+                  ) : (
+                    <>
+                      <option id="savedInputPathOption" value={0}>
+                        Choose
+                      </option>
+                      {savedFiles.map((file) => (
+                        <option id={file.name} key={file.id} value={file.path}>
+                          {file.name}
+                        </option>
+                      ))}
+                    </>
+                  )
+              }
+            
+            
             </select>
           </div>
           <span className={classNames('error-message')}>{errors?.savedInputPath && '*Missing entry'}</span>
         </div>
       </div>
+      {savedFiles.length === 0 && <span>No saved input files</span>}
       {
         selectedInputFile?.path !== undefined &&
           <>
@@ -184,7 +195,11 @@ const RunForecast = () => {
 
   const onSubmit = (data) => {
     const formData = new FormData();
-    formData.append("file", data.file[0]);
+    if(selectedInputFile?.path !== undefined) {
+      formData.append("file", '');
+    } else {
+      formData.append("file", data.file[0]);
+    }
     formData.append("runName", data.runName);
     formData.append("configurationFile", data.configurationFile);
     formData.append("frequency", data.frequency);
@@ -324,7 +339,7 @@ const RunForecast = () => {
                     Run Name <sup>*</sup>
                   </label>
                   <input
-                    {...register('runName', { required: '*Missing entry', pattern: /^[a-z0-9]+$/ })}
+                    {...register('runName', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
                     type="text"
                     className="input-field"
                     id="runNameInput"
@@ -442,21 +457,21 @@ const RunForecast = () => {
             Run Forecast
           </button>
         </div>
+
+        <Modal
+          title={'Select existing input file'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'35%'}
+          buttonAlignment="right"
+          show={showExistingFiles}
+          content={existingFilesContent}
+          scrollableContent={false}
+          onCancel={() => {
+            setShowExistingFiles(false);
+          }}
+        />
       </form>
-      
-      <Modal
-        title={'Select existing input file'}
-        showAcceptButton={false}
-        showCancelButton={false}
-        modalWidth={'35%'}
-        buttonAlignment="right"
-        show={showExistingFiles}
-        content={existingFilesContent}
-        scrollableContent={false}
-        onCancel={() => {
-          setShowExistingFiles(false);
-        }}
-      />
     </>
   );
 };
