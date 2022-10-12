@@ -93,7 +93,7 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                         <div id="specificFunctions">
                           <label className="input-label summary">Connection Type</label>
                           <br />
-                          {data.connectionTypes}
+                          {data.connectionType}
                         </div>
                       </div>
                     </div>
