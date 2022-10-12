@@ -42,21 +42,22 @@ export class ReportsApiClient {
       this.get('lov/datasources'),
       this.get('lov/customer/departments'),
       this.get('lov/frontendtechnologies'),
-      this.get('lov/hierarchies'),
+      this.get('lov/levels'),
       this.get('lov/integratedportals'),
       this.get('lov/kpinames'),
-      this.get('lov/productphases'),
+      // this.get('lov/productphases'),
       this.get('lov/reportingcauses'),
-      this.get('lov/ressort'),
+      this.get('lov/legalentities'),
       this.get('lov/statuses'),
-      this.get('lov/designguides'),
+      // this.get('lov/designguides'),
       this.get('lov/agilereleasetrains'),
       this.get('tags'),
       this.get('lov/connectiontypes'),
-      this.get('datawarehouses'),
-      this.get('lov/subsystems'),
+      // this.get('datawarehouses'),
+      // this.get('lov/subsystems'),
       ApiClient.get('divisions'),
       this.get('departments'),
+      // this.get('lov/commonFunctions'),
     ]);
   }
 
@@ -96,7 +97,7 @@ export class ReportsApiClient {
       records {id,
         reportId,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrains, status },
+        description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrain, status },
         members {
           productOwners { firstName, lastName, department, shortId },
           developers { firstName, lastName, department },
@@ -132,7 +133,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, productPhase, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, designGuideImplemented, reportLink  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, reportLink, reportType  },
         customer {
           customerDetails { hierarchy, ressort, department, comment },
           processOwners { shortId }

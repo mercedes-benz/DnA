@@ -313,14 +313,14 @@ const Description = (description: IDescriptionRequest) => (
         <Text>{description.division?.subdivision?.name || 'NA'}</Text>
       </View>
       <View style={styles.flexCol2}>
-        <Text style={styles.sectionTitle}>Department</Text>
+        <Text style={styles.sectionTitle}>E2-Department</Text>
         <Text>{description.department || 'NA'}</Text>
       </View>
     </View>
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
-        <Text style={styles.sectionTitle}>Product Phase</Text>
-        <Text>{description.productPhase || 'NA'}</Text>
+        <Text style={styles.sectionTitle}>Report Type</Text>
+        <Text>{description.reportType || 'NA'}</Text>
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Status</Text>
@@ -344,10 +344,10 @@ const Description = (description: IDescriptionRequest) => (
           <Text>NA</Text>
         )}
       </View>
-      <View style={styles.flexCol2}>
+      {/* <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Design Guide Implemented</Text>
         <Text>{description.designGuideImplemented || 'NA'}</Text>
-      </View>
+      </View> */}
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Frontend Technologies</Text>
         {description.frontendTechnologies?.length ? (
