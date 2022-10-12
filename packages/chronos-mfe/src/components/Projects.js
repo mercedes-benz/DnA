@@ -77,9 +77,6 @@ const ForeCastingProjects = ({ user, history }) => {
         }
     };
     chronosApi.createForecastProject(data).then((res) => {
-      console.log('create project');
-      console.log(res);
-      // dispatch(GetProjects());
       ProgressIndicator.hide();
       history.push(`/project/${res.data.data.id}`);
       setCreateProject(false);
@@ -88,7 +85,11 @@ const ForeCastingProjects = ({ user, history }) => {
       Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
-      Notification.show(error.response.data.response.errors[0].message, 'alert');
+      if(error?.response?.data?.errors[0]?.message) {
+        Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
+      } else {
+        Notification.show(error.message, 'alert');
+      }
     });
   };
   const handleEditProject = (values) => {

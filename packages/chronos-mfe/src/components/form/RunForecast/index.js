@@ -89,8 +89,8 @@ const RunForecast = () => {
         setSavedFiles(res.data.files);
       }
     }).catch(error => {
-      if(error.response.data.errors[0].message) {
-        Notification.show(error.response.data.errors[0].message, 'alert');
+      if(error?.response?.data?.errors[0]?.message) {
+        Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
       } else {
         Notification.show(error.message, 'alert');
       }
@@ -212,8 +212,8 @@ const RunForecast = () => {
         ProgressIndicator.hide();
       }).catch(error => {
         ProgressIndicator.hide();
-        if(error.response.data.errors[0].message) {
-          Notification.show(error.response.data.errors[0].message, 'alert');
+        if(error?.response?.data?.errors[0]?.message) {
+          Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
         } else {
           Notification.show(error.message, 'alert');
         }
