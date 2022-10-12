@@ -77,6 +77,21 @@ const ProviderForm = ({ user, history }) => {
   const { id: dataProductId } = useParams();
   const createCopyId = history.location?.state?.copyId;
 
+  // logged in user information
+  // set default "Your name" as logged in user name
+  const userInfo = {
+    addedByProvider: true,
+    company: user.company || '',
+    department: user.department,
+    email: user.eMail || user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    mobileNumber: user.mobileNumber,
+    shortId: user.id || user.shortId,
+    teamMemberPosition: user.teamMemberPosition || '',
+    userType: user.userType || '',
+  };
+
   const getDataProductById = () => {
     const id = createCopyId || dataProductId || provideDataProducts?.selectedDataProduct?.id;
     dataProductsApi.getDataProductById(id).then((res) => {
@@ -85,6 +100,7 @@ const ProviderForm = ({ user, history }) => {
         // below properties needs to be reset to new ones for the copy
         res.data.dataProductId = '';
         res.data.id = '';
+        res.data.providerInformation.contactInformation.name = userInfo;
         res.data.notifyUsers = false;
         res.data.publish = false;
         res.data.providerInformation.providerFormSubmitted = false;
@@ -128,19 +144,6 @@ const ProviderForm = ({ user, history }) => {
         reset(defaultValues); // setting default values
       } else {
         const data = tabs['contact-info'];
-        // set default "Your name" as logged in user name
-        const userInfo = {
-          addedByProvider: true,
-          company: user.company || '',
-          department: user.department,
-          email: user.eMail || user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          mobileNumber: user.mobileNumber,
-          shortId: user.id || user.shortId,
-          teamMemberPosition: user.teamMemberPosition || '',
-          userType: user.userType || '',
-        };
         data.name = userInfo;
         reset(data); // setting default values
       }
