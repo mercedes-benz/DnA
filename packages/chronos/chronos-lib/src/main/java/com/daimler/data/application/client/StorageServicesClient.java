@@ -56,7 +56,7 @@ public class StorageServicesClient {
 	HttpServletRequest httpRequest;
 	
 	@Autowired
-	private RestTemplate restClient;
+	private RestTemplate restTemplate;
 	
 	public CreateBucketResponseWrapperDto createBucket(String bucketName,CreatedByVO creator, List<CollaboratorVO> collaborators) {
 		CreateBucketResponseWrapperDto createBucketResponse = new CreateBucketResponseWrapperDto();
@@ -101,7 +101,7 @@ public class StorageServicesClient {
 				
 				requestWrapper.setData(data);
 				HttpEntity<CreateBucketRequestWrapperDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
-				ResponseEntity<CreateBucketResponseWrapperDto> response = restClient.exchange(uploadFileUrl, HttpMethod.POST,
+				ResponseEntity<CreateBucketResponseWrapperDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.POST,
 						requestEntity, CreateBucketResponseWrapperDto.class);
 				if (response.hasBody()) {
 					createBucketResponse = response.getBody();
@@ -139,7 +139,7 @@ public class StorageServicesClient {
 			multipartRequest.set("file",attachmentPart);
 			multipartRequest.set("prefix",INPUTS_PREFIX_PATH);
 			HttpEntity<LinkedMultiValueMap<String,Object>> requestEntity = new HttpEntity<>(multipartRequest,headers);
-			ResponseEntity<FileUploadResponseDto> response = restClient.exchange(uploadFileUrl, HttpMethod.POST,
+			ResponseEntity<FileUploadResponseDto> response = restTemplate.exchange(uploadFileUrl, HttpMethod.POST,
 					requestEntity, FileUploadResponseDto.class);
 			if (response.hasBody()) {
 				uploadResponse = response.getBody();
