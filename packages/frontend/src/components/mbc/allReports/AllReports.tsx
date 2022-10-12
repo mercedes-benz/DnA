@@ -210,7 +210,7 @@ export default class AllReports extends React.Component<
     const { openFilterPanel } = this.state;
 
     const reportData = this.state.reports?.map((report) => {
-      const isProductOwner = report.members.productOwners?.find(
+      const isProductOwner = report.members.reportOwners?.find(
         (teamMember: ITeams) => teamMember.shortId === userInfo.id,
       )?.shortId;
 
@@ -319,7 +319,7 @@ export default class AllReports extends React.Component<
               {this.state.cardViewMode && (
                 <div className={classNames('cardSolutions', Styles.allReportCardViewContent)}>
                   {this.state.reports?.map((report, index) => {
-                    const isProductOwner = report.members.productOwners?.find(
+                    const isProductOwner = report.members.reportOwners?.find(
                       (teamMember: ITeams) => teamMember.shortId === userInfo.id,
                     )?.shortId;
                     return (
@@ -702,8 +702,8 @@ export default class AllReports extends React.Component<
 
   protected checkUserCanEditReport(userInfo: IUserInfo, report: IAllReportsListItem) {
     let userId = '';
-    if (report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
-      userId = report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+    if (report?.members.reportAdmins.find((teamMember) => teamMember.shortId === userInfo.id)) {
+      userId = report?.members.reportAdmins.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(report?.description?.division?.name)) {
       userId = userInfo.id;
     }
