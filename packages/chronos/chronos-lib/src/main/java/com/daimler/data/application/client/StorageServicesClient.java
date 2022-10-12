@@ -87,10 +87,13 @@ public class StorageServicesClient {
 										collaborator.setPermission(permissions);
 										return collaborator;
 								}).collect(Collectors.toList());
-						data.setCollaborators(bucketCollaborators);
+					data.setCollaborators(bucketCollaborators);
+						
 				}else {
-					collaborators = new ArrayList<>();
+					List<CollaboratorsDto> bucketCollaborators = new ArrayList<>();
+					data.setCollaborators(bucketCollaborators);
 				}
+				
 				CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
 				BeanUtils.copyProperties(creator,creatorAsCollab);
 				creatorAsCollab.setAccesskey(creator.getId());
