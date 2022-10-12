@@ -182,9 +182,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           singleDataSources: [],
         },
         members: {
-          developers: [],
-          productOwners: [],
-          admin: [],
+          reportOwners: [],
+          reportAdmins: [],
         },
         publish: false,
         openSegments: [],
@@ -275,7 +274,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               ...prevState.report,
               members: {
                 ...prevState.report.members,
-                admin: [teamMemberObj],
+                reportAdmins: [teamMemberObj],
               },
             },
           }),
@@ -332,7 +331,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             const user = this.props.user;
             const isSuperAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
             const isReportAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN);
-            const isProductOwner = res.members.productOwners?.find(
+            const isProductOwner = res.members.reportOwners?.find(
               (teamMember: ITeams) => teamMember.shortId === user.id,
             )?.shortId;
 
@@ -341,7 +340,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               isReportAdmin !== undefined ||
               isProductOwner !== undefined ||
               // user.id === (res.createdBy ? res.createdBy.id : '')
-              res.members.admin.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
+              res.members.reportAdmins.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
               (user?.divisionAdmins && user?.divisionAdmins.includes(res?.description?.division?.name))
             ) {
               const response = this.state.response;
@@ -390,9 +389,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                   item.dataClassification   
                   return item;
                 }) || [];
-              report.members.developers = res.members.developers || [];
-              report.members.productOwners = res.members.productOwners || [];
-              report.members.admin = res.members.admin || [];
+              report.members.reportOwners = res.members.reportOwners || [];
+              report.members.reportAdmins = res.members.reportAdmins || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
               report.reportId = res.reportId;
@@ -955,11 +953,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       report: currentReportObject,
     });
   };
-  protected modifyMember = (developers: ITeams[], productOwners: ITeams[], admin: ITeams[]) => {
+  protected modifyMember = (productOwners: ITeams[], reportAdmins: ITeams[]) => {
     const currentReportObject = this.state.report;
-    currentReportObject.members.developers = developers;
-    currentReportObject.members.productOwners = productOwners;
-    currentReportObject.members.admin = admin;
+    currentReportObject.members.reportOwners = productOwners;
+    currentReportObject.members.reportAdmins = reportAdmins;
     this.setState({
       report: currentReportObject,
     });

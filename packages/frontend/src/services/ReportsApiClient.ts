@@ -99,9 +99,8 @@ export class ReportsApiClient {
         productName,
         description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrain, status },
         members {
-          productOwners { firstName, lastName, department, shortId },
-          developers { firstName, lastName, department },
-          admin { firstName, lastName, department, shortId }
+          reportOwners { firstName, lastName, department, shortId },
+          reportAdmins { firstName, lastName, department, shortId }
         },
         publish
       }`;
@@ -144,9 +143,8 @@ export class ReportsApiClient {
           singleDataSources { dataSources, subsystems, connectionTypes } 
         }
         members {
-          productOwners { firstName, lastName, department, shortId },
-          developers { firstName, lastName, department, shortId },
-          admin { firstName, lastName, department, shortId }
+          reportOwners { firstName, lastName, department, shortId },
+          reportAdmins { firstName, lastName, department, shortId }
         },
         publish,
         createdDate,
@@ -184,9 +182,8 @@ export class ReportsApiClient {
         singleDataSources { dataSources, subsystems, connectionTypes } 
       }
       members {
-        productOwners { firstName, lastName, department, shortId },
-        developers { firstName, lastName, department, shortId },
-        admin { firstName, lastName, department, shortId }
+        reportOwners { firstName, lastName, department, shortId },
+        reportAdmins { firstName, lastName, department, shortId }
       },
       publish,
       createdDate,
