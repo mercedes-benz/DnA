@@ -78,8 +78,8 @@ const ProviderForm = ({ user, history }) => {
   const { id: dataProductId } = useParams();
   const createCopyId = history.location?.state?.copyId;
 
-  // logged in user information
-  // set default "Your name" as logged in user name
+  // set default value of "Name" field as logged in user name
+
   const userInfo = {
     addedByProvider: true,
     company: user.company || '',
