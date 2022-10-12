@@ -77,9 +77,9 @@ export const SingleDataSourceList = ({
                 ''
               )}
               {list?.map((dataSourcesAndFunctions: ISingleDataSources, index: number) => {
-                const connectionTypes = dataSourcesAndFunctions.connectionTypes?.map((item) => item.name)?.join(', ');
+                const connectionTypes = dataSourcesAndFunctions.connectionType;
                 const dataClassifications = dataSourcesAndFunctions.dataClassification;
-                const dataSources = dataSourcesAndFunctions.dataSources?.map((item) => item.name)?.join(', ');
+                const dataSources = dataSourcesAndFunctions.dataSources;
 
                 return (
                   <div

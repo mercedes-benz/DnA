@@ -46,7 +46,7 @@ import {
   IConnectionType,
   IDataWarehouse,
   ICommonFunctions,
-  ISingleDataSources,
+  // ISingleDataSources,
   IDivision,
   ISubDivision,
   IDataClassification,
@@ -208,7 +208,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
 
     ReportsApiClient.getCreateNewReportData().then((response) => {
       if (response) {
-        const dataSources = response[0].data;
+        // const dataSources = response[0].data;
         const departments = response[1].data;
         const frontEndTechnologies = response[2].data;
         // const hierarchies = response[3].data;
@@ -253,7 +253,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         }
         this.setState(
           (prevState) => ({
-            dataSources,
+            // dataSources,
             departments,
             frontEndTechnologies,
             hierarchies,
@@ -279,17 +279,36 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             },
           }),
           () => {
-            Button.defaultSetup();
-            SelectBox.defaultSetup();
-            ProgressIndicator.hide();
-            this.getReportById(() => {});
+            ApiClient.getCreateNewSolutionData().then((response) => {
+              if (response) {
+                const dataSourcesTags: ITag[] = response[9];
+                this.setState({
+                  dataSources: dataSourcesTags
+                },()=>{
+                  Button.defaultSetup();
+                  SelectBox.defaultSetup();
+                  ProgressIndicator.hide();
+                  this.getReportById(() => {});
+                });
+              }
+            });
+            
           },
         );
       } else {
         ProgressIndicator.hide();
       }
     });
-  }
+
+    // ApiClient.getCreateNewSolutionData().then((response) => {
+    //   if (response) {
+    //     const dataSources: ITag[] = response[9];
+    //     this.setState({
+    //       dataSources
+    //     });
+    //   }
+    // });
+  }  
 
   protected setupEditReportData(
     subDivisions: ISubDivision[],
@@ -351,8 +370,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 designGuideImplemented,
                 // integratedPortals,
                 // arts,
-                dataSources,
-                connectionTypes,
+                // dataSources,
+                // connectionTypes,
                 // dataClassifications,
               } = this.state;
               response.data = res;
@@ -380,15 +399,16 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               // report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
               report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions?.dataWarehouseInUse || [];
-              report.dataAndFunctions.singleDataSources =
-                res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
-                  item.dataSources =
-                    dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
-                  item.connectionTypes =
-                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || []; 
-                  item.dataClassification   
-                  return item;
-                }) || [];
+              report.dataAndFunctions.singleDataSources = res.dataAndFunctions?.singleDataSources;
+                // res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
+                //   item.dataSources =
+                //     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
+                //   item.connectionTypes =
+                //     connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || []; 
+                //   item.dataClassification   
+                //   return item;
+                // }) || [];
+              // report.members.developers = res.members.developers || [];
               report.members.reportOwners = res.members.reportOwners || [];
               report.members.reportAdmins = res.members.reportAdmins || [];
               report.publish = res.publish;
