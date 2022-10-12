@@ -16,16 +16,16 @@ import Modal from 'components/formElements/modal/Modal';
 // import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-// import { ErrorMsg } from 'globals/Enums';
-// import { SingleDataSourceList } from './SingleDataSourceList';
-// import { DataWarehouseList } from './DataWarehouseList';
+import { ErrorMsg } from 'globals/Enums';
+import { SingleDataSourceList } from './SingleDataSourceList';
+import { DataWarehouseList } from './DataWarehouseList';
 import { DataWarehouse } from './DataFunctionModal/DataWarehouse';
 import { SingleDataSource } from './DataFunctionModal/SingleDataSource';
 
 const classNames = cn.bind(Styles);
 export interface IDataWarehouseErrors {
   commonFunctions: string;
-  connectionTypes: string;
+  connectionType: string;
   dataWarehouse: string;
   dataClassification: string;
 }
@@ -36,7 +36,7 @@ interface IDataWarehouseDropdownValues {
   connectionTypes: string[];
 }
 export interface ISingleDataSourceErrors {
-  connectionTypes: string;
+  connectionType: string;
   dataSources: string;
   dataClassification: string;
 }
@@ -93,7 +93,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       dataWarehouseInUseInfo: {
         dataWarehouse: '',
-        connectionTypes: [],
+        connectionType: '',
         commonFunctions: [],
         dataClassification: ''
       },
@@ -104,17 +104,17 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       singleDataSourceInfo: {
         connectionType: '',
-        dataSources: [],
+        dataSource: '',
         dataClassification: '',
       },
       singleDataSourceErrors: {
-        connectionTypes: '',
+        connectionType: '',
         dataSources: '',
         dataClassification: '',
       },
       errors: {
         dataWarehouse: '',
-        connectionTypes: '',
+        connectionType: '',
         commonFunctions: '',
         dataClassification: ''
       },
@@ -153,17 +153,17 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   protected onDataFunction = () => {
-    // if (this.validateDataAndFunctionTab()) {
-    //   this.props.modifyDataFunction(this.state.dataAndFunctions);
-    //   this.props.onSaveDraft('datafunction');
-    // }
+    if (this.validateDataAndFunctionTab()) {
+      this.props.modifyDataFunction(this.state.dataAndFunctions);
+      this.props.onSaveDraft('datafunction');
+    }
   };
 
   protected validateDataAndFunctionTab = () => {
-    // const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
-    // (!dataWarehouseInUse?.length || !singleDataSources?.length) &&
-    //   this.setState({ dataAndFunctionTabError: ErrorMsg.DATAFUNCTION_TAB });
-    // return dataWarehouseInUse?.length || singleDataSources?.length;
+    const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
+    (!dataWarehouseInUse?.length || !singleDataSources?.length) &&
+      this.setState({ dataAndFunctionTabError: ErrorMsg.DATAFUNCTION_TAB });
+    return dataWarehouseInUse?.length || singleDataSources?.length;
   };
 
   protected handleRadio = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,6 +179,14 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     //     SelectBox.defaultSetup();
     //   },
     // );
+    this.setState(
+      (prevState) => ({
+        dataSource: e.target.value,
+      }),
+      () => {
+        SelectBox.defaultSetup();
+      },
+    );
   };
 
   protected handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -225,60 +233,120 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   protected showDataSourceModal = () => {
-    // this.setState(
-    //   {
-    //     addDataSource: true,
-    //     dataSource: 'datawarehouse',
-    //   },
-    //   () => {
-    //     SelectBox.defaultSetup();
-    //   },
-    // );
+    this.setState(
+      {
+        addDataSource: true,
+        dataSource: 'datawarehouse',
+      },
+      () => {
+        SelectBox.defaultSetup(true);
+      },
+    );
   };
 
   protected handleModalClose = () => {
-    // this.setState({
-    //   addDataSource: false,
-    //   editDataSource: false,
-    //   duplicateDataSouceAdded: false,
-    //   dataWarehouseInUseInfo: {
-    //     dataWarehouse: '',
-    //     connectionTypes: [],
-    //     commonFunctions: [],
-    //     dataClassification: ''
-    //   },
-    //   dataWarehouseDropdownValues: {
-    //     commonFunctions: [],
-    //     connectionTypes: [],
-    //     dataClassifications: []
-    //   },
-    //   errors: {
-    //     dataWarehouse: '',
-    //     connectionTypes: '',
-    //     commonFunctions: '',
-    //     dataClassification: ''
-    //   },
-    //   singleDataSourceInfo: {
-    //     connectionType: '',
-    //     dataSources: [],
-    //     dataClassification: '',
-    //   },
-    //   singleDataSourceErrors: {
-    //     connectionTypes: '',
-    //     dataSources: '',
-    //     dataClassification: ''
-    //   },
-    // });
+    this.setState({
+      addDataSource: false,
+      editDataSource: false,
+      duplicateDataSouceAdded: false,
+      dataWarehouseInUseInfo: {
+        dataWarehouse: '',
+        connectionType: '',
+        commonFunctions: [],
+        dataClassification: ''
+      },
+      errors: {
+        dataWarehouse: '',
+        connectionType: '',
+        commonFunctions: '',
+        dataClassification: ''
+      },
+      singleDataSourceInfo: {
+        connectionType: '',
+        dataSource: '',
+        dataClassification: '',
+      },
+      singleDataSourceErrors: {
+        connectionType: '',
+        dataSources: '',
+        dataClassification: ''
+      },
+    });
   };
+
+  protected onAddDatasourceNew = () => {
+    const {
+      connectionType: dataWarehouseConnectionTypes,
+      commonFunctions,
+      dataClassification: dataWarehouseDataClassification,
+      dataWarehouse,
+    } = this.state.dataWarehouseInUseInfo;
+    const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
+
+    const selectedValues: any = [];
+    selectedValues.push({
+      dataWarehouse,
+      connectionType: dataWarehouseConnectionTypes,
+      commonFunctions,
+      dataClassification: dataWarehouseDataClassification
+    });
+
+    if (this.validateDatasourceObject()) {
+      this.props.modifyDataFunction({
+        dataWarehouseInUse: [...dataWarehouseInUse, ...selectedValues],
+        singleDataSources: singleDataSources ? singleDataSources : [],
+      });
+      this.setState(
+        (prevState: any) => ({
+          addDataSource: false,
+          duplicateDataSouceAdded: false,
+          dataAndFunctions: {
+            ...prevState.dataAndFunctions,
+            dataWarehouseInUse: [...prevState.dataAndFunctions.dataWarehouseInUse, ...selectedValues],
+            singleDataSources: prevState.dataAndFunctions.singleDataSources,
+          },
+          dataWarehouseInUseInfo: {
+            dataWarehouse: '',
+            connectionType: '',
+            commonFunctions: [],
+            dataClassification: '',
+          },
+          singleDataSourceInfo: {
+            connectionType: '',
+            dataSource: '',
+            dataClassification: '',
+          },
+          singleDataSourceErrors: {
+            connectionType: '',
+            dataSources: '',
+            dataClassification: ''
+          },
+          errors: {
+            dataWarehouse: '',
+            connectionType: '',
+            commonFunctions: '',
+            dataClassification: ''
+          },
+          dataSource: '',
+        }),
+        () => {
+          ExpansionPanel.defaultSetup();
+          Tooltip.defaultSetup();
+        },
+      );
+    }
+      
+
+  }
 
   protected onAddDatasource = () => {
     // const {
-    //   connectionTypes: dataWarehouseConnectionTypes,
+    //   connectionType: dataWarehouseConnectionTypes,
     //   commonFunctions,
     //   dataClassification: dataWarehouseDataClassification,
     //   dataWarehouse,
     // } = this.state.dataWarehouseInUseInfo;
-    // const { connectionType, dataSources, dataClassification } = this.state.singleDataSourceInfo;
+    // const { connectionType, dataSource, dataClassification } = this.state.singleDataSourceInfo;
     // const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
     // const isDataWarehouse = this.state.dataSource === 'datawarehouse';
 
@@ -286,169 +354,145 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     // isDataWarehouse
     //   ? selectedValues.push({
     //       dataWarehouse,
-    //       connectionTypes: dataWarehouseConnectionTypes,
+    //       connectionType: dataWarehouseConnectionTypes,
     //       commonFunctions,
     //       dataClassification: dataWarehouseDataClassification
     //     })
     //   : selectedValues.push({
     //       connectionType,
-    //       dataSources: dataSources.toString(), // this toString will be removed once object is getting captured
+    //       dataSources: dataSource, // this toString will be removed once object is getting captured
     //       dataClassification,
     //     });
 
-    // if (this.validateDatasourceModal()) {
-    //   this.props.modifyDataFunction({
-    //     dataWarehouseInUse: isDataWarehouse ? [...dataWarehouseInUse, ...selectedValues] : dataWarehouseInUse,
-    //     singleDataSources: !isDataWarehouse ? [...singleDataSources, ...selectedValues] : singleDataSources,
-    //   });
-    //   this.setState(
-    //     (prevState: any) => ({
-    //       addDataSource: false,
-    //       duplicateDataSouceAdded: false,
-    //       dataAndFunctions: {
-    //         ...prevState.dataAndFunctions,
-    //         dataWarehouseInUse: isDataWarehouse
-    //           ? [...prevState.dataAndFunctions.dataWarehouseInUse, ...selectedValues]
-    //           : prevState.dataAndFunctions.dataWarehouseInUse,
-    //         singleDataSources: !isDataWarehouse
-    //           ? [...prevState.dataAndFunctions.singleDataSources, ...selectedValues]
-    //           : prevState.dataAndFunctions.singleDataSources,
-    //       },
-    //       dataWarehouseInUseInfo: {
-    //         dataWarehouse: '',
-    //         connectionTypes: [],
-    //         commonFunctions: [],
-    //         dataFunction: [],
-    //         dataClassification: ''
-    //       },
-    //       dataWarehouseDropdownValues: {
-    //         commonFunctions: [],
-    //         connectionTypes: [],
-    //         dataClassifications: []
-    //       },
-    //       singleDataSourceInfo: {
-    //         connectionType: '',
-    //         dataSources: [],
-    //         dataClassification: '',
-    //       },
-    //       singleDataSourceErrors: {
-    //         connectionTypes: '',
-    //         dataSources: '',
-    //         dataClassification: ''
-    //       },
-    //       errors: {
-    //         dataWarehouse: '',
-    //         connectionTypes: '',
-    //         commonFunctions: '',
-    //         dataClassification: ''
-    //       },
-    //       dataSource: '',
-    //     }),
-    //     () => {
-    //       ExpansionPanel.defaultSetup();
-    //       Tooltip.defaultSetup();
-    //     },
-    //   );
-    // }
+  //   if (this.validateDatasourceModal()) {
+  //     this.props.modifyDataFunction({
+  //       dataWarehouseInUse: isDataWarehouse ? [...dataWarehouseInUse, ...selectedValues] : dataWarehouseInUse,
+  //       singleDataSources: !isDataWarehouse ? [...singleDataSources, ...selectedValues] : singleDataSources,
+  //     });
+  //     this.setState(
+  //       (prevState: any) => ({
+  //         addDataSource: false,
+  //         duplicateDataSouceAdded: false,
+  //         dataAndFunctions: {
+  //           ...prevState.dataAndFunctions,
+  //           dataWarehouseInUse: isDataWarehouse
+  //             ? [...prevState.dataAndFunctions.dataWarehouseInUse, ...selectedValues]
+  //             : prevState.dataAndFunctions.dataWarehouseInUse,
+  //           singleDataSources: !isDataWarehouse
+  //             ? [...prevState.dataAndFunctions.singleDataSources, ...selectedValues]
+  //             : prevState.dataAndFunctions.singleDataSources,
+  //         },
+  //         dataWarehouseInUseInfo: {
+  //           dataWarehouse: '',
+  //           connectionTypes: [],
+  //           commonFunctions: [],
+  //           dataFunction: [],
+  //           dataClassification: ''
+  //         },
+  //         dataWarehouseDropdownValues: {
+  //           commonFunctions: [],
+  //           connectionTypes: [],
+  //           dataClassifications: []
+  //         },
+  //         singleDataSourceInfo: {
+  //           connectionType: '',
+  //           dataSources: [],
+  //           dataClassification: '',
+  //         },
+  //         singleDataSourceErrors: {
+  //           connectionTypes: '',
+  //           dataSources: '',
+  //           dataClassification: ''
+  //         },
+  //         errors: {
+  //           dataWarehouse: '',
+  //           connectionTypes: '',
+  //           commonFunctions: '',
+  //           dataClassification: ''
+  //         },
+  //         dataSource: '',
+  //       }),
+  //       () => {
+  //         ExpansionPanel.defaultSetup();
+  //         Tooltip.defaultSetup();
+  //       },
+  //     );
+  //   }
   };
 
-  // protected onEditDatasourceOpen = (dataSourcesAndFunctions: IDataWarehouseInUse, index: number) => {
-  //   const { connectionTypes, commonFunctions, dataClassification, dataWarehouse } =
-  //     dataSourcesAndFunctions;
-  //   // this.props.dataWarehouses?.map((item) => {
-  //   //   if (item.dataWarehouse.toLowerCase() === dataWarehouse.toLowerCase()) {
-  //   //     const isCarla = item.dataWarehouse.toLowerCase() === 'carla';
-  //   //     const connectionTypes =
-  //   //       isCarla && item.connectionTypes?.filter((item) => item.toLowerCase() === 'live connection')?.length
-  //   //         ? item.connectionTypes
-  //   //         : isCarla
-  //   //         ? [...item.connectionTypes, 'live connection']
-  //   //         : item.connectionTypes;
-  //   //     this.setState((prevState) => ({
-  //   //       dataWarehouseDropdownValues: {
-  //   //         ...prevState.dataWarehouseDropdownValues,
-  //   //         commonFunctions: commonFunctions,
-  //   //         connectionTypes: connectionTypes,
-  //   //         dataClassifications: this.props.dataClassifications,
-  //   //       },
-  //   //     }));
-  //   //   }
-  //   // });
-  //   this.setState(
-  //     {
-  //       addDataSource: false,
-  //       editDataSource: true,
-  //       editDataSourceIndex: index,
-  //       dataWarehouseInUseInfo: {
-  //         dataWarehouse,
-  //         connectionTypes,
-  //         commonFunctions,
-  //         dataClassification,
-  //       },
-  //       dataSource: 'datawarehouse',
-  //     },
-  //     () => {
-  //       SelectBox.defaultSetup();
-  //     },
-  //   );
-  // };
+  protected onEditDatasourceOpen = (dataSourcesAndFunctions: IDataWarehouseInUse, index: number) => {
+    const { connectionType, commonFunctions, dataClassification, dataWarehouse } =
+      dataSourcesAndFunctions;
+    this.setState(
+      {
+        addDataSource: false,
+        editDataSource: true,
+        editDataSourceIndex: index,
+        dataWarehouseInUseInfo: {
+          dataWarehouse,
+          connectionType,
+          commonFunctions,
+          dataClassification,
+        },
+        dataSource: 'datawarehouse',
+      },
+      () => {
+        SelectBox.defaultSetup(true);
+      },
+    );
+  };
 
-  // protected onDeleteDatasource = (isDataWarehouse: boolean, index: number) => {
-  //   this.setState({
-  //     showDeleteModal: true,
-  //     isDataWarehouseSection: isDataWarehouse,
-  //     editDataSourceIndex: index,
-  //   });
-  // };
+  protected onDeleteDatasource = (isDataWarehouse: boolean, index: number) => {
+    this.setState({
+      showDeleteModal: true,
+      isDataWarehouseSection: isDataWarehouse,
+      editDataSourceIndex: index,
+    });
+  };
 
-  // protected onEditDatasource = () => {
-  //   const { editDataSourceIndex } = this.state;
-  //   const { connectionTypes, commonFunctions, dataClassification, dataWarehouse } =
-  //     this.state.dataWarehouseInUseInfo;
-  //   const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
-  //   if (this.validateDatasourceModal()) {
-  //     const dataSourceList = [...dataWarehouseInUse]; // create copy of original array
-  //     dataSourceList[editDataSourceIndex] = {
-  //       connectionTypes,
-  //       commonFunctions,
-  //       dataClassification,
-  //       dataWarehouse,
-  //     }; // modify copied array
+  protected onEditDatasource = () => {
+    const { editDataSourceIndex } = this.state;
+    const { connectionType, commonFunctions, dataClassification, dataWarehouse } =
+      this.state.dataWarehouseInUseInfo;
+    const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
+    if (this.validateDatasourceObject()) {
+      const dataSourceList = [...dataWarehouseInUse]; // create copy of original array
+      dataSourceList[editDataSourceIndex] = {
+        connectionType,
+        commonFunctions,
+        dataClassification,
+        dataWarehouse,
+      }; // modify copied array
 
-  //     this.props.modifyDataFunction({
-  //       dataWarehouseInUse: dataSourceList,
-  //       singleDataSources,
-  //     });
-  //     this.setState({
-  //       editDataSource: false,
-  //       duplicateDataSouceAdded: false,
-  //       dataAndFunctions: {
-  //         dataWarehouseInUse: dataSourceList,
-  //         singleDataSources,
-  //       },
-  //       dataWarehouseInUseInfo: {
-  //         dataWarehouse: '',
-  //         connectionTypes: [],
-  //         commonFunctions: [],
-  //         dataClassification: '',
-  //       },
-  //       dataWarehouseDropdownValues: {
-  //         commonFunctions: [],
-  //         connectionTypes: [],
-  //         dataClassifications: []
-  //       },
-  //       errors: {
-  //         dataWarehouse: '',
-  //         connectionTypes: '',
-  //         commonFunctions: '',
-  //         dataClassification: ''
-  //       },
-  //       dataSource: 'datawarehouse',
-  //     });
-  //   }
-  // };
+      this.props.modifyDataFunction({
+        dataWarehouseInUse: dataSourceList,
+        singleDataSources,
+      });
+      this.setState({
+        editDataSource: false,
+        duplicateDataSouceAdded: false,
+        dataAndFunctions: {
+          dataWarehouseInUse: dataSourceList,
+          singleDataSources,
+        },
+        dataWarehouseInUseInfo: {
+          dataWarehouse: '',
+          connectionType: '',
+          commonFunctions: [],
+          dataClassification: '',
+        },
+        errors: {
+          dataWarehouse: '',
+          connectionType: '',
+          commonFunctions: '',
+          dataClassification: ''
+        },
+        dataSource: 'datawarehouse',
+      });
+    }
+  };
 
-  // protected onEditSingleDataSourceOpen = (dataSourcesAndFunctions: ISingleDataSources, index: number) => {
+  protected onEditSingleDataSourceOpen = (dataSourcesAndFunctions: ISingleDataSources, index: number) => {
   //   const { connectionType, dataClassification, dataSources } = dataSourcesAndFunctions;
   //   this.setState(
   //     {
@@ -466,9 +510,9 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //       SelectBox.defaultSetup();
   //     },
   //   );
-  // };
+  };
 
-  // protected onEditSingleDataSource = () => {
+  protected onEditSingleDataSource = () => {
   //   const { editDataSourceIndex } = this.state;
   //   const { connectionType, dataSources, dataClassification } = this.state.singleDataSourceInfo;
   //   const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
@@ -500,55 +544,43 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //       dataSource: 'singledatasource',
   //     });
   //   }
-  // };
+  };
 
-  // public onChangeSourceAndFunction = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   const name = e.target.name;
-  //   let selectedValuesclassification = '';
-  //   const selectedValues: any[] = [];
-  //   if(name === 'dataClassification'){
-  //     const selectedOptions = e.currentTarget.selectedOptions;
-  //     if (selectedOptions.length) {
-  //       Array.from(selectedOptions).forEach((option) => {
-  //         selectedValuesclassification = option.value;
-  //       });
-  //     }      
-  //   }else{
-  //     const selectedOptions = e.currentTarget.selectedOptions;
-  //     if (selectedOptions.length) {
-  //       Array.from(selectedOptions).forEach((option) => {
-  //         if (this.state.dataSource === 'singledatasource') {
-  //           const dataWarehouse: any = { id: null, name: null };
-  //           dataWarehouse.id = option.value;
-  //           dataWarehouse.name = option.textContent;
-  //           selectedValues.push(dataWarehouse);
-  //         } else {
-  //           selectedValues.push(option.textContent);
-  //         }
-  //       });
-  //     }
-  //   }
-  //   console.log(selectedValuesclassification);
-    
+  public onDataSource = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.name;
+    const value = e.currentTarget.value;
+    this.setState((prevState) => ({
+      ...prevState,
+      dataWarehouseInUseInfo: {
+        ...prevState.dataWarehouseInUseInfo,
+        [name]: value,
+      }
+    }),
+    () => {
 
-  //   this.setState((prevState) => ({
-  //     ...(this.state.dataSource === 'datawarehouse'
-  //       ? {
-  //           ...prevState,
-  //           dataWarehouseInUseInfo: {
-  //             ...prevState.dataWarehouseInUseInfo,
-  //             [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
-  //           },
-  //         }
-  //       : {
-  //           ...prevState,
-  //           singleDataSourceInfo: {
-  //             ...prevState.singleDataSourceInfo,
-  //             [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
-  //           },
-  //         }),
-  //   }));
-  // };
+      },
+    );
+  };
+
+  public onCommonFunctionsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.name;
+    const selectedValue:string[] = [];
+    const selectedOptions = e.currentTarget.selectedOptions;
+    Array.from(selectedOptions).forEach((option) => {
+      selectedValue.push(option.value);
+    });
+    this.setState((prevState) => ({
+      ...prevState,
+      dataWarehouseInUseInfo: {
+        ...prevState.dataWarehouseInUseInfo,
+        [name]: selectedValue,
+      }
+    }),
+    () => {
+        
+      },
+    );
+  };
 
   // public setDataSources = (arr: string[]) => {
   //   // let dataSources = dataSources;
@@ -567,6 +599,47 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //   //   dataSources,
   //   // });
   // }
+
+  protected validateDatasourceObject = () => {
+    let formValid = true;
+    const errors = this.state.errors;
+    const errorMissingEntry = '*Missing entry';
+
+    
+    if (!this.state.dataWarehouseInUseInfo.dataWarehouse) {
+      errors.dataWarehouse = errorMissingEntry;
+      formValid = false;
+    }
+
+    if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
+      errors.commonFunctions = errorMissingEntry;
+      formValid = false;
+    }
+
+    if (
+      !this.state.dataWarehouseInUseInfo.dataClassification ||
+      this.state.dataWarehouseInUseInfo.dataClassification === 'Choose'
+    ) {
+      errors.dataClassification = errorMissingEntry;
+      formValid = false;
+    }
+
+    if (
+      !this.state.dataWarehouseInUseInfo.connectionType ||
+      this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
+    ) {
+      errors.connectionType = errorMissingEntry;
+      formValid = false;
+    }
+    
+
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    this.setState({ errors });
+    return formValid;
+  };
 
   // protected validateDatasourceModal = () => {
   //   let formValid = true;
@@ -684,9 +757,9 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //   }
   // };
 
-  // protected onCancellingDeleteChanges = () => {
-  //   this.setState({ showDeleteModal: false });
-  // };
+  protected onCancellingDeleteChanges = () => {
+    this.setState({ showDeleteModal: false });
+  };
 
   // sortByColumn = (columnName: string, sortOrder: string) => {
   //   return () => {
@@ -782,7 +855,8 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           dataSourceType={this.state.dataSource}
           dataWarehouseInUseInfo={this.state.dataWarehouseInUseInfo}
           errors={this.state.errors}
-          // onDropdownChange={(e)=>this.onChangeSourceAndFunction(e)}
+          onDropdownChange={this.onDataSource}
+          onCommonFunctionsChange={this.onCommonFunctionsChange}
           requiredError={requiredError}
           dataWarehouses={this.props.dataWarehouses}
           commonFunctions={this.props.commonFunctions.map(item=>item.name)}
@@ -805,13 +879,13 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           <button
             className="btn btn-primary"
             type="button"
-            // onClick={
-            //   this.state.addDataSource
-            //     ? this.onAddDatasource
-            //     : this.state.dataSource === 'datawarehouse'
-            //     ? this.onEditDatasource
-            //     : this.onEditSingleDataSource
-            // }
+            onClick={
+              this.state.addDataSource
+               ? this.onAddDatasourceNew
+              : this.state.dataSource === 'datawarehouse'
+                ? this.onEditDatasource
+              : this.onEditSingleDataSource
+            }
           >
             {this.state.addDataSource ? 'Add' : this.state.editDataSource && 'Save'}
           </button>
@@ -824,7 +898,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
             <h3>Data Sources Information </h3>
-            {/* <DataWarehouseList
+            <DataWarehouseList
               dataWarehouselist={this.state.dataAndFunctions.dataWarehouseInUse}
               singleDataSourceList={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
               currentColumnToSort={this.state.currentColumnToSort}
@@ -833,8 +907,8 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
               onDelete={this.onDeleteDatasource}
               showDataSourceModal={this.showDataSourceModal}
               dataAndFunctionTabError={this.state.dataAndFunctionTabError}
-            /> */}
-            {/* <SingleDataSourceList
+            />
+            <SingleDataSourceList
               dataWarehouseList={this.state.dataAndFunctions.dataWarehouseInUse}
               list={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
               currentColumnToSort={this.state.currentColumnToSort}
@@ -842,7 +916,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
               onEdit={this.onEditSingleDataSourceOpen}
               onDelete={this.onDeleteDatasource}
               showDataSourceModal={this.showDataSourceModal}
-            /> */}
+            />
           </div>
         </div>
         <div className="btnConatiner">
