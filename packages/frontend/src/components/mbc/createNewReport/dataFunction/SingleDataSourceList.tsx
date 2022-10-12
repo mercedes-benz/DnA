@@ -77,9 +77,9 @@ export const SingleDataSourceList = ({
                 ''
               )}
               {list?.map((dataSourcesAndFunctions: ISingleDataSources, index: number) => {
-                const connectionTypes = dataSourcesAndFunctions.connectionType;
+                const connectionType = dataSourcesAndFunctions.connectionType;
                 const dataClassifications = dataSourcesAndFunctions.dataClassification;
-                const dataSources = dataSourcesAndFunctions.dataSources;
+                const dataSource = dataSourcesAndFunctions.dataSource;
 
                 return (
                   <div
@@ -95,8 +95,8 @@ export const SingleDataSourceList = ({
                       >
                         <div className={classNames(Styles.dataSourceTile, Styles.singleDataSourceColWidth)}>
                           <div className={Styles.dataSourceTitleCol}>{`Data Source ${index + 1}`}</div>
-                          <div className={Styles.dataSourceTitleCol}>{dataSources || '-'}</div>                          
-                          <div className={Styles.dataSourceTitleCol}>{connectionTypes || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{dataSource || '-'}</div>                          
+                          <div className={Styles.dataSourceTitleCol}>{connectionType || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}>{dataClassifications || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}></div>
                         </div>
