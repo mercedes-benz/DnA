@@ -328,8 +328,8 @@ const Description = (description: IDescriptionRequest) => (
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Integrated In Portal</Text>
-        {description.integratedPortal?.length ? (
-          <Text>{description.integratedPortal?.join(', ')}</Text>
+        {description.integratedPortal ? (
+          <Text>{description.integratedPortal}</Text>
         ) : (
           <Text>NA</Text>
         )}
@@ -338,8 +338,8 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
         <Text style={styles.sectionTitle}>Agile Release Train</Text>
-        {description.agileReleaseTrains?.length ? (
-          <Text>{description.agileReleaseTrains.join(', ')}</Text>
+        {description.agileReleaseTrain ? (
+          <Text>{description.agileReleaseTrain}</Text>
         ) : (
           <Text>NA</Text>
         )}
@@ -365,8 +365,8 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
   return (
     <>
       {showCustomer &&
-        customer.customerDetails?.length &&
-        customer.customerDetails?.map((data: any, index: number) => (
+        customer.internalCustomers?.length &&
+        customer.internalCustomers?.map((data: any, index: number) => (
           <React.Fragment key={index}>
             <View style={[styles.flexLayout, { marginBottom: 0 }]} wrap={false}>
               <View style={styles.firstCol}>
@@ -375,16 +375,16 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             </View>
             <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Hierarchy</Text>
-                <Text>{data.hierarchy || 'NA'}</Text>
+                <Text style={styles.sectionTitle}>Level</Text>
+                <Text>{data.level || 'NA'}</Text>
               </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Department</Text>
                 <Text>{data.department || 'NA'}</Text>
               </View>
               <View style={styles.flexCol2}>
-                <Text style={styles.sectionTitle}>Ressort</Text>
-                <Text>{data.ressort || 'NA'}</Text>
+                <Text style={styles.sectionTitle}>MB Legal Entity</Text>
+                <Text>{data.legalEntity || 'NA'}</Text>
               </View>
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
@@ -393,12 +393,12 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
                 <Text>{data.comment}</Text>
               </View>
             </View>
-            {customer.processOwners?.length || customer.customerDetails?.length > 0 ? (
+            {customer.internalCustomers?.length > 0 ? (
               <View style={styles.seperatorLine} />
             ) : null}
           </React.Fragment>
         ))}
-      {showCustomer && customer.processOwners?.length && (
+      {/* {showCustomer && customer.processOwners?.length && (
         <View wrap={false}>
           <View style={[styles.firstCol, styles.setMarginTop]}>
             <Text style={styles.sectionTitle}>Process Owner</Text>
@@ -406,7 +406,7 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
           <View style={styles.flexLayout}>{teamMembersList(customer.processOwners)}</View>
           <View style={styles.seperatorLine} />
         </View>
-      )}
+      )} */}
     </>
   );
 };
