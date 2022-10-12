@@ -112,7 +112,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
 			}
 		}
-		List<InputFileVO> files = service.getSavedFiles(id);
+		List<InputFileVO> files = existingForecast.getSavedInputs();
 		HttpStatus responseStatus = HttpStatus.OK;
 		if(files== null || files.isEmpty()) {
 			responseStatus = HttpStatus.NO_CONTENT;
