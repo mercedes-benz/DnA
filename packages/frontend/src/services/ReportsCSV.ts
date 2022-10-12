@@ -18,20 +18,21 @@ export const getDataForCSV = (
   const csvHeaders: string | Data = [
     { label: 'Report ID', key: 'reportId' },
     { label: 'Name', key: 'name' },
-    { label: 'Phase', key: 'productPhase' },
+    // { label: 'Phase', key: 'productPhase' },
+    { label: 'Report Type', key: 'reportType' },
     { label: 'Description', key: 'description' },
     { label: 'Report Link', key: 'reportLink' },
     { label: 'Tags', key: 'tags' },
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
-    { label: 'Department', key: 'department' },
+    { label: 'E2-Department', key: 'department' },
     { label: 'Status', key: 'status' },
     { label: 'Integrated In Portal', key: 'integratedPortal' },
-    { label: 'Agile Release Trains', key: 'agileReleaseTrains' },
-    { label: 'Design Guide Implemented', key: 'designGuideImplemented' },
+    { label: 'Agile Release Train', key: 'agileReleaseTrains' },
+    // { label: 'Design Guide Implemented', key: 'designGuideImplemented' },
     { label: 'Frontend Technologies', key: 'frontendTechnologies' },
-    { label: 'Customers', key: 'customers' },
-    { label: 'Process Owner', key: 'processOwners' },
+    { label: 'Internal Customers', key: 'internalCustomers' },
+    { label: 'External Customers', key: 'externalCustomers' },
     { label: 'KPIs', key: 'kpis' },
     { label: 'Data Warehouse', key: 'datawarehouses' },
     { label: 'Single Datasource', key: 'singledatasources' },
@@ -78,7 +79,8 @@ export const getDataForCSV = (
           reportsCSVData.push({
             reportId: report.reportId ? sanitize(report.reportId) : 'NA', 
             name: report.productName ? sanitize(report.productName) : 'NA',
-            productPhase: report.description.productPhase ? report.description.productPhase : 'NA',
+            // productPhase: report.description.productPhase ? report.description.productPhase : 'NA',
+            reportType: report.description.reportType ? sanitize(report.description.reportType) : 'NA',
             description: report.description.productDescription ? sanitize(report.description.productDescription) : 'NA',
             reportLink: report.description.reportLink ? sanitize(report.description.reportLink) : 'NA',
             tags:
@@ -89,21 +91,21 @@ export const getDataForCSV = (
             subdivision: report.description.division?.subdivision ? report.description.division.subdivision.name : 'NA',
             department: report.description.department ? report.description.department : 'NA',
             status: report.description.status ? report.description.status : 'NA',
-            integratedPortal: report.description.integratedPortal?.length
-              ? report.description.integratedPortal?.join(', ')
+            integratedPortal: report.description.integratedPortal
+              ? report.description.integratedPortal
               : 'NA',
-            agileReleaseTrains: report.description.agileReleaseTrains?.length
-              ? report.description.agileReleaseTrains?.join(', ')
+            agileReleaseTrains: report.description.agileReleaseTrain
+              ? report.description.agileReleaseTrain
               : 'NA',
-            designGuideImplemented: report.description.designGuideImplemented || 'NA',
+            // designGuideImplemented: report.description.designGuideImplemented || 'NA',
             frontendTechnologies: report.description.frontendTechnologies?.length
               ? report.description.frontendTechnologies?.join(', ')
               : 'NA',
-            customers: report.customer?.customerDetails?.length
-              ? report.customer?.customerDetails?.map((customer) => Object.values(customer))?.join(' | ')
+            internalCustomers: report.customer?.internalCustomers?.length
+              ? report.customer?.internalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
               : 'NA',
-            processOwners: report.customer?.processOwners?.length
-              ? report.customer.processOwners?.map((member) => member.shortId)?.join(', ')
+            externalCustomers: report.customer?.externalCustomers?.length
+              ? report.customer.externalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
               : 'NA',
             kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi))?.join(' | ') : 'NA',
             datawarehouses: report.dataAndFunctions?.dataWarehouseInUse?.length
