@@ -9,8 +9,8 @@ const classNames = cn.bind(Styles);
 interface DataWarehouseProps {
   dataSourceType: string;
   errors: IDataWarehouseErrors;
-  onDataWarehouseChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  // onDataWarehouseChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  // onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   requiredError: string;
   dataWarehouses: IDataWarehouse[];
   commonFunctions: string[];
@@ -23,8 +23,8 @@ export const DataWarehouse = ({
   dataSourceType,
   dataWarehouseInUseInfo,
   errors,
-  onDataWarehouseChange,
-  onDropdownChange,
+  // onDataWarehouseChange,
+  // onDropdownChange,
   requiredError,
   dataWarehouses,
   commonFunctions,
@@ -60,6 +60,7 @@ export const DataWarehouse = ({
   
   const dataClassificationDropdown = dataClassifications;
 
+
   return (
     dataSourceType === 'datawarehouse' && (
       <>
@@ -75,7 +76,7 @@ export const DataWarehouse = ({
                   name="dataWarehouse"
                   required={true}
                   required-error={requiredError}
-                  onChange={onDropdownChange}
+                  // onChange={onDropdownChange}
                   value={dataWarehouseValue}
                 >
                   <option value={''}>Choose</option>
@@ -107,7 +108,7 @@ export const DataWarehouse = ({
                     id="connectionTypeField"
                     name="connectionTypes"
                     value={connectionTypesValue}
-                    onChange={onDropdownChange}
+                    // onChange={onDropdownChange}
                     required={!isCarla}
                     required-error={!isCarla ? requiredError : ''}
                   >
@@ -146,7 +147,7 @@ export const DataWarehouse = ({
                     required-error={requiredError}
                     name="commonFunctions"
                     value={commonFunctionsValue}
-                    onChange={onDropdownChange}
+                    // onChange={onDropdownChange}
                   >
                     {commonFunctions?.map((item, ind) => (
                       <option id={item + ind} key={ind} value={item}>
@@ -177,7 +178,7 @@ export const DataWarehouse = ({
                     id="dataClassificationField"
                     name="dataClassification"
                     value={dataClassificationValue}
-                    onChange={onDropdownChange}
+                    // onChange={onDropdownChange}
                     required={!isCarla}
                     required-error={!isCarla ? requiredError : ''}
                   >
