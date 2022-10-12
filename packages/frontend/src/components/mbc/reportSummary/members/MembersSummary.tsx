@@ -43,7 +43,7 @@ export default class MembersSummary extends React.Component<IMembersSummaryProps
               <h3 className={Styles.description}>Members</h3>
               {this.props.members.reportOwners?.length ? (
                 <div className={Styles.membersListView}>
-                  <label className={'input-label summary ' + Styles.cardSubTitle}>Product Owner</label>
+                  <label className={'input-label summary ' + Styles.cardSubTitle}>Report Member(s)</label>
                   <div>{productOwner}</div>
                 </div>
               ) : null}
@@ -54,7 +54,7 @@ export default class MembersSummary extends React.Component<IMembersSummaryProps
                 </div>
               ) : null} */}
               <div className={Styles.membersListView}>
-                <label className={'input-label summary ' + Styles.cardSubTitle}>Admin(s)</label>
+                <label className={'input-label summary ' + Styles.cardSubTitle}>Report Administrator(s)</label>
                 <div>{adminList}</div>
               </div>
             </div>
