@@ -629,8 +629,8 @@ export interface IDataWarehouseInUse {
 }
 
 export interface ISingleDataSources {
-  connectionTypes: IConnectionType[];
-  dataSources: IDataSourceMaster[];
+  connectionType: string;
+  dataSources: string[];
   dataClassification: string;
 }
 export interface IUserNewInfo {

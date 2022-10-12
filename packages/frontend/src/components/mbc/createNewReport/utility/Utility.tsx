@@ -1,8 +1,8 @@
 import {
   // IART,
-  IConnectionType,
+  // IConnectionType,
   ICreateNewReportRequest,
-  IDataSourceMaster,
+  // IDataSourceMaster,
   IDatawarehouseInItem,
   IDesignGuide,
   IFrontEndTech,
@@ -62,11 +62,11 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
   requestBody.data.dataAndFunctions.singleDataSources = requestBody.data.dataAndFunctions.singleDataSources?.map(
     (item: ISingleDataSources) => {
       item.dataSources = item.dataSources?.length
-        ? (item.dataSources?.map((item: IDataSourceMaster) => item.name) as any[])
+        ? (item.dataSources)
         : null;
       item.dataClassification = item.dataClassification
-      item.connectionTypes = item.connectionTypes?.length
-        ? (item.connectionTypes?.map((item: IConnectionType) => item.name) as any[])
+      item.connectionType = item.connectionType?.length
+        ? (item.connectionType)
         : null;
       return item;
     },
