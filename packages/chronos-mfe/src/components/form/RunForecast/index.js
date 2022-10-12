@@ -19,7 +19,7 @@ import { Link } from 'react-router-dom';
 import IconUpload from '../../../assets/icon_upload.png';
 import { chronosApi } from '../../../apis/chronos.api';
 
-const SelectedFile = ({ selectedFile, setSelected }) => {
+const SelectedFile = ({ selectedFile, setSelected, setFileValid }) => {
   return (
     <>
       <div className={Styles.selectedFile}>
@@ -32,7 +32,7 @@ const SelectedFile = ({ selectedFile, setSelected }) => {
           <span>File is ready to use.</span>
         </span>
         <span>
-          <i onClick={() => setSelected(false)} className={classNames('icon delete', Styles.deleteIcon)} />
+          <i onClick={() => { setSelected(false); setFileValid(true); }} className={classNames('icon delete', Styles.deleteIcon)} />
         </span>
       </div>
     </>
@@ -193,6 +193,18 @@ const RunForecast = () => {
     }
   };
 
+  const [fileValid, setFileValid] = useState(true);
+
+  const validateFile = (file) => {
+    const fileName = file.name.split('.');
+    const extension = fileName[fileName.length - 1];
+    if(extension === 'csv' || extension === 'xlsx') {
+      setFileValid(true);
+    } else {
+      setFileValid(false);
+    }
+  }
+
   const onSubmit = (data) => {
     const formData = new FormData();
     if(selectedInputFile?.path !== undefined) {
@@ -211,18 +223,21 @@ const RunForecast = () => {
     } else {
       formData.append("savedInputPath", null); // todo file path
     }
-
+    
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
         Notification.show('Run created successfully');
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
         reset({
           runName: '',
           configurationFile: 0,
           frequency: 0,
-          forecashorizon: 1,
+          forecastHorizon: 1,
           comment: '',
         });
+        SelectBox.defaultSetup();
         setIsSelectedFile(false);
         ProgressIndicator.hide();
       }).catch(error => {
@@ -262,7 +277,10 @@ const RunForecast = () => {
                     onDragLeave={onFileDrop}
                     className={classNames('upload-container', Styles.uploadContainer)}
                   >
-                    <input type="file" id="file" name="file" {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}) }})} />
+                    <input type="file" id="file" name="file" 
+                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); }})}
+                      accept=".csv, .xlsx"
+                      />
                     <div className={Styles.rcUpload}>
                       <div className={Styles.dragDrop}>
                         <div className={Styles.icon}>
@@ -292,8 +310,9 @@ const RunForecast = () => {
                   {errors.file && <span className={Styles.errorMessage}>{errors.file?.message}</span>}
                 </div>
               ) : (
-                <SelectedFile selectedFile={selectedInputFile} setSelected={setSelectedInput} />
+                <SelectedFile selectedFile={selectedInputFile} setSelected={setSelectedInput} setFileValid={setFileValid} />
               )}
+              {!fileValid && <span className={Styles.errorMessage}>Only .xlsx files allowed</span>}
               <div className={Styles.checkbox}>
                 <label className="checkbox">
                   <span className="wrapper">
