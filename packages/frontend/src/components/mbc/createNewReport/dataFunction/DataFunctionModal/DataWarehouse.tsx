@@ -9,8 +9,9 @@ const classNames = cn.bind(Styles);
 interface DataWarehouseProps {
   dataSourceType: string;
   errors: IDataWarehouseErrors;
-  onDataWarehouseChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  // onDataWarehouseChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onCommonFunctionsChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   requiredError: string;
   dataWarehouses: IDataWarehouse[];
   commonFunctions: string[];
@@ -23,8 +24,9 @@ export const DataWarehouse = ({
   dataSourceType,
   dataWarehouseInUseInfo,
   errors,
-  onDataWarehouseChange,
+  // onDataWarehouseChange,
   onDropdownChange,
+  onCommonFunctionsChange,
   requiredError,
   dataWarehouses,
   commonFunctions,
@@ -35,7 +37,7 @@ export const DataWarehouse = ({
   // const specificFunctionsError = errors.specificFunctions || '';
   // const queriesError = errors.queries || '';
   // const originalDataSourcesError = errors.dataSources || '';
-  const connectTypesError = errors.connectionTypes || '';
+  const connectTypesError = errors.connectionType || '';
   const dataClassificationError = errors.dataClassification || '';
 
   const selectedFilterValues = dataWarehouseInUseInfo;
@@ -49,7 +51,7 @@ export const DataWarehouse = ({
   // const specificFunctionsValue = selectedFilterValues.specificFunctions;
   // const queriesValue = selectedFilterValues.queries;
   // const originalDataSourcesValue = selectedFilterValues.dataSources;
-  const connectionTypesValue = selectedFilterValues.connectionTypes?.toString();
+  const connectionTypesValue = selectedFilterValues.connectionType;
   const dataClassificationValue = selectedFilterValues.dataClassification?.toString();
 
   // const isCarla = selectedFilterValues.dataWarehouse?.toLowerCase() === 'carla';
@@ -59,6 +61,7 @@ export const DataWarehouse = ({
     : connectionTypes;
   
   const dataClassificationDropdown = dataClassifications;
+
 
   return (
     dataSourceType === 'datawarehouse' && (
@@ -75,7 +78,7 @@ export const DataWarehouse = ({
                   name="dataWarehouse"
                   required={true}
                   required-error={requiredError}
-                  onChange={onDropdownChange}
+                  onChange={(e)=>onDropdownChange(e)}
                   value={dataWarehouseValue}
                 >
                   <option value={''}>Choose</option>
@@ -105,9 +108,9 @@ export const DataWarehouse = ({
                 <div className={`custom-select`}>
                   <select
                     id="connectionTypeField"
-                    name="connectionTypes"
+                    name="connectionType"
                     value={connectionTypesValue}
-                    onChange={onDropdownChange}
+                    onChange={(e)=>onDropdownChange(e)}
                     required={!isCarla}
                     required-error={!isCarla ? requiredError : ''}
                   >
@@ -146,7 +149,7 @@ export const DataWarehouse = ({
                     required-error={requiredError}
                     name="commonFunctions"
                     value={commonFunctionsValue}
-                    onChange={onDropdownChange}
+                    onChange={(e)=>onCommonFunctionsChange(e)}
                   >
                     {commonFunctions?.map((item, ind) => (
                       <option id={item + ind} key={ind} value={item}>
@@ -177,7 +180,7 @@ export const DataWarehouse = ({
                     id="dataClassificationField"
                     name="dataClassification"
                     value={dataClassificationValue}
-                    onChange={onDropdownChange}
+                    onChange={(e)=>onDropdownChange(e)}
                     required={!isCarla}
                     required-error={!isCarla ? requiredError : ''}
                   >
