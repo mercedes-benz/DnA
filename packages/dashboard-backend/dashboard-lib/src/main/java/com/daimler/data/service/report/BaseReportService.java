@@ -701,9 +701,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								MemberVO memberVO = mergedReportVO.getMembers();
 
 								List<TeamMemberVO> members = new ArrayList<>();
-								members.addAll(memberVO.getAdmin());
-								members.addAll(memberVO.getDevelopers());
-								members.addAll(memberVO.getProductOwners());
+								members.addAll(memberVO.getReportAdmins());
+								members.addAll(memberVO.getReportOwners());
 								CustomerVO customerVO = mergedReportVO.getCustomer();
 								if (customerVO != null && !ObjectUtils.isEmpty(customerVO.getInternalCustomers())) {
 									for (InternalCustomerVO internalCustomerVO : customerVO.getInternalCustomers()) {
@@ -799,22 +798,15 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			boolean isTeamMember = false;
-			boolean isProductOwner = false;
 			if (StringUtils.hasText(userId)) {
-				// To check if user is admin(Team member)
+				// To check if user is report admin(Team member)
 				isTeamMember = (existingReportVO.getMembers() != null
-						&& !ObjectUtils.isEmpty(existingReportVO.getMembers().getAdmin()))
-								? existingReportVO.getMembers().getAdmin().stream()
-										.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))
-								: false;
-				// To check if user is Product Owner
-				isProductOwner = (existingReportVO.getMembers() != null
-						&& !ObjectUtils.isEmpty(existingReportVO.getMembers().getProductOwners()))
-								? existingReportVO.getMembers().getProductOwners().stream().anyMatch(
+						&& !ObjectUtils.isEmpty(existingReportVO.getMembers().getReportAdmins()))
+								? existingReportVO.getMembers().getReportAdmins().stream().anyMatch(
 										n -> userId.equalsIgnoreCase(n.getShortId()))
 								: false;
 			}
-			if (isTeamMember || isProductOwner) {
+			if (isTeamMember) {
 				canProceed = true;
 			}
 		}
