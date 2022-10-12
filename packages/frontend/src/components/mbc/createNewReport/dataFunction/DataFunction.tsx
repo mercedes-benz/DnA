@@ -528,6 +528,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         });
       }
     }
+    console.log(selectedValuesclassification);
     
 
     // this.setState((prevState) => ({
