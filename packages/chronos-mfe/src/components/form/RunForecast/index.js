@@ -39,7 +39,7 @@ const SelectedFile = ({ selectedFile, setSelected }) => {
   );
 };
 
-const RunForecast = ({ savedFiles }) => {
+const RunForecast = () => {
   const { id: projectId } = useParams();
 
   const { register, handleSubmit, isSubmitting, reset, formState: { errors } } = useForm();
@@ -47,6 +47,8 @@ const RunForecast = ({ savedFiles }) => {
   const [keepExistingFiles, setKeepExistingFiles] = useState(false);
   const [showExistingFiles, setShowExistingFiles] = useState(false);
   const [expertView, setExpertView] = useState(false);
+  const [savedFiles, setSavedFiles] = useState([]);
+  
 
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
 
@@ -74,6 +76,27 @@ const RunForecast = ({ savedFiles }) => {
 
   const [isSelectedFile, setIsSelectedFile] = useState(false);
 
+  useEffect(() => {
+    getInputFiles();
+    //eslint-disable-next-line
+  }, []);
+  
+  const getInputFiles = () => {
+    chronosApi.getAllInputFiles(projectId).then((res) => {
+      console.log('input files');
+      console.log(res.data.files);
+      if(res.data.files !== null) {
+        setSavedFiles(res.data.files);
+      }
+    }).catch(error => {
+      if(error.response.data.errors[0].message) {
+        Notification.show(error.response.data.errors[0].message, 'alert');
+      } else {
+        Notification.show(error.message, 'alert');
+      }
+    });
+  }
+  
   const existingFilesContent = (
     <div className={Styles.existingFilesContainer}>
       <div className={Styles.flexLayout}>
@@ -188,8 +211,12 @@ const RunForecast = ({ savedFiles }) => {
         setIsSelectedFile(false);
         ProgressIndicator.hide();
       }).catch(error => {
-        Notification.show(error.response.data.errors[0].message, 'alert');
         ProgressIndicator.hide();
+        if(error.response.data.errors[0].message) {
+          Notification.show(error.response.data.errors[0].message, 'alert');
+        } else {
+          Notification.show(error.message, 'alert');
+        }
       });
   }
 
@@ -297,7 +324,7 @@ const RunForecast = ({ savedFiles }) => {
                     Run Name <sup>*</sup>
                   </label>
                   <input
-                    {...register('runName', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
+                    {...register('runName', { required: '*Missing entry', pattern: /^[a-z0-9]+$/ })}
                     type="text"
                     className="input-field"
                     id="runNameInput"
@@ -305,7 +332,7 @@ const RunForecast = ({ savedFiles }) => {
                     placeholder="Type here"
                     autoComplete="off"
                   />
-                  <span className={classNames('error-message')}>{errors.runName?.message}{errors.runName?.type === 'pattern' && 'Only lowercase letters are allowed without spaces'}</span>
+                  <span className={classNames('error-message')}>{errors.runName?.message}{errors.runName?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
                 </div>
                 <div className={Styles.configurationContainer}>
                   <div
