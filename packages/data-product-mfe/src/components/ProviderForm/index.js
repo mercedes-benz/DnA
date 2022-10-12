@@ -94,6 +94,7 @@ const ProviderForm = ({ user, history }) => {
 
   const getDataProductById = () => {
     const id = createCopyId || dataProductId || provideDataProducts?.selectedDataProduct?.id;
+    ProgressIndicator.show();
     dataProductsApi.getDataProductById(id).then((res) => {
       if (createCopyId) {
         // creating copy of existing data product
@@ -123,6 +124,7 @@ const ProviderForm = ({ user, history }) => {
         }
       });
       setSavedTabs(segments);
+      ProgressIndicator.hide();
     });
   };
 
