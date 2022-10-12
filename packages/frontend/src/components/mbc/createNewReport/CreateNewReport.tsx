@@ -45,10 +45,11 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ISubSystems,
+  ICommonFunctions,
   ISingleDataSources,
   IDivision,
   ISubDivision,
+  IDataClassification,
 } from 'globals/types';
 import Styles from './CreateNewReport.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
@@ -80,8 +81,9 @@ export interface ICreateNewReportState {
   statuses: IProductStatus[];
   designGuideImplemented: IDesignGuide[];
   connectionTypes: IConnectionType[];
+  dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  subSystems: ISubSystems[];
+  commonFunctions: ICommonFunctions[];
   editMode: boolean;
   currentTab: string;
   nextTab: string;
@@ -131,8 +133,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       designGuideImplemented: [],
       tags: [],
       connectionTypes: [],
+      dataClassifications: [{id: 'Confidential', name: 'Confidential'},
+      {id: 'Internal', name: 'Internal'},
+      {id: 'Public', name: 'Public'}],
       dataWarehouses: [],
-      subSystems: [],
+      commonFunctions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -158,17 +163,19 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           department: [],
           productPhase: null,
           status: null,
-          agileReleaseTrains: [],
-          integratedPortal: [],
+          agileReleaseTrain: '',
+          integratedPortal: '',
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
           reportLink: '',
+          reportType: null,
+          piiData: ''
         },
         kpis: [],
         customer: {
-          customerDetails: [],
-          processOwners: [],
+          internalCustomers: [],
+          externalCustomers: [],
         },
         dataAndFunctions: {
           dataWarehouseInUse: [],
@@ -205,21 +212,32 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataSources = response[0].data;
         const departments = response[1].data;
         const frontEndTechnologies = response[2].data;
-        const hierarchies = response[3].data;
+        // const hierarchies = response[3].data;
+        const hierarchies = [{id: 'Top Mangement FC (E1/E2)', name: 'Top Mangement FC (E1/E2)'},
+        {id: 'Mangement FC (E3/E4)', name: 'Mangement FC (E3/E4)'}];
         const integratedPortals = response[4].data;
         const kpiNames = response[5].data;
-        const productPhases = response[6].data;
-        const reportingCauses = response[7].data;
-        const ressort = response[8].data;
-        const statuses = response[9].data;
-        const designGuideImplemented = response[10].data;
-        const arts = response[11].data;
-        const tags: ITag[] = response[12].data;
-        const connectionTypes: IConnectionType[] = response[13].data;
-        const dataWarehouses: IDataWarehouse[] = response[14].records;
-        const subSystems: ISubSystems[] = response[15].data;
-        const divisions: IDivision[] = response[16];
-        const departmentTags: IDepartment[] = response[17].data;
+        // const productPhases = response[6].data;
+        const reportingCauses = response[6].data;
+        // const ressort = response[7].data;
+        const ressort = [{id: 'FMB', name: 'FMB'},
+        {id: 'FMC', name: 'FMC'}];
+        const statuses = response[8].data;
+        // const designGuideImplemented = response[10].data;
+        const arts = response[9].data;
+        const tags: ITag[] = response[10].data;
+        const connectionTypes: IConnectionType[] = response[11].data;
+        const dataClassifications: IDataClassification[] = [{id: 'Confidential', name: 'Confidential'},
+        {id: 'Internal', name: 'Internal'},
+        {id: 'Public', name: 'Public'}];
+        const dataWarehouses: IDataWarehouse[] = [{id: 'Confidential', name: 'Confidential'},
+        {id: 'Internal', name: 'Internal'},
+        {id: 'Public', name: 'Public'}];
+        const divisions: IDivision[] = response[12];
+        const departmentTags: IDepartment[] = response[13].data;
+        const commonFunctions: ICommonFunctions[] = [{id: 'Confidential', name: 'Confidential'},
+        {id: 'Internal', name: 'Internal'},
+        {id: 'Public', name: 'Public'}];
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -242,18 +260,17 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             hierarchies,
             integratedPortals,
             kpiNames,
-            productPhases,
             reportingCauses,
             ressort,
             statuses,
-            designGuideImplemented,
             arts,
             tags,
             departmentTags,
+            dataWarehouses,
             divisions,
             connectionTypes,
-            dataWarehouses,
-            subSystems,
+            dataClassifications,
+            commonFunctions,
             report: {
               ...prevState.report,
               members: {
@@ -331,13 +348,13 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               const {
                 productPhases,
                 statuses,
-                frontEndTechnologies,
+                // frontEndTechnologies,
                 designGuideImplemented,
-                integratedPortals,
-                arts,
+                // integratedPortals,
+                // arts,
                 dataSources,
                 connectionTypes,
-                subSystems,
+                // dataClassifications,
               } = this.state;
               response.data = res;
               const report = this.state.report;
@@ -347,34 +364,30 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 (item: any) => item.name === res.description.productPhase,
               );
               report.description.status = statuses?.filter((item: any) => item.name === res.description.status);
-              report.description.frontendTechnologies = frontEndTechnologies?.filter(
-                (item: any) => res.description.frontendTechnologies?.indexOf(item.name) > -1,
-              );
+              report.description.frontendTechnologies = res.description.frontendTechnologies;
               report.description.designGuideImplemented = designGuideImplemented?.filter(
                 (item: any) => item.name === res.description.designGuideImplemented,
               );
-              report.description.agileReleaseTrains = arts?.filter(
-                (item: any) => res.description.agileReleaseTrains?.indexOf(item.name) > -1,
-              );
-              report.description.integratedPortal = integratedPortals?.filter(
-                (item: any) => res.description.integratedPortal?.indexOf(item.name) > -1,
-              );
+              report.description.agileReleaseTrain = res.description.agileReleaseTrain;
+              report.description.integratedPortal = res.description.integratedPortal;
               report.description.tags = res.description.tags;
               report.description.division = res.description.division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
               report.description.reportLink = res.description.reportLink;
-              report.customer.customerDetails = res.customer?.customerDetails || [];
-              report.customer.processOwners = res.customer?.processOwners || [];
+              report.description.reportType = res.description?.reportType;
+              report.description.piiData = res.description?.piiData;
+              report.customer.internalCustomers = res.customer?.internalCustomers || [];
+              report.customer.externalCustomers = res.customer?.externalCustomers || [];
+              // report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
               report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions?.dataWarehouseInUse || [];
               report.dataAndFunctions.singleDataSources =
                 res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
                   item.dataSources =
                     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
-                  item.subsystems =
-                    subSystems?.filter((subItem: any) => item.subsystems.indexOf(subItem.name) > -1) || [];
                   item.connectionTypes =
-                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || [];
+                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || []; 
+                  item.dataClassification   
                   return item;
                 }) || [];
               report.members.developers = res.members.developers || [];
@@ -415,9 +428,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     }
   }
 
-  public changeQuickPath = (value: boolean) => {
+  public changeQuickPath = () => {
     const report = {...this.state.report};
-    report.usingQuickPath = !value;
+    // report.usingQuickPath = !value;
+    report.usingQuickPath = false;
     
     // Following two if's are mentioned because when we switch quickview then its state gets changed
     if (report.description.division.subdivision.id === null) {
@@ -449,7 +463,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             </div>
             {!this.state.report.reportId && currentTab === 'description' ? (
               <div className={Styles.switchButton}>
-                <label className="switch">
+                {/* <label className="switch">
                   <span className="label" style={{ marginRight: '5px' }}>
                     {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
                   </span>
@@ -461,7 +475,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       checked={this.state.report.usingQuickPath}
                     />
                   </span>
-                </label>
+                </label> */}
               </div>
             ) : (
               ''
@@ -490,6 +504,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 this.setState({ subDivisions }, () => SelectBox.defaultSetup())
               }
               enableQuickPath={this.state.report.usingQuickPath}
+              refineReport={this.changeQuickPath}
             />
           ) : (
             <div id="create-report-tabs" className="tabs-panel">
@@ -583,6 +598,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       hierarchies={this.state.hierarchies}
                       departments={this.state.departments}
                       ressort={this.state.ressort}
+                      divisions={this.state.divisions}
                       modifyCustomer={this.modifyCustomer}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.customerComponent}
@@ -607,8 +623,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                       dataAndFunctions={this.state.report.dataAndFunctions}
                       dataSources={this.state.dataSources}
                       connectionTypes={this.state.connectionTypes}
+                      dataClassifications={this.state.dataClassifications}
                       dataWarehouses={this.state.dataWarehouses}
-                      subSystems={this.state.subSystems}
+                      commonFunctions={this.state.commonFunctions}
                       modifyDataFunction={this.modifyDataFunction}
                       onSaveDraft={this.onSaveDraft}
                       ref={this.dataFunctionComponent}
