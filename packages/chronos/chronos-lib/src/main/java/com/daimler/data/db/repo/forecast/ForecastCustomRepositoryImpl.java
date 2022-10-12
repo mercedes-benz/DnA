@@ -36,7 +36,6 @@ import javax.persistence.Query;
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.ForecastNsql;
-import com.daimler.data.db.json.File;
 import com.daimler.data.db.json.Forecast;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -86,14 +85,7 @@ public class ForecastCustomRepositoryImpl extends CommonDataRepositoryImpl<Forec
 		return convertedResults;
 	}
 	
-	@Override
-	public List<File> getSavedFiles( String id) {
-		String getFilesStatement = " select jsonb_extract_path_text(data,'savedInputs') from forecast_nsql where id = '"+id+"'";
-		Query q = em.createNativeQuery(getFilesStatement);
-		List<File> files = q.getResultList();
-		return files;
-	}
-
+	
 	@Override
 	public long getTotalRunsCount(String id) {
 		String getCountStmt = " select count(*) from forecast_nsql where  id = '" + id + "' and (jsonb_extract_path_text(data,'isDelete') is null or  jsonb_extract_path_text(data,'isDelete') in ('true'))";;
