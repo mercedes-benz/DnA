@@ -535,15 +535,11 @@ definitions:
     description: "Team Member."
     type: object
     properties:  
-      developers:
+      reportOwners:
         type: array
         items:
           $ref: "#/definitions/TeamMemberVO"
-      productOwners:
-        type: array
-        items:
-          $ref: "#/definitions/TeamMemberVO"
-      admin:
+      reportAdmins:
         type: array
         items:
           $ref: "#/definitions/TeamMemberVO"
