@@ -221,7 +221,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         dataWarehouse: '',
         commonFunctions: [],
         dataClassification: '',
-        connectionTypes: [],
+        connectionType: '',
       },
       itemToAdd: '',
       itemToAddCategories: '',
@@ -299,17 +299,17 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
   //   }
   // };
   protected setConnectionTypesTags = (arr: string[]) => {
-    const chipsItemAdd = this.state.datawareHouseItems;
-    chipsItemAdd.connectionTypes = arr;
-    if (chipsItemAdd.connectionTypes.length > 0) {
-      this.setState({
-        showConnectionTypesTagsMissingError: false,
-      });
-    } else {
-      this.setState({
-        showConnectionTypesTagsMissingError: true,
-      });
-    }
+    // const chipsItemAdd = this.state.datawareHouseItems;
+    // chipsItemAdd.connectionType = arr;
+    // if (chipsItemAdd.connectionType.length > 0) {
+    //   this.setState({
+    //     showConnectionTypesTagsMissingError: false,
+    //   });
+    // } else {
+    //   this.setState({
+    //     showConnectionTypesTagsMissingError: true,
+    //   });
+    // }
   };
   // protected setDataSoucrsTags = (arr: string[]) => {
   //   const chipsItemAdd = this.state.datawareHouseItems;
@@ -616,7 +616,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                 id: dw.id,
                 dataWarehouse: dw.dataWarehouse,
                 commonFunctions: dw.commonFunctions,
-                connectionTypes: dw.connectionTypes,
+                connectionType: dw.connectionType,
                 dataClassification: dw.dataClassification,
               },
             });
@@ -1276,7 +1276,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                           tags={undefined}
                           title={'Connection Types'}
                           max={100}
-                          chips={this.state.datawareHouseItems?.connectionTypes}
+                          chips={[this.state.datawareHouseItems?.connectionType]}
                           setTags={this.setConnectionTypesTags}
                           isMandatory={true}
                           showMissingEntryError={this.state.showConnectionTypesTagsMissingError}
@@ -1683,7 +1683,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     //     showDataSourcesTagsMissingError: false,
     //   });
     // }
-    if (!this.state.datawareHouseItems.connectionTypes.length) {
+    if (!this.state.datawareHouseItems.connectionType.length) {
       this.setState({
         showConnectionTypesTagsMissingError: true,
       });
@@ -1900,7 +1900,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           dataWarehouse: '',
           commonFunctions: [],
           dataClassification: '',
-          connectionTypes: [],
+          connectionType: '',
         },
         newItemNameError: null,
         newItemNameCategoryError: null,
