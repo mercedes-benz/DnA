@@ -3,20 +3,20 @@ import cn from 'classnames';
 import Styles from '../DataFunction.scss';
 import { IConnectionType, IDataClassification, IDataSourceMaster, ISingleDataSources } from 'globals/types';
 import { ISingleDataSourceErrors } from '../DataFunction';
-import Tags from 'components/formElements/tags/Tags';
+// import Tags from 'components/formElements/tags/Tags';
 
 const classNames = cn.bind(Styles);
 
 interface SingleDataSourceProps {
   dataSourceType: string;
   errors: ISingleDataSourceErrors;
-  onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  // onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   requiredError: string;
   dataClassifications: IDataClassification[];
   dataSources: IDataSourceMaster[];
   connectionTypes: IConnectionType[];
   singleDataSourceInfo: ISingleDataSources;
-  setDataSources: (e: any) => void;
+  // setDataSources: (e: any) => void;
 }
 
 export const SingleDataSource = ({
@@ -27,8 +27,8 @@ export const SingleDataSource = ({
   dataClassifications,
   dataSources,
   singleDataSourceInfo,
-  onDropdownChange,
-  setDataSources,
+  // onDropdownChange,
+  // setDataSources,
 }: SingleDataSourceProps) => {
   // const [dataSources, setDataSources] = useState(0);
   const singleSourceConnectionTypesValue = singleDataSourceInfo.connectionType;
@@ -39,7 +39,7 @@ export const SingleDataSource = ({
 
   const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassification;  
 
-  const singleSourceDataSourceValue = singleDataSourceInfo.dataSources;
+  // const singleSourceDataSourceValue = singleDataSourceInfo.dataSources;
   // ?.map((dataSource: IDataSourceMaster) => {
   //   return dataSource.name;
   // });
@@ -100,7 +100,7 @@ export const SingleDataSource = ({
                 </span>
               </div> */}
               <div>
-                <Tags
+                {/* <Tags
                   title={'Data Source'}
                   max={100}
                   chips={
@@ -113,7 +113,7 @@ export const SingleDataSource = ({
                   isDataSource={true}
                   suggestionPopupHeight={300}
                   // {...this.props}
-                />
+                /> */}
               </div>
             </div>
           </div>
@@ -133,7 +133,7 @@ export const SingleDataSource = ({
                     id="dataClassificationsField"
                     name="dataClassification"
                     value={singleSourceDataClassificationsValue}
-                    onChange={(e) => onDropdownChange(e)}
+                    // onChange={(e) => onDropdownChange(e)}
                     required={true}
                     required-error={requiredError}
                   >
@@ -166,7 +166,7 @@ export const SingleDataSource = ({
                     required-error={requiredError}
                     name="connectionTypes"
                     value={singleSourceConnectionTypesValue}
-                    onChange={onDropdownChange}
+                    // onChange={onDropdownChange}
                   >
                     <option value="">Choose</option>
                     {connectionTypes?.map((obj) => (
