@@ -182,8 +182,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 	private RunState toState(@Valid RunStateVO stateVO) {
 		RunState state = new RunState();
 		if(stateVO!=null) {
-			state.setLife_cycle_state(stateVO.getLifeCycleState().name());
-			state.setResult_state(stateVO.getResultState().name());
+			if(stateVO.getLifeCycleState()!=null)
+				state.setLife_cycle_state(stateVO.getLifeCycleState().name());
+			if(stateVO.getResultState()!=null)
+				state.setResult_state(stateVO.getResultState().name());
 			state.setState_message(stateVO.getStateMessage());
 			state.setUser_cancelled_or_timedout(stateVO.isUserCancelledOrTimedout());
 		}
