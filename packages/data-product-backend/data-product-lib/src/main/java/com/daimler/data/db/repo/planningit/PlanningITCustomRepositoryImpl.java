@@ -34,6 +34,7 @@ import javax.persistence.Query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.PlanningITNsql;
@@ -47,8 +48,12 @@ public class PlanningITCustomRepositoryImpl extends CommonDataRepositoryImpl<Pla
 
 	private static Logger LOGGER = LoggerFactory.getLogger(PlanningITCustomRepositoryImpl.class);
 
+	@Value("${planningit.defaultlimit}")
+	private String planningITDefaultLimit;
+	
 	@Override
 	public List<PlanningITNsql> getAllWithFilters(String searchTerm) {
+		int limit = Integer.parseInt(planningITDefaultLimit);
 		String getAllStmt = " select cast(id as text), cast(data as text) from planningit_nsql ";
 		if(searchTerm!= null && !"".equalsIgnoreCase(searchTerm)) {
 			searchTerm = "'%"+searchTerm.toLowerCase()+"%'";
@@ -57,7 +62,7 @@ public class PlanningITCustomRepositoryImpl extends CommonDataRepositoryImpl<Pla
 						+ searchTerm + " or " + "lower(jsonb_extract_path_text(data,'name')) similar to "
 						+ searchTerm + " or " + "lower(id) similar to "
 						+ searchTerm + " ) ";
-			getAllStmt += " order by lower(jsonb_extract_path_text(data,'name')) asc";
+			getAllStmt += " order by lower(jsonb_extract_path_text(data,'name')) asc limit " + limit;
 		}
 		Query q = em.createNativeQuery(getAllStmt);
 		ObjectMapper mapper = new ObjectMapper();
