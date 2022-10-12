@@ -124,7 +124,7 @@ const ForecastForm = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              <RunForecast savedFiles={(project?.savedInputs && project?.savedInputs !== null) ? project?.savedInputs : []} />
+              <RunForecast />
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (

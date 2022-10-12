@@ -20,7 +20,7 @@ import Notification from '../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import Breadcrumb from './shared/breadcrumb/Breadcrumb';
 
-const ForeCastingProjects = ({ user }) => {
+const ForeCastingProjects = ({ user, history }) => {
   const [createProject, setCreateProject] = useState(false);
   const [editProject, setEditProject] = useState(false);
 
@@ -77,9 +77,11 @@ const ForeCastingProjects = ({ user }) => {
         }
     };
     chronosApi.createForecastProject(data).then((res) => {
+      console.log('create project');
       console.log(res);
-      dispatch(GetProjects());
+      // dispatch(GetProjects());
       ProgressIndicator.hide();
+      history.push(`/project/${res.data.data.id}`);
       setCreateProject(false);
       reset({ name: '' });
       setTeamMembers([]);
@@ -197,9 +199,9 @@ const ForeCastingProjects = ({ user }) => {
                     id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9]+$/ })}
                   />
-                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Only lowercase letters are allowed without spaces'}</span>
+                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
                 </div>
               </div>
             </div>
