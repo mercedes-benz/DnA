@@ -702,10 +702,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                 onClick={this.sortByColumn('hierarchy', this.state.nextSortOrder)}
                               >
                                 <i className="icon sort" />
-                                Level
+                                Name
                               </label>
                             </div>
-                            <div className={Styles.customerTitleCol}>
+                            {/* <div className={Styles.customerTitleCol}>
                               <label
                                 className={
                                   'sortable-column-header ' +
@@ -716,7 +716,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                 <i className="icon sort" />
                                 MB Legal Entity
                               </label>
-                            </div>
+                            </div> */}
                             <div className={Styles.customerTitleCol}>
                               <label
                                 className={
@@ -726,7 +726,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                 onClick={this.sortByColumn('department', this.state.nextSortOrder)}
                               >
                                 <i className="icon sort" />
-                                Department
+                                Customer Relation
                               </label>
                             </div>
                             <div className={Styles.customerTitleCol}>Action</div>
@@ -743,15 +743,15 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                           >
                             <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
                               <span className="animation-wrapper"></span>
-                              <input type="checkbox" id={index + '1'} defaultChecked={index === 0} />
+                              <input type="checkbox" id={'internal'+index + '1'} defaultChecked={index === 0} />
                               <label
                                 className={Styles.expansionLabel + ' expansion-panel-label '}
-                                htmlFor={index + '1'}
+                                htmlFor={'internal'+index + '1'}
                               >
                                 <div className={Styles.customerTile}>
-                                  <div className={Styles.customerTitleCol}>{`Customer ${index + 1}`}</div>
-                                  <div className={Styles.customerTitleCol}>{customer.level || '-'}</div>
-                                  <div className={Styles.customerTitleCol}>{customer.legalEntity || '-'}</div>
+                                  <div className={Styles.customerTitleCol}>{`Internal Customer ${index + 1}`}</div>
+                                  <div className={Styles.customerTitleCol}>{(customer.name.firstName ? customer.name.firstName : '') +' '+ (customer.name.lastName ? customer.name.lastName : '')}</div>
+                                  {/* <div className={Styles.customerTitleCol}>{customer.legalEntity || '-'}</div> */}
                                   <div className={Styles.customerTitleCol}>{customer.department || '-'}</div>
                                   <div className={Styles.customerTitleCol}></div>
                                 </div>
@@ -775,6 +775,60 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                       className={'btn btn-primary'}
                                       type="button"
                                       onClick={() => this.onDeleteInternalCustomer(customer)}
+                                    >
+                                      <i className="icon delete"></i>
+                                      <span>Delete Customer </span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+
+
+                      {this.state.customer.externalCustomers?.map((customer, index) => {
+                        return (
+                          <div
+                            key={customer.customerRelation + index}
+                            className={'expansion-panel-group airflowexpansionPanel ' + Styles.customerGrpListItemPanel}
+                          >
+                            <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
+                              <span className="animation-wrapper"></span>
+                              <input type="checkbox" id={'external'+index + '1'} defaultChecked={index === 0} />
+                              <label
+                                className={Styles.expansionLabel + ' expansion-panel-label '}
+                                htmlFor={'external'+index + '1'}
+                              >
+                                <div className={Styles.customerTile}>
+                                  <div className={Styles.customerTitleCol}>{`External Customer ${index + 1}`}</div>
+                                  <div className={Styles.customerTitleCol}>{(customer.name.firstName ? customer.name.firstName : '') +' '+ (customer.name.lastName ? customer.name.lastName : '')}</div>
+                                  {/* <div className={Styles.customerTitleCol}>{customer.companyName || '-'}</div> */}
+                                  <div className={Styles.customerTitleCol}>{customer.customerRelation || '-'}</div>
+                                  <div className={Styles.customerTitleCol}></div>
+                                </div>
+                                <i tooltip-data="Expand" className="icon down-up-flip"></i>
+                              </label>
+                              <div className="expansion-panel-content">
+                                <div className={Styles.customerCollContent}>
+                                  <div className={Styles.customerDesc}>
+                                    <pre className={Styles.commentPre}>{customer.comment}</pre>
+                                  </div>
+                                  <div className={Styles.customerBtnGrp}>
+                                    <button
+                                      className={'btn btn-primary'}
+                                      type="button"
+                                      onClick={() => this.onExternalEditCustomerOpen(customer)}
+                                    >
+                                      <i className="icon mbc-icon edit"></i>
+                                      <span>Edit Customer </span>
+                                    </button>
+                                    <button
+                                      className={'btn btn-primary'}
+                                      type="button"
+                                      onClick={() => this.onDeleteExternalCustomer(customer)}
                                     >
                                       <i className="icon delete"></i>
                                       <span>Delete Customer </span>
@@ -1601,6 +1655,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         addCustomer: false,
         editCustomer: true,
         editCustomerIndex,
+        customerType: 'Internal',
         internalCustomerInfo: {
           ...prevState.internalCustomerInfo,
           level,
@@ -1639,6 +1694,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         addCustomer: false,
         editCustomer: true,
         editCustomerIndex,
+        customerType: 'External',
         externalCustomerInfo: {
           name, 
           comment,
@@ -1647,6 +1703,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         },
       },
       () => {
+        this.setState({
+          nameToDisplay: (name.firstName ? name.firstName : '') +' '+ (name.lastName ? name.lastName : '')
+        });
         SelectBox.defaultSetup();
       },
     );
