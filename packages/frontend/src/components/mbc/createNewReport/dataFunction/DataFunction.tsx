@@ -531,23 +531,23 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     console.log(selectedValuesclassification);
     
 
-    // this.setState((prevState) => ({
-    //   ...(this.state.dataSource === 'datawarehouse'
-    //     ? {
-    //         ...prevState,
-    //         dataWarehouseInUseInfo: {
-    //           ...prevState.dataWarehouseInUseInfo,
-    //           [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
-    //         },
-    //       }
-    //     : {
-    //         ...prevState,
-    //         singleDataSourceInfo: {
-    //           ...prevState.singleDataSourceInfo,
-    //           [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
-    //         },
-    //       }),
-    // }));
+    this.setState((prevState) => ({
+      ...(this.state.dataSource === 'datawarehouse'
+        ? {
+            ...prevState,
+            dataWarehouseInUseInfo: {
+              ...prevState.dataWarehouseInUseInfo,
+              [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
+            },
+          }
+        : {
+            ...prevState,
+            singleDataSourceInfo: {
+              ...prevState.singleDataSourceInfo,
+              [name]: name === 'dataClassification' ? selectedValuesclassification : selectedValues,
+            },
+          }),
+    }));
   };
 
   public setDataSources = (arr: string[]) => {
@@ -782,24 +782,24 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           dataSourceType={this.state.dataSource}
           dataWarehouseInUseInfo={this.state.dataWarehouseInUseInfo}
           errors={this.state.errors}
-          onDropdownChange={this.onChangeSourceAndFunction}
+          onDropdownChange={()=>this.onChangeSourceAndFunction}
           requiredError={requiredError}
           dataWarehouses={this.props.dataWarehouses}
           commonFunctions={this.props.commonFunctions.map(item=>item.name)}
           connectionTypes={this.props.connectionTypes.map(item=>item.name)}
           dataClassifications={this.props.dataClassifications.map(item=>item.name)}
-          onDataWarehouseChange={this.handleChange} 
+          onDataWarehouseChange={()=>this.handleChange} 
         />
         <SingleDataSource
           dataSourceType={this.state.dataSource}
           errors={this.state.singleDataSourceErrors}
           requiredError={requiredError}
-          onDropdownChange={this.onChangeSourceAndFunction}
+          onDropdownChange={()=>this.onChangeSourceAndFunction}
           connectionTypes={this.props.connectionTypes}
           dataClassifications={this.props.dataClassifications}
           dataSources={this.props.dataSources}
           singleDataSourceInfo={this.state.singleDataSourceInfo}
-          setDataSources={this.setDataSources}
+          setDataSources={()=>this.setDataSources}
         />
         <div className="btnConatiner">
           <button
