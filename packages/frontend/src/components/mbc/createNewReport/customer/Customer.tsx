@@ -198,7 +198,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
     this.setState({
-      nameToDisplay: this.state.internalCustomerInfo.name.firstName ? this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName : '',
+      nameToDisplay: this.state.internalCustomerInfo.name.firstName ? 
+      (this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName) : '',
       processOwnerToDisplay: this.state.internalCustomerInfo.name.firstName ? this.state.internalCustomerInfo.name.firstName +' '+ this.state.internalCustomerInfo.name.lastName : ''
     });
   }
