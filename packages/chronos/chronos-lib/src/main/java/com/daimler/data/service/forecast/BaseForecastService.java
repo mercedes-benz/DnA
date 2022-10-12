@@ -21,7 +21,6 @@ import com.daimler.data.assembler.ForecastAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ForecastNsql;
-import com.daimler.data.db.json.File;
 import com.daimler.data.db.json.RunDetails;
 import com.daimler.data.db.json.RunState;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
@@ -30,7 +29,6 @@ import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
 import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
 import com.daimler.data.dto.forecast.ForecastRunResponseVO;
 import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.InputFileVO;
 import com.daimler.data.dto.forecast.RunDetailsVO;
 import com.daimler.data.dto.forecast.RunNowResponseVO;
 import com.daimler.data.dto.forecast.RunStateVO;
@@ -67,12 +65,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	public BaseForecastService() {
 		super();
-	}
-	
-	@Override
-	public List<InputFileVO> getSavedFiles(String id) {
-		List<File> files = customRepo.getSavedFiles(id);
-		return assembler.toFilesVO(files);
 	}
 
 	@Override
