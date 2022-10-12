@@ -121,7 +121,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) ";
 				break;
 			case "productOwner":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'member','productOwners')) ";
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'member','reportOwners')) ";
 				break;
 			default:
 				sortQueryString = "";
@@ -165,13 +165,13 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		String query = "";
 		if (userId != null) {
 
-			String isProductOwnerPredicate = " lower(jsonb_extract_path_text(data,'member','productOwners')) like "
+			String isReportOwnerPredicate = " lower(jsonb_extract_path_text(data,'member','reportOwners')) like "
 					+ "'%" + userId.toLowerCase() + "%'";
 
-			String isProductAdminPredicate = " lower(jsonb_extract_path_text(data,'member','admin')) like " + "'%"
+			String isReportAdminPredicate = " lower(jsonb_extract_path_text(data,'member','reportAdmins')) like " + "'%"
 					+ userId.toLowerCase() + "%'";
 
-			hasAccessPredicate = " (" + isProductOwnerPredicate + " or " + isProductAdminPredicate + ") ";
+			hasAccessPredicate = " (" + isReportOwnerPredicate + " or " + isReportAdminPredicate + ") ";
 
 		}
 		if (published != null) {
@@ -267,7 +267,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			String delimiterSeparatedProductOwners = productOwners.stream().map(String::toLowerCase)
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedProductOwners = "'" + delimiterSeparatedProductOwners + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'member','productOwners')) similar to "
+			return "  and (lower(jsonb_extract_path_text(data,'member','reportOwners')) similar to "
 					+ delimiterSeparatedProductOwners + " ) ";
 		}
 		return "";
@@ -287,7 +287,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	@Override
 	public List<TeamMemberVO> getAllProductOwnerUsingNativeQuery() {
 		String prefix = "select cast(data -> 'member' -> 'productOwners' as text) from report_nsql";
-		String basicpredicate = " where jsonb_extract_path_text(data,'member','productOwners') is not null";
+		String basicpredicate = " where jsonb_extract_path_text(data,'member','reportOwners') is not null";
 		String query = prefix + basicpredicate;
 		return getReportOwners(query);
 	}
