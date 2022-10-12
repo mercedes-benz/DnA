@@ -97,7 +97,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	public ForecastRunResponseVO createJobRun(String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, String comment,
 			ForecastVO existingForecast,String triggeredBy, Date triggeredOn) {
-		this.jpaRepo.findAll();
+		
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
 		RunNowResponseVO runNowResponseVO = new RunNowResponseVO();
 		GenericMessage responseMessage = new GenericMessage();
@@ -118,7 +118,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
 				responseMessage.setSuccess("FAILED");
 			else {
-//			)
 				responseMessage.setSuccess("SUCCESS");
 				ForecastNsql entity = this.assembler.toEntity(existingForecast);
 				List<RunDetails> existingRuns = entity.getData().getRuns();
