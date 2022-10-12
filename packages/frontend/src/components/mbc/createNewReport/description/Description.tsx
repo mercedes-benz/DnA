@@ -82,7 +82,6 @@ export interface IDescriptionState {
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
   public static getDerivedStateFromProps(props: IDescriptionProps, state: IDescriptionState) {
-    console.log(props.description);
     return {
       productName: props.description.productName,
       description: props.description.productDescription,

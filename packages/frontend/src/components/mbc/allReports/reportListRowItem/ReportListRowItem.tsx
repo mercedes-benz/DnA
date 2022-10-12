@@ -149,13 +149,13 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
           </td>
           <td className="wrap-text">{report?.description.department || 'NA'}</td>
           <td>
-            {report?.members.productOwners?.length
-              ? report?.members.productOwners?.map((item: ITeams) => `${item.firstName} ${item.lastName}`)?.toString()
+            {report?.members.reportOwners?.length
+              ? report?.members.reportOwners?.map((item: ITeams) => `${item.firstName} ${item.lastName}`)?.toString()
               : 'NA'}
           </td>
           <td>
             <div className={Styles.locationDataWrapper}>
-              {report?.description.agileReleaseTrain ? report?.description.agileReleaseTrain : ''}
+              {report?.description.agileReleaseTrain ? report?.description.agileReleaseTrain : 'NA'}
               {/* {report?.description.agileReleaseTrain ? (
                 <div
                   className={classNames(
