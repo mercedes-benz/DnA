@@ -646,9 +646,8 @@ export interface IUserNewInfo {
 }
 
 export interface IMembers {
-  developers: ITeams[];
-  productOwners: ITeams[];
-  admin?: ITeams[];
+  reportOwners: ITeams[];
+  reportAdmins?: ITeams[];
 }
 export interface ICreateNewReport {
   description: IDescriptionRequest;
