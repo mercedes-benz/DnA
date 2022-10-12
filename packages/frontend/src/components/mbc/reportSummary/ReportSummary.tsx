@@ -76,17 +76,19 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
           department: [],
           productPhase: null,
           status: null,
-          agileReleaseTrains: [],
-          integratedPortal: [],
+          agileReleaseTrain: '',
+          integratedPortal: '',
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
           reportLink: '',
+          reportType: '',
+          piiData: ''
         },
         kpis: [],
         customer: {
-          customerDetails: [],
-          processOwners: [],
+          internalCustomers: [],
+          externalCustomers: [],
         },
         dataAndFunctions: {
           dataWarehouseInUse: [],
@@ -308,7 +310,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
               {
                 response,
                 report,
-                canShowCustomer: res.customer.customerDetails?.length > 0 || res.customer.processOwners?.length > 0,
+                canShowCustomer: res.customer.internalCustomers?.length > 0 || res.customer.externalCustomers?.length > 0,
                 canShowKpi: res.kpis?.length > 0,
                 canShowDataFunction:
                   res.dataAndFunctions.dataWarehouseInUse?.length > 0 ||

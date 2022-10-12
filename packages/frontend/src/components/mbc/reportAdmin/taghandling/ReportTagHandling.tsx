@@ -220,9 +220,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         id: '',
         dataWarehouse: '',
         commonFunctions: [],
-        specificFunctions: [],
-        queries: [],
-        dataSources: [],
+        dataClassification: '',
         connectionTypes: [],
       },
       itemToAdd: '',
@@ -274,32 +272,32 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       });
     }
   };
-  protected setSpecificFnTags = (arr: string[]) => {
-    const chipsItemAdd = this.state.datawareHouseItems;
-    chipsItemAdd.specificFunctions = arr;
-    if (chipsItemAdd.specificFunctions.length > 0) {
-      this.setState({
-        showSpecificFnTagsMissingError: false,
-      });
-    } else {
-      this.setState({
-        showSpecificFnTagsMissingError: true,
-      });
-    }
-  };
-  protected setQueriesTags = (arr: string[]) => {
-    const chipsItemAdd = this.state.datawareHouseItems;
-    chipsItemAdd.queries = arr;
-    if (chipsItemAdd.queries.length > 0) {
-      this.setState({
-        showQueriesTagsMissingError: false,
-      });
-    } else {
-      this.setState({
-        showQueriesTagsMissingError: true,
-      });
-    }
-  };
+  // protected setSpecificFnTags = (arr: string[]) => {
+  //   const chipsItemAdd = this.state.datawareHouseItems;
+  //   chipsItemAdd.specificFunctions = arr;
+  //   if (chipsItemAdd.specificFunctions.length > 0) {
+  //     this.setState({
+  //       showSpecificFnTagsMissingError: false,
+  //     });
+  //   } else {
+  //     this.setState({
+  //       showSpecificFnTagsMissingError: true,
+  //     });
+  //   }
+  // };
+  // protected setQueriesTags = (arr: string[]) => {
+  //   const chipsItemAdd = this.state.datawareHouseItems;
+  //   chipsItemAdd.queries = arr;
+  //   if (chipsItemAdd.queries.length > 0) {
+  //     this.setState({
+  //       showQueriesTagsMissingError: false,
+  //     });
+  //   } else {
+  //     this.setState({
+  //       showQueriesTagsMissingError: true,
+  //     });
+  //   }
+  // };
   protected setConnectionTypesTags = (arr: string[]) => {
     const chipsItemAdd = this.state.datawareHouseItems;
     chipsItemAdd.connectionTypes = arr;
@@ -313,19 +311,19 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       });
     }
   };
-  protected setDataSoucrsTags = (arr: string[]) => {
-    const chipsItemAdd = this.state.datawareHouseItems;
-    chipsItemAdd.dataSources = arr;
-    if (chipsItemAdd.dataSources.length > 0) {
-      this.setState({
-        showDataSourcesTagsMissingError: false,
-      });
-    } else {
-      this.setState({
-        showDataSourcesTagsMissingError: true,
-      });
-    }
-  };
+  // protected setDataSoucrsTags = (arr: string[]) => {
+  //   const chipsItemAdd = this.state.datawareHouseItems;
+  //   chipsItemAdd.dataSources = arr;
+  //   if (chipsItemAdd.dataSources.length > 0) {
+  //     this.setState({
+  //       showDataSourcesTagsMissingError: false,
+  //     });
+  //   } else {
+  //     this.setState({
+  //       showDataSourcesTagsMissingError: true,
+  //     });
+  //   }
+  // };
 
   public getProductPhases = (results: ITagResult[]) => {
     return ReportsApiClient.getProductPhases()
@@ -617,11 +615,9 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
               datawareHouseItems: {
                 id: dw.id,
                 dataWarehouse: dw.dataWarehouse,
-                queries: dw.queries,
                 commonFunctions: dw.commonFunctions,
                 connectionTypes: dw.connectionTypes,
-                specificFunctions: dw.specificFunctions,
-                dataSources: dw.dataSources,
+                dataClassification: dw.dataClassification,
               },
             });
           });
@@ -1218,7 +1214,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                     </div>
                   </div>
                 </div>
-                <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
+                {/* <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
                   <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
                     <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
                       <div>
@@ -1271,7 +1267,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
                   <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
                     <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
@@ -1667,26 +1663,26 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         showCommanFnTagsMissingError: false,
       });
     }
-    if (!this.state.datawareHouseItems.specificFunctions.length) {
-      this.setState({
-        showSpecificFnTagsMissingError: true,
-      });
-      formValidationStatus = false;
-    } else {
-      this.setState({
-        showSpecificFnTagsMissingError: false,
-      });
-    }
-    if (!this.state.datawareHouseItems.dataSources.length) {
-      this.setState({
-        showDataSourcesTagsMissingError: true,
-      });
-      formValidationStatus = false;
-    } else {
-      this.setState({
-        showDataSourcesTagsMissingError: false,
-      });
-    }
+    // if (!this.state.datawareHouseItems.specificFunctions.length) {
+    //   this.setState({
+    //     showSpecificFnTagsMissingError: true,
+    //   });
+    //   formValidationStatus = false;
+    // } else {
+    //   this.setState({
+    //     showSpecificFnTagsMissingError: false,
+    //   });
+    // }
+    // if (!this.state.datawareHouseItems.dataSources.length) {
+    //   this.setState({
+    //     showDataSourcesTagsMissingError: true,
+    //   });
+    //   formValidationStatus = false;
+    // } else {
+    //   this.setState({
+    //     showDataSourcesTagsMissingError: false,
+    //   });
+    // }
     if (!this.state.datawareHouseItems.connectionTypes.length) {
       this.setState({
         showConnectionTypesTagsMissingError: true,
@@ -1697,16 +1693,16 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         showConnectionTypesTagsMissingError: false,
       });
     }
-    if (!this.state.datawareHouseItems.queries.length) {
-      this.setState({
-        showQueriesTagsMissingError: true,
-      });
-      formValidationStatus = false;
-    } else {
-      this.setState({
-        showQueriesTagsMissingError: false,
-      });
-    }
+    // if (!this.state.datawareHouseItems.queries.length) {
+    //   this.setState({
+    //     showQueriesTagsMissingError: true,
+    //   });
+    //   formValidationStatus = false;
+    // } else {
+    //   this.setState({
+    //     showQueriesTagsMissingError: false,
+    //   });
+    // }
     return formValidationStatus;
   };
   protected onTagAddItem = () => {
@@ -1903,9 +1899,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
           id: '',
           dataWarehouse: '',
           commonFunctions: [],
-          specificFunctions: [],
-          queries: [],
-          dataSources: [],
+          dataClassification: '',
           connectionTypes: [],
         },
         newItemNameError: null,

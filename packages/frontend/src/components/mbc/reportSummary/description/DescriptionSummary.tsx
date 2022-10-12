@@ -228,16 +228,16 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     {description.division?.subdivision?.name ? description.division.subdivision.name : 'None'}
                   </div>
                   <div id="department">
-                    <label className="input-label summary">Department</label>
+                    <label className="input-label summary">E2-Department</label>
                     <br />
                     {description.department}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="productPhase">
-                    <label className="input-label summary">Product Phase</label>
+                    <label className="input-label summary">Report Type</label>
                     <br />
-                    {description.productPhase ? description.productPhase : 'N/A'}
+                    {description.reportType ? description.reportType : 'N/A'}
                   </div>
                   <div id="status">
                     <label className="input-label summary">Status </label>
@@ -247,25 +247,26 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="integratedinportal">
                     <label className="input-label summary">Integrated In Portal</label>
                     <br />
-                    {description.integratedPortal?.join(', ') || 'N/A'}
+                    {description.integratedPortal || 'N/A'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="agileReleaseTrain">
                     <label className="input-label summary">Agile Release Train</label>
                     <br />
-                    {description.agileReleaseTrains?.join(', ') || 'N/A'}
+                    {description.agileReleaseTrain || 'N/A'}
                   </div>
-                  <div id="designguideimplemented">
+                  {/* <div id="designguideimplemented">
                     <label className="input-label summary">Design Guide Implemented</label>
                     <br />
                     {description.designGuideImplemented ? description.designGuideImplemented : 'N/A'}
-                  </div>
+                  </div> */}
                   <div id="frmonEndTech">
                     <label className="input-label summary">Frontend Technologies</label>
                     <br />
                     {description.frontendTechnologies}
                   </div>
+                  <div></div>
                 </div>
               </div>
             </div>
