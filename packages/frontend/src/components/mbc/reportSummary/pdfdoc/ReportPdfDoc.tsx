@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Document, Font, Page, StyleSheet, Text, View, Image, Link } from '@react-pdf/renderer';
 import * as React from 'react';
 import { PropsWithChildren } from 'react';
@@ -541,28 +540,28 @@ const Members = ({ showMembers, members }: IMembersProps) => {
       {showMembers && (
         <View wrap={false}>
           <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 25 }]}>Members</Text>
-          {members.productOwners?.length ? (
+          {members.reportOwners?.length ? (
             <View>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Product Owner</Text>
+                <Text style={styles.sectionTitle}>Report Member(s)</Text>
               </View>
-              <View style={styles.flexLayout}>{teamMembersList(members.productOwners)}</View>
+              <View style={styles.flexLayout}>{teamMembersList(members.reportOwners)}</View>
             </View>
           ) : null}
-          {members.developers?.length ? (
+          {/* {members.developers?.length ? (
             <View>
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Developer(s)</Text>
               </View>
               <View style={styles.flexLayout}>{teamMembersList(members.developers)}</View>
             </View>
-          ) : null}
-          {members.admin?.length ? (
+          ) : null} */}
+          {members.reportAdmins?.length ? (
             <View>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Admin(s)</Text>
+                <Text style={styles.sectionTitle}>Report Administrator(s)</Text>
               </View>
-              <View style={styles.flexLayout}>{teamMembersList(members.admin)}</View>
+              <View style={styles.flexLayout}>{teamMembersList(members.reportAdmins)}</View>
               <View style={styles.seperatorLine} />
             </View>
           ) : null}
