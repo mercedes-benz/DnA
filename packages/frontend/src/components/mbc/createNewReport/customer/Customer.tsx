@@ -388,7 +388,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                       required={true}
                       required-error={requiredError}
                       onChange={this.onDivisionChange}
-                      value={this.state.internalCustomerInfo.division.name}
+                      value={this.state.internalCustomerInfo.division.id}
                     >
                       <option id="divisionOption" value={''}>
                         Choose
@@ -702,7 +702,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                 onClick={this.sortByColumn('hierarchy', this.state.nextSortOrder)}
                               >
                                 <i className="icon sort" />
-                                Hierarchy
+                                Level
                               </label>
                             </div>
                             <div className={Styles.customerTitleCol}>
@@ -714,7 +714,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                 onClick={this.sortByColumn('ressort', this.state.nextSortOrder)}
                               >
                                 <i className="icon sort" />
-                                Ressort
+                                MB Legal Entity
                               </label>
                             </div>
                             <div className={Styles.customerTitleCol}>
@@ -1593,12 +1593,13 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     const editCustomerIndex = internalCustomers.findIndex(
       (item) => item.level === level && item.department === department && item.legalEntity === legalEntity,
     );
-    this.setState(
+    this.setState((prevState) => (
       {
         addCustomer: false,
         editCustomer: true,
         editCustomerIndex,
         internalCustomerInfo: {
+          ...prevState.internalCustomerInfo,
           level,
           department,
           legalEntity,
@@ -1609,8 +1610,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           accessToSensibleData,
           processOwner
         },
-      },
+      }),
       () => {
+        this.setState({
+          nameToDisplay: name.firstName ? name.firstName +' '+ name.lastName : '',
+          processOwnerToDisplay: name.firstName ? name.firstName +' '+ name.lastName : ''
+        });
         SelectBox.defaultSetup();
       },
     );
