@@ -8,7 +8,7 @@ import {
   ITag,
   IProductPhase,
   IProductStatus,
-  IIntegratedInPortal,
+  // IIntegratedInPortal,
   IDesignGuide,
   IFrontEndTech,
   IIntegratedPortal,
@@ -43,6 +43,7 @@ export interface IDescriptionProps {
   departmentTags: IDepartment[];
   setSubDivisions: (subDivisions: ISubDivision[]) => void;
   enableQuickPath: boolean;
+  refineReport?: () => void;
 }
 
 export interface IDescriptionState {
@@ -58,9 +59,9 @@ export interface IDescriptionState {
   productPhaseError: string;
   statusValue: IProductStatus[];
   statusError: string;
-  artValue: IART[];
+  artValue: string;
   artError: string;
-  integratedPortalsValue: IIntegratedInPortal[];
+  integratedPortalsValue: string;
   integratedPortalError: string;
   designGuideValue: IDesignGuide[];
   designGuideError: string;
@@ -73,10 +74,15 @@ export interface IDescriptionState {
   departmentTags: string[];
   reportLink: string;
   reportLinkError: string;
+  reportTypeValue: string;
+  reportTypeError: string;
+  piiValue: string;
+  piiError: string;
 }
 
 export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
   public static getDerivedStateFromProps(props: IDescriptionProps, state: IDescriptionState) {
+    console.log(props.description);
     return {
       productName: props.description.productName,
       description: props.description.productDescription,
@@ -86,11 +92,13 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       frontEndTechValue: props.description.frontendTechnologies,
       statusValue: props.description.status,
       designGuideValue: props.description.designGuideImplemented,
-      artValue: props.description.agileReleaseTrains,
+      artValue: props.description.agileReleaseTrain,
       integratedPortalsValue: props.description.integratedPortal,
       tags: props.description.tags,
       departmentTags: props.description.department,
       reportLink: props.description.reportLink,
+      reportTypeValue: props.description.reportType,
+      piiValue: props.description.piiData
     };
   }
   constructor(props: IDescriptionProps) {
@@ -123,6 +131,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: [],
       reportLink: null,
       reportLinkError: null,
+      reportTypeValue: 'Standard Report',
+      reportTypeError: null,
+      piiValue: null,
+      piiError: null
     };
   }
 
@@ -166,6 +178,23 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     this.setState({
       description: desc,
     });
+  };
+
+  public onReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    let selectedValues = '';
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        // const reportType: IReportType = { id: null, name: null };
+        // reportType.id = option.value;
+        // reportType.name = option.textContent;
+        // selectedValues.push(reportType);
+        selectedValues = option.value;
+      });
+    }
+    const description = this.props.description;
+    description.reportType = selectedValues;
+    this.setState({ reportTypeValue: selectedValues });
   };
 
   public onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -224,35 +253,57 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
   };
 
   public onChangeART = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const selectedValues: IART[] = [];
+    // if (selectedOptions.length) {
+    //   Array.from(selectedOptions).forEach((option) => {
+    //     const art: IART = { id: null, name: null };
+    //     art.id = option.value;
+    //     art.name = option.textContent;
+    //     selectedValues.push(art);
+    //   });
+    // }
+    // const description = this.props.description;
+    // description.agileReleaseTrains = selectedValues;
+    // this.setState({ artValue: selectedValues });
+
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IART[] = [];
+    let selectedValue = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const art: IART = { id: null, name: null };
-        art.id = option.value;
-        art.name = option.textContent;
-        selectedValues.push(art);
+        selectedValue = option.value;
       });
     }
     const description = this.props.description;
-    description.agileReleaseTrains = selectedValues;
-    this.setState({ artValue: selectedValues });
+    description.agileReleaseTrain = selectedValue;
+    this.setState({ piiValue: selectedValue });
   };
 
   public onChangeItegratedPortal = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const selectedValues: IIntegratedPortal[] = [];
+    // if (selectedOptions.length) {
+    //   Array.from(selectedOptions).forEach((option) => {
+    //     const integratedPortal: IIntegratedPortal = { id: null, name: null };
+    //     integratedPortal.id = option.value;
+    //     integratedPortal.name = option.textContent;
+    //     selectedValues.push(integratedPortal);
+    //   });
+    // }
+    // const description = this.props.description;
+    // description.integratedPortal = selectedValues;
+    // this.setState({ integratedPortalsValue: selectedValues });
+    
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IIntegratedPortal[] = [];
+    let selectedValue = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const integratedPortal: IIntegratedPortal = { id: null, name: null };
-        integratedPortal.id = option.value;
-        integratedPortal.name = option.textContent;
-        selectedValues.push(integratedPortal);
+        selectedValue = option.value;
       });
     }
     const description = this.props.description;
-    description.integratedPortal = selectedValues;
-    this.setState({ integratedPortalsValue: selectedValues });
+    description.integratedPortal = selectedValue;
+    this.setState({ piiValue: selectedValue });
   };
 
   public onChangeStatus = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -270,21 +321,22 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     description.status = selectedValues;
     this.setState({ statusValue: selectedValues });
   };
-  public onChangeDesignGuideInpl = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  public onChangePii = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IDesignGuide[] = [];
+    let selectedValues = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const designGuide: IDesignGuide = { id: null, name: null };
-        designGuide.id = option.value;
-        designGuide.name = option.textContent;
-        selectedValues.push(designGuide);
+        // const designGuide: IDesignGuide = { id: null, name: null };
+        // designGuide.id = option.value;
+        // designGuide.name = option.textContent;
+        selectedValues = option.value;
       });
     }
     const description = this.props.description;
-    description.designGuideImplemented = selectedValues;
-    this.setState({ designGuideValue: selectedValues });
+    description.piiData = selectedValues;
+    this.setState({ piiValue: selectedValues });
   };
+
 
   public onChangeFrontTechnologies = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
@@ -306,27 +358,27 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     const divisionError = this.state.divisionError || '';
     const productNameError = this.state.productNameError || '';
     const descriptionError = this.state.descriptionError || '';
-    const productPhaseError = this.state.productPhaseError || '';
+    // const productPhaseError = this.state.productPhaseError || '';
     const statusError = this.state.statusError || '';
     const artError = this.state.artError || '';
     const integratedPortalError = this.state.integratedPortalError || '';
-    const designGuidError = this.state.designGuideError || '';
+    const piiError = this.state.piiError || '';
     const frontEndTechError = this.state.frontEndTechError || '';
     const reportLinkError = this.state.reportLinkError || '';
+    const reportTypeError = this.state.reportTypeError || '';
 
     const requiredError = '*Missing entry';
 
-    const productPhaseValue = this.state.productPhaseValue
-      ?.map((productPhase: IProductPhase) => {
-        return productPhase.name;
-      })
-      ?.toString();
+    // const productPhaseValue = this.state.productPhaseValue
+    //   ?.map((productPhase: IProductPhase) => {
+    //     return productPhase.name;
+    //   })
+    //   ?.toString();
 
     const frontEndTechValue = this.state.frontEndTechValue
       ?.map((frontEndTech: IFrontEndTech) => {
-        return frontEndTech.name;
-      })
-      ?.toString();
+        return frontEndTech?.name;
+      });
 
     const statusValue = this.state.statusValue
       ?.map((statusValue: IProductStatus) => {
@@ -334,19 +386,13 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       })
       ?.toString();
 
-    const designGuideValue = this.state.designGuideValue
-      ?.map((designGuide: IDesignGuide) => {
-        return designGuide.name;
-      })
-      ?.toString();
+    const reportTypeValue = this.state.reportTypeValue;  
 
-    const artValue = this.state.artValue?.map((art: IART) => {
-      return art.name;
-    });
+    const piiValue = this.state.piiValue;
 
-    const integratedInPortalValue = this.state.integratedPortalsValue?.map((integrated: IIntegratedPortal) => {
-      return integrated.name;
-    });
+    const artValue = this.state.artValue;
+
+    const integratedInPortalValue = this.state.integratedPortalsValue;
 
     const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
 
@@ -360,22 +406,78 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
         <div>
           <div className={classNames(Styles.wrapper)}>
             <div className={classNames(Styles.firstPanel, 'decriptionSection')}>
-              <h3>Please give a detailed report description</h3>
+              <h3>Please give a report description</h3>
               <div className={classNames(Styles.formWrapper, this.props.enableQuickPath ? Styles.flexLayout : '')}>
                 <div>
-                  <div>
-                    <TextBox
-                      type="text"
-                      controlId={'reportNameInput'}
-                      labelId={'reportNameLabel'}
-                      label={'Report Name'}
-                      placeholder={'Type here'}
-                      value={this.state.productName}
-                      errorText={productNameError}
-                      required={true}
-                      maxLength={200}
-                      onChange={this.onProductNameOnChange}
-                    />
+                  <div className={!this.props.enableQuickPath ? Styles.flexLayout : ''}>
+                    <div>
+                      <TextBox
+                        type="text"
+                        controlId={'reportNameInput'}
+                        labelId={'reportNameLabel'}
+                        label={'Report Name'}
+                        placeholder={'Type here'}
+                        value={this.state.productName}
+                        errorText={productNameError}
+                        required={true}
+                        maxLength={200}
+                        onChange={this.onProductNameOnChange}
+                      />
+                    </div>
+                    {!this.props.enableQuickPath ?
+                      // <div>
+                      //   <TextBox
+                      //     type="text"
+                      //     controlId={'reportTypeInput'}
+                      //     labelId={'reportTypeLabel'}
+                      //     label={'Report Type'}
+                      //     placeholder={'Type here'}
+                      //     value={this.state.productName}
+                      //     errorText={productNameError}
+                      //     required={true}
+                      //     maxLength={200}
+                      //     onChange={this.onProductNameOnChange}
+                      //   />
+                      // </div>
+
+                      <div
+                        className={classNames(
+                          'input-field-group include-error',
+                          reportTypeError ? 'error' : '',
+                        )}
+                      >
+                        <label id="reportTypeLabel" htmlFor="reportTypeField" className="input-label">
+                          Report Type<sup>*</sup>
+                        </label>
+                        <div className="custom-select">
+                          <select
+                            id="reportTypeField"
+                            required={true}
+                            required-error={requiredError}
+                            onChange={this.onReportTypeChange}
+                            value={reportTypeValue}
+                          >
+                            <option id="reportTypeOption" value={0}>
+                              Choose
+                            </option>
+                            <option id='Standard Report' key={'Standard Report'} value={'Standard Report'}>
+                              Standard Report
+                            </option>
+                            <option id='Standard Report' key={'Self Service Report'} value={'Self Service Report'}>
+                              Self Service Report
+                            </option>
+                            {/* {this.props.divisions?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                {obj.name}
+                              </option>
+                            ))} */}
+                          </select>
+                        </div>
+                        <span className={classNames('error-message', reportTypeError ? '' : 'hide')}>
+                          {reportTypeError}
+                        </span>
+                      </div>
+                    : ''}
                   </div>
                   <div>
                     <TextArea
@@ -395,7 +497,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                   {!this.props.enableQuickPath ? (
                     <div>
                       <div>
-                        <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                        <div>
                           <div className={Styles.divisionContainer}>
                             <div
                               className={classNames(
@@ -429,40 +531,41 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               </span>
                             </div>
                           </div>
-                          <div className={Styles.subDivisionContainer}>
-                            <div className={classNames('input-field-group')}>
-                              <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
-                                Sub Division
-                              </label>
-                              <div className="custom-select">
-                                <select
-                                  id="subDivisionField"
-                                  onChange={this.onSubDivisionChange}
-                                  value={this.state.divisionValue?.subdivision?.id || '0'}
-                                >
-                                  {this.state.subDivisions.some((item) => item.id === '0' && item.name === 'None') ? (
+                        </div>
+                        
+
+                        <div className={Styles.subDivisionContainer}>
+                          <div className={classNames('input-field-group')}>
+                            <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
+                              Sub Division
+                            </label>
+                            <div className="custom-select">
+                              <select
+                                id="subDivisionField"
+                                onChange={this.onSubDivisionChange}
+                                value={this.state.divisionValue?.subdivision?.id || '0'}
+                              >
+                                {this.state.subDivisions.some((item) => item.id === '0' && item.name === 'None') ? (
+                                  <option id="subDivisionDefault" value={0}>
+                                    None
+                                  </option>
+                                ) : (
+                                  <>
                                     <option id="subDivisionDefault" value={0}>
-                                      None
+                                      Choose
                                     </option>
-                                  ) : (
-                                    <>
-                                      <option id="subDivisionDefault" value={0}>
-                                        Choose
+                                    {this.state.subDivisions?.map((obj) => (
+                                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                        {obj.name}
                                       </option>
-                                      {this.state.subDivisions?.map((obj) => (
-                                        <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                          {obj.name}
-                                        </option>
-                                      ))}
-                                    </>
-                                  )}
-                                </select>
-                              </div>
+                                    ))}
+                                  </>
+                                )}
+                              </select>
                             </div>
                           </div>
                         </div>
-
-                        <div>
+                        {/* <div>
                           <div
                             className={classNames(
                               'input-field-group include-error',
@@ -494,12 +597,12 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               {productPhaseError}
                             </span>
                           </div>
-                        </div>
+                        </div> */}
                         <div>
                           <div
                             className={classNames(
                               'input-field-group include-error',
-                              integratedPortalError.length ? 'error' : '',
+                              integratedPortalError ? 'error' : '',
                             )}
                           >
                             <label id="integratedPortalLabel" htmlFor="integratedPortalField" className="input-label">
@@ -508,11 +611,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                             <div className="custom-select">
                               <select
                                 id="integratedPortalField"
-                                multiple={true}
+                                multiple={false}
                                 required={false}
                                 onChange={this.onChangeItegratedPortal}
                                 value={integratedInPortalValue}
                               >
+                                <option id="integratedPortalOption" value={0}>
+                                  Choose
+                                </option>
                                 {this.props.integratedPortals?.map((obj) => (
                                   <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                     {obj.name}
@@ -520,7 +626,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                                 ))}
                               </select>
                             </div>
-                            <span className={classNames('error-message', integratedPortalError.length ? '' : 'hide')}>
+                            <span className={classNames('error-message', integratedPortalError ? '' : 'hide')}>
                               {integratedPortalError}
                             </span>
                           </div>
@@ -529,31 +635,37 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           <div
                             className={classNames(
                               'input-field-group include-error',
-                              designGuidError.length ? 'error' : '',
+                              piiError.length ? 'error' : '',
                             )}
                           >
-                            <label id="designGuidImplLabel" htmlFor="designGuidImplField" className="input-label">
-                              Design Guide Implemented<sup>*</sup>
+                            <label id="piiLabel" htmlFor="piiField" className="input-label">
+                              PII(Personally Identifiable Information)<sup>*</sup>
                             </label>
                             <div className="custom-select">
                               <select
-                                id="designGuidImplField"
+                                id="piiField"
                                 // multiple={true}
                                 required={true}
                                 required-error={requiredError}
-                                onChange={this.onChangeDesignGuideInpl}
-                                value={designGuideValue}
+                                onChange={this.onChangePii}
+                                value={piiValue}
                               >
                                 <option value={''}>Choose</option>
-                                {this.props.designGuideImplemented?.map((obj) => (
+                                <option id='Yes' key={'Yes'} value={'Yes'}>
+                                  Yes
+                                </option>
+                                <option id='No' key={'No'} value={'No'}>
+                                  No
+                                </option>
+                                {/* {this.props.designGuideImplemented?.map((obj) => (
                                   <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                     {obj.name}
                                   </option>
-                                ))}
+                                ))} */}
                               </select>
                             </div>
-                            <span className={classNames('error-message', designGuidError.length ? '' : 'hide')}>
-                              {designGuidError}
+                            <span className={classNames('error-message', piiError.length ? '' : 'hide')}>
+                              {piiError}
                             </span>
                           </div>
                         </div>
@@ -564,9 +676,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                   )}
                   <div>
                     <div>
+                      
                       <div className={Styles.departmentTags}>
                         <Tags
-                          title={'Department'}
+                          title={'E2-Department'}
                           max={1}
                           chips={departmentValue}
                           tags={this.props.departmentTags}
@@ -575,6 +688,8 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           showMissingEntryError={this.state.showDepartmentMissingError}
                         />
                       </div>
+
+
                       <div>
                         <div
                           className={classNames('input-field-group include-error', statusError.length ? 'error' : '')}
@@ -607,18 +722,21 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         </div>
                       </div>
                       {!this.props.enableQuickPath ? (
-                        <div className={classNames('input-field-group include-error', artError.length ? 'error' : '')}>
+                        <div className={classNames('input-field-group include-error', artError ? 'error' : '')}>
                           <label id="ARTLabel" htmlFor="ARTField" className="input-label">
                             Agile Release Train
                           </label>
-                          <div className="custom-select">
+                          <div className={classNames("custom-select")}>
                             <select
                               id="ARTField"
-                              multiple={true}
+                              multiple={false}
                               required={false}
                               onChange={this.onChangeART}
                               value={artValue}
                             >
+                              <option id="agileReleaseTrainOption" value={0}>
+                                Choose
+                              </option>
                               {this.props.arts?.map((obj) => (
                                 <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                   {obj.name}
@@ -626,7 +744,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               ))}
                             </select>
                           </div>
-                          <span className={classNames('error-message', artError.length ? '' : 'hide')}>{artError}</span>
+                          <span className={classNames('error-message', artError ? '' : 'hide')}>{artError}</span>
                         </div>
                       ) : (
                         ''
@@ -635,7 +753,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                         <div
                           className={classNames(
                             'input-field-group include-error',
-                            frontEndTechError.length ? 'error' : '',
+                            frontEndTechError ? 'error' : '',
                           )}
                         >
                           <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
@@ -644,15 +762,12 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           <div className="custom-select">
                             <select
                               id="FrontEndTechnogiesField"
-                              // multiple={true}
+                              multiple={true}
                               required={true}
                               required-error={requiredError}
                               onChange={this.onChangeFrontTechnologies}
                               value={frontEndTechValue}
                             >
-                              <option id="reportFrontEnTechsOption" value={0}>
-                                Choose
-                              </option>
                               {this.props.frontEndTechnologies?.map((obj) => (
                                 <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                   {obj.name}
@@ -660,7 +775,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                               ))}
                             </select>
                           </div>
-                          <span className={classNames('error-message', frontEndTechError.length ? '' : 'hide')}>
+                          <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
                             {frontEndTechError}
                           </span>
                         </div>
@@ -726,9 +841,14 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                 Save & Next
               </button>
             ) : (
-              <button className="btn btn-tertiary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
-                Publish Report
-              </button>
+              <div>
+                <button className={classNames("btn btn-primary", Styles.refineReportButton)} type="button" onClick={this.props.refineReport}>
+                  Refine Report
+                </button>
+                <button className="btn btn-tertiary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
+                  Publish Report
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -788,10 +908,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ descriptionError: '' });
       // formValid = true;
     }
-    if (!this.state.productPhaseValue || this.state.productPhaseValue[0].name === 'Choose') {
-      this.setState({ productPhaseError: errorMissingEntry });
-      formValid = false;
-    }
+    // if (!this.state.productPhaseValue || this.state.productPhaseValue[0].name === 'Choose') {
+    //   this.setState({ productPhaseError: errorMissingEntry });
+    //   formValid = false;
+    // }
     if (!this.state.statusValue || this.state.statusValue[0].name === 'Choose') {
       this.setState({ statusError: errorMissingEntry });
       formValid = false;
@@ -812,11 +932,15 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     //   this.setState({ integratedPortalError: errorMissingEntry });
     //   formValid = false;
     // }
-    if (!this.state.designGuideValue || this.state.designGuideValue[0].name === 'Choose') {
-      this.setState({ designGuideError: errorMissingEntry });
+    if (!this.state.reportTypeValue || this.state.reportTypeValue === 'Choose') {
+      this.setState({ reportTypeError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0].name === 'Choose') {
+    if (!this.state.piiValue || this.state.piiValue === 'Choose') {
+      this.setState({ piiError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.frontEndTechValue.length === 0) {
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }

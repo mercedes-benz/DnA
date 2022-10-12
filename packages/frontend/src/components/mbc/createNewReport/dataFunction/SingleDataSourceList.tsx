@@ -50,17 +50,6 @@ export const SingleDataSourceList = ({
                     <div className={Styles.dataSourceTitleCol}>
                       <label
                         className={
-                          'sortable-column-header ' + (currentColumnToSort === 'subsystems' ? currentSortOrder : '')
-                        }
-                        // onClick={this.sortByColumn('subsystems', this.state.nextSortOrder)}
-                      >
-                        {/* <i className="icon sort" /> */}
-                        Subsystem
-                      </label>
-                    </div>
-                    <div className={Styles.dataSourceTitleCol}>
-                      <label
-                        className={
                           'sortable-column-header ' +
                           (currentColumnToSort === 'connectionTypes' ? currentSortOrder : '')
                         }
@@ -68,6 +57,17 @@ export const SingleDataSourceList = ({
                       >
                         {/* <i className="icon sort" /> */}
                         Connection Type
+                      </label>
+                    </div>
+                    <div className={Styles.dataSourceTitleCol}>
+                      <label
+                        className={
+                          'sortable-column-header ' + (currentColumnToSort === 'dataClassification' ? currentSortOrder : '')
+                        }
+                        // onClick={this.sortByColumn('dataClassification', this.state.nextSortOrder)}
+                      >
+                        {/* <i className="icon sort" /> */}
+                        Data Classification
                       </label>
                     </div>
                     <div className={Styles.dataSourceTitleCol}>Action</div>
@@ -78,7 +78,7 @@ export const SingleDataSourceList = ({
               )}
               {list?.map((dataSourcesAndFunctions: ISingleDataSources, index: number) => {
                 const connectionTypes = dataSourcesAndFunctions.connectionTypes?.map((item) => item.name)?.join(', ');
-                const subSystem = dataSourcesAndFunctions.subsystems?.map((item) => item.name)?.join(', ');
+                const dataClassifications = dataSourcesAndFunctions.dataClassification;
                 const dataSources = dataSourcesAndFunctions.dataSources?.map((item) => item.name)?.join(', ');
 
                 return (
@@ -95,9 +95,9 @@ export const SingleDataSourceList = ({
                       >
                         <div className={classNames(Styles.dataSourceTile, Styles.singleDataSourceColWidth)}>
                           <div className={Styles.dataSourceTitleCol}>{`Data Source ${index + 1}`}</div>
-                          <div className={Styles.dataSourceTitleCol}>{dataSources || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{subSystem || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{dataSources || '-'}</div>                          
                           <div className={Styles.dataSourceTitleCol}>{connectionTypes || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{dataClassifications || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}></div>
                         </div>
                         <i tooltip-data="Expand" className="icon down-up-flip"></i>
