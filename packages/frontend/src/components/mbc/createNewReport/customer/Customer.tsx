@@ -1230,6 +1230,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       addCustomer: false,
       editCustomer: false,
       duplicateCustomerAdded: false,
+      nameToDisplay: '',
+      processOwnerToDisplay: '',
       internalCustomerInfo: {
         name: {
           company: '',
