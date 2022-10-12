@@ -208,10 +208,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
     
     this.setState((prevState) => ({
       nameToDisplay: fieldValue,
-      internalCustomerInfo: {
-        ...prevState.internalCustomerInfo,
+      externalCustomerInfo: {
+        ...prevState.externalCustomerInfo,
         name:{
-          ...prevState.internalCustomerInfo.name,
+          ...prevState.externalCustomerInfo.name,
         ['firstName']: fieldValue.split(' ')[0],
         ['lastName']: fieldValue.split(' ')[1],
         }
@@ -1056,7 +1056,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   userType: ''
                 },
                 companyName: '',
-                customerRelation: '',
+                customerRelation: 'External',
                 comment: ''
               },
               externalCustomerErrors:{
@@ -1141,6 +1141,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 department: '',
                 legalEntity: '',
                 comment: '',
+                customerRelation: 'Internal',
                 name: {
                   company: '',
                   department: '',
