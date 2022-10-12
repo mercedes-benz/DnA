@@ -111,9 +111,8 @@ type SingleDataSourceVO{
 }
 
 type MemberVO{
-	developers: [TeamMemberVO],
-	productOwners: [TeamMemberVO],
-    admin: [TeamMemberVO]
+	reportOwners: [TeamMemberVO],
+    reportAdmins: [TeamMemberVO]
 }
 
 type TeamMemberVO{
