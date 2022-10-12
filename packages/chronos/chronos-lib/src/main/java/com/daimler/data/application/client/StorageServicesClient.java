@@ -88,6 +88,8 @@ public class StorageServicesClient {
 										return collaborator;
 								}).collect(Collectors.toList());
 						data.setCollaborators(bucketCollaborators);
+				}else {
+					collaborators = new ArrayList<>();
 				}
 				CollaboratorsDto creatorAsCollab = new CollaboratorsDto();
 				BeanUtils.copyProperties(creator,creatorAsCollab);
