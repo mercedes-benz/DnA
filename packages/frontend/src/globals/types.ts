@@ -623,14 +623,14 @@ export interface IDataAndFunctions {
 
 export interface IDataWarehouseInUse {
   commonFunctions: string[];
-  connectionTypes: string[];
+  connectionType: string;
   dataWarehouse: string;
   dataClassification: string;
 }
 
 export interface ISingleDataSources {
   connectionType: string;
-  dataSources: string[];
+  dataSource: string;
   dataClassification: string;
 }
 export interface IUserNewInfo {
@@ -1376,7 +1376,7 @@ export interface IDatawarehouseInItem {
   dataWarehouse: string;
   commonFunctions: string[];
   dataClassification: string;
-  connectionTypes: string[];
+  connectionType: string;
 }
 
 export interface IInfoItem {
