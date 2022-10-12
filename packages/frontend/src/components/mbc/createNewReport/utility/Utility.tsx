@@ -53,21 +53,16 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
     (item: IDatawarehouseInItem) => {
       item.dataWarehouse = item.dataWarehouse || null;
       item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
-      item.commonFunctions = item.commonFunctions?.length ? item.commonFunctions : null;
       item.dataClassification = item.dataClassification ? item.dataClassification : null;
-      item.connectionTypes = item.connectionTypes?.length ? item.connectionTypes : null;
+      item.connectionType = item.connectionType ? item.connectionType : null;
       return item;
     },
   );
   requestBody.data.dataAndFunctions.singleDataSources = requestBody.data.dataAndFunctions.singleDataSources?.map(
     (item: ISingleDataSources) => {
-      item.dataSources = item.dataSources?.length
-        ? (item.dataSources)
-        : null;
+      item.dataSource = item.dataSource;
       item.dataClassification = item.dataClassification
-      item.connectionType = item.connectionType?.length
-        ? (item.connectionType)
-        : null;
+      item.connectionType = item.connectionType;
       return item;
     },
   );
