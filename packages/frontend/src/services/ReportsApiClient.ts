@@ -53,7 +53,7 @@ export class ReportsApiClient {
       this.get('lov/agilereleasetrains'),
       this.get('tags'),
       this.get('lov/connectiontypes'),
-      // this.get('datawarehouses'),
+      this.get('lov/datawarehouses'),
       // this.get('lov/subsystems'),
       ApiClient.get('divisions'),
       this.get('departments'),
