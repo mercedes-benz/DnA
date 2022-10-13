@@ -48,6 +48,7 @@ const RunForecast = () => {
   const [showExistingFiles, setShowExistingFiles] = useState(false);
   const [expertView, setExpertView] = useState(false);
   const [savedFiles, setSavedFiles] = useState([]);
+  const [isExistingFile, setIsExistingFile] = useState(false);
   
 
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
@@ -278,7 +279,7 @@ const RunForecast = () => {
                     className={classNames('upload-container', Styles.uploadContainer)}
                   >
                     <input type="file" id="file" name="file" 
-                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); }})}
+                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); setIsExistingFile(false); }})}
                       accept=".csv, .xlsx"
                       />
                     <div className={Styles.rcUpload}>
@@ -297,6 +298,8 @@ const RunForecast = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowExistingFiles(true);
+                            setKeepExistingFiles(false);
+                            setIsExistingFile(true);
                           }}
                         >
                           <p>
@@ -324,6 +327,7 @@ const RunForecast = () => {
                         setKeepExistingFiles(!keepExistingFiles);
                       }}
                       checked={keepExistingFiles}
+                      disabled={isExistingFile}
                     />
                   </span>
                   <span className="label">Keep file for future use</span>
