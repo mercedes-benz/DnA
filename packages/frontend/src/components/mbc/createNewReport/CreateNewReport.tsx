@@ -211,34 +211,20 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         // const dataSources = response[0].data;
         const departments = response[1].data;
         const frontEndTechnologies = response[2].data;
-        // const hierarchies = response[3].data;
-        const hierarchies = [{id: 'Top Mangement FC (E1/E2)', name: 'Top Mangement FC (E1/E2)'},
-        {id: 'Mangement FC (E3/E4)', name: 'Mangement FC (E3/E4)'}];
+        const hierarchies = response[3].data;
         const integratedPortals = response[4].data;
         const kpiNames = response[5].data;
-        // const productPhases = response[6].data;
         const reportingCauses = response[6].data;
-        // const ressort = response[7].data;
-        const ressort = [{id: 'FMB', name: 'FMB'},
-        {id: 'FMC', name: 'FMC'}];
+        const ressort = response[7].data;
         const statuses = response[8].data;
-        // const designGuideImplemented = response[10].data;
         const arts = response[9].data;
         const tags: ITag[] = response[10].data;
         const connectionTypes: IConnectionType[] = response[11].data;
-        const dataClassifications: IDataClassification[] = [{id: 'Confidential', name: 'Confidential'},
-        {id: 'Internal', name: 'Internal'},
-        {id: 'Public', name: 'Public'}];
-        // const dataWarehouses: IDataWarehouse[] = response[12].data;
-        const dataWarehouses: IDataWarehouse[] =  [{id: 'CarLa', name: 'CarLa'},
-        {id: 'Datawarehouse1', name: 'Datawarehouse1'},
-        {id: 'Datawarehouse2', name: 'Datawarehouse2'}];
+        const dataWarehouses: IDataWarehouse[] = response[12].data;
         const divisions: IDivision[] = response[13];
         const departmentTags: IDepartment[] = response[14].data;
-        // const commonFunctions: ICommonFunctions[] = response[15].data;
-        const commonFunctions: ICommonFunctions[] = [{id: 'CommonFunction1', name: 'CommonFunction1'},
-        {id: 'CommonFunction2', name: 'CommonFunction2'},
-        {id: 'CommonFunction3', name: 'CommonFunction3'}];
+        const commonFunctions: ICommonFunctions[] = response[15].data;
+        const dataClassifications: IDataClassification[] =  response[16].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,

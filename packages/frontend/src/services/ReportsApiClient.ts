@@ -45,19 +45,17 @@ export class ReportsApiClient {
       this.get('lov/levels'),
       this.get('lov/integratedportals'),
       this.get('lov/kpinames'),
-      // this.get('lov/productphases'),
       this.get('lov/reportingcauses'),
       this.get('lov/legalentities'),
       this.get('lov/statuses'),
-      // this.get('lov/designguides'),
       this.get('lov/agilereleasetrains'),
       this.get('tags'),
       this.get('lov/connectiontypes'),
       this.get('lov/datawarehouses'),
-      // this.get('lov/subsystems'),
       ApiClient.get('divisions'),
       this.get('departments'),
-      // this.get('lov/commonFunctions'),
+      this.get('lov/commonfunctions'),
+      this.get('lov/dataclassifications'),
     ]);
   }
 
