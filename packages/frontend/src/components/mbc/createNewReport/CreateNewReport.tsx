@@ -229,12 +229,16 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         const dataClassifications: IDataClassification[] = [{id: 'Confidential', name: 'Confidential'},
         {id: 'Internal', name: 'Internal'},
         {id: 'Public', name: 'Public'}];
-        const dataWarehouses: IDataWarehouse[] = response[14].data;
+        // const dataWarehouses: IDataWarehouse[] = response[12].data;
+        const dataWarehouses: IDataWarehouse[] =  [{id: 'CarLa', name: 'CarLa'},
+        {id: 'Datawarehouse1', name: 'Datawarehouse1'},
+        {id: 'Datawarehouse2', name: 'Datawarehouse2'}];
         const divisions: IDivision[] = response[13];
         const departmentTags: IDepartment[] = response[14].data;
-        const commonFunctions: ICommonFunctions[] = [{id: 'Confidential', name: 'Confidential'},
-        {id: 'Internal', name: 'Internal'},
-        {id: 'Public', name: 'Public'}];
+        // const commonFunctions: ICommonFunctions[] = response[15].data;
+        const commonFunctions: ICommonFunctions[] = [{id: 'CommonFunction1', name: 'CommonFunction1'},
+        {id: 'CommonFunction2', name: 'CommonFunction2'},
+        {id: 'CommonFunction3', name: 'CommonFunction3'}];
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
