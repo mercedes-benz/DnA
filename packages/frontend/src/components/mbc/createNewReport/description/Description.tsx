@@ -65,7 +65,7 @@ export interface IDescriptionState {
   integratedPortalError: string;
   designGuideValue: IDesignGuide[];
   designGuideError: string;
-  frontEndTechValue: IFrontEndTech[];
+  frontEndTechValue: string[];
   frontEndTechError: string;
   chips: string[];
   showTagsMissingError: boolean;
@@ -339,12 +339,11 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
   public onChangeFrontTechnologies = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IFrontEndTech[] = [];
+    const selectedValues: string[] = [];
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const frontEndTech: IFrontEndTech = { id: null, name: null };
-        frontEndTech.id = option.value;
-        frontEndTech.name = option.textContent;
+        let frontEndTech = '';
+        frontEndTech = option.textContent;
         selectedValues.push(frontEndTech);
       });
     }
@@ -374,10 +373,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     //   })
     //   ?.toString();
 
-    const frontEndTechValue = this.state.frontEndTechValue
-      ?.map((frontEndTech: IFrontEndTech) => {
-        return frontEndTech?.name;
-      });
+    const frontEndTechValue = this.state.frontEndTechValue;
 
     const statusValue = this.state.statusValue
       ?.map((statusValue: IProductStatus) => {
@@ -758,7 +754,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                           <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
                             Frontend Technologies <sup>*</sup>
                           </label>
-                          <div className="custom-select">
+                          <div id="FrontEndTechnogies" className="custom-select">
                             <select
                               id="FrontEndTechnogiesField"
                               multiple={true}
@@ -988,7 +984,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ showDepartmentMissingError: true });
       formValid = false;
     }
-    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0].name === 'Choose') {
+    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0] === 'Choose') {
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }
