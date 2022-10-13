@@ -10,10 +10,11 @@ import {
   IDataWarehouseInUse,
   ISingleDataSources,
   IDataClassification,
+  IDataSources,
 } from 'globals/types';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import Modal from 'components/formElements/modal/Modal';
-// import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from 'globals/Enums';
@@ -68,6 +69,7 @@ export interface IDataAndFunctionsState {
   dataAndFunctionTabError: string;
   showDeleteModal: boolean;
   isDataWarehouseSection: boolean;
+  dataSources: IDataSources[];
 }
 export interface IDataFunction {
   carLaPlatform: string;
@@ -104,7 +106,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       singleDataSourceInfo: {
         connectionType: '',
-        dataSource: '',
+        dataSource: '[]',
         dataClassification: '',
       },
       singleDataSourceErrors: {
@@ -129,6 +131,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       dataAndFunctionTabError: '',
       showDeleteModal: false,
       isDataWarehouseSection: false,
+      dataSources: [],
     };
   }
 
@@ -263,7 +266,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       singleDataSourceInfo: {
         connectionType: '',
-        dataSource: '',
+        dataSource: '[]',
         dataClassification: '',
       },
       singleDataSourceErrors: {
@@ -281,20 +284,27 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       dataClassification: dataWarehouseDataClassification,
       dataWarehouse,
     } = this.state.dataWarehouseInUseInfo;
+    const { connectionType, dataSource, dataClassification } = this.state.singleDataSourceInfo;
     const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
-
+    const isDataWarehouse = this.state.dataSource === 'datawarehouse';
     const selectedValues: any = [];
-    selectedValues.push({
-      dataWarehouse,
-      connectionType: dataWarehouseConnectionTypes,
-      commonFunctions,
-      dataClassification: dataWarehouseDataClassification
-    });
-
+    isDataWarehouse
+      ? selectedValues.push({
+          dataWarehouse,
+          connectionType: dataWarehouseConnectionTypes,
+          commonFunctions,
+          dataClassification: dataWarehouseDataClassification,
+        })
+      : selectedValues.push({
+          connectionType,
+          dataSource: dataSource,
+          dataClassification,
+        });
+    
     if (this.validateDatasourceObject()) {
       this.props.modifyDataFunction({
-        dataWarehouseInUse: [...dataWarehouseInUse, ...selectedValues],
-        singleDataSources: singleDataSources ? singleDataSources : [],
+        dataWarehouseInUse: isDataWarehouse ? [...dataWarehouseInUse, ...selectedValues] : dataWarehouseInUse,
+        singleDataSources: !isDataWarehouse ? [...singleDataSources, ...selectedValues] : singleDataSources,
       });
       this.setState(
         (prevState: any) => ({
@@ -302,8 +312,12 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           duplicateDataSouceAdded: false,
           dataAndFunctions: {
             ...prevState.dataAndFunctions,
-            dataWarehouseInUse: [...prevState.dataAndFunctions.dataWarehouseInUse, ...selectedValues],
-            singleDataSources: prevState.dataAndFunctions.singleDataSources,
+            dataWarehouseInUse: isDataWarehouse
+              ? [...prevState.dataAndFunctions.dataWarehouseInUse, ...selectedValues]
+              : prevState.dataAndFunctions.dataWarehouseInUse,
+            singleDataSources: !isDataWarehouse
+              ? [...prevState.dataAndFunctions.singleDataSources, ...selectedValues]
+              : prevState.dataAndFunctions.singleDataSources,
           },
           dataWarehouseInUseInfo: {
             dataWarehouse: '',
@@ -313,7 +327,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           },
           singleDataSourceInfo: {
             connectionType: '',
-            dataSource: '',
+            dataSource: '[]',
             dataClassification: '',
           },
           singleDataSourceErrors: {
@@ -335,8 +349,6 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         },
       );
     }
-      
-
   }
 
   protected onAddDatasource = () => {
@@ -396,11 +408,11 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //         },
   //         singleDataSourceInfo: {
   //           connectionType: '',
-  //           dataSources: [],
+  //           dataSource: '[]',
   //           dataClassification: '',
   //         },
   //         singleDataSourceErrors: {
-  //           connectionTypes: '',
+  //           connectionType: '',
   //           dataSources: '',
   //           dataClassification: ''
   //         },
@@ -493,57 +505,57 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   protected onEditSingleDataSourceOpen = (dataSourcesAndFunctions: ISingleDataSources, index: number) => {
-  //   const { connectionType, dataClassification, dataSources } = dataSourcesAndFunctions;
-  //   this.setState(
-  //     {
-  //       addDataSource: false,
-  //       editDataSource: true,
-  //       editDataSourceIndex: index,
-  //       singleDataSourceInfo: {
-  //         connectionType,
-  //         dataClassification,
-  //         dataSources,
-  //       },
-  //       dataSource: 'singledatasource',
-  //     },
-  //     () => {
-  //       SelectBox.defaultSetup();
-  //     },
-  //   );
+    const { connectionType, dataClassification, dataSource } = dataSourcesAndFunctions;
+    this.setState(
+      {
+        addDataSource: false,
+        editDataSource: true,
+        editDataSourceIndex: index,
+        singleDataSourceInfo: {
+          connectionType,
+          dataClassification,
+          dataSource,
+        },
+        dataSource: 'singledatasource',
+      },
+      () => {
+        SelectBox.defaultSetup();
+      },
+    );
   };
 
   protected onEditSingleDataSource = () => {
-  //   const { editDataSourceIndex } = this.state;
-  //   const { connectionType, dataSources, dataClassification } = this.state.singleDataSourceInfo;
-  //   const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
-  //   if (this.validateDatasourceModal()) {
-  //     const dataSourceList = [...singleDataSources]; // create copy of original array
-  //     dataSourceList[editDataSourceIndex] = { connectionType, dataSources, dataClassification }; // modify copied array
+    const { editDataSourceIndex } = this.state;
+    const { connectionType, dataSource, dataClassification } = this.state.singleDataSourceInfo;
+    const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
+    if (this.validateDatasourceModal()) {
+      const dataSourceList = [...singleDataSources]; // create copy of original array
+      dataSourceList[editDataSourceIndex] = { connectionType, dataSource, dataClassification }; // modify copied array
 
-  //     this.props.modifyDataFunction({
-  //       dataWarehouseInUse,
-  //       singleDataSources: dataSourceList,
-  //     });
-  //     this.setState({
-  //       editDataSource: false,
-  //       duplicateDataSouceAdded: false,
-  //       dataAndFunctions: {
-  //         dataWarehouseInUse,
-  //         singleDataSources: dataSourceList,
-  //       },
-  //       singleDataSourceInfo: {
-  //         connectionType: '',
-  //         dataSources: [],
-  //         dataClassification: '',
-  //       },
-  //       singleDataSourceErrors: {
-  //         connectionTypes: '',
-  //         dataSources: '',
-  //         dataClassification: ''
-  //       },
-  //       dataSource: 'singledatasource',
-  //     });
-  //   }
+      this.props.modifyDataFunction({
+        dataWarehouseInUse,
+        singleDataSources: dataSourceList,
+      });
+      this.setState({
+        editDataSource: false,
+        duplicateDataSouceAdded: false,
+        dataAndFunctions: {
+          dataWarehouseInUse,
+          singleDataSources: dataSourceList,
+        },
+        singleDataSourceInfo: {
+          connectionType: '',
+          dataSource: '[]',
+          dataClassification: '',
+        },
+        singleDataSourceErrors: {
+          connectionType: '',
+          dataSources: '',
+          dataClassification: ''
+        },
+        dataSource: 'singledatasource',
+      });
+    }
   };
 
   public onDataSource = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -582,54 +594,87 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     );
   };
 
-  // public setDataSources = (arr: string[]) => {
-  //   // let dataSources = dataSources;
+  public onChangeSingleDataSource = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.name;
+    const value = e.currentTarget.value;
 
-  //   // arr.forEach((element) => {
-  //   //   const result = this.props.dataSources.some((i) => i.source.includes(element));
-  //   //   if (result) {
-  //   //     // dataSources = [...dataSources];
-  //   //   } 
-  //   //   // else {
-  //   //   //   dataSources = dataSources.concat(element);
-  //   //   // }
-  //   // });
+    this.setState((prevState) => ({
+      ...{
+            ...prevState,
+            singleDataSourceInfo: {
+              ...prevState.singleDataSourceInfo,
+              [name]: value,
+            },
+          },
+    }));
+  };
 
-  //   // this.props.modifyDataSources({
-  //   //   dataSources,
-  //   // });
-  // }
+  public setDataSources = (arr: string[]) => {
+    const dataSources: any[] = [];
+    console.log(arr);
+    arr.forEach((element) => {
+      dataSources.push({ dataSource: element, weightage: 0 });
+    });
+    console.log(dataSources);
+    const singleDataSourceInfo = this.state.singleDataSourceInfo;
+    singleDataSourceInfo.dataSource = JSON.stringify(dataSources);
+    const singleDataSourceErrors = this.state.singleDataSourceErrors;
+    singleDataSourceErrors.dataSources = dataSources.length ? '' : '*Missing entry';
+    this.setState({dataSources, singleDataSourceInfo, singleDataSourceErrors});
+    console.log(this.state.dataAndFunctions);
+  }
 
   protected validateDatasourceObject = () => {
     let formValid = true;
     const errors = this.state.errors;
+    const singleDataSourceErrors = this.state.singleDataSourceErrors;
     const errorMissingEntry = '*Missing entry';
 
-    
-    if (!this.state.dataWarehouseInUseInfo.dataWarehouse) {
-      errors.dataWarehouse = errorMissingEntry;
-      formValid = false;
-    }
+    if (this.state.dataSource === 'datawarehouse') {
+      if (!this.state.dataWarehouseInUseInfo.dataWarehouse) {
+        errors.dataWarehouse = errorMissingEntry;
+        formValid = false;
+      }
 
-    if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
-      errors.commonFunctions = errorMissingEntry;
-      formValid = false;
-    }
+      if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
+        errors.commonFunctions = errorMissingEntry;
+        formValid = false;
+      }
 
-    if (
-      !this.state.dataWarehouseInUseInfo.dataClassification ||
-      this.state.dataWarehouseInUseInfo.dataClassification === 'Choose'
-    ) {
-      errors.dataClassification = errorMissingEntry;
-      formValid = false;
-    }
+      if (
+        !this.state.dataWarehouseInUseInfo.dataClassification ||
+        this.state.dataWarehouseInUseInfo.dataClassification === 'Choose'
+      ) {
+        errors.dataClassification = errorMissingEntry;
+        formValid = false;
+      }
 
-    if (
-      !this.state.dataWarehouseInUseInfo.connectionType ||
-      this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
-    ) {
-      errors.connectionType = errorMissingEntry;
-      formValid = false;
+      if (
+        !this.state.dataWarehouseInUseInfo.connectionType ||
+        this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
+      ) {
+        errors.connectionType = errorMissingEntry;
+        formValid = false;
+      }
+    } else {
+      if (
+        !this.state.singleDataSourceInfo.connectionType ||
+        this.state.singleDataSourceInfo.connectionType === 'Choose'
+      ) {
+        singleDataSourceErrors.connectionType = errorMissingEntry;
+        formValid = false;
+      }
+      if (
+        !this.state.singleDataSourceInfo.dataClassification ||
+        this.state.singleDataSourceInfo.dataClassification === 'Choose'
+      ) {
+        singleDataSourceErrors.dataClassification = errorMissingEntry;
+        formValid = false;
+      }
+      if (!JSON.parse(this.state.singleDataSourceInfo.dataSource)?.length) {
+        singleDataSourceErrors.dataSources = errorMissingEntry;
+        formValid = false;
+      }
     }
     
 
@@ -641,121 +686,121 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
     return formValid;
   };
 
-  // protected validateDatasourceModal = () => {
-  //   let formValid = true;
-  //   const errors = this.state.errors;
-  //   const singleDataSourceErrors = this.state.singleDataSourceErrors;
-  //   const errorMissingEntry = '*Missing entry';
+  protected validateDatasourceModal = () => {
+    let formValid = true;
+    const errors = this.state.errors;
+    const singleDataSourceErrors = this.state.singleDataSourceErrors;
+    const errorMissingEntry = '*Missing entry';
 
-  //   if (this.state.dataSource === 'datawarehouse') {
-  //     if (!this.state.dataWarehouseInUseInfo.dataWarehouse) {
-  //       errors.dataWarehouse = errorMissingEntry;
-  //       formValid = false;
-  //     }
+    if (this.state.dataSource === 'datawarehouse') {
+      if (!this.state.dataWarehouseInUseInfo.dataWarehouse) {
+        errors.dataWarehouse = errorMissingEntry;
+        formValid = false;
+      }
 
-  //     if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
-  //       errors.commonFunctions = errorMissingEntry;
-  //       formValid = false;
-  //     }
+      if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
+        errors.commonFunctions = errorMissingEntry;
+        formValid = false;
+      }
 
-  //     // if (!this.state.dataWarehouseInUseInfo.dataSources?.length) {
-  //     //   errors.dataSources = errorMissingEntry;
-  //     //   formValid = false;
-  //     // }
+      // if (!this.state.dataWarehouseInUseInfo.dataSources?.length) {
+      //   errors.dataSources = errorMissingEntry;
+      //   formValid = false;
+      // }
 
-  //     // if (!this.state.dataWarehouseInUseInfo.queries?.length) {
-  //     //   errors.queries = errorMissingEntry;
-  //     //   formValid = false;
-  //     // }
+      // if (!this.state.dataWarehouseInUseInfo.queries?.length) {
+      //   errors.queries = errorMissingEntry;
+      //   formValid = false;
+      // }
 
-  //     // if (!this.state.dataWarehouseInUseInfo.specificFunctions?.length) {
-  //     //   errors.specificFunctions = errorMissingEntry;
-  //     //   formValid = false;
-  //     // }
+      // if (!this.state.dataWarehouseInUseInfo.specificFunctions?.length) {
+      //   errors.specificFunctions = errorMissingEntry;
+      //   formValid = false;
+      // }
 
-  //     if (
-  //       !this.state.dataWarehouseInUseInfo.dataClassification ||
-  //       this.state.dataWarehouseInUseInfo.dataClassification === 'Choose'
-  //     ) {
-  //       errors.dataClassification = errorMissingEntry;
-  //       formValid = false;
-  //     }
+      if (
+        !this.state.dataWarehouseInUseInfo.dataClassification ||
+        this.state.dataWarehouseInUseInfo.dataClassification === 'Choose'
+      ) {
+        errors.dataClassification = errorMissingEntry;
+        formValid = false;
+      }
 
-  //     if (
-  //       !this.state.dataWarehouseInUseInfo.connectionTypes?.length ||
-  //       this.state.dataWarehouseInUseInfo.connectionTypes[0] === 'Choose'
-  //     ) {
-  //       errors.connectionTypes = errorMissingEntry;
-  //       formValid = false;
-  //     }
-  //   } else {
-  //     if (
-  //       !this.state.singleDataSourceInfo.connectionType ||
-  //       this.state.singleDataSourceInfo.connectionType === 'Choose'
-  //     ) {
-  //       singleDataSourceErrors.connectionTypes = errorMissingEntry;
-  //       formValid = false;
-  //     }
-  //     if (
-  //       !this.state.singleDataSourceInfo.dataClassification ||
-  //       this.state.singleDataSourceInfo.dataClassification === 'Choose'
-  //     ) {
-  //       singleDataSourceErrors.dataClassification = errorMissingEntry;
-  //       formValid = false;
-  //     }
-  //     if (!this.state.singleDataSourceInfo.dataSources?.length) {
-  //       singleDataSourceErrors.dataSources = errorMissingEntry;
-  //       formValid = false;
-  //     }
-  //   }
+      if (
+        !this.state.dataWarehouseInUseInfo.connectionType ||
+        this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
+      ) {
+        errors.connectionType = errorMissingEntry;
+        formValid = false;
+      }
+    } else {
+      if (
+        !this.state.singleDataSourceInfo.connectionType ||
+        this.state.singleDataSourceInfo.connectionType === 'Choose'
+      ) {
+        singleDataSourceErrors.connectionType = errorMissingEntry;
+        formValid = false;
+      }
+      if (
+        !this.state.singleDataSourceInfo.dataClassification ||
+        this.state.singleDataSourceInfo.dataClassification === 'Choose'
+      ) {
+        singleDataSourceErrors.dataClassification = errorMissingEntry;
+        formValid = false;
+      }
+      if (!this.state.singleDataSourceInfo.dataSource?.length) {
+        singleDataSourceErrors.dataSources = errorMissingEntry;
+        formValid = false;
+      }
+    }
 
-  //   setTimeout(() => {
-  //     const anyErrorDetected = document.querySelector('.error');
-  //     anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  //   }, 100);
-  //   this.setState({ errors });
-  //   return formValid;
-  // };
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    this.setState({ errors });
+    return formValid;
+  };
 
-  // protected deleteModalContent: React.ReactNode = (
-  //   <div id="contentparentdiv" className={Styles.modalContentWrapper}>
-  //     <div className={Styles.modalTitle}>Delete Data Sources Information</div>
-  //     <div className={Styles.modalContent}>This will be deleted permanently.</div>
-  //   </div>
-  // );
+  protected deleteModalContent: React.ReactNode = (
+    <div id="contentparentdiv" className={Styles.modalContentWrapper}>
+      <div className={Styles.modalTitle}>Delete Data Sources Information</div>
+      <div className={Styles.modalContent}>This will be deleted permanently.</div>
+    </div>
+  );
 
-  // protected onAcceptDeleteChanges = () => {
-  //   const { singleDataSources, dataWarehouseInUse } = this.state.dataAndFunctions;
-  //   if (this.state.isDataWarehouseSection) {
-  //     const dataSourceList = [...this.state.dataAndFunctions.dataWarehouseInUse];
-  //     dataSourceList.splice(this.state.editDataSourceIndex, 1);
-  //     this.props.modifyDataFunction({
-  //       dataWarehouseInUse: dataSourceList,
-  //       singleDataSources,
-  //     });
-  //     this.setState((prevState) => ({
-  //       dataAndFunctions: {
-  //         ...prevState.dataAndFunctions,
-  //         dataWarehouseInUse: dataSourceList,
-  //       },
-  //       showDeleteModal: false,
-  //     }));
-  //   } else {
-  //     const dataSourceList = [...this.state.dataAndFunctions.singleDataSources];
-  //     dataSourceList.splice(this.state.editDataSourceIndex, 1);
-  //     this.props.modifyDataFunction({
-  //       dataWarehouseInUse,
-  //       singleDataSources: dataSourceList,
-  //     });
-  //     this.setState((prevState) => ({
-  //       dataAndFunctions: {
-  //         ...prevState.dataAndFunctions,
-  //         singleDataSources: dataSourceList,
-  //       },
-  //       showDeleteModal: false,
-  //     }));
-  //   }
-  // };
+  protected onAcceptDeleteChanges = () => {
+    const { singleDataSources, dataWarehouseInUse } = this.state.dataAndFunctions;
+    if (this.state.isDataWarehouseSection) {
+      const dataSourceList = [...this.state.dataAndFunctions.dataWarehouseInUse];
+      dataSourceList.splice(this.state.editDataSourceIndex, 1);
+      this.props.modifyDataFunction({
+        dataWarehouseInUse: dataSourceList,
+        singleDataSources,
+      });
+      this.setState((prevState) => ({
+        dataAndFunctions: {
+          ...prevState.dataAndFunctions,
+          dataWarehouseInUse: dataSourceList,
+        },
+        showDeleteModal: false,
+      }));
+    } else {
+      const dataSourceList = [...this.state.dataAndFunctions.singleDataSources];
+      dataSourceList.splice(this.state.editDataSourceIndex, 1);
+      this.props.modifyDataFunction({
+        dataWarehouseInUse,
+        singleDataSources: dataSourceList,
+      });
+      this.setState((prevState) => ({
+        dataAndFunctions: {
+          ...prevState.dataAndFunctions,
+          singleDataSources: dataSourceList,
+        },
+        showDeleteModal: false,
+      }));
+    }
+  };
 
   protected onCancellingDeleteChanges = () => {
     this.setState({ showDeleteModal: false });
@@ -796,7 +841,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   // };
 
   public render() {
-    const requiredError = '*Missing error';
+    const requiredError = '*Missing entry';
 
     const dataSourceModalContent = (
       <div>
@@ -868,12 +913,12 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           dataSourceType={this.state.dataSource}
           errors={this.state.singleDataSourceErrors}
           requiredError={requiredError}
-          // onDropdownChange={()=>this.onChangeSourceAndFunction}
+          onDropdownChange={this.onChangeSingleDataSource}
           connectionTypes={this.props.connectionTypes}
           dataClassifications={this.props.dataClassifications}
           dataSources={this.props.dataSources}
           singleDataSourceInfo={this.state.singleDataSourceInfo}
-          // setDataSources={()=>this.setDataSources}
+          setDataSources={this.setDataSources}
         />
         <div className="btnConatiner">
           <button
@@ -909,6 +954,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
               dataAndFunctionTabError={this.state.dataAndFunctionTabError}
             />
             <SingleDataSourceList
+              dataSources={this.props.dataSources}
               dataWarehouseList={this.state.dataAndFunctions.dataWarehouseInUse}
               list={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
               currentColumnToSort={this.state.currentColumnToSort}
@@ -940,7 +986,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           scrollableContent={false}
           onCancel={this.handleModalClose}
         />
-        {/* <ConfirmModal
+        <ConfirmModal
           title="Delete Data Sources Information"
           acceptButtonTitle="Delete"
           cancelButtonTitle="Cancel"
@@ -950,7 +996,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           content={this.deleteModalContent}
           onCancel={this.onCancellingDeleteChanges}
           onAccept={this.onAcceptDeleteChanges}
-        /> */}
+        />
       </React.Fragment>
     );
   }
