@@ -158,11 +158,12 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 	}
 	
 	private String toFrequencyParam(String value) {
+		System.out.println("value is " + value);
 		switch(value) {
-		case "Daily" : return "D";
-		case "Weekly" : return "W";
-		case "Monthly" : return "M";
-		case "Yearly" : return "Y";
+		case "DAILY" : return "Daily";
+		case "WEEKLY" : return "Weekly";
+		case "MONTHLY" : return "Monthly";
+		case "YEARLY" : return "Yearly";
 		default: return "";
 		}
 	}
@@ -171,10 +172,10 @@ public class ForecastAssembler implements GenericAssembler<ForecastVO, ForecastN
 		if(value==null)
 			value = "";
 		switch(value) {
-		case "D" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.DAILY;
-		case "W" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.WEEKLY;
-		case "M" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.MONTHLY;
-		case "Y" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.YEARLY;
+		case "Daily" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.DAILY;
+		case "Weekly" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.WEEKLY;
+		case "Monthly" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.MONTHLY;
+		case "Yearly" : return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.YEARLY;
 		default: return com.daimler.data.dto.forecast.RunVO.FrequencyEnum.NO_FREQUENCY;
 		}
 	}
