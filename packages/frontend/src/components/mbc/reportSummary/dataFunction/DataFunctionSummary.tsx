@@ -83,7 +83,7 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                         <div id="dataSource">
                           <label className="input-label summary">Data Sources</label>
                           <br />
-                          {data.dataSource}
+                          {JSON.parse(data.dataSource)?.map((item:any) => item.dataSource).join(' / ')}
                         </div>
                         <div id="commonFunctions">
                           <label className="input-label summary">Data Classification</label>
