@@ -473,29 +473,14 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                       <Text style={styles.sectionTitle}>Common Functions</Text>
                       {data.commonFunctions?.length ? <Text>{data.commonFunctions?.join(', ')}</Text> : <Text>NA</Text>}
                     </View>
-                    <View style={styles.flexCol2}>
-                      <Text style={styles.sectionTitle}>Specific Functions</Text>
-                      {data.specificFunctions?.length ? (
-                        <Text>{data.specificFunctions?.join(', ')}</Text>
-                      ) : (
-                        <Text>NA</Text>
-                      )}
-                    </View>
-                    <View style={styles.flexCol2}>
-                      <Text style={styles.sectionTitle}>Queries</Text>
-                      {data.queries?.length ? <Text>{data.queries?.join(', ')}</Text> : <Text>NA</Text>}
-                    </View>
-                  </View>
-                  <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
                     <View style={styles.firstCol}>
-                      <Text style={styles.sectionTitle}>Original Data Sources</Text>
-                      {data.dataSources?.length ? <Text>{data.dataSources?.join(', ')}</Text> : <Text>NA</Text>}
+                      <Text style={styles.sectionTitle}>Data Classification</Text>
+                      {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Connection Type</Text>
-                      {data.connectionTypes?.length ? <Text>{data.connectionTypes?.join(', ')}</Text> : <Text>NA</Text>}
+                      {data.connectionType ? <Text>{data.connectionType}</Text> : <Text>NA</Text>}
                     </View>
-                    <View style={styles.flexCol2}></View>
                   </View>
                   {(dataAndFunctions.dataWarehouseInUse?.length > 1 ||
                     dataAndFunctions?.singleDataSources?.length > 0) && <View style={styles.seperatorLine} />}
@@ -513,15 +498,15 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                   <View style={styles.flexLayout} wrap={false}>
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Sources</Text>
-                      {data.dataSources?.length ? <Text>{data.dataSources?.join(', ')}</Text> : <Text>NA</Text>}
+                      {data.dataSource ? <Text>{JSON.parse(data.dataSource)?.map((item:any) => item.dataSource).join(' / ')}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
-                      <Text style={styles.sectionTitle}>Subsystems</Text>
-                      {data.subsystems?.length ? <Text>{data.subsystems?.join(', ')}</Text> : <Text>NA</Text>}
+                      <Text style={styles.sectionTitle}>Data Classification</Text>
+                      {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Connection Type</Text>
-                      {data.connectionTypes?.length ? <Text>{data.connectionTypes?.join(', ')}</Text> : <Text>NA</Text>}
+                      {data.connectionType ? <Text>{data.connectionType}</Text> : <Text>NA</Text>}
                     </View>
                   </View>
                   {dataAndFunctions.singleDataSources?.length > 1 ? <View style={styles.seperatorLine} /> : null}
