@@ -277,9 +277,9 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             },
           }),
           () => {
-            ApiClient.getCreateNewSolutionData().then((response) => {
+            ApiClient.getMasterDataSources().then((response) => {
               if (response) {
-                const dataSourcesTags: ITag[] = response[9];
+                const dataSourcesTags: ITag[] = response;
                 this.setState({
                   dataSources: dataSourcesTags
                 },()=>{
@@ -397,7 +397,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               // report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
               report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions?.dataWarehouseInUse || [];
-              report.dataAndFunctions.singleDataSources = res.dataAndFunctions?.singleDataSources;
+              report.dataAndFunctions.singleDataSources = res.dataAndFunctions?.singleDataSources || [];
                 // res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
                 //   item.dataSources =
                 //     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
