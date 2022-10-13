@@ -578,7 +578,7 @@ export interface IDescriptionRequest {
   agileReleaseTrain: string;
   integratedPortal: string;
   designGuideImplemented: IDesignGuide[] | any;
-  frontendTechnologies: IFrontEndTech[];
+  frontendTechnologies: string[];
   tags: string[];
   reportLink: string;
   reportType: string;
