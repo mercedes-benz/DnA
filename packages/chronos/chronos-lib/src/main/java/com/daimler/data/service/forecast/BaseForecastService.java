@@ -106,13 +106,22 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		String bucketName = existingForecast.getBucketName();
 		noteboookParams.setConfig(dataBricksJobDefaultConfigYml);
 		noteboookParams.setCorrelationId(correlationId);
-		noteboookParams.setExcel("");
+		if(savedInputPath!=null) {
+			if(savedInputPath.toLowerCase().contains(".xlsx")){
+				noteboookParams.setExcel(savedInputPath);
+				noteboookParams.setY("");
+			}else {
+				if(savedInputPath.toLowerCase().contains(".csv")){
+					noteboookParams.setExcel("");
+					noteboookParams.setY(savedInputPath);
+				}
+			}
+		}
 		noteboookParams.setFh(forecastHorizon.toString());
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
 		noteboookParams.setResults_folder(bucketName+"/results/"+correlationId + "-" + runName);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
-		noteboookParams.setY(savedInputPath);
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
