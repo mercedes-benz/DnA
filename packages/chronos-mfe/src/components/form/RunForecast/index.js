@@ -223,7 +223,7 @@ const RunForecast = () => {
     } else {
       formData.append("savedInputPath", null); // todo file path
     }
-    
+
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
@@ -424,11 +424,11 @@ const RunForecast = () => {
                         <option id="frequencyOption" value={0}>
                           Choose
                         </option>
-                        <option value={'DAILY'}>Daily</option>
-                        <option value={'WEEKLY'}>Weekly</option>
-                        <option value={'MONTHLY'}>Monthly</option>
-                        <option value={'YEARLY'}>Yearly</option>
-                        <option value={'NO_FREQUENCY'}>No Frequency</option>
+                        <option value={'Daily'}>Daily</option>
+                        <option value={'Weekly'}>Weekly</option>
+                        <option value={'Monthly'}>Monthly</option>
+                        <option value={'Yearly'}>Yearly</option>
+                        <option value={'No_Frequency'}>No Frequency</option>
                       </select>
                     </div>
                     <span className={classNames('error-message')}>{errors?.frequency?.message}</span>
