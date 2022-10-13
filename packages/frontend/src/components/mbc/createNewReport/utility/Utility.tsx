@@ -5,7 +5,7 @@ import {
   // IDataSourceMaster,
   IDatawarehouseInItem,
   IDesignGuide,
-  IFrontEndTech,
+  // IFrontEndTech,
   // IIntegratedPortal,
   IProductPhase,
   IProductStatus,
@@ -16,11 +16,11 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
   requestBody.data.description.department = requestBody.data.description.department?.toString() as any;
   requestBody.data.description.frontendTechnologies =
     requestBody.data.description.frontendTechnologies?.length == 1 &&
-    requestBody.data.description.frontendTechnologies[0].name == 'Choose'
+    requestBody.data.description.frontendTechnologies[0] == 'Choose'
       ? null
       : (requestBody.data.description.frontendTechnologies
-          ?.filter((item: IFrontEndTech) => item.name !== 'Choose')
-          ?.map((item: IFrontEndTech) => item.name) as any[]);
+          ?.filter((item: string) => item !== 'Choose')
+          ?.map((item: string) => item) as any[]);
   requestBody.data.description.agileReleaseTrain = requestBody.data.description.agileReleaseTrain?.toString() as any; 
     // requestBody.data.description.agileReleaseTrains?.length > 0
     //   ? (requestBody.data.description.agileReleaseTrains?.map((item: IART) => item.name) as any[])
