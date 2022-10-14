@@ -91,7 +91,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             <div>
               <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
                 <label id="kpinames" htmlFor="kpinames" className="input-label">
-                  Name<sup>*</sup>
+                  KPI Name<sup>*</sup>
                 </label>
                 <div className="custom-select">
                   <select
@@ -154,7 +154,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             <div>
               <div className={classNames('input-field-group include-error', this.state.errors.kpiLink ? 'error' : '')}>
                 <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
-                  KPI-Link
+                  KPI Link-Wiki
                 </label>
                 <input
                   type="text"
@@ -179,7 +179,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               containerId={'reportKpiComment'}
               name={'comment'}
               labelId={'reportKpiCommentLabel'}
-              label={'Comment'}
+              label={'KPI Description'}
               rows={50}
               value={this.state.kpiInfo.comment}
               required={false}

@@ -311,6 +311,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         report,
       },
       () => {
+        
         this.setOpenTabs(report.openSegments);
         SelectBox.defaultSetup();
         Tabs.defaultSetup();
