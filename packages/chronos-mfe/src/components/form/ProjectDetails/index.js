@@ -15,6 +15,7 @@ import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../../apis/chronos.api';
 import Spinner from '../../shared/spinner/Spinner';
+import { Envs } from '../../../Utility/envs';
 
 const ProjectDetails = () => {
   const {id: projectId} = useParams();
@@ -193,7 +194,10 @@ const ProjectDetails = () => {
                   <button className={Styles.generateApiKeyBtn} onClick={() => setGenerateApiKey(false)}>
                     Generate API Key
                   </button>
-                  <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p>
+                  {
+                    Envs.ENABLE_CHRONOS_ONEAPI &&
+                      <p className={Styles.oneApiLink}>or go to <a href={Envs.CHRONOS_ONEAPI_URL}>oneAPI</a></p>
+                  }
                 </div>
               }
               {
