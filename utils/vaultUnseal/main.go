@@ -40,7 +40,6 @@ func UnsealVault(client *vault.Client) {
 	Info("Unsealing the vault")
 	unsealKeys := strings.Split(SetEnv("UNSEAL_KEYS"), ",")
 	for _, v := range unsealKeys {
-		Info("Unsealing with key: %v", v)
 		_, err := client.Sys().Unseal(v)
 		CheckIfError(err)
 	}
