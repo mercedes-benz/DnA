@@ -16,17 +16,16 @@ spec:
             app: {{ .Chart.Name }}
         spec:
           restartPolicy: {{ .Values.restartPolicy }}
+          serviceAccountName: vault
           containers:
             - name: {{ .Chart.Name }}
               image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
-              args:
-                - unseal
-                - --address={{ required "A address is required for Vault Server" .Values.vault.address }}
-                {{ range .Values.vault.shards }}
-                - --shard={{ required "A Shard (unseal key) is required" . }}
-                {{ end }}
+              {{- with .Values.envs }}            
+              env:
+              {{- toYaml . | nindent 16 }}
+              {{- end }} 
           securityContext:
-            runAsUser: 1001
-            runAsGroup: 1001
-            fsGroup: 1001
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000

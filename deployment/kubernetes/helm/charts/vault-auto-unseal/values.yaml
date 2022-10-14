@@ -3,12 +3,14 @@ restartPolicy: OnFailure
 successfulJobsHistoryLimit: 1
 namespace: vault
 image:
-  name: ghcr.io/omegion/vault-unseal
-  tag: v0.1.0
+  name: ""
+  tag: latest
   pullPolicy: IfNotPresent
 
-vault:
-  # Vault Server address with scheme e.g. https://vault.server.example.com
-  address: "http://vault:8200"
-  # Vault Server Unseal keys, suggested to enter at least 3
-  shards: []
+envs:
+  - name: VAULT_ADDR
+    value: http://vault:8200
+  - name: VAULT_TOKEN
+    value: ""
+  - name: UNSEAL_KEYS
+    value: ""        
