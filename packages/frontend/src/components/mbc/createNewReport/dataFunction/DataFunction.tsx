@@ -611,17 +611,14 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
 
   public setDataSources = (arr: string[]) => {
     const dataSources: any[] = [];
-    console.log(arr);
     arr.forEach((element) => {
       dataSources.push({ dataSource: element, weightage: 0 });
     });
-    console.log(dataSources);
     const singleDataSourceInfo = this.state.singleDataSourceInfo;
     singleDataSourceInfo.dataSource = JSON.stringify(dataSources);
     const singleDataSourceErrors = this.state.singleDataSourceErrors;
     singleDataSourceErrors.dataSources = dataSources.length ? '' : '*Missing entry';
     this.setState({dataSources, singleDataSourceInfo, singleDataSourceErrors});
-    console.log(this.state.dataAndFunctions);
   }
 
   protected validateDatasourceObject = () => {
