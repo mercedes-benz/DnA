@@ -16,7 +16,6 @@ spec:
             app: {{ .Chart.Name }}
         spec:
           restartPolicy: {{ .Values.restartPolicy }}
-          serviceAccountName: vault
           containers:
             - name: {{ .Chart.Name }}
               image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
