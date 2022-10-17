@@ -425,26 +425,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  // public getCustomerDepartments = (results: ITagResult[]) => {
-  //   return ReportsApiClient.getCustomerDepartments()
-  //     .then((res: any) => {
-  //       if (res) {
-  //         res.data?.forEach((dep: IFitlerCategory) => {
-  //           results.push({ category: this.state.descriptiondepartement, id: dep.id + '', name: dep.name });
-  //         });
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       this.setState(
-  //         {
-  //           results: [],
-  //         },
-  //         () => {
-  //           this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-  //         },
-  //       );
-  //     });
-  // };
   public getTags = (results: ITagResult[]) => {
     return ReportsApiClient.getTags()
       .then((res: any) => {
@@ -1530,26 +1510,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         showCommanFnTagsMissingError: false,
       });
     }
-    // if (!this.state.datawareHouseItems.specificFunctions.length) {
-    //   this.setState({
-    //     showSpecificFnTagsMissingError: true,
-    //   });
-    //   formValidationStatus = false;
-    // } else {
-    //   this.setState({
-    //     showSpecificFnTagsMissingError: false,
-    //   });
-    // }
-    // if (!this.state.datawareHouseItems.dataSources.length) {
-    //   this.setState({
-    //     showDataSourcesTagsMissingError: true,
-    //   });
-    //   formValidationStatus = false;
-    // } else {
-    //   this.setState({
-    //     showDataSourcesTagsMissingError: false,
-    //   });
-    // }
     if (!this.state.datawareHouseItems.connectionType.length) {
       this.setState({
         showConnectionTypesTagsMissingError: true,
@@ -1560,16 +1520,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         showConnectionTypesTagsMissingError: false,
       });
     }
-    // if (!this.state.datawareHouseItems.queries.length) {
-    //   this.setState({
-    //     showQueriesTagsMissingError: true,
-    //   });
-    //   formValidationStatus = false;
-    // } else {
-    //   this.setState({
-    //     showQueriesTagsMissingError: false,
-    //   });
-    // }
     return formValidationStatus;
   };
   protected onTagAddItem = () => {
@@ -1577,45 +1527,39 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       updateConfirmModelOverlay: false,
     });
     const itemToAddCategories = this.state.itemToAddCategories;
-    // if (itemToAddCategories === 'Data & Function - Data warehouse') {
-    //   if (this.addDatawarehouseItemFormValidation()) {
-    //     this.addDataWareHouseInUse();
-    //   }
-    // } else {
-      if (this.addItemFormValidation()) {
-        if (itemToAddCategories === 'Description - Front End Technologies') {
-          this.onTagAddCategoryItem('frontendtechnologies');
-        } else if (itemToAddCategories === 'Description - Integrated In Portal') {
-          this.onTagAddCategoryItem('integratedportals');
-        } else if (itemToAddCategories === 'Kpi - Reporting Cause') {
-          this.onTagAddCategoryItem('reportingcauses');
-        } else if (itemToAddCategories === 'Description - Statuses') {
-          this.onTagAddCategoryItem('statuses');
-        } else if (itemToAddCategories === 'Customers - MB Legal Entities') {
-          this.onTagAddCategoryItem('legalentities');
-        } else if (itemToAddCategories === 'E2-Departments') {
-          this.onTagAddCategoryItem('departments');
-        } else if (itemToAddCategories === 'Data & Function - Single Data Source - Data Source') {
-          this.onTagAddCategoryItem('datasources');
-        } else if (itemToAddCategories === 'Data & Function - Connection Types') {
-          this.onTagAddCategoryItem('connectiontypes');
-        } else if (itemToAddCategories === 'Description - Agile Release Train') {
-          this.onTagAddCategoryItem('agilereleasetrains');
-        } else if (itemToAddCategories === 'Description - Tags') {
-          this.onTagAddCategoryItem('tags');
-        } else if (itemToAddCategories === 'Customer - Levels') {
-          this.onTagAddCategoryItem('levels');
-        } else if (itemToAddCategories === 'Kpi - KPI Name') {
-          this.onTagAddCategoryItem('kpinames');
-        } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Data Warehouse') {
-          this.onTagAddCategoryItem('datawarehouses');
-        } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Common Functions') {
-          this.onTagAddCategoryItem('commonfunctions');
-        } else if (itemToAddCategories === 'Data & Function - Data Classifications') {
-          this.onTagAddCategoryItem('dataclassifications');
-        }
+    if (this.addItemFormValidation()) {
+      if (itemToAddCategories === 'Description - Front End Technologies') {
+        this.onTagAddCategoryItem('frontendtechnologies');
+      } else if (itemToAddCategories === 'Description - Integrated In Portal') {
+        this.onTagAddCategoryItem('integratedportals');
+      } else if (itemToAddCategories === 'Kpi - Reporting Cause') {
+        this.onTagAddCategoryItem('reportingcauses');
+      } else if (itemToAddCategories === 'Description - Statuses') {
+        this.onTagAddCategoryItem('statuses');
+      } else if (itemToAddCategories === 'Customers - MB Legal Entities') {
+        this.onTagAddCategoryItem('legalentities');
+      } else if (itemToAddCategories === 'E2-Departments') {
+        this.onTagAddCategoryItem('departments');
+      } else if (itemToAddCategories === 'Data & Function - Single Data Source - Data Source') {
+        this.onTagAddCategoryItem('datasources');
+      } else if (itemToAddCategories === 'Data & Function - Connection Types') {
+        this.onTagAddCategoryItem('connectiontypes');
+      } else if (itemToAddCategories === 'Description - Agile Release Train') {
+        this.onTagAddCategoryItem('agilereleasetrains');
+      } else if (itemToAddCategories === 'Description - Tags') {
+        this.onTagAddCategoryItem('tags');
+      } else if (itemToAddCategories === 'Customer - Levels') {
+        this.onTagAddCategoryItem('levels');
+      } else if (itemToAddCategories === 'Kpi - KPI Name') {
+        this.onTagAddCategoryItem('kpinames');
+      } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Data Warehouse') {
+        this.onTagAddCategoryItem('datawarehouses');
+      } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Common Functions') {
+        this.onTagAddCategoryItem('commonfunctions');
+      } else if (itemToAddCategories === 'Data & Function - Data Classifications') {
+        this.onTagAddCategoryItem('dataclassifications');
       }
-    // }
+    }
   };
 
   protected onTagUpdateItem = () => {
