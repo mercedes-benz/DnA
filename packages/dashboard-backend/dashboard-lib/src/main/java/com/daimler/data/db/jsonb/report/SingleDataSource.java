@@ -28,6 +28,7 @@
 package com.daimler.data.db.jsonb.report;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -43,7 +44,7 @@ public class SingleDataSource implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
 
-	private String dataSource;
+	private List<DataSource> dataSources;
 	private String dataClassification;
 	private String connectionType;
 }

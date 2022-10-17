@@ -274,10 +274,10 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
-							if (StringUtils.hasText(singleDataSource.getDataSource())
-									&& singleDataSource.getDataSource().equals(name)) {
-								singleDataSource.setDataSource(null);
-							}
+//							if (StringUtils.hasText(singleDataSource.getDataSource())
+//									&& singleDataSource.getDataSource().equals(name)) {
+//								singleDataSource.setDataSource(null);
+//							}
 						}
 					}
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
@@ -465,12 +465,12 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				} else if (category.equals(CATEGORY.DATASOURCE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
-						for (SingleDataSource singleDataSource : singleDataSources) {
-							if (StringUtils.hasText(singleDataSource.getDataSource())
-									&& singleDataSource.getDataSource().equals(oldValue)) {
-								singleDataSource.setDataSource(newValue);
-							}
-						}
+//						for (SingleDataSource singleDataSource : singleDataSources) {
+//							if (StringUtils.hasText(singleDataSource.getDataSource())
+//									&& singleDataSource.getDataSource().equals(oldValue)) {
+//								singleDataSource.setDataSource(newValue);
+//							}
+//						}
 					}
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();

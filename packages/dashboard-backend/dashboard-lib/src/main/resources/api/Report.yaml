@@ -471,9 +471,8 @@ definitions:
         description: ""
         type: string
         minLength: 1
-      comment:
+      description:
         type: string
-        description: ""
       kpiLink:
         type: string
         description: "KPI - link"        
@@ -505,9 +504,10 @@ definitions:
   SingleDataSourceVO:
     type: object
     properties: 
-      dataSource:
-        type: string
-        minLength: 1            
+      dataSources:
+        type: array
+        items:
+          $ref: "#/definitions/DataSourceVO"          
       dataClassification: 
         type: string
         minLength: 1
@@ -515,9 +515,29 @@ definitions:
         type: string
         minLength: 1
     required:
-      - dataSource
+      - dataSources
       - dataClassification
       - connectionType
+      
+  DataSourceVO:
+    type: object
+    properties:
+      id:
+        type: string
+        minLength: 1
+        description: id of dataSource         
+      name:
+        type: string
+        minLength: 1
+        description: "DataSource name"
+      weightage:
+        type: number
+        minLength: 1
+        description: "Weightage of dataSource in %"
+    required:
+      - id
+      - name
+      - weightage              
       
   DataAndFunctionVO:
     type: object
