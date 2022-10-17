@@ -240,8 +240,8 @@ export class ReportsApiClient {
   public static getFronEndTechnologies(): Promise<IReportListItems[]> {
     return this.get('lov/frontendtechnologies');
   }
-  public static getRessort(): Promise<IReportListItems[]> {
-    return this.get('lov/ressort');
+  public static getLegalEntities(): Promise<IReportListItems[]> {
+    return this.get('lov/legalentities');
   }
   public static getDepartments(): Promise<IReportListItems[]> {
     return this.get('lov/customer/departments');
@@ -255,14 +255,14 @@ export class ReportsApiClient {
   public static getAgileReleaseTrain(): Promise<IReportListItems[]> {
     return this.get('lov/agilereleasetrains');
   }
-  public static getGetHierarchies(): Promise<IReportListItems[]> {
-    return this.get('lov/hierarchies');
+  public static getDataClassifications(): Promise<IReportListItems[]> {
+    return this.get('lov/dataclassifications');
   }
-  public static getHierarchies(): Promise<IReportListItems[]> {
-    return this.get('lov/hierarchies');
+  public static getLevels(): Promise<IReportListItems[]> {
+    return this.get('lov/levels');
   }
-  public static getDatawareHouseInUse(): Promise<IReportListItems[]> {
-    return this.get('datawarehouses');
+  public static getDatawareHouses(): Promise<IReportListItems[]> {
+    return this.get('lov/datawarehouses');
   }
   public static getCommonFunctions(): Promise<IReportListItems[]> {
     return this.get('lov/commonfunctions');
@@ -279,8 +279,8 @@ export class ReportsApiClient {
   public static getReportingCause(): Promise<IReportListItems[]> {
     return this.get('lov/reportingcauses');
   }
-  public static getDepartmentsComman(): Promise<IReportListItems[]> {
-    return this.get('departments');
+  public static getCustomerDepartments(): Promise<IReportListItems[]> {
+    return this.get('lov/customer/departments');
   }
   public static getTags(): Promise<IReportListItems[]> {
     return this.get('tags');
@@ -294,9 +294,9 @@ export class ReportsApiClient {
     if (categoryType === 'departments') {
       return this.post(`lov/customer/${categoryType}/`, data);
     }
-    if (categoryType === 'descriptiondepartement') {
-      return this.post(`departments`, data);
-    }
+    // if (categoryType === 'descriptiondepartement') {
+    //   return this.post(`departments`, data);
+    // }
     if (categoryType === 'tags') {
       return this.post(`tags`, data);
     }
@@ -328,12 +328,6 @@ export class ReportsApiClient {
   public static deleteCategoryItem(categoryType: string, id: string): Promise<IReportListItems[]> {
     if (categoryType === 'departments') {
       return this.delete(`lov/customer/${categoryType}/${id}`);
-    }
-    if (categoryType === 'descriptiondepartement') {
-      return this.delete(`departments/${id}`);
-    }
-    if (categoryType === 'datawarehouses') {
-      return this.delete(`${categoryType}/${id}`);
     }
     if (categoryType === 'tags') {
       return this.delete(`tags/${id}`);
