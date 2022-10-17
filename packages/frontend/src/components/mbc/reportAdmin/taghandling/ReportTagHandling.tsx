@@ -824,19 +824,19 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         break;
 
       case 1:
+        await this.getDepartments(results);
+        break;  
+      case 2:
         await this.getFronEndTechnologies(results);
         break;
-      case 2:
+      case 3:
         await this.getIntegratedPortal(results);
         break;
-      case 3:
+      case 4:
         await this.getStatuses(results);
         break;
-      case 4:
-        await this.getAgileReleaseTrain(results); 
-        break;
       case 5:
-        await this.getDepartments(results);
+        await this.getAgileReleaseTrain(results); 
         break;
       case 6:
         await this.getTags(results); 
@@ -1378,20 +1378,20 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const tagToBeDeleted = this.state.tagToBeDeleted;
     switch (tagToBeDeleted.category.id) {
       case 1:
-        this.onTagDeleteCategoryItem('frontendtechnologies');
-        break;
-      case 2:
-        this.onTagDeleteCategoryItem('integratedportals');
-        break;
-      case 3:
-        this.onTagDeleteCategoryItem('statuses');
-        break;
-      case 4:
-        this.onTagDeleteCategoryItem('agilereleasetrains');
-        break;
-      case 5:
         this.onTagDeleteCategoryItem('departments');
         break;
+      case 2:
+        this.onTagDeleteCategoryItem('frontendtechnologies');
+        break;
+      case 3:
+        this.onTagDeleteCategoryItem('integratedportals');
+        break;
+      case 4:
+        this.onTagDeleteCategoryItem('statuses');
+        break;
+      case 5:
+        this.onTagDeleteCategoryItem('agilereleasetrains');
+        break; 
       case 6:
         this.onTagDeleteCategoryItem('tags');
         break;
@@ -1570,20 +1570,20 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     if (this.updateItemFormValidation()) {
       switch (itemToUpdate.category.id) {
         case 1:
-          this.onTagUpdateCategoryItem('frontendtechnologies');
-          break;
-        case 2:
-          this.onTagUpdateCategoryItem('integratedportals');
-          break;
-        case 3:
-          this.onTagUpdateCategoryItem('statuses');
-          break;
-        case 4:
-          this.onTagUpdateCategoryItem('agilereleasetrains');
-          break;
-        case 5:
           this.onTagUpdateCategoryItem('departments');
           break;
+        case 2:
+          this.onTagUpdateCategoryItem('frontendtechnologies');
+          break;
+        case 3:
+          this.onTagUpdateCategoryItem('integratedportals');
+          break;
+        case 4:
+          this.onTagUpdateCategoryItem('statuses');
+          break;
+        case 5:
+          this.onTagUpdateCategoryItem('agilereleasetrains');
+          break;        
         case 6:
           this.onTagUpdateCategoryItem('tags');
           break;
