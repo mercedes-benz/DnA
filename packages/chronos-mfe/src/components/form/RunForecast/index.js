@@ -48,6 +48,7 @@ const RunForecast = () => {
   const [showExistingFiles, setShowExistingFiles] = useState(false);
   const [expertView, setExpertView] = useState(false);
   const [savedFiles, setSavedFiles] = useState([]);
+  const [isExistingFile, setIsExistingFile] = useState(false);
   
 
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
@@ -223,7 +224,7 @@ const RunForecast = () => {
     } else {
       formData.append("savedInputPath", null); // todo file path
     }
-    
+
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
@@ -263,10 +264,10 @@ const RunForecast = () => {
               <div>
                 <p>
                   Please upload your Input File and make sure it&apos;s structured according to our{' '}
-                  <Link to="help">forecasting guidelines</Link>.
+                  <Link to="/help">forecasting guidelines</Link>.
                 </p>
                 <p>
-                  For a quick start you can download the default template (.xlsx) <a href="#/">right here</a>.
+                  For a quick start you can download the default template (.xlsx) <a href={`/chronos-templates/Chronos_Forecasting_Template.xltx`} download={true}>right here</a>.
                 </p>
               </div>
               {!isSelectedFile ? (
@@ -278,7 +279,7 @@ const RunForecast = () => {
                     className={classNames('upload-container', Styles.uploadContainer)}
                   >
                     <input type="file" id="file" name="file" 
-                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); }})}
+                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); setIsExistingFile(false); }})}
                       accept=".csv, .xlsx"
                       />
                     <div className={Styles.rcUpload}>
@@ -297,6 +298,8 @@ const RunForecast = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowExistingFiles(true);
+                            setKeepExistingFiles(false);
+                            setIsExistingFile(true);
                           }}
                         >
                           <p>
@@ -324,6 +327,7 @@ const RunForecast = () => {
                         setKeepExistingFiles(!keepExistingFiles);
                       }}
                       checked={keepExistingFiles}
+                      disabled={isExistingFile}
                     />
                   </span>
                   <span className="label">Keep file for future use</span>
@@ -424,11 +428,11 @@ const RunForecast = () => {
                         <option id="frequencyOption" value={0}>
                           Choose
                         </option>
-                        <option value={'DAILY'}>Daily</option>
-                        <option value={'WEEKLY'}>Weekly</option>
-                        <option value={'MONTHLY'}>Monthly</option>
-                        <option value={'YEARLY'}>Yearly</option>
-                        <option value={'NO_FREQUENCY'}>No Frequency</option>
+                        <option value={'Daily'}>Daily</option>
+                        <option value={'Weekly'}>Weekly</option>
+                        <option value={'Monthly'}>Monthly</option>
+                        <option value={'Yearly'}>Yearly</option>
+                        <option value={'No_Frequency'}>No Frequency</option>
                       </select>
                     </div>
                     <span className={classNames('error-message')}>{errors?.frequency?.message}</span>
