@@ -3,18 +3,22 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/vault/api"
 	vault "github.com/hashicorp/vault/api"
 )
 
+var httpClient = &http.Client{
+	Timeout: 10 * time.Second,
+}
+
 func main() {
 	Info("Creating vault client")
-	config := vault.DefaultConfig()
-	config.Address = SetEnv("VAULT_ADDR")
-	client, err := vault.NewClient(config)
+	client, err := api.NewClient(&api.Config{Address: SetEnv("VAULT_ADDR"), HttpClient: httpClient})
 	CheckIfError(err)
 	client.SetToken(SetEnv("VAULT_TOKEN"))
 	Info("Vault Client Created")
@@ -24,7 +28,7 @@ func main() {
 	CheckIfError(err)
 	if !sealStatus.Sealed {
 		Info("Vault is already unsealed")
-		return
+		os.Exit(0)
 	}
 	Info("Vault sealed")
 
@@ -72,20 +76,10 @@ func EnableKubeAuth(c *vault.Logical) {
 }
 
 func ConfigKubeAuth(c *vault.Logical) {
-	Info("Reading CA CERT")
-	pemFile, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
-	CheckIfError(err)
-	caCert := string(pemFile)
-	Info("Reading token")
-	token, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
-	CheckIfError(err)
-	jwt_token := string(token)
 	Info("Writing kubernetes config")
 	kconfig, err := c.Write("auth/kubernetes/config", map[string]interface{}{
-		"issuer":             "https://kubernetes.default.svc.cluster.local",
-		"token_reviewer_jwt": jwt_token,
-		"kubernetes_host":    "https://" + SetEnv("KUBERNETES_SERVICE_HOST") + ":" + SetEnv("KUBERNETES_SERVICE_PORT"),
-		"kubernetes_ca_cert": caCert,
+		"issuer":          "https://kubernetes.default.svc.cluster.local",
+		"kubernetes_host": "https://" + SetEnv("KUBERNETES_SERVICE_HOST") + ":" + SetEnv("KUBERNETES_SERVICE_PORT"),
 	})
 	CheckIfError(err)
 	if kconfig != nil {
