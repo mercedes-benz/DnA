@@ -890,7 +890,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           buttonAlignment="right"
           show={this.state.addCustomer || this.state.editCustomer}
           content={addCustomerModelContent}
-          scrollableContent={false}
+          scrollableContent={true}
           onCancel={this.addCustomerModelClose}
         />
         {/* {this.state.showAddTeamMemberModal && (
