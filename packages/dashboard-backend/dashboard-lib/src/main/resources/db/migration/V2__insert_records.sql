@@ -64,3 +64,15 @@ INSERT INTO reporting_cause_sql (id, name) VALUES
 INSERT INTO connection_type_sql (id, name) VALUES
 (DEFAULT, 'Import'),
 (DEFAULT,'Live Connection');
+
+INSERT INTO common_function_sql (id, name) VALUES
+(DEFAULT, 'CommonFunction 1'),
+(DEFAULT,'CommonFunction 2');
+
+INSERT INTO datawarehouse_sql (id, name) VALUES
+(DEFAULT, 'DataWarehouse 1'),
+(DEFAULT,'DataWarehouse 2');
+
+INSERT INTO legal_entity_sql (id, name) VALUES
+(DEFAULT, 'LegalEntity 1'),
+(DEFAULT,'LegalEntity 2');
