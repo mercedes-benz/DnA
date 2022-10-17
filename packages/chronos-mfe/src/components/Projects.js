@@ -19,6 +19,7 @@ import FirstRun from './shared/firstRun/FirstRun';
 import Notification from '../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import Breadcrumb from './shared/breadcrumb/Breadcrumb';
+import { Envs } from '../Utility/envs';
 
 const ForeCastingProjects = ({ user, history }) => {
   const [createProject, setCreateProject] = useState(false);
@@ -234,7 +235,10 @@ const ForeCastingProjects = ({ user, history }) => {
                   <button className={Styles.generateApiKeyBtn} onClick={() => setGenerateApiKey(false)}>
                     Generate API Key
                   </button>
-                  <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p>
+                  {
+                    Envs.ENABLE_CHRONOS_ONEAPI &&
+                      <p className={Styles.oneApiLink}>or go to <a href={Envs.CHRONOS_ONEAPI_URL}>oneAPI</a></p>
+                  }
                 </div>
               }
               {

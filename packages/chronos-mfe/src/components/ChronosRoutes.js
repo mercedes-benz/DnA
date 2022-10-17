@@ -23,6 +23,11 @@ const protectedRoutes = [
     path: '/',
   },
   {
+    component: ChronosHelp,
+    exact: true,
+    path: '/help',
+  },
+  {
     component: ForecastForm,
     exact: true,
     path: '/project/:id',
@@ -31,11 +36,6 @@ const protectedRoutes = [
     component: ForecastingResults,
     exact: true,
     path: '/results',
-  },
-  {
-    component: ChronosHelp,
-    exact: true,
-    path: '/help',
   },
 ];
 
