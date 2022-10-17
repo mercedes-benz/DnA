@@ -80,7 +80,6 @@ export interface ITagHandlingState {
   singleDataSource: string;
   datawerehouseinuse: string;
   datawareHouseItems: IDatawarehouseInItem;
-  descriptiondepartement: IFitlerCategory;
   tagsList: IFitlerCategory;
   updateConfirmModelOverlay: boolean;
   dropdownTouched: boolean;
@@ -92,21 +91,20 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     super(props);
     this.state = {
       categories: [{ id: 0, name: 'Select' }],
-      fronEndTechnologies: { id: 1, name: 'FrontEnd Technologies' },
-      integratedPortal: { id: 2, name: 'Integrated In Portal' },
-      reportingCause: { id: 5, name: 'Reporting Cause' },
-      statuses: { id: 3, name: 'Statuses' },
-      legalEntity: { id: 4, name: 'MB Legal Entity' },
-      departments: { id: 5, name: 'Departments' },
-      datawerehouse: { id: 6, name: 'Dataware house' },
-      dataSource: { id: 7, name: 'Data Source' },
-      connectionTypes: { id: 8, name: 'Connection Types' },
-      agileReleaseTrain: { id: 9, name: 'Agile Release Train' },
-      level: { id: 10, name: 'Levels' },
-      descriptiondepartement: { id: 11, name: 'Departments' },
-      tagsList: { id: 12, name: 'Tags' },
-      getKpiName: { id: 13, name: 'Kpi Names' },
-      commonFunctions: { id: 14, name: 'Common Functions' },
+      departments: { id: 1, name: 'Departments' },
+      fronEndTechnologies: { id: 2, name: 'FrontEnd Technologies' },
+      integratedPortal: { id: 3, name: 'Integrated In Portal' },
+      statuses: { id: 4, name: 'Statuses' },
+      agileReleaseTrain: { id: 5, name: 'Agile Release Train' },
+      tagsList: { id: 6, name: 'Tags' },
+      level: { id: 7, name: 'Levels' },
+      legalEntity: { id: 8, name: 'MB Legal Entity' },
+      getKpiName: { id: 9, name: 'Kpi Names' },
+      reportingCause: { id: 10, name: 'Reporting Cause' },
+      datawerehouse: { id: 11, name: 'Dataware house' },
+      commonFunctions: { id: 12, name: 'Common Functions' },
+      dataSource: { id: 13, name: 'Data Source' },
+      connectionTypes: { id: 14, name: 'Connection Types' },
       dataClassification: { id: 15, name: 'Data Classifications' },
       currentFilterCategory: { id: 0, name: 'Select' },
       selectedDefaultCat: 'Select',
@@ -149,23 +147,23 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         },
         {
           id: 1,
-          name: 'Description - Front End Technologies',
+          name: 'E2-Departments',
         },
         {
           id: 2,
-          name: 'Description - Integrated In Portal',
+          name: 'Description - Front End Technologies',
         },
         {
           id: 3,
-          name: 'Description - Statuses',
+          name: 'Description - Integrated In Portal',
         },
         {
           id: 4,
-          name: 'Description - Agile Release Train',
+          name: 'Description - Statuses',
         },
         {
           id: 5,
-          name: 'E2-Departments',
+          name: 'Description - Agile Release Train',
         },
         {
           id: 6,
@@ -264,32 +262,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       });
     }
   };
-  // protected setSpecificFnTags = (arr: string[]) => {
-  //   const chipsItemAdd = this.state.datawareHouseItems;
-  //   chipsItemAdd.specificFunctions = arr;
-  //   if (chipsItemAdd.specificFunctions.length > 0) {
-  //     this.setState({
-  //       showSpecificFnTagsMissingError: false,
-  //     });
-  //   } else {
-  //     this.setState({
-  //       showSpecificFnTagsMissingError: true,
-  //     });
-  //   }
-  // };
-  // protected setQueriesTags = (arr: string[]) => {
-  //   const chipsItemAdd = this.state.datawareHouseItems;
-  //   chipsItemAdd.queries = arr;
-  //   if (chipsItemAdd.queries.length > 0) {
-  //     this.setState({
-  //       showQueriesTagsMissingError: false,
-  //     });
-  //   } else {
-  //     this.setState({
-  //       showQueriesTagsMissingError: true,
-  //     });
-  //   }
-  // };
   protected setConnectionTypesTags = (arr: string[]) => {
     // const chipsItemAdd = this.state.datawareHouseItems;
     // chipsItemAdd.connectionType = arr;
@@ -315,27 +287,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
   //       showDataSourcesTagsMissingError: true,
   //     });
   //   }
-  // };
-
-  // public getProductPhases = (results: ITagResult[]) => {
-  //   return ReportsApiClient.getProductPhases()
-  //     .then((res: any) => {
-  //       if (res) {
-  //         res.data?.forEach((prdPhase: IFitlerCategory) => {
-  //           results.push({ category: this.state.productPhases, id: prdPhase.id + '', name: prdPhase.name });
-  //         });
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       this.setState(
-  //         {
-  //           results: [],
-  //         },
-  //         () => {
-  //           this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-  //         },
-  //       );
-  //     });
   // };
   public getStatuses = (results: ITagResult[]) => {
     return ReportsApiClient.getStatuses()
@@ -474,26 +425,26 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getCustomerDepartments = (results: ITagResult[]) => {
-    return ReportsApiClient.getCustomerDepartments()
-      .then((res: any) => {
-        if (res) {
-          res.data?.forEach((dep: IFitlerCategory) => {
-            results.push({ category: this.state.descriptiondepartement, id: dep.id + '', name: dep.name });
-          });
-        }
-      })
-      .catch((error) => {
-        this.setState(
-          {
-            results: [],
-          },
-          () => {
-            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-          },
-        );
-      });
-  };
+  // public getCustomerDepartments = (results: ITagResult[]) => {
+  //   return ReportsApiClient.getCustomerDepartments()
+  //     .then((res: any) => {
+  //       if (res) {
+  //         res.data?.forEach((dep: IFitlerCategory) => {
+  //           results.push({ category: this.state.descriptiondepartement, id: dep.id + '', name: dep.name });
+  //         });
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       this.setState(
+  //         {
+  //           results: [],
+  //         },
+  //         () => {
+  //           this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+  //         },
+  //       );
+  //     });
+  // };
   public getTags = (results: ITagResult[]) => {
     return ReportsApiClient.getTags()
       .then((res: any) => {
@@ -877,8 +828,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const filterCategory = this.state.currentFilterCategory;
     switch (filterCategory.id) {
       case 0:
-        // await this.getProductPhases(results);
-        // await this.getDesignGuideImplementation(results);
         await this.getFronEndTechnologies(results);
         await this.getIntegratedPortal(results);
         await this.getReportingCause(results);
@@ -888,7 +837,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         await this.getDepartments(results);
         await this.getDatawareHouses(results);
         await this.getDataSource(results);
-        // await this.getSubSystem(results);
         await this.getConnectionType(results);
         await this.getAgileReleaseTrain(results);
         await this.getLevels(results);
@@ -1193,60 +1141,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                     </div>
                   </div>
                 </div>
-                {/* <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
-                  <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
-                    <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-                      <div>
-                        <Tags
-                          tags={undefined}
-                          title={'Specific Function'}
-                          max={100}
-                          chips={this.state.datawareHouseItems?.specificFunctions}
-                          setTags={this.setSpecificFnTags}
-                          isMandatory={true}
-                          showMissingEntryError={this.state.showSpecificFnTagsMissingError}
-                          {...this.props}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
-                  <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
-                    <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-                      <div>
-                        <Tags
-                          tags={undefined}
-                          title={'Queries'}
-                          max={100}
-                          chips={this.state.datawareHouseItems?.queries}
-                          setTags={this.setQueriesTags}
-                          isMandatory={true}
-                          showMissingEntryError={this.state.showQueriesTagsMissingError}
-                          {...this.props}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
-                  <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
-                    <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-                      <div>
-                        <Tags
-                          tags={undefined}
-                          title={'Data Sources'}
-                          max={100}
-                          chips={this.state.datawareHouseItems?.dataSources}
-                          setTags={this.setDataSoucrsTags}
-                          isMandatory={true}
-                          showMissingEntryError={this.state.showDataSourcesTagsMissingError}
-                          {...this.props}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
                 <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
                   <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
                     <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
@@ -1504,55 +1398,49 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const tagToBeDeleted = this.state.tagToBeDeleted;
     switch (tagToBeDeleted.category.id) {
       case 1:
-        this.onTagDeleteCategoryItem('productphases');
-        break;
-      case 2:
-        this.onTagDeleteCategoryItem('designguides');
-        break;
-      case 3:
         this.onTagDeleteCategoryItem('frontendtechnologies');
         break;
-      case 4:
+      case 2:
         this.onTagDeleteCategoryItem('integratedportals');
         break;
-      case 5:
-        this.onTagDeleteCategoryItem('reportingcauses');
-        break;
-      case 6:
+      case 3:
         this.onTagDeleteCategoryItem('statuses');
         break;
-      case 7:
-        this.onTagDeleteCategoryItem('ressort');
-        break;
-      case 8:
-        this.onTagDeleteCategoryItem('departments');
-        break;
-      case 9:
-        this.onTagDeleteCategoryItem('datawarehouses');
-        break;
-      case 10:
-        this.onTagDeleteCategoryItem('datasources');
-        break;
-      case 11:
-        this.onTagDeleteCategoryItem('subsystems');
-        break;
-      case 12:
-        this.onTagDeleteCategoryItem('connectiontypes');
-        break;
-      case 13:
+      case 4:
         this.onTagDeleteCategoryItem('agilereleasetrains');
         break;
-      case 14:
-        this.onTagDeleteCategoryItem('hierarchies');
+      case 5:
+        this.onTagDeleteCategoryItem('departments');
         break;
-      case 15:
-        this.onTagDeleteCategoryItem('descriptiondepartement');
-        break;
-      case 16:
+      case 6:
         this.onTagDeleteCategoryItem('tags');
         break;
-      case 17:
+      case 7:
+        this.onTagDeleteCategoryItem('levels');
+        break;
+      case 8:
+        this.onTagDeleteCategoryItem('legalentities');
+        break;
+      case 9:
         this.onTagDeleteCategoryItem('kpinames');
+        break;
+      case 10:
+        this.onTagDeleteCategoryItem('reportingcauses');
+        break;
+      case 11:
+        this.onTagDeleteCategoryItem('datawarehouses');
+        break;
+      case 12:
+        this.onTagDeleteCategoryItem('commonfunctions');
+        break;  
+      // case 13:
+      //   this.onTagDeleteCategoryItem('datasources');
+      //   break;
+      case 14:
+        this.onTagDeleteCategoryItem('connectiontypes');
+        break;
+      case 15:
+        this.onTagDeleteCategoryItem('dataclassifications');
         break;
       default:
         break;
@@ -1735,69 +1623,58 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       updateConfirmModelOverlay: false,
     });
     const itemToUpdate = this.state.tagToBeUpdated;
-    if (itemToUpdate.category.name === 'Dataware house in use') {
-      if (this.addDatawarehouseItemFormValidation()) {
-        this.updateDataWareHouseInUse('datawarehouses');
-      }
-    } else {
-      if (this.updateItemFormValidation()) {
-        switch (itemToUpdate.category.id) {
-          case 1:
-            this.onTagUpdateCategoryItem('productphases');
-            break;
-          case 2:
-            this.onTagUpdateCategoryItem('designguides');
-            break;
-          case 3:
-            this.onTagUpdateCategoryItem('frontendtechnologies');
-            break;
-          case 4:
-            this.onTagUpdateCategoryItem('integratedportals');
-            break;
-          case 5:
-            this.onTagUpdateCategoryItem('reportingcauses');
-            break;
-          case 6:
-            this.onTagUpdateCategoryItem('statuses');
-            break;
-          case 7:
-            this.onTagUpdateCategoryItem('ressort');
-            break;
-          case 8:
-            this.onTagUpdateCategoryItem('departments');
-            break;
-          case 9:
-            this.onTagUpdateCategoryItem('datawarehouses');
-            break;
-          case 10:
-            this.onTagUpdateCategoryItem('datasources');
-            break;
-          case 11:
-            this.onTagUpdateCategoryItem('subsystems');
-            break;
-          case 12:
-            this.onTagUpdateCategoryItem('connectiontypes');
-            break;
-          case 13:
-            this.onTagUpdateCategoryItem('agilereleasetrains');
-            break;
-          case 14:
-            this.onTagUpdateCategoryItem('hierarchies');
-            break;
-          case 15:
-            this.onTagUpdateCategoryItem('descriptiondepartement');
-            break;
-          case 16:
-            this.onTagUpdateCategoryItem('tags');
-            break;
-          case 17:
-            this.onTagUpdateCategoryItem('kpinames');
-            break;
-          default:
-            break;
-        }
+    if (this.updateItemFormValidation()) {
+      switch (itemToUpdate.category.id) {
+        case 1:
+          this.onTagUpdateCategoryItem('frontendtechnologies');
+          break;
+        case 2:
+          this.onTagUpdateCategoryItem('integratedportals');
+          break;
+        case 3:
+          this.onTagUpdateCategoryItem('statuses');
+          break;
+        case 4:
+          this.onTagUpdateCategoryItem('agilereleasetrains');
+          break;
+        case 5:
+          this.onTagUpdateCategoryItem('departments');
+          break;
+        case 6:
+          this.onTagUpdateCategoryItem('tags');
+          break;
+        case 7:
+          this.onTagUpdateCategoryItem('levels');
+          break;
+        case 8:
+          this.onTagUpdateCategoryItem('legalentities');
+          break;
+        case 9:
+          this.onTagUpdateCategoryItem('kpinames');
+          break;
+        case 10:
+          this.onTagUpdateCategoryItem('reportingcauses');
+          break;
+        case 11:
+          this.onTagUpdateCategoryItem('datawarehouses');
+          break;
+        case 12:
+          this.onTagUpdateCategoryItem('commonfunctions');
+          break;  
+        // case 13:
+        //   this.onTagUpdateCategoryItem('datasources');
+        //   break;
+        case 14:
+          this.onTagUpdateCategoryItem('connectiontypes');
+          break;
+        case 15:
+          this.onTagUpdateCategoryItem('dataclassifications');
+          break;
+        default:
+          break;
       }
     }
+    
   };
   protected updateConfirmModelOverlayCancel = () => {
     this.setState({
