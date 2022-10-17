@@ -27,11 +27,11 @@ import TextBox from 'components/mbc/shared/textBox/TextBox';
 // import { workerData } from 'worker_threads';
 
 export interface ITagHandlingState {
-  productPhases: IFitlerCategory;
-  designGuideImplementation: IFitlerCategory;
+  // productPhases: IFitlerCategory;
+  // designGuideImplementation: IFitlerCategory;
   statuses: IFitlerCategory;
   fronEndTechnologies: IFitlerCategory;
-  ressort: IFitlerCategory;
+  legalEntity: IFitlerCategory;
   currentFilterCategory: IFitlerCategory;
   categories: IFitlerCategory[];
   maxItemsPerPage: number;
@@ -50,14 +50,15 @@ export interface ITagHandlingState {
   integratedPortal: IFitlerCategory;
   addNewItem: boolean;
   departments: IFitlerCategory;
-  subSystem: IFitlerCategory;
+  commonFunctions: IFitlerCategory;
   connectionTypes: IFitlerCategory;
   agileReleaseTrain: IFitlerCategory;
-  hierarchies: IFitlerCategory;
+  level: IFitlerCategory;
   getKpiName: IFitlerCategory;
-  datawarehouseuse: IFitlerCategory;
   dataSource: IFitlerCategory;
   reportingCause: IFitlerCategory;
+  datawerehouse: IFitlerCategory;
+  dataClassification: IFitlerCategory;
   itemCategories: IFitlerCategory[];
   selectedDefaultCat: string;
   itemToAdd: string;
@@ -79,7 +80,6 @@ export interface ITagHandlingState {
   singleDataSource: string;
   datawerehouseinuse: string;
   datawareHouseItems: IDatawarehouseInItem;
-  descriptiondepartement: IFitlerCategory;
   tagsList: IFitlerCategory;
   updateConfirmModelOverlay: boolean;
   dropdownTouched: boolean;
@@ -91,23 +91,21 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     super(props);
     this.state = {
       categories: [{ id: 0, name: 'Select' }],
-      productPhases: { id: 1, name: 'Product Phases' },
-      designGuideImplementation: { id: 2, name: 'Design Guide Implementation' },
-      fronEndTechnologies: { id: 3, name: 'FrontEnd Technologies' },
-      integratedPortal: { id: 4, name: 'Integrated In Portal' },
-      reportingCause: { id: 5, name: 'Reporting Cause' },
-      statuses: { id: 6, name: 'Statuses' },
-      ressort: { id: 7, name: 'Ressort' },
-      departments: { id: 8, name: 'Departments' },
-      datawarehouseuse: { id: 9, name: 'Dataware house in use' },
-      dataSource: { id: 10, name: 'Data Source' },
-      subSystem: { id: 11, name: 'Subsystem' },
-      connectionTypes: { id: 12, name: 'Connection Types' },
-      agileReleaseTrain: { id: 13, name: 'Agile Release Train' },
-      hierarchies: { id: 14, name: 'Hierarchies' },
-      descriptiondepartement: { id: 15, name: 'Departments' },
-      tagsList: { id: 16, name: 'Tags' },
-      getKpiName: { id: 17, name: 'Kpi Names' },
+      departments: { id: 1, name: 'Departments' },
+      fronEndTechnologies: { id: 2, name: 'FrontEnd Technologies' },
+      integratedPortal: { id: 3, name: 'Integrated In Portal' },
+      statuses: { id: 4, name: 'Statuses' },
+      agileReleaseTrain: { id: 5, name: 'Agile Release Train' },
+      tagsList: { id: 6, name: 'Tags' },
+      level: { id: 7, name: 'Levels' },
+      legalEntity: { id: 8, name: 'MB Legal Entity' },
+      getKpiName: { id: 9, name: 'Kpi Names' },
+      reportingCause: { id: 10, name: 'Reporting Cause' },
+      datawerehouse: { id: 11, name: 'Dataware house' },
+      commonFunctions: { id: 12, name: 'Common Functions' },
+      dataSource: { id: 13, name: 'Data Source' },
+      connectionTypes: { id: 14, name: 'Connection Types' },
+      dataClassification: { id: 15, name: 'Data Classifications' },
       currentFilterCategory: { id: 0, name: 'Select' },
       selectedDefaultCat: 'Select',
       sortBy: {
@@ -149,71 +147,63 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         },
         {
           id: 1,
-          name: 'Description - Product Phases',
+          name: 'E2-Departments',
         },
         {
           id: 2,
-          name: 'Description - Design Guide Implementation',
-        },
-        {
-          id: 3,
           name: 'Description - Front End Technologies',
         },
         {
-          id: 4,
+          id: 3,
           name: 'Description - Integrated In Portal',
         },
         {
-          id: 6,
+          id: 4,
           name: 'Description - Statuses',
         },
         {
-          id: 13,
+          id: 5,
           name: 'Description - Agile Release Train',
         },
         {
-          id: 15,
-          name: 'Description - Departments',
-        },
-        {
-          id: 16,
+          id: 6,
           name: 'Description - Tags',
         },
         {
-          id: 14,
-          name: 'Customer - Hierarchies',
-        },
-        {
           id: 7,
-          name: 'Customers - Ressort',
+          name: 'Customer - Levels',
         },
         {
           id: 8,
-          name: 'Customers - Departments',
-        },
-        {
-          id: 17,
-          name: 'Kpi - KPI Name',
-        },
-        {
-          id: 5,
-          name: 'Kpi - Reporting Cause',
+          name: 'Customers - MB Legal Entities',
         },
         {
           id: 9,
-          name: 'Data & Function - Data warehouse in use',
+          name: 'Kpi - KPI Name',
         },
         {
           id: 10,
-          name: 'Data & Function - Single Data Source - Data Source',
+          name: 'Kpi - Reporting Cause',
         },
         {
           id: 11,
-          name: 'Data & Function - Single Data Source - Subsystem',
+          name: 'Data & Function - Data Warehouse - Data Warehouse',
         },
         {
           id: 12,
-          name: 'Data & Function - Single Data Source Connection Types',
+          name: 'Data & Function - Data Warehouse - Common Functions',
+        },
+        // {
+        //   id: 13,
+        //   name: 'Data & Function - Single Data Source - Data Sources',
+        // },
+        {
+          id: 14,
+          name: 'Data & Function - Connection Types',
+        },
+        {
+          id: 15,
+          name: 'Data & Function - Data Classifications',
         },
       ],
       datawareHouseItems: {
@@ -272,32 +262,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       });
     }
   };
-  // protected setSpecificFnTags = (arr: string[]) => {
-  //   const chipsItemAdd = this.state.datawareHouseItems;
-  //   chipsItemAdd.specificFunctions = arr;
-  //   if (chipsItemAdd.specificFunctions.length > 0) {
-  //     this.setState({
-  //       showSpecificFnTagsMissingError: false,
-  //     });
-  //   } else {
-  //     this.setState({
-  //       showSpecificFnTagsMissingError: true,
-  //     });
-  //   }
-  // };
-  // protected setQueriesTags = (arr: string[]) => {
-  //   const chipsItemAdd = this.state.datawareHouseItems;
-  //   chipsItemAdd.queries = arr;
-  //   if (chipsItemAdd.queries.length > 0) {
-  //     this.setState({
-  //       showQueriesTagsMissingError: false,
-  //     });
-  //   } else {
-  //     this.setState({
-  //       showQueriesTagsMissingError: true,
-  //     });
-  //   }
-  // };
   protected setConnectionTypesTags = (arr: string[]) => {
     // const chipsItemAdd = this.state.datawareHouseItems;
     // chipsItemAdd.connectionType = arr;
@@ -324,27 +288,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
   //     });
   //   }
   // };
-
-  public getProductPhases = (results: ITagResult[]) => {
-    return ReportsApiClient.getProductPhases()
-      .then((res: any) => {
-        if (res) {
-          res.data?.forEach((prdPhase: IFitlerCategory) => {
-            results.push({ category: this.state.productPhases, id: prdPhase.id + '', name: prdPhase.name });
-          });
-        }
-      })
-      .catch((error) => {
-        this.setState(
-          {
-            results: [],
-          },
-          () => {
-            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-          },
-        );
-      });
-  };
   public getStatuses = (results: ITagResult[]) => {
     return ReportsApiClient.getStatuses()
       .then((res: any) => {
@@ -389,13 +332,13 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getDesignGuideImplementation = (results: ITagResult[]) => {
-    return ReportsApiClient.getDesignGuideImplementation()
+  public getDataClassifications = (results: ITagResult[]) => {
+    return ReportsApiClient.getDataClassifications()
       .then((res: any) => {
         if (res) {
           res.data?.forEach((desigGuide: IFitlerCategory) => {
             results.push({
-              category: this.state.designGuideImplementation,
+              category: this.state.dataClassification,
               id: desigGuide.id + '',
               name: desigGuide.name,
             });
@@ -437,15 +380,15 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getRessort = (results: ITagResult[]) => {
-    return ReportsApiClient.getRessort()
+  public getLegalEntities = (results: ITagResult[]) => {
+    return ReportsApiClient.getLegalEntities()
       .then((res: any) => {
         if (res) {
-          res.data?.forEach((ressort: IFitlerCategory) => {
+          res.data?.forEach((legalEntity: IFitlerCategory) => {
             results.push({
-              category: this.state.ressort,
-              id: ressort.id + '',
-              name: ressort.name,
+              category: this.state.legalEntity,
+              id: legalEntity.id + '',
+              name: legalEntity.name,
             });
           });
         }
@@ -482,26 +425,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getDepartmentsComman = (results: ITagResult[]) => {
-    return ReportsApiClient.getDepartmentsComman()
-      .then((res: any) => {
-        if (res) {
-          res.data?.forEach((dep: IFitlerCategory) => {
-            results.push({ category: this.state.descriptiondepartement, id: dep.id + '', name: dep.name });
-          });
-        }
-      })
-      .catch((error) => {
-        this.setState(
-          {
-            results: [],
-          },
-          () => {
-            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-          },
-        );
-      });
-  };
   public getTags = (results: ITagResult[]) => {
     return ReportsApiClient.getTags()
       .then((res: any) => {
@@ -522,12 +445,12 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getSubSystem = (results: ITagResult[]) => {
-    return ReportsApiClient.getSubsystem()
+  public getCommonFunctions = (results: ITagResult[]) => {
+    return ReportsApiClient.getCommonFunctions()
       .then((res: any) => {
         if (res) {
           res.data?.forEach((dep: IFitlerCategory) => {
-            results.push({ category: this.state.subSystem, id: dep.id + '', name: dep.name });
+            results.push({ category: this.state.commonFunctions, id: dep.id + '', name: dep.name });
           });
         }
       })
@@ -583,12 +506,12 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getHierarchies = (results: ITagResult[]) => {
-    return ReportsApiClient.getGetHierarchies()
+  public getLevels = (results: ITagResult[]) => {
+    return ReportsApiClient.getLevels()
       .then((res: any) => {
         if (res) {
           res.data?.forEach((sf: IFitlerCategory) => {
-            results.push({ category: this.state.hierarchies, id: sf.id + '', name: sf.name });
+            results.push({ category: this.state.level, id: sf.id + '', name: sf.name });
           });
         }
       })
@@ -603,22 +526,15 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getDatawareHouseInUse = (results: ITagResult[]) => {
-    return ReportsApiClient.getDatawareHouseInUse()
+  public getDatawareHouses = (results: ITagResult[]) => {
+    return ReportsApiClient.getDatawareHouses()
       .then((res: any) => {
         if (res) {
-          res.records?.forEach((dw: IDatawarehouseInItem) => {
+          res.data?.forEach((dw: IFitlerCategory) => {
             results.push({
-              category: this.state.datawarehouseuse,
+              category: this.state.datawerehouse,
               id: dw.id + '',
-              name: dw.dataWarehouse,
-              datawareHouseItems: {
-                id: dw.id,
-                dataWarehouse: dw.dataWarehouse,
-                commonFunctions: dw.commonFunctions,
-                connectionType: dw.connectionType,
-                dataClassification: dw.dataClassification,
-              },
+              name: dw.name,
             });
           });
         }
@@ -892,77 +808,68 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const filterCategory = this.state.currentFilterCategory;
     switch (filterCategory.id) {
       case 0:
-        await this.getProductPhases(results);
-        await this.getDesignGuideImplementation(results);
         await this.getFronEndTechnologies(results);
         await this.getIntegratedPortal(results);
         await this.getReportingCause(results);
         await this.getKpiName(results);
         await this.getStatuses(results);
-        await this.getRessort(results);
+        await this.getLegalEntities(results);
         await this.getDepartments(results);
-        await this.getDatawareHouseInUse(results);
+        await this.getDatawareHouses(results);
         await this.getDataSource(results);
-        await this.getSubSystem(results);
         await this.getConnectionType(results);
         await this.getAgileReleaseTrain(results);
-        await this.getHierarchies(results);
-        await this.getDepartmentsComman(results);
+        await this.getLevels(results);
         await this.getTags(results);
         break;
 
       case 1:
-        await this.getProductPhases(results);
-        break;
+        await this.getDepartments(results);
+        break;  
       case 2:
-        await this.getDesignGuideImplementation(results);
-        break;
-      case 3:
         await this.getFronEndTechnologies(results);
         break;
-      case 4:
+      case 3:
         await this.getIntegratedPortal(results);
         break;
-      case 5:
-        await this.getReportingCause(results);
-        break;
-      case 6:
+      case 4:
         await this.getStatuses(results);
         break;
+      case 5:
+        await this.getAgileReleaseTrain(results); 
+        break;
+      case 6:
+        await this.getTags(results); 
+        break;
       case 7:
-        await this.getRessort(results);
+        await this.getLevels(results);
         break;
       case 8:
-        await this.getDepartments(results);
+        await this.getLegalEntities(results); 
         break;
       case 9:
-        await this.getDatawareHouseInUse(results);
-        break;
-      case 10:
-        await this.getDataSource(results);
-        break;
-      case 11:
-        await this.getSubSystem(results);
-        break;
-      case 12:
-        await this.getConnectionType(results);
-        break;
-      case 13:
-        await this.getAgileReleaseTrain(results);
-        break;
-      case 14:
-        await this.getHierarchies(results);
-        break;
-      case 15:
-        await this.getDepartmentsComman(results);
-        break;
-      case 16:
-        await this.getTags(results);
-        break;
-      case 17:
         await this.getKpiName(results);
         break;
+      case 10:
+        await this.getReportingCause(results);
+        break;
+      case 11:
+        await this.getDatawareHouses(results);
+        break;
+      case 12:
+        await this.getCommonFunctions(results);
+        break;  
+      // case 13:
+      //   await this.getDataSource(results);
+      //   break;  
+      case 14:
+        await this.getConnectionType(results);
+        break;  
+      case 15:
+        await this.getDataClassifications(results);
+        break;    
     }
+
     if (this.state.searchText) {
       results = results.filter((result) => {
         return result.name.toLowerCase().match(this.state.searchText.toLowerCase());
@@ -1214,60 +1121,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
                     </div>
                   </div>
                 </div>
-                {/* <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
-                  <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
-                    <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-                      <div>
-                        <Tags
-                          tags={undefined}
-                          title={'Specific Function'}
-                          max={100}
-                          chips={this.state.datawareHouseItems?.specificFunctions}
-                          setTags={this.setSpecificFnTags}
-                          isMandatory={true}
-                          showMissingEntryError={this.state.showSpecificFnTagsMissingError}
-                          {...this.props}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
-                  <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
-                    <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-                      <div>
-                        <Tags
-                          tags={undefined}
-                          title={'Queries'}
-                          max={100}
-                          chips={this.state.datawareHouseItems?.queries}
-                          setTags={this.setQueriesTags}
-                          isMandatory={true}
-                          showMissingEntryError={this.state.showQueriesTagsMissingError}
-                          {...this.props}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
-                  <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
-                    <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-                      <div>
-                        <Tags
-                          tags={undefined}
-                          title={'Data Sources'}
-                          max={100}
-                          chips={this.state.datawareHouseItems?.dataSources}
-                          setTags={this.setDataSoucrsTags}
-                          isMandatory={true}
-                          showMissingEntryError={this.state.showDataSourcesTagsMissingError}
-                          {...this.props}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
                 <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
                   <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
                     <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
@@ -1525,55 +1378,49 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
     const tagToBeDeleted = this.state.tagToBeDeleted;
     switch (tagToBeDeleted.category.id) {
       case 1:
-        this.onTagDeleteCategoryItem('productphases');
-        break;
-      case 2:
-        this.onTagDeleteCategoryItem('designguides');
-        break;
-      case 3:
-        this.onTagDeleteCategoryItem('frontendtechnologies');
-        break;
-      case 4:
-        this.onTagDeleteCategoryItem('integratedportals');
-        break;
-      case 5:
-        this.onTagDeleteCategoryItem('reportingcauses');
-        break;
-      case 6:
-        this.onTagDeleteCategoryItem('statuses');
-        break;
-      case 7:
-        this.onTagDeleteCategoryItem('ressort');
-        break;
-      case 8:
         this.onTagDeleteCategoryItem('departments');
         break;
-      case 9:
-        this.onTagDeleteCategoryItem('datawarehouses');
+      case 2:
+        this.onTagDeleteCategoryItem('frontendtechnologies');
         break;
-      case 10:
-        this.onTagDeleteCategoryItem('datasources');
+      case 3:
+        this.onTagDeleteCategoryItem('integratedportals');
         break;
-      case 11:
-        this.onTagDeleteCategoryItem('subsystems');
+      case 4:
+        this.onTagDeleteCategoryItem('statuses');
         break;
-      case 12:
-        this.onTagDeleteCategoryItem('connectiontypes');
-        break;
-      case 13:
+      case 5:
         this.onTagDeleteCategoryItem('agilereleasetrains');
-        break;
-      case 14:
-        this.onTagDeleteCategoryItem('hierarchies');
-        break;
-      case 15:
-        this.onTagDeleteCategoryItem('descriptiondepartement');
-        break;
-      case 16:
+        break; 
+      case 6:
         this.onTagDeleteCategoryItem('tags');
         break;
-      case 17:
+      case 7:
+        this.onTagDeleteCategoryItem('levels');
+        break;
+      case 8:
+        this.onTagDeleteCategoryItem('legalentities');
+        break;
+      case 9:
         this.onTagDeleteCategoryItem('kpinames');
+        break;
+      case 10:
+        this.onTagDeleteCategoryItem('reportingcauses');
+        break;
+      case 11:
+        this.onTagDeleteCategoryItem('datawarehouses');
+        break;
+      case 12:
+        this.onTagDeleteCategoryItem('commonfunctions');
+        break;  
+      // case 13:
+      //   this.onTagDeleteCategoryItem('datasources');
+      //   break;
+      case 14:
+        this.onTagDeleteCategoryItem('connectiontypes');
+        break;
+      case 15:
+        this.onTagDeleteCategoryItem('dataclassifications');
         break;
       default:
         break;
@@ -1663,26 +1510,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         showCommanFnTagsMissingError: false,
       });
     }
-    // if (!this.state.datawareHouseItems.specificFunctions.length) {
-    //   this.setState({
-    //     showSpecificFnTagsMissingError: true,
-    //   });
-    //   formValidationStatus = false;
-    // } else {
-    //   this.setState({
-    //     showSpecificFnTagsMissingError: false,
-    //   });
-    // }
-    // if (!this.state.datawareHouseItems.dataSources.length) {
-    //   this.setState({
-    //     showDataSourcesTagsMissingError: true,
-    //   });
-    //   formValidationStatus = false;
-    // } else {
-    //   this.setState({
-    //     showDataSourcesTagsMissingError: false,
-    //   });
-    // }
     if (!this.state.datawareHouseItems.connectionType.length) {
       this.setState({
         showConnectionTypesTagsMissingError: true,
@@ -1693,16 +1520,6 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         showConnectionTypesTagsMissingError: false,
       });
     }
-    // if (!this.state.datawareHouseItems.queries.length) {
-    //   this.setState({
-    //     showQueriesTagsMissingError: true,
-    //   });
-    //   formValidationStatus = false;
-    // } else {
-    //   this.setState({
-    //     showQueriesTagsMissingError: false,
-    //   });
-    // }
     return formValidationStatus;
   };
   protected onTagAddItem = () => {
@@ -1710,49 +1527,37 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       updateConfirmModelOverlay: false,
     });
     const itemToAddCategories = this.state.itemToAddCategories;
-    if (itemToAddCategories === 'Data & Function - Data warehouse in use') {
-      if (this.addDatawarehouseItemFormValidation()) {
-        this.addDataWareHouseInUse();
-      }
-    } else {
-      if (this.addItemFormValidation()) {
-        if (itemToAddCategories === 'Description - Product Phases') {
-          this.onTagAddCategoryItem('productphases');
-        } else if (itemToAddCategories === 'Description - Design Guide Implementation') {
-          this.onTagAddCategoryItem('designguides');
-        } else if (itemToAddCategories === 'Description - Front End Technologies') {
-          this.onTagAddCategoryItem('frontendtechnologies');
-        } else if (itemToAddCategories === 'Description - Integrated In Portal') {
-          this.onTagAddCategoryItem('integratedportals');
-        } else if (itemToAddCategories === 'Kpi - Reporting Cause') {
-          this.onTagAddCategoryItem('reportingcauses');
-        } else if (itemToAddCategories === 'Description - Statuses') {
-          this.onTagAddCategoryItem('statuses');
-        } else if (itemToAddCategories === 'Customers - Ressort') {
-          this.onTagAddCategoryItem('ressort');
-        } else if (itemToAddCategories === 'Customers - Departments') {
-          this.onTagAddCategoryItem('departments');
-        } else if (itemToAddCategories === 'Data & Function - Single Data Source - Common Functions') {
-          this.onTagAddCategoryItem('commonfunctions');
-        } else if (itemToAddCategories === 'Data & Function - Single Data Source - Specific Functions') {
-          this.onTagAddCategoryItem('specificfunctions');
-        } else if (itemToAddCategories === 'Data & Function - Single Data Source - Data Source') {
-          this.onTagAddCategoryItem('datasources');
-        } else if (itemToAddCategories === 'Data & Function - Single Data Source - Subsystem') {
-          this.onTagAddCategoryItem('subsystems');
-        } else if (itemToAddCategories === 'Data & Function - Single Data Source Connection Types') {
-          this.onTagAddCategoryItem('connectiontypes');
-        } else if (itemToAddCategories === 'Description - Departments') {
-          this.onTagAddCategoryItem('descriptiondepartement');
-        } else if (itemToAddCategories === 'Description - Agile Release Train') {
-          this.onTagAddCategoryItem('agilereleasetrains');
-        } else if (itemToAddCategories === 'Description - Tags') {
-          this.onTagAddCategoryItem('tags');
-        } else if (itemToAddCategories === 'Customer - Hierarchies') {
-          this.onTagAddCategoryItem('hierarchies');
-        } else if (itemToAddCategories === 'Kpi - KPI Name') {
-          this.onTagAddCategoryItem('kpinames');
-        }
+    if (this.addItemFormValidation()) {
+      if (itemToAddCategories === 'Description - Front End Technologies') {
+        this.onTagAddCategoryItem('frontendtechnologies');
+      } else if (itemToAddCategories === 'Description - Integrated In Portal') {
+        this.onTagAddCategoryItem('integratedportals');
+      } else if (itemToAddCategories === 'Kpi - Reporting Cause') {
+        this.onTagAddCategoryItem('reportingcauses');
+      } else if (itemToAddCategories === 'Description - Statuses') {
+        this.onTagAddCategoryItem('statuses');
+      } else if (itemToAddCategories === 'Customers - MB Legal Entities') {
+        this.onTagAddCategoryItem('legalentities');
+      } else if (itemToAddCategories === 'E2-Departments') {
+        this.onTagAddCategoryItem('departments');
+      } else if (itemToAddCategories === 'Data & Function - Single Data Source - Data Source') {
+        this.onTagAddCategoryItem('datasources');
+      } else if (itemToAddCategories === 'Data & Function - Connection Types') {
+        this.onTagAddCategoryItem('connectiontypes');
+      } else if (itemToAddCategories === 'Description - Agile Release Train') {
+        this.onTagAddCategoryItem('agilereleasetrains');
+      } else if (itemToAddCategories === 'Description - Tags') {
+        this.onTagAddCategoryItem('tags');
+      } else if (itemToAddCategories === 'Customer - Levels') {
+        this.onTagAddCategoryItem('levels');
+      } else if (itemToAddCategories === 'Kpi - KPI Name') {
+        this.onTagAddCategoryItem('kpinames');
+      } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Data Warehouse') {
+        this.onTagAddCategoryItem('datawarehouses');
+      } else if (itemToAddCategories === 'Data & Function - Data Warehouse - Common Functions') {
+        this.onTagAddCategoryItem('commonfunctions');
+      } else if (itemToAddCategories === 'Data & Function - Data Classifications') {
+        this.onTagAddCategoryItem('dataclassifications');
       }
     }
   };
@@ -1762,69 +1567,58 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       updateConfirmModelOverlay: false,
     });
     const itemToUpdate = this.state.tagToBeUpdated;
-    if (itemToUpdate.category.name === 'Dataware house in use') {
-      if (this.addDatawarehouseItemFormValidation()) {
-        this.updateDataWareHouseInUse('datawarehouses');
-      }
-    } else {
-      if (this.updateItemFormValidation()) {
-        switch (itemToUpdate.category.id) {
-          case 1:
-            this.onTagUpdateCategoryItem('productphases');
-            break;
-          case 2:
-            this.onTagUpdateCategoryItem('designguides');
-            break;
-          case 3:
-            this.onTagUpdateCategoryItem('frontendtechnologies');
-            break;
-          case 4:
-            this.onTagUpdateCategoryItem('integratedportals');
-            break;
-          case 5:
-            this.onTagUpdateCategoryItem('reportingcauses');
-            break;
-          case 6:
-            this.onTagUpdateCategoryItem('statuses');
-            break;
-          case 7:
-            this.onTagUpdateCategoryItem('ressort');
-            break;
-          case 8:
-            this.onTagUpdateCategoryItem('departments');
-            break;
-          case 9:
-            this.onTagUpdateCategoryItem('datawarehouses');
-            break;
-          case 10:
-            this.onTagUpdateCategoryItem('datasources');
-            break;
-          case 11:
-            this.onTagUpdateCategoryItem('subsystems');
-            break;
-          case 12:
-            this.onTagUpdateCategoryItem('connectiontypes');
-            break;
-          case 13:
-            this.onTagUpdateCategoryItem('agilereleasetrains');
-            break;
-          case 14:
-            this.onTagUpdateCategoryItem('hierarchies');
-            break;
-          case 15:
-            this.onTagUpdateCategoryItem('descriptiondepartement');
-            break;
-          case 16:
-            this.onTagUpdateCategoryItem('tags');
-            break;
-          case 17:
-            this.onTagUpdateCategoryItem('kpinames');
-            break;
-          default:
-            break;
-        }
+    if (this.updateItemFormValidation()) {
+      switch (itemToUpdate.category.id) {
+        case 1:
+          this.onTagUpdateCategoryItem('departments');
+          break;
+        case 2:
+          this.onTagUpdateCategoryItem('frontendtechnologies');
+          break;
+        case 3:
+          this.onTagUpdateCategoryItem('integratedportals');
+          break;
+        case 4:
+          this.onTagUpdateCategoryItem('statuses');
+          break;
+        case 5:
+          this.onTagUpdateCategoryItem('agilereleasetrains');
+          break;        
+        case 6:
+          this.onTagUpdateCategoryItem('tags');
+          break;
+        case 7:
+          this.onTagUpdateCategoryItem('levels');
+          break;
+        case 8:
+          this.onTagUpdateCategoryItem('legalentities');
+          break;
+        case 9:
+          this.onTagUpdateCategoryItem('kpinames');
+          break;
+        case 10:
+          this.onTagUpdateCategoryItem('reportingcauses');
+          break;
+        case 11:
+          this.onTagUpdateCategoryItem('datawarehouses');
+          break;
+        case 12:
+          this.onTagUpdateCategoryItem('commonfunctions');
+          break;  
+        // case 13:
+        //   this.onTagUpdateCategoryItem('datasources');
+        //   break;
+        case 14:
+          this.onTagUpdateCategoryItem('connectiontypes');
+          break;
+        case 15:
+          this.onTagUpdateCategoryItem('dataclassifications');
+          break;
+        default:
+          break;
       }
     }
+    
   };
   protected updateConfirmModelOverlayCancel = () => {
     this.setState({
