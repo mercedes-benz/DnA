@@ -329,12 +329,6 @@ export class ReportsApiClient {
     if (categoryType === 'departments') {
       return this.delete(`lov/customer/${categoryType}/${id}`);
     }
-    if (categoryType === 'descriptiondepartement') {
-      return this.delete(`departments/${id}`);
-    }
-    if (categoryType === 'datawarehouses') {
-      return this.delete(`${categoryType}/${id}`);
-    }
     if (categoryType === 'tags') {
       return this.delete(`tags/${id}`);
     }
