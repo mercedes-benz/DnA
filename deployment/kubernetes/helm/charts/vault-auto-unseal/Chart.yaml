@@ -7,6 +7,6 @@ keywords:
 - cron
 name: vault-auto-unseal
 sources:
-- https://github.com/mercedes-benz/DnA.git
+- https://github.com/mercedes-benz/DnA/tree/dev/utils/vaultUnseal
 type: application
 version: 0.4.0
