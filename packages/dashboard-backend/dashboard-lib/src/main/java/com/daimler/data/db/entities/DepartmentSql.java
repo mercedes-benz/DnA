@@ -51,7 +51,7 @@ public class DepartmentSql implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "department_sequence_gen")
-	@SequenceGenerator(name = "department_sequence_gen", sequenceName = "dashboard_sequence", allocationSize = 1)
+	@SequenceGenerator(name = "department_sequence_gen", sequenceName = "lov_sequence", allocationSize = 1)
 	private Long id;
 
 	@Column(name = "name")

@@ -42,6 +42,6 @@ public class KPI implements Serializable {
 
 	private String name;
 	private String reportingCause;
-	private String comment;
+	private String description;
 	private String kpiLink;
 }
