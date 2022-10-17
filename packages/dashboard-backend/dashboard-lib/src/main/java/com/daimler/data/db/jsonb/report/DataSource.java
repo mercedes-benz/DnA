@@ -25,36 +25,26 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.entities.lov;
+package com.daimler.data.db.jsonb.report;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "integrated_portal_sql")
-public class IntegratedPortalSql implements Serializable {
-	private static final long serialVersionUID = 1L;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DataSource implements Serializable {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lov_sequence_gen")
-	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "lov_sequence", allocationSize = 1)
-	private Long id;
-
-	@Column(name = "name")
+	private static final long serialVersionUID = 152482308131566126L;
+	
+	private String id;
 	private String name;
-
+    private BigDecimal weightage;
 }

@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.db.entities.ReportNsql;
 import com.daimler.data.db.jsonb.report.CreatedBy;
 import com.daimler.data.db.jsonb.report.Customer;
+import com.daimler.data.db.jsonb.report.DataSource;
 import com.daimler.data.db.jsonb.report.DataWarehouse;
 import com.daimler.data.db.jsonb.report.Description;
 import com.daimler.data.db.jsonb.report.Division;
@@ -55,6 +56,7 @@ import com.daimler.data.db.jsonb.report.TeamMember;
 import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.dto.report.CustomerVO;
 import com.daimler.data.dto.report.DataAndFunctionVO;
+import com.daimler.data.dto.report.DataSourceVO;
 import com.daimler.data.dto.report.DataWarehouseVO;
 import com.daimler.data.dto.report.DescriptionVO;
 import com.daimler.data.dto.report.DivisionVO;
@@ -164,6 +166,18 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (singleDataSource != null) {
 			vo = new SingleDataSourceVO();
 			BeanUtils.copyProperties(singleDataSource, vo);
+			List<DataSourceVO> dataSourcesVO = singleDataSource.getDataSources().stream().map(n -> toDataSourceVO(n))
+					.collect(Collectors.toList());
+			vo.setDataSources(dataSourcesVO);
+		}
+		return vo;
+	}
+
+	private DataSourceVO toDataSourceVO(DataSource dataSource) {
+		DataSourceVO vo = null;
+		if (dataSource != null) {
+			vo = new DataSourceVO();
+			BeanUtils.copyProperties(dataSource, vo);
 		}
 		return vo;
 	}
@@ -325,8 +339,20 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (vo != null) {
 			singleDataSource = new SingleDataSource();
 			BeanUtils.copyProperties(vo, singleDataSource);
+			List<DataSource> dataSources = vo.getDataSources().stream().map(n -> toDataSourceJson(n))
+					.collect(Collectors.toList());
+			singleDataSource.setDataSources(dataSources);
 		}
 		return singleDataSource;
+	}
+
+	private DataSource toDataSourceJson(DataSourceVO vo) {
+		DataSource dataSource = null;
+		if (vo != null) {
+			dataSource = new DataSource();
+			BeanUtils.copyProperties(vo, dataSource);
+		}
+		return dataSource;
 	}
 
 	private KPI toKPIJson(KPIVO vo) {
