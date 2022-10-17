@@ -88,7 +88,7 @@ type ExternalCustomerVO{
 type KPIVO{
 	name: String,
 	reportingCause: String,
-	comment: String,
+	description: String,
 	kpiLink: String
 }
 
@@ -105,9 +105,15 @@ type DataWarehouseVO{
 }
 
 type SingleDataSourceVO{
-	dataSource: String,
+	dataSources: [DataSourceVO],
 	dataClassification: String,
 	connectionType: String
+}
+
+type DataSourceVO{
+    id: ID!,
+	name: String,
+	weightage: Int
 }
 
 type MemberVO{
