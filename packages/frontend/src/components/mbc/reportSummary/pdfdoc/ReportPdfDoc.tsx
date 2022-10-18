@@ -498,7 +498,7 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                   <View style={styles.flexLayout} wrap={false}>
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Sources</Text>
-                      {data.dataSource ? <Text>{JSON.parse(data.dataSource)?.map((item:any) => item.dataSource).join(' / ')}</Text> : <Text>NA</Text>}
+                      {data.dataSources ? <Text>{data.dataSources?.map((item:any) => item.dataSource).join(' / ')}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Data Classification</Text>
