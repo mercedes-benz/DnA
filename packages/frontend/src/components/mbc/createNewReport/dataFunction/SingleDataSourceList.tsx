@@ -82,7 +82,7 @@ export const SingleDataSourceList = ({
               {list?.map((dataSourcesAndFunctions: ISingleDataSources, index: number) => {
                 const connectionType = dataSourcesAndFunctions.connectionType;
                 const dataClassification = dataSourcesAndFunctions.dataClassification;
-                const selectedDataSources = JSON.parse(dataSourcesAndFunctions.dataSource);
+                const selectedDataSources = dataSourcesAndFunctions.dataSource;
 
                  const dsChips =
                    selectedDataSources && selectedDataSources.length > 0
