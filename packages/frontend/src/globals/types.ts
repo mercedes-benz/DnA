@@ -610,7 +610,7 @@ export interface IExternalCustomerDetails {
 }
 
 export interface IKpis {
-  comment: string;
+  description: string;
   name: string;
   reportingCause: string;
   kpiLink: string;
@@ -630,7 +630,7 @@ export interface IDataWarehouseInUse {
 
 export interface ISingleDataSources {
   connectionType: string;
-  dataSource: string;
+  dataSource: IDataSources[];
   dataClassification: string;
 }
 export interface IUserNewInfo {

@@ -106,7 +106,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       singleDataSourceInfo: {
         connectionType: '',
-        dataSource: '[]',
+        dataSource: [],
         dataClassification: '',
       },
       singleDataSourceErrors: {
@@ -266,7 +266,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       singleDataSourceInfo: {
         connectionType: '',
-        dataSource: '[]',
+        dataSource: [],
         dataClassification: '',
       },
       singleDataSourceErrors: {
@@ -327,7 +327,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           },
           singleDataSourceInfo: {
             connectionType: '',
-            dataSource: '[]',
+            dataSource: [],
             dataClassification: '',
           },
           singleDataSourceErrors: {
@@ -545,7 +545,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         },
         singleDataSourceInfo: {
           connectionType: '',
-          dataSource: '[]',
+          dataSource: [],
           dataClassification: '',
         },
         singleDataSourceErrors: {
@@ -610,12 +610,12 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   public setDataSources = (arr: string[]) => {
-    const dataSources: any[] = [];
+    const dataSources: IDataSources[] = [];
     arr.forEach((element) => {
       dataSources.push({ dataSource: element, weightage: 0 });
     });
     const singleDataSourceInfo = this.state.singleDataSourceInfo;
-    singleDataSourceInfo.dataSource = JSON.stringify(dataSources);
+    singleDataSourceInfo.dataSource = dataSources;
     const singleDataSourceErrors = this.state.singleDataSourceErrors;
     singleDataSourceErrors.dataSources = dataSources.length ? '' : '*Missing entry';
     this.setState({dataSources, singleDataSourceInfo, singleDataSourceErrors});
@@ -668,7 +668,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         singleDataSourceErrors.dataClassification = errorMissingEntry;
         formValid = false;
       }
-      if (!JSON.parse(this.state.singleDataSourceInfo.dataSource)?.length) {
+      if (this.state.singleDataSourceInfo.dataSource?.length === 0) {
         singleDataSourceErrors.dataSources = errorMissingEntry;
         formValid = false;
       }
