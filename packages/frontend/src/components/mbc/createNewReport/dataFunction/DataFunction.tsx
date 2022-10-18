@@ -106,7 +106,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       singleDataSourceInfo: {
         connectionType: '',
-        dataSource: [],
+        dataSources: [],
         dataClassification: '',
       },
       singleDataSourceErrors: {
@@ -266,7 +266,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       },
       singleDataSourceInfo: {
         connectionType: '',
-        dataSource: [],
+        dataSources: [],
         dataClassification: '',
       },
       singleDataSourceErrors: {
@@ -284,7 +284,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       dataClassification: dataWarehouseDataClassification,
       dataWarehouse,
     } = this.state.dataWarehouseInUseInfo;
-    const { connectionType, dataSource, dataClassification } = this.state.singleDataSourceInfo;
+    const { connectionType, dataSources, dataClassification } = this.state.singleDataSourceInfo;
     const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
     const isDataWarehouse = this.state.dataSource === 'datawarehouse';
     const selectedValues: any = [];
@@ -297,7 +297,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         })
       : selectedValues.push({
           connectionType,
-          dataSource: dataSource,
+          dataSources: dataSources,
           dataClassification,
         });
     
@@ -327,7 +327,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           },
           singleDataSourceInfo: {
             connectionType: '',
-            dataSource: [],
+            dataSources: [],
             dataClassification: '',
           },
           singleDataSourceErrors: {
@@ -505,7 +505,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   };
 
   protected onEditSingleDataSourceOpen = (dataSourcesAndFunctions: ISingleDataSources, index: number) => {
-    const { connectionType, dataClassification, dataSource } = dataSourcesAndFunctions;
+    const { connectionType, dataClassification, dataSources } = dataSourcesAndFunctions;
     this.setState(
       {
         addDataSource: false,
@@ -514,7 +514,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         singleDataSourceInfo: {
           connectionType,
           dataClassification,
-          dataSource,
+          dataSources,
         },
         dataSource: 'singledatasource',
       },
@@ -526,11 +526,11 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
 
   protected onEditSingleDataSource = () => {
     const { editDataSourceIndex } = this.state;
-    const { connectionType, dataSource, dataClassification } = this.state.singleDataSourceInfo;
+    const { connectionType, dataSources, dataClassification } = this.state.singleDataSourceInfo;
     const { dataWarehouseInUse, singleDataSources } = this.state.dataAndFunctions;
     if (this.validateDatasourceModal()) {
       const dataSourceList = [...singleDataSources]; // create copy of original array
-      dataSourceList[editDataSourceIndex] = { connectionType, dataSource, dataClassification }; // modify copied array
+      dataSourceList[editDataSourceIndex] = { connectionType, dataSources, dataClassification }; // modify copied array
 
       this.props.modifyDataFunction({
         dataWarehouseInUse,
@@ -545,7 +545,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         },
         singleDataSourceInfo: {
           connectionType: '',
-          dataSource: [],
+          dataSources: [],
           dataClassification: '',
         },
         singleDataSourceErrors: {
@@ -615,7 +615,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       dataSources.push({ dataSource: element, weightage: 0 });
     });
     const singleDataSourceInfo = this.state.singleDataSourceInfo;
-    singleDataSourceInfo.dataSource = dataSources;
+    singleDataSourceInfo.dataSources = dataSources;
     const singleDataSourceErrors = this.state.singleDataSourceErrors;
     singleDataSourceErrors.dataSources = dataSources.length ? '' : '*Missing entry';
     this.setState({dataSources, singleDataSourceInfo, singleDataSourceErrors});
@@ -668,7 +668,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         singleDataSourceErrors.dataClassification = errorMissingEntry;
         formValid = false;
       }
-      if (this.state.singleDataSourceInfo.dataSource?.length === 0) {
+      if (this.state.singleDataSourceInfo.dataSources?.length === 0) {
         singleDataSourceErrors.dataSources = errorMissingEntry;
         formValid = false;
       }
@@ -745,7 +745,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         singleDataSourceErrors.dataClassification = errorMissingEntry;
         formValid = false;
       }
-      if (!this.state.singleDataSourceInfo.dataSource?.length) {
+      if (!this.state.singleDataSourceInfo.dataSources?.length) {
         singleDataSourceErrors.dataSources = errorMissingEntry;
         formValid = false;
       }
