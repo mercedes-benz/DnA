@@ -19,7 +19,7 @@ helm upgrade airflow . --namespace airflow --install -f values.yaml
 
     2. postgres
         - Conn Type: Postgres
-        - Host: postgres-1846729e.rx-system
+        - Host: xxxxxxxxx
         - Schema: db
         - Port: 64000
         - add Login(User) and password
