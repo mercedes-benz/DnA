@@ -39,7 +39,6 @@ export class ReportsApiClient {
 
   public static getCreateNewReportData(): Promise<any[]> {
     return Promise.all([
-      this.get('lov/datasources'),
       this.get('lov/customer/departments'),
       this.get('lov/frontendtechnologies'),
       this.get('lov/levels'),
