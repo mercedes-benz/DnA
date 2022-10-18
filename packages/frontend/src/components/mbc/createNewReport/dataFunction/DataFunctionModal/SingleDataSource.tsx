@@ -40,7 +40,7 @@ export const SingleDataSource = ({
 
   const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassification;  
 
-  const singleSourceDataSourceValue = JSON.parse(singleDataSourceInfo.dataSource)?.map((item: any) => item.dataSource);
+  const singleSourceDataSourceValue = singleDataSourceInfo.dataSource?.map((item: any) => item.dataSource);
   // ?.map((dataSource: IDataSourceMaster) => {
   //   return dataSource.name;
   // });
