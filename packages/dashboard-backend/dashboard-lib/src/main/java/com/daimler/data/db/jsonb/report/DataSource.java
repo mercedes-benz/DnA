@@ -43,8 +43,7 @@ import lombok.NoArgsConstructor;
 public class DataSource implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
-	
-	private String id;
-	private String name;
-    private BigDecimal weightage;
+
+	private String dataSource;
+	private BigDecimal weightage;
 }
