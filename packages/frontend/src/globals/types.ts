@@ -630,7 +630,7 @@ export interface IDataWarehouseInUse {
 
 export interface ISingleDataSources {
   connectionType: string;
-  dataSource: IDataSources[];
+  dataSources: IDataSources[];
   dataClassification: string;
 }
 export interface IUserNewInfo {
