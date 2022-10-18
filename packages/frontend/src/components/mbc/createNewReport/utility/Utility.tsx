@@ -60,7 +60,7 @@ export const serializeReportRequestBody = (requestBody: ICreateNewReportRequest)
   );
   requestBody.data.dataAndFunctions.singleDataSources = requestBody.data.dataAndFunctions.singleDataSources?.map(
     (item: ISingleDataSources) => {
-      item.dataSource = item.dataSource;
+      item.dataSources = item.dataSources;
       item.dataClassification = item.dataClassification
       item.connectionType = item.connectionType;
       return item;
