@@ -129,15 +129,43 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, reportLink, reportType  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrain, integratedPortal, frontendTechnologies, reportLink, reportType  },
         customer {
-          customerDetails { hierarchy, ressort, department, comment },
-          processOwners { shortId }
+          internalCustomers {
+            name { firstName, lastName, department, shortId },
+            customerRelation,
+            comment,
+            department,
+            level,
+            legalEntity,
+            division {
+              id,
+              name,
+              subdivision {
+                id,
+                name
+              }
+            },
+            accessToSensibleData,
+            processOwner { firstName, lastName, department, shortId }
+          },
+          externalCustomers {
+            name { firstName, lastName, department, shortId },
+            companyName,
+            customerRelation,
+            comment
+          }
         },
-        kpis { name, reportingCause, comment, kpiLink },
+        kpis { name, reportingCause, description, kpiLink },
         dataAndFunctions { 
-          dataWarehouseInUse { dataWarehouse, commonFunctions, specificFunctions, queries, dataSources, connectionTypes } , 
-          singleDataSources { dataSources, subsystems, connectionTypes } 
+          dataWarehouseInUse { dataWarehouse, commonFunctions, connectionType, dataClassification } , 
+          singleDataSources { 
+            dataSources{
+              dataSource,
+              weightage
+            }, 
+            connectionType, 
+            dataClassification } 
         }
         members {
           reportOwners { firstName, lastName, department, shortId },
