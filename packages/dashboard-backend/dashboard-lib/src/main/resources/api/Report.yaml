@@ -521,12 +521,8 @@ definitions:
       
   DataSourceVO:
     type: object
-    properties:
-      id:
-        type: string
-        minLength: 1
-        description: id of dataSource         
-      name:
+    properties:      
+      dataSource:
         type: string
         minLength: 1
         description: "DataSource name"
@@ -535,8 +531,7 @@ definitions:
         minLength: 1
         description: "Weightage of dataSource in %"
     required:
-      - id
-      - name
+      - dataSource
       - weightage              
       
   DataAndFunctionVO:
