@@ -111,8 +111,7 @@ type SingleDataSourceVO{
 }
 
 type DataSourceVO{
-    id: ID!,
-	name: String,
+	dataSource: String,
 	weightage: Int
 }
 
