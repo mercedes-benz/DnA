@@ -610,7 +610,7 @@ export interface IExternalCustomerDetails {
 }
 
 export interface IKpis {
-  comment: string;
+  description: string;
   name: string;
   reportingCause: string;
   kpiLink: string;
