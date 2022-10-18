@@ -208,23 +208,22 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
 
     ReportsApiClient.getCreateNewReportData().then((response) => {
       if (response) {
-        // const dataSources = response[0].data;
-        const departments = response[1].data;
-        const frontEndTechnologies = response[2].data;
-        const hierarchies = response[3].data;
-        const integratedPortals = response[4].data;
-        const kpiNames = response[5].data;
-        const reportingCauses = response[6].data;
-        const ressort = response[7].data;
-        const statuses = response[8].data;
-        const arts = response[9].data;
-        const tags: ITag[] = response[10].data;
-        const connectionTypes: IConnectionType[] = response[11].data;
-        const dataWarehouses: IDataWarehouse[] = response[12].data;
-        const divisions: IDivision[] = response[13];
-        const departmentTags: IDepartment[] = response[14].data;
-        const commonFunctions: ICommonFunctions[] = response[15].data;
-        const dataClassifications: IDataClassification[] =  response[16].data;
+        const departments = response[0].data;
+        const frontEndTechnologies = response[1].data;
+        const hierarchies = response[2].data;
+        const integratedPortals = response[3].data;
+        const kpiNames = response[4].data;
+        const reportingCauses = response[5].data;
+        const ressort = response[6].data;
+        const statuses = response[7].data;
+        const arts = response[8].data;
+        const tags: ITag[] = response[9].data;
+        const connectionTypes: IConnectionType[] = response[10].data;
+        const dataWarehouses: IDataWarehouse[] = response[11].data;
+        const divisions: IDivision[] = response[12];
+        const departmentTags: IDepartment[] = response[13].data;
+        const commonFunctions: ICommonFunctions[] = response[14].data;
+        const dataClassifications: IDataClassification[] =  response[15].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
