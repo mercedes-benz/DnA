@@ -80,7 +80,7 @@ export const getDataForCSV = (
             reportId: report.reportId ? sanitize(report.reportId) : 'NA', 
             name: report.productName ? sanitize(report.productName) : 'NA',
             // productPhase: report.description.productPhase ? report.description.productPhase : 'NA',
-            reportType: report.description.reportType ? sanitize(report.description.reportType) : 'NA',
+            reportType: report.description.reportType && report.description?.reportType != '0' ? sanitize(report.description.reportType) : 'NA',
             description: report.description.productDescription ? sanitize(report.description.productDescription) : 'NA',
             reportLink: report.description.reportLink ? sanitize(report.description.reportLink) : 'NA',
             tags:
@@ -91,10 +91,10 @@ export const getDataForCSV = (
             subdivision: report.description.division?.subdivision ? report.description.division.subdivision.name : 'NA',
             department: report.description.department ? report.description.department : 'NA',
             status: report.description.status ? report.description.status : 'NA',
-            integratedPortal: report.description.integratedPortal
+            integratedPortal: report.description.integratedPortal && report.description?.integratedPortal != '0'
               ? report.description.integratedPortal
               : 'NA',
-            agileReleaseTrains: report.description.agileReleaseTrain
+            agileReleaseTrains: report.description.agileReleaseTrain && report?.description.agileReleaseTrain != '0'
               ? report.description.agileReleaseTrain
               : 'NA',
             // designGuideImplemented: report.description.designGuideImplemented || 'NA',
@@ -102,21 +102,21 @@ export const getDataForCSV = (
               ? report.description.frontendTechnologies?.join(', ')
               : 'NA',
             internalCustomers: report.customer?.internalCustomers?.length
-              ? report.customer?.internalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
+              ? report.customer?.internalCustomers?.map((customer) => Object.values(customer)?.join(' | '))
               : 'NA',
             externalCustomers: report.customer?.externalCustomers?.length
-              ? report.customer.externalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
+              ? report.customer.externalCustomers?.map((customer) => Object.values(customer)?.join(' | '))
               : 'NA',
-            kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi))?.join(' | ') : 'NA',
+            kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi)?.join(' | ')) : 'NA',
             datawarehouses: report.dataAndFunctions?.dataWarehouseInUse?.length
               ? report.dataAndFunctions.dataWarehouseInUse
-                  ?.map((datawarehouse) => Object.values(datawarehouse))
-                  ?.join(' | ')
+                  ?.map((datawarehouse) => Object.values(datawarehouse)?.join(' | '))
+                  
               : 'NA',
             singledatasources: report.dataAndFunctions?.singleDataSources?.length
               ? report.dataAndFunctions.singleDataSources
-                  ?.map((singledatasource) => Object.values(singledatasource))
-                  ?.join(' | ')
+                  ?.map((singledatasource) => Object.values(singledatasource)?.join(' | '))
+                  
               : 'NA',
             productOwners: report.members.reportOwners?.length
               ? report.members.reportOwners?.map((member) => member.shortId)?.join(', ')
