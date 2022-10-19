@@ -41,10 +41,12 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.db.entities.ReportNsql;
 import com.daimler.data.db.jsonb.report.CreatedBy;
 import com.daimler.data.db.jsonb.report.Customer;
-import com.daimler.data.db.jsonb.report.CustomerDetails;
+import com.daimler.data.db.jsonb.report.DataSource;
 import com.daimler.data.db.jsonb.report.DataWarehouse;
 import com.daimler.data.db.jsonb.report.Description;
 import com.daimler.data.db.jsonb.report.Division;
+import com.daimler.data.db.jsonb.report.ExternalCustomer;
+import com.daimler.data.db.jsonb.report.InternalCustomer;
 import com.daimler.data.db.jsonb.report.KPI;
 import com.daimler.data.db.jsonb.report.Member;
 import com.daimler.data.db.jsonb.report.Report;
@@ -52,12 +54,14 @@ import com.daimler.data.db.jsonb.report.SingleDataSource;
 import com.daimler.data.db.jsonb.report.Subdivision;
 import com.daimler.data.db.jsonb.report.TeamMember;
 import com.daimler.data.dto.report.CreatedByVO;
-import com.daimler.data.dto.report.CustomerDetailsVO;
 import com.daimler.data.dto.report.CustomerVO;
 import com.daimler.data.dto.report.DataAndFunctionVO;
+import com.daimler.data.dto.report.DataSourceVO;
 import com.daimler.data.dto.report.DataWarehouseVO;
 import com.daimler.data.dto.report.DescriptionVO;
 import com.daimler.data.dto.report.DivisionVO;
+import com.daimler.data.dto.report.ExternalCustomerVO;
+import com.daimler.data.dto.report.InternalCustomerVO;
 import com.daimler.data.dto.report.KPIVO;
 import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ReportVO;
@@ -85,71 +89,54 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 			if (report.getDescription() != null) {
 				DescriptionVO descriptionVO = new DescriptionVO();
 				BeanUtils.copyProperties(report.getDescription(), descriptionVO);
-				DivisionVO divisionvo = new DivisionVO();
-				Division division = report.getDescription().getDivision();
-				if (division != null) {
-					BeanUtils.copyProperties(division, divisionvo);
-					SubdivisionVO subdivisionVO = new SubdivisionVO();
-					if (division.getSubdivision() != null)
-						BeanUtils.copyProperties(division.getSubdivision(), subdivisionVO);
-					divisionvo.setSubdivision(subdivisionVO);
-					descriptionVO.setDivision(divisionvo);
-				}
+				descriptionVO.setDivision(toDivisionVO(report.getDescription().getDivision()));
 				vo.setDescription(descriptionVO);
 			}
 			if (report.getCustomer() != null) {
 				CustomerVO customerVO = new CustomerVO();
 				BeanUtils.copyProperties(report.getCustomer(), customerVO);
-				if (!ObjectUtils.isEmpty(report.getCustomer().getCustomers())) {
-					List<CustomerDetailsVO> customerDetails = report.getCustomer().getCustomers().stream()
-							.map(n -> toCustomerDetailsVO(n)).collect(Collectors.toList());
-					customerVO.setCustomerDetails(customerDetails);
+				if (!ObjectUtils.isEmpty(report.getCustomer().getInternalCustomers())) {
+					List<InternalCustomerVO> internalCustomers = report.getCustomer().getInternalCustomers().stream()
+							.map(n -> toInternalCustomerVO(n)).collect(Collectors.toList());
+					customerVO.setInternalCustomers(internalCustomers);
 				}
-				if (!ObjectUtils.isEmpty(report.getCustomer().getProcessOwners())) {
-					List<TeamMemberVO> processOwners = report.getCustomer().getProcessOwners().stream()
-							.map(n -> toTeamMemberVO(n)).collect(Collectors.toList());
-					customerVO.setProcessOwners(processOwners);
+				if (!ObjectUtils.isEmpty(report.getCustomer().getExternalCustomers())) {
+					List<ExternalCustomerVO> externalCustomers = report.getCustomer().getExternalCustomers().stream()
+							.map(n -> toExternalCustomerVO(n)).collect(Collectors.toList());
+					customerVO.setExternalCustomers(externalCustomers);
 				}
 
 				vo.setCustomer(customerVO);
 			}
 			if (!ObjectUtils.isEmpty(report.getKpis())) {
-				List<KPIVO> kpis = new ArrayList<KPIVO>();
-				kpis = report.getKpis().stream().map(n -> toKPIVO(n)).collect(Collectors.toList());
+				List<KPIVO> kpis = report.getKpis().stream().map(n -> toKPIVO(n)).collect(Collectors.toList());
 				vo.setKpis(kpis);
 			}
 			DataAndFunctionVO dataAndFunctionVO = new DataAndFunctionVO();
 			if (!ObjectUtils.isEmpty(report.getDataWarehouses())) {
-				List<DataWarehouseVO> dataWarehouseVO = new ArrayList<DataWarehouseVO>();
-				dataWarehouseVO = report.getDataWarehouses().stream().map(n -> toDataWarehouseVO(n))
-						.collect(Collectors.toList());
+				List<DataWarehouseVO> dataWarehouseVO = report.getDataWarehouses().stream()
+						.map(n -> toDataWarehouseVO(n)).collect(Collectors.toList());
 				dataAndFunctionVO.setDataWarehouseInUse(dataWarehouseVO);
 			}
 
 			if (!ObjectUtils.isEmpty(report.getSingleDataSources())) {
-				List<SingleDataSourceVO> singleDataSourcesVO = new ArrayList<SingleDataSourceVO>();
-				singleDataSourcesVO = report.getSingleDataSources().stream().map(n -> toSingleDataSourceVO(n))
-						.collect(Collectors.toList());
+				List<SingleDataSourceVO> singleDataSourcesVO = report.getSingleDataSources().stream()
+						.map(n -> toSingleDataSourceVO(n)).collect(Collectors.toList());
 				dataAndFunctionVO.setSingleDataSources(singleDataSourcesVO);
 			}
 			vo.setDataAndFunctions(dataAndFunctionVO);
 			if (report.getMember() != null) {
 				MemberVO memberVO = new MemberVO();
 				BeanUtils.copyProperties(report.getMember(), memberVO);
-				if (!ObjectUtils.isEmpty(report.getMember().getDevelopers())) {
-					List<TeamMemberVO> developers = report.getMember().getDevelopers().stream()
+				if (!ObjectUtils.isEmpty(report.getMember().getReportOwners())) {
+					List<TeamMemberVO> reportOwners = report.getMember().getReportOwners().stream()
 							.map(n -> toTeamMemberVO(n)).collect(Collectors.toList());
-					memberVO.setDevelopers(developers);
+					memberVO.setReportOwners(reportOwners);
 				}
-				if (!ObjectUtils.isEmpty(report.getMember().getProductOwners())) {
-					List<TeamMemberVO> productOwners = report.getMember().getProductOwners().stream()
+				if (!ObjectUtils.isEmpty(report.getMember().getReportAdmins())) {
+					List<TeamMemberVO> reportAdmins = report.getMember().getReportAdmins().stream()
 							.map(n -> toTeamMemberVO(n)).collect(Collectors.toList());
-					memberVO.setProductOwners(productOwners);
-				}
-				if (!ObjectUtils.isEmpty(report.getMember().getAdmin())) {
-					List<TeamMemberVO> admin = report.getMember().getAdmin().stream().map(n -> toTeamMemberVO(n))
-							.collect(Collectors.toList());
-					memberVO.setAdmin(admin);
+					memberVO.setReportAdmins(reportAdmins);
 				}
 				vo.setMembers(memberVO);
 			}
@@ -179,6 +166,18 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (singleDataSource != null) {
 			vo = new SingleDataSourceVO();
 			BeanUtils.copyProperties(singleDataSource, vo);
+			List<DataSourceVO> dataSourcesVO = singleDataSource.getDataSources().stream().map(n -> toDataSourceVO(n))
+					.collect(Collectors.toList());
+			vo.setDataSources(dataSourcesVO);
+		}
+		return vo;
+	}
+
+	private DataSourceVO toDataSourceVO(DataSource dataSource) {
+		DataSourceVO vo = null;
+		if (dataSource != null) {
+			vo = new DataSourceVO();
+			BeanUtils.copyProperties(dataSource, vo);
 		}
 		return vo;
 	}
@@ -192,11 +191,38 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		return kPIVO;
 	}
 
-	private CustomerDetailsVO toCustomerDetailsVO(CustomerDetails customerDetails) {
-		CustomerDetailsVO vo = null;
-		if (customerDetails != null) {
-			vo = new CustomerDetailsVO();
-			BeanUtils.copyProperties(customerDetails, vo);
+	private InternalCustomerVO toInternalCustomerVO(InternalCustomer internalCustomer) {
+		InternalCustomerVO vo = null;
+		if (internalCustomer != null) {
+			vo = new InternalCustomerVO();
+			BeanUtils.copyProperties(internalCustomer, vo);
+			vo.setDivision(toDivisionVO(internalCustomer.getDivision()));
+			vo.setName(toTeamMemberVO(internalCustomer.getName()));
+			vo.setProcessOwner(toTeamMemberVO(internalCustomer.getProcessOwner()));
+		}
+		return vo;
+	}
+
+	private ExternalCustomerVO toExternalCustomerVO(ExternalCustomer externalCustomer) {
+		ExternalCustomerVO vo = null;
+		if (externalCustomer != null) {
+			vo = new ExternalCustomerVO();
+			BeanUtils.copyProperties(externalCustomer, vo);
+			vo.setName(toTeamMemberVO(externalCustomer.getName()));
+		}
+		return vo;
+	}
+
+	private DivisionVO toDivisionVO(Division division) {
+		DivisionVO vo = null;
+		if (division != null) {
+			vo = new DivisionVO();
+			BeanUtils.copyProperties(division, vo);
+			SubdivisionVO subdivisionVO = new SubdivisionVO();
+			if (division.getSubdivision() != null) {
+				BeanUtils.copyProperties(division.getSubdivision(), subdivisionVO);
+			}
+			vo.setSubdivision(subdivisionVO);
 		}
 		return vo;
 	}
@@ -234,51 +260,39 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 			if (vo.getDescription() != null) {
 				Description description = new Description();
 				BeanUtils.copyProperties(vo.getDescription(), description);
-				DivisionVO divisionvo = vo.getDescription().getDivision();
-				Division division = new Division();
-				if (divisionvo != null) {
-					BeanUtils.copyProperties(divisionvo, division);
-					Subdivision subdivision = new Subdivision();
-					if (divisionvo.getSubdivision() != null)
-						BeanUtils.copyProperties(divisionvo.getSubdivision(), subdivision);
-					division.setSubdivision(subdivision);
-					description.setDivision(division);
-				}
+				description.setDivision(toDivisionJson(vo.getDescription().getDivision()));
 				report.setDescription(description);
 			}
 
 			if (vo.getCustomer() != null) {
 				Customer customer = new Customer();
 				BeanUtils.copyProperties(vo.getCustomer(), customer);
-				if (!ObjectUtils.isEmpty(vo.getCustomer().getCustomerDetails())) {
-					List<CustomerDetails> customers = vo.getCustomer().getCustomerDetails().stream()
-							.map(n -> toCustomerDetailsJson(n)).collect(Collectors.toList());
-					customer.setCustomers(customers);
+				if (!ObjectUtils.isEmpty(vo.getCustomer().getInternalCustomers())) {
+					List<InternalCustomer> internalCustomers = vo.getCustomer().getInternalCustomers().stream()
+							.map(n -> toInternalCustomerJson(n)).collect(Collectors.toList());
+					customer.setInternalCustomers(internalCustomers);
 				}
-				if (!ObjectUtils.isEmpty(vo.getCustomer().getProcessOwners())) {
-					List<TeamMember> processOwners = vo.getCustomer().getProcessOwners().stream()
-							.map(n -> toTeamMemberJson(n)).collect(Collectors.toList());
-					customer.setProcessOwners(processOwners);
+				if (!ObjectUtils.isEmpty(vo.getCustomer().getExternalCustomers())) {
+					List<ExternalCustomer> externalCustomers = vo.getCustomer().getExternalCustomers().stream()
+							.map(n -> toExternalCustomerJson(n)).collect(Collectors.toList());
+					customer.setExternalCustomers(externalCustomers);
 				}
 				report.setCustomer(customer);
 			}
 			if (!ObjectUtils.isEmpty(vo.getKpis())) {
-				List<KPI> kpis = new ArrayList<KPI>();
-				kpis = vo.getKpis().stream().map(n -> toKPIJson(n)).collect(Collectors.toList());
+				List<KPI> kpis = vo.getKpis().stream().map(n -> toKPIJson(n)).collect(Collectors.toList());
 				report.setKpis(kpis);
 			}
 			if (Objects.nonNull(vo.getDataAndFunctions())
 					&& !ObjectUtils.isEmpty(vo.getDataAndFunctions().getDataWarehouseInUse())) {
-				List<DataWarehouse> dataWarehouseInUse = new ArrayList<DataWarehouse>();
-				dataWarehouseInUse = vo.getDataAndFunctions().getDataWarehouseInUse().stream()
+				List<DataWarehouse> dataWarehouseInUse = vo.getDataAndFunctions().getDataWarehouseInUse().stream()
 						.map(n -> toDataWarehouseJson(n)).collect(Collectors.toList());
 				report.setDataWarehouses(dataWarehouseInUse);
 			}
 
 			if (Objects.nonNull(vo.getDataAndFunctions())
 					&& !ObjectUtils.isEmpty(vo.getDataAndFunctions().getSingleDataSources())) {
-				List<SingleDataSource> singleDataSources = new ArrayList<SingleDataSource>();
-				singleDataSources = vo.getDataAndFunctions().getSingleDataSources().stream()
+				List<SingleDataSource> singleDataSources = vo.getDataAndFunctions().getSingleDataSources().stream()
 						.map(n -> toSingleDataSourceJson(n)).collect(Collectors.toList());
 				report.setSingleDataSources(singleDataSources);
 			}
@@ -286,20 +300,15 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 			if (vo.getMembers() != null) {
 				Member member = new Member();
 				BeanUtils.copyProperties(vo.getMembers(), member);
-				if (!ObjectUtils.isEmpty(vo.getMembers().getDevelopers())) {
-					List<TeamMember> developers = vo.getMembers().getDevelopers().stream().map(n -> toTeamMemberJson(n))
-							.collect(Collectors.toList());
-					member.setDevelopers(developers);
-				}
-				if (!ObjectUtils.isEmpty(vo.getMembers().getProductOwners())) {
-					List<TeamMember> productOwners = vo.getMembers().getProductOwners().stream()
+				if (!ObjectUtils.isEmpty(vo.getMembers().getReportOwners())) {
+					List<TeamMember> reportOwners = vo.getMembers().getReportOwners().stream()
 							.map(n -> toTeamMemberJson(n)).collect(Collectors.toList());
-					member.setProductOwners(productOwners);
+					member.setReportOwners(reportOwners);
 				}
-				if (!ObjectUtils.isEmpty(vo.getMembers().getAdmin())) {
-					List<TeamMember> admin = vo.getMembers().getAdmin().stream().map(n -> toTeamMemberJson(n))
-							.collect(Collectors.toList());
-					member.setAdmin(admin);
+				if (!ObjectUtils.isEmpty(vo.getMembers().getReportAdmins())) {
+					List<TeamMember> reportAdmins = vo.getMembers().getReportAdmins().stream()
+							.map(n -> toTeamMemberJson(n)).collect(Collectors.toList());
+					member.setReportAdmins(reportAdmins);
 				}
 				report.setMember(member);
 			}
@@ -330,8 +339,20 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		if (vo != null) {
 			singleDataSource = new SingleDataSource();
 			BeanUtils.copyProperties(vo, singleDataSource);
+			List<DataSource> dataSources = vo.getDataSources().stream().map(n -> toDataSourceJson(n))
+					.collect(Collectors.toList());
+			singleDataSource.setDataSources(dataSources);
 		}
 		return singleDataSource;
+	}
+
+	private DataSource toDataSourceJson(DataSourceVO vo) {
+		DataSource dataSource = null;
+		if (vo != null) {
+			dataSource = new DataSource();
+			BeanUtils.copyProperties(vo, dataSource);
+		}
+		return dataSource;
 	}
 
 	private KPI toKPIJson(KPIVO vo) {
@@ -343,13 +364,40 @@ public class ReportAssembler implements GenericAssembler<ReportVO, ReportNsql> {
 		return kpi;
 	}
 
-	private CustomerDetails toCustomerDetailsJson(CustomerDetailsVO vo) {
-		CustomerDetails customerDetails = null;
+	private InternalCustomer toInternalCustomerJson(InternalCustomerVO vo) {
+		InternalCustomer internalCustomer = null;
 		if (vo != null) {
-			customerDetails = new CustomerDetails();
-			BeanUtils.copyProperties(vo, customerDetails);
+			internalCustomer = new InternalCustomer();
+			BeanUtils.copyProperties(vo, internalCustomer);
+			internalCustomer.setName(toTeamMemberJson(vo.getName()));
+			internalCustomer.setProcessOwner(toTeamMemberJson(vo.getProcessOwner()));
+			internalCustomer.setDivision(toDivisionJson(vo.getDivision()));
 		}
-		return customerDetails;
+		return internalCustomer;
+	}
+
+	private ExternalCustomer toExternalCustomerJson(ExternalCustomerVO vo) {
+		ExternalCustomer externalCustomer = null;
+		if (vo != null) {
+			externalCustomer = new ExternalCustomer();
+			BeanUtils.copyProperties(vo, externalCustomer);
+			externalCustomer.setName(toTeamMemberJson(vo.getName()));
+		}
+		return externalCustomer;
+	}
+
+	private Division toDivisionJson(DivisionVO vo) {
+		Division division = null;
+		if (vo != null) {
+			division = new Division();
+			BeanUtils.copyProperties(vo, division);
+			Subdivision subdivision = new Subdivision();
+			if (vo.getSubdivision() != null) {
+				BeanUtils.copyProperties(vo.getSubdivision(), subdivision);
+			}
+			division.setSubdivision(subdivision);
+		}
+		return division;
 	}
 
 	private TeamMember toTeamMemberJson(TeamMemberVO vo) {

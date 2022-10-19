@@ -45,13 +45,14 @@ import {
   IDataSourceMaster,
   IConnectionType,
   IDataWarehouse,
-  ISubSystems,
-  ISingleDataSources,
+  ICommonFunctions,
+  // ISingleDataSources,
   IDivision,
   ISubDivision,
-} from '../../../globals/types';
+  IDataClassification,
+} from 'globals/types';
 import Styles from './CreateNewReport.scss';
-import SelectBox from '../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 import Customer from './customer/Customer';
 import Description from './description/Description';
@@ -60,8 +61,8 @@ import DataFunction from './dataFunction/DataFunction';
 import Members from './members/Members';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import { serializeReportRequestBody } from './utility/Utility';
-import { USER_ROLE } from '../../../globals/constants';
-import { TeamMemberType } from '../../../globals/Enums';
+import { USER_ROLE } from 'globals/constants';
+import { TeamMemberType } from 'globals/Enums';
 
 const classNames = cn.bind(Styles);
 export interface ICreateNewReportState {
@@ -80,8 +81,9 @@ export interface ICreateNewReportState {
   statuses: IProductStatus[];
   designGuideImplemented: IDesignGuide[];
   connectionTypes: IConnectionType[];
+  dataClassifications: IDataClassification[];
   dataWarehouses: IDataWarehouse[];
-  subSystems: ISubSystems[];
+  commonFunctions: ICommonFunctions[];
   editMode: boolean;
   currentTab: string;
   nextTab: string;
@@ -131,8 +133,11 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       designGuideImplemented: [],
       tags: [],
       connectionTypes: [],
+      dataClassifications: [{id: 'Confidential', name: 'Confidential'},
+      {id: 'Internal', name: 'Internal'},
+      {id: 'Public', name: 'Public'}],
       dataWarehouses: [],
-      subSystems: [],
+      commonFunctions: [],
       departmentTags: [],
       editMode: false,
       currentTab: 'description',
@@ -158,28 +163,32 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           department: [],
           productPhase: null,
           status: null,
-          agileReleaseTrains: [],
-          integratedPortal: [],
+          agileReleaseTrain: '',
+          integratedPortal: '',
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
+          reportLink: '',
+          reportType: null,
+          piiData: ''
         },
         kpis: [],
         customer: {
-          customerDetails: [],
-          processOwners: [],
+          internalCustomers: [],
+          externalCustomers: [],
         },
         dataAndFunctions: {
           dataWarehouseInUse: [],
           singleDataSources: [],
         },
         members: {
-          developers: [],
-          productOwners: [],
-          admin: [],
+          reportOwners: [],
+          reportAdmins: [],
         },
         publish: false,
         openSegments: [],
+        usingQuickPath: true,
+        reportId: null,
       },
       currentState: null,
       showAlertChangesModal: false,
@@ -193,30 +202,28 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     }
   }
   public componentDidMount() {
-    Tabs.defaultSetup();
+    // Tabs.defaultSetup();
     InputFields.defaultSetup();
     ProgressIndicator.show();
 
     ReportsApiClient.getCreateNewReportData().then((response) => {
       if (response) {
-        const dataSources = response[0].data;
-        const departments = response[1].data;
-        const frontEndTechnologies = response[2].data;
-        const hierarchies = response[3].data;
-        const integratedPortals = response[4].data;
-        const kpiNames = response[5].data;
-        const productPhases = response[6].data;
-        const reportingCauses = response[7].data;
-        const ressort = response[8].data;
-        const statuses = response[9].data;
-        const designGuideImplemented = response[10].data;
-        const arts = response[11].data;
-        const tags: ITag[] = response[12].data;
-        const connectionTypes: IConnectionType[] = response[13].data;
-        const dataWarehouses: IDataWarehouse[] = response[14].records;
-        const subSystems: ISubSystems[] = response[15].data;
-        const divisions: IDivision[] = response[16];
-        const departmentTags: IDepartment[] = response[17].data;
+        const departments = response[0].data;
+        const frontEndTechnologies = response[1].data;
+        const hierarchies = response[2].data;
+        const integratedPortals = response[3].data;
+        const kpiNames = response[4].data;
+        const reportingCauses = response[5].data;
+        const ressort = response[6].data;
+        const statuses = response[7].data;
+        const arts = response[8].data;
+        const tags: ITag[] = response[9].data;
+        const connectionTypes: IConnectionType[] = response[10].data;
+        const dataWarehouses: IDataWarehouse[] = response[11].data;
+        const divisions: IDivision[] = response[12];
+        const departmentTags: IDepartment[] = response[13].data;
+        const commonFunctions: ICommonFunctions[] = response[14].data;
+        const dataClassifications: IDataClassification[] =  response[15].data;
         const creatorInfo = this.props.user;
         const teamMemberObj: ITeams = {
           department: creatorInfo.department,
@@ -233,44 +240,62 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         }
         this.setState(
           (prevState) => ({
-            dataSources,
+            // dataSources,
             departments,
             frontEndTechnologies,
             hierarchies,
             integratedPortals,
             kpiNames,
-            productPhases,
             reportingCauses,
             ressort,
             statuses,
-            designGuideImplemented,
             arts,
             tags,
             departmentTags,
+            dataWarehouses,
             divisions,
             connectionTypes,
-            dataWarehouses,
-            subSystems,
+            dataClassifications,
+            commonFunctions,
             report: {
               ...prevState.report,
               members: {
                 ...prevState.report.members,
-                admin: [teamMemberObj],
+                reportAdmins: [teamMemberObj],
               },
             },
           }),
           () => {
-            Button.defaultSetup();
-            SelectBox.defaultSetup();
-            ProgressIndicator.hide();
-            this.getReportById(() => {});
+            ApiClient.getMasterDataSources().then((response) => {
+              if (response) {
+                const dataSourcesTags: ITag[] = response;
+                this.setState({
+                  dataSources: dataSourcesTags
+                },()=>{
+                  Button.defaultSetup();
+                  SelectBox.defaultSetup();
+                  ProgressIndicator.hide();
+                  this.getReportById(() => {});
+                });
+              }
+            });
+            
           },
         );
       } else {
         ProgressIndicator.hide();
       }
     });
-  }
+
+    // ApiClient.getCreateNewSolutionData().then((response) => {
+    //   if (response) {
+    //     const dataSources: ITag[] = response[9];
+    //     this.setState({
+    //       dataSources
+    //     });
+    //   }
+    // });
+  }  
 
   protected setupEditReportData(
     subDivisions: ISubDivision[],
@@ -285,8 +310,10 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         report,
       },
       () => {
+        
         this.setOpenTabs(report.openSegments);
         SelectBox.defaultSetup();
+        Tabs.defaultSetup();
         ProgressIndicator.hide();
         resetChildComponents();
         this.setState({
@@ -311,7 +338,7 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
             const user = this.props.user;
             const isSuperAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
             const isReportAdmin = user.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN);
-            const isProductOwner = res.members.productOwners?.find(
+            const isProductOwner = res.members.reportOwners?.find(
               (teamMember: ITeams) => teamMember.shortId === user.id,
             )?.shortId;
 
@@ -320,20 +347,20 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
               isReportAdmin !== undefined ||
               isProductOwner !== undefined ||
               // user.id === (res.createdBy ? res.createdBy.id : '')
-              res.members.admin.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
+              res.members.reportAdmins.find((teamMember) => teamMember.shortId === user.id) !== undefined ||
               (user?.divisionAdmins && user?.divisionAdmins.includes(res?.description?.division?.name))
             ) {
               const response = this.state.response;
               const {
                 productPhases,
                 statuses,
-                frontEndTechnologies,
+                // frontEndTechnologies,
                 designGuideImplemented,
-                integratedPortals,
-                arts,
-                dataSources,
-                connectionTypes,
-                subSystems,
+                // integratedPortals,
+                // arts,
+                // dataSources,
+                // connectionTypes,
+                // dataClassifications,
               } = this.state;
               response.data = res;
               const report = this.state.report;
@@ -343,40 +370,38 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
                 (item: any) => item.name === res.description.productPhase,
               );
               report.description.status = statuses?.filter((item: any) => item.name === res.description.status);
-              report.description.frontendTechnologies = frontEndTechnologies?.filter(
-                (item: any) => res.description.frontendTechnologies?.indexOf(item.name) > -1,
-              );
+              report.description.frontendTechnologies = res.description.frontendTechnologies;
               report.description.designGuideImplemented = designGuideImplemented?.filter(
                 (item: any) => item.name === res.description.designGuideImplemented,
               );
-              report.description.agileReleaseTrains = arts?.filter(
-                (item: any) => res.description.agileReleaseTrains?.indexOf(item.name) > -1,
-              );
-              report.description.integratedPortal = integratedPortals?.filter(
-                (item: any) => res.description.integratedPortal?.indexOf(item.name) > -1,
-              );
+              report.description.agileReleaseTrain = res.description.agileReleaseTrain;
+              report.description.integratedPortal = res.description.integratedPortal;
               report.description.tags = res.description.tags;
               report.description.division = res.description.division;
               report.description.department = (res.description.department as any)?.split(' ') || null;
-              report.customer.customerDetails = res.customer?.customerDetails || [];
-              report.customer.processOwners = res.customer?.processOwners || [];
+              report.description.reportLink = res.description.reportLink;
+              report.description.reportType = res.description?.reportType;
+              report.description.piiData = res.description?.piiData;
+              report.customer.internalCustomers = res.customer?.internalCustomers || [];
+              report.customer.externalCustomers = res.customer?.externalCustomers || [];
+              // report.customer.processOwners = res.customer?.processOwners || [];
               report.kpis = res.kpis || [];
               report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions?.dataWarehouseInUse || [];
-              report.dataAndFunctions.singleDataSources =
-                res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
-                  item.dataSources =
-                    dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
-                  item.subsystems =
-                    subSystems?.filter((subItem: any) => item.subsystems.indexOf(subItem.name) > -1) || [];
-                  item.connectionTypes =
-                    connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || [];
-                  return item;
-                }) || [];
-              report.members.developers = res.members.developers || [];
-              report.members.productOwners = res.members.productOwners || [];
-              report.members.admin = res.members.admin || [];
+              report.dataAndFunctions.singleDataSources = res.dataAndFunctions?.singleDataSources || [];
+                // res.dataAndFunctions?.singleDataSources?.map((item: ISingleDataSources) => {
+                //   item.dataSources =
+                //     dataSources?.filter((subItem: any) => item.dataSources.indexOf(subItem.name) > -1) || [];
+                //   item.connectionTypes =
+                //     connectionTypes?.filter((subItem: any) => item.connectionTypes.indexOf(subItem.name) > -1) || []; 
+                //   item.dataClassification   
+                //   return item;
+                // }) || [];
+              // report.members.developers = res.members.developers || [];
+              report.members.reportOwners = res.members.reportOwners || [];
+              report.members.reportAdmins = res.members.reportAdmins || [];
               report.publish = res.publish;
               report.openSegments = res.openSegments || [];
+              report.reportId = res.reportId;
               let subDivisions: ISubDivision[] = [{ id: '0', name: 'None' }];
               const divisionId = res.description.division?.id;
               if (divisionId) {
@@ -409,145 +434,225 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
     }
   }
 
+  public changeQuickPath = () => {
+    const report = {...this.state.report};
+    // report.usingQuickPath = !value;
+    report.usingQuickPath = false;
+    
+    // Following two if's are mentioned because when we switch quickview then its state gets changed
+    if (report.description.division.subdivision.id === null) {
+      report.description.division.subdivision.id = '0';
+      report.description.division.subdivision.name = 'Choose';
+      this.setState({currentState: JSON.parse(JSON.stringify(report))});
+    }
+    if (report.description.division.subdivision.id === '0') {
+      report.description.division.subdivision.id = '0';
+      report.description.division.subdivision.name = 'Choose';
+      this.setState({currentState: JSON.parse(JSON.stringify(report))});
+    }
+    this.setState({report},()=>{
+      Tabs.defaultSetup();
+      if(!this.state.report.usingQuickPath){
+        document.getElementById('description').click();
+      }
+    });
+  };
+
   public render() {
     const currentTab = this.state.currentTab;
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
-          <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
-            {this.state.report.description.productName}
-          </h3>
-          <div id="create-report-tabs" className="tabs-panel">
-            <div className="tabs-wrapper">
-              <nav>
-                <ul className="tabs">
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Description')
-                        ? this.state.tabClassNames.get('Description')
-                        : 'tab active'
-                    }
-                  >
-                    <a href="#tab-content-1" id="description" onClick={this.setCurrentTab}>
-                      Description
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Customer')
-                        ? this.state.tabClassNames.get('Customer')
-                        : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-2" id="customer" onClick={this.setCurrentTab}>
-                      Customer
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Kpis') ? this.state.tabClassNames.get('Kpis') : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-3" id="kpi" onClick={this.setCurrentTab}>
-                      KPIs
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('DataAndFunctions')
-                        ? this.state.tabClassNames.get('DataAndFunctions')
-                        : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-4" id="datafunction" onClick={this.setCurrentTab}>
-                      Data & Functions
-                    </a>
-                  </li>
-                  <li
-                    className={
-                      this.state.tabClassNames.has('Members') ? this.state.tabClassNames.get('Members') : 'tab disabled'
-                    }
-                  >
-                    <a href="#tab-content-5" id="members" onClick={this.setCurrentTab}>
-                      Members
-                    </a>
-                  </li>
-                </ul>
-              </nav>
+          <div className={Styles.flexLayout}>
+            <div>
+              <div className={Styles.screenLabel}>{this.state.report.reportId ? 'Edit Report' : 'Create Report'}</div>
             </div>
-            <div className="tabs-content-wrapper">
-              <div id="tab-content-1" className="tab-content">
-                <Description
-                  divisions={this.state.divisions}
-                  subDivisions={this.state.subDivisions}
-                  productPhases={this.state.productPhases}
-                  statuses={this.state.statuses}
-                  arts={this.state.arts}
-                  integratedPortals={this.state.integratedPortals}
-                  designGuideImplemented={this.state.designGuideImplemented}
-                  frontEndTechnologies={this.state.frontEndTechnologies}
-                  description={this.state.report.description}
-                  modifyReportDescription={this.modifyReportDescription}
-                  onSaveDraft={this.onSaveDraft}
-                  tags={this.state.tags}
-                  departmentTags={this.state.departmentTags}
-                  setSubDivisions={(subDivisions: ISubDivision[]) =>
-                    this.setState({ subDivisions }, () => SelectBox.defaultSetup())
-                  }
-                />
+            {!this.state.report.reportId && currentTab === 'description' ? (
+              <div className={Styles.switchButton}>
+                {/* <label className="switch">
+                  <span className="label" style={{ marginRight: '5px' }}>
+                    {this.state.report.usingQuickPath ? 'Disable Quick View' : 'Enable Quick View'}
+                  </span>
+                  <span className="wrapper">
+                    <input
+                      type="checkbox"
+                      className="ff-only"
+                      onChange={() => this.changeQuickPath(this.state.report.usingQuickPath)}
+                      checked={this.state.report.usingQuickPath}
+                    />
+                  </span>
+                </label> */}
               </div>
-              <div id="tab-content-2" className="tab-content">
-                {currentTab === 'customer' && (
-                  <Customer
-                    customer={this.state.report.customer}
-                    hierarchies={this.state.hierarchies}
-                    departments={this.state.departments}
-                    ressort={this.state.ressort}
-                    modifyCustomer={this.modifyCustomer}
-                    onSaveDraft={this.onSaveDraft}
-                    ref={this.customerComponent}
-                  />
-                )}
-              </div>
-              <div id="tab-content-3" className="tab-content">
-                {currentTab === 'kpi' && (
-                  <Kpi
-                    kpis={this.state.report.kpis}
-                    kpiNames={this.state.kpiNames}
-                    reportingCause={this.state.reportingCauses}
-                    modifyKpi={this.modifyKpi}
-                    onSaveDraft={this.onSaveDraft}
-                    ref={this.kpiComponent}
-                  />
-                )}
-              </div>
-              <div id="tab-content-4" className="tab-content">
-                {currentTab === 'datafunction' && (
-                  <DataFunction
-                    dataAndFunctions={this.state.report.dataAndFunctions}
-                    dataSources={this.state.dataSources}
-                    connectionTypes={this.state.connectionTypes}
-                    dataWarehouses={this.state.dataWarehouses}
-                    subSystems={this.state.subSystems}
-                    modifyDataFunction={this.modifyDataFunction}
-                    onSaveDraft={this.onSaveDraft}
-                    ref={this.dataFunctionComponent}
-                  />
-                )}
-              </div>
-              <div id="tab-content-5" className="tab-content">
-                {currentTab === 'members' && (
-                  <Members
-                    members={this.state.report.members}
-                    modifyMember={this.modifyMember}
-                    onSaveDraft={this.onSaveDraft}
-                    onPublish={this.onPublish}
-                    ref={this.membersComponent}
-                  />
-                )}
-              </div>
-            </div>
+            ) : (
+              ''
+            )}
           </div>
+          <h3 className={classNames(Styles.title, this.state.currentTab !== 'description' ? '' : 'hidden')}>
+            {this.state.report.description.productName}{' '}
+            {this.state.report.reportId ? '(' + this.state.report.reportId + ')' : ''}
+          </h3>
+          {this.state.report.usingQuickPath && !this.state.report.reportId ? (
+            <Description
+              divisions={this.state.divisions}
+              subDivisions={this.state.subDivisions}
+              productPhases={this.state.productPhases}
+              statuses={this.state.statuses}
+              arts={this.state.arts}
+              integratedPortals={this.state.integratedPortals}
+              designGuideImplemented={this.state.designGuideImplemented}
+              frontEndTechnologies={this.state.frontEndTechnologies}
+              description={this.state.report.description}
+              modifyReportDescription={this.modifyReportDescription}
+              onSaveDraft={this.onSaveDraft}
+              tags={this.state.tags}
+              departmentTags={this.state.departmentTags}
+              setSubDivisions={(subDivisions: ISubDivision[]) =>
+                this.setState({ subDivisions }, () => SelectBox.defaultSetup())
+              }
+              enableQuickPath={this.state.report.usingQuickPath}
+              refineReport={this.changeQuickPath}
+            />
+          ) : (
+            <div id="create-report-tabs" className="tabs-panel">
+              <div className="tabs-wrapper">
+                <nav>
+                  <ul className="tabs">
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Description')
+                          ? this.state.tabClassNames.get('Description')
+                          : 'tab active'
+                      }
+                    >
+                      <a href="#tab-content-1" id="description" onClick={this.setCurrentTab}>
+                        Description
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Customer')
+                          ? this.state.tabClassNames.get('Customer')
+                          : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-2" id="customer" onClick={this.setCurrentTab}>
+                        Customer
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Kpis') ? this.state.tabClassNames.get('Kpis') : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-3" id="kpi" onClick={this.setCurrentTab}>
+                        KPIs
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('DataAndFunctions')
+                          ? this.state.tabClassNames.get('DataAndFunctions')
+                          : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-4" id="datafunction" onClick={this.setCurrentTab}>
+                        Data & Functions
+                      </a>
+                    </li>
+                    <li
+                      className={
+                        this.state.tabClassNames.has('Members')
+                          ? this.state.tabClassNames.get('Members')
+                          : 'tab disabled'
+                      }
+                    >
+                      <a href="#tab-content-5" id="members" onClick={this.setCurrentTab}>
+                        Members
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+              <div className="tabs-content-wrapper">
+                <div id="tab-content-1" className="tab-content">
+                  {currentTab === 'description' && (
+                    <Description
+                      divisions={this.state.divisions}
+                      subDivisions={this.state.subDivisions}
+                      productPhases={this.state.productPhases}
+                      statuses={this.state.statuses}
+                      arts={this.state.arts}
+                      integratedPortals={this.state.integratedPortals}
+                      designGuideImplemented={this.state.designGuideImplemented}
+                      frontEndTechnologies={this.state.frontEndTechnologies}
+                      description={this.state.report.description}
+                      modifyReportDescription={this.modifyReportDescription}
+                      onSaveDraft={this.onSaveDraft}
+                      tags={this.state.tags}
+                      departmentTags={this.state.departmentTags}
+                      setSubDivisions={(subDivisions: ISubDivision[]) =>
+                        this.setState({ subDivisions }, () => SelectBox.defaultSetup())
+                      }
+                      enableQuickPath={false}
+                    />
+                  )}
+                </div>
+                <div id="tab-content-2" className="tab-content">
+                  {currentTab === 'customer' && (
+                    <Customer
+                      customer={this.state.report.customer}
+                      hierarchies={this.state.hierarchies}
+                      departments={this.state.departments}
+                      ressort={this.state.ressort}
+                      divisions={this.state.divisions}
+                      modifyCustomer={this.modifyCustomer}
+                      onSaveDraft={this.onSaveDraft}
+                      ref={this.customerComponent}
+                    />
+                  )}
+                </div>
+                <div id="tab-content-3" className="tab-content">
+                  {currentTab === 'kpi' && (
+                    <Kpi
+                      kpis={this.state.report.kpis}
+                      kpiNames={this.state.kpiNames}
+                      reportingCause={this.state.reportingCauses}
+                      modifyKpi={this.modifyKpi}
+                      onSaveDraft={this.onSaveDraft}
+                      ref={this.kpiComponent}
+                    />
+                  )}
+                </div>
+                <div id="tab-content-4" className="tab-content">
+                  {currentTab === 'datafunction' && (
+                    <DataFunction
+                      dataAndFunctions={this.state.report.dataAndFunctions}
+                      dataSources={this.state.dataSources}
+                      connectionTypes={this.state.connectionTypes}
+                      dataClassifications={this.state.dataClassifications}
+                      dataWarehouses={this.state.dataWarehouses}
+                      commonFunctions={this.state.commonFunctions}
+                      modifyDataFunction={this.modifyDataFunction}
+                      onSaveDraft={this.onSaveDraft}
+                      ref={this.dataFunctionComponent}
+                    />
+                  )}
+                </div>
+                <div id="tab-content-5" className="tab-content">
+                  {currentTab === 'members' && (
+                    <Members
+                      members={this.state.report.members}
+                      modifyMember={this.modifyMember}
+                      onSaveDraft={this.onSaveDraft}
+                      onPublish={this.onPublish}
+                      ref={this.membersComponent}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <ConfirmModal
             title="Save Changes?"
             acceptButtonTitle="Close"
@@ -628,6 +733,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       this.saveDataFunction();
     } else if (currentTab === 'members') {
       this.saveMembers();
+    } else if (currentTab === 'quickpath') {
+      this.saveDescriptionWithQuickPath();
     } else {
       // If multiple clicks on save happens then the currenttab doesnt get updated in that case
       // just save not moving to another tab.
@@ -666,6 +773,12 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         this.setState({ showAlertChangesModal: true, clickedTab: target.id });
       }
     }
+  };
+  protected saveDescriptionWithQuickPath = () => {
+    // this.state.report.openSegments.push('Description');
+    this.setState({ publishFlag: true });
+    this.callApiToSave(true, null);
+    history.push('/allreports');
   };
   protected saveDescription = () => {
     this.state.report.openSegments.push('Description');
@@ -713,6 +826,8 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
         members: report.members,
         publish: isPublished,
         openSegments: report.openSegments,
+        usingQuickPath: report.usingQuickPath,
+        reportId: report.reportId,
       },
     };
     // create deep copy of an object (won't alter original object)
@@ -757,16 +872,15 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
           );
           if (fieldsMissing) {
             const tempArr = error.message.split('data.');
-            tempArr.splice(0,1);
+            tempArr.splice(0, 1);
             tempArr.forEach((element: string) => {
               this.showErrorNotification(parseMessage(element));
             });
-            
+
             this.setState({
               fieldsMissing,
             });
-          }
-          else {
+          } else {
             this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
           }
         });
@@ -847,13 +961,26 @@ export default class CreateNewReport extends React.Component<ICreateNewReportPro
       report: currentReportObject,
     });
   };
-  protected modifyMember = (developers: ITeams[], productOwners: ITeams[], admin: ITeams[]) => {
+  protected modifyMember = (productOwners: ITeams[], reportAdmins: ITeams[]) => {
     const currentReportObject = this.state.report;
-    currentReportObject.members.developers = developers;
-    currentReportObject.members.productOwners = productOwners;
-    currentReportObject.members.admin = admin;
+    currentReportObject.members.reportOwners = productOwners;
+    currentReportObject.members.reportAdmins = reportAdmins;
     this.setState({
       report: currentReportObject,
     });
+  };
+
+  protected ResetTabs = () => {
+    const tabActiveIndicator = document.querySelector('.active-indicator') as HTMLSpanElement;
+    const firstTabContent = document.querySelector('.tab-content');
+    const activeTabContent = document.querySelector('.tab-content.active');
+
+    if (tabActiveIndicator && firstTabContent && activeTabContent) {
+      tabActiveIndicator.style.left = '0px';
+      if (!firstTabContent.classList.contains('active')) {
+        firstTabContent.classList.add('active');
+        activeTabContent.classList.remove('active');
+      }
+    }
   };
 }

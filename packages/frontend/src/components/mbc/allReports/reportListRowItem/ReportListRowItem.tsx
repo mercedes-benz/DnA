@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IAllReportsListItem, ITeams } from '../../../../globals/types';
+import { IAllReportsListItem, ITeams } from 'globals/types';
 import { history } from '../../../../router/History';
 import Styles from './ReportListRowItem.scss';
 // import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
@@ -149,14 +149,14 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
           </td>
           <td className="wrap-text">{report?.description.department || 'NA'}</td>
           <td>
-            {report?.members.productOwners?.length
-              ? report?.members.productOwners?.map((item: ITeams) => `${item.firstName} ${item.lastName}`)?.toString()
+            {report?.members.reportOwners?.length
+              ? report?.members.reportOwners?.map((item: ITeams) => `${item.firstName} ${item.lastName}`)?.toString()
               : 'NA'}
           </td>
           <td>
             <div className={Styles.locationDataWrapper}>
-              {report?.description.agileReleaseTrains?.[0] ? report?.description.agileReleaseTrains[0] : ''}
-              {report?.description.agileReleaseTrains?.length > 1 ? (
+              {report?.description.agileReleaseTrain ? report?.description.agileReleaseTrain : 'NA'}
+              {/* {report?.description.agileReleaseTrain ? (
                 <div
                   className={classNames(
                     Styles.contextMenu,
@@ -185,15 +185,15 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
                     <ul className="contextList">
                       <li className="contextListItem">
                         <p className="locationsText">
-                          {report?.description.agileReleaseTrains?.length
-                            ? report?.description.agileReleaseTrains?.join(', ')
+                          {report?.description.agileReleaseTrain
+                            ? report?.description.agileReleaseTrain
                             : ''}
                         </p>
                       </li>
                     </ul>
                   </div>
                 </div>
-              ) : null}
+              ) : null} */}
             </div>
           </td>
           <td

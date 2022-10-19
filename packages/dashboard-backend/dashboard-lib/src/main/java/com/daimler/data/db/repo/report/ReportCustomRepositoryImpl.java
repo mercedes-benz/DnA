@@ -111,9 +111,6 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			case "productName":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'productName')) ";
 				break;
-			case "productPhase":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','productPhase')) ";
-				break;
 			case "status":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','status')) ";
 				break;
@@ -121,10 +118,10 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','department')) ";
 				break;
 			case "art":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) ";
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) ";
 				break;
 			case "productOwner":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'member','productOwners')) ";
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'member','reportOwners')) ";
 				break;
 			default:
 				sortQueryString = "";
@@ -168,13 +165,13 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		String query = "";
 		if (userId != null) {
 
-			String isProductOwnerPredicate = " lower(jsonb_extract_path_text(data,'member','productOwners')) like "
+			String isReportOwnerPredicate = " lower(jsonb_extract_path_text(data,'member','reportOwners')) like "
 					+ "'%" + userId.toLowerCase() + "%'";
 
-			String isProductAdminPredicate = " lower(jsonb_extract_path_text(data,'member','admin')) like " + "'%"
+			String isReportAdminPredicate = " lower(jsonb_extract_path_text(data,'member','reportAdmins')) like " + "'%"
 					+ userId.toLowerCase() + "%'";
 
-			hasAccessPredicate = " (" + isProductOwnerPredicate + " or " + isProductAdminPredicate + ") ";
+			hasAccessPredicate = " (" + isReportOwnerPredicate + " or " + isReportAdminPredicate + ") ";
 
 		}
 		if (published != null) {
@@ -217,13 +214,9 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'description','frontendTechnologies')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) similar to "
+					+ "lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'description','designGuideImplemented')) similar to "
-					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'description','productPhase')) similar to "
-					+ delimiterSeparatedSearchTerms + " or "
-					+ "lower(jsonb_extract_path_text(data,'customer','customers')) similar to "
+					+ "lower(jsonb_extract_path_text(data,'customer','internalCustomers')) similar to "
 					+ delimiterSeparatedSearchTerms + " or " + "lower(jsonb_extract_path_text(data,'kpis')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'singleDataSources')) similar to "
@@ -263,7 +256,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			String delimiterSeparatedArts = arts.stream().map(n -> n.replaceAll(REGEX, "\\\\$0").toLowerCase())
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedArts = "'" + delimiterSeparatedArts + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'description','agileReleaseTrains')) similar to "
+			return "  and (lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) similar to "
 					+ delimiterSeparatedArts + " ) ";
 		}
 		return "";
@@ -274,7 +267,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			String delimiterSeparatedProductOwners = productOwners.stream().map(String::toLowerCase)
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedProductOwners = "'" + delimiterSeparatedProductOwners + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'member','productOwners')) similar to "
+			return "  and (lower(jsonb_extract_path_text(data,'member','reportOwners')) similar to "
 					+ delimiterSeparatedProductOwners + " ) ";
 		}
 		return "";
@@ -285,7 +278,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			String delimiterSeparatedProcessOwners = processOwners.stream().map(String::toLowerCase)
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedProcessOwners = "'" + delimiterSeparatedProcessOwners + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'customer','processOwners')) similar to "
+			return "  and (lower(jsonb_extract_path_text(data,'customer','internalCustomers','processOwner')) similar to "
 					+ delimiterSeparatedProcessOwners + " ) ";
 		}
 		return "";
@@ -294,15 +287,15 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	@Override
 	public List<TeamMemberVO> getAllProductOwnerUsingNativeQuery() {
 		String prefix = "select cast(data -> 'member' -> 'productOwners' as text) from report_nsql";
-		String basicpredicate = " where jsonb_extract_path_text(data,'member','productOwners') is not null";
+		String basicpredicate = " where jsonb_extract_path_text(data,'member','reportOwners') is not null";
 		String query = prefix + basicpredicate;
 		return getReportOwners(query);
 	}
 
 	@Override
 	public List<TeamMemberVO> getAllProcessOwnerUsingNativeQuery() {
-		String prefix = "select cast(data -> 'customer' -> 'processOwners' as text) from report_nsql";
-		String basicpredicate = " where jsonb_extract_path_text(data,'customer','processOwners') is not null";
+		String prefix = "select cast(data -> 'customer' -> 'internalCustomers' as text) from report_nsql";
+		String basicpredicate = " where jsonb_extract_path_text(data,'customer','internalCustomers') is not null";
 		String query = prefix + basicpredicate;
 		return getReportOwners(query);
 	}

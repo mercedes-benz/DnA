@@ -2,11 +2,11 @@ import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
 import ReactSlider from 'react-slider';
-import { IDataSource, IDataSources, IDataVolume, ITag } from '../../../../globals/types';
-import Tags from '../../../formElements/tags/Tags';
+import { IDataSource, IDataSources, IDataVolume, ITag } from 'globals/types';
+import Tags from 'components/formElements/tags/Tags';
 import Styles from './DataSources.scss';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import DataSource from './dataSource/DataSource';
 const classNames = cn.bind(Styles);
 
@@ -39,7 +39,7 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
     this.state = {
       dataSources: [],
       dataVolumeValue: null,
-      totalWeightage: 0
+      totalWeightage: 0,
     };
   }
 
@@ -48,7 +48,10 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
   }
 
   public render() {
-    const dataSourcesInSolution = this.props.dataSource.dataSources !== null ? this.props.dataSource.dataSources.map((item:any) => item.dataSource) : [];
+    const dataSourcesInSolution =
+      this.props.dataSource.dataSources !== null
+        ? this.props.dataSource.dataSources.map((item: any) => item.dataSource)
+        : [];
     const totalDataValumeInSolution = this.props.dataSource.dataVolume;
     return (
       <React.Fragment>
@@ -61,11 +64,17 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
                   <Tags
                     title={'Data Sources'}
                     max={100}
-                    chips={dataSourcesInSolution ? dataSourcesInSolution : this.state.dataSources.map((item:any) => item.dataSource)}
+                    chips={
+                      dataSourcesInSolution
+                        ? dataSourcesInSolution
+                        : this.state.dataSources.map((item: any) => item.dataSource)
+                    }
                     setTags={this.setDataSources}
                     removeTag={this.removeDataSource}
                     tags={this.props.dataSourcesTags}
                     showMissingEntryError={false}
+                    isDataSource={true}
+                    suggestionPopupHeight={300}
                     {...this.props}
                   />
                 </div>
@@ -105,43 +114,41 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
             </div>
           </div>
           <div className={Styles.weightageTableContainer}>
-            {
-              this.state.dataSources.length !== 0 ? (
-                <div className={Styles.dataSourceWeightage}>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Data Source</th>
-                        <th>Weightage</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {
-                        this.state.dataSources.map((item:any, index:any) => (
-                          <DataSource
-                            key={item.dataSource}
-                            name={item.dataSource}
-                            weightage={item.weightage}
-                            onWeightageChange={this.handleWeightageChange(index)}
-                          />
-                        ))
-                      }
-                      <tr>
-                        <td>
-                          &nbsp; 
-                        </td>
-                        <td style={{textAlign:'right'}}>
-                          <p className={Styles.totalWeightage}>Total Weightage: <b className={this.state.totalWeightage !== 100 ? Styles.error : Styles.success}>{this.state.totalWeightage}%</b></p>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <p className={Styles.note}>Total Weightage should be 100% only.</p>
-                </div>
-              ) : (
-                null
-              )
-            }
+            {this.state.dataSources.length !== 0 ? (
+              <div className={Styles.dataSourceWeightage}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Data Source</th>
+                      <th>Weightage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.state.dataSources.map((item: any, index: any) => (
+                      <DataSource
+                        key={item.dataSource}
+                        name={item.dataSource}
+                        weightage={item.weightage}
+                        list={this.props.dataSourcesTags}
+                        onWeightageChange={this.handleWeightageChange(index)}
+                      />
+                    ))}
+                    <tr>
+                      <td>&nbsp;</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <p className={Styles.totalWeightage}>
+                          Total Weightage:{' '}
+                          <b className={this.state.totalWeightage !== 100 ? Styles.error : Styles.success}>
+                            {this.state.totalWeightage}%
+                          </b>
+                        </p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className={Styles.note}>Total Weightage should be 100% only.</p>
+              </div>
+            ) : null}
           </div>
         </div>
         <div className="btnConatiner">
@@ -173,35 +180,35 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
     }
   };
 
-  public handleWeightageChange = (index:number) => (val:number) => {
+  public handleWeightageChange = (index: number) => (val: number) => {
     const dataSources = [...this.state.dataSources];
-    if(isNaN(val)) {
+    if (isNaN(val)) {
       dataSources[index].weightage = 0;
     } else {
       dataSources[index].weightage = val;
     }
-    const total = dataSources.map(ds => ds.weightage).reduce((current, next) => current + next);
+    const total = dataSources.map((ds) => ds.weightage).reduce((current, next) => current + next);
     this.setState({
       dataSources,
-      totalWeightage: total
+      totalWeightage: total,
     });
-  }
+  };
 
   protected setDataSources = (arr: string[]) => {
     let dataSources = [...this.state.dataSources];
 
     arr.forEach((element) => {
-      const result = this.state.dataSources.some(i => i.dataSource.includes(element));
-      if(result) {
+      const result = this.state.dataSources.some((i) => i.dataSource.includes(element));
+      if (result) {
         dataSources = [...this.state.dataSources];
       } else {
         dataSources = dataSources.concat([{ dataSource: element, weightage: 0 }]);
       }
     });
-    
-    const totalWeightage = dataSources.map(i => i.weightage).reduce((current, next) => current + next);
+
+    const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
     this.setState({
-      totalWeightage
+      totalWeightage,
     });
 
     this.props.modifyDataSources({
@@ -213,14 +220,14 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
   protected removeDataSource = (index: number) => {
     const dataSources = this.state.dataSources.filter((ds, dsIndex) => index !== dsIndex);
 
-    if(dataSources.length > 0) {
-      const totalWeightage = dataSources.map(i => i.weightage).reduce((current, next) => current + next);
+    if (dataSources.length > 0) {
+      const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
       this.setState({
-        totalWeightage
+        totalWeightage,
       });
     } else {
       this.setState({
-        totalWeightage: 0
+        totalWeightage: 0,
       });
     }
 
@@ -248,17 +255,17 @@ export default class DataSources extends React.Component<IDataSourcesProps, IDat
 
   protected onDataSourcesSubmit = () => {
     let isZero = false;
-    if(this.state.dataSources.length > 0) {
-      this.state.dataSources.map(dataSource => {
-        if(dataSource.weightage === 0) {
+    if (this.state.dataSources.length > 0) {
+      this.state.dataSources.map((dataSource) => {
+        if (dataSource.weightage === 0) {
           isZero = true;
         }
       });
     }
 
-    if(isZero) {
+    if (isZero) {
       Notification.show("Data source weightage can't be 0. Please remove it or set the weightage.", 'alert');
-    } else if(this.state.totalWeightage === 100 || this.state.dataSources.length === 0) {
+    } else if (this.state.totalWeightage === 100 || this.state.dataSources.length === 0) {
       const dataSourcesInSolution = this.props.dataSource.dataSources;
       this.props.modifyDataSources({
         dataSources: dataSourcesInSolution ? dataSourcesInSolution : this.state.dataSources,

@@ -144,7 +144,7 @@ spec:
               value: {{ ternary "yes" "no" .Values.auth.forceNewKeys | quote }}
             {{- if .Values.auth.useCredentialsFiles }}
             - name: MINIO_ROOT_USER_FILE
-              value: "/opt/bitnami/minio/secrets/root-user"
+              value: "/vault/secrets/root-user"
             {{- else }}
             - name: MINIO_ROOT_USER
               valueFrom:
@@ -154,7 +154,7 @@ spec:
             {{- end }}
             {{- if .Values.auth.useCredentialsFiles }}
             - name: MINIO_ROOT_PASSWORD_FILE
-              value: "/opt/bitnami/minio/secrets/root-password"
+              value: "/vault/secrets/root-password"
             {{- else }}
             - name: MINIO_ROOT_PASSWORD
               valueFrom:

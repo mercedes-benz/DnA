@@ -161,10 +161,21 @@ const base = {
         './AddUser': './src/components/mbc/addUser/AddUser.tsx',
         './SelectBox': './src/components/formElements/SelectBox/SelectBox.ts',
         './Tags': './src/components/formElements/tags/Tags',
+        './TeamMemberListItem': './src/components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem',
+        './ShowTeamMemberList': './src/components/mbc/summary/team/teamMemberListItem/TeamMemberListItem.tsx',
+        './IconAvatarNew': './src/components/icons/IconAvatarNew.tsx',
+        './AddTeamMemberModal': './src/components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal.tsx',
+        './TextBox': './src/components/mbc/shared/textBox/TextBox.tsx',
+        './Spinner': './src/components/mbc/shared/spinner/Spinner.tsx',
+        './TypeAheadBox': './src/components/mbc/shared/typeAheadBox/TypeAheadBox.tsx',
+        './DatePicker': './src/components/DatePicker/DatePicker.tsx',
+        './TeamSearch': './src/components/mbc/teamSearch/TeamSearch.tsx',
       },
       remotes: {
         // object key is used to import
         'storage-mfe': `storage_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.STORAGE_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'data-product-mfe': `data_product_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.DATA_PRODUCT_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
+        'chronos-mfe': `chronos_mfe@[(window.INJECTED_ENVIRONMENT && window.INJECTED_ENVIRONMENT.CHRONOS_MFE_APP_URL)]/remoteEntry.js?[(new Date()).getTime()]`,
       },
       shared: {
         ...packageJson.dependencies,
@@ -188,6 +199,8 @@ const base = {
       process: 'process/browser',
       stream: 'stream-browserify',
       zlib: 'browserify-zlib',
+      components: path.resolve(__dirname, '../../src/components/'),
+      globals: path.resolve(__dirname, '../../src/globals/'),
     },
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.png', '.svg', '.jpg', '.gif'],
     fallback: {

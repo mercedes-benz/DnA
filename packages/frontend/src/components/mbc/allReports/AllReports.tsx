@@ -9,7 +9,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import { SESSION_STORAGE_KEYS, USER_ROLE } from '../../../globals/constants';
+import { SESSION_STORAGE_KEYS, USER_ROLE } from 'globals/constants';
 
 // @ts-ignore
 import ImgDataikuIcon from '../../../assets/images/dataiku-icon.png';
@@ -31,7 +31,7 @@ import {
   IART,
   IDepartment,
   ITeams,
-} from '../../../globals/types';
+} from 'globals/types';
 import { history } from '../../../router/History';
 import Pagination from '../pagination/Pagination';
 
@@ -210,7 +210,7 @@ export default class AllReports extends React.Component<
     const { openFilterPanel } = this.state;
 
     const reportData = this.state.reports?.map((report) => {
-      const isProductOwner = report.members.productOwners?.find(
+      const isProductOwner = report.members.reportOwners?.find(
         (teamMember: ITeams) => teamMember.shortId === userInfo.id,
       )?.shortId;
 
@@ -218,7 +218,7 @@ export default class AllReports extends React.Component<
         <ReportListRowItem
           key={report?.id}
           report={report}
-          reportId={report?.id}
+          reportId={report?.reportId}
           bookmarked={false}
           canEdit={
             isReportAdmin !== undefined ||
@@ -226,8 +226,8 @@ export default class AllReports extends React.Component<
             isProductOwner !== undefined ||
             userInfo.id === this.checkUserCanEditReport(userInfo, report)
           }
-          onEdit={this.onEditReport}
-          onDelete={this.onDeleteReport}
+          onEdit={()=>this.onEditReport(report?.reportId)}
+          onDelete={()=>this.onDeleteReport(report?.id)}
         />
       );
     });
@@ -319,7 +319,7 @@ export default class AllReports extends React.Component<
               {this.state.cardViewMode && (
                 <div className={classNames('cardSolutions', Styles.allReportCardViewContent)}>
                   {this.state.reports?.map((report, index) => {
-                    const isProductOwner = report.members.productOwners?.find(
+                    const isProductOwner = report.members.reportOwners?.find(
                       (teamMember: ITeams) => teamMember.shortId === userInfo.id,
                     )?.shortId;
                     return (
@@ -702,10 +702,10 @@ export default class AllReports extends React.Component<
 
   protected checkUserCanEditReport(userInfo: IUserInfo, report: IAllReportsListItem) {
     let userId = '';
-    if (report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
-      userId = report?.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+    if (report?.members.reportAdmins.find((teamMember) => teamMember.shortId === userInfo.id)) {
+      userId = report?.members.reportAdmins.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
     } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(report?.description?.division?.name)) {
-      userId = userInfo.id;       
+      userId = userInfo.id;
     }
     // else if (report.createdBy) {
     //   userId = report.createdBy.id;

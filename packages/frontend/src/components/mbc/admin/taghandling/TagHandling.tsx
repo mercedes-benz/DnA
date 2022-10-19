@@ -4,21 +4,21 @@ import * as React from 'react';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
-import Pagination from '../../pagination/Pagination';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import Pagination from 'components/mbc/pagination/Pagination';
 import Styles from './TagHandling.scss';
 const classNames = cn.bind(Styles);
-import Tags from '../../../formElements/tags/Tags';
+import Tags from 'components/formElements/tags/Tags';
 
-import { IFitlerCategory, ITagResult, ITag, ISubDivision } from '../../../../globals/types';
+import { IFitlerCategory, ITagResult, ITag, ISubDivision } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
-import { ISortField } from '../../allSolutions/AllSolutions';
+import { ISortField } from 'components/mbc/allSolutions/AllSolutions';
 import { TagRowItem } from './tagrowitem/TagRowItem';
 
-import { SESSION_STORAGE_KEYS } from '../../../../globals/constants';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
-import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
-import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
 import { debounce } from 'lodash';
 
 export interface ITagHandlingState {
@@ -127,9 +127,14 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     };
     ApiClient.getDropdownList('categories').then((dropdownList: any) => {
       dropdownList.data.push({ id: 8, name: 'Division' });
-      this.setState({
-        categories: this.state.categories.concat(dropdownList.data),
-      });
+      this.setState(
+        {
+          categories: this.state.categories.concat(dropdownList.data),
+        },
+        () => {
+          SelectBox.defaultSetup();
+        },
+      );
     });
   }
 
@@ -158,7 +163,13 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       .then((res1) => {
         if (res1) {
           res1.forEach((ds) => {
-            results.push({ category: this.state.dataSourceCategory, id: ds.id + '', name: ds.name });
+            results.push({
+              category: this.state.dataSourceCategory,
+              id: ds.id + '',
+              name: ds.name,
+              dataType: ds.dataType,
+              source: ds.source,
+            });
           });
         }
       })
@@ -303,7 +314,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       });
   };
   public async getResults(action: string) {
-    const showProgressIndicator = ['add', 'update', 'delete'].includes(action);
+    const showProgressIndicator = ['add', 'update', 'delete', 'list'].includes(action);
     const showContentLoader = ['reset', 'categoryChange', 'search', 'pagination'].includes(action);
 
     showProgressIndicator && ProgressIndicator.show();
@@ -395,9 +406,9 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
     );
   }
   public async componentDidMount() {
-    SelectBox.defaultSetup();
+    // SelectBox.defaultSetup();
     this.setState({ isResultLoading: true });
-    await this.getResults('');
+    await this.getResults('list');
     this.setState({ isResultLoading: false });
   }
 

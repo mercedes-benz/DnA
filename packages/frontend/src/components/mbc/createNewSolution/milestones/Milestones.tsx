@@ -3,25 +3,17 @@ import * as React from 'react';
 // @ts-ignore
 import Button from '../../../../assets/modules/uilab/js/src/button';
 
-import { IconConceptDevelopment } from '../../../../components/icons/IconConceptDevelopment';
-import { IconIdeation } from '../../../../components/icons/IconIdeation';
-import { IconKickOff } from '../../../../components/icons/IconKickOff';
-import { IconOperations } from '../../../../components/icons/IconOperations';
-import { IconPilot } from '../../../../components/icons/IconPilot';
-import { IconProfessionalization } from '../../../../components/icons/IconProfessionalization';
-import {
-  ILocation,
-  IMilestonesList,
-  IMonth,
-  IPhase,
-  IPhasesItem,
-  IRollout,
-  IRolloutDetail,
-} from '../../../../globals/types';
+import { IconConceptDevelopment } from 'components/icons/IconConceptDevelopment';
+import { IconIdeation } from 'components/icons/IconIdeation';
+import { IconKickOff } from 'components/icons/IconKickOff';
+import { IconOperations } from 'components/icons/IconOperations';
+import { IconPilot } from 'components/icons/IconPilot';
+import { IconProfessionalization } from 'components/icons/IconProfessionalization';
+import { ILocation, IMilestonesList, IMonth, IPhase, IPhasesItem, IRollout, IRolloutDetail } from 'globals/types';
 import { regionalForMonthAndYear } from '../../../../services/utils';
 // import { ApiClient } from '../../../../services/ApiClient';
-import Modal from '../../../formElements/modal/Modal';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import Modal from 'components/formElements/modal/Modal';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import Styles from './Milestones.scss';
 const classNames = cn.bind(Styles);
 
@@ -862,7 +854,9 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                       <div className={classNames(Styles.phase, showPhase ? '' : 'hide')}>{milestone.phase.name}</div>
                       <div className={Styles.monthYear}>
                         {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
-                        {milestone.month > 0 && milestone.year > 0 ? regionalForMonthAndYear(milestone.month+'/'+'01'+'/'+milestone.year):''}
+                        {milestone.month > 0 && milestone.year > 0
+                          ? regionalForMonthAndYear(milestone.month + '/' + '01' + '/' + milestone.year)
+                          : ''}
                       </div>
                     </div>
                     <div
@@ -945,6 +939,27 @@ export default class Milestones extends React.Component<IMilestonesProps, IMileS
                 </button>
               </div>
             </div>
+            {this.state.milestones?.rollouts?.details && this.state.milestones?.rollouts?.details.length > 0 ? (
+              <div>
+                <h3>Rollout Locations</h3>
+                <br />
+                <div className={classNames(Styles.rolloutLocationsList)}>
+                  {this.state.milestones?.rollouts?.details.map((rollout, index) => {
+                    return (
+                      <span key={index}>
+                        {rollout.location.name}(
+                        {rollout.month > 0 && rollout.year > 0
+                          ? regionalForMonthAndYear(rollout.month + '/' + '01' + '/' + rollout.year)
+                          : ''}
+                        ){index <= this.state.milestones.rollouts.details.length - 2 ? ', ' : ''}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              ''
+            )}
           </div>
           <div className={classNames(milestonesErrorMessage.length ? '' : 'hide')}>
             <span className="error-message">{milestonesErrorMessage}</span>

@@ -8,16 +8,9 @@ import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-ind
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
 import { getParams } from '../../../router/RouterUtils';
 
-import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
-import { USER_ROLE } from '../../../globals/constants';
-import {
-  ICreateNewReportResult,
-  IRole,
-  IUserInfo,
-  ILogoDetails,
-  ICreateNewReport,
-  ITeams,
-} from '../../../globals/types';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import { USER_ROLE } from 'globals/constants';
+import { ICreateNewReportResult, IRole, IUserInfo, ILogoDetails, ICreateNewReport, ITeams } from 'globals/types';
 import { history } from '../../../router/History';
 import { ReportPdfDoc } from './pdfdoc/ReportPdfDoc';
 import Styles from './ReportSummary.scss';
@@ -83,28 +76,32 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
           department: [],
           productPhase: null,
           status: null,
-          agileReleaseTrains: [],
-          integratedPortal: [],
+          agileReleaseTrain: '',
+          integratedPortal: '',
           designGuideImplemented: null,
           frontendTechnologies: [],
           tags: [],
+          reportLink: '',
+          reportType: '',
+          piiData: ''
         },
         kpis: [],
         customer: {
-          customerDetails: [],
-          processOwners: [],
+          internalCustomers: [],
+          externalCustomers: [],
         },
         dataAndFunctions: {
           dataWarehouseInUse: [],
           singleDataSources: [],
         },
         members: {
-          developers: [],
-          productOwners: [],
-          admin: [],
+          reportOwners: [],
+          reportAdmins: [],
         },
         publish: false,
         openSegments: [],
+        usingQuickPath: false,
+        reportId: null,
       },
       publish: false,
       showDeleteReportModal: false,
@@ -130,10 +127,11 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
     const userInfo = this.props.user;
     const isSuperAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
     const isReportAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN);
-    const isProductOwner = this.state.report.members.productOwners?.find(
+    const isProductOwner = this.state.report.members.reportOwners?.find(
       (teamMember: ITeams) => teamMember.shortId === userInfo.id,
     )?.shortId;
     const reportName = this.state.report.productName;
+    const reportId = this.state.report.reportId;
     // const logoDetails = this.state.report.description.logoDetails;
 
     const deleteModalContent: React.ReactNode = (
@@ -166,7 +164,9 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
               Back
             </button>
             <div className={Styles.summeryBannerTitle}>
-              <h2>{reportName}</h2>
+              <h2>
+                {reportName} ({reportId})
+              </h2>
             </div>
           </div>
           <div id="report-summary-tabs" className="tabs-panel">
@@ -219,10 +219,11 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
                         isProductOwner !== undefined ||
                         userInfo.id === this.checkUserCanEditReport(userInfo)
                       }
-                      reportId={this.state.response.data ? this.state.response.data.id : ''}
-                      onEdit={this.onEditReport}
-                      onDelete={this.onDeleteReport}
+                      reportId={this.state.response.data ? this.state.response.data.reportId : ''}
+                      onEdit={()=>this.onEditReport(this.state.response.data.reportId)}
+                      onDelete={()=>this.onDeleteReport(this.state.response.data.id)}
                       onExportToPDFDocument={pdfContent}
+                      reportLink={this.state.response.data ? this.state.response.data.description.reportLink : ''}
                     />
                   </React.Fragment>
                 ) : (
@@ -298,24 +299,24 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
             report.kpis = res.kpis || [];
             report.dataAndFunctions.dataWarehouseInUse = res.dataAndFunctions.dataWarehouseInUse || [];
             report.dataAndFunctions.singleDataSources = res.dataAndFunctions.singleDataSources || [];
-            report.members.developers = res.members.developers || [];
-            report.members.productOwners = res.members.productOwners || [];
-            report.members.admin = res.members.admin || [];
+            report.members.reportOwners = res.members.reportOwners || [];
+            report.members.reportAdmins = res.members.reportAdmins || [];
             report.publish = res.publish;
             report.openSegments = res.openSegments || [];
+            report.reportId = res.reportId;
             this.setState(
               {
                 response,
                 report,
-                canShowCustomer: res.customer.customerDetails?.length > 0 || res.customer.processOwners?.length > 0,
+                canShowCustomer: res.customer.internalCustomers?.length > 0 || res.customer.externalCustomers?.length > 0,
                 canShowKpi: res.kpis?.length > 0,
                 canShowDataFunction:
                   res.dataAndFunctions.dataWarehouseInUse?.length > 0 ||
                   res.dataAndFunctions.singleDataSources?.length > 0,
                 canShowMembers:
-                  res.members.productOwners?.length > 0 ||
-                  res.members.developers?.length > 0 ||
-                  res.members.admin?.length > 0,
+                  res.members.reportOwners?.length > 0 ||
+                  // res.members.developers?.length > 0 ||
+                  res.members.reportAdmins?.length > 0,
               },
               () => {
                 ProgressIndicator.hide();
@@ -352,9 +353,12 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
 
   protected checkUserCanEditReport(userInfo: IUserInfo) {
     let userId = '';
-    if (this.state.report.members.admin.find((teamMember) => teamMember.shortId === userInfo.id)) {
-      userId = this.state.report.members.admin.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
-    } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(this.state.report?.description?.division?.name)) { 
+    if (this.state.report.members.reportAdmins.find((teamMember) => teamMember.shortId === userInfo.id)) {
+      userId = this.state.report.members.reportAdmins.find((teamMember) => teamMember.shortId === userInfo.id).shortId;
+    } else if (
+      userInfo?.divisionAdmins &&
+      userInfo?.divisionAdmins.includes(this.state.report?.description?.division?.name)
+    ) {
       userId = userInfo.id;
     }
     // else if (this.state.report.createdBy) {

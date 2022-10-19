@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IKpis } from '../../../../globals/types';
+import { IKpis } from 'globals/types';
 // @ts-ignore
 import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
@@ -72,7 +72,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                       <div className={Styles.commentSection}>
                         <label className="input-label summary">Comment</label>
                         <p>
-                          <pre className={Styles.commentPre}>{kpi.comment}</pre>
+                          <pre className={Styles.commentPre}>{kpi.description}</pre>
                         </p>
                       </div>
                       {this.props.kpis?.length > 1 && <hr className="divider1" />}

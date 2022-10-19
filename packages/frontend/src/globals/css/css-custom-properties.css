@@ -21,6 +21,7 @@
   --font-size-icon-medium: calc(var(--rem) * 1.8);
   --font-size-icon-nav: calc(var(--rem) * 1.9);
   --font-size-icon-big: calc(var(--rem) * 2.4);
+  --font-size-icon-tile: calc(var(--rem) * 3.4);
   --font-size-sub-headline: calc(var(--rem) * 1.5);
   --font-size-headline: calc(var(--rem) * 1.8);
   --font-size-headline-medium: calc(var(--rem) * 2.2);

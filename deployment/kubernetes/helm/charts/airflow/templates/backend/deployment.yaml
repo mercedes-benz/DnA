@@ -16,7 +16,16 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}         
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}        
       initContainers:
         - name: git-clone-init
           image: {{ .Values.backend.image }}
@@ -32,6 +41,10 @@ spec:
         - name: {{ .Chart.Name }}-backend-rest
           image: {{ .Values.backend.image }}
           imagePullPolicy: Always
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}
           env:
             - name: DNA_URI
               value: {{ .Values.backend.apiUrl }}
@@ -107,6 +120,7 @@ spec:
               value: {{ .Values.backend.flywayBaselineVersion | quote }}
             - name: FLYWAY_SCHEMA
               value: {{ .Values.backend.flywaySchema | quote }}
+          {{- end }} 
           ports:
             - containerPort: {{ .Values.backend.containerPort }}
               name: api-http

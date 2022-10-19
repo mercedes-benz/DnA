@@ -14,7 +14,7 @@ dependencies:
 
 - name: postgresql-helm
   repository: file://charts/postgresql-helm
-  version: 0.1.0
+  version: 5.1.1-2022.6.15
   condition: postgresql-helm.enabled
 
 - name: bitnamipostgresql
@@ -54,8 +54,18 @@ dependencies:
 
 - name: vault
   repository: file://charts/vault
-  version: 0.2.1
+  version: 0.19.0
   condition: vault.enabled
+
+- name: vault-backup
+  repository: file://charts/vault-backup
+  version: 1.0.0
+  condition: vault-backup.enabled  
+
+- name: vault-auto-unseal
+  repository: file://charts/vault-auto-unseal
+  version: 0.4.0
+  condition: vault-auto-unseal.enabled  
 
 - name: storagemfe
   repository: file://charts/storage-mfe
@@ -81,7 +91,39 @@ dependencies:
   repository: file://charts/trinoBackend
   version: 0.1.0
   condition: trinoBackend.enabled
+
+- name: redis
+  repository: file://charts/redis
+  version: 16.13.0
+  condition: redis.enabled
+
+- name: data-product-mfe
+  repository: file://charts/data-product-mfe
+  version: 0.1.0
+  condition: data-product-mfe.enabled
   
+- name: data-product-be
+  repository: file://charts/data-product-be
+  version: 0.1.0
+  condition: data-product-be.enabled
+
+- name: code-server
+  repository: file://charts/code-server
+  version: 3.0.0
+  condition: code-server.enabled
+
+- name: kong
+  repository: file://charts/kong
+  version: 2.9.1
+  condition: kong.enabled
+  
+- name: chronos-be
+  repository: file://charts/chronos-be
+  version: 0.1.0
+  condition: chronos-be.enabled  
+
+
+ 
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives

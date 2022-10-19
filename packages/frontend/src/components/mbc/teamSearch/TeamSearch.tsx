@@ -2,8 +2,8 @@ import cn from 'classnames';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { debounce } from 'lodash';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
-import { ITeams } from '../../../globals/types';
-import { TeamMemberType } from '../../../globals/Enums';
+import { ITeams } from 'globals/types';
+import { TeamMemberType } from 'globals/Enums';
 import { ApiClient } from '../../../services/ApiClient';
 import Styles from './TeamSearch.scss';
 
@@ -18,6 +18,14 @@ export interface TeamSearchProps {
   userAlreadyExists?: boolean;
   resetUserAlreadyExists?: () => void;
   btnText: string;
+  searchTerm: string;
+  setSearchTerm: (val: string) => void;
+  showUserDetails: boolean;
+  setShowUserDetails: (val: boolean) => void;
+  customUserErrorMsg?: string;
+  fieldMode?: boolean;
+  fieldValue?: string;
+  setFieldValue?: (val: string) => void;
 }
 
 const TeamSearch = (props: TeamSearchProps) => {
@@ -29,36 +37,33 @@ const TeamSearch = (props: TeamSearchProps) => {
     downArrow: 40,
   };
 
+  const { searchTerm, setSearchTerm, showUserDetails, setShowUserDetails, fieldMode, fieldValue, setFieldValue } =
+    props;
+
+  if (fieldMode && typeof fieldValue === 'undefined') {
+    throw Error(`If "fieldMode" is ${fieldMode}, fieldValue and setFieldValue props are required.`);
+  }
+
   const searchInput = useRef(null);
   const suggestionContainer = useRef(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [teamMemberObj, setTeamMemberObj] = useState(props.teamMemberObj);
   const [results, setResults] = useState([]);
   const [cursor, setCursor] = useState(-1);
   const [hideSuggestion, setHideSuggestion] = useState(true);
-  const [showUserDetails, setShowUserDetails] = useState(false);
   const [showNoResultsError, setShowNoResultsError] = useState(false);
   const [showNoUserFoundError, setShowNoUserFoundError] = useState(false);
-  const [showUserAlreadyExistsError, setShowUserAlreadyExistsError] = useState(props.userAlreadyExists);
 
   useEffect(() => {
-    if(props.editMode) {
+    if (props.editMode) {
       setTeamMemberObj(props.teamMemberObj);
       setShowUserDetails(true);
     }
-  }, []);
-
-  useEffect(() => {
-    setShowUserAlreadyExistsError(props.userAlreadyExists);
-    setTimeout(() => {
-      setShowUserAlreadyExistsError(false);
-    }, 3500);
-  }, [props.userAlreadyExists]);
+  }, [props.editMode]);
 
   const suggestions = results.map((item: any, index: number) => {
     return (
       <li
-        key={item.id}
+        key={item.id || item.shortId}
         onClick={() => onSuggestionItemClick(index)}
         className={cursor === index ? Styles.active + ' active' : null}
       >
@@ -72,26 +77,28 @@ const TeamSearch = (props: TeamSearchProps) => {
     setShowNoUserFoundError(false);
     setShowNoResultsError(false);
     setShowUserDetails(false);
-    setShowUserAlreadyExistsError(false);
   };
 
   useEffect(() => {
-    if(searchTerm.length > 1) {
+    if (searchTerm?.length > 1) {
       debouncedFetchUser(searchTerm);
     } else {
       setResults([]);
     }
   }, [searchTerm]);
 
-  const debouncedFetchUser = useCallback(debounce((searchTerm) => {
-    getTeamMembersInfoBySearchTerm(searchTerm);
-   }, 500), []);
+  const debouncedFetchUser = useCallback(
+    debounce((searchTerm) => {
+      getTeamMembersInfoBySearchTerm(searchTerm);
+    }, 500),
+    [],
+  );
 
   const getTeamMembersInfoBySearchTerm = (searchTerm: string) => {
     ApiClient.getUsersBySearchTerm(searchTerm)
       .then((response) => {
         if (response) {
-          if(response.records !== undefined) {
+          if (response.records !== undefined) {
             setResults(response.records);
             setShowNoResultsError(response.records.length === 0 ? true : false);
             setHideSuggestion(response.records.length === 0);
@@ -117,14 +124,18 @@ const TeamSearch = (props: TeamSearchProps) => {
       department: results[shortId].department,
       email: results[shortId].email,
       firstName: results[shortId].firstName,
-      shortId: results[shortId].id,
+      shortId: results[shortId].id || results[shortId].shortId,
       lastName: results[shortId].lastName,
       mobileNumber: results[shortId].mobileNumber !== '' ? results[shortId].mobileNumber : '',
       userType: TeamMemberType.INTERNAL,
     };
     setTeamMemberObj(teamMemberObj);
     setShowNoResultsError(false);
-    setShowUserDetails(true);
+    if (fieldMode) {
+      props.onAddTeamMember(teamMemberObj);
+    } else {
+      setShowUserDetails(true);
+    }
     setSearchTerm('');
     searchInput.current.focus();
   };
@@ -145,8 +156,14 @@ const TeamSearch = (props: TeamSearchProps) => {
         };
 
         setTeamMemberObj(teamMemberObj);
-        setShowUserDetails(true);
-        setHideSuggestion(true);
+        if (fieldMode) {
+          setHideSuggestion(false);
+          setResults([teamMemberObj]);
+          props.onAddTeamMember(teamMemberObj);
+        } else {
+          setShowUserDetails(true);
+          setHideSuggestion(true);
+        }
         setShowNoResultsError(false);
         setShowNoUserFoundError(false);
 
@@ -159,10 +176,17 @@ const TeamSearch = (props: TeamSearchProps) => {
         setShowNoResultsError(false);
         setShowNoUserFoundError(true);
       });
-  }
+  };
 
   const onSearchIconButtonClick = () => {
     dRDUserSearch();
+  };
+
+  const onCloseButtonClick = () => {
+    setFieldValue('');
+    setSearchTerm('');
+    props.onAddTeamMember(null);
+    searchInput.current.focus();
   };
 
   const onSearchInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -170,8 +194,7 @@ const TeamSearch = (props: TeamSearchProps) => {
     const query = searchTerm;
 
     if (keyPressed === KEY_CODE.enter && query.length) {
-      
-      if(cursor === -1) {
+      if (cursor === -1) {
         dRDUserSearch();
       } else {
         setHideSuggestion(true);
@@ -187,42 +210,41 @@ const TeamSearch = (props: TeamSearchProps) => {
             mobileNumber: results[cursor].mobileNumber !== '' ? results[cursor].mobileNumber : '',
             userType: TeamMemberType.INTERNAL,
           };
-  
+
           setTeamMemberObj(teamMemberObj);
-          setShowUserDetails(true);
+          !fieldMode && setShowUserDetails(true);
           setShowNoResultsError(false);
           setShowNoUserFoundError(false);
           setCursor(-1);
           setSearchTerm('');
           searchInput.current.focus();
-          
         }
       }
     } else if (keyPressed === KEY_CODE.upArrow && cursor > 0) {
-      setCursor((prevState) => (prevState - 1));
+      setCursor((prevState) => prevState - 1);
       const containerHeight = suggestionContainer.current.getBoundingClientRect().height;
       const activeElem = suggestionContainer.current.querySelector('li.active') as HTMLLIElement;
       if (activeElem) {
         const activeElemHeight = activeElem.getBoundingClientRect().height;
         suggestionContainer.current.scrollTop = 0;
-        if(containerHeight < activeElem.offsetTop) {
+        if (containerHeight < activeElem.offsetTop) {
           suggestionContainer.current.scrollTop = activeElem.offsetTop - activeElemHeight * 2;
         }
       }
     } else if (keyPressed === KEY_CODE.downArrow && cursor < results.length - 1) {
-      setCursor((prevState) => (prevState + 1));
+      setCursor((prevState) => prevState + 1);
       const containerHeight = suggestionContainer.current.getBoundingClientRect().height;
       const activeElem = suggestionContainer.current.querySelector('li.active') as HTMLLIElement;
       if (activeElem) {
         const activeElemHeight = activeElem.getBoundingClientRect().height;
         suggestionContainer.current.scrollTop = 0;
-        if(containerHeight - 80 < activeElem.offsetTop) {
+        if (containerHeight - 80 < activeElem.offsetTop) {
           suggestionContainer.current.scrollTop = activeElem.offsetTop - activeElemHeight * 1;
-        } 
+        }
       }
     }
   };
-  
+
   return (
     <div className={Styles.teamSearchContainer}>
       <div>
@@ -232,70 +254,106 @@ const TeamSearch = (props: TeamSearchProps) => {
               {props.label}
             </label>
 
-            <div id='searchPanel' className={Styles.searchPanel}>
+            <div id="searchPanel" className={Styles.searchPanel}>
               <input
                 type="text"
-                className={classNames(Styles.searchInputField)}
+                className={classNames(Styles.searchInputField, fieldMode ? `input-field ${Styles.addBorder}` : '')}
                 ref={searchInput}
                 id="userId"
-                value={searchTerm}
+                value={searchTerm || fieldValue || ''}
                 placeholder="Short ID, first name, last name, email"
                 onChange={onSearchInputChange}
                 onKeyDown={onSearchInputKeyDown}
                 maxLength={200}
                 autoComplete="off"
               />
-              <button disabled={searchTerm.length ? false : true} onClick={onSearchIconButtonClick}>
-                <i className={classNames('icon mbc-icon search')} />
-              </button>
-              {showNoResultsError && 
-                <p className={Styles.searchError}>No results found. Please try with Short ID.</p>
-              }
-              {showNoUserFoundError && 
-                <p className={Styles.searchError}>User details not found. Please provide valid User-ID.</p>
-              }
-              {showUserAlreadyExistsError && 
-                <p className={Styles.searchError}>User already exists.</p>
-              }
-              {!hideSuggestion && searchTerm.length > 0 ? (
-                <ul
-                  ref={suggestionContainer}
-                  className={Styles.suggestionList}
+              {fieldMode ? (
+                fieldValue?.length ? (
+                  <button
+                    className={classNames(Styles.fieldModeBtn, fieldValue ? '' : 'hide')}
+                    onClick={onCloseButtonClick}
+                  >
+                    <i className={classNames('icon mbc-icon close circle')} />
+                  </button>
+                ) : (
+                  <button
+                    className={Styles.fieldModeBtn}
+                    disabled={searchTerm.length ? false : true}
+                    onClick={onSearchIconButtonClick}
+                  >
+                    <i className={classNames('icon mbc-icon search')} />
+                  </button>
+                )
+              ) : (
+                <button
+                  className="search"
+                  disabled={searchTerm.length ? false : true}
+                  onClick={onSearchIconButtonClick}
                 >
+                  <i className={classNames('icon mbc-icon search')} />
+                </button>
+              )}
+              {showNoResultsError && <p className={Styles.searchError}>No results found. Please try with Short ID.</p>}
+              {showNoUserFoundError && (
+                <p className={Styles.searchError}>User details not found. Please provide valid User-ID.</p>
+              )}
+              {props.userAlreadyExists && (
+                <p className={Styles.searchError}>{props.customUserErrorMsg || 'User already exists.'}</p>
+              )}
+              {!hideSuggestion && searchTerm.length > 0 ? (
+                <ul ref={suggestionContainer} className={Styles.suggestionList}>
                   {suggestions}
                 </ul>
-              ) : ''}
+              ) : (
+                ''
+              )}
             </div>
           </div>
         </div>
       </div>
-      <div className={classNames(Styles.actionWrapper, showUserDetails ? '' : 'hide', showUserAlreadyExistsError && Styles.space100)}>
+      <div
+        className={classNames(
+          Styles.actionWrapper,
+          showUserDetails ? '' : 'hide',
+          props.userAlreadyExists && Styles.space100,
+        )}
+      >
         <div className={classNames(Styles.userInfoWrapper)}>
           <div>
             <i className="icon mbc-icon check circle inline" />
           </div>
           <div>
-            {
-              teamMemberObj && (
-                <p className={classNames(Styles.userDetails)}>
-                  {teamMemberObj.firstName} {teamMemberObj.lastName} <br />
-                  AD ID: {teamMemberObj.shortId} | Email: {teamMemberObj.email} <br />
-                  Department: {teamMemberObj.department === '' || teamMemberObj.department === null ? 'NA' : teamMemberObj.department} | Mobile Number: {teamMemberObj.mobileNumber === '' || teamMemberObj.mobileNumber === null ? 'NA' : teamMemberObj.mobileNumber}
-                </p>
-              )
-            }
+            {teamMemberObj && (
+              <p className={classNames(Styles.userDetails)}>
+                {teamMemberObj.firstName} {teamMemberObj.lastName} <br />
+                AD ID: {teamMemberObj.shortId} | Email: {teamMemberObj.email} <br />
+                Department:{' '}
+                {teamMemberObj.department === '' || teamMemberObj.department === null
+                  ? 'NA'
+                  : teamMemberObj.department}{' '}
+                | Mobile Number:{' '}
+                {teamMemberObj.mobileNumber === '' || teamMemberObj.mobileNumber === null
+                  ? 'NA'
+                  : teamMemberObj.mobileNumber}
+              </p>
+            )}
           </div>
         </div>
         <div>
-          <button className="btn btn-primary" onClick={() => {props.btnText === "Add User" && setShowUserDetails(false); props.onAddTeamMember(teamMemberObj);}} type="button">
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              props.btnText === 'Add User' && setShowUserDetails(false);
+              props.onAddTeamMember(teamMemberObj);
+            }}
+            type="button"
+          >
             {props.btnText}
           </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default TeamSearch;
-
-

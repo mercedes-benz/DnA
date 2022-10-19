@@ -1,0 +1,46 @@
+.firstPanel {
+    background: #252a33;
+    margin-bottom: 15px;
+
+    .flexLayout {
+        display: flex;
+        justify-content: space-between;
+        > div {
+            width: calc(50% - 7px);
+        }
+    }
+
+    .formWrapper {
+        margin: 60px 70px 0;
+    }
+}
+
+.wrapper {
+    background: #252a33 !important;
+    margin-top: 15px !important;
+    padding: 25px 38px;
+}
+.infoIcon {
+    text-align: right;
+    font-size: var(--font-size-icon-medium);
+    margin-right: -23px;
+    margin-top: -44px;
+    float: right;
+    i {
+        cursor: pointer;
+        color: #697582;
+
+        &:hover {
+            color: #00adef;
+        }
+    }
+}
+.radioBtns {
+    label {
+        min-width: 85px;
+    }
+}
+.radioBtnsGrid {
+    display: grid;
+    grid-template-columns: 200px 200px;
+}

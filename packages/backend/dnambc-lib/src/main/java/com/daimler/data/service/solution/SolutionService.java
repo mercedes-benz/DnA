@@ -29,7 +29,6 @@ package com.daimler.data.service.solution;
 
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 
@@ -46,14 +45,15 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	}
 
 	List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder);
+			String division, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin, Boolean hasDigitalValue, Boolean hasNotebook, int offset, int limit,
+			String sortBy, String sortOrder);
 
-	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+	Long getCount(Boolean published, List<String> phases, List<String> dataVolumes, String division,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin,
+			Boolean hasDigitalValue, Boolean hasNotebook);
 
 	void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category);
 
@@ -70,6 +70,6 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	 * @param updateObject
 	 */
 	void updateForEachSolution(String oldValue, String newValue, TAG_CATEGORY category, Object updateObject);
-	
+
 	ResponseEntity<GenericMessage> malwareScanUnsubscribe(String solutionId);
 }

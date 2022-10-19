@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React, { useState } from 'react';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
@@ -6,7 +7,7 @@ import Styles from '../ModelRegistry.scss';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import { ModelRegistryApiClient } from '../../../../services/ModelRegistryApiClient';
 
 export interface IModelRegistryProps {
@@ -15,8 +16,10 @@ export interface IModelRegistryProps {
 
 const ModelRegistryList = (props: IModelRegistryProps) => {
   const [info, setInfo] = useState(false);
-  // const [showApiKey, setShowApiKey] = useState(false);
-  const [externalUri, setExternalUri] = useState("");
+  const [accessKey, setAccessKey] = useState('');
+  const [accessID, setAccessID] = useState('');
+  const [showAccessKey, setShowAccessKey] = useState(false);
+  const [externalUri, setExternalUri] = useState('');
 
   const onInfoModalShow = () => {
     setInfo(true);
@@ -27,21 +30,23 @@ const ModelRegistryList = (props: IModelRegistryProps) => {
   const getExternalURI = () => {
     ProgressIndicator.show();
     const model = {
-      "data": {
-        "modelName": props.item
-      }
-    }
+      data: {
+        modelName: props.item,
+      },
+    };
     ModelRegistryApiClient.createExternalURI(model)
       .then((res: any) => {
-        setExternalUri(res.data.externalUri);
+        setExternalUri(res.data.externalUrl);
+        setAccessID(res.data.appId);
+        setAccessKey(res.data.appKey);
         ProgressIndicator.hide();
         onInfoModalShow();
       })
       .catch((err: any) => {
         ProgressIndicator.hide();
-        Notification.show("Error while getting service details for given model", 'alert');
+        Notification.show('Error while getting service details for given model', 'alert');
       });
-  }
+  };
 
   const copyExternalURL = () => {
     navigator.clipboard.writeText(externalUri).then(() => {
@@ -49,18 +54,68 @@ const ModelRegistryList = (props: IModelRegistryProps) => {
     });
   };
 
+  const copyToClipboard = (content: string) => {
+    navigator.clipboard.writeText('');
+    navigator.clipboard.writeText(content).then(() => Notification.show('Copied to Clipboard'));
+  };
+
   const contentForInfo = (
     <div className={Styles.infoPopup}>
       <div className={Styles.modalContent}>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <strong>Access ID :</strong>
+              </td>
+              <td id="accessId" className={Styles.keys}>
+                {accessID}
+              </td>
+              <td>
+                <span className={Styles.copyIcon} onClick={() => copyToClipboard(accessID)}>
+                  <i className="icon mbc-icon copy" />
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <strong>Access Key :</strong>
+              </td>
+              <td id="accessKey" className={Styles.keys}>
+                {showAccessKey
+                  ? accessKey
+                  : Array.from({ length: 30 }, (_, i) => <React.Fragment key={i}>&bull;</React.Fragment>)}
+              </td>
+              <td>
+                {showAccessKey ? (
+                  <React.Fragment>
+                    <i
+                      className={classNames('icon mbc-icon visibility-hide ', Styles.visibilityIcon)}
+                      onClick={() => setShowAccessKey(false)}
+                      tooltip-data="Hide"
+                    />
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <i
+                      className={classNames('icon mbc-icon visibility-show ', Styles.visibilityIcon)}
+                      onClick={() => setShowAccessKey(true)}
+                      tooltip-data="Show"
+                    />
+                  </React.Fragment>
+                )}
+                <span className={Styles.copyIcon} onClick={() => copyToClipboard(accessKey)}>
+                  <i className="icon mbc-icon copy" />
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
         <p>
-          Your External API URL to consume ML models is: 
+          Your External API URL to consume ML models is:
           <span className={Styles.externalURI}>
-            {externalUri} 
-            <i
-              className={'icon mbc-icon copy'}
-              onClick={() => copyExternalURL()}
-              tooltip-data="Copy"
-            />
+            {externalUri}
+            <i className={'icon mbc-icon copy'} onClick={() => copyExternalURL()} tooltip-data="Copy" />
           </span>
         </p>
       </div>
@@ -138,11 +193,7 @@ const ModelRegistryList = (props: IModelRegistryProps) => {
           </div>
         </td> */}
         <td className={Styles.actionMenus}>
-          <button
-            onClick={getExternalURI}
-            className={'btn btn-primary ' + Styles.actionBtn}
-            type="button"
-            >
+          <button onClick={getExternalURI} className={'btn btn-primary ' + Styles.actionBtn} type="button">
             <i className="icon mbc-icon link" />
             <span>Get External API URL</span>
           </button>

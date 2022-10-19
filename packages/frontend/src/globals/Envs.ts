@@ -126,8 +126,28 @@ export const Envs = {
       ? getInjectedEnv('ENABLE_NOTIFICATION')
       : EnvParser.parseBool(process.env.ENABLE_NOTIFICATION, false),
   STORAGE_TOU_HTML: getStorageInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
-  INTERNAL_USER_TEAMS_INFO:
-    getInjectedEnv('INTERNAL_USER_TEAMS_INFO') !== undefined
-      ? getInjectedEnv('INTERNAL_USER_TEAMS_INFO') 
-      : EnvParser.parseBool(process.env.INTERNAL_USER_TEAMS_INFO, false),
+  INTERNAL_USER_TEAMS_INFO: getInjectedEnv('INTERNAL_USER_TEAMS_INFO') || process.env.INTERNAL_USER_TEAMS_INFO,
+  ENABLE_DATA_PRODUCT:
+    getInjectedEnv('ENABLE_DATA_PRODUCT') !== undefined
+      ? getInjectedEnv('ENABLE_DATA_PRODUCT')
+      : EnvParser.parseBool(process.env.ENABLE_DATA_PRODUCT, false),
+  ENABLE_SAP_ANALYTICS_CLOUD:
+    getInjectedEnv('ENABLE_SAP_ANALYTICS_CLOUD') !== undefined
+      ? getInjectedEnv('ENABLE_SAP_ANALYTICS_CLOUD')
+      : EnvParser.parseBool(process.env.ENABLE_SAP_ANALYTICS_CLOUD, false),
+  SAP_ANALYTICS_CLOUD_URL: getInjectedEnv('SAP_ANALYTICS_CLOUD_URL') || process.env.SAP_ANALYTICS_CLOUD_URL,
+  ENABLE_APP_FEEDBACK:
+    getInjectedEnv('ENABLE_APP_FEEDBACK') !== undefined
+      ? getInjectedEnv('ENABLE_APP_FEEDBACK')
+      : EnvParser.parseBool(process.env.ENABLE_APP_FEEDBACK, false),
+  APP_FEEDBACK_EXTERNAL_URL: getInjectedEnv('APP_FEEDBACK_EXTERNAL_URL') || process.env.APP_FEEDBACK_EXTERNAL_URL,
+  ENABLE_CODE_SPACE:
+    getInjectedEnv('ENABLE_CODE_SPACE') !== undefined
+      ? getInjectedEnv('ENABLE_CODE_SPACE')
+      : EnvParser.parseBool(process.env.ENABLE_CODE_SPACE, false),
+  CODE_SPACE_API_BASEURL: getInjectedEnv('CODE_SPACE_API_BASEURL') || process.env.CODE_SPACE_API_BASEURL,
+  ENABLE_CHRONOS_FORECASTING_SERVICE:
+    getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
 };

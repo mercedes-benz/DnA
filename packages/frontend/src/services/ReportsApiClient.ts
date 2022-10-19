@@ -39,24 +39,22 @@ export class ReportsApiClient {
 
   public static getCreateNewReportData(): Promise<any[]> {
     return Promise.all([
-      this.get('lov/datasources'),
       this.get('lov/customer/departments'),
       this.get('lov/frontendtechnologies'),
-      this.get('lov/hierarchies'),
+      this.get('lov/levels'),
       this.get('lov/integratedportals'),
       this.get('lov/kpinames'),
-      this.get('lov/productphases'),
       this.get('lov/reportingcauses'),
-      this.get('lov/ressort'),
+      this.get('lov/legalentities'),
       this.get('lov/statuses'),
-      this.get('lov/designguides'),
       this.get('lov/agilereleasetrains'),
       this.get('tags'),
       this.get('lov/connectiontypes'),
-      this.get('datawarehouses'),
-      this.get('lov/subsystems'),
+      this.get('lov/datawarehouses'),
       ApiClient.get('divisions'),
       this.get('departments'),
+      this.get('lov/commonfunctions'),
+      this.get('lov/dataclassifications'),
     ]);
   }
 
@@ -94,12 +92,12 @@ export class ReportsApiClient {
     }
     const resQuery = `totalCount
       records {id,
+        reportId,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrains, status },
+        description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrain, status },
         members {
-          productOwners { firstName, lastName, department, shortId },
-          developers { firstName, lastName, department },
-          admin { firstName, lastName, department, shortId }
+          reportOwners { firstName, lastName, department, shortId },
+          reportAdmins { firstName, lastName, department, shortId }
         },
         publish
       }`;
@@ -131,7 +129,7 @@ export class ReportsApiClient {
     const resQuery = `totalCount
       records {id,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, status, productDescription, productPhase, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, designGuideImplemented  },
+        description { division { id, name, subdivision { id, name } }, department, status, productDescription, tags, agileReleaseTrains, integratedPortal, frontendTechnologies, reportLink, reportType  },
         customer {
           customerDetails { hierarchy, ressort, department, comment },
           processOwners { shortId }
@@ -142,9 +140,8 @@ export class ReportsApiClient {
           singleDataSources { dataSources, subsystems, connectionTypes } 
         }
         members {
-          productOwners { firstName, lastName, department, shortId },
-          developers { firstName, lastName, department, shortId },
-          admin { firstName, lastName, department, shortId }
+          reportOwners { firstName, lastName, department, shortId },
+          reportAdmins { firstName, lastName, department, shortId }
         },
         publish,
         createdDate,
@@ -154,6 +151,7 @@ export class ReportsApiClient {
           id,
           email
         },
+        reportId
       }`;
     const apiQuery = {
       query: `query {
@@ -181,9 +179,8 @@ export class ReportsApiClient {
         singleDataSources { dataSources, subsystems, connectionTypes } 
       }
       members {
-        productOwners { firstName, lastName, department, shortId },
-        developers { firstName, lastName, department, shortId },
-        admin { firstName, lastName, department, shortId }
+        reportOwners { firstName, lastName, department, shortId },
+        reportAdmins { firstName, lastName, department, shortId }
       },
       publish,
       createdDate,
@@ -242,8 +239,8 @@ export class ReportsApiClient {
   public static getFronEndTechnologies(): Promise<IReportListItems[]> {
     return this.get('lov/frontendtechnologies');
   }
-  public static getRessort(): Promise<IReportListItems[]> {
-    return this.get('lov/ressort');
+  public static getLegalEntities(): Promise<IReportListItems[]> {
+    return this.get('lov/legalentities');
   }
   public static getDepartments(): Promise<IReportListItems[]> {
     return this.get('lov/customer/departments');
@@ -257,14 +254,14 @@ export class ReportsApiClient {
   public static getAgileReleaseTrain(): Promise<IReportListItems[]> {
     return this.get('lov/agilereleasetrains');
   }
-  public static getGetHierarchies(): Promise<IReportListItems[]> {
-    return this.get('lov/hierarchies');
+  public static getDataClassifications(): Promise<IReportListItems[]> {
+    return this.get('lov/dataclassifications');
   }
-  public static getHierarchies(): Promise<IReportListItems[]> {
-    return this.get('lov/hierarchies');
+  public static getLevels(): Promise<IReportListItems[]> {
+    return this.get('lov/levels');
   }
-  public static getDatawareHouseInUse(): Promise<IReportListItems[]> {
-    return this.get('datawarehouses');
+  public static getDatawareHouses(): Promise<IReportListItems[]> {
+    return this.get('lov/datawarehouses');
   }
   public static getCommonFunctions(): Promise<IReportListItems[]> {
     return this.get('lov/commonfunctions');
@@ -281,8 +278,8 @@ export class ReportsApiClient {
   public static getReportingCause(): Promise<IReportListItems[]> {
     return this.get('lov/reportingcauses');
   }
-  public static getDepartmentsComman(): Promise<IReportListItems[]> {
-    return this.get('departments');
+  public static getCustomerDepartments(): Promise<IReportListItems[]> {
+    return this.get('lov/customer/departments');
   }
   public static getTags(): Promise<IReportListItems[]> {
     return this.get('tags');
@@ -296,9 +293,9 @@ export class ReportsApiClient {
     if (categoryType === 'departments') {
       return this.post(`lov/customer/${categoryType}/`, data);
     }
-    if (categoryType === 'descriptiondepartement') {
-      return this.post(`departments`, data);
-    }
+    // if (categoryType === 'descriptiondepartement') {
+    //   return this.post(`departments`, data);
+    // }
     if (categoryType === 'tags') {
       return this.post(`tags`, data);
     }
@@ -330,12 +327,6 @@ export class ReportsApiClient {
   public static deleteCategoryItem(categoryType: string, id: string): Promise<IReportListItems[]> {
     if (categoryType === 'departments') {
       return this.delete(`lov/customer/${categoryType}/${id}`);
-    }
-    if (categoryType === 'descriptiondepartement') {
-      return this.delete(`departments/${id}`);
-    }
-    if (categoryType === 'datawarehouses') {
-      return this.delete(`${categoryType}/${id}`);
     }
     if (categoryType === 'tags') {
       return this.delete(`tags/${id}`);

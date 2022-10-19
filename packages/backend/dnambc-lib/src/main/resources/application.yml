@@ -141,7 +141,7 @@ dataiku:
     
 dashboard:
   uri: ${DASHBOARD_URI:xxxxx}       
-  
+      
 avscan:
   uri: ${AVSCAN_URI:xxxxx}
   appid: ${AVSCAN_APP_ID:xxxxx}

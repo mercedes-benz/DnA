@@ -1,0 +1,65 @@
+.mainPanel {
+    padding: 50px 184px 0px 114px;
+}
+
+.title {
+    justify-content: center;
+    font-size: var(--font-size-section-headline);
+    margin-bottom: 40px;
+    min-height: 30px;
+}
+
+.backBtn {
+    position: relative;
+    top: 35px;
+    margin: 0 0 15px 114px;
+}
+
+.mandatoryInfo {
+    color: #697582;
+    padding-left: 112px;
+}
+
+:global {
+    #data-product-tabs {
+        min-width: 540px;
+    }
+
+    #data-product-tabs .scrollable.tabs-wrapper {
+        height: 44px;
+    }
+
+    #data-product-tabs .scrollable.tabs-wrapper nav {
+        height: 44px;
+    }
+
+    #data-product-tabs .tab {
+        min-width: max-content;
+        > a {
+            position: relative;
+            padding: 10px 50px 12px 40px;
+            &::before {
+                font-family: "dna-icons";
+                content: "\e949";
+                position: absolute;
+                right: 20px;
+                font-size: var(--font-size-icon-highlight);
+            }
+        }
+
+        &.valid a::before {
+            color: #00adef;
+        }
+    }
+    #data-product-tabs .scrollable.tabs-wrapper,
+    #data-product-tabs .scrollable.tabs-wrapper nav,
+    #data-product-tabs .tabs {
+        height: 44px;
+    }
+
+    .btnContainer {
+        min-height: 40px;
+        margin-top: 20px;
+        text-align: right;
+    }
+}

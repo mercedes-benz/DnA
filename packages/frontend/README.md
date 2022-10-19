@@ -12,3 +12,4 @@ Under `config` you can define parameters:
 | Variable        | Meaning           | Default
 | ------------- |:-------------:| ----:|
 | publicPath      | Used to define the default path of the app. For example where it requests resources from. Especially need for deployment. | `""`|
+Test
