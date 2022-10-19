@@ -9,8 +9,8 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import SelectBox from '../../../components/formElements/SelectBox/SelectBox';
-import { SESSION_STORAGE_KEYS, USER_ROLE } from '../../../globals/constants';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import { SESSION_STORAGE_KEYS, USER_ROLE } from 'globals/constants';
 
 import {
   IAllSolutionsListItem,
@@ -28,7 +28,7 @@ import {
   IUserInfo,
   INotebookInfoSolutionId,
   IFilterParams,
-} from '../../../globals/types';
+} from 'globals/types';
 import { history } from '../../../router/History';
 import { ApiClient } from '../../../services/ApiClient';
 import Pagination from '../pagination/Pagination';
@@ -39,12 +39,12 @@ import SolutionListRowItem from './solutionListRowItem/SolutionListRowItem';
 import { getQueryParameterByName } from '../../../services/Query';
 import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
-import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
+import { getDivisionsQueryValue, trackEvent, csvSeparator } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 
 import SolutionsFilter from '../filters/SolutionsFilter';
 import filterStyle from '../filters/Filter.scss';
-import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
+import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 // import {getDropDownData} from '../../../services/FetchMasterData';
 
 const classNames = cn.bind(Styles);
@@ -268,12 +268,12 @@ export default class AllSolutions extends React.Component<
         queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
         this.setState({ allSolutionsFilterApplied: false, queryParams }, () => {
           SelectBox.defaultSetup();
-          this.getSolutions();
+          // this.getSolutions();
         });
       } else {
         this.setState({ allSolutionsFilterApplied: false });
         SelectBox.defaultSetup();
-        this.getSolutions();
+        // this.getSolutions();
       }
     });
     ApiClient.getNotebooksDetails()
@@ -400,6 +400,7 @@ export default class AllSolutions extends React.Component<
                   ref={(r: any) => (this.csvLink = r)}
                   filename={`Solutions.csv`}
                   target="_blank"
+                  separator={csvSeparator(navigator.language)}
                 />
                 <div className={Styles.solutionsViewMode}>
                   <div tooltip-data="Card View">
@@ -576,13 +577,15 @@ export default class AllSolutions extends React.Component<
               onCancel={this.onCancellingDeleteChanges}
               onAccept={this.onAcceptDeleteChanges}
             />
-          </div>          
+          </div>
           <SolutionsFilter
             userId={this.props.user.id}
-            getFilterQueryParams={(queryParams: IFilterParams) => this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter? false : true)}
+            getFilterQueryParams={(queryParams: IFilterParams) =>
+              this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
+            }
             solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
-            showSolutionsFilter = {this.state.showSolutionsFilter}
+            showSolutionsFilter={this.state.showSolutionsFilter}
             // getValuesFromFilter={(value: any) => {
             //   this.setState({ locations: value.locations ? value.locations : [] });
             //   this.setState({ phases: value.phases ? value.phases : [] });
@@ -757,16 +760,87 @@ export default class AllSolutions extends React.Component<
 
   protected getFilteredSolutions = (queryParams: IFilterParams, getPublished?: boolean) => {
     ProgressIndicator.show();
-    this.setState(
-      {
-        queryParams,
-        currentPageOffset: 0,
-        currentPageNumber: 1,
-      },
-      () => {
-        this.getSolutions(getPublished);
-      },
-    );
+    const enablePortfolioSolutionsView = window.location.href.indexOf('viewsolutions') !== -1;
+
+    if (enablePortfolioSolutionsView) {
+      const { kpi, value } = this.props.match.params;
+      if (queryParams.status.includes('0')) {
+        queryParams.status = [];
+      }
+      if (queryParams.useCaseType.includes('0')) {
+        queryParams.useCaseType = [];
+      }
+      queryParams.dataVolume = [];
+      switch (kpi) {
+        case 'phase':
+          queryParams.phase = [value];
+          ApiClient.get('phases')
+            .then((res) => {
+              this.setState({ phases: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        case 'datavolume':
+          queryParams.dataVolume = [value];
+          ApiClient.get('datavolumes')
+            .then((res) => {
+              this.setState({ dataVolumes: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        case 'location':
+          queryParams.location = [value];
+          ApiClient.get('locations')
+            .then((res) => {
+              this.setState({ locations: res });
+            })
+            .catch((error: Error) => {
+              this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+            });
+          break;
+        default:
+          break;
+      }
+      // const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+      // const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
+      this.setState({ queryParams, currentPageOffset: 0, currentPageNumber: 1 }, () => {
+        this.getSolutions(true);
+      });
+    } else if (window.location.href.indexOf('allsolutions') !== -1) {
+      this.setState({ showSolutionsFilter: true, queryParams, currentPageOffset: 0, currentPageNumber: 1 }, () => {
+        this.getSolutions();
+      });
+    } else if (window.location.href.indexOf('bookmarks') !== -1 || window.location.href.indexOf('mysolutions') !== -1) {
+      queryParams = this.state.queryParams;
+      queryParams.useCaseType = window.location.href.indexOf('bookmarks') !== -1 ? ['1'] : ['2'];
+      this.setState(
+        {
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+          allSolutionsFilterApplied: false,
+          queryParams,
+        },
+        () => {
+          SelectBox.defaultSetup();
+          this.getSolutions();
+        },
+      );
+    } else {
+      this.setState(
+        {
+          queryParams,
+          currentPageOffset: 0,
+          currentPageNumber: 1,
+        },
+        () => {
+          this.getSolutions(getPublished);
+        },
+      );
+    }
   };
 
   protected getSolutions = (getPublished?: boolean) => {
@@ -776,8 +850,15 @@ export default class AllSolutions extends React.Component<
     const divisionIds = getDivisionsQueryValue(queryParams.division, queryParams.subDivision);
     const status = queryParams.status.join(',');
     const useCaseType = queryParams.useCaseType.join(',');
-    const dataVolumes = this.state.enablePortfolioSolutionsView ? queryParams.dataVolume ? queryParams.dataVolume.join(',') : '' : '';
+    const dataVolumes = this.state.enablePortfolioSolutionsView
+      ? queryParams.dataVolume
+        ? queryParams.dataVolume.join(',')
+        : ''
+      : '';
     const tags = queryParams.tag.join(',');
+
+    const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
+    const isNotificationEnabled = window.location.href.indexOf('notebook') !== -1;
 
     ApiClient.getSolutionsByGraphQL(
       locationIds,
@@ -792,6 +873,8 @@ export default class AllSolutions extends React.Component<
       this.state.sortBy.name,
       this.state.sortBy.currentSortType,
       getPublished,
+      isDigitalValueContributionEnabled,
+      isNotificationEnabled,
     )
       .then((res) => {
         if (res) {
@@ -869,7 +952,9 @@ export default class AllSolutions extends React.Component<
       const typeFilterValue = this.state.projectTypes.find(
         (item) => item.id === this.state.queryParams.useCaseType.toString(),
       );
-      pageTitle = typeFilterValue ? typeFilterValue.name : 'Solutions';
+      pageTitle = (typeFilterValue ? typeFilterValue.name : 'Solutions') + ` (${solutionsCount})`;
+    } else {
+      pageTitle += ` (${solutionsCount})`;
     }
 
     return pageTitle;
@@ -968,7 +1053,7 @@ export default class AllSolutions extends React.Component<
     } else if (solution?.createdBy?.id === userInfo.id) {
       userId = solution.createdBy.id;
     } else if (userInfo?.divisionAdmins && userInfo?.divisionAdmins.includes(solution?.division?.name)) {
-      userId = userInfo.id;    
+      userId = userInfo.id;
     } else {
       userId = '';
     }

@@ -1,0 +1,16 @@
+schedule: '"*/10 * * * *"'
+restartPolicy: OnFailure
+successfulJobsHistoryLimit: 1
+namespace: vault
+image:
+  name: ""
+  tag: latest
+  pullPolicy: IfNotPresent
+
+envs:
+  - name: VAULT_ADDR
+    value: http://vault:8200
+  - name: VAULT_TOKEN
+    value: ""
+  - name: UNSEAL_KEYS
+    value: ""        

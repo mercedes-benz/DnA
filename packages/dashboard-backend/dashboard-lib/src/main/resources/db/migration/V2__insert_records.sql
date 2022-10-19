@@ -1,82 +1,78 @@
-INSERT INTO common_function_sql (id, name) VALUES
-(DEFAULT, 'CommonFunction 1'),
-(DEFAULT,'CommonFunction 2');
+INSERT INTO data_classification_sql (id, name) VALUES
+(DEFAULT, 'Public'),
+(DEFAULT,'Confidential'),
+(DEFAULT, 'Internal'),
+(DEFAULT,'Secret');
 
-INSERT INTO specific_function_sql (id, name) VALUES
-(DEFAULT, 'SpecificFunction 1'),
-(DEFAULT,'SpecificFunction 2');
+INSERT INTO status_sql (id, name) VALUES
+(DEFAULT, 'Active'),
+(DEFAULT,'On hold'),
+(DEFAULT,'Closed');
 
 INSERT INTO integrated_portal_sql (id, name) VALUES
-(DEFAULT, 'integrated_portal1'),
-(DEFAULT,'integrated_portal2');
+(DEFAULT, 'FC Cockpit'),
+(DEFAULT,'myFM'),
+(DEFAULT,'Other');
 
 INSERT INTO frontend_technology_sql (id, name) VALUES
 (DEFAULT, 'Power BI'),
 (DEFAULT,'Tableau'),
 (DEFAULT,'Lumira Design'),
 (DEFAULT,'Customized Application'),
-(DEFAULT,'FIORI');
+(DEFAULT,'FIORI'),
+(DEFAULT,'SAC'),
+(DEFAULT,'AFO'),
+(DEFAULT,'Other');
 
-INSERT INTO hierarchy_sql (id, name) VALUES
-(DEFAULT, 'Top Mangement FC (E1/E2)'),
-(DEFAULT,'Mangement FC (E3/E4)'),
-(DEFAULT, 'Top Management MBC (E1/E2)'),
-(DEFAULT, 'Management MBC (E3/E4');
-
-INSERT INTO ressort_sql (id, name) VALUES
-(DEFAULT, 'FMB'),
-(DEFAULT,'FMC'),
-(DEFAULT,'FMS'),
-(DEFAULT,'FMP'),
-(DEFAULT,'FMZ'),
-(DEFAULT,'FMA');
+INSERT INTO level_sql (id, name) VALUES
+(DEFAULT, 'Management (E3/E4)'),
+(DEFAULT,'Staff (SB)'),
+(DEFAULT, 'Top-Management (E1/E2)');
 
 INSERT INTO customer_department_sql (id, name) VALUES
-(DEFAULT, 'GL'),
+(DEFAULT,'GL'),
 (DEFAULT,'BF'),
-(DEFAULT,'BL'),
-(DEFAULT,'C');
+(DEFAULT,'FMC'),
+(DEFAULT,'FMS'),
+(DEFAULT,'FMB'),
+(DEFAULT,'FMV'),
+(DEFAULT,'FC'),
+(DEFAULT,'FAO'),
+(DEFAULT,'FAG'),
+(DEFAULT,'FAP'),
+(DEFAULT,'FAB'),
+(DEFAULT,'FAM'),
+(DEFAULT,'FA'),
+(DEFAULT,'FF'),
+(DEFAULT,'FI'),
+(DEFAULT,'IPS'),
+(DEFAULT,'ITG');
 
 INSERT INTO kpi_name_sql (id, name) VALUES
 (DEFAULT, 'Contribution Margin per Unit'),
 (DEFAULT, 'CAV'),
 (DEFAULT, 'ROI'),
 (DEFAULT, 'Cost per Acquisition'),
-(DEFAULT, 'EBIT');
+(DEFAULT, 'EBIT'),
+(DEFAULT, 'TestKPI');
 
 INSERT INTO reporting_cause_sql (id, name) VALUES
 (DEFAULT, 'IST'),
-(DEFAULT,'Plan');
-
-
-INSERT INTO product_phase_sql (id, name) VALUES
-(DEFAULT, 'product_phase1'),
-(DEFAULT,'product_phase2');
-
-INSERT INTO query_sql (id, name) VALUES
-(DEFAULT, 'Query 1'),
-(DEFAULT,'Query 2'),
-(DEFAULT,'Query 3');
-
-INSERT INTO status_sql (id, name) VALUES
-(DEFAULT, 'Live'),
-(DEFAULT,'In Progress'),
-(DEFAULT,'Idea');
-
-INSERT INTO design_guide_sql (id, name) VALUES
-(DEFAULT, 'design_guide1'),
-(DEFAULT,'design_guide2');
-
-INSERT INTO agile_releasetrain_sql (id, name) VALUES
-(DEFAULT, 'agile_release_train1'),
-(DEFAULT,'agile_release_train2');
-
-INSERT INTO data_source_sql (id, name) VALUES
-(DEFAULT, 'SBIM');
-
-INSERT INTO subsystem_sql (id, name) VALUES
-(DEFAULT, 'Excel');
+(DEFAULT,'Plan'),
+(DEFAULT,'Forecast');
 
 INSERT INTO connection_type_sql (id, name) VALUES
 (DEFAULT, 'Import'),
 (DEFAULT,'Live Connection');
+
+INSERT INTO common_function_sql (id, name) VALUES
+(DEFAULT, 'CommonFunction 1'),
+(DEFAULT,'CommonFunction 2');
+
+INSERT INTO datawarehouse_sql (id, name) VALUES
+(DEFAULT, 'DataWarehouse 1'),
+(DEFAULT,'DataWarehouse 2');
+
+INSERT INTO legal_entity_sql (id, name) VALUES
+(DEFAULT, 'LegalEntity 1'),
+(DEFAULT,'LegalEntity 2');

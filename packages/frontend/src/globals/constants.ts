@@ -17,6 +17,7 @@ export enum USER_ROLE {
   ADMIN = '3',
   REPORTADMIN = '4',
   DIVISIONADMIN = '5',
+  DATACOMPLIANCEADMIN = '6'
 }
 
 export enum SESSION_STORAGE_KEYS {

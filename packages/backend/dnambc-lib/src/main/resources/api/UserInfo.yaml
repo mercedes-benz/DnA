@@ -251,7 +251,8 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-
+    
+                    
 definitions:
   UserInfoVO:
     type: object
@@ -379,7 +380,13 @@ definitions:
   GenericMessage:
     type: object
     properties:
+      success:
+        type: string
       errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
@@ -389,5 +396,6 @@ definitions:
     properties:
       message:
         type: string
-        description: "error message"
+        description: "message"
+        
  

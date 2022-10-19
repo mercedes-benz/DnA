@@ -28,21 +28,16 @@
 package com.daimler.dna.notifications.common.event.config;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +47,6 @@ import org.springframework.util.StringUtils;
 
 import com.daimler.data.dto.usernotificationpref.UserNotificationPrefVO;
 import com.daimler.dna.notifications.common.dna.client.DnaNotificationPreferenceClient;
-import com.daimler.dna.notifications.common.util.CacheUtil;
 import com.daimler.dna.notifications.dto.NotificationVO;
 import com.mbc.dna.notifications.mailer.JMailer;
 
@@ -83,7 +77,7 @@ public class CacheUpdateEventListener {
 	private String deleteTopicName;
 
 	@Autowired
-	private CacheUtil cacheUtil;
+	private RedisCacheUtil cacheUtil;
 	
 	@Autowired
 	private DnaNotificationPreferenceClient userNotificationPreferencesClient;
@@ -96,7 +90,7 @@ public class CacheUpdateEventListener {
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
 	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
 	
-	@PostConstruct
+	//@PostConstruct
 	public void init() {
 
 		LOG.info("started updating cache from " + centralTopic);
@@ -149,11 +143,12 @@ public class CacheUpdateEventListener {
 						List<String> users = record.value().getSubscribedUsers();
 						List<String> usersEmails = record.value().getSubscribedUsersEmail();
 						int userListPivot = 0;
+						if(users!= null) {
 						for (String user : users) {
 							if (StringUtils.hasText(user) && user != "null") {
 								if (cacheUtil.getCache(user) == null) {
 									LOG.info("Creating cache for user {}", user);
-									cacheUtil.createCache(user);
+									cacheUtil.getCache(user);
 								}
 								UserNotificationPrefVO preferenceVO = userNotificationPreferencesClient.getUserNotificationPreferences(user);
 								boolean appNotificationPreferenceFlag = true;
@@ -209,11 +204,12 @@ public class CacheUpdateEventListener {
 //								}
 							}
 						}
+						}
 					} else if (record.value() != null && readTopic && !deleteTopic) {
 						String user = record.value().getPublishingUser();
 						if (cacheUtil.getCache(user) == null) {
 							LOG.info("Creating cache for user {}", user);
-							cacheUtil.createCache(user);
+							cacheUtil.getCache(user);
 						}
 						NotificationVO vo = new NotificationVO();
 						vo.setDateTime(record.value().getTime());
@@ -230,7 +226,7 @@ public class CacheUpdateEventListener {
 						String user = record.value().getPublishingUser();
 						if (cacheUtil.getCache(user) == null) {
 							LOG.info("Creating cache for user {}", user);
-							cacheUtil.createCache(user);
+							cacheUtil.getCache(user);
 						}
 						cacheUtil.deleteEntry(user, record.value().getUuid());
 					}

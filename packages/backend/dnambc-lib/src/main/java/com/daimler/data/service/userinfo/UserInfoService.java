@@ -29,6 +29,8 @@ package com.daimler.data.service.userinfo;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.dto.solution.ChangeLogVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -81,6 +83,7 @@ public interface UserInfoService extends CommonService<UserInfoVO, UserInfoNsql,
 	 * @return count {@code Long}
 	 */
 	Long getCountWithFilters(String searchTerm);
+
 	
 	/**
 	 * To update/remove divisions from a user having role DivisionAdmin

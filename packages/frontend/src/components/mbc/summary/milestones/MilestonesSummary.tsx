@@ -4,13 +4,13 @@ import * as React from 'react';
 import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { IconConceptDevelopment } from '../../../../components/icons/IconConceptDevelopment';
-import { IconIdeation } from '../../../../components/icons/IconIdeation';
-import { IconKickOff } from '../../../../components/icons/IconKickOff';
-import { IconOperations } from '../../../../components/icons/IconOperations';
-import { IconPilot } from '../../../../components/icons/IconPilot';
-import { IconProfessionalization } from '../../../../components/icons/IconProfessionalization';
-import { IMilestonesList, IPhase, IPhasesItem } from '../../../../globals/types';
+import { IconConceptDevelopment } from 'components/icons/IconConceptDevelopment';
+import { IconIdeation } from 'components/icons/IconIdeation';
+import { IconKickOff } from 'components/icons/IconKickOff';
+import { IconOperations } from 'components/icons/IconOperations';
+import { IconPilot } from 'components/icons/IconPilot';
+import { IconProfessionalization } from 'components/icons/IconProfessionalization';
+import { IMilestonesList, IPhase, IPhasesItem } from 'globals/types';
 import { regionalForMonthAndYear } from '../../../../services/utils';
 
 import Styles from './MilestonesSummary.scss';
@@ -72,6 +72,10 @@ const defaultOps: IPhasesItem = {
 };
 export default class MilestonesSummary extends React.Component<IMilestonesProps, IMileStonesState> {
   public static getDerivedStateFromProps(props: IMilestonesProps, state: IMileStonesState) {
+    if (props && props.milestones && props.milestones.rollouts.details.length > 0) {
+      const milestones: IMilestonesList = state.milestones;
+      milestones.rollouts.details = props.milestones.rollouts.details;
+    }
     if (props && props.milestones && props.milestones.phases.length > 0) {
       const milestones: IMilestonesList = state.milestones;
       milestones.phases.forEach((milestone) => {
@@ -255,7 +259,9 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
                         <div className={classNames(Styles.phase, '')}>{milestone.phase.name}</div>
                         <div className={Styles.monthYear}>
                           {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
-                          {milestone.month > 0 && milestone.year > 0 ? regionalForMonthAndYear(milestone.month+'/'+'01'+'/'+milestone.year):''}
+                          {milestone.month > 0 && milestone.year > 0
+                            ? regionalForMonthAndYear(milestone.month + '/' + '01' + '/' + milestone.year)
+                            : ''}
                         </div>
                       </div>
 
@@ -274,6 +280,27 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
                 }
               })}
             </div>
+            {this.state.milestones?.rollouts?.details && this.state.milestones?.rollouts?.details.length > 0 ? (
+              <div>
+                <h3>Rollout Locations</h3>
+                <br />
+                <div className={classNames(Styles.rolloutLocationsList)}>
+                  {this.state.milestones?.rollouts?.details.map((rollout, index) => {
+                    return (
+                      <span key={index}>
+                        {rollout.location.name}(
+                        {rollout.month > 0 && rollout.year > 0
+                          ? regionalForMonthAndYear(rollout.month + '/' + '01' + '/' + rollout.year)
+                          : ''}
+                        ){index <= this.state.milestones.rollouts.details.length - 2 ? ', ' : ''}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              ''
+            )}
           </div>
         </div>
       </React.Fragment>

@@ -1,14 +1,14 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { DATA_COMPLIANCE_INFO_LINKS } from '../../../../globals/constants';
-import ConfirmModal from '../../../../components/formElements/modal/confirmModal/ConfirmModal';
-import InfoModal from '../../../../components/formElements/modal/infoModal/InfoModal';
-import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
-import { IAttachment, IDataCompliance, ILink, ITeams } from '../../../../globals/types';
+import { DATA_COMPLIANCE_INFO_LINKS } from 'globals/constants';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
+import { IAttachment, IDataCompliance, ILink, ITeams } from 'globals/types';
 import AttachmentUploader from '../AttachmentUploader/AttachmentUploader';
 import ExternalLink from '../externalLink/ExternalLink';
-import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
+import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
 import Styles from './DataCompliance.scss';
 
 const classNames = cn.bind(Styles);
@@ -536,7 +536,11 @@ export default class DataCompliance extends React.Component<IDataComplianceProps
 
   protected validateMembersList = (teamMemberObj: ITeams) => {
     let duplicateMember = false;
-    duplicateMember = this.state.datacompliance.complianceOfficers?.filter((member:any) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    duplicateMember = this.state.datacompliance.complianceOfficers?.filter(
+      (member: any) => member.shortId === teamMemberObj.shortId,
+    )?.length
+      ? true
+      : false;
     return duplicateMember;
   };
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import * as React from 'react';
 // @ts-ignore
@@ -20,7 +21,7 @@ import ImgTick from '../../../../assets/images/tick.jpg';
 import ImgUseCaseCheckReady from '../../../../assets/images/UseCsae-Check-Ready.png';
 // @ts-ignore
 import ImgUseCaseCheck from '../../../../assets/images/UseCsae-Check.png';
-import { TeamMemberType } from '../../../../globals/Enums';
+import { TeamMemberType } from 'globals/Enums';
 import { getDateFromTimestamp } from '../../../../services/utils';
 
 // @ts-ignore
@@ -53,12 +54,12 @@ import {
   IUserInfo,
   INotebookInfo,
   IDataiku,
-} from '../../../../globals/types';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
-import { Envs } from '../../../../globals/Envs';
-import { getDateTimeFromTimestamp } from '../../../../services/utils';
+} from 'globals/types';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+import { Envs } from 'globals/Envs';
+import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
-import {IntlProvider, FormattedNumber} from 'react-intl';
+import { IntlProvider, FormattedNumber } from 'react-intl';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -282,8 +283,30 @@ const processDataValues = (values: any[]) => {
   return <Text>{dataValues}</Text>;
 };
 
-const processDataSourceValues = (values: any[]) => {
-  const stringValsArr = values.map((item: any) => item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : ''));
+const processDataSourceValues = (values: any[], dsList: any) => {
+  const stringValsArr = values.map((item: any) => {
+    let dsBadge: any = Envs.DNA_APPNAME_HEADER;
+    if (dsList.length > 0) {
+      const dataSource = dsList.filter((ds: any) => ds.name === item.dataSource);
+      if (dataSource.length === 1) {
+        if (dataSource[0].source !== null && dataSource[0].dataType !== null) {
+          if (dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+            if (dataSource[0].dataType === 'Not set') {
+              dsBadge = dataSource[0].source;
+            } else {
+              dsBadge =
+                dataSource[0].source +
+                '-' +
+                dataSource[0].dataType.charAt(0).toUpperCase() +
+                dataSource[0].dataType.slice(1);
+            }
+          }
+        }
+      }
+      return item.dataSource + ' (' + dsBadge + (item.weightage !== 0 ? ' - ' + item.weightage + '%' : '') + ')';
+    }
+    return item.dataSource + (item.weightage !== 0 ? ' (' + item.weightage + '%)' : '');
+  });
   return processDataValues(stringValsArr);
 };
 
@@ -316,7 +339,9 @@ const teamMembersList = (members: ITeams[]) => {
             <View>
               <Text>
                 <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
-                  {member.firstName} {member.lastName}
+                  <Text>
+                    {member.firstName} {member.lastName}
+                  </Text>
                 </Link>
               </Text>
               <Text>{member.department}</Text>
@@ -341,7 +366,9 @@ const linkList = (links: ILink[]) => {
           <Image style={{ width: 10 }} src={ImgLink} />
         </View>
         <Text>
-          <Link src={link.link}>{link.link}</Link>
+          <Link src={link.link}>
+            <Text>{link.link}</Text>
+          </Link>
         </Text>
       </View>
     );
@@ -378,11 +405,14 @@ const costDrivers = (costFactors: ICostFactor[]) => {
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Value</Text>
             <Text>
-              {costFactor.value ?
+              {costFactor.value ? (
                 <IntlProvider locale={navigator.language} defaultLocale="en">
                   <FormattedNumber value={Number(costFactor.value)} />
                 </IntlProvider>
-              : '' }&euro;
+              ) : (
+                ''
+              )}
+              &euro;
             </Text>
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
@@ -396,11 +426,14 @@ const costDrivers = (costFactors: ICostFactor[]) => {
             <View key={rampIndex} style={styles.rampUpContainer}>
               <Text>{item.year}</Text>
               <Text>
-                {item.value ?
+                {item.value ? (
                   <IntlProvider locale={navigator.language} defaultLocale="en">
                     <FormattedNumber value={Number(item.value)} />
                   </IntlProvider>
-                : '' }&euro;
+                ) : (
+                  ''
+                )}
+                &euro;
               </Text>
             </View>
           ))}
@@ -428,11 +461,14 @@ const valueDrivers = (valueFactors: IValueFactor[]) => {
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
             <Text style={styles.sectionTitle}>Value</Text>
             <Text>
-              {valueFactor.value ?
+              {valueFactor.value ? (
                 <IntlProvider locale={navigator.language} defaultLocale="en">
                   <FormattedNumber value={Number(valueFactor.value)} />
                 </IntlProvider>
-              : '' }&euro;
+              ) : (
+                ''
+              )}
+              &euro;
             </Text>
           </View>
           <View style={[styles.flexCol2, { marginRight: 100 }]}>
@@ -446,18 +482,24 @@ const valueDrivers = (valueFactors: IValueFactor[]) => {
             <View key={rampIndex} style={styles.rampUpContainer}>
               <Text>{item.year}</Text>
               <Text>
-                {item.percent ?
+                {item.percent ? (
                   <IntlProvider locale={navigator.language} defaultLocale="en">
                     <FormattedNumber value={Number(item.percent)} />
                   </IntlProvider>
-                : '' }%
+                ) : (
+                  ''
+                )}
+                %
               </Text>
               <Text>
-                {item.value ?
+                {item.value ? (
                   <IntlProvider locale={navigator.language} defaultLocale="en">
                     <FormattedNumber value={Number(item.value)} />
                   </IntlProvider>
-                : '' }&euro;
+                ) : (
+                  ''
+                )}
+                &euro;
               </Text>
             </View>
           ))}
@@ -474,18 +516,24 @@ const digitalValue = (items: IValueRampUp[]) => {
       <View key={index} style={styles.rampUpContainer}>
         <Text>{item.year}</Text>
         <Text>
-          {item.percent ?
+          {item.percent ? (
             <IntlProvider locale={navigator.language} defaultLocale="en">
               <FormattedNumber value={Number(item.percent)} />
             </IntlProvider>
-          : '' }%
+          ) : (
+            ''
+          )}
+          %
         </Text>
         <Text>
-          {item.value ?
+          {item.value ? (
             <IntlProvider locale={navigator.language} defaultLocale="en">
               <FormattedNumber value={Number(item.value)} />
             </IntlProvider>
-          : '' }&euro;
+          ) : (
+            ''
+          )}
+          &euro;
         </Text>
       </View>
     );
@@ -534,7 +582,10 @@ const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, fi
       <View style={[styles.milestoneValueView, { opacity: canShowPhase ? 1 : 0 }]}>
         <Text style={[styles.sectionTitle, styles.setMarginTop15, styles.noMarginBottom]}>{phaseItem.phase.name}</Text>
         <Text>
-          {phaseItem.month >= 10 ? phaseItem.month : '0' + phaseItem.month}/{phaseItem.year}
+          {/* {phaseItem.month >= 10 ? phaseItem.month : '0' + phaseItem.month}/{phaseItem.year} */}
+          {phaseItem.month > 0 && phaseItem.year > 0
+            ? regionalForMonthAndYear(phaseItem.month + '/' + '01' + '/' + phaseItem.year)
+            : ''}
         </Text>
       </View>
       {firstItem ? (
@@ -591,6 +642,7 @@ const neededRoles = (neededRoles: INeededRoleObject[]) => {
 
 interface SummaryPdfDocProps {
   solution: ICreateNewSolutionData;
+  dataSources?: any;
   lastModifiedDate: string;
   createdDate: string;
   canShowTeams: boolean;
@@ -772,7 +824,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                                 <Link
                                   src={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + props.dataIkuInfo.projectKey + '/'}
                                 >
-                                  {props.dataIkuInfo.name}
+                                  <Text>{props.dataIkuInfo.name}</Text>
                                 </Link>
                               ))}
                           </Text>
@@ -786,7 +838,8 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                               )}{' '}
                               by{' '}
                               {(props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName) ||
-                                (props.dnaDataIkuProjectEnabled && (props.dataIkuInfo.ownerDisplayName || props.dataIkuInfo.ownerLogin))}
+                                (props.dnaDataIkuProjectEnabled &&
+                                  (props.dataIkuInfo.ownerDisplayName || props.dataIkuInfo.ownerLogin))}
                             </Text>
                             <Text>
                               {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
@@ -842,7 +895,27 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
           <View wrap={false}>
             <Text style={[styles.subTitle, styles.setMarginTop]}>Milestones</Text>
             <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones)}</View>
-            <View style={styles.seperatorLine} />
+            {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.length > 0 ? (
+              <View>
+                <Text style={[styles.subTitle, styles.setMarginTop]}>Rollout Locations</Text>
+                <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 25, marginTop: 25 }}>
+                  {props.solution.milestones?.rollouts?.details.map((rollout, index) => {
+                    return (
+                      <Text key={index}>
+                        {rollout.location.name}(
+                        {rollout.month > 0 && rollout.year > 0
+                          ? regionalForMonthAndYear(rollout.month + '/' + '01' + '/' + rollout.year)
+                          : ''}
+                        ){index <= props.solution.milestones.rollouts.details.length - 2 ? ', ' : ''}
+                      </Text>
+                    );
+                  })}
+                </View>
+                <View style={styles.seperatorLine} />
+              </View>
+            ) : (
+              <Text></Text>
+            )}
           </View>
         ) : (
           <View />
@@ -864,7 +937,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Data Sources</Text>
                     {props.solution.dataSources.dataSources && props.solution.dataSources.dataSources.length > 0 ? (
-                      processDataSourceValues(props.solution.dataSources.dataSources)
+                      processDataSourceValues(props.solution.dataSources.dataSources, props.dataSources)
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -941,7 +1014,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Git Repository</Text>
                     {props.solution.sharing.gitUrl && props.solution.sharing.gitUrl !== '' ? (
-                      <Link src={props.solution.sharing.gitUrl}>{props.solution.sharing.gitUrl}</Link>
+                      <Link src={props.solution.sharing.gitUrl}>
+                        <Text>{props.solution.sharing.gitUrl}</Text>
+                      </Link>
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -953,7 +1028,9 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                   <View style={styles.flexCol4}>
                     <Text style={styles.sectionTitle}>Comment</Text>
                     {props.solution.sharing.resultUrl && props.solution.sharing.resultUrl !== '' ? (
-                      <Link src={props.solution.sharing.resultUrl}>{props.solution.sharing.resultUrl}</Link>
+                      <Link src={props.solution.sharing.resultUrl}>
+                        <Text>{props.solution.sharing.resultUrl}</Text>
+                      </Link>
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -1105,14 +1182,15 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     props.solution.digitalValue.valueCalculator.calculatedDigitalValue ? (
                       props.solution.digitalValue.valueCalculator.calculatedDigitalValue.year +
                       ' (' +
-                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ?
-                      <IntlProvider locale={navigator.language} defaultLocale="en">
-                         <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value)} />
-                      </IntlProvider>
-                      : ''
-                       +
-                      '€' +
-                      ')'
+                      props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value ? (
+                        <IntlProvider locale={navigator.language} defaultLocale="en">
+                          <FormattedNumber
+                            value={Number(props.solution.digitalValue.valueCalculator.calculatedDigitalValue.value)}
+                          />
+                        </IntlProvider>
+                      ) : (
+                        '' + '€' + ')'
+                      )
                     ) : (
                       <Text>NA</Text>
                     )}
@@ -1134,13 +1212,18 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {props.solution.digitalValue.valueCalculator &&
                     props.solution.digitalValue.valueCalculator.costFactorSummary &&
                     props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
-                      <Text> {
-                        props.solution.digitalValue.valueCalculator.costFactorSummary.value ?
+                      <Text>
+                        {' '}
+                        {props.solution.digitalValue.valueCalculator.costFactorSummary.value ? (
                           <IntlProvider locale={navigator.language} defaultLocale="en">
-                            <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.costFactorSummary.value)} />
+                            <FormattedNumber
+                              value={Number(props.solution.digitalValue.valueCalculator.costFactorSummary.value)}
+                            />
                           </IntlProvider>
-                        : ''                        
-                        }&euro; 
+                        ) : (
+                          ''
+                        )}
+                        &euro;
                       </Text>
                     ) : (
                       <Text>NA</Text>
@@ -1163,14 +1246,17 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
                     {props.solution.digitalValue.valueCalculator &&
                     props.solution.digitalValue.valueCalculator.valueFactorSummary &&
                     props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
-                      <Text> 
-                        { 
-                        props.solution.digitalValue.valueCalculator.valueFactorSummary.value ?
+                      <Text>
+                        {props.solution.digitalValue.valueCalculator.valueFactorSummary.value ? (
                           <IntlProvider locale={navigator.language} defaultLocale="en">
-                            <FormattedNumber value={Number(props.solution.digitalValue.valueCalculator.valueFactorSummary.value)} />
+                            <FormattedNumber
+                              value={Number(props.solution.digitalValue.valueCalculator.valueFactorSummary.value)}
+                            />
                           </IntlProvider>
-                        : ''                        
-                        }&euro;
+                        ) : (
+                          ''
+                        )}
+                        &euro;
                       </Text>
                     ) : (
                       <Text>NA</Text>

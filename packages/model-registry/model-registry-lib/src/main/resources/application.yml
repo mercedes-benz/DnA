@@ -2,15 +2,29 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: model-registry-service
+    
+  cloud:
+    vault:
+      host: ${VAULT_HOST:localhost}
+      port: ${VAULT_PORT:8200}
+      scheme: ${VAULT_SCHEME:http}
+      authentication: ${VAULT_AUTHENTICATION:TOKEN}
+      token: ${VAULT_TOKEN:***REMOVED***}
+      mountpath: ${VAULT_MOUNTPATH:secret}
+      vaultpath: ${VAULT_PATH:dna/modelregistry}
+      kv:
+       enabled: true     
 
 dna:
   uri: ${DNA_URI:XXXXXX}
   dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
   
+kong:
+  uri: ${KONG_URI:XXXXXX}
+  
 model:  
   host: ${HOST:XXXXXX}
   certManager: ${CERT_MANAGER:XXXXXX}
-  backendServiceSuffix: ${BACKEND_SERVICE_SUFFIX:predictor-default-00001-private}
 
 server:
   port: 7373
@@ -21,13 +35,20 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 jwt:
   secret:
     key: ${JWT_SECRET_KEY:XXXXXX}
+    tokenExpiry: ${JWT_TOKEN_EXPIRY_TIME_IN_MIN:90}
+    byPassUrl: ${BYPASS_JWT_AUTHENTICATION:/models/jwt}
+    kid: ${JWT_SECRET_KID:XXXXX}
+    
+hmac:
+  secret:
+    key: ${HMAC_SECRET_KEY:XXXXX}
     
 minio:
   models.bucketname: ${MINIO_MODELS_BUCKETNAME:XXXXX}
   models.pattern.prefix: ${MINIO_MODELS_PATTERN_PREFIX:XXXXX}
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-  accessKey: ${MINIO_ACCESS_KEY:XXXXXX} 
-  secretKey: ${MINIO_SECRET_KEY:XXXXXX}
+  accessKey: ${MINIO_ROOT_USER:XXXXXX} 
+  secretKey: ${MINIO_ROOT_PASSWORD:XXXXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

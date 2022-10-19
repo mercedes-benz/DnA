@@ -96,8 +96,8 @@ dependencies {
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
 	
 	//2nd level caching dependency 
-	implementation 'org.springframework.boot:spring-boot-starter-cache:2.4.3'
-    implementation group: 'net.sf.ehcache', name: 'ehcache', version: '2.10.4'
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache', version: '2.7.2'
+    	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '2.7.2'
 
 
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.2.4'

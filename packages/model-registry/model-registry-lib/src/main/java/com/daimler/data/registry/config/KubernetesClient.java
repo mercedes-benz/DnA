@@ -27,31 +27,12 @@
 
 package com.daimler.data.registry.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
-import io.kubernetes.client.openapi.models.V1HTTPIngressPath;
-import io.kubernetes.client.openapi.models.V1HTTPIngressRuleValue;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressBackend;
-import io.kubernetes.client.openapi.models.V1IngressRule;
-import io.kubernetes.client.openapi.models.V1IngressServiceBackend;
-import io.kubernetes.client.openapi.models.V1IngressSpec;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceBackendPort;
 import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
@@ -60,23 +41,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesClient {
 
-	@Value("${model.host}")
-	private String host;
-
-	@Value("${model.certManager}")
-	private String certManager;
-
 	private CoreV1Api api;
 	private ApiClient client;
-
-	private NetworkingV1Api networkingV1beta1Api;
 
 	public KubernetesClient() {
 		try {
 			this.client = Config.defaultClient();
 			Configuration.setDefaultApiClient(client);
 			this.api = new CoreV1Api();
-			this.networkingV1beta1Api = new NetworkingV1Api();
 			log.info("Got kubernetes java client and core api successfully");
 		} catch (Exception e) {
 			log.error("Error while getting kubernetes java client and core api successfully");
@@ -84,66 +56,9 @@ public class KubernetesClient {
 		}
 	}
 
-	public V1Service getModelService(String metaDataNamespace, String backendServiceName) throws ApiException {
-		Optional<V1Service> service = null;
-		V1ServiceList serviceList = api.listNamespacedService(metaDataNamespace, "true", null, null, null, null, null,
-				null, null, 10, false);
-		if (serviceList != null && !ObjectUtils.isEmpty(serviceList.getItems())) {
-			service = serviceList.getItems().stream()
-					.filter(item -> item.getMetadata().getName().equals(backendServiceName)).findFirst();
-		}
-		if (service != null && service.isPresent()) {
-			return service.get();
-		}
-		return null;
-	}
-
-	public void getUri(String metaDataNamespace, String metaDataName, String backendServiceName, String path)
-			throws ApiException {
-		V1Ingress ingress = new V1Ingress();
-		V1ObjectMeta metaData = new V1ObjectMeta();
-		Map<String, String> annotations = new HashMap<>();
-		annotations.put("traefik.frontend.rule.type", "PathPrefix");
-		annotations.put("kubernetes.io/ingress.class", "traefik");
-		annotations.put("traefik.ingress.kubernetes.io/router.tls", "true");
-		annotations.put("traefik.ingress.kubernetes.io/router.entrypoints", "websecure");
-		annotations.put("cert-manager.io/cluster-issuer", certManager);
-		metaData.setAnnotations(annotations);
-		metaData.setName(metaDataName);
-		metaData.setNamespace(metaDataNamespace);
-
-		V1ServiceBackendPort port = new V1ServiceBackendPort();
-		port.setNumber(80);
-		V1IngressServiceBackend v1IngressServiceBackend = new V1IngressServiceBackend();
-		v1IngressServiceBackend.setName(backendServiceName);
-		v1IngressServiceBackend.setPort(port);
-		V1IngressBackend v1IngressBackend = new V1IngressBackend();
-		v1IngressBackend.setService(v1IngressServiceBackend);
-
-		V1HTTPIngressPath v1HTTPIngressPath = new V1HTTPIngressPath();
-		v1HTTPIngressPath.setPath(path);
-		v1HTTPIngressPath.setPathType("Prefix");
-		v1HTTPIngressPath.setBackend(v1IngressBackend);
-
-		List<V1HTTPIngressPath> paths = new ArrayList<>();
-		paths.add(v1HTTPIngressPath);
-		V1HTTPIngressRuleValue v1HTTPIngressRuleValue = new V1HTTPIngressRuleValue();
-		v1HTTPIngressRuleValue.setPaths(paths);
-
-		V1IngressRule ingressRule = new V1IngressRule();
-		ingressRule.setHost(host);
-		ingressRule.setHttp(v1HTTPIngressRuleValue);
-
-		List<V1IngressRule> rules = new ArrayList<>();
-		rules.add(ingressRule);
-		V1IngressSpec ingressSpec = new V1IngressSpec();
-		ingressSpec.setRules(rules);
-
-		ingress.setApiVersion("networking.k8s.io/v1");
-		ingress.setKind("Ingress");
-		ingress.setMetadata(metaData);
-		ingress.setSpec(ingressSpec);
-		log.info("Ingress yaml created: {} ", ingress.toString());
-		networkingV1beta1Api.createNamespacedIngress(metaDataNamespace, ingress, null, null, null, null);
+	public V1ServiceList getModelService(String namespace) throws ApiException {
+		V1ServiceList serviceList = api.listNamespacedService(namespace, "true", null, null, null, null, null, null,
+				null, null, false);
+		return serviceList;
 	}
 }

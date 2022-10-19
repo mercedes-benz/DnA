@@ -17,10 +17,23 @@ spec:
       labels:
         zone: web
         app: {{ .Release.Name }}-frontend
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}       
       containers:
         - image: {{ .Values.appFrontend.image }}
           imagePullPolicy: Always
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ["cp /vault/secrets/config.js /usr/share/nginx/html/config.js && nginx -c /opt/bitnami/nginx/conf/nginx.conf -g 'daemon off;'"]
+          {{- end }}       
           name: frontend
           ports:
             - containerPort: 3000
@@ -48,9 +61,11 @@ spec:
             - name: {{ .Release.Name }}-frontend-configmap-ngnix
               mountPath: /opt/bitnami/nginx/conf/nginx.conf
               subPath: nginx.conf
+            {{- if not .Values.vaultInjector.enable }} 
             - name: {{ .Release.Name }}-frontend-configmap-configjs
               mountPath: /usr/share/nginx/html/config.js
-              subPath: config.js                 
+              subPath: config.js  
+            {{- end }}                
           resources: {}
       securityContext:
         runAsUser: 1001
@@ -59,7 +74,9 @@ spec:
       volumes:
         - name: {{ .Release.Name }}-frontend-configmap-ngnix
           configMap:
-            name: {{ .Release.Name }}-frontend-configmap        
+            name: {{ .Release.Name }}-frontend-configmap 
+        {{- if not .Values.vaultInjector.enable }}        
         - name: {{ .Release.Name }}-frontend-configmap-configjs
           configMap:
-            name: {{ .Release.Name }}-frontend-configmap                     
+            name: {{ .Release.Name }}-frontend-configmap  
+        {{- end }}                    

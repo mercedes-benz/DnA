@@ -106,7 +106,7 @@ public class StorageAssembler {
 	}
 	
 	/*
-	 * To convert UserInfo entity value to UserVO
+	 * To convert UserInfo entity to UserVO
 	 * 
 	 */
 	private UserVO toUserVO(UserInfo userInfo) {
@@ -122,6 +122,23 @@ public class StorageAssembler {
 		return userVO;
 	}
 	
+	/*
+	 * To convert CreatedByVO to UserVO
+	 * 
+	 */
+	public UserVO toUserVO(CreatedByVO createdByVO) {
+		UserVO userVO = null;
+		if (Objects.nonNull(createdByVO)) {
+			userVO = new UserVO();
+			BeanUtils.copyProperties(createdByVO, userVO);
+			userVO.setAccesskey(createdByVO.getId());
+			PermissionVO permissionVO = new PermissionVO();
+			permissionVO.setRead(true);
+			permissionVO.setWrite(true);
+			userVO.setPermission(permissionVO);
+		}
+		return userVO;
+	}
 	
 	/**
 	 * To convert BucketVo to StorageNsql

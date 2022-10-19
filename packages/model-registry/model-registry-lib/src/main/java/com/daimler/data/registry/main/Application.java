@@ -41,7 +41,7 @@ import org.springframework.web.WebApplicationInitializer;
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan({ "com.daimler.data.application.filter", "com.daimler.data.application.logging",
 		"com.daimler.data.auth.client", "com.daimler.data.controller", "com.daimler.data.registry.config",
-		"com.daimler.data.registry.models.service" })
+		"com.daimler.data.registry.models.service", "com.daimler.data.registry.util", "com.daimler.data.kong.client" })
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);

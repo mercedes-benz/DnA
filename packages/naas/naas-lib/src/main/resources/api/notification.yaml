@@ -352,9 +352,10 @@ definitions:
             enum:
               [
                 "All",
-                "Storage",
-                "Dashboard",
-                "Notebook"
+                "STORAGE",
+                "DASHBOARD",
+                "NOTEBOOK",
+                "CUSTOM"
               ]
           subscribedUsers:
             type: array

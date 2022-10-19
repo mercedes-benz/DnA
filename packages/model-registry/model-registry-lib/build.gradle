@@ -58,7 +58,7 @@ tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 //__________________________________________________________//
 //_____________________ SWAGGER CONFIGURATION ______________//
 swaggerSources {
-//model-registry-lib
+
     model {
         def modelyaml = "${rootDir}/model-registry-lib/src/main/resources/api/modelRegistry.yaml"
         def modelJson = "${rootDir}/model-registry-lib/src/main/resources/api/modelRegistry.json"
@@ -73,6 +73,21 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+    
+    generatejwt {
+        def generateJwtyaml = "${rootDir}/model-registry-lib/src/main/resources/api/generateJwt.yaml"
+        def generateJwtJson = "${rootDir}/model-registry-lib/src/main/resources/api/generateJwt.json"
+        inputFile = file(generateJwtyaml)
+
+        def ignoreFile = "${rootDir}/model-registry-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(generateJwtJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }    
         
 }
 
@@ -80,6 +95,8 @@ compileJava {
     dependsOn processResources
     dependsOn swaggerSources.model.code
     source "${swaggerSources.model.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.generatejwt.code
+    source "${swaggerSources.generatejwt.code.outputDir}/src/main/java"    
 }
 
 sourceSets {
@@ -90,6 +107,7 @@ sourceSets {
     }
     main {
         java { srcDirs += "${swaggerSources.model.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.generatejwt.code.outputDir}/src/main/java" }
     }
 }
 
@@ -112,6 +130,8 @@ dependencies {
     implementation group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.30'
 
     implementation('ch.qos.logback:logback-core:1.2.3')
+    
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.1.1'
     
     implementation 'io.swagger:swagger-annotations:1.6.2'
 

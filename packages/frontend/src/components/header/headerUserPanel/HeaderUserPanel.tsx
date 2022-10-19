@@ -1,14 +1,14 @@
 import cn from 'classnames';
 import React, { useEffect } from 'react';
 import { ApiClient } from '../../../../src/services/ApiClient';
-import { USER_ROLE } from '../../../globals/constants';
-import { getTranslatedLabel } from '../../../globals/i18n/TranslationsProvider';
-import { IRole, IUserInfo } from '../../../globals/types';
+import { USER_ROLE } from 'globals/constants';
+import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
+import { IRole, IUserInfo } from 'globals/types';
 import { history } from './../../../router/History';
 import { Pkce } from './../../../services/Pkce';
 import Styles from './HeaderUserPanel.scss';
 import { createQueryParams } from './../../../services/utils';
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -28,7 +28,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   useEffect(() => {
     eventClenUp();
 
-    if(props.show) {
+    if (props.show) {
       document.addEventListener('touchend', handleUserPanelOutside, true);
       document.addEventListener('click', handleUserPanelOutside, true);
     }
@@ -43,7 +43,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   const eventClenUp = () => {
     document.removeEventListener('touchend', handleUserPanelOutside, true);
     document.removeEventListener('click', handleUserPanelOutside, true);
-  }
+  };
 
   const handleUserPanelOutside = (event: MouseEvent | TouchEvent) => {
     const helpMenuWrapper = document?.querySelector('#profileMenuContentWrapper');
@@ -93,7 +93,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
     history.push(`/bookmarks`);
     props.onClose();
   };
-  
+
   const navigateToAdministration = (event: React.MouseEvent<HTMLElement>) => {
     history.push(`/administration`);
     props.onClose();
@@ -113,7 +113,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
   //   history.push(`/profile`);
   //   props.onClose();
   // };
-  
+
   return (
     <div id="profileMenuContentWrapper" className={classNames(props.show ? Styles.userContexMenu : 'hide')}>
       <div className={Styles.upArrow} />
@@ -126,12 +126,10 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
         </li>
         <li onClick={navigateToMySolutions}>{getTranslatedLabel('MySolutions')}</li>
         <li onClick={navigateToMyBookmarks}>{getTranslatedLabel('MyBookmarks')}</li>
-        {enableAdmin && (
-          <li onClick={navigateToAdministration}>{getTranslatedLabel('Administration')}</li>
-        )}
+        {enableAdmin && <li onClick={navigateToAdministration}>{getTranslatedLabel('Administration')}</li>}
         <li onClick={navigateToSettings}>{getTranslatedLabel('Settings')}</li>
         <li onClick={onLogout}>{getTranslatedLabel('LogoutButton')}</li>
       </ul>
     </div>
   );
-};
+}

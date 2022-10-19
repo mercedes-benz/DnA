@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  schedule: {{ .Values.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ .Chart.Name }}
+        spec:
+          restartPolicy: {{ .Values.restartPolicy }}
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              {{- with .Values.envs }}            
+              env:
+              {{- toYaml . | nindent 16 }}
+              {{- end }} 
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
