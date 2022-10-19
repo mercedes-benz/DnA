@@ -237,7 +237,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="productPhase">
                     <label className="input-label summary">Report Type</label>
                     <br />
-                    {description.reportType ? description.reportType : 'N/A'}
+                    {description.reportType && description?.reportType != '0' ? description.reportType : 'N/A'}
                   </div>
                   <div id="status">
                     <label className="input-label summary">Status </label>
@@ -247,14 +247,14 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="integratedinportal">
                     <label className="input-label summary">Integrated In Portal</label>
                     <br />
-                    {description.integratedPortal || 'N/A'}
+                    {description.integratedPortal && description?.integratedPortal != '0' ? description.integratedPortal : 'N/A'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="agileReleaseTrain">
                     <label className="input-label summary">Agile Release Train</label>
                     <br />
-                    {description.agileReleaseTrain || 'N/A'}
+                    {description.agileReleaseTrain && description?.agileReleaseTrain != '0' ? description.agileReleaseTrain : 'N/A'}
                   </div>
                   {/* <div id="designguideimplemented">
                     <label className="input-label summary">Design Guide Implemented</label>

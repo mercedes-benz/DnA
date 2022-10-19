@@ -378,7 +378,7 @@ export default class AllReports extends React.Component<
                             Department
                           </label>
                         </th>
-                        <th onClick={this.sortReports.bind(null, 'productOwner', this.state.sortBy.nextSortType)}>
+                        {/* <th onClick={this.sortReports.bind(null, 'productOwner', this.state.sortBy.nextSortType)}>
                           <label
                             className={
                               'sortable-column-header ' +
@@ -386,9 +386,9 @@ export default class AllReports extends React.Component<
                             }
                           >
                             <i className="icon sort" />
-                            Product Owner
+                            Report Owner
                           </label>
-                        </th>
+                        </th> */}
                         <th onClick={this.sortReports.bind(null, 'art', this.state.sortBy.nextSortType)}>
                           <label
                             className={
