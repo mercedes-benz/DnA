@@ -14,11 +14,24 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}       
       containers:
         - name: {{ .Chart.Name }}-service
           image: {{ .Values.image }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}
           env:
             - name: API_DB_URL
               value: {{ .Values.dbUrl }}
@@ -56,7 +69,8 @@ spec:
             - name: CORS_ORIGIN_URL
               value: {{ .Values.corsOriginUrl | quote }}
             - name: NAAS_BROKER
-              value: {{ .Values.naasBroker }}          
+              value: {{ .Values.naasBroker }} 
+          {{- end }}         
           ports:
             - containerPort: {{ .Values.containerPort }}
               name: api

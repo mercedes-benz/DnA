@@ -28,8 +28,8 @@ spring:
   datasource:
     platform: postgres
     url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dashboard}
-    username: ${API_DB_USER:admin}
-    password: ${API_DB_PASS:admin}
+    username: ${API_DB_USER:XXXX_user}
+    password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
 
 kafka:

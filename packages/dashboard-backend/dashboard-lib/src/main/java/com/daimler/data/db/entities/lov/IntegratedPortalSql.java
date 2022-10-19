@@ -51,7 +51,7 @@ public class IntegratedPortalSql implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "lov_sequence_gen")
-	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "dashboard_sequence", allocationSize = 1)
+	@SequenceGenerator(name = "lov_sequence_gen", sequenceName = "lov_sequence", allocationSize = 1)
 	private Long id;
 
 	@Column(name = "name")

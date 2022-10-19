@@ -1,0 +1,82 @@
+.firstPanel {
+    background: #252a33;
+    margin-bottom: 15px;
+
+    .flexLayout {
+        display: flex;
+        justify-content: space-between;
+        > div {
+            width: calc(50% - 7px);
+        }
+    }
+
+    .formWrapper {
+        margin: 60px 70px 0;
+    }
+}
+
+.wrapper {
+    background: #252a33 !important;
+    margin-top: 15px !important;
+    padding: 25px 38px;
+}
+.infoIcon {
+    text-align: right;
+    font-size: var(--font-size-icon-medium);
+    margin-right: -23px;
+    margin-top: -44px;
+    float: right;
+    i {
+        cursor: pointer;
+        color: #697582;
+
+        &:hover {
+            color: #00adef;
+        }
+    }
+}
+.radioBtns {
+    label {
+        min-width: 85px;
+    }
+}
+.radioBtnsGrid {
+    display: grid;
+    grid-template-columns: 200px 200px;
+}
+
+.termsOfUseContainer {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    margin-top: 15px;
+    .termsOfUseContent {
+        display: flex;
+        input {
+            visibility: hidden;
+        }
+        .termsOfUseText {
+            color: #c0c8d0;
+            font-size: var(--font-size-default);
+            max-width: 350px;
+            max-height: 100px;
+            margin: auto 0;
+        }
+    }
+}
+
+.suggestionListBadge {
+    border: 1px solid #d9dfe4;
+    color: #d9dfe4;
+    position: absolute;
+    right: 10px;
+    font-size: 10px;
+    padding: 0 5px;
+}
+
+:global {
+    #data-product-tabs #tab-content-2 .mbc-cfm-modal-wrapper footer .btn-set button:first-child {
+        display: none;
+    }
+}

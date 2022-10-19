@@ -2,14 +2,14 @@ import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { TeamMemberType } from '../../../../globals/Enums';
-import { ITeams } from '../../../../globals/types';
+import { TeamMemberType } from 'globals/Enums';
+import { ITeams } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 // @ts-ignore
-import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
-import Modal from '../../../formElements/modal/Modal';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
+import Modal from 'components/formElements/modal/Modal';
 import Styles from './AddTeamMemberModal.scss';
-import { Envs } from '../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 import * as Validation from '../../../../utils/Validation';
 import TeamSearch from '../../teamSearch/TeamSearch';
 
@@ -26,6 +26,7 @@ export interface IAddTeamMemberModalProps {
   onAddTeamMemberModalCancel: () => void;
   onUpdateTeamMemberList: (teamMemberObj: ITeams) => void;
   validateMemebersList?: (teamMemberObj: ITeams) => boolean;
+  customUserErrorMsg?: string;
 }
 
 export interface IAddTeamMemberModalState {
@@ -59,6 +60,8 @@ export interface IAddTeamMemberModalState {
   teamPositionError: string;
   isEmailValid: boolean;
   showUserAlreadyExistsError: boolean;
+  searchTerm: string;
+  showUserDetails: boolean;
 }
 
 export default class AddTeamMemberModal extends React.Component<IAddTeamMemberModalProps, IAddTeamMemberModalState> {
@@ -95,6 +98,8 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       teamPositionError: null,
       isEmailValid: true,
       showUserAlreadyExistsError: false,
+      searchTerm: '',
+      showUserDetails: false,
     };
     this.validateMobile = this.validateMobile.bind(this);
     this.validateEmailID = this.validateEmailID.bind(this);
@@ -211,7 +216,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
               label={
                 <>
                   Find User<sup>*</sup>{' '}
-                  <span dangerouslySetInnerHTML={{__html: Envs.INTERNAL_USER_TEAMS_INFO}}></span>
+                  <span dangerouslySetInnerHTML={{ __html: Envs.INTERNAL_USER_TEAMS_INFO }}></span>
                 </>
               }
               editMode={this.props.editMode}
@@ -220,6 +225,11 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
               userAlreadyExists={showUserAlreadyExistsError}
               resetUserAlreadyExists={this.resetUserAlreadyExists}
               btnText="Save"
+              searchTerm={this.state.searchTerm}
+              setSearchTerm={(val) => this.setState({ searchTerm: val })}
+              showUserDetails={this.state.showUserDetails}
+              setShowUserDetails={(val) => this.setState({ showUserDetails: val })}
+              customUserErrorMsg={this.props.customUserErrorMsg}
             />
           </div>
           <div className={!belongingInternal ? Styles.externalWrapper : 'hide'}>
@@ -479,7 +489,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
                 name="mobileNumber"
                 placeholder="+49123456"
                 autoComplete="off"
-                value={mobileNumber}
+                value={mobileNumber === 'null' ? '' : mobileNumber}
                 maxLength={15}
                 onChange={this.validateMobile}
               />
@@ -668,10 +678,11 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       formValid = false;
     }
 
-    if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
+    if (typeof this.props.validateMemebersList === 'function') {
       const isDuplicate = this.props.validateMemebersList(teamMemberObj);
       if (isDuplicate) {
         this.setState({ showUserAlreadyExistsError: true });
+        setTimeout(this.resetUserAlreadyExists, 3500);
         formValid = false;
       }
     }
@@ -724,7 +735,17 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         mobileNumber: '',
         teamMemberPosition: '',
       },
-      showNotFoundError: false,
+      firstName: '',
+      lastName: '',
+      mobileNumber: '',
+      email: '',
+      company: '',
+      department: '',
+      shortID: '',
+      teamPosition: '',
+      showUserAlreadyExistsError: false,
+      searchTerm: '',
+      showUserDetails: false,
     });
 
     InputFieldsUtils.resetErrors('#teamsModalDiv');
@@ -755,7 +776,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
       formValid = false;
     }
 
-    if (!this.props.editMode && typeof this.props.validateMemebersList === 'function') {
+    if (typeof this.props.validateMemebersList === 'function') {
       const isDuplicate = this.props.validateMemebersList(this.state.teamMemberObj);
       formValid = !isDuplicate;
     }
@@ -783,50 +804,104 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
   protected validateInternalTeamMemberFormForFoss = () => {
     let formValid = true;
     if (Envs.OIDC_PROVIDER === 'INTERNAL') {
-      if (
-        this.state.teamPosition === '' ||
-        this.state.teamPosition === null ||
-        this.state.shortID === '' ||
-        this.state.shortID === null ||
-        this.state.company === '' ||
-        this.state.company === null ||
-        this.state.department === '' ||
-        this.state.department === null ||
-        this.state.firstName === '' ||
-        this.state.firstName === null ||
-        this.state.lastName === '' ||
-        this.state.lastName === null ||
-        this.state.email === '' ||
-        this.state.email === null ||
-        this.state.mobileNumber === '' ||
-        this.state.mobileNumber === null ||
-        !this.state.isEmailValid
-      ) {
-        formValid = false;
+      if (this.props.hideTeamPosition) {
+        if (
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === 'null' ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === 'null' ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.email === '' ||
+          this.state.email === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === 'null' ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
+      } else {
+        if (
+          this.state.teamPosition === '' ||
+          this.state.teamPosition === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === 'null' ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === 'null' ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.email === '' ||
+          this.state.email === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === 'null' ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
       }
 
       ['shortID', 'email', 'firstName', 'lastName', 'company', 'department', 'teamPosition', 'mobileNumber'].map(
         (field) => this.formFieldsErrorValidation(field),
       );
     } else {
-      if (
-        this.state.teamPosition === '' ||
-        this.state.teamPosition === null ||
-        this.state.company === '' ||
-        this.state.company === null ||
-        this.state.department === '' ||
-        this.state.department === null ||
-        this.state.firstName === '' ||
-        this.state.firstName === null ||
-        this.state.lastName === '' ||
-        this.state.lastName === null ||
-        this.state.shortID === '' ||
-        this.state.shortID === null ||
-        this.state.mobileNumber === '' ||
-        this.state.mobileNumber === null ||
-        !this.state.isEmailValid
-      ) {
-        formValid = false;
+      if (this.props.hideTeamPosition) {
+        if (
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === 'null' ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === 'null' ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === 'null' ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
+      } else {
+        if (
+          this.state.teamPosition === '' ||
+          this.state.teamPosition === null ||
+          this.state.company === '' ||
+          this.state.company === null ||
+          this.state.company === 'null' ||
+          this.state.department === '' ||
+          this.state.department === null ||
+          this.state.department === 'null' ||
+          this.state.firstName === '' ||
+          this.state.firstName === null ||
+          this.state.lastName === '' ||
+          this.state.lastName === null ||
+          this.state.shortID === '' ||
+          this.state.shortID === null ||
+          this.state.mobileNumber === '' ||
+          this.state.mobileNumber === null ||
+          this.state.mobileNumber === 'null' ||
+          !this.state.isEmailValid
+        ) {
+          formValid = false;
+        }
       }
 
       ['shortID', 'teamPosition', 'company', 'department', 'firstName', 'lastName', 'mobileNumber'].map((field) =>
@@ -883,7 +958,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'company':
         {
-          if (this.state.company === '' || this.state.company === null) {
+          if (this.state.company === '' || this.state.company === null || this.state.company === 'null') {
             this.setState({ companyError: errorMissingEntry });
           } else {
             this.setState({ companyError: '' });
@@ -892,7 +967,7 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'department':
         {
-          if (this.state.department === '' || this.state.department === null) {
+          if (this.state.department === '' || this.state.department === null || this.state.department === 'null') {
             this.setState({ departmentError: errorMissingEntry });
           } else {
             this.setState({ departmentError: '' });
@@ -910,7 +985,11 @@ export default class AddTeamMemberModal extends React.Component<IAddTeamMemberMo
         break;
       case 'mobileNumber':
         {
-          if (this.state.mobileNumber === '' || this.state.mobileNumber === null) {
+          if (
+            this.state.mobileNumber === '' ||
+            this.state.mobileNumber === null ||
+            this.state.mobileNumber === 'null'
+          ) {
             this.setState({ mobileNumberError: errorMissingEntry });
           } else {
             this.setState({ mobileNumberError: '' });

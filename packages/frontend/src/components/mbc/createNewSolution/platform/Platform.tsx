@@ -1,12 +1,12 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { ComputeFixedTag, ProvisionSource } from '../../../../globals/Enums';
-import { IDataiku, INotebookInfo, IPortfolio, ITag, IUserInfo } from '../../../../globals/types';
-import Tags from '../../../formElements/tags/Tags';
+import { ComputeFixedTag, ProvisionSource } from 'globals/Enums';
+import { IDataiku, INotebookInfo, IPortfolio, ITag, IUserInfo } from 'globals/types';
+import Tags from 'components/formElements/tags/Tags';
 import DataikuInfo, { IDataikuInfoRef } from './dataikuInfo/DataikuInfo';
 import NotebookInfo, { INotebookInfoRef } from './notebookInfo/NotebookInfo';
 import Styles from './Platform.scss';
-import { Envs } from '../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 const classNames = cn.bind(Styles);
 
 export interface IPlatformProps {

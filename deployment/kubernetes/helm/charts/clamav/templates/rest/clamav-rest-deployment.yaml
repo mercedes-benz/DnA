@@ -14,11 +14,24 @@ spec:
     metadata:
       labels:
         name: {{ .Values.app.backend.name }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}    
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}   
       containers:
         - name: clamd-rest
           image: {{ .Values.app.backend.image }} 
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}       
           env:
             - name: CLAMAV_BACKEND_URL
               value: {{ .Values.app.backend.config.clamav_backend_url }}
@@ -97,6 +110,8 @@ spec:
                  name: {{ .Values.app.backend.secrets.name }}
             - name: NAAS_BROKER
               value: {{ .Values.app.backend.config.naas_broker }}        
+          
+          {{- end }}
           ports:
             - containerPort: 8181
               name: api

@@ -33,13 +33,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
@@ -174,12 +172,14 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Override
 	@Transactional
 	public List<SolutionVO> getAllWithFilters(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder) {
-		List<SolutionNsql> solutionEntities = customRepo.getAllWithFilters(published, phases, dataVolumes, divisions,
-				locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, null,
-				offset, limit, sortBy, sortOrder);
+			String division, List<String> locations, List<String> statuses, String solutionType, String userId,
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin, Boolean hasDigitalValue, Boolean hasNotebook, int offset, int limit,
+			String sortBy, String sortOrder) {
+		List<SolutionNsql> solutionEntities = customRepo.getAllWithFiltersUsingNativeQuery(published, phases,
+				dataVolumes, division, locations, statuses, solutionType, userId, isAdmin, bookmarkedSolutions,
+				searchTerms, tags, null, divisionsAdmin, hasDigitalValue, hasNotebook, offset, limit, sortBy,
+				sortOrder);
 		if (solutionEntities != null && !solutionEntities.isEmpty())
 			return solutionEntities.stream().map(n -> solutionAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -188,12 +188,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 	@Override
 	@Transactional
-	public Long getCount(Boolean published, List<String> phases, List<String> dataVolumes,
-			List<Map<String, List<String>>> divisions, List<String> locations, List<String> statuses,
-			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags) {
-		return customRepo.getCount(published, phases, dataVolumes, divisions, locations, statuses, solutionType, userId,
-				isAdmin, bookmarkedSolutions, searchTerms, tags);
+	public Long getCount(Boolean published, List<String> phases, List<String> dataVolumes, String division,
+			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin,
+			Boolean hasDigitalValue, Boolean hasNotebook) {
+		return customRepo.getCountUsingNativeQuery(published, phases, dataVolumes, division, locations, statuses,
+				solutionType, userId, isAdmin, bookmarkedSolutions, searchTerms, tags, divisionsAdmin, hasDigitalValue,
+				hasNotebook);
 	}
 
 	@Override
@@ -318,16 +319,16 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	@Transactional
 	@Override
 	public void deleteTagForEachSolution(String tagName, String relatedProductName, TAG_CATEGORY category) {
-		
+
 		CreatedByVO currentUser = this.userStore.getVO();
 		TeamMemberVO ModifyingteamMemberVO = new TeamMemberVO();
 		BeanUtils.copyProperties(currentUser, ModifyingteamMemberVO);
 		ModifyingteamMemberVO.setShortId(currentUser.getId());
 		String userId = currentUser != null ? currentUser.getId() : "dna_system";
 		String userName = this.currentUserName(currentUser);
-		
+
 		List<SolutionNsql> notifyingSolutions = null;
-		
+
 		List<SolutionNsql> solutionNsqlList = null;
 		if (!StringUtils.hasText(tagName) && StringUtils.hasText(relatedProductName)) {
 			solutionNsqlList = customRepo.getAllWithFilters(null, null, null, null, null, null, null, null, true, null,
@@ -345,7 +346,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		if (solutionNsqlList != null && !solutionNsqlList.isEmpty()) {
 			notifyingSolutions = solutionNsqlList;
 			solutionNsqlList.forEach(solutionNsql -> {
-				
+
 				String fieldName = "";
 				String changeDescription = "";
 				String message = "";
@@ -364,11 +365,13 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					teamMembers.add(user.getShortId());
 					teamMembersEmails.add(user.getEmail());
 				}
-				
+
 				if (category.equals(TAG_CATEGORY.TAG)) {
-					changeLog.setChangeDescription("Tags: Tag '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Tags: Tag '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/tags/");
-					message = "Tag " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Tag " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					List<String> tags = solutionNsql.getData().getTags();
 					if (tags != null && !tags.isEmpty()) {
 						Iterator<String> itr = tags.iterator();
@@ -382,9 +385,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.DS)) {
-					changeLog.setChangeDescription("Datasources: Datasource '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Datasources: Datasource '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/dataSources/");
-					message = "Datasource " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Datasource " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					List<SolutionDatasource> dataSources = solutionNsql.getData().getDataSources();
 					if (dataSources != null && !dataSources.isEmpty()) {
 						Iterator<SolutionDatasource> itr = dataSources.iterator();
@@ -398,9 +403,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.LANG)) {
-					changeLog.setChangeDescription("Languages: Language '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Languages: Language '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/languages/");
-					message = "Language " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Language " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					List<SolutionLanguage> languages = solutionNsql.getData().getLanguages();
 					if (languages != null && !languages.isEmpty()) {
 						Iterator<SolutionLanguage> itr = languages.iterator();
@@ -414,9 +421,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.ALGO)) {
-					changeLog.setChangeDescription("Algorithms: Algorithm '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Algorithms: Algorithm '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/algorithms/");
-					message = "Algorithm " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Algorithm " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					List<SolutionAlgorithm> algorithms = solutionNsql.getData().getAlgorithms();
 					if (algorithms != null && !algorithms.isEmpty()) {
 						Iterator<SolutionAlgorithm> itr = algorithms.iterator();
@@ -430,9 +439,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.PLATFORM)) {
-					changeLog.setChangeDescription("Platforms: Platform '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Platforms: Platform '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/platforms/");
-					message = "Platform " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Platform " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					List<SolutionPlatform> platforms = solutionNsql.getData().getPlatforms();
 					if (platforms != null && !platforms.isEmpty()) {
 						Iterator<SolutionPlatform> itr = platforms.iterator();
@@ -446,9 +457,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.VISUALIZATION)) {
-					changeLog.setChangeDescription("Visualizations: Visualization '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Visualizations: Visualization '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/visualizations/");
-					message = "Visualization " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Visualization " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					List<SolutionVisualization> visualizations = solutionNsql.getData().getVisualizations();
 					if (visualizations != null && !visualizations.isEmpty()) {
 						Iterator<SolutionVisualization> itr = visualizations.iterator();
@@ -462,9 +475,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.RELATEDPRODUCT)) {
-					changeLog.setChangeDescription("RelatedProducts: RelatedProduct '"+tagName+"' removed.");
+					changeLog.setChangeDescription("RelatedProducts: RelatedProduct '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/relatedProducts/");
-					message = "RelatedProduct " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "RelatedProduct " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					List<String> relatedProducts = solutionNsql.getData().getRelatedProducts();
 					if (relatedProducts != null && !relatedProducts.isEmpty()) {
 						Iterator<String> itr = relatedProducts.iterator();
@@ -478,9 +493,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.SKILL)) {
-					changeLog.setChangeDescription("Skills: Skill '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Skills: Skill '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/skills/");
-					message = "Skill " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Skill " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					LOGGER.debug("Deleting Skill:{} from solutions.", tagName);
 					if (!ObjectUtils.isEmpty(solutionNsql.getData().getSkills())) {
 						List<SkillSummary> skills = solutionNsql.getData().getSkills().stream()
@@ -489,9 +506,11 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 						customRepo.update(solutionNsql);
 					}
 				} else if (category.equals(TAG_CATEGORY.DIVISION)) {
-					changeLog.setChangeDescription("Divisions: Division '"+tagName+"' removed.");
+					changeLog.setChangeDescription("Divisions: Division '" + tagName + "' removed.");
 					changeLog.setFieldChanged("/divisions/");
-					message = "Division " + tagName + " has been deleted by Admin " + userName + ". Cascading update to Solution " + solutionName + " has been applied to remove references.";
+					message = "Division " + tagName + " has been deleted by Admin " + userName
+							+ ". Cascading update to Solution " + solutionName
+							+ " has been applied to remove references.";
 					LOGGER.debug("Deleting Division:{} from solutions.", tagName);
 					SolutionDivision soldivision = solutionNsql.getData().getDivision();
 					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
@@ -503,12 +522,14 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					}
 				}
 				changeLogs.add(changeLog);
-				LOGGER.debug("Publishing message on solution update event for solution {}, after admin action on {} and {}", solutionName, category, tagName);
-				kafkaProducer.send("Solution Updated after Admin action", solutionNsql.getId(), "", userId, message, true, teamMembers,
-						teamMembersEmails, changeLogs);
+				LOGGER.debug(
+						"Publishing message on solution update event for solution {}, after admin action on {} and {}",
+						solutionName, category, tagName);
+				kafkaProducer.send("Solution Updated after Admin action", solutionNsql.getId(), "", userId, message,
+						true, teamMembers, teamMembersEmails, changeLogs);
 			});
-			
-			}
+
+		}
 	}
 
 	@Override

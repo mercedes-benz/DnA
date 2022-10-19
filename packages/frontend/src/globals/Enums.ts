@@ -32,6 +32,6 @@ export enum ErrorMsg {
   KPI_TAB = '*Please add minimum one KPI',
   DATAFUNCTION_TAB = '*Please add minimum one data source',
   MEMBERS_TAB_DEVELOPERS = '*Please add minimum one developer',
-  MEMBERS_TAB_PRODUCT_OWNER = '*Please add product owner',
-  MEMBERS_TAB_ADMIN = '*Please add an admin',
+  MEMBERS_TAB_PRODUCT_OWNER = '*Please add minimum one report member',
+  MEMBERS_TAB_ADMIN = '*Please add minimum one report administrator',
 }

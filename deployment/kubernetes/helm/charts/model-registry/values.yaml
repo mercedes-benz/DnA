@@ -23,12 +23,12 @@ envs:
     value: ""
   - name: MINIO_ENDPOINT
     value: "http://my-release-minio.minio.svc.cluster.local:9000"
-  - name: MINIO_ACCESS_KEY
+  - name: MINIO_ROOT_USER
     valueFrom:
       secretKeyRef:
         key: root-user
         name: my-release-minio  
-  - name: MINIO_SECRET_KEY
+  - name: MINIO_ROOT_PASSWORD
     valueFrom:
       secretKeyRef:
         key: root-password
@@ -113,3 +113,26 @@ resources:
   limits:
     memory: "1000Mi"
     cpu: "500m"
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/modelRegistryService'
+    vault.hashicorp.com/agent-inject-template-envvar: | 
+      {{- with secret "kv/dna/kubernetesSecret/modelRegistryService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/minio" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}        
+  saName: "model-registry-sa"
+  jarName: "model-registry-lib*.jar"

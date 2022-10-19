@@ -10,7 +10,7 @@ import ProgressIndicator from '../../assets/modules/uilab/js/src/progress-indica
 // @ts-ignore
 import Tooltip from '../../assets/modules/uilab/js/src/tooltip';
 
-import countriesdata from '../../globals/maps/countries.json';
+import countriesdata from 'globals/maps/countries.json';
 import {
   IBarChartDataItem,
   IFilterParams,
@@ -20,7 +20,7 @@ import {
   IStackedBarChartDataItem,
   IUserInfo,
   IWidgetsResponse,
-} from '../../globals/types';
+} from 'globals/types';
 import { history } from '../../router/History';
 import { ApiClient } from '../../services/ApiClient';
 import { attachEllipsis, DataFormater, trackEvent } from '../../services/utils';
@@ -519,10 +519,13 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   </span>
                 </div>
                 <div className={classNames(Styles.portNavMore)}>
-                  <label className="hide">
+                  <label className="hidden">
                     <i className="icon mbc-icon listItem context" />
                   </label>
-                  <label className={classNames(Styles.portNav, 'hide')}>
+                  <label
+                    className={classNames(Styles.portNav)}
+                    onClick={this.onSummaryDigitalValueContributionBtnClick}
+                  >
                     <i className="icon mbc-icon arrow small right" />
                   </label>
                 </div>
@@ -575,10 +578,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
                   </span>
                 </div>
                 <div className={classNames(Styles.portNavMore)}>
-                  <label className="hide">
+                  <label className="hidden">
                     <i className="icon mbc-icon listItem context" />
                   </label>
-                  <label className={classNames(Styles.portNav, 'hide')}>
+                  <label className={classNames(Styles.portNav)} onClick={this.onSummaryNotebookBtnClick}>
                     <i className="icon mbc-icon arrow small right" />
                   </label>
                 </div>
@@ -718,7 +721,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             useCaseType: string,
             tags: string,
           ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
-          showSolutionsFilter = {true}
+          showSolutionsFilter={true}
           solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
           setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
         />
@@ -823,6 +826,24 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     if (this.state.totalSolutionCounts > 0) {
       trackEvent('Portfolio', 'View Solutions', 'From Solution count KPI');
       history.push('/viewsolutions/digitalvalue');
+    } else {
+      Notification.show('No solutions available to view.', 'alert');
+    }
+  };
+
+  protected onSummaryDigitalValueContributionBtnClick = () => {
+    if (parseFloat(this.state.digitalValueDataKPI) > 0) {
+      trackEvent('Portfolio', 'View Solutions', 'From Digital Value KPI');
+      history.push('/viewsolutions/digitalvaluecontribution');
+    } else {
+      Notification.show('No solutions available to view.', 'alert');
+    }
+  };
+
+  protected onSummaryNotebookBtnClick = () => {
+    if (Number(this.state.dnaNotebooksDataKPI) > 0) {
+      trackEvent('Portfolio', 'View Solutions', 'From Notebook KPI');
+      history.push('/viewsolutions/notebook');
     } else {
       Notification.show('No solutions available to view.', 'alert');
     }

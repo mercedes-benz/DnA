@@ -1,0 +1,768 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : dataproduct.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  PRINCKU
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "core dataproduct Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "dataproducts"
+    description: "This service is used for dataproducts maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create, update dataproduct provider form
+  #
+  #  supported http methods PUT, POST
+  #
+  # path example ../dataproducts/provider
+
+  /dataproducts/provider:
+    post:
+      tags:
+        - "dataproducts"
+      summary: "Add a new dataproduct provider form"
+      description: "Adds a new non existing dataproduct provider form"
+      operationId: "create"
+      parameters:
+        - name: "dataProductProviderRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for creating a new dataproduct provider form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductProviderRequestVO"    
+      responses:
+        201:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductProviderResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"      
+    
+    put:
+      tags:
+        - "dataproducts"
+      summary: "Update existing dataproduct provider form"
+      description: "Update an existing dataproduct provider form"
+      operationId: "update"
+      parameters:
+        - name: "dataProductProviderRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating dataproduct provider form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductProviderRequestVO"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductProviderResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+  # path to create, update dataproduct consumer form
+  #
+  #  supported http methods PUT, POST
+  #
+  # path example ../dataproducts/consume
+
+  /dataproducts/consume:
+    put:
+      tags:
+        - "dataproducts"
+      summary: "Update existing dataproduct consumer form"
+      description: "Update an existing dataproduct consumer form"
+      operationId: "update"
+      parameters:
+        - name: "dataProductConsumerRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating dataproduct consumer form"
+          required: true
+          schema:
+            $ref: "#/definitions/DataProductConsumerRequestVO"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/DataProductConsumerResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"          
+          
+  # path to getAll dataproducts
+  #
+  #  supported http method GET
+  #
+  # path example ../dataproducts
+
+  /dataproducts:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get all available dataproducts."
+      description: "Get all dataproducts. This endpoints will be used to get all valid available dataproduct records."
+      operationId: "getAll"
+      parameters:
+        - name: published
+          in: query
+          description: Filtering dataproducts based on publish state. Draft or published, values true or false
+          required: false
+          type: boolean   
+        - name: offset
+          in: query
+          description: page number from which listing of dataproducts should start.
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of dataproducts.
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort dataproducts by a given variable.
+          required: false
+          type: string
+          enum: [dataProductName,dataProductId]
+        - name: sortOrder
+          in: query
+          description: Sort dataproducts based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]             
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductCollection"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"          
+
+  # path to get and delete dataproduct by id
+  #
+  #  Supported http methods GET, DELETE
+  #
+  # path example ../dataproducts
+  /dataproducts/{id}:
+    get:
+      tags:
+        - "dataproducts"
+      summary: "Get dataProduct for a given Id."
+      description: "Get dataproduct for a given identifier. This endpoints will be used to get a dataproduct for a given identifier."
+      operationId: "getById"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "DataProduct ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/DataProductVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    delete:
+      tags:
+        - "dataproducts"
+      summary: "Delete dataProduct for a given Id."
+      description: "Delete dataproduct for a given identifier."
+      operationId: "delete"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "DataProduct ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+definitions:
+  ProviderContactInformationVO:
+    type: object
+    properties:  
+      dataTransferDate:
+        type: string
+        format: date
+      name:
+        $ref: "#/definitions/DataProductTeamMemberVO"           
+      division:
+        $ref: "#/definitions/DivisionVO"
+      department:
+        type: string
+        description: "Department of the dataproduct"
+        minLength: 1                           
+      localComplianceOfficer:
+        type: string
+        description: "Local compliance officer"
+        minLength: 1
+      appId:
+        type: string
+        description: "planning IT App-ID "
+        minLength: 1          
+    required:
+      - name
+      - division
+      - department
+      - localComplianceOfficer
+      - appId  
+      
+  ProviderClassificationConfidentialityVO:
+    type: object
+    properties:  
+      description:
+        type: string
+        description: "Description and classification of the transfered data"
+        minLength: 1
+      confidentiality: 
+        description: "Confidentiality level"
+        type: string
+        minLength: 1
+    required:
+      - description
+      - confidentiality
+      
+  ProviderPersonalRelatedDataVO:
+    type: object
+    properties:  
+      personalRelatedData:
+        type: boolean
+        description: "Is data personal related"
+      description: 
+        description: "Description of personal related data"
+        type: string
+      purpose: 
+        description: "Purpose of processing this personal related data"
+        type: string
+      legalBasis: 
+        description: "Legal basis for processing this personal related data"
+        type: string                  
+    required:
+      - personalRelatedData  
+          
+  ProviderTransnationalDataTransferVO:
+    type: object
+    properties:     
+      dataTransferred:
+        type: boolean
+        description: "Is data being transferred from one country to another"
+      notWithinEU:
+        type: boolean
+        description: "Is one of these countries not within the EU"
+      approved: 
+        description: "Has LCO/LCR approved this data transfer"
+        type: string
+      insiderInformation: 
+        description: "Does product contain insider information"
+        type: string         
+      dataFromChina:
+        type: boolean
+        description: "Is data from China included"                
+    required:
+      - dataTransferred    
+      
+  ProviderDeletionRequirementVO:
+    type: object
+    properties:  
+      deletionRequirements:
+        type: boolean
+        description: "Are there specific deletion requirements for this data"
+      description: 
+        description: "Describe requirements"
+        type: string
+      otherRelevantInformation:
+        type: string
+        description: "Specifying other relevant information"                         
+    required:
+      - deletionRequirements  
+      
+  ConsumerContactInformationVO:
+    type: object
+    properties:  
+      lcoNeeded:
+        type: boolean
+        description: "Is LCO/LCR needed to be involved to check legal basis of usage of personal data"
+      ownerName:
+        $ref: "#/definitions/DataProductTeamMemberVO"
+      division:
+        $ref: "#/definitions/DivisionVO"
+      department:
+        type: string
+        description: "Department of the consumer"
+        minLength: 1                           
+      localComplianceOfficer:
+        type: string
+        description: "Local compliance officer"
+        minLength: 1
+      appId:
+        type: string
+        description: "planning IT App-ID "
+        minLength: 1 
+      agreementDate:
+        type: string
+        format: date                 
+    required:
+      - lcoNeeded
+      - ownerName
+      - division
+      - department
+      - localComplianceOfficer
+      - appId 
+      
+  ConsumerPersonalRelatedDataVO:
+    type: object
+    properties:  
+      personalRelatedData:
+        type: boolean
+        description: "Is personal related data transferred and actually processed at application level"
+      purpose: 
+        description: "Business purpose of processing this personal related data"
+        type: string
+      legalBasis: 
+        description: "Legal basis for processing this personal related data"
+        type: string     
+      lcoChecked: 
+        description: "LCO/LCR checked legal basis of usage of personal data"
+        type: string 
+      comment: 
+        description: "LCO/LCR comments to data usage of personal data"
+        type: string                              
+    required:
+      - personalRelatedData
+      
+  ProviderVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "TechnicalId  which used as primary key"
+      dataProductId:
+        type: string
+        description: "Functional Id"                         
+      dataProductName:
+        type: string
+        description: "Name of the DataProduct"
+        minLength: 1
+      recordStatus:
+        type: string
+        description: "Record is open or deleted"
+      notifyUsers:
+        type: boolean
+        description: "Flag to notify users."                               
+      providerInformation:
+        $ref: "#/definitions/ProviderResponseVO"
+    required:
+      - dataProductName
+      - providerInformation    
+      
+  ProviderResponseVO:
+    type: object
+    properties:   
+      providerFormSubmitted:
+        type: boolean
+        description: "Flag to identify if provider form submitted or not." 
+      users:
+        type: array
+        items:
+          $ref: "#/definitions/DataProductTeamMemberVO"               
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      modifiedBy:
+        $ref: "#/definitions/CreatedByVO"      
+      contactInformation:
+        $ref: "#/definitions/ProviderContactInformationVO"
+      classificationConfidentiality:
+        $ref: "#/definitions/ProviderClassificationConfidentialityVO"
+      personalRelatedData:
+        $ref: "#/definitions/ProviderPersonalRelatedDataVO"
+      transnationalDataTransfer:
+        $ref: "#/definitions/ProviderTransnationalDataTransferVO"    
+      deletionRequirement:
+        $ref: "#/definitions/ProviderDeletionRequirementVO"                             
+      openSegments:
+        type: array
+        description: "This attribute stores all the open/input sections that user has completed in the dataproduct provider process"
+        items:
+          type: string
+          enum:
+            [
+              "ContactInformation",
+              "ClassificationAndConfidentiality",
+              "IdentifyingPersonalRelatedData",
+              "IdentifiyingTransnationalDataTransfer",
+              "SpecifyDeletionRequirements"
+            ]
+    required:
+      - contactInformation         
+                     
+            
+  ConsumerVO:
+    type: object
+    properties: 
+      id:
+        type: string
+        description: "TechnicalId  which used as primary key"
+      dataProductId:
+        type: string
+        description: "Functional Id" 
+      dataProductName:
+        type: string
+        description: "Name of the DataProduct"                
+      consumerInformation:
+        $ref: "#/definitions/ConsumerResponseVO"
+      publish:
+        type: boolean
+        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."
+      recordStatus:
+        type: string
+        description: "Record is open or deleted"
+      notifyUsers:
+        type: boolean
+        description: "Flag to notify users."                        
+    required:
+      - id
+      - consumerInformation
+      
+  ConsumerResponseVO:
+    type: object
+    properties:        
+      contactInformation:
+        $ref: "#/definitions/ConsumerContactInformationVO"
+      personalRelatedData:
+        $ref: "#/definitions/ConsumerPersonalRelatedDataVO"
+      createdDate:
+        type: string
+        format: date
+      lastModifiedDate:
+        type: string
+        format: date
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      modifiedBy:
+        $ref: "#/definitions/CreatedByVO"                                     
+      openSegments:
+        type: array
+        description: "This attribute stores all the open/input sections that user has completed in the dataproduct consume process"
+        items:
+          type: string
+          enum:
+            [
+              "ContactInformation",
+              "IdentifyingPersonalRelatedData"
+            ]
+    required:
+      - contactInformation                                                                                                              
+
+  DataProductVO:
+    type: object
+    properties: 
+      id:
+        type: string
+        description: "TechnicalId  which used as primary key"
+      dataProductId:
+        type: string
+        description: "Functional Id" 
+      dataProductName:
+        type: string
+        description: "Name of the DataProduct"
+      recordStatus:
+        type: string
+        description: "Record is open or deleted"
+      notifyUsers:
+        type: boolean
+        description: "Flag to notify users."                                  
+      providerInformation:
+        $ref: "#/definitions/ProviderResponseVO" 
+      consumerInformation:
+        $ref: "#/definitions/ConsumerResponseVO"
+      publish:
+        type: boolean
+        description: "Flag to identify if dataproduct consumer form is in draft stage or in published state."        
+                             
+        
+  DataProductProviderRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ProviderVO"
+        
+  DataProductConsumerRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ConsumerVO"                
+          
+  DataProductProviderResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ProviderVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+          
+  DataProductConsumerResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/ConsumerVO"
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"                    
+          
+  DataProductCollection:
+    description: "Collection of DataProducts."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/DataProductVO"
+      
+  DivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of division
+      name:
+        type: string
+        description: name of division
+      subdivision:
+        $ref: "#/definitions/SubdivisionVO"
+    required:
+      - id
+      - name
+      
+  SubdivisionVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: id of subdivision
+      name:
+        type: string
+        description: name of subdivision
+        
+  DataProductTeamMemberVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+      userType:
+        type: string
+        description: "Internal or External"
+        enum: [internal, external]
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      company:
+        type: string
+        description: "Company name of the external member"
+      teamMemberPosition:
+        type: string
+        description: "Position of team member in project"
+      addedByProvider:
+        type: boolean
+        description: "Flag to identify if consumer is added by provider or not."
+    required:
+      - shortId 
+      
+  TeamMemberVO:
+    type: object
+    properties:
+      shortId:
+        type: string
+        description: "Short id of the user"
+      userType:
+        type: string
+        description: "Internal or External"
+        enum: [internal, external]
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+        format: email
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+      company:
+        type: string
+        description: "Company name of the external member"
+      teamMemberPosition:
+        type: string
+        description: "Position of team member in project"
+    required:
+      - shortId            
+      
+  ChangeLogVO:
+    type: object
+    description: "Describes a single change log record done on the data product"
+    properties:
+      changeDate:
+        type: string
+        format: date
+        description: "Date on which this change occurred"
+      modifiedBy:
+        description: "User who changed the value"
+        $ref: "#/definitions/TeamMemberVO"
+      fieldChanged:
+        type: string
+        description: "Describe the attribute that changed"
+      oldValue:
+        type: string
+        description: "Describes the old value of the changed attribute"
+      newValue:
+        type: string
+        description: "Describes the new value of the changed attribute"
+      changeDescription:
+        type: string
+        description: "Short Description on change/addition/removal of attribute"              

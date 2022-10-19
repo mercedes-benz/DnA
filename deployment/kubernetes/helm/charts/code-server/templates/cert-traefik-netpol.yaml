@@ -1,0 +1,28 @@
+{{- $networkPolicy := lookup "networking.k8s.io/v1" "NetworkPolicy" .Values.namespace "allow-acme-http01-solver" -}}
+{{- if not $networkPolicy -}}
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: allow-acme-http01-solver
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      acme.cert-manager.io/http01-solver: "true"
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 8089
+    - from:
+        - podSelector:
+            matchLabels:
+              app: traefik
+          namespaceSelector:
+            matchExpressions:
+              - key: name
+                operator: In
+                values:
+                  - ingress
+  policyTypes:
+    - Ingress
+{{- end -}}    

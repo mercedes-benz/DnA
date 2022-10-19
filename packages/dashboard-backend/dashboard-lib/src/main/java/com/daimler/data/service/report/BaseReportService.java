@@ -54,19 +54,19 @@ import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ReportNsql;
-import com.daimler.data.db.jsonb.report.CustomerDetails;
 import com.daimler.data.db.jsonb.report.DataWarehouse;
 import com.daimler.data.db.jsonb.report.Division;
+import com.daimler.data.db.jsonb.report.InternalCustomer;
 import com.daimler.data.db.jsonb.report.KPI;
 import com.daimler.data.db.jsonb.report.SingleDataSource;
 import com.daimler.data.db.jsonb.report.Subdivision;
 import com.daimler.data.db.repo.report.ReportCustomRepository;
 import com.daimler.data.db.repo.report.ReportRepository;
-import com.daimler.data.dto.datawarehouse.DataWarehouseInUseVO;
 import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.dto.divisions.DivisionReportVO;
 import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.dto.report.CustomerVO;
+import com.daimler.data.dto.report.InternalCustomerVO;
 import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
 import com.daimler.data.dto.report.ProductOwnerCollection;
@@ -98,7 +98,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	@Autowired
 	private UserStore userStore;
-	
+
 	@Autowired
 	private KafkaProducerService kafkaProducer;
 
@@ -110,7 +110,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
-	
+
 	public BaseReportService() {
 		super();
 	}
@@ -133,10 +133,24 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	}
 
 	@Override
-	public List<ReportVO> getAllWithFilters(Boolean published, List<String> productPhase, List<String> statuses,
-			String userId, Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit,
-			String sortBy, String sortOrder, String division, List<String> department, List<String> processOwner,
-			List<String> productOwner, List<String> art) {
+	@Transactional
+	public ReportVO getById(String id) {
+		if (StringUtils.hasText(id)) {
+			ReportVO existingVO = super.getByUniqueliteral("reportId", id);
+			if (existingVO != null && existingVO.getReportId() != null) {
+				return existingVO;
+			} else {
+				return super.getById(id);
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public List<ReportVO> getAllWithFilters(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
+			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder,
+			String division, List<String> department, List<String> processOwner, List<String> productOwner,
+			List<String> art) {
 		List<ReportNsql> reportEntities = reportCustomRepository.getAllWithFiltersUsingNativeQuery(published, statuses,
 				userId, isAdmin, searchTerms, tags, offset, limit, sortBy, sortOrder, division, department,
 				processOwner, productOwner, art);
@@ -147,8 +161,8 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	}
 
 	@Override
-	public Long getCount(Boolean published, List<String> productPhase, List<String> statuses, String userId,
-			Boolean isAdmin, List<String> searchTerms, List<String> tags, String division, List<String> department,
+	public Long getCount(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
+			List<String> searchTerms, List<String> tags, String division, List<String> department,
 			List<String> processOwner, List<String> productOwner, List<String> art) {
 		return reportCustomRepository.getCountUsingNativeQuery(published, statuses, userId, isAdmin, searchTerms, tags,
 				division, department, processOwner, productOwner, art);
@@ -182,16 +196,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						reportNsql.getData().getDescription().setDepartment(null);
 					}
 				} else if (category.equals(CATEGORY.INTEGRATED_PORTAL)) {
-					List<String> integratedPortals = reportNsql.getData().getDescription().getIntegratedPortal();
-					if (!ObjectUtils.isEmpty(integratedPortals)) {
-						Iterator<String> itr = integratedPortals.iterator();
-						while (itr.hasNext()) {
-							String integratedPortal = itr.next();
-							if (integratedPortal.equals(name)) {
-								itr.remove();
-								break;
-							}
-						}
+					String integratedPortal = reportNsql.getData().getDescription().getIntegratedPortal();
+					if (StringUtils.hasText(integratedPortal) && integratedPortal.equals(name)) {
+						reportNsql.getData().getDescription().setIntegratedPortal(null);
 					}
 				} else if (category.equals(CATEGORY.FRONTEND_TECH)) {
 					List<String> frontendTechnologies = reportNsql.getData().getDescription().getFrontendTechnologies();
@@ -207,57 +214,41 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 
 					}
 				} else if (category.equals(CATEGORY.ART)) {
-					List<String> arts = reportNsql.getData().getDescription().getAgileReleaseTrains();
-					if (!ObjectUtils.isEmpty(arts)) {
-						Iterator<String> itr = arts.iterator();
-						while (itr.hasNext()) {
-							String art = itr.next();
-							if (art.equals(name)) {
-								itr.remove();
-								break;
-							}
-						}
+					String art = reportNsql.getData().getDescription().getAgileReleaseTrain();
+					if (StringUtils.hasText(art) && art.equals(name)) {
+						reportNsql.getData().getDescription().setAgileReleaseTrain(null);
 					}
 				} else if (category.equals(CATEGORY.STATUS)) {
 					String status = reportNsql.getData().getDescription().getStatus();
 					if (StringUtils.hasText(status) && status.equals(name)) {
 						reportNsql.getData().getDescription().setStatus(null);
 					}
-				} else if (category.equals(CATEGORY.PRODUCT_PHASE)) {
-					String productPhase = reportNsql.getData().getDescription().getProductPhase();
-					if (StringUtils.hasText(productPhase) && productPhase.equals(name)) {
-						reportNsql.getData().getDescription().setProductPhase(null);
-					}
-				} else if (category.equals(CATEGORY.DESIGN_GUIDE)) {
-					String designGuide = reportNsql.getData().getDescription().getDesignGuideImplemented();
-					if (StringUtils.hasText(designGuide) && designGuide.equals(name)) {
-						reportNsql.getData().getDescription().setDesignGuideImplemented(null);
-					}
 				} else if (category.equals(CATEGORY.CUST_DEPARTMENT)) {
-					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
+					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
-						for (CustomerDetails customer : customers) {
+						for (InternalCustomer customer : customers) {
 							if (StringUtils.hasText(customer.getDepartment())
 									&& customer.getDepartment().equals(name)) {
 								customer.setDepartment(null);
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.HIERARCHIES)) {
-					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
+				} else if (category.equals(CATEGORY.LEVEL)) {
+					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
-						for (CustomerDetails customer : customers) {
-							if (StringUtils.hasText(customer.getHierarchy()) && customer.getHierarchy().equals(name)) {
-								customer.setHierarchy(null);
+						for (InternalCustomer customer : customers) {
+							if (StringUtils.hasText(customer.getLevel()) && customer.getLevel().equals(name)) {
+								customer.setLevel(null);
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.RESSORT)) {
-					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
+				} else if (category.equals(CATEGORY.LEGAL_ENTITY)) {
+					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
-						for (CustomerDetails customer : customers) {
-							if (StringUtils.hasText(customer.getRessort()) && customer.getRessort().equals(name)) {
-								customer.setRessort(null);
+						for (InternalCustomer customer : customers) {
+							if (StringUtils.hasText(customer.getLegalEntity())
+									&& customer.getLegalEntity().equals(name)) {
+								customer.setLegalEntity(null);
 							}
 						}
 					}
@@ -283,62 +274,74 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
-							List<String> dataSources = singleDataSource.getDataSources();
-							if (!ObjectUtils.isEmpty(dataSources)) {
-								Iterator<String> itr = dataSources.iterator();
-								while (itr.hasNext()) {
-									String dataSource = itr.next();
-									if (dataSource.equals(name)) {
-										itr.remove();
-										break;
-									}
-								}
-							}
+//							if (StringUtils.hasText(singleDataSource.getDataSource())
+//									&& singleDataSource.getDataSource().equals(name)) {
+//								singleDataSource.setDataSource(null);
+//							}
 						}
 					}
-
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
-							List<String> connectionTypes = singleDataSource.getConnectionTypes();
-							if (!ObjectUtils.isEmpty(connectionTypes)) {
-								Iterator<String> itr = connectionTypes.iterator();
-								while (itr.hasNext()) {
-									String connectionType = itr.next();
-									if (connectionType.equals(name)) {
-										itr.remove();
-										break;
-									}
-								}
+							if (StringUtils.hasText(singleDataSource.getConnectionType())
+									&& singleDataSource.getConnectionType().equals(name)) {
+								singleDataSource.setConnectionType(null);
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.SUBSYSTEM)) {
+					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
+					if (!ObjectUtils.isEmpty(dataWarehouses)) {
+						for (DataWarehouse dataWarehouse : dataWarehouses) {
+							if (StringUtils.hasText(dataWarehouse.getConnectionType())
+									&& dataWarehouse.getConnectionType().equals(name)) {
+								dataWarehouse.setConnectionType(null);
+							}
+						}
+					}
+				} else if (category.equals(CATEGORY.DATA_CLASSIFICATION)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
-							List<String> subsystems = singleDataSource.getSubsystems();
-							if (!ObjectUtils.isEmpty(subsystems)) {
-								Iterator<String> itr = subsystems.iterator();
-								while (itr.hasNext()) {
-									String subsytem = itr.next();
-									if (subsytem.equals(name)) {
-										itr.remove();
-										break;
-									}
-								}
+							if (StringUtils.hasText(singleDataSource.getDataClassification())
+									&& singleDataSource.getDataClassification().equals(name)) {
+								singleDataSource.setDataClassification(null);
+							}
+						}
+					}
+					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
+					if (!ObjectUtils.isEmpty(dataWarehouses)) {
+						for (DataWarehouse dataWarehouse : dataWarehouses) {
+							if (StringUtils.hasText(dataWarehouse.getDataClassification())
+									&& dataWarehouse.getDataClassification().equals(name)) {
+								dataWarehouse.setDataClassification(null);
 							}
 						}
 					}
 				} else if (category.equals(CATEGORY.DATA_WAREHOUSE)) {
 					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
 					if (!ObjectUtils.isEmpty(dataWarehouses)) {
-						Iterator<DataWarehouse> itr = dataWarehouses.iterator();
-						while (itr.hasNext()) {
-							DataWarehouse dw = itr.next();
-							if (StringUtils.hasText(dw.getDataWarehouse()) && dw.getDataWarehouse().equals(name)) {
-								itr.remove();
+						for (DataWarehouse dataWarehouse : dataWarehouses) {
+							if (StringUtils.hasText(dataWarehouse.getDataWarehouse())
+									&& dataWarehouse.getDataWarehouse().equals(name)) {
+								dataWarehouse.setDataWarehouse(null);
+							}
+						}
+					}
+				} else if (category.equals(CATEGORY.COMMON_FUNCTION)) {
+					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
+					if (!ObjectUtils.isEmpty(dataWarehouses)) {
+						for (DataWarehouse dataWarehouse : dataWarehouses) {
+							List<String> commonFunctions = dataWarehouse.getCommonFunctions();
+							if (!ObjectUtils.isEmpty(commonFunctions)) {
+								Iterator<String> itr = commonFunctions.iterator();
+								while (itr.hasNext()) {
+									String commonFunction = itr.next();
+									if (commonFunction.equals(name)) {
+										itr.remove();
+										break;
+									}
+								}
 							}
 						}
 					}
@@ -385,16 +388,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						reportNsql.getData().getDescription().setDepartment(newValue);
 					}
 				} else if (category.equals(CATEGORY.INTEGRATED_PORTAL)) {
-					List<String> integratedPortals = reportNsql.getData().getDescription().getIntegratedPortal();
-					if (!ObjectUtils.isEmpty(integratedPortals)) {
-						ListIterator<String> itr = integratedPortals.listIterator();
-						while (itr.hasNext()) {
-							String integratedPortal = itr.next();
-							if (integratedPortal.equals(oldValue)) {
-								itr.set(newValue);
-								break;
-							}
-						}
+					String integratedPortal = reportNsql.getData().getDescription().getIntegratedPortal();
+					if (StringUtils.hasText(integratedPortal) && integratedPortal.equals(oldValue)) {
+						reportNsql.getData().getDescription().setIntegratedPortal(newValue);
 					}
 				} else if (category.equals(CATEGORY.FRONTEND_TECH)) {
 					List<String> frontendTechnologies = reportNsql.getData().getDescription().getFrontendTechnologies();
@@ -409,58 +405,41 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						}
 					}
 				} else if (category.equals(CATEGORY.ART)) {
-					List<String> arts = reportNsql.getData().getDescription().getAgileReleaseTrains();
-					if (!ObjectUtils.isEmpty(arts)) {
-						ListIterator<String> itr = arts.listIterator();
-						while (itr.hasNext()) {
-							String art = itr.next();
-							if (art.equals(oldValue)) {
-								itr.set(newValue);
-								break;
-							}
-						}
+					String art = reportNsql.getData().getDescription().getAgileReleaseTrain();
+					if (StringUtils.hasText(art) && art.equals(oldValue)) {
+						reportNsql.getData().getDescription().setAgileReleaseTrain(newValue);
 					}
 				} else if (category.equals(CATEGORY.STATUS)) {
 					String status = reportNsql.getData().getDescription().getStatus();
 					if (StringUtils.hasText(status) && status.equals(oldValue)) {
 						reportNsql.getData().getDescription().setStatus(newValue);
 					}
-				} else if (category.equals(CATEGORY.PRODUCT_PHASE)) {
-					String productPhase = reportNsql.getData().getDescription().getProductPhase();
-					if (StringUtils.hasText(productPhase) && productPhase.equals(oldValue)) {
-						reportNsql.getData().getDescription().setProductPhase(newValue);
-					}
-				} else if (category.equals(CATEGORY.DESIGN_GUIDE)) {
-					String designGuide = reportNsql.getData().getDescription().getDesignGuideImplemented();
-					if (StringUtils.hasText(designGuide) && designGuide.equals(oldValue)) {
-						reportNsql.getData().getDescription().setDesignGuideImplemented(newValue);
-					}
 				} else if (category.equals(CATEGORY.CUST_DEPARTMENT)) {
-					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
+					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
-						for (CustomerDetails customer : customers) {
+						for (InternalCustomer customer : customers) {
 							if (StringUtils.hasText(customer.getDepartment())
 									&& customer.getDepartment().equals(oldValue)) {
 								customer.setDepartment(newValue);
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.HIERARCHIES)) {
-					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
+				} else if (category.equals(CATEGORY.LEVEL)) {
+					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
-						for (CustomerDetails customer : customers) {
-							if (StringUtils.hasText(customer.getHierarchy())
-									&& customer.getHierarchy().equals(oldValue)) {
-								customer.setHierarchy(newValue);
+						for (InternalCustomer customer : customers) {
+							if (StringUtils.hasText(customer.getLevel()) && customer.getLevel().equals(oldValue)) {
+								customer.setLevel(newValue);
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.RESSORT)) {
-					List<CustomerDetails> customers = reportNsql.getData().getCustomer().getCustomers();
+				} else if (category.equals(CATEGORY.LEGAL_ENTITY)) {
+					List<InternalCustomer> customers = reportNsql.getData().getCustomer().getInternalCustomers();
 					if (!ObjectUtils.isEmpty(customers)) {
-						for (CustomerDetails customer : customers) {
-							if (StringUtils.hasText(customer.getRessort()) && customer.getRessort().equals(oldValue)) {
-								customer.setRessort(newValue);
+						for (InternalCustomer customer : customers) {
+							if (StringUtils.hasText(customer.getLegalEntity())
+									&& customer.getLegalEntity().equals(oldValue)) {
+								customer.setLegalEntity(newValue);
 							}
 						}
 					}
@@ -486,122 +465,75 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				} else if (category.equals(CATEGORY.DATASOURCE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
-						for (SingleDataSource singleDataSource : singleDataSources) {
-							List<String> dataSources = singleDataSource.getDataSources();
-							if (!ObjectUtils.isEmpty(dataSources)) {
-								ListIterator<String> itr = dataSources.listIterator();
-								while (itr.hasNext()) {
-									String dataSource = itr.next();
-									if (dataSource.equals(oldValue)) {
-										itr.set(newValue);
-										break;
-									}
-								}
-							}
-						}
+//						for (SingleDataSource singleDataSource : singleDataSources) {
+//							if (StringUtils.hasText(singleDataSource.getDataSource())
+//									&& singleDataSource.getDataSource().equals(oldValue)) {
+//								singleDataSource.setDataSource(newValue);
+//							}
+//						}
 					}
-
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
-							List<String> connectionTypes = singleDataSource.getConnectionTypes();
-							if (!ObjectUtils.isEmpty(connectionTypes)) {
-								ListIterator<String> itr = connectionTypes.listIterator();
-								while (itr.hasNext()) {
-									String connectionType = itr.next();
-									if (connectionType.equals(oldValue)) {
-										itr.set(newValue);
-										break;
-									}
-								}
+							if (StringUtils.hasText(singleDataSource.getConnectionType())
+									&& singleDataSource.getConnectionType().equals(oldValue)) {
+								singleDataSource.setConnectionType(newValue);
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.SUBSYSTEM)) {
+
+					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
+					if (!ObjectUtils.isEmpty(dataWarehouses)) {
+						for (DataWarehouse dataWarehouse : dataWarehouses) {
+							if (StringUtils.hasText(dataWarehouse.getConnectionType())
+									&& dataWarehouse.getConnectionType().equals(oldValue)) {
+								dataWarehouse.setConnectionType(newValue);
+							}
+						}
+					}
+				} else if (category.equals(CATEGORY.DATA_CLASSIFICATION)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
-							List<String> subsystems = singleDataSource.getSubsystems();
-							if (!ObjectUtils.isEmpty(subsystems)) {
-								ListIterator<String> itr = subsystems.listIterator();
-								while (itr.hasNext()) {
-									String subsytem = itr.next();
-									if (subsytem.equals(oldValue)) {
-										itr.set(newValue);
-										break;
-									}
-								}
+							if (StringUtils.hasText(singleDataSource.getDataClassification())
+									&& singleDataSource.getDataClassification().equals(oldValue)) {
+								singleDataSource.setDataClassification(newValue);
+							}
+						}
+					}
+
+					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
+					if (!ObjectUtils.isEmpty(dataWarehouses)) {
+						for (DataWarehouse dataWarehouse : dataWarehouses) {
+							if (StringUtils.hasText(dataWarehouse.getDataClassification())
+									&& dataWarehouse.getDataClassification().equals(oldValue)) {
+								dataWarehouse.setDataClassification(newValue);
 							}
 						}
 					}
 				} else if (category.equals(CATEGORY.DATA_WAREHOUSE)) {
-					// updating data warehouse in each reports
 					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
-					DataWarehouseInUseVO dataWarehouseInUseVO = (DataWarehouseInUseVO) updateObject;
 					if (!ObjectUtils.isEmpty(dataWarehouses)) {
 						for (DataWarehouse dataWarehouse : dataWarehouses) {
 							if (StringUtils.hasText(dataWarehouse.getDataWarehouse())
 									&& dataWarehouse.getDataWarehouse().equals(oldValue)) {
 								dataWarehouse.setDataWarehouse(newValue);
-								// common function
-								List<String> commonFunctions = dataWarehouse.getCommonFunctions();
-								if (!ObjectUtils.isEmpty(commonFunctions)) {
-									Iterator<String> itr = commonFunctions.iterator();
-									while (itr.hasNext()) {
-										String value = itr.next();
-										if (Objects.nonNull(dataWarehouseInUseVO.getCommonFunctions())
-												&& !dataWarehouseInUseVO.getCommonFunctions().contains(value)) {
-											itr.remove();
-										}
-									}
-								}
-								// specific function
-								List<String> specificFunctions = dataWarehouse.getSpecificFunctions();
-								if (!ObjectUtils.isEmpty(specificFunctions)) {
-									Iterator<String> itr = specificFunctions.iterator();
-									while (itr.hasNext()) {
-										String value = itr.next();
-										if (Objects.nonNull(dataWarehouseInUseVO.getSpecificFunctions())
-												&& !dataWarehouseInUseVO.getSpecificFunctions().contains(value)) {
-											itr.remove();
-										}
-									}
-								}
-								// queries
-								List<String> queries = dataWarehouse.getQueries();
-								if (!ObjectUtils.isEmpty(queries)) {
-									Iterator<String> itr = queries.iterator();
-									while (itr.hasNext()) {
-										String value = itr.next();
-										if (Objects.nonNull(dataWarehouseInUseVO.getQueries())
-												&& !dataWarehouseInUseVO.getQueries().contains(value)) {
-											itr.remove();
-										}
-									}
-								}
-								// Data sources
-								List<String> dataSources = dataWarehouse.getDataSources();
-								if (!ObjectUtils.isEmpty(dataSources)) {
-									Iterator<String> itr = dataSources.iterator();
-									while (itr.hasNext()) {
-										String value = itr.next();
-										if (Objects.nonNull(dataWarehouseInUseVO.getDataSources())
-												&& !dataWarehouseInUseVO.getDataSources().contains(value)) {
-											itr.remove();
-										}
-									}
-								}
-								// Connection type
-								List<String> connectionTypes = dataWarehouse.getConnectionTypes();
-								if (!ObjectUtils.isEmpty(connectionTypes)) {
-									Iterator<String> itr = connectionTypes.iterator();
-									while (itr.hasNext()) {
-										String value = itr.next();
-										if (Objects.nonNull(dataWarehouseInUseVO.getConnectionTypes())
-												&& !dataWarehouseInUseVO.getConnectionTypes().contains(value)) {
-											itr.remove();
-										}
+							}
+						}
+					}
+				} else if (category.equals(CATEGORY.COMMON_FUNCTION)) {
+					List<DataWarehouse> dataWarehouses = reportNsql.getData().getDataWarehouses();
+					if (!ObjectUtils.isEmpty(dataWarehouses)) {
+						for (DataWarehouse dataWarehouse : dataWarehouses) {
+							List<String> commonFunctions = dataWarehouse.getCommonFunctions();
+							if (!ObjectUtils.isEmpty(commonFunctions)) {
+								ListIterator<String> itr = commonFunctions.listIterator();
+								while (itr.hasNext()) {
+									String commonFunction = itr.next();
+									if (commonFunction.equals(oldValue)) {
+										itr.set(newValue);
+										break;
 									}
 								}
 							}
@@ -688,13 +620,13 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				message.setMessage("Report already exists.");
 				messages.add(message);
 				reportResponseVO.setErrors(messages);
-				LOGGER.debug("Report {} already exists, returning as CONFLICT", uniqueProductName);
+				LOGGER.info("Report {} already exists, returning as CONFLICT", uniqueProductName);
 				return new ResponseEntity<>(reportResponseVO, HttpStatus.CONFLICT);
 			}
 			requestReportVO.setCreatedBy(this.userStore.getVO());
 			requestReportVO.setCreatedDate(new Date());
 			requestReportVO.setId(null);
-
+			requestReportVO.setReportId("REP-" + String.format("%05d", reportRepository.getNextSeqId()));
 			if (requestReportVO.isPublish() == null)
 				requestReportVO.setPublish(false);
 
@@ -732,7 +664,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		ReportResponseVO response = new ReportResponseVO();
 		try {
 			String id = requestReportVO.getId();
-			ReportVO existingReportVO = this.getById(id);
+			ReportVO existingReportVO = super.getById(id);
 			ReportVO mergedReportVO = null;
 			if (requestReportVO.isPublish() == null) {
 				requestReportVO.setPublish(false);
@@ -743,55 +675,64 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					requestReportVO.setCreatedBy(createdBy);
 					requestReportVO.setCreatedDate(existingReportVO.getCreatedDate());
 					requestReportVO.lastModifiedDate(new Date());
+					requestReportVO.setReportId(existingReportVO.getReportId());
 					mergedReportVO = this.create(requestReportVO);
 					if (mergedReportVO != null && mergedReportVO.getId() != null) {
 						response.setData(mergedReportVO);
 						response.setErrors(null);
-						LOGGER.debug("Report with id {} updated successfully", id);
-						
+						LOGGER.info("Report with id {} updated successfully", id);
 						try {
-							if(mergedReportVO.isPublish()) {
+							if (mergedReportVO.isPublish()) {
 								CreatedByVO modifyingUser = this.userStore.getVO();
 								String eventType = "Dashboard-Report Update";
 								String resourceID = mergedReportVO.getId();
 								String reportName = mergedReportVO.getProductName();
 								String publishingUserId = "dna_system";
 								String publishingUserName = "";
-								if(modifyingUser!=null) {
+								if (modifyingUser != null) {
 									publishingUserId = modifyingUser.getId();
-									publishingUserName = modifyingUser.getFirstName() + " " + modifyingUser.getLastName();
-									if(publishingUserName==null || "".equalsIgnoreCase(publishingUserName))
+									publishingUserName = modifyingUser.getFirstName() + " "
+											+ modifyingUser.getLastName();
+									if (publishingUserName == null || "".equalsIgnoreCase(publishingUserName))
 										publishingUserName = publishingUserId;
 								}
 								List<String> membersId = new ArrayList<>();
 								List<String> membersEmail = new ArrayList<>();
 								MemberVO memberVO = mergedReportVO.getMembers();
-								
+
 								List<TeamMemberVO> members = new ArrayList<>();
-								members.addAll(memberVO.getAdmin());
-								members.addAll(memberVO.getDevelopers());
-								members.addAll(memberVO.getProductOwners());
+								members.addAll(memberVO.getReportAdmins());
+								members.addAll(memberVO.getReportOwners());
 								CustomerVO customerVO = mergedReportVO.getCustomer();
-								if(customerVO!=null)
-									members.addAll(customerVO.getProcessOwners());
-								for(TeamMemberVO member : members) {
-									if(member!=null) {
-										String memberId = member.getShortId()!= null ? member.getShortId() : "";
-										if(!membersId.contains(memberId)) {
+								if (customerVO != null && !ObjectUtils.isEmpty(customerVO.getInternalCustomers())) {
+									for (InternalCustomerVO internalCustomerVO : customerVO.getInternalCustomers()) {
+										if (internalCustomerVO.getProcessOwner() != null) {
+											members.add(internalCustomerVO.getProcessOwner());
+										}
+									}
+								}
+								for (TeamMemberVO member : members) {
+									if (member != null) {
+										String memberId = member.getShortId() != null ? member.getShortId() : "";
+										if (!membersId.contains(memberId)) {
 											membersId.add(memberId);
-											String emailId = member.getEmail()!= null ? member.getEmail() : "";
+											String emailId = member.getEmail() != null ? member.getEmail() : "";
 											membersEmail.add(emailId);
 										}
 									}
 								}
-								String eventMessage = "Dashboard report " + reportName + " has been updated by " + publishingUserName;
-								kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true, membersId,membersEmail,null);
-								LOGGER.info("Published successfully event {} for report {} with message {}",eventType, resourceID, eventMessage);
+								String eventMessage = "Dashboard report " + reportName + " has been updated by "
+										+ publishingUserName;
+								kafkaProducer.send(eventType, resourceID, "", publishingUserId, eventMessage, true,
+										membersId, membersEmail, null);
+								LOGGER.info("Published successfully event {} for report {} with message {}", eventType,
+										resourceID, eventMessage);
 							}
-						}catch(Exception e) {
-							LOGGER.trace("Failed while publishing dashboard report update event msg. Exception is {} ", e.getMessage());
+						} catch (Exception e) {
+							LOGGER.error("Failed while publishing dashboard report update event msg. Exception is {} ",
+									e.getMessage());
 						}
-						
+
 						return new ResponseEntity<>(response, HttpStatus.OK);
 					} else {
 						List<MessageDescription> messages = new ArrayList<>();
@@ -800,7 +741,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 						messages.add(message);
 						response.setData(requestReportVO);
 						response.setErrors(messages);
-						LOGGER.debug("Report with id {} cannot be edited. Failed with unknown internal error", id);
+						LOGGER.info("Report with id {} cannot be edited. Failed with unknown internal error", id);
 						return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				} else {
@@ -810,7 +751,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							"Not authorized to edit Report. Only user who created the Report or with admin role can edit.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					response.setErrors(notAuthorizedMsgs);
-					LOGGER.debug("Report with id {} cannot be edited. User not authorized", id);
+					LOGGER.info("Report with id {} cannot be edited. User not authorized", id);
 					return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
 				}
 			} else {
@@ -819,7 +760,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				notFoundmessage.setMessage("No Report found for given id. Update cannot happen");
 				notFoundmessages.add(notFoundmessage);
 				response.setErrors(notFoundmessages);
-				LOGGER.debug("No Report found for given id {} , update cannot happen.", id);
+				LOGGER.info("No Report found for given id {} , update cannot happen.", id);
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
@@ -857,22 +798,15 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			boolean isTeamMember = false;
-			boolean isProductOwner = false;
 			if (StringUtils.hasText(userId)) {
-				// To check if user is admin(Team member)
+				// To check if user is report admin(Team member)
 				isTeamMember = (existingReportVO.getMembers() != null
-						&& !ObjectUtils.isEmpty(existingReportVO.getMembers().getAdmin()))
-								? existingReportVO.getMembers().getAdmin().stream()
-										.anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))
-								: false;
-				// To check if user is Product Owner
-				isProductOwner = (existingReportVO.getMembers() != null
-						&& !ObjectUtils.isEmpty(existingReportVO.getMembers().getProductOwners()))
-								? existingReportVO.getMembers().getProductOwners().stream().anyMatch(
+						&& !ObjectUtils.isEmpty(existingReportVO.getMembers().getReportAdmins()))
+								? existingReportVO.getMembers().getReportAdmins().stream().anyMatch(
 										n -> userId.equalsIgnoreCase(n.getShortId()))
 								: false;
 			}
-			if (isTeamMember || isProductOwner) {
+			if (isTeamMember) {
 				canProceed = true;
 			}
 		}
@@ -884,7 +818,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Transactional
 	public ResponseEntity<GenericMessage> deleteReport(String id) {
 		try {
-			ReportVO report = this.getById(id);
+			ReportVO report = super.getById(id);
 			if (canProceedToEdit(report)) {
 				this.deleteById(id);
 				GenericMessage successMsg = new GenericMessage();

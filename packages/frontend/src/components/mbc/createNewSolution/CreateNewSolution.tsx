@@ -13,11 +13,11 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
 import Tabs from '../../../assets/modules/uilab/js/src/tabs';
-import { USER_ROLE } from '../../../globals/constants';
-import { Envs } from '../../../globals/Envs';
+import { USER_ROLE } from 'globals/constants';
+import { Envs } from 'globals/Envs';
 import { ApiClient } from '../../../services/ApiClient';
 // import { getQueryParameterByName } from '../../../services/Query';
-import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 
 // @ts-ignore
 import * as _ from 'lodash';
@@ -51,7 +51,7 @@ import {
   ITag,
   ITeams,
   IUserInfo,
-} from '../../../globals/types';
+} from 'globals/types';
 import SelectBox from '../../formElements/SelectBox/SelectBox';
 import Analytics from './analytics/Analytics';
 import Styles from './CreateNewSolution.scss';
@@ -482,7 +482,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   });
               } else {
                 this.setupEditSolutionData(subDivisions, response, solution, resetChildComponents);
-              }  
+              }
             } else {
               ProgressIndicator.hide();
               history.replace('/unauthorised');

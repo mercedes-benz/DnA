@@ -2,12 +2,12 @@ import cn from 'classnames';
 import * as React from 'react';
 // @ts-ignore
 import ProgressIndicator from '../../../../../assets/modules/uilab/js/src/progress-indicator';
-import { IRelatedProduct } from '../../../../../globals/types';
+import { IRelatedProduct } from 'globals/types';
 // import { ApiClient } from '../../../../../services/ApiClient';
 // @ts-ignore
-import InputFieldsUtils from '../../../../formElements/InputFields/InputFieldsUtils';
-import Modal from '../../../../formElements/modal/Modal';
-import Tags from '../../../../formElements/tags/Tags';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
+import Modal from 'components/formElements/modal/Modal';
+import Tags from 'components/formElements/tags/Tags';
 import Styles from './AddRelatedProductModal.scss';
 const classNames = cn.bind(Styles);
 

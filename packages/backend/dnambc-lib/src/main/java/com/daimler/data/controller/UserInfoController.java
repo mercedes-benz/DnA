@@ -48,8 +48,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.userinfo.UsersApi;
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
 import com.daimler.data.dto.userinfo.BookmarkRequestVO;
@@ -80,6 +83,9 @@ public class UserInfoController implements UsersApi {
 	
 	@Autowired
 	private UserInfoAssembler userinfoAssembler;
+
+	@Autowired
+	private UserStore userStore;
 
 	@Override
 	@ApiOperation(value = "Get all available users.", nickname = "getAll", notes = "Get all users. This endpoints will be used to Get all valid available user maintenance records.", response = UsersCollection.class, tags = {
@@ -285,5 +291,6 @@ public class UserInfoController implements UsersApi {
 		}
 		return false;
 	}
+	
 
 }

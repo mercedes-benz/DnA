@@ -139,7 +139,13 @@ class SelectBox {
           }
           selectedOption = item.querySelector(`div:nth-child(${selectElement.selectedIndex + 1}`);
           if (selectedOption) {
-            selectedOption.classList.add('same-as-selected');
+            const selectedLabel = item.parentNode.querySelector('div.select-selected span').textContent;
+            Array.from(item.parentNode.querySelector(`div.select-items`)?.childNodes)?.forEach((item:Element) => {
+              if (item.textContent === selectedLabel) {
+                item.classList.add('same-as-selected')
+              }
+            })
+            // selectedOption.classList.add('same-as-selected');
           }
           // console.log(item.querySelector(`div:nth-child(${selectElement.selectedIndex + 1}`));
         }

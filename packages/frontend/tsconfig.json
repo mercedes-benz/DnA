@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "paths": { "*": ["types/*"] },
+    "paths": { 
+      "*": ["types/*"],
+      "globals/*":["src/globals/*"],
+      "components/*":["src/components/*"] 
+    },
     "types": ["node"],
     "target": "es6",
     "lib": [
@@ -31,4 +35,5 @@
   },
   "include": ["src/**/*","declaration.d.ts"],
   "exclude": ["node_modules"],
+  
 }

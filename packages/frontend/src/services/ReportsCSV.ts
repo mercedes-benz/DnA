@@ -1,7 +1,7 @@
 import { Data } from 'react-csv/components/CommonPropTypes';
 import { IAllReportsResultCSV, IReportFilterParams } from '../globals/types';
 import { ReportsApiClient } from './ReportsApiClient';
-import { getDivisionsQueryValue } from './utils';
+import { getDivisionsQueryValue, regionalDateAndTimeConversionSolution } from './utils';
 
 export const getDataForCSV = (
   queryParams: IReportFilterParams,
@@ -16,26 +16,29 @@ export const getDataForCSV = (
   const reportsCSVData: string | Data = [];
 
   const csvHeaders: string | Data = [
+    { label: 'Report ID', key: 'reportId' },
     { label: 'Name', key: 'name' },
-    { label: 'Phase', key: 'productPhase' },
+    // { label: 'Phase', key: 'productPhase' },
+    { label: 'Report Type', key: 'reportType' },
     { label: 'Description', key: 'description' },
+    { label: 'Report Link', key: 'reportLink' },
     { label: 'Tags', key: 'tags' },
     { label: 'Division', key: 'division' },
     { label: 'Subdivision', key: 'subdivision' },
-    { label: 'Department', key: 'department' },
+    { label: 'E2-Department', key: 'department' },
     { label: 'Status', key: 'status' },
     { label: 'Integrated In Portal', key: 'integratedPortal' },
-    { label: 'Agile Release Trains', key: 'agileReleaseTrains' },
-    { label: 'Design Guide Implemented', key: 'designGuideImplemented' },
+    { label: 'Agile Release Train', key: 'agileReleaseTrains' },
+    // { label: 'Design Guide Implemented', key: 'designGuideImplemented' },
     { label: 'Frontend Technologies', key: 'frontendTechnologies' },
-    { label: 'Customers', key: 'customers' },
-    { label: 'Process Owner', key: 'processOwners' },
+    { label: 'Internal Customers', key: 'internalCustomers' },
+    { label: 'External Customers', key: 'externalCustomers' },
     { label: 'KPIs', key: 'kpis' },
     { label: 'Data Warehouse', key: 'datawarehouses' },
     { label: 'Single Datasource', key: 'singledatasources' },
-    { label: 'Product Owner', key: 'productOwners' },
-    { label: 'Developers', key: 'developers' },
-    { label: 'Admin', key: 'admin' },
+    { label: 'Report Member', key: 'reportOwners' },
+    // { label: 'Developers', key: 'developers' },
+    { label: 'Report Admin', key: 'reportAdmins' },
     { label: 'IsPublished', key: 'publish' },
     { label: 'CreatedDate', key: 'createdDate' },
     { label: 'LastModifiedDate', key: 'lastModifiedDate' },
@@ -74,9 +77,12 @@ export const getDataForCSV = (
       if (reportsCSV.records) {
         reportsCSV.records.forEach((report) => {
           reportsCSVData.push({
+            reportId: report.reportId ? sanitize(report.reportId) : 'NA', 
             name: report.productName ? sanitize(report.productName) : 'NA',
-            productPhase: report.description.productPhase ? report.description.productPhase : 'NA',
+            // productPhase: report.description.productPhase ? report.description.productPhase : 'NA',
+            reportType: report.description.reportType ? sanitize(report.description.reportType) : 'NA',
             description: report.description.productDescription ? sanitize(report.description.productDescription) : 'NA',
+            reportLink: report.description.reportLink ? sanitize(report.description.reportLink) : 'NA',
             tags:
               report.description.tags && report.description.tags.length > 0
                 ? sanitize(report.description.tags.join(', '))
@@ -85,21 +91,21 @@ export const getDataForCSV = (
             subdivision: report.description.division?.subdivision ? report.description.division.subdivision.name : 'NA',
             department: report.description.department ? report.description.department : 'NA',
             status: report.description.status ? report.description.status : 'NA',
-            integratedPortal: report.description.integratedPortal?.length
-              ? report.description.integratedPortal?.join(', ')
+            integratedPortal: report.description.integratedPortal
+              ? report.description.integratedPortal
               : 'NA',
-            agileReleaseTrains: report.description.agileReleaseTrains?.length
-              ? report.description.agileReleaseTrains?.join(', ')
+            agileReleaseTrains: report.description.agileReleaseTrain
+              ? report.description.agileReleaseTrain
               : 'NA',
-            designGuideImplemented: report.description.designGuideImplemented || 'NA',
+            // designGuideImplemented: report.description.designGuideImplemented || 'NA',
             frontendTechnologies: report.description.frontendTechnologies?.length
               ? report.description.frontendTechnologies?.join(', ')
               : 'NA',
-            customers: report.customer?.customerDetails?.length
-              ? report.customer?.customerDetails?.map((customer) => Object.values(customer))?.join(' | ')
+            internalCustomers: report.customer?.internalCustomers?.length
+              ? report.customer?.internalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
               : 'NA',
-            processOwners: report.customer?.processOwners?.length
-              ? report.customer.processOwners?.map((member) => member.shortId)?.join(', ')
+            externalCustomers: report.customer?.externalCustomers?.length
+              ? report.customer.externalCustomers?.map((customer) => Object.values(customer))?.join(' | ')
               : 'NA',
             kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi))?.join(' | ') : 'NA',
             datawarehouses: report.dataAndFunctions?.dataWarehouseInUse?.length
@@ -112,18 +118,18 @@ export const getDataForCSV = (
                   ?.map((singledatasource) => Object.values(singledatasource))
                   ?.join(' | ')
               : 'NA',
-            productOwners: report.members.productOwners?.length
-              ? report.members.productOwners?.map((member) => member.shortId)?.join(', ')
+            productOwners: report.members.reportOwners?.length
+              ? report.members.reportOwners?.map((member) => member.shortId)?.join(', ')
               : 'NA',
-            developers: report.members.developers?.length
-              ? report.members.developers?.map((member) => member.shortId)?.join(', ')
-              : 'NA',
-            admin: report.members.admin?.length
-              ? report.members.admin?.map((member) => member.shortId)?.join(', ')
+            // developers: report.members.developers?.length
+            //   ? report.members.developers?.map((member) => member.shortId)?.join(', ')
+            //   : 'NA',
+            admin: report.members.reportAdmins?.length
+              ? report.members.reportAdmins?.map((member) => member.shortId)?.join(', ')
               : 'NA',
             publish: report.publish ? 'Yes' : 'No',
-            createdDate: report?.createdDate ? report.createdDate : 'NA',
-            lastModifiedDate: report?.lastModifiedDate ? report.lastModifiedDate : 'NA',
+            createdDate: report?.createdDate ? regionalDateAndTimeConversionSolution(report.createdDate) : 'NA',
+            lastModifiedDate: report?.lastModifiedDate ? regionalDateAndTimeConversionSolution(report.lastModifiedDate) : 'NA',
           });
         });
       }

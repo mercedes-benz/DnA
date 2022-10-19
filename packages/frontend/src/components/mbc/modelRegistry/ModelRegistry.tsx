@@ -10,11 +10,11 @@ const classNames = cn.bind(Styles);
 
 // @ts-ignore
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-import InfoModal from '../../../components/formElements/modal/infoModal/InfoModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 // import Pagination from '../pagination/Pagination';
 import ModelRegistryList from './modelRegistryList/ModelRegistryList';
 import { ModelRegistryApiClient } from '../../../services/ModelRegistryApiClient';
-import { Envs } from '../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 
 const MyModelRegistry = (props: any) => {
   const [modelsList, setModelsList] = useState([]);
@@ -47,7 +47,8 @@ const MyModelRegistry = (props: any) => {
     <div className={Styles.infoPopup}>
       <div className={Styles.modalContent}>
         <p>
-          Model Registry displays your ML Pipeline Models and provides External API URL to consume ML models through Secured API on your applications.
+          Model Registry displays your ML Pipeline Models and provides External API URL to consume ML models through
+          Secured API on your applications.
         </p>
       </div>
     </div>
@@ -78,7 +79,8 @@ const MyModelRegistry = (props: any) => {
               {modelsList === null || modelsList === undefined || modelsList.length === 0 ? (
                 <React.Fragment>
                   <p>
-                    Model Registry displays your ML Pipeline Models and provides External API URL to consume ML models through Secured API on your applications.
+                    Model Registry displays your ML Pipeline Models and provides External API URL to consume ML models
+                    through Secured API on your applications.
                   </p>
                   <i
                     tooltip-data="Info"
@@ -91,13 +93,16 @@ const MyModelRegistry = (props: any) => {
               )}
             </div>
             <div className={Styles.modelsContent}>
-              {modelsList === null || modelsList === undefined || modelsList.length === 0  ? (
+              {modelsList === null || modelsList === undefined || modelsList.length === 0 ? (
                 <div className={Styles.modelsListEmpty}>
                   <React.Fragment>
-                    <p className={Styles.textCenter}>
-                      You don't have any ML Pipeline Models to get External API URL.
-                    </p>
-                    <a className={'btn btn-tertiary ' + Styles.addNewBtn} href={`${Envs.ML_PIPELINE_URL}/_/models/?ns=kubeflow-${props.user.id}`} target="_blank" rel="noreferrer noopener">
+                    <p className={Styles.textCenter}>You don't have any ML Pipeline Models to get External API URL.</p>
+                    <a
+                      className={'btn btn-tertiary ' + Styles.addNewBtn}
+                      href={`${Envs.ML_PIPELINE_URL}/_/models/?ns=kubeflow-${props.user.id}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
                       Manage Models on ML Pipeline
                     </a>
                   </React.Fragment>
@@ -124,12 +129,7 @@ const MyModelRegistry = (props: any) => {
                       </thead>
                       <tbody>
                         {modelsList?.map((item: any, index: number) => {
-                          return (
-                            <ModelRegistryList
-                              item={item}
-                              key={index}
-                            />
-                          );
+                          return <ModelRegistryList item={item} key={index} />;
                         })}
                       </tbody>
                     </table>
@@ -163,6 +163,6 @@ const MyModelRegistry = (props: any) => {
       )}
     </React.Fragment>
   );
-}
+};
 
 export default MyModelRegistry;

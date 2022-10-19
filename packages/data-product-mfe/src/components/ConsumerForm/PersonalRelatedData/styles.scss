@@ -1,0 +1,23 @@
+@import "../common.styles.scss";
+
+.termsOfUseContainer {
+    display: inline-block;
+    margin: 15px 0px 15px 60px;
+    text-align: left;
+    .termsOfUseContent {
+        display: flex;
+        input {
+            visibility: hidden;
+        }
+        .termsOfUseText {
+            color: #c0c8d0;
+            font-size: var(--font-size-default);
+            max-width: 80%;
+            max-height: 100px;
+            margin: auto 0;
+        }
+    }
+    .errorMsg {
+        margin-left: 8px !important;
+    }
+}

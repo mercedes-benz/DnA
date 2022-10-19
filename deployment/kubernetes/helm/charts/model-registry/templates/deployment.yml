@@ -14,6 +14,12 @@ spec:
     metadata:
       labels:
         {{- include "model-registry.selectorLabels" . | nindent 8 }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}
       securityContext:
@@ -24,13 +30,18 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}          
+          {{- with .Values.envs }}
+          env:
+          {{- toYaml . | nindent 12 }}
+          {{- end }} 
+          {{- end }} 
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.envs }}            
-          env:
-          {{- toYaml . | nindent 12 }}
-          {{- end }} 

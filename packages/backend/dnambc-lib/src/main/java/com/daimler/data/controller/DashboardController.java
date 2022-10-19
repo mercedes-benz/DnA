@@ -116,12 +116,15 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -131,7 +134,7 @@ public class DashboardController implements DashboardApi {
 			List<DatasourceWidgetVO> datasources = dashboardService.getSolDatasource(published, assembler.toList(phase),
 					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-					assembler.toList(tags));
+					assembler.toList(tags), divisionsAdmin);
 
 			SolDSWidgetResponseVO resVO = new SolDSWidgetResponseVO();
 			resVO.setDataSources(datasources);
@@ -171,12 +174,15 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -186,7 +192,7 @@ public class DashboardController implements DashboardApi {
 			List<LocationWidgetVO> locations = dashboardService.getSolLocation(published, assembler.toList(phase),
 					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-					assembler.toList(tags));
+					assembler.toList(tags), divisionsAdmin);
 
 			SolLocWidgetResponseVO resVO = new SolLocWidgetResponseVO();
 			resVO.setLocations(locations);
@@ -227,12 +233,15 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -242,7 +251,7 @@ public class DashboardController implements DashboardApi {
 			List<MilestoneWidgetVO> milestones = dashboardService.getSolMilestone(published, assembler.toList(phase),
 					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-					assembler.toList(tags));
+					assembler.toList(tags), divisionsAdmin);
 
 			SolMilestoneWidgetResponseVO resVO = new SolMilestoneWidgetResponseVO();
 			resVO.setMilestones(milestones);
@@ -283,12 +292,15 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -298,7 +310,7 @@ public class DashboardController implements DashboardApi {
 			Long totalCount = dashboardService.getSolCountWithNotebook(published, assembler.toList(phase),
 					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-					assembler.toList(tags));
+					assembler.toList(tags), divisionsAdmin);
 
 			SolCountWidgetResponseVO resVO = new SolCountWidgetResponseVO();
 			resVO.setTotalCount(totalCount.intValue());
@@ -338,12 +350,16 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
+						
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -354,7 +370,7 @@ public class DashboardController implements DashboardApi {
 			Long totalCount = dashboardService.getSolCount(published, assembler.toList(phase),
 					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-					assembler.toList(tags));
+					assembler.toList(tags), divisionsAdmin);
 			SolCountWidgetResponseVO resVO = new SolCountWidgetResponseVO();
 			resVO.setTotalCount(totalCount.intValue());
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
@@ -394,12 +410,15 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -410,7 +429,7 @@ public class DashboardController implements DashboardApi {
 			BigDecimal totalDigitalValue = dashboardService.getSolDigitalValue(published, assembler.toList(phase),
 					assembler.toList(dataVolume), division, assembler.toList(location), assembler.toList(projectstatus),
 					useCaseType, userId, isAdmin, bookmarkedSolutions, assembler.toList(searchTerm),
-					assembler.toList(tags));
+					assembler.toList(tags), divisionsAdmin);
 			SolDigitalValueWidgetResponseVO resVO = new SolDigitalValueWidgetResponseVO();
 			resVO.setTotalDigitalValue(totalDigitalValue);
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
@@ -449,12 +468,15 @@ public class DashboardController implements DashboardApi {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : null;
 			List<String> bookmarkedSolutions = new ArrayList<>();
+			List<String> divisionsAdmin = new ArrayList<>();
 			if (userId != null && !"".equalsIgnoreCase(userId)) {
 				UserInfoVO userInfoVO = userInfoService.getById(userId);
 				if (userInfoVO != null) {
 					List<UserRoleVO> userRoles = userInfoVO.getRoles();
-					if (userRoles != null && !userRoles.isEmpty())
+					if (userRoles != null && !userRoles.isEmpty()) {
 						isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+						divisionsAdmin = userInfoVO.getDivisionAdmins();
+					}
 					List<UserFavoriteUseCaseVO> favSolutions = userInfoVO.getFavoriteUsecases();
 					if (favSolutions != null && !favSolutions.isEmpty())
 						bookmarkedSolutions = favSolutions.stream().map(n -> n.getUsecaseId())
@@ -465,7 +487,7 @@ public class DashboardController implements DashboardApi {
 			List<SolDigitalValuesummaryVO> solDigitalValuesummaryVO = dashboardService.getSolDigitalValueSummary(
 					published, assembler.toList(phase), assembler.toList(dataVolume), division,
 					assembler.toList(location), assembler.toList(projectstatus), useCaseType, userId, isAdmin,
-					bookmarkedSolutions, assembler.toList(searchTerm), assembler.toList(tags));
+					bookmarkedSolutions, assembler.toList(searchTerm), assembler.toList(tags), divisionsAdmin);
 			SolDigitalValuesummaryResponseVO resVO = new SolDigitalValuesummaryResponseVO();
 			resVO.setSolDigitalValuesummary(solDigitalValuesummaryVO);
 			return new ResponseEntity<>(resVO, HttpStatus.OK);
