@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { Document, Font, Page, StyleSheet, Text, View, Image, Link } from '@react-pdf/renderer';
 import * as React from 'react';
-import { PropsWithChildren } from "react";
+import { PropsWithChildren } from 'react';
 // @ts-ignore
 import ImgAttachment from '../../../../assets/images/attachment.jpg';
 // @ts-ignore
@@ -21,7 +22,7 @@ import ImgTick from '../../../../assets/images/tick.jpg';
 import ImgUseCaseCheckReady from '../../../../assets/images/UseCsae-Check-Ready.png';
 // @ts-ignore
 import ImgUseCaseCheck from '../../../../assets/images/UseCsae-Check.png';
-import { TeamMemberType } from '../../../../globals/Enums';
+import { TeamMemberType } from 'globals/Enums';
 
 // @ts-ignore
 import ImgIdeation from '../../../../assets/images/ideation.jpg';
@@ -44,8 +45,8 @@ import {
   IMembers,
   ITeams,
   IUserInfo,
-} from '../../../../globals/types';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../../globals/constants';
+} from 'globals/types';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -257,7 +258,9 @@ const teamMembersList = (members: ITeams[]) => {
             <View>
               <Text>
                 <Link src={TEAMS_PROFILE_LINK_URL_PREFIX + member.shortId}>
-                  {member.firstName} {member.lastName}
+                  <Text>
+                    {member.firstName} {member.lastName}
+                  </Text>
                 </Link>
               </Text>
               <Text>{member.department}</Text>
@@ -289,26 +292,36 @@ const Description = (description: IDescriptionRequest) => (
         <Text style={styles.sectionTitle}>Tags</Text>
         {description.tags?.length ? <Text>{description.tags?.join(', ')}</Text> : <Text>NA</Text>}
       </View>
+      <View style={[styles.flexCol2]}>
+        <Text style={styles.sectionTitle}>Report Link</Text>
+        <Text>
+          <Link src={description.reportLink}>
+            <Text>{description.reportLink}</Text>
+          </Link>
+        </Text>
+      </View>
     </View>
     <View style={styles.seperatorLine} />
     <View style={styles.flexLayout} wrap={false}>
       <View style={[styles.flexCol2, styles.firstCol]}>
         <Text style={styles.sectionTitle}>Division</Text>
-        <Text>{description.division?.name || 'NA'}</Text>
+        <Text>
+          {description.division?.name || description.division?.name === 'Choose' ? 'NA' : description.division?.name}
+        </Text>
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Sub Division</Text>
         <Text>{description.division?.subdivision?.name || 'NA'}</Text>
       </View>
       <View style={styles.flexCol2}>
-        <Text style={styles.sectionTitle}>Department</Text>
+        <Text style={styles.sectionTitle}>E2-Department</Text>
         <Text>{description.department || 'NA'}</Text>
       </View>
     </View>
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
-        <Text style={styles.sectionTitle}>Product Phase</Text>
-        <Text>{description.productPhase || 'NA'}</Text>
+        <Text style={styles.sectionTitle}>Report Type</Text>
+        <Text>{description.reportType || 'NA'}</Text>
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Status</Text>
@@ -316,8 +329,8 @@ const Description = (description: IDescriptionRequest) => (
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Integrated In Portal</Text>
-        {description.integratedPortal?.length ? (
-          <Text>{description.integratedPortal?.join(', ')}</Text>
+        {description.integratedPortal ? (
+          <Text>{description.integratedPortal}</Text>
         ) : (
           <Text>NA</Text>
         )}
@@ -326,16 +339,16 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
         <Text style={styles.sectionTitle}>Agile Release Train</Text>
-        {description.agileReleaseTrains?.length ? (
-          <Text>{description.agileReleaseTrains.join(', ')}</Text>
+        {description.agileReleaseTrain ? (
+          <Text>{description.agileReleaseTrain}</Text>
         ) : (
           <Text>NA</Text>
         )}
       </View>
-      <View style={styles.flexCol2}>
+      {/* <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Design Guide Implemented</Text>
         <Text>{description.designGuideImplemented || 'NA'}</Text>
-      </View>
+      </View> */}
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Frontend Technologies</Text>
         {description.frontendTechnologies?.length ? (
@@ -353,8 +366,8 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
   return (
     <>
       {showCustomer &&
-        customer.customerDetails?.length &&
-        customer.customerDetails?.map((data: any, index: number) => (
+        customer.internalCustomers?.length &&
+        customer.internalCustomers?.map((data: any, index: number) => (
           <React.Fragment key={index}>
             <View style={[styles.flexLayout, { marginBottom: 0 }]} wrap={false}>
               <View style={styles.firstCol}>
@@ -363,16 +376,16 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             </View>
             <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Hierarchy</Text>
-                <Text>{data.hierarchy || 'NA'}</Text>
+                <Text style={styles.sectionTitle}>Level</Text>
+                <Text>{data.level || 'NA'}</Text>
               </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Department</Text>
                 <Text>{data.department || 'NA'}</Text>
               </View>
               <View style={styles.flexCol2}>
-                <Text style={styles.sectionTitle}>Ressort</Text>
-                <Text>{data.ressort || 'NA'}</Text>
+                <Text style={styles.sectionTitle}>MB Legal Entity</Text>
+                <Text>{data.legalEntity || 'NA'}</Text>
               </View>
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
@@ -381,12 +394,12 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
                 <Text>{data.comment}</Text>
               </View>
             </View>
-            {customer.processOwners?.length || customer.customerDetails?.length > 0 ? (
+            {customer.internalCustomers?.length > 0 ? (
               <View style={styles.seperatorLine} />
             ) : null}
           </React.Fragment>
         ))}
-      {showCustomer && customer.processOwners?.length && (
+      {/* {showCustomer && customer.processOwners?.length && (
         <View wrap={false}>
           <View style={[styles.firstCol, styles.setMarginTop]}>
             <Text style={styles.sectionTitle}>Process Owner</Text>
@@ -394,7 +407,7 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
           <View style={styles.flexLayout}>{teamMembersList(customer.processOwners)}</View>
           <View style={styles.seperatorLine} />
         </View>
-      )}
+      )} */}
     </>
   );
 };
@@ -460,29 +473,14 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                       <Text style={styles.sectionTitle}>Common Functions</Text>
                       {data.commonFunctions?.length ? <Text>{data.commonFunctions?.join(', ')}</Text> : <Text>NA</Text>}
                     </View>
-                    <View style={styles.flexCol2}>
-                      <Text style={styles.sectionTitle}>Specific Functions</Text>
-                      {data.specificFunctions?.length ? (
-                        <Text>{data.specificFunctions?.join(', ')}</Text>
-                      ) : (
-                        <Text>NA</Text>
-                      )}
-                    </View>
-                    <View style={styles.flexCol2}>
-                      <Text style={styles.sectionTitle}>Queries</Text>
-                      {data.queries?.length ? <Text>{data.queries?.join(', ')}</Text> : <Text>NA</Text>}
-                    </View>
-                  </View>
-                  <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
                     <View style={styles.firstCol}>
-                      <Text style={styles.sectionTitle}>Original Data Sources</Text>
-                      {data.dataSources?.length ? <Text>{data.dataSources?.join(', ')}</Text> : <Text>NA</Text>}
+                      <Text style={styles.sectionTitle}>Data Classification</Text>
+                      {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Connection Type</Text>
-                      {data.connectionTypes?.length ? <Text>{data.connectionTypes?.join(', ')}</Text> : <Text>NA</Text>}
+                      {data.connectionType ? <Text>{data.connectionType}</Text> : <Text>NA</Text>}
                     </View>
-                    <View style={styles.flexCol2}></View>
                   </View>
                   {(dataAndFunctions.dataWarehouseInUse?.length > 1 ||
                     dataAndFunctions?.singleDataSources?.length > 0) && <View style={styles.seperatorLine} />}
@@ -500,15 +498,15 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                   <View style={styles.flexLayout} wrap={false}>
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Sources</Text>
-                      {data.dataSources?.length ? <Text>{data.dataSources?.join(', ')}</Text> : <Text>NA</Text>}
+                      {data.dataSource ? <Text>{JSON.parse(data.dataSource)?.map((item:any) => item.dataSource).join(' / ')}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
-                      <Text style={styles.sectionTitle}>Subsystems</Text>
-                      {data.subsystems?.length ? <Text>{data.subsystems?.join(', ')}</Text> : <Text>NA</Text>}
+                      <Text style={styles.sectionTitle}>Data Classification</Text>
+                      {data.dataClassification ? <Text>{data.dataClassification}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Connection Type</Text>
-                      {data.connectionTypes?.length ? <Text>{data.connectionTypes?.join(', ')}</Text> : <Text>NA</Text>}
+                      {data.connectionType ? <Text>{data.connectionType}</Text> : <Text>NA</Text>}
                     </View>
                   </View>
                   {dataAndFunctions.singleDataSources?.length > 1 ? <View style={styles.seperatorLine} /> : null}
@@ -528,28 +526,28 @@ const Members = ({ showMembers, members }: IMembersProps) => {
       {showMembers && (
         <View wrap={false}>
           <Text style={[styles.subTitle, styles.setMarginTop, { marginBottom: 25 }]}>Members</Text>
-          {members.productOwners?.length ? (
+          {members.reportOwners?.length ? (
             <View>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Product Owner</Text>
+                <Text style={styles.sectionTitle}>Report Member(s)</Text>
               </View>
-              <View style={styles.flexLayout}>{teamMembersList(members.productOwners)}</View>
+              <View style={styles.flexLayout}>{teamMembersList(members.reportOwners)}</View>
             </View>
           ) : null}
-          {members.developers?.length ? (
+          {/* {members.developers?.length ? (
             <View>
               <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Developer(s)</Text>
               </View>
               <View style={styles.flexLayout}>{teamMembersList(members.developers)}</View>
             </View>
-          ) : null}
-          {members.admin?.length ? (
+          ) : null} */}
+          {members.reportAdmins?.length ? (
             <View>
               <View style={styles.firstCol}>
-                <Text style={styles.sectionTitle}>Admin(s)</Text>
+                <Text style={styles.sectionTitle}>Report Administrator(s)</Text>
               </View>
-              <View style={styles.flexLayout}>{teamMembersList(members.admin)}</View>
+              <View style={styles.flexLayout}>{teamMembersList(members.reportAdmins)}</View>
               <View style={styles.seperatorLine} />
             </View>
           ) : null}
@@ -559,13 +557,15 @@ const Members = ({ showMembers, members }: IMembersProps) => {
   );
 };
 
-type Props = PropsWithChildren<IReportPDFProps|any>;
+type Props = PropsWithChildren<IReportPDFProps | any>;
 
 export const ReportPdfDoc = (props: Props) => (
   <Document {...props}>
     <Page style={styles.page} wrap={true} {...props}>
       <View style={styles.view}>
-        <Text style={styles.title}>{props.report.productName}</Text>
+        <Text style={styles.title}>
+          {props.report.productName} ({props.report.reportId})
+        </Text>
         <Text style={styles.subTitle}>Report Summary</Text>
         <Description {...props.report.description} />
         <Customer customer={props.report.customer} showCustomer={props.canShowCustomer} />

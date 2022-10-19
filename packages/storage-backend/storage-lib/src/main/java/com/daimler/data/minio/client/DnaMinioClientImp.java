@@ -35,12 +35,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -66,6 +67,7 @@ import com.daimler.data.dto.storage.UserVO;
 import com.daimler.data.util.CacheUtil;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.PolicyUtility;
+import com.daimler.data.util.StorageUtility;
 
 import io.minio.BucketExistsArgs;
 import io.minio.GetObjectArgs;
@@ -418,9 +420,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 				// Adding new policies to existing one
 				for (String policy : policies) {
-					if(!Pattern.compile("\\b"+policy+"\\b",Pattern.CASE_INSENSITIVE).matcher(existingPolicy).find()) {
-						existingPolicy = existingPolicy + "," + policy;
-					}
+					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
 
 				// Setting new policy set to user
@@ -559,10 +559,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			bucketCollaborators = new ArrayList<>();
 			// Iterating over usersInfo map to get collaborators
 			for (var entry : usersInfo.entrySet()) {
-				if (StringUtils.hasText(entry.getValue().policyName()) && !entry.getKey().equals(currentUser)) {
+				if (StringUtils.hasText(entry.getValue().policyName())) {
 					UserVO userVO = new UserVO();
 					PermissionVO permissionVO = new PermissionVO();
-					if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READ)) {
+					if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READ)) {
 						LOGGER.debug("User:{} has read access to bucket:{}", entry.getKey(), bucketName);
 						// Setting accesskey
 						userVO.setAccesskey(entry.getKey());
@@ -572,7 +572,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						userVO.setPermission(permissionVO);
 
 					}
-					if (entry.getValue().policyName().contains(bucketName + "_" + ConstantsUtility.READWRITE)) {
+					if (StorageUtility.hasText(entry.getValue().policyName(), bucketName + "_" + ConstantsUtility.READWRITE)) {
 						LOGGER.debug("User:{} has read/write access to bucket:{}", entry.getKey(), bucketName);
 						// Setting accesskey
 						userVO.setAccesskey(entry.getKey());
@@ -581,18 +581,15 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						permissionVO.setWrite(true);
 						userVO.setPermission(permissionVO);
 					}
-
 					if (!ObjectUtils.isEmpty(userVO.getAccesskey())) {
 						LOGGER.debug("Setting Collaborator as user:{} has access to bucket:{}", entry.getKey(),
 								bucketName);
 						userVO.setPermission(permissionVO);
 						bucketCollaborators.add(userVO);
 					}
-
 				}
 			}
 		}
-
 		return bucketCollaborators;
 	}
 	
@@ -743,41 +740,35 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		LOGGER.debug("Fetching users from cache.");
 		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
 		// Iterating over usersInfo map
-		for (var entry : users.entrySet()) {
+		Iterator usersIterator = users.entrySet().iterator();
+		while (usersIterator.hasNext()) {
+			Entry userEntry = (Entry) usersIterator.next();
 			// To fetch user access key
-			String userId = entry.getKey();
+			String userId = (String) userEntry.getKey();
 			// To fetch user info
-			UserInfo userInfo = entry.getValue();
+			UserInfo userInfo = (UserInfo) userEntry.getValue();
 			// To fetch user policy
 			String userPolicy = userInfo.policyName();
-
 			// To check if user has any policy
 			if (StringUtils.hasText(userPolicy)) {
 				// Iterating over policies
 				for (String policy : policies) {
-					// Checking whether user has policy					
-					if(Pattern.compile("\\b"+policy+"\\b",Pattern.CASE_INSENSITIVE).matcher(userPolicy).find()) {
-						// Removing policy
-						userPolicy = userPolicy.replaceAll("\\b"+policy+"\\b", "");
-						// To check if policy contains only commas ','
-						if (!userPolicy.chars().allMatch(c -> c == ',')) {
-							// Unlink policy from user in minio
-							LOGGER.info("Unlinking policy from user:{}",userId);
+					if (StorageUtility.hasText(userPolicy, policy)) {
+						userPolicy = StorageUtility.removePolicy(userPolicy, policy);
+						if (StringUtils.hasText(userPolicy)) {
+							LOGGER.info("Unlinking policy from user:{}", userId);
 							minioAdminClient.setPolicy(userId, false, userPolicy);
-							// Adding in try as policy will get removed from minio eventually once
-							// dependency removed from other users
-							try {
-								// Removing policy from minio
-								minioAdminClient.removeCannedPolicy(policy);
-							} catch (Exception e) {
-								LOGGER.warn("Failed to remove policy:{}", e.getMessage());
-							}
-							// updating cache map for user
+							// Update user's policy in minio cache
 							UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
 									userInfo.memberOf());
 							users.put(userId, userInfoTemp);
+						} else {
+							LOGGER.info("Removing user:{} from minio", userId);
+							minioAdminClient.deleteUser(userId);
+							//Removing entry from minio cache
+							usersIterator.remove();
 						}
-
+						
 					}
 				}
 			}

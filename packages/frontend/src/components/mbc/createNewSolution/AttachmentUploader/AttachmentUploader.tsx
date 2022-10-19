@@ -2,15 +2,15 @@ import cn from 'classnames';
 import Upload from 'rc-upload';
 import { RcFile, UploadRequestError } from 'rc-upload/lib/interface';
 import * as React from 'react';
-import { ATTACH_FILES_TO_ACCEPT } from '../../../../globals/constants';
+import { ATTACH_FILES_TO_ACCEPT } from 'globals/constants';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { IconAttachment } from '../../../../components/icons/IconAttachment';
-import { IAttachment, IAttachmentError } from '../../../../globals/types';
+import { IconAttachment } from 'components/icons/IconAttachment';
+import { IAttachment, IAttachmentError } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import Styles from './AttachmentUploader.scss';
 
 const classNames = cn.bind(Styles);

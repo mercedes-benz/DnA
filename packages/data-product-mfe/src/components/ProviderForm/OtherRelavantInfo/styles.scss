@@ -1,0 +1,77 @@
+@import "../Form.common.styles.scss";
+.termsOfUseContainer {
+    display: inline-block;
+    margin: 15px 0px 15px 60px;
+    text-align: left;
+    .termsOfUseContent {
+        display: flex;
+        input {
+            visibility: hidden;
+        }
+        .termsOfUseText {
+            color: #c0c8d0;
+            font-size: var(--font-size-default);
+            max-width: 80%;
+            max-height: 100px;
+            margin: auto 0;
+        }
+    }
+    .errorMsg {
+        margin-left: 8px !important;
+    }
+}
+.addMembersContainer {
+    p {
+        margin: 30px 0 40px;
+        color: #c0c8d0;
+    }
+}
+.firstPanel {
+    background: #252a33;
+    margin-bottom: 15px;
+
+    .teamListWrapper {
+        margin: 50px -38px;
+
+        .avatarIcon {
+            width: 55px;
+            height: 55px;
+            margin-right: 30px;
+        }
+
+        .addTeamMemberWrapper {
+            min-height: 60px;
+            margin-left: 38px;
+            margin-top: 38px;
+            margin-bottom: 38px;
+            button {
+                padding: 0;
+                margin: 0 0 0 0;
+                background: none;
+                border: none;
+                outline: none;
+                color: #c0c8d0;
+                vertical-align: middle;
+                font-size: 12px;
+
+                i {
+                    vertical-align: top;
+                    margin-right: 10px;
+                    color: #00adef;
+                }
+
+                &:hover span {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+}
+
+.footerContainer {
+    display: flex;
+    justify-content: flex-end;
+    button:first-child {
+        margin-right: 15px;
+    }
+}

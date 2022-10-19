@@ -1,8 +1,9 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IResult, ISharing } from '../../../../globals/types';
+import { IResult, ISharing } from 'globals/types';
 import Styles from './Sharing.scss';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
 const classNames = cn.bind(Styles);
 
 export interface ISharingProps {
@@ -52,38 +53,30 @@ export default class Sharing extends React.Component<ISharingProps, ISharingStat
               <div className={Styles.flexLayout}>
                 <div>
                   <div>
-                    <div className={classNames('input-field-group')}>
-                      <label id="gitrepoLabel" htmlFor="gitrepoInput" className="input-label">
-                        Git Repository
-                      </label>
-                      <input
-                        type="text"
-                        className="input-field"
-                        id="gitrepoInput"
-                        maxLength={200}
-                        placeholder="Type here"
-                        autoComplete="off"
-                        onChange={this.onGitUrl}
-                        value={this.state.sharing.gitUrl}
-                      />
-                    </div>
+                    <TextBox
+                      type="text"
+                      controlId={'gitrepoInput'}
+                      labelId={'gitrepoLabel'}
+                      label={'Git Repository'}
+                      placeholder={'Type here'}
+                      value={this.state.sharing.gitUrl}
+                      required={false}
+                      maxLength={200}
+                      onChange={this.onGitUrl}
+                    />
                   </div>
                   <div>
-                    <div className={classNames('input-field-group')}>
-                      <label id="resultsurllabel" htmlFor="resultsurl" className="input-label">
-                        Comment
-                      </label>
-                      <input
-                        type="text"
-                        className="input-field"
-                        id="resultsurl"
-                        maxLength={200}
-                        placeholder="Type here"
-                        autoComplete="off"
-                        onChange={this.onResultUrlChange}
-                        value={this.state.sharing.resultUrl}
-                      />
-                    </div>
+                    <TextBox
+                      type="text"
+                      controlId={'resultsurl'}
+                      labelId={'resultsurllabel'}
+                      label={'Comment'}
+                      placeholder={'Type here'}
+                      value={this.state.sharing.resultUrl}
+                      required={false}
+                      maxLength={200}
+                      onChange={this.onResultUrlChange}
+                    />
                   </div>
                 </div>
                 <div>

@@ -1,13 +1,14 @@
 import cn from 'classnames';
 import * as React from 'react';
 import Styles from './Kpi.scss';
-import Modal from '../../../formElements/modal/Modal';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
-import { IKpis, IKpiNames, IReportingCauses } from '../../../../globals/types';
+import Modal from 'components/formElements/modal/Modal';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
+import { IKpis, IKpiNames, IReportingCauses } from 'globals/types';
 import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
-import { ErrorMsg } from '../../../../globals/Enums';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import { ErrorMsg } from 'globals/Enums';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
+import TextArea from 'components/mbc/shared/textArea/TextArea';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
@@ -54,13 +55,13 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         name: '',
         reportingCause: '',
         kpiLink: '',
-        comment: '',
+        description: '',
       },
       errors: {
         name: '',
         reportingCause: '',
         kpiLink: '',
-        comment: '',
+        description: '',
       },
       comment: null,
       addKpi: false,
@@ -90,7 +91,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             <div>
               <div className={classNames('input-field-group include-error', this.state.errors.name ? 'error' : '')}>
                 <label id="kpinames" htmlFor="kpinames" className="input-label">
-                  Name<sup>*</sup>
+                  KPI Name<sup>*</sup>
                 </label>
                 <div className="custom-select">
                   <select
@@ -153,7 +154,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             <div>
               <div className={classNames('input-field-group include-error', this.state.errors.kpiLink ? 'error' : '')}>
                 <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
-                  KPI-Link
+                  KPI Link-Wiki
                 </label>
                 <input
                   type="text"
@@ -173,30 +174,18 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             </div>
           </div>
           <div>
-            <div
-              id="reportKpiComment"
-              className={classNames(
-                'input-field-group include-error area',
-                this.state.errors.comment.length ? 'error' : '',
-              )}
-            >
-              <label id="reportKpiCommentLabel" className="input-label" htmlFor="reportKpiComment">
-                Comment
-              </label>
-              <textarea
-                className="input-field-area"
-                required={false}
-                rows={50}
-                id="reportKpiComment"
-                name="comment"
-                value={this.state.kpiInfo.comment}
-                onChange={this.handleChange}
-                onBlur={this.validateKpiModal}
-              />
-              <span className={classNames('error-message', this.state.errors.comment.length ? '' : 'hide')}>
-                {this.state.errors.comment}
-              </span>
-            </div>
+            <TextArea
+              controlId={'reportKpiComment'}
+              containerId={'reportKpiComment'}
+              name={'description'}
+              labelId={'reportKpiCommentLabel'}
+              label={'KPI Description'}
+              rows={50}
+              value={this.state.kpiInfo.description}
+              required={false}
+              onChange={this.handleChange}
+              onBlur={this.validateKpiModal}
+            />
             {this.state.duplicateKpiAdded ? <span className={'error-message'}>KPI already exist</span> : ''}
             <div className="btnConatiner">
               <button
@@ -307,7 +296,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                               <div className="expansion-panel-content">
                                 <div className={Styles.kpiCollContent}>
                                   <div className={Styles.kpiDesc}>
-                                    <pre className={Styles.commentPre}>{kpi.comment}</pre>
+                                    <pre className={Styles.commentPre}>{kpi.description}</pre>
                                   </div>
                                   <div className={Styles.kpiBtnGrp}>
                                     <button
@@ -452,13 +441,13 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         name: '',
         reportingCause: '',
         kpiLink: '',
-        comment: '',
+        description: '',
       },
       errors: {
         name: '',
         reportingCause: '',
         kpiLink: '',
-        comment: '',
+        description: '',
       },
     });
   };
@@ -478,14 +467,14 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected onAddKpi = () => {
-    const { name, reportingCause, kpiLink, comment } = this.state.kpiInfo;
+    const { name, reportingCause, kpiLink, description } = this.state.kpiInfo;
     const { kpis } = this.state;
     const selectedValues: IKpis[] = [];
     selectedValues.push({
       name,
       reportingCause,
       kpiLink,
-      comment,
+      description,
     });
 
     // const kpiExists = this.isKpiExist(kpis);
@@ -502,13 +491,13 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             name: '',
             reportingCause: '',
             kpiLink: '',
-            comment: '',
+            description: '',
           },
           errors: {
             name: '',
             reportingCause: '',
             kpiLink: '',
-            comment: '',
+            description: '',
           },
         }),
         () => {
@@ -525,7 +514,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected onEditKpiOpen = (kpi: IKpis) => {
-    const { name, reportingCause, kpiLink, comment } = kpi;
+    const { name, reportingCause, kpiLink, description } = kpi;
     const { kpis } = this.state;
     // const selectedItemIndex = kpis.findIndex(item=> item.name === name && item.reportingCause === reportingCause);
     const selectedItemIndex = kpis.findIndex(
@@ -533,7 +522,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         item.name === name &&
         item.reportingCause === reportingCause &&
         item.kpiLink === kpiLink &&
-        item.comment === comment,
+        item.description === description,
     );
     this.setState(
       {
@@ -544,7 +533,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
           name,
           reportingCause,
           kpiLink,
-          comment,
+          description,
         },
       },
       () => {
@@ -570,13 +559,13 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   };
 
   protected onDeleteKpi = (kpi: IKpis) => {
-    const { name, reportingCause, comment, kpiLink } = kpi;
+    const { name, reportingCause, description, kpiLink } = kpi;
     const selectedItemIndex = this.state.kpis.findIndex(
       (item) =>
         item.name === name &&
         item.reportingCause === reportingCause &&
         item.kpiLink === kpiLink &&
-        item.comment === comment,
+        item.description === description,
     );
     this.setState(
       {
@@ -592,7 +581,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
 
   protected onEditKpi = () => {
     const { selectedItemIndex } = this.state;
-    const { name, reportingCause, kpiLink, comment } = this.state.kpiInfo;
+    const { name, reportingCause, kpiLink, description } = this.state.kpiInfo;
     const { kpis } = this.state;
     // const kpiExists = this.isKpiExist(kpis);
     // const newIndex = kpis.findIndex(item=>item.name === name && item.reportingCause === reportingCause);
@@ -603,7 +592,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       // || !kpiExists
       // ) {
       const kpiList = [...kpis]; // create copy of original array
-      kpiList[selectedItemIndex] = { name, reportingCause, kpiLink, comment }; // modify copied array
+      kpiList[selectedItemIndex] = { name, reportingCause, kpiLink, description }; // modify copied array
       this.props.modifyKpi(kpiList);
       this.setState(
         {
@@ -614,13 +603,13 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             name: '',
             reportingCause: '',
             kpiLink: '',
-            comment: '',
+            description: '',
           },
           kpiInfo: {
             name: '',
             reportingCause: '',
             kpiLink: '',
-            comment: '',
+            description: '',
           },
         },
         () => {
@@ -656,9 +645,9 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     // if (!this.state.kpiInfo.comment) {
     //   errors.comment = errorMissingEntry;
     //   formValid = false;
-    // } 
+    // }
     else {
-      errors.comment = '';
+      errors.description = '';
     }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');

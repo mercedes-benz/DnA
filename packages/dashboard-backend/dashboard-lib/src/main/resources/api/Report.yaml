@@ -79,12 +79,7 @@ paths:
           in: query
           description: Filtering reports based on publish state. Draft or published, values true or false
           required: false
-          type: boolean                                         
-        - name: productPhase
-          in: query
-          description: List of productPhase of reports, seperated by comma. Example 1,2,3
-          required: false
-          type: string
+          type: boolean
         - name: status
           in: query
           description: Project status of reports
@@ -112,10 +107,10 @@ paths:
           type: integer
         - name: sortBy
           in: query
-          description: Sort reports by a given variable like productName, productPhase or status
+          description: Sort reports by a given variable like productName, status
           required: false
           type: string
-          enum: [productName, productPhase, status, department, productOwner, art]
+          enum: [productName, status, department, productOwner, art]
         - name: sortOrder
           in: query
           description: Sort reports based on the given order, example asc,desc
@@ -358,15 +353,21 @@ paths:
 definitions:
   DescriptionVO:
     type: object
-    properties:  
+    properties:
+      reportLink:
+        type: string
+        description: "Report Link"   
+        minLength: 1   
       productDescription: 
         description: "Description about the report"
         type: string
         minLength: 1
-      productPhase:
+      reportType: 
+        description: "Type of report"
         type: string
-        description: "Product Phase of the report"
-        minLength: 1
+      piiData: 
+        type: string
+        description: "Personally identifiable information."
       status:
         type: string
         description: "Status of the report"
@@ -378,9 +379,7 @@ definitions:
         description: "Department of the report"
         minLength: 1                         
       integratedPortal:
-        type: array
-        items:
-          type: string
+        type: string
       frontendTechnologies:
         type: array
         items:
@@ -389,56 +388,77 @@ definitions:
         type: array
         items:
           type: string
-      agileReleaseTrains:
-        type: array
-        items:
-          type: string    
-      designGuideImplemented:
+      agileReleaseTrain:
         type: string
-        description: "Flag to identify if design guide implemented or not"
     required:
       - productDescription
-      - productPhase
       - status
-      - designGuideImplemented
       - frontendTechnologies
-      - division
       - department
+      - reportLink
   
   CustomerVO:
     type: object
     properties:  
-      customerDetails:
+      internalCustomers:
         type: array
         items:
-          $ref: "#/definitions/CustomerDetailsVO"
-      processOwners:
+          $ref: "#/definitions/InternalCustomerVO"
+      externalCustomers:
         type: array
         items:
-          $ref: "#/definitions/TeamMemberVO"    
+          $ref: "#/definitions/ExternalCustomerVO"    
       
-  CustomerDetailsVO:
+  InternalCustomerVO:
     type: object
-    properties:  
-      hierarchy:
+    properties: 
+      name:
+        $ref: "#/definitions/TeamMemberVO"
+      customerRelation: 
         type: string
-        description: "Hierarchy of customer"
-        minLength: 1
-      ressort: 
-        description: ""
+        minLength: 1           
+      level:
         type: string
         minLength: 1
+      division:
+        $ref: "#/definitions/DivisionVO"
       department:
         type: string
         description: "Department of customer"
+        minLength: 1              
+      legalEntity: 
+        description: ""
+        type: string
         minLength: 1
+      accessToSensibleData:
+        type: string              
       comment:
         type: string
-        description: ""
+      processOwner:
+        $ref: "#/definitions/TeamMemberVO"        
     required:
-      - hierarchy
-      - ressort
+      - customerRelation
+      - level
       - department
+      - legalEntity
+      - accessToSensibleData
+      
+  ExternalCustomerVO:
+    type: object
+    properties: 
+      name:
+        $ref: "#/definitions/TeamMemberVO"
+      customerRelation: 
+        type: string
+        minLength: 1
+      companyName:
+        type: string
+        minLength: 1               
+      comment:
+        type: string      
+    required:
+      - customerRelation
+      - companyName     
       
   KPIVO:
     type: object
@@ -451,9 +471,8 @@ definitions:
         description: ""
         type: string
         minLength: 1
-      comment:
+      description:
         type: string
-        description: ""
       kpiLink:
         type: string
         description: "KPI - link"        
@@ -466,34 +485,21 @@ definitions:
     properties:     
       dataWarehouse:
         type: string
-        description: ""
+        minLength: 1
       commonFunctions: 
         type: array
         items:
           type: string
-      specificFunctions:
-        type: array
-        items:
-          type: string
-      queries:
-        type: array
-        items:
-          type: string
-      dataSources:
-        type: array
-        items:
-          type: string
-      connectionTypes:
-        type: array
-        items:
-          type: string
+      dataClassification: 
+        type: string
+        minLength: 1
+      connectionType:
+        type: string
+        minLength: 1
     required:
       - dataWarehouse
-      - commonFunctions
-      - specificFunctions
-      - queries
-      - dataSources
-      - connectionTypes  
+      - dataClassification
+      - connectionType 
           
   SingleDataSourceVO:
     type: object
@@ -501,19 +507,32 @@ definitions:
       dataSources:
         type: array
         items:
-          type: string             
-      subsystems: 
-        type: array
-        items:
-          type: string
-      connectionTypes:
-        type: array
-        items:
-          type: string
+          $ref: "#/definitions/DataSourceVO"          
+      dataClassification: 
+        type: string
+        minLength: 1
+      connectionType:
+        type: string
+        minLength: 1
     required:
       - dataSources
-      - connectionTypes
-      - subsystems
+      - dataClassification
+      - connectionType
+      
+  DataSourceVO:
+    type: object
+    properties:      
+      dataSource:
+        type: string
+        minLength: 1
+        description: "DataSource name"
+      weightage:
+        type: number
+        minLength: 1
+        description: "Weightage of dataSource in %"
+    required:
+      - dataSource
+      - weightage              
       
   DataAndFunctionVO:
     type: object
@@ -531,15 +550,11 @@ definitions:
     description: "Team Member."
     type: object
     properties:  
-      developers:
+      reportOwners:
         type: array
         items:
           $ref: "#/definitions/TeamMemberVO"
-      productOwners:
-        type: array
-        items:
-          $ref: "#/definitions/TeamMemberVO"
-      admin:
+      reportAdmins:
         type: array
         items:
           $ref: "#/definitions/TeamMemberVO"
@@ -584,6 +599,8 @@ definitions:
     properties:
       id:
         type: string
+      reportId:
+        type: string        
       productName:
         type: string
         description: "Name of the Report"

@@ -41,7 +41,6 @@ public class Member implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
 
-	private List<TeamMember> developers;
-	private List<TeamMember> productOwners;
-	private List<TeamMember> admin;
+	private List<TeamMember> reportOwners;
+	private List<TeamMember> reportAdmins;
 }

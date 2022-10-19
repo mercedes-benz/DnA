@@ -7,35 +7,7 @@ services:
       context: ../packages/frontend/
       dockerfile: ../../deployment/dockerfiles/app/result-frontend.Dockerfile
     volumes:
-      - ../packages/frontend/nginx.conf:/etc/nginx/nginx.conf
-    environment:
-      - PROJECTSMO_BACKEND_HOST=app-backend
-      - PROJECTSMO_BACKEND_PORT=7171
-      - PROJECTSMO_FRONTEND_API_BASEURL=api
-      - PROJECTSMO_FRONTEND_OIDC_DISABLED=true
-      - PROJECTSMO_ENABLE_INTERNAL_USER_INFO=false
-      - PROJECTSMO_ENABLE_DATA_COMPLIANCE=false
-      - PROJECTSMO_ENABLE_REPORTS=true
-      - PROJECTSMO_ENABLE_JUPYTER_WORKSPACE=false
-      - PROJECTSMO_JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME=5000
-      - PROJECTSMO_ENABLE_DATAIKU_WORKSPACE=false
-      - PROJECTSMO_ENABLE_MALWARE_SCAN_SERVICE=true
-      - PROJECTSMO_ENABLE_MALWARE_SCAN_ONEAPI_INFO=false
-      # - PROJECTSMO_MALWARE_SCAN_SWAGGER_UI_URL=
-      - PROJECTSMO_ENABLE_DATA_PIPELINE_SERVICE=false
-      - PROJECTSMO_ENABLE_MY_MODEL_REGISTRY_SERVICE=false
-      - PROJECTSMO_ENABLE_ML_PIPELINE_SERVICE=false
-      - PROJECTSMO_ENABLE_STORAGE_SERVICE=true
-      - PROJECTSMO_STORAGE_MFE_APP_URL=http://localhost:8081
-      - PROJECTSMO_DNA_COMPANY_NAME=Company_Name
-      - PROJECTSMO_DEPLOY_VERSION=0.91
-      - PROJECTSMO_DNA_APPNAME_HEADER=DnA App
-      - PROJECTSMO_DNA_APPNAME_HOME=Data and Analytics
-      - PROJECTSMO_DNA_CONTACTUS_HTML=<div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
-      - PROJECTSMO_DNA_BRAND_LOGO_URL=/images/branding/logo-brand.png
-      - PROJECTSMO_DNA_APP_LOGO_URL=/images/branding/logo-app-white.png
-      - PROJECTSMO_ENABLE_NOTIFICATION=true
-      - PROJECTSMO_INTERNAL_USER_TEAMS_INFO=(Recommended to use Short ID. To find Short ID use <a href=\"YOUR_TEAMfS_INFO_URL\" target=\"_blank\" rel=\"noreferrer noopener\">Teams</a>)
+      - ../packages/frontend/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf
     ports:
       - 8080:3000
     depends_on:
@@ -70,6 +42,7 @@ services:
       - API_DB_URL=jdbc:postgresql://app-db:5432/db
       - API_DB_USER=postgres
       - API_DB_PASS=postgres
+      - CORS_ORIGIN_URL=http://*
       - OIDC_DISABLED=true
       - JWT_SECRET_KEY=
       - INACTIVE_SOLUTION_DURATION_YRS=2
@@ -77,7 +50,8 @@ services:
       - DATAIKU=false
       - ITSMM=false
       - ATTACHMENT_MALWARE_SCAN=false
-      - AVSCAN_URI=http://malware-backend:8181/avscan/api/v1
+      - AVSCAN_URI=http://malware-backend:8181
+      - AVSCAN_UPLOAD_API=/api/v1/scan/upload
       - AVSCAN_APP_ID=
       - AVSCAN_API_KEY=
       - DRD_INTERNAL_USER_ENABLED=false
@@ -88,18 +62,15 @@ services:
       - S3_MAX_PARALLEL_UPLOADTHREADS=20
       - S3_MIN_FILESIZE=1024
       - S3_MAX_FILESIZE=5242880
-      - VAULT_HOST=vault
-      - VAULT_PORT=8200
-      - VAULT_SCHEME=http
-      - VAULT_AUTHENTICATION=TOKEN
-      - VAULT_TOKEN=myroot
-      - VAULT_MOUNTPATH=secret
-      - VAULT_PATH=dnambc/avscan
       - NAAS_BROKER=broker:29092
       - LOGGING_ENVIRONMENT=DEV
       - LOGGING_PATH=/tmp/app/logs/
       - JWT_TOKEN_EXPIRY_TIME_IN_MIN=90
-      - DASHBOARD_URI=http://dashboard-backend:7173/dashboards
+      - DASHBOARD_URI=http://dashboard-backend:7173
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public
     depends_on:
       - app-db
       - vault
@@ -122,10 +93,16 @@ services:
       - API_DB_USER=dashboard
       - API_DB_PASS=dashboard
       - DNA_URI=http://app-backend:7171
+      - CORS_ORIGIN_URL=http://*
       - DNA_AUTH_ENABLE=true
       - LOGGING_ENVIRONMENT=DEV
       - LOGGING_PATH=/tmp/dashboard/logs/
       - JWT_SECRET_KEY=
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public
+      - NAAS_BROKER=broker:29092
     depends_on:
       - app-db
     ports:
@@ -149,18 +126,34 @@ services:
       - API_REQUEST_LIMIT=20
       - WITH_IN=2
       - RESTRICTED_URL_PATTERN=.*
-      - AUTH_API_HOST=http://app-backend:7171/api/subscription/validate
       - TIME_UNIT=seconds
       - LOGGING_ENVIRONMENT=DEV
       - LOGGING_PATH=/tmp/clamav/log
       - API_DB_URL=jdbc:postgresql://app-db:5432/malware
       - API_DB_USER=malware 
-      - API_DB_PASS=malware123      
+      - API_DB_PASS=malware123
+      - CORS_ORIGIN_URL=http://*
+      - DNA_AUTH_ENABLE=true
+      - DNA_UNSUBSCRIBE_MALWARE_SCAN_API=/api/malwarescan/unsubscribe/    
+      - DNA_URI=http://app-backend:7171  
+      - DNA_VERIFY_LOGIN_API=/api/verifyLogin
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public
+      - JWT_SECRET_KEY=
+      - NAAS_BROKER=broker:29092
+      - VAULT_HOST=vault
+      - VAULT_PORT=8200
+      - VAULT_SCHEME=http
+      - VAULT_AUTHENTICATION=TOKEN
+      - VAULT_TOKEN=myroot
+      - VAULT_MOUNTPATH=secret      
     depends_on:
       - clamav
-      - db
+      - app-db
     ports:
-      - 7174:8181
+      - 8181:8181
     deploy:
       restart_policy:
         condition: on-failure
@@ -192,8 +185,9 @@ services:
       - API_DB_URL=jdbc:postgresql://app-db:5432/db
       - API_DB_USER=postgres
       - API_DB_PASS=postgres
+      - CORS_ORIGIN_URL=http://*      
       - DNA_URI=http://app-backend:7171
-      - DNA_AUTH_ENABLE=false
+      - DNA_AUTH_ENABLE=true
       - JWT_SECRET_KEY=
       - DNA_USER_NOTIFICATION_PREF_GET_URI=/api/notification-preferences
       - NAAS_BROKER=broker:29092
@@ -206,6 +200,7 @@ services:
       - LOGGING_PATH=/tmp/naas/logs/
       - DNA_MAIL_SERVER_PORT=25
       - DNA_MAIL_SERVER_HOST=
+      - DNA_NOTIFICATION_SENDER_EMAIL=
     depends_on:
       - app-backend
       - broker
@@ -246,14 +241,9 @@ services:
       context: ../packages/storage-mfe/
       dockerfile: ../../deployment/dockerfiles/storageService/storage-mfe.Dockerfile
     volumes:
-      - ../packages/storage-mfe/nginx.conf:/etc/nginx/nginx.conf
-    environment:
-      - PROJECTSMO_CONTAINER_APP_URL=http://app-frontend:3000
-      - PROJECTSMO_FRONTEND_API_BASEURL=api
-      - PROJECTSMO_STORAGE_TOU_HTML=<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>
-      - PROJECTSMO_ENABLE_DATA_CLASSIFICATION_SECRET=false
+      - ../packages/storage-mfe/nginx.conf:/opt/bitnami/nginx/conf/nginx.conf
     ports:
-      - 8081:3000
+      - 8083:3000
     depends_on:
       - storage-backend
       - app-frontend
@@ -285,12 +275,18 @@ services:
       - MINIO_ADMIN_ACCESS_KEY=minioadmin
       - MINIO_ADMIN_SECRET_KEY=minioadmin
       - MINIO_POLICY_VERSION=2012-10-17
+      - MINIO_CLIENT_API=http://minio:9000
       - LOGGING_ENVIRONMENT=DEV
       - ATTACHMENT_MALWARE_SCAN=false
       - API_DB_USER=storage
       - API_DB_PASS=storage123
       - API_DB_URL=jdbc:postgresql://app-db:5432/storage
       - NAAS_BROKER=broker:29092
+      - FLYWAY_BASELINEVERSION=0
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+      - FLYWAY_ENABLED=true
+      - FLYWAY_SCHEMA=public      
+      - CORS_ORIGIN_URL=http://*      
     ports:
       - 7175:7175
     depends_on:
@@ -324,3 +320,8 @@ services:
       /usr/bin/mc mb myminio/dna;
       exit 0;
       "
+  chronos-mfe:
+    image: ${IMAGE_CHRONOS_MFE:-chronos_mfe}
+    build:
+      context: ../packages/chronos-mfe/
+      dockerfile: ../dockerfiles/chronosService/chronos-mfe.Dockerfile

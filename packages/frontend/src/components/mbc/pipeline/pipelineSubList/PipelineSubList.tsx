@@ -7,10 +7,10 @@ import {
   IPipelineProjectDag,
   IPipelineProjectDagsCollabarator,
   IPipelineProjectDagData,
-} from '../../../../globals/types';
+} from 'globals/types';
 import { history } from '../../../../router/History';
 import { PipelineApiClient } from '../../../../services/PipelineApiClient';
-import Modal from '../../../formElements/modal/Modal';
+import Modal from 'components/formElements/modal/Modal';
 
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
@@ -19,7 +19,7 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import classNames from 'classnames';
-import { Envs } from '../../../../globals/Envs';
+import { Envs } from 'globals/Envs';
 // import { TagRowItem } from '../../admin/taghandling/tagrowitem/TagRowItem';
 // import { isEmpty, iteratee, sortBy } from 'lodash';
 

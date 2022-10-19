@@ -1,8 +1,10 @@
 import React from 'react';
 import cn from 'classnames';
 import Styles from '../DataFunction.scss';
-import { IConnectionType, IDataSourceMaster, ISingleDataSources, ISubSystems } from '../../../../../globals/types';
+import { IConnectionType, IDataClassification, IDataSourceMaster, ISingleDataSources } from 'globals/types';
 import { ISingleDataSourceErrors } from '../DataFunction';
+import Tags from 'components/formElements/tags/Tags';
+// import Tags from 'components/formElements/tags/Tags';
 
 const classNames = cn.bind(Styles);
 
@@ -11,10 +13,11 @@ interface SingleDataSourceProps {
   errors: ISingleDataSourceErrors;
   onDropdownChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   requiredError: string;
-  subSystems: ISubSystems[];
+  dataClassifications: IDataClassification[];
   dataSources: IDataSourceMaster[];
   connectionTypes: IConnectionType[];
   singleDataSourceInfo: ISingleDataSources;
+  setDataSources: (e: string[]) => void;
 }
 
 export const SingleDataSource = ({
@@ -22,24 +25,49 @@ export const SingleDataSource = ({
   errors,
   requiredError,
   connectionTypes,
+  dataClassifications,
   dataSources,
-  subSystems,
   singleDataSourceInfo,
   onDropdownChange,
+  setDataSources,
 }: SingleDataSourceProps) => {
-  const singleSourceConnectionTypesValue = singleDataSourceInfo.connectionTypes
-    ?.map((connectionType: IConnectionType) => {
-      return connectionType.name;
-    })
-    ?.toString();
+  // const [dataSources, setDataSources] = useState(0);
+  const singleSourceConnectionTypesValue = singleDataSourceInfo.connectionType;
+    // ?.map((connectionType: IConnectionType) => {
+    //   return connectionType.name;
+    // })
+    // ?.toString();
 
-  const singleSourceSubsystemValue = singleDataSourceInfo.subsystems?.map((subsystem: ISubSystems) => {
-    return subsystem.name;
-  });
+  const singleSourceDataClassificationsValue = singleDataSourceInfo.dataClassification;  
 
-  const singleSourceDataSourceValue = singleDataSourceInfo.dataSources?.map((dataSource: IDataSourceMaster) => {
-    return dataSource.name;
-  });
+  const singleSourceDataSourceValue = singleDataSourceInfo.dataSources?.map((item: any) => item.dataSource);
+  // ?.map((dataSource: IDataSourceMaster) => {
+  //   return dataSource.name;
+  // });
+
+  // const setDataSources = (arr: string[]) => {
+    
+  // };
+
+  // const removeDataSource = (index: number) => {
+  //   dataSources.filter((ds, dsIndex) => index !== dsIndex);
+
+  //   // if (dataSources.length > 0) {
+  //   //   const totalWeightage = dataSources.map((i) => i.weightage).reduce((current, next) => current + next);
+  //   //   this.setState({
+  //   //     totalWeightage,
+  //   //   });
+  //   // } else {
+  //   //   this.setState({
+  //   //     totalWeightage: 0,
+  //   //   });
+  //   // }
+
+  //   this.props.modifyDataSources({
+  //     dataSources,
+  //     // dataVolume: this.state.dataVolumeValue,
+  //   });
+  // };
 
   return (
     dataSourceType === 'singledatasource' && (
@@ -47,13 +75,13 @@ export const SingleDataSource = ({
         <div className={Styles.flexLayout}>
           <div>
             <div>
-              <div className={classNames('input-field-group include-error', errors.dataSources ? 'error' : '')}>
-                <label id="commonFunctionLabel" htmlFor="commonFunctionInput" className="input-label">
+              {/* <div className={classNames('input-field-group include-error', errors.dataSources ? 'error' : '')}>
+                <label id="dataSourcesLabel" htmlFor="dataSourcesInput" className="input-label">
                   Data Source<sup>*</sup>
                 </label>
                 <div className="custom-select">
                   <select
-                    id="commonFunctionField"
+                    id="dataSourcesField"
                     multiple={true}
                     required={true}
                     required-error={requiredError}
@@ -71,34 +99,56 @@ export const SingleDataSource = ({
                 <span className={classNames('error-message', errors.dataSources ? '' : 'hide')}>
                   {errors.dataSources}
                 </span>
+              </div> */}
+              <div>
+                <Tags
+                  title={'Data Source'}
+                  max={100}
+                  chips={
+                    singleSourceDataSourceValue
+                  }
+                  setTags={setDataSources}
+                  // removeTag={removeDataSource}
+                  tags={dataSources}
+                  isDataSource={true}
+                  suggestionPopupHeight={300}
+                  isMandatory={true}
+                  showMissingEntryError={errors.dataSources !== ''}
+                  // {...this.props}
+                />
               </div>
             </div>
           </div>
           <div>
             <div>
-              <div className={classNames('input-field-group include-error', errors.subsystems ? 'error' : '')}>
-                <label id="specificFunctionLabel" htmlFor="specificFunctionInput" className="input-label">
-                  Subsystem<sup>*</sup>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors.dataClassification ? 'error' : ''
+                )}
+              >
+                <label id="dataClassificationLabel" htmlFor="dataClassificationSelectBox" className="input-label">
+                  Data Classification<sup>*</sup>
                 </label>
-                <div className="custom-select">
+                <div className={`custom-select ${dataClassifications?.length ? '' : ''}`}>
                   <select
-                    id="specificFunctionField"
-                    multiple={true}
+                    id="dataClassificationSelectBox"
+                    name="dataClassification"
+                    value={singleSourceDataClassificationsValue}
+                    onChange={(e) => onDropdownChange(e)}
                     required={true}
                     required-error={requiredError}
-                    name="subsystems"
-                    value={singleSourceSubsystemValue}
-                    onChange={onDropdownChange}
                   >
-                    {subSystems?.map((obj) => (
+                    {<option value="">Choose</option>}
+                    {dataClassifications?.map((obj) => (
                       <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                         {obj.name}
                       </option>
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.subsystems ? '' : 'hide')}>
-                  {errors.subsystems}
+                <span className={classNames('error-message', errors.dataClassification ? '' : 'hide')}>
+                  {errors.dataClassification}
                 </span>
               </div>
             </div>
@@ -107,16 +157,16 @@ export const SingleDataSource = ({
         <div className={Styles.flexLayout}>
           <div>
             <div>
-              <div className={classNames('input-field-group include-error', errors.connectionTypes ? 'error' : '')}>
-                <label id="queriesLabel" htmlFor="queriesInput" className="input-label">
+              <div className={classNames('input-field-group include-error', errors.connectionType ? 'error' : '')}>
+                <label id="connectionTypeSelectBoxLabel" htmlFor="connectionTypeSelectBox" className="input-label">
                   Connection Type<sup>*</sup>
                 </label>
                 <div className="custom-select">
                   <select
-                    id="queriesField"
+                    id="connectionTypeSelectBox"
                     required={true}
                     required-error={requiredError}
-                    name="connectionTypes"
+                    name="connectionType"
                     value={singleSourceConnectionTypesValue}
                     onChange={onDropdownChange}
                   >
@@ -128,8 +178,8 @@ export const SingleDataSource = ({
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.connectionTypes ? '' : 'hide')}>
-                  {errors.connectionTypes}
+                <span className={classNames('error-message', errors.connectionType ? '' : 'hide')}>
+                  {errors.connectionType}
                 </span>
               </div>
             </div>

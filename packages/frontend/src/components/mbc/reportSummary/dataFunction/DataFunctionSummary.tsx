@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IDataAndFunctions } from '../../../../globals/types';
+import { IDataAndFunctions } from 'globals/types';
 // @ts-ignore
 import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
@@ -42,27 +42,27 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                           <br />
                           {data.commonFunctions?.join(', ')}
                         </div>
-                        <div id="specificFunctions">
+                        {/* <div id="specificFunctions">
                           <label className="input-label summary">Specific Functions</label>
                           <br />
                           {data.specificFunctions?.join(', ')}
-                        </div>
-                        <div id="queries">
+                        </div> */}
+                        {/* <div id="queries">
                           <label className="input-label summary">Queries</label>
                           <br />
                           {data.queries?.join(', ')}
-                        </div>
+                        </div> */}
                       </div>
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                        <div id="dataSources">
+                        {/* <div id="dataSources">
                           <label className="input-label summary">Original Data Sources</label>
                           <br />
                           {data.dataSources?.join(', ')}
-                        </div>
+                        </div> */}
                         <div id="connectionType">
                           <label className="input-label summary">Connection Type</label>
                           <br />
-                          {data.connectionTypes}
+                          {data.connectionType}
                         </div>
                         <div></div>
                       </div>
@@ -83,17 +83,17 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                         <div id="dataSource">
                           <label className="input-label summary">Data Sources</label>
                           <br />
-                          {data.dataSources?.join(', ')}
+                          {data.dataSources?.map((item:any) => item.dataSource).join(' / ')}
                         </div>
                         <div id="commonFunctions">
-                          <label className="input-label summary">Subsystems</label>
+                          <label className="input-label summary">Data Classification</label>
                           <br />
-                          {data.subsystems?.join(', ')}
+                          {data.dataClassification}
                         </div>
                         <div id="specificFunctions">
                           <label className="input-label summary">Connection Type</label>
                           <br />
-                          {data.connectionTypes}
+                          {data.connectionType}
                         </div>
                       </div>
                     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
-import { PredefinedSolutionLogoImagesInfo } from '../../../../../../globals/constants';
-import { ILogoDetails } from '../../../../../../globals/types';
+import { PredefinedSolutionLogoImagesInfo } from 'globals/constants';
+import { ILogoDetails } from 'globals/types';
 
 export interface ILogoImageProps {
   displayType: string;

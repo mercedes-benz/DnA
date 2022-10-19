@@ -221,6 +221,11 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 				}
 				LOGGER.debug("Calling solutionService to update cascading refences to division {}", id);
 				solutionService.updateForEachSolution(id, "", SolutionService.TAG_CATEGORY.DIVISION, vo);
+				List<ChangeLogVO> changeLogsVO = solutionAssembler.jsonObjectCompare(vo, existingDivisionVO, currentUser);
+				if (null != existingDivisionVO.getChangeLogs() && changeLogsVO!=null) {
+					changeLogsVO.addAll(existingDivisionVO.getChangeLogs());
+				}
+				vo.setChangeLogs(changeLogsVO);
 				mergedDivisionVO = super.create(vo);
 				if (mergedDivisionVO != null && mergedDivisionVO.getId() != null) {
 					LOGGER.debug("Calling dashboardService to update cascading refences to division {}", id);

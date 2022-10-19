@@ -18,6 +18,7 @@ export interface IDescriptionSummaryProps {
   description: IDescriptionRequest;
   canEdit: boolean;
   bookmarked: boolean;
+  isPublished: boolean;
   createdDate?: string;
   lastModifiedDate?: string;
   onEdit: (solutionId: string) => void;
@@ -215,6 +216,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
             </div>
             <h3 id="productName">{description.productName}</h3>
             <span className={Styles.description}>Solution Summary</span>
+            {!this.props.isPublished && <span className={Styles.draftIndicator}>DRAFT</span>}
             <div className={Styles.firstPanel}>
               <div className={Styles.formWrapper}>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>

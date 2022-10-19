@@ -36,14 +36,17 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.jsonb.UserFavoriteUseCase;
+import com.daimler.data.db.jsonb.UserInfo;
 import com.daimler.data.db.jsonb.UserInfoRole;
 import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
 import com.daimler.data.db.repo.userinfo.UserInfoRepository;
@@ -81,6 +84,7 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	@Autowired
 	private KafkaProducerService kafkaProducer;
 
+	
 	public BaseUserInfoService() {
 		super();
 	}
@@ -309,4 +313,10 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		}));
 	}
 	
+	@Override
+	public UserInfoVO getById(String id) {
+		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
+		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
+	}
+
 }

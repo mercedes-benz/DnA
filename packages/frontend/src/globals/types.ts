@@ -113,6 +113,8 @@ export interface IProjectType {
 export interface ITag {
   id: string;
   name: string;
+  dataType?: null | string;
+  source?: null | string;
 }
 
 export interface IDigiUsecase extends IUsecase {
@@ -424,8 +426,14 @@ export interface IDataSources {
 }
 
 export interface IDataSourceMaster {
-  id: number;
-  name?: string;
+  // id: number;
+  // name?: string;
+  // source?: string;
+  // dataType: string;
+  id: string;
+  name: string;
+  dataType?: null | string;
+  source?: null | string;
 }
 
 export interface IPlatform {
@@ -567,26 +575,42 @@ export interface IDescriptionRequest {
   productDescription: string;
   productPhase: IProductPhase[] | any;
   status: IProductStatus[] | any;
-  agileReleaseTrains: IART[];
-  integratedPortal: IIntegratedPortal[];
+  agileReleaseTrain: string;
+  integratedPortal: string;
   designGuideImplemented: IDesignGuide[] | any;
-  frontendTechnologies: IFrontEndTech[];
+  frontendTechnologies: string[];
   tags: string[];
+  reportLink: string;
+  reportType: string;
+  piiData: string;
 }
 
 export interface ICustomers {
-  customerDetails: ICustomerDetails[];
-  processOwners: ITeams[];
+  externalCustomers: IExternalCustomerDetails[];
+  internalCustomers: IInternalCustomerDetails[];
 }
 
-export interface ICustomerDetails {
+export interface IInternalCustomerDetails {
+  name: ITeams;
+  customerRelation: string;
   comment: string;
   department: string;
-  hierarchy: string;
-  ressort: string;
+  level: string;
+  legalEntity: string;
+  division: any;
+  accessToSensibleData: boolean | string;
+  processOwner: ITeams | string;
 }
-export interface IKpis {
+
+export interface IExternalCustomerDetails {
+  name: ITeams;
+  companyName: string;
+  customerRelation: string;
   comment: string;
+}
+
+export interface IKpis {
+  description: string;
   name: string;
   reportingCause: string;
   kpiLink: string;
@@ -599,17 +623,15 @@ export interface IDataAndFunctions {
 
 export interface IDataWarehouseInUse {
   commonFunctions: string[];
-  connectionTypes: string[];
-  dataSources: string[];
+  connectionType: string;
   dataWarehouse: string;
-  queries: string[];
-  specificFunctions: string[];
+  dataClassification: string;
 }
 
 export interface ISingleDataSources {
-  connectionTypes: IConnectionType[];
-  dataSources: IDataSourceMaster[];
-  subsystems: ISubSystems[];
+  connectionType: string;
+  dataSources: IDataSources[];
+  dataClassification: string;
 }
 export interface IUserNewInfo {
   company: string;
@@ -624,9 +646,8 @@ export interface IUserNewInfo {
 }
 
 export interface IMembers {
-  developers: ITeams[];
-  productOwners: ITeams[];
-  admin?: ITeams[];
+  reportOwners: ITeams[];
+  reportAdmins?: ITeams[];
 }
 export interface ICreateNewReport {
   description: IDescriptionRequest;
@@ -639,8 +660,14 @@ export interface ICreateNewReport {
   createdBy?: IUserInfo;
   id?: string;
   productName: string;
+  usingQuickPath: boolean;
+  reportId: string;
 }
 export interface IProductPhase {
+  id: string;
+  name: string;
+}
+export interface IReportType {
   id: string;
   name: string;
 }
@@ -692,17 +719,21 @@ export interface IConnectionType {
   name: string;
 }
 
-export interface IDataWarehouse {
+export interface IDataClassification {
   id: string;
-  dataWarehouse: string;
-  commonFunctions: string[];
-  specificFunctions: string[];
-  queries: string[];
-  dataSources: string[];
-  connectionTypes: string[];
+  name: string;
 }
 
-export interface ISubSystems {
+export interface IDataWarehouse {
+  id: string;
+  name: string;
+  // dataWarehouse: string;
+  // commonFunctions: string[];
+  // dataClassifications: string[];
+  // connectionTypes: string[];
+}
+
+export interface ICommonFunctions {
   id: string;
   name: string;
 }
@@ -778,6 +809,9 @@ export interface IDataikuCheckListItem {
 export interface ICreateNewSolutionRequest {
   data: ICreateNewSolution;
 }
+export interface IDataComplianceRequest {
+  data: IEntity;
+}
 export interface ICreateNewReportRequest {
   data: ICreateNewReport;
 }
@@ -839,6 +873,20 @@ export interface INeededRoleObject {
   toDate: string;
 }
 
+export interface IEntity {
+  dataProtectionCoordinator: string[];
+  entityId: string;
+  entityName: string;
+  localComplianceOfficer: string[];
+  localComplianceResponsible: string[];
+  localComplianceSpecialist: string[];
+  createdDate?: string;
+  id?: string;
+  lastModifiedDate?: string;
+  createdBy?: IUserInfo;
+  modifiedBy?: IUserInfo;
+}
+
 export interface IAllSolutionsListItemCSV {
   id?: string;
   businessNeed: string;
@@ -888,6 +936,7 @@ export interface IAllReportsListItemCSV {
   productName: string;
   createdDate?: string;
   lastModifiedDate?: string;
+  reportId: string;
 }
 
 export interface IAllSolutionsResult {
@@ -1236,6 +1285,8 @@ export interface ITagResult {
   category: IFitlerCategory;
   datawareHouseItems?: IDatawarehouseInItem;
   subdivisions?: ISubDivision[];
+  source?: string;
+  dataType?: string;
 }
 export interface IRelatedProduct {
   id: string;
@@ -1324,10 +1375,8 @@ export interface IDatawarehouseInItem {
   id: string;
   dataWarehouse: string;
   commonFunctions: string[];
-  specificFunctions: string[];
-  queries: string[];
-  dataSources: string[];
-  connectionTypes: string[];
+  dataClassification: string;
+  connectionType: string;
 }
 
 export interface IInfoItem {

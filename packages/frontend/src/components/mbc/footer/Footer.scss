@@ -5,6 +5,15 @@
     cursor: pointer;
   }
 
+  &.feedback {
+    a {
+      text-decoration: none !important;
+      &:hover {
+        text-decoration: underline !important;
+      }
+    }
+  }
+
   &.forPortfolio {
     padding: 0;
   }
