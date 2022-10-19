@@ -40,9 +40,9 @@ The list of future ideas is big and it is constantly being adjusted, so please i
 
 if you want to try the DnA Platform ,please follow the [installation guide](./docs/Install.md). In the installation guide we are provding 2 ways to install this application(Docker-compose and Helm) . Use Docker-compose only for local testing .
 
-For a complete production installation, we recommend the installation using helm.Currently in our helm and docker-compose we are providing multiple service like DnA , Dashboard, Naas , Malware Scan,Vault service and storage-service.
+For a complete production installation, we recommend the installation using helm.Currently in our helm and docker-compose we are providing multiple service like DnA , Dashboard, Naas , Malware Scan,Vault service,storage-service ,Airflow and Jupyter Notebooks.
 
-Very soon we are going to provide you the docker-compose and helm-chart for airflow,kubeflow-pipeline and Jupter notebooks. So stay tuned to our repo frequently .
+Very soon we are going to provide you the docker-compose and helm-chart for kubeflow-pipeline, Model Registry and Trino . So stay tuned to our repo frequently .
 
 ## Architecture
 

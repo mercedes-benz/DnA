@@ -67,7 +67,7 @@ spec:
             - name: FLYWAY_SCHEMA
               value: {{ .Values.flywaySchema | quote }}
             - name: CORS_ORIGIN_URL
-              value: {{ .Values.corsOrigibUrl | quote }}
+              value: {{ .Values.corsOriginUrl | quote }}
             - name: NAAS_BROKER
               value: {{ .Values.naasBroker }} 
           {{- end }}         
