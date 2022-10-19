@@ -45,6 +45,5 @@ public class FilterPreferences implements Serializable {
 	private List<Art> arts;
 	private List<String> tags;
 	private List<String> departments;
-	private List<String> productOwners;
 	private List<String> processOwners;
 }
