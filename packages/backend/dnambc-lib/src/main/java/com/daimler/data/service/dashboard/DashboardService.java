@@ -52,11 +52,12 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return count
 	 */
 	Long getSolCountWithNotebook(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To get solution count using native query
@@ -73,11 +74,12 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return solutioncount
 	 */
 	Long getSolCount(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch DataSource Details of solutions
@@ -94,11 +96,13 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<DatasourceWidgetVO>
 	 */
 	List<DatasourceWidgetVO> getSolDatasource(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch solution count at each of the locations
@@ -115,11 +119,13 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<LocationWidgetVO>
 	 */
 	List<LocationWidgetVO> getSolLocation(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To fetch Milestones of solutions and solution count for each of the
@@ -137,11 +143,13 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<MilestoneWidgetVO>
 	 */
 	List<MilestoneWidgetVO> getSolMilestone(Boolean published, List<String> phases, List<String> dataVolumes,
 			String divisions, List<String> locations, List<String> statuses, String solutionType, String userId,
-			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			Boolean isAdmin, List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags,
+			List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch digital value of all the solutions
@@ -158,11 +166,12 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return totalDigitalValue (BigDecimal)
 	 */
 	BigDecimal getSolDigitalValue(Boolean published, List<String> phases, List<String> dataVolumes, String divisions,
 			List<String> locations, List<String> statuses, String solutionType, String userId, Boolean isAdmin,
-			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags);
+			List<String> bookmarkedSolutions, List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 
 	/**
 	 * To Fetch digital value summary for all the solutions
@@ -179,10 +188,11 @@ public interface DashboardService {
 	 * @param bookmarkedSolutions
 	 * @param searchTerms
 	 * @param tags
+	 * @param divisionsAdmin
 	 * @return List<SolDigitalValuesummary>
 	 */
 	List<SolDigitalValuesummaryVO> getSolDigitalValueSummary(Boolean published, List<String> phases,
 			List<String> dataVolumes, String divisions, List<String> locations, List<String> statuses,
 			String solutionType, String userId, Boolean isAdmin, List<String> bookmarkedSolutions,
-			List<String> searchTerms, List<String> tags);
+			List<String> searchTerms, List<String> tags, List<String> divisionsAdmin);
 }

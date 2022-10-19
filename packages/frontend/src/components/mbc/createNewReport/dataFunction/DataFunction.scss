@@ -211,6 +211,22 @@
               &:last-child{
                 min-width: 10% !important;
               }
+
+              &.chips {
+                padding-right: 15px;
+                span {
+                  border: 1px solid #697582;
+                  border-radius: 2px;
+                  color: #697582;
+                  display: inline-block;
+                  font-size: var(--font-size-icon-small);
+                  letter-spacing: 1px;
+                  line-height: 14px;
+                  margin-left: 4px;
+                  margin-right: 4px;
+                  padding: 2px 4px;
+                }
+              }
             }
           }
           .dataSourceTitleCol {

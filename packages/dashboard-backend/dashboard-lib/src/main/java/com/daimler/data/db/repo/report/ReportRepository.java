@@ -28,9 +28,12 @@
 package com.daimler.data.db.repo.report;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.daimler.data.db.entities.ReportNsql;
 
 public interface ReportRepository extends JpaRepository<ReportNsql, String> {
 
+	@Query(value = "SELECT nextval('report_seq')", nativeQuery = true)
+	Long getNextSeqId();
 }

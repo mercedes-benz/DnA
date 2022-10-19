@@ -4,6 +4,7 @@ services:
     image: ${TRINO_IMAGE:-trino_immuta}
     container_name: trino
     build:
-      #context: ./dockerfiles/trino/Dockerfile
+      context: .
       dockerfile: $PWD/Dockerfile
-    
+      args:
+        baseimage: ${TRINO_VERSION:-trino}

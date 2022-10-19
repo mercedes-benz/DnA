@@ -5,10 +5,10 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 
-import { ITeams } from '../../../../globals/types';
+import { ITeams } from 'globals/types';
 import TeamMemberListItem from './teamMemberListItem/TeamMemberListItem';
 import Styles from './TeamSummary.scss';
-import {IntlProvider, FormattedNumber} from 'react-intl'
+import { IntlProvider, FormattedNumber } from 'react-intl';
 
 const classNames = cn.bind(Styles);
 
@@ -56,7 +56,11 @@ export default class TeamSummary extends React.Component<ITeamProps, any> {
                           <div key={item.neededSkill + index} id={item.neededSkill + index}>
                             {item.neededSkill}:{' '}
                             <IntlProvider locale={navigator.language} defaultLocale="en">
-                              {item.requestedFTECount ? <FormattedNumber value={Number(item.requestedFTECount)} /> : 'N/A'}
+                              {item.requestedFTECount ? (
+                                <FormattedNumber value={Number(item.requestedFTECount)} />
+                              ) : (
+                                'N/A'
+                              )}
                             </IntlProvider>
                           </div>
                         );

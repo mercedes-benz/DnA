@@ -51,7 +51,7 @@ public class TagSql implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tag_sequence_gen")
-	@SequenceGenerator(name = "tag_sequence_gen", sequenceName = "dashboard_sequence", allocationSize = 1)
+	@SequenceGenerator(name = "tag_sequence_gen", sequenceName = "lov_sequence", allocationSize = 1)
 	private Long id;
 
 	@Column(name = "name")

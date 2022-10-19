@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "chronos-be.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+    - ports:
+        - port: 7979
+  podSelector:
+    matchLabels:
+      {{- include "chronos-be.selectorLabels" . | nindent 8 }}

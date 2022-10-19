@@ -14,7 +14,16 @@ spec:
     metadata:
       labels:
         {{- include "storage-be.selectorLabels" . | nindent 8 }}
+      {{- if .Values.vaultInjector.enable }}      
+      {{- with .Values.vaultInjector.annotations }}
+      annotations:
+        {{- toYaml . | nindent 9 }}
+      {{- end }}
+      {{- end }}        
     spec:
+      {{- if .Values.vaultInjector.enable }}         
+      serviceAccountName: {{ .Values.vaultInjector.saName }}
+      {{- end }}       
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -25,6 +34,15 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.vaultInjector.enable }}           
+          command: ["/bin/sh", "-c"]
+          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          {{ else }}          
+          {{- with .Values.envs }}            
+          env:
+          {{- toYaml . | nindent 12 }}
+          {{- end }} 
+          {{- end }}   
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
@@ -46,7 +64,3 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.envs }}            
-          env:
-          {{- toYaml . | nindent 12 }}
-          {{- end }}   

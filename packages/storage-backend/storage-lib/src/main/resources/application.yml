@@ -74,14 +74,19 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 storage:
   termsOfUse.uri: ${STORAGE_TERMS_OF_USE_URL:https://xxxxx}
+  connect.host: ${STORAGE_CONNECT_HOST:http://xxxxxxx}
  
 minio:
   clientApi: ${MINIO_CLIENT_API:http://localhost:9000}
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-  accessKey: ${MINIO_ADMIN_ACCESS_KEY:XXXXXX} 
-  secretKey: ${MINIO_ADMIN_SECRET_KEY:XXXXXX}
+  accessKey: ${MINIO_ROOT_USER:XXXXXX} 
+  secretKey: ${MINIO_ROOT_PASSWORD:XXXXXX}
   version: ${MINIO_POLICY_VERSION:2012-10-17}
 
+databricks:
+  userid: ${DATABRICKS_USERID:XXXXX}
+  userauth: ${DATABRICKS_USER_AUTH:XXXXX}
+  
 # For dataiku connection  
 dataiku:
   connectionsUriPath: ${DATAIKU_CONNECTION_URI_PATH:/admin/connections}

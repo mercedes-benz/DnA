@@ -1,21 +1,21 @@
 import cn from 'classnames';
 import * as React from 'react';
-import InputFieldsUtils from '../../../formElements/InputFields/InputFieldsUtils';
+import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
-import { IconAvatarNew } from '../../../../components/icons/IconAvatarNew';
-import AddTeamMemberModal from '../../addTeamMember/addTeamMemberModal/AddTeamMemberModal';
-import TeamMemberListItem from '../../addTeamMember/teamMemberListItem/TeamMemberListItem';
-import { IRelatedProduct, ITeams } from '../../../../globals/types';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
+import AddTeamMemberModal from 'components/mbc/addTeamMember/addTeamMemberModal/AddTeamMemberModal';
+import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
+import { IRelatedProduct, ITeams } from 'globals/types';
 import AddRelatedProductModal from '../description/addRelatedProductModal/AddRelatedProductModal';
 import Styles from './Teams.scss';
-import SelectBox from '../../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
-import InfoModal from '../../../formElements/modal/infoModal/InfoModal';
-import ConfirmModal from '../../../formElements/modal/confirmModal/ConfirmModal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { InputFields } from '../../../../assets/modules/uilab/bundle/js/uilab.bundle';
-import { InfoList } from '../../../formElements/modal/infoModal/InfoList';
-import { RolesInfoList } from '../../../../globals/constants';
+import { InfoList } from 'components/formElements/modal/infoModal/InfoList';
+import { RolesInfoList } from 'globals/constants';
 import NumberFormat from 'react-number-format';
 
 const classNames = cn.bind(Styles);
@@ -132,7 +132,7 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
     });
   }
 
-  public render() {     
+  public render() {
     const teamMembersList = this.state.teamMembers.map((member: ITeams, index: number) => {
       return (
         <TeamMemberListItem
@@ -246,16 +246,22 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
                                       <div>
                                         {/* @ts-ignore */}
                                         <NumberFormat
-                                            className={classNames('input-field', Styles.fteField)}
-                                            id={'numberOfRequestedFTE-' + index}
-                                            name="requestedFTECount"
-                                            value={                                              
-                                              new Intl.NumberFormat(navigator.language).format(Number(item.requestedFTECount))
-                                            }
-                                            thousandSeparator={false}
-                                            decimalScale={2}
-                                            decimalSeparator={navigator.language == 'de-DE' || navigator.language == 'de' || navigator.language == 'DE' ? "," : "."}
-                                            onValueChange={(values, sourceInfo) => this.handleChange(values,sourceInfo)}
+                                          className={classNames('input-field', Styles.fteField)}
+                                          id={'numberOfRequestedFTE-' + index}
+                                          name="requestedFTECount"
+                                          value={new Intl.NumberFormat(navigator.language).format(
+                                            Number(item.requestedFTECount),
+                                          )}
+                                          thousandSeparator={false}
+                                          decimalScale={2}
+                                          decimalSeparator={
+                                            navigator.language == 'de-DE' ||
+                                            navigator.language == 'de' ||
+                                            navigator.language == 'DE'
+                                              ? ','
+                                              : '.'
+                                          }
+                                          onValueChange={(values, sourceInfo) => this.handleChange(values, sourceInfo)}
                                         />
                                       </div>
                                     </td>
@@ -441,7 +447,9 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
 
   protected validateMembersList = (teamMemberObj: ITeams) => {
     let duplicateMember = false;
-    duplicateMember = this.state.teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length ? true : false;
+    duplicateMember = this.state.teamMembers?.filter((member) => member.shortId === teamMemberObj.shortId)?.length
+      ? true
+      : false;
     return duplicateMember;
   };
 
@@ -577,8 +585,8 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
 
       const result = [...onlyInA, ...onlyInB];
       roleCountFieldList.push(...result);
-      this.setState({ roleCountFieldList, neededRoleValue: selectedValues },()=>{
-        const tempTeamsObj = {team: this.state.teamMembers}
+      this.setState({ roleCountFieldList, neededRoleValue: selectedValues }, () => {
+        const tempTeamsObj = { team: this.state.teamMembers };
         this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
       });
     } else {
@@ -590,9 +598,8 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
         },
         () => {
           InputFields.defaultSetup();
-          const tempTeamsObj = {team: this.state.teamMembers}
-          if(tempRoleCountFieldList.length > 0)
-          this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
+          const tempTeamsObj = { team: this.state.teamMembers };
+          if (tempRoleCountFieldList.length > 0) this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
         },
       );
     }
@@ -632,8 +639,8 @@ export default class Teams extends React.Component<ITeamProps, ITeamsState> {
       }
       return item;
     });
-    this.setState({ roleCountFieldList },()=>{
-      const tempTeamsObj = {team: this.state.teamMembers}
+    this.setState({ roleCountFieldList }, () => {
+      const tempTeamsObj = { team: this.state.teamMembers };
       this.props.modifyTeam(tempTeamsObj, this.state.roleCountFieldList);
     });
   };

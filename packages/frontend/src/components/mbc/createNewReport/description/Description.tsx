@@ -8,7 +8,7 @@ import {
   ITag,
   IProductPhase,
   IProductStatus,
-  IIntegratedInPortal,
+  // IIntegratedInPortal,
   IDesignGuide,
   IFrontEndTech,
   IIntegratedPortal,
@@ -18,11 +18,13 @@ import {
   ISubDivision,
   IDivisionAndSubDivision,
   IDepartment,
-} from '../../../../globals/types';
+} from 'globals/types';
 import Styles from './Description.scss';
-import Tags from '../../../formElements/tags/Tags';
-import SelectBox from '../../../../components/formElements/SelectBox/SelectBox';
+import Tags from 'components/formElements/tags/Tags';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { ApiClient } from '../../../../services/ApiClient';
+import TextBox from 'components/mbc/shared/textBox/TextBox';
+import TextArea from 'components/mbc/shared/textArea/TextArea';
 const classNames = cn.bind(Styles);
 
 export interface IDescriptionProps {
@@ -40,6 +42,8 @@ export interface IDescriptionProps {
   tags: ITag[];
   departmentTags: IDepartment[];
   setSubDivisions: (subDivisions: ISubDivision[]) => void;
+  enableQuickPath: boolean;
+  refineReport?: () => void;
 }
 
 export interface IDescriptionState {
@@ -55,22 +59,28 @@ export interface IDescriptionState {
   productPhaseError: string;
   statusValue: IProductStatus[];
   statusError: string;
-  artValue: IART[];
+  artValue: string;
   artError: string;
-  integratedPortalsValue: IIntegratedInPortal[];
+  integratedPortalsValue: string;
   integratedPortalError: string;
   designGuideValue: IDesignGuide[];
   designGuideError: string;
-  frontEndTechValue: IFrontEndTech[];
+  frontEndTechValue: string[];
   frontEndTechError: string;
   chips: string[];
   showTagsMissingError: boolean;
   tags: string[];
   showDepartmentMissingError: boolean;
   departmentTags: string[];
+  reportLink: string;
+  reportLinkError: string;
+  reportTypeValue: string;
+  reportTypeError: string;
+  piiValue: string;
+  piiError: string;
 }
 
-export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
+export default class Description extends React.PureComponent<IDescriptionProps, IDescriptionState> {
   public static getDerivedStateFromProps(props: IDescriptionProps, state: IDescriptionState) {
     return {
       productName: props.description.productName,
@@ -81,10 +91,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       frontEndTechValue: props.description.frontendTechnologies,
       statusValue: props.description.status,
       designGuideValue: props.description.designGuideImplemented,
-      artValue: props.description.agileReleaseTrains,
+      artValue: props.description.agileReleaseTrain,
       integratedPortalsValue: props.description.integratedPortal,
       tags: props.description.tags,
       departmentTags: props.description.department,
+      reportLink: props.description.reportLink,
+      reportTypeValue: props.description.reportType,
+      piiValue: props.description.piiData
     };
   }
   constructor(props: IDescriptionProps) {
@@ -115,6 +128,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       tags: [],
       showDepartmentMissingError: false,
       departmentTags: [],
+      reportLink: null,
+      reportLinkError: null,
+      reportTypeValue: 'Standard Report',
+      reportTypeError: null,
+      piiValue: null,
+      piiError: null
     };
   }
 
@@ -122,11 +141,24 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     SelectBox.defaultSetup();
   }
 
+  componentDidUpdate(prevProps: IDescriptionProps, prevState: IDescriptionState) {
+    if (prevProps.enableQuickPath !== this.props.enableQuickPath) {
+      if (!this.props.enableQuickPath) {
+        SelectBox.defaultSetup();
+      }
+    }
+  }
+
   public onProductNameOnChange = (e: React.FormEvent<HTMLInputElement>) => {
     const productName = e.currentTarget.value;
     const description = this.props.description;
     description.productName = productName;
     // this.props.onStateChange();
+    if (productName === '' || productName === null) {
+      this.setState({ productNameError: '*Missing Entry' });
+    } else {
+      this.setState({ productNameError: '' });
+    }
     this.setState({
       productName,
     });
@@ -137,9 +169,31 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.productDescription = desc;
     // this.props.onStateChange();
+    if (desc === '' || desc === null) {
+      this.setState({ descriptionError: '*Missing Entry' });
+    } else {
+      this.setState({ descriptionError: '' });
+    }
     this.setState({
       description: desc,
     });
+  };
+
+  public onReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = e.currentTarget.selectedOptions;
+    let selectedValues = '';
+    if (selectedOptions.length) {
+      Array.from(selectedOptions).forEach((option) => {
+        // const reportType: IReportType = { id: null, name: null };
+        // reportType.id = option.value;
+        // reportType.name = option.textContent;
+        // selectedValues.push(reportType);
+        selectedValues = option.value;
+      });
+    }
+    const description = this.props.description;
+    description.reportType = selectedValues;
+    this.setState({ reportTypeValue: selectedValues });
   };
 
   public onDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -198,35 +252,57 @@ export default class Description extends React.Component<IDescriptionProps, IDes
   };
 
   public onChangeART = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const selectedValues: IART[] = [];
+    // if (selectedOptions.length) {
+    //   Array.from(selectedOptions).forEach((option) => {
+    //     const art: IART = { id: null, name: null };
+    //     art.id = option.value;
+    //     art.name = option.textContent;
+    //     selectedValues.push(art);
+    //   });
+    // }
+    // const description = this.props.description;
+    // description.agileReleaseTrains = selectedValues;
+    // this.setState({ artValue: selectedValues });
+
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IART[] = [];
+    let selectedValue = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const art: IART = { id: null, name: null };
-        art.id = option.value;
-        art.name = option.textContent;
-        selectedValues.push(art);
+        selectedValue = option.value;
       });
     }
     const description = this.props.description;
-    description.agileReleaseTrains = selectedValues;
-    this.setState({ artValue: selectedValues });
+    description.agileReleaseTrain = selectedValue;
+    this.setState({ piiValue: selectedValue });
   };
 
   public onChangeItegratedPortal = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // const selectedOptions = e.currentTarget.selectedOptions;
+    // const selectedValues: IIntegratedPortal[] = [];
+    // if (selectedOptions.length) {
+    //   Array.from(selectedOptions).forEach((option) => {
+    //     const integratedPortal: IIntegratedPortal = { id: null, name: null };
+    //     integratedPortal.id = option.value;
+    //     integratedPortal.name = option.textContent;
+    //     selectedValues.push(integratedPortal);
+    //   });
+    // }
+    // const description = this.props.description;
+    // description.integratedPortal = selectedValues;
+    // this.setState({ integratedPortalsValue: selectedValues });
+    
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IIntegratedPortal[] = [];
+    let selectedValue = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const integratedPortal: IIntegratedPortal = { id: null, name: null };
-        integratedPortal.id = option.value;
-        integratedPortal.name = option.textContent;
-        selectedValues.push(integratedPortal);
+        selectedValue = option.value;
       });
     }
     const description = this.props.description;
-    description.integratedPortal = selectedValues;
-    this.setState({ integratedPortalsValue: selectedValues });
+    description.integratedPortal = selectedValue;
+    this.setState({ piiValue: selectedValue });
   };
 
   public onChangeStatus = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -244,30 +320,30 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     description.status = selectedValues;
     this.setState({ statusValue: selectedValues });
   };
-  public onChangeDesignGuideInpl = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  public onChangePii = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IDesignGuide[] = [];
+    let selectedValues = '';
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const designGuide: IDesignGuide = { id: null, name: null };
-        designGuide.id = option.value;
-        designGuide.name = option.textContent;
-        selectedValues.push(designGuide);
+        // const designGuide: IDesignGuide = { id: null, name: null };
+        // designGuide.id = option.value;
+        // designGuide.name = option.textContent;
+        selectedValues = option.value;
       });
     }
     const description = this.props.description;
-    description.designGuideImplemented = selectedValues;
-    this.setState({ designGuideValue: selectedValues });
+    description.piiData = selectedValues;
+    this.setState({ piiValue: selectedValues });
   };
+
 
   public onChangeFrontTechnologies = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: IFrontEndTech[] = [];
+    const selectedValues: string[] = [];
     if (selectedOptions.length) {
       Array.from(selectedOptions).forEach((option) => {
-        const frontEndTech: IFrontEndTech = { id: null, name: null };
-        frontEndTech.id = option.value;
-        frontEndTech.name = option.textContent;
+        let frontEndTech = '';
+        frontEndTech = option.textContent;
         selectedValues.push(frontEndTech);
       });
     }
@@ -280,26 +356,24 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const divisionError = this.state.divisionError || '';
     const productNameError = this.state.productNameError || '';
     const descriptionError = this.state.descriptionError || '';
-    const productPhaseError = this.state.productPhaseError || '';
+    // const productPhaseError = this.state.productPhaseError || '';
     const statusError = this.state.statusError || '';
     const artError = this.state.artError || '';
     const integratedPortalError = this.state.integratedPortalError || '';
-    const designGuidError = this.state.designGuideError || '';
+    const piiError = this.state.piiError || '';
     const frontEndTechError = this.state.frontEndTechError || '';
+    const reportLinkError = this.state.reportLinkError || '';
+    const reportTypeError = this.state.reportTypeError || '';
 
     const requiredError = '*Missing entry';
 
-    const productPhaseValue = this.state.productPhaseValue
-      ?.map((productPhase: IProductPhase) => {
-        return productPhase.name;
-      })
-      ?.toString();
+    // const productPhaseValue = this.state.productPhaseValue
+    //   ?.map((productPhase: IProductPhase) => {
+    //     return productPhase.name;
+    //   })
+    //   ?.toString();
 
-    const frontEndTechValue = this.state.frontEndTechValue
-      ?.map((frontEndTech: IFrontEndTech) => {
-        return frontEndTech.name;
-      })
-      ?.toString();
+    const frontEndTechValue = this.state.frontEndTechValue;
 
     const statusValue = this.state.statusValue
       ?.map((statusValue: IProductStatus) => {
@@ -307,19 +381,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       })
       ?.toString();
 
-    const designGuideValue = this.state.designGuideValue
-      ?.map((designGuide: IDesignGuide) => {
-        return designGuide.name;
-      })
-      ?.toString();
+    const reportTypeValue = this.state.reportTypeValue;  
 
-    const artValue = this.state.artValue?.map((art: IART) => {
-      return art.name;
-    });
+    const piiValue = this.state.piiValue;
 
-    const integratedInPortalValue = this.state.integratedPortalsValue?.map((integrated: IIntegratedPortal) => {
-      return integrated.name;
-    });
+    const artValue = this.state.artValue;
+
+    const integratedInPortalValue = this.state.integratedPortalsValue;
 
     const departmentValue = this.state.departmentTags?.map((department) => department?.toUpperCase());
 
@@ -333,96 +401,134 @@ export default class Description extends React.Component<IDescriptionProps, IDes
         <div>
           <div className={classNames(Styles.wrapper)}>
             <div className={classNames(Styles.firstPanel, 'decriptionSection')}>
-              <h3>Please give a detailed report description</h3>
-              <div className={classNames(Styles.formWrapper)}>
+              <h3>Please give a report description</h3>
+              <div className={classNames(Styles.formWrapper, this.props.enableQuickPath ? Styles.flexLayout : '')}>
                 <div>
-                  <div>
-                    <div
-                      className={classNames('input-field-group include-error', productNameError.length ? 'error' : '')}
-                    >
-                      <label id="reportNameLabel" htmlFor="reportNameInput" className="input-label">
-                        Report Name<sup>*</sup>
-                      </label>
-                      <input
+                  <div className={!this.props.enableQuickPath ? Styles.flexLayout : ''}>
+                    <div>
+                      <TextBox
                         type="text"
-                        className="input-field"
-                        required={true}
-                        required-error={requiredError}
-                        id="reportNameInput"
-                        maxLength={200}
-                        placeholder="Type here"
-                        autoComplete="off"
-                        onChange={this.onProductNameOnChange}
+                        controlId={'reportNameInput'}
+                        labelId={'reportNameLabel'}
+                        label={'Report Name'}
+                        placeholder={'Type here'}
                         value={this.state.productName}
+                        errorText={productNameError}
+                        required={true}
+                        maxLength={200}
+                        onChange={this.onProductNameOnChange}
                       />
-                      <span className={classNames('error-message', productNameError.length ? '' : 'hide')}>
-                        {productNameError}
-                      </span>
                     </div>
+                    {!this.props.enableQuickPath ?
+                      // <div>
+                      //   <TextBox
+                      //     type="text"
+                      //     controlId={'reportTypeInput'}
+                      //     labelId={'reportTypeLabel'}
+                      //     label={'Report Type'}
+                      //     placeholder={'Type here'}
+                      //     value={this.state.productName}
+                      //     errorText={productNameError}
+                      //     required={true}
+                      //     maxLength={200}
+                      //     onChange={this.onProductNameOnChange}
+                      //   />
+                      // </div>
+
+                      <div
+                        className={classNames(
+                          'input-field-group include-error',
+                          reportTypeError ? 'error' : '',
+                        )}
+                      >
+                        <label id="reportTypeLabel" htmlFor="reportTypeField" className="input-label">
+                          Report Type<sup>*</sup>
+                        </label>
+                        <div className="custom-select">
+                          <select
+                            id="reportTypeField"
+                            required={true}
+                            required-error={requiredError}
+                            onChange={this.onReportTypeChange}
+                            value={reportTypeValue}
+                          >
+                            <option id="reportTypeOption" value={0}>
+                              Choose
+                            </option>
+                            <option id='Standard Report' key={'Standard Report'} value={'Standard Report'}>
+                              Standard Report
+                            </option>
+                            <option id='Standard Report' key={'Self Service Report'} value={'Self Service Report'}>
+                              Self Service Report
+                            </option>
+                            {/* {this.props.divisions?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                {obj.name}
+                              </option>
+                            ))} */}
+                          </select>
+                        </div>
+                        <span className={classNames('error-message', reportTypeError ? '' : 'hide')}>
+                          {reportTypeError}
+                        </span>
+                      </div>
+                    : ''}
                   </div>
                   <div>
-                    <div
-                      id="reportDecsription"
-                      className={classNames(
-                        'input-field-group include-error area',
-                        descriptionError.length ? 'error' : '',
-                      )}
-                    >
-                      <label id="reportDescriptionLabel" className="input-label" htmlFor="reportDecsriptionField">
-                        Description<sup>*</sup>
-                      </label>
-                      <textarea
-                        className="input-field-area"
-                        required={true}
-                        required-error={requiredError}
-                        rows={50}
-                        id="reportDecsriptionField"
-                        onChange={this.onDescChange}
-                        value={this.state.description}
-                      />
-                      <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
-                        {descriptionError}
-                      </span>
-                    </div>
+                    <TextArea
+                      controlId={'reportDecsriptionField'}
+                      containerId={'reportDecsription'}
+                      labelId={'reportDescriptionLabel'}
+                      label={'Description'}
+                      rows={50}
+                      value={this.state.description}
+                      errorText={descriptionError}
+                      required={true}
+                      onChange={this.onDescChange}
+                    />
                   </div>
                 </div>
-                <div className={classNames(Styles.flexLayout)}>
-                  <div>
+                <div className={classNames(!this.props.enableQuickPath ? Styles.flexLayout : '')}>
+                  {!this.props.enableQuickPath ? (
                     <div>
-                      <div className={classNames(Styles.flexLayout)}>
-                        <div className={Styles.divisionContainer}>
-                          <div
-                            className={classNames(
-                              'input-field-group include-error',
-                              divisionError.length ? 'error' : '',
-                            )}
-                          >
-                            <label id="divisionLabel" htmlFor="divisionField" className="input-label">
-                              Division<sup>*</sup>
-                            </label>
-                            <div className="custom-select">
-                              <select
-                                id="divisionField"
-                                required={true}
-                                required-error={requiredError}
-                                onChange={this.onDivisionChange}
-                                value={this.state.divisionValue?.id}
-                              >
-                                <option id="divisionOption" value={0}>
-                                  Choose
-                                </option>
-                                {this.props.divisions?.map((obj) => (
-                                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                                    {obj.name}
+                      <div>
+                        <div>
+                          <div className={Styles.divisionContainer}>
+                            <div
+                              className={classNames(
+                                'input-field-group include-error',
+                                divisionError.length ? 'error' : '',
+                              )}
+                            >
+                              <label id="divisionLabel" htmlFor="divisionField" className="input-label">
+                                Division<sup>*</sup>
+                              </label>
+                              <div className="custom-select">
+                                <select
+                                  id="divisionField"
+                                  required={true}
+                                  required-error={requiredError}
+                                  onChange={this.onDivisionChange}
+                                  value={this.state.divisionValue?.id}
+                                >
+                                  <option id="divisionOption" value={0}>
+                                    Choose
                                   </option>
-                                ))}
-                              </select>
+                                  {this.props.divisions?.map((obj) => (
+                                    <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                                      {obj.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                                {divisionError}
+                              </span>
                             </div>
-                            <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
-                              {divisionError}
-                            </span>
                           </div>
                         </div>
+                        
+
                         <div className={Styles.subDivisionContainer}>
                           <div className={classNames('input-field-group')}>
                             <label id="subDivisionLabel" htmlFor="subDivisionField" className="input-label">
@@ -454,110 +560,121 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                             </div>
                           </div>
                         </div>
-                      </div>
-
-                      <div>
-                        <div
-                          className={classNames(
-                            'input-field-group include-error',
-                            productPhaseError.length ? 'error' : '',
-                          )}
-                        >
-                          <label id="reportProductPhaseLabel" htmlFor="reportStatusField" className="input-label">
-                            Product Phase<sup>*</sup>
-                          </label>
-                          <div className="custom-select">
-                            <select
-                              id="reportProductPhaseField"
-                              required={true}
-                              required-error={requiredError}
-                              onChange={this.onProductPhaseChange}
-                              value={productPhaseValue}
-                            >
-                              <option id="reportProductPhaseOption" value={0}>
-                                Choose
-                              </option>
-                              {this.props.productPhases?.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                  {obj.name}
+                        {/* <div>
+                          <div
+                            className={classNames(
+                              'input-field-group include-error',
+                              productPhaseError.length ? 'error' : '',
+                            )}
+                          >
+                            <label id="reportProductPhaseLabel" htmlFor="reportStatusField" className="input-label">
+                              Product Phase<sup>*</sup>
+                            </label>
+                            <div className="custom-select">
+                              <select
+                                id="reportProductPhaseField"
+                                required={true}
+                                required-error={requiredError}
+                                onChange={this.onProductPhaseChange}
+                                value={productPhaseValue}
+                              >
+                                <option id="reportProductPhaseOption" value={0}>
+                                  Choose
                                 </option>
-                              ))}
-                            </select>
+                                {this.props.productPhases?.map((obj) => (
+                                  <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                    {obj.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <span className={classNames('error-message', productPhaseError.length ? '' : 'hide')}>
+                              {productPhaseError}
+                            </span>
                           </div>
-                          <span className={classNames('error-message', productPhaseError.length ? '' : 'hide')}>
-                            {productPhaseError}
-                          </span>
+                        </div> */}
+                        <div>
+                          <div
+                            className={classNames(
+                              'input-field-group include-error',
+                              integratedPortalError ? 'error' : '',
+                            )}
+                          >
+                            <label id="integratedPortalLabel" htmlFor="integratedPortalField" className="input-label">
+                              Integrated In Portal
+                            </label>
+                            <div className="custom-select">
+                              <select
+                                id="integratedPortalField"
+                                multiple={false}
+                                required={false}
+                                onChange={this.onChangeItegratedPortal}
+                                value={integratedInPortalValue}
+                              >
+                                <option id="integratedPortalOption" value={0}>
+                                  Choose
+                                </option>
+                                {this.props.integratedPortals?.map((obj) => (
+                                  <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                    {obj.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <span className={classNames('error-message', integratedPortalError ? '' : 'hide')}>
+                              {integratedPortalError}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <div
-                          className={classNames(
-                            'input-field-group include-error',
-                            integratedPortalError.length ? 'error' : '',
-                          )}
-                        >
-                          <label id="integratedPortalLabel" htmlFor="integratedPortalField" className="input-label">
-                            Integrated In Portal
-                          </label>
-                          <div className="custom-select">
-                            <select
-                              id="integratedPortalField"
-                              multiple={true}
-                              required={false}
-                              onChange={this.onChangeItegratedPortal}
-                              value={integratedInPortalValue}
-                            >
-                              {this.props.integratedPortals?.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                  {obj.name}
+                        <div>
+                          <div
+                            className={classNames(
+                              'input-field-group include-error',
+                              piiError.length ? 'error' : '',
+                            )}
+                          >
+                            <label id="piiLabel" htmlFor="piiField" className="input-label">
+                              PII(Personally Identifiable Information)<sup>*</sup>
+                            </label>
+                            <div className="custom-select">
+                              <select
+                                id="piiField"
+                                // multiple={true}
+                                required={true}
+                                required-error={requiredError}
+                                onChange={this.onChangePii}
+                                value={piiValue}
+                              >
+                                <option value={''}>Choose</option>
+                                <option id='Yes' key={'Yes'} value={'Yes'}>
+                                  Yes
                                 </option>
-                              ))}
-                            </select>
-                          </div>
-                          <span className={classNames('error-message', integratedPortalError.length ? '' : 'hide')}>
-                            {integratedPortalError}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <div
-                          className={classNames(
-                            'input-field-group include-error',
-                            designGuidError.length ? 'error' : '',
-                          )}
-                        >
-                          <label id="designGuidImplLabel" htmlFor="designGuidImplField" className="input-label">
-                            Design Guide Implemented<sup>*</sup>
-                          </label>
-                          <div className="custom-select">
-                            <select
-                              id="designGuidImplField"
-                              // multiple={true}
-                              required={true}
-                              required-error={requiredError}
-                              onChange={this.onChangeDesignGuideInpl}
-                              value={designGuideValue}
-                            >
-                              <option value={''}>Choose</option>
-                              {this.props.designGuideImplemented?.map((obj) => (
-                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                  {obj.name}
+                                <option id='No' key={'No'} value={'No'}>
+                                  No
                                 </option>
-                              ))}
-                            </select>
+                                {/* {this.props.designGuideImplemented?.map((obj) => (
+                                  <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                    {obj.name}
+                                  </option>
+                                ))} */}
+                              </select>
+                            </div>
+                            <span className={classNames('error-message', piiError.length ? '' : 'hide')}>
+                              {piiError}
+                            </span>
                           </div>
-                          <span className={classNames('error-message', designGuidError.length ? '' : 'hide')}>
-                            {designGuidError}
-                          </span>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    ''
+                  )}
                   <div>
                     <div>
+                      
                       <div className={Styles.departmentTags}>
                         <Tags
-                          title={'Department'}
+                          title={'E2-Department'}
                           max={1}
                           chips={departmentValue}
                           tags={this.props.departmentTags}
@@ -566,6 +683,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           showMissingEntryError={this.state.showDepartmentMissingError}
                         />
                       </div>
+
+
                       <div>
                         <div
                           className={classNames('input-field-group include-error', statusError.length ? 'error' : '')}
@@ -597,49 +716,53 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                           </span>
                         </div>
                       </div>
-                      <div className={classNames('input-field-group include-error', artError.length ? 'error' : '')}>
-                        <label id="ARTLabel" htmlFor="ARTField" className="input-label">
-                          Agile Release Train
-                        </label>
-                        <div className="custom-select">
-                          <select
-                            id="ARTField"
-                            multiple={true}
-                            required={false}
-                            onChange={this.onChangeART}
-                            value={artValue}
-                          >
-                            {this.props.arts?.map((obj) => (
-                              <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                                {obj.name}
+                      {!this.props.enableQuickPath ? (
+                        <div className={classNames('input-field-group include-error', artError ? 'error' : '')}>
+                          <label id="ARTLabel" htmlFor="ARTField" className="input-label">
+                            Agile Release Train
+                          </label>
+                          <div className={classNames("custom-select")}>
+                            <select
+                              id="ARTField"
+                              multiple={false}
+                              required={false}
+                              onChange={this.onChangeART}
+                              value={artValue}
+                            >
+                              <option id="agileReleaseTrainOption" value={0}>
+                                Choose
                               </option>
-                            ))}
-                          </select>
+                              {this.props.arts?.map((obj) => (
+                                <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                                  {obj.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <span className={classNames('error-message', artError ? '' : 'hide')}>{artError}</span>
                         </div>
-                        <span className={classNames('error-message', artError.length ? '' : 'hide')}>{artError}</span>
-                      </div>
+                      ) : (
+                        ''
+                      )}
                       <div>
                         <div
                           className={classNames(
                             'input-field-group include-error',
-                            frontEndTechError.length ? 'error' : '',
+                            frontEndTechError ? 'error' : '',
                           )}
                         >
                           <label id="FrontEndTechnogies" htmlFor="FrontEndTechnogiesField" className="input-label">
                             Frontend Technologies <sup>*</sup>
                           </label>
-                          <div className="custom-select">
+                          <div id="FrontEndTechnogies" className="custom-select">
                             <select
                               id="FrontEndTechnogiesField"
-                              // multiple={true}
+                              multiple={true}
                               required={true}
                               required-error={requiredError}
                               onChange={this.onChangeFrontTechnologies}
                               value={frontEndTechValue}
                             >
-                              <option id="reportFrontEnTechsOption" value={0}>
-                                Choose
-                              </option>
                               {this.props.frontEndTechnologies?.map((obj) => (
                                 <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
                                   {obj.name}
@@ -647,7 +770,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                               ))}
                             </select>
                           </div>
-                          <span className={classNames('error-message', frontEndTechError.length ? '' : 'hide')}>
+                          <span className={classNames('error-message', frontEndTechError ? '' : 'hide')}>
                             {frontEndTechError}
                           </span>
                         </div>
@@ -658,31 +781,70 @@ export default class Description extends React.Component<IDescriptionProps, IDes
               </div>
             </div>
           </div>
-          <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
-            <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
-              <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
-                <h3 id="tagHeading">Tags</h3>
-                <span id="tagDesc" className={classNames(Styles.textDesc)}>
-                  Use tags to make it easier to find your report for other people
+          {!this.props.enableQuickPath ? (
+            <div id="tagsWrapper" className={classNames(Styles.wrapper)}>
+              <div id="tagsPanel" className={classNames(Styles.firstPanel)}>
+                <div id="tagsContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
+                  <h3 id="tagHeading">Tags</h3>
+                  <span id="tagDesc" className={classNames(Styles.textDesc)}>
+                    Use tags to make it easier to find your report for other people
+                  </span>
+                  <div>
+                    <Tags
+                      title={'Tags'}
+                      max={100}
+                      chips={this.state.tags}
+                      setTags={this.setTags}
+                      isMandatory={false}
+                      showMissingEntryError={false}
+                      {...this.props}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            ''
+          )}
+          <div id="linkWrapper" className={classNames(Styles.wrapper)}>
+            <div id="linkPanel" className={classNames(Styles.firstPanel)}>
+              <div id="linkContainer" className={classNames(Styles.formWrapper, Styles.tagsWrapper)}>
+                <h3 id="linkHeading">Link</h3>
+                <span id="linkDesc" className={classNames(Styles.textDesc)}>
+                  Link the report here
                 </span>
                 <div>
-                  <Tags
-                    title={'Tags'}
-                    max={100}
-                    chips={this.state.tags}
-                    setTags={this.setTags}
-                    isMandatory={false}
-                    showMissingEntryError={false}
-                    {...this.props}
+                  <TextBox
+                    type="text"
+                    controlId={'reportLinkInput'}
+                    labelId={'reportLinkLabel'}
+                    label={'Report Link'}
+                    placeholder={'Type here'}
+                    value={this.state.reportLink}
+                    errorText={reportLinkError}
+                    required={true}
+                    maxLength={200}
+                    onChange={this.onChangeUrl}
                   />
                 </div>
               </div>
             </div>
           </div>
           <div className="btnConatiner">
-            <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmit}>
-              Save & Next
-            </button>
+            {!this.props.enableQuickPath ? (
+              <button className="btn btn-primary" type="button" onClick={this.onDescriptionSubmit}>
+                Save & Next
+              </button>
+            ) : (
+              <div>
+                <button className={classNames("btn btn-primary", Styles.refineReportButton)} type="button" onClick={this.props.refineReport}>
+                  Refine Report
+                </button>
+                <button className="btn btn-tertiary" type="button" onClick={this.onDescriptionSubmitWithQuickPath}>
+                  Publish Report
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </React.Fragment>
@@ -693,6 +855,13 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     if (this.validateDescriptionForm()) {
       this.props.modifyReportDescription(this.props.description);
       this.props.onSaveDraft('description');
+    }
+  };
+
+  protected onDescriptionSubmitWithQuickPath = () => {
+    if (this.validateQuickpathDescriptionForm()) {
+      this.props.modifyReportDescription(this.props.description);
+      this.props.onSaveDraft('quickpath');
     }
   };
 
@@ -724,7 +893,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     }
     if (this.state.productNameError && this.state.productName) {
       this.setState({ productNameError: '' });
-      formValid = true;
+      // formValid = true;
     }
     if (!this.state.description || this.state.description === '') {
       this.setState({ descriptionError: errorMissingEntry });
@@ -732,12 +901,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     }
     if (this.state.descriptionError && this.state.description) {
       this.setState({ descriptionError: '' });
-      formValid = true;
+      // formValid = true;
     }
-    if (!this.state.productPhaseValue || this.state.productPhaseValue[0].name === 'Choose') {
-      this.setState({ productPhaseError: errorMissingEntry });
-      formValid = false;
-    }
+    // if (!this.state.productPhaseValue || this.state.productPhaseValue[0].name === 'Choose') {
+    //   this.setState({ productPhaseError: errorMissingEntry });
+    //   formValid = false;
+    // }
     if (!this.state.statusValue || this.state.statusValue[0].name === 'Choose') {
       this.setState({ statusError: errorMissingEntry });
       formValid = false;
@@ -758,13 +927,74 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     //   this.setState({ integratedPortalError: errorMissingEntry });
     //   formValid = false;
     // }
-    if (!this.state.designGuideValue || this.state.designGuideValue[0].name === 'Choose') {
-      this.setState({ designGuideError: errorMissingEntry });
+    if (!this.state.reportTypeValue || this.state.reportTypeValue === 'Choose') {
+      this.setState({ reportTypeError: errorMissingEntry });
       formValid = false;
     }
-    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0].name === 'Choose') {
+    if (!this.state.piiValue || this.state.piiValue === 'Choose') {
+      this.setState({ piiError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.frontEndTechValue.length === 0) {
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
+    }
+    if (!this.state.reportLink || this.state.reportLink === '') {
+      this.setState({ reportLinkError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.reportLinkError && this.state.reportLink) {
+      this.setState({ reportLinkError: '' });
+      // formValid = true;
+    }
+    setTimeout(() => {
+      const anyErrorDetected = document.querySelector('.error');
+      anyErrorDetected?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    return formValid;
+  };
+
+  protected validateQuickpathDescriptionForm = () => {
+    let formValid = true;
+    const errorMissingEntry = '*Missing entry';
+
+    if (!this.state.productName || this.state.productName === '') {
+      this.setState({ productNameError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.productNameError && this.state.productName) {
+      this.setState({ productNameError: '' });
+      // formValid = true;
+    }
+    if (!this.state.description || this.state.description === '') {
+      this.setState({ descriptionError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.descriptionError && this.state.description) {
+      this.setState({ descriptionError: '' });
+      // formValid = true;
+    }
+
+    if (!this.state.statusValue || this.state.statusValue[0].name === 'Choose') {
+      this.setState({ statusError: errorMissingEntry });
+      formValid = false;
+    }
+
+    if (!this.state.departmentTags?.length) {
+      this.setState({ showDepartmentMissingError: true });
+      formValid = false;
+    }
+    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0] === 'Choose') {
+      this.setState({ frontEndTechError: errorMissingEntry });
+      formValid = false;
+    }
+    if (!this.state.reportLink || this.state.reportLink === null || this.state.reportLink === '') {
+      this.setState({ reportLinkError: errorMissingEntry });
+      formValid = false;
+    }
+    if (this.state.reportLinkError && this.state.reportLink) {
+      this.setState({ reportLinkError: '' });
+      // formValid = true;
     }
     setTimeout(() => {
       const anyErrorDetected = document.querySelector('.error');
@@ -791,5 +1021,20 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const description = this.props.description;
     description.department = arr?.map((item) => item.toUpperCase());
     this.setState({ showDepartmentMissingError: arr.length === 0 });
+  };
+
+  protected onChangeUrl = (e: React.FormEvent<HTMLInputElement>) => {
+    const reportLink = e.currentTarget.value;
+    const description = this.props.description;
+    description.reportLink = reportLink;
+    if (reportLink === '' || reportLink === null) {
+      this.setState({ reportLinkError: '*Missing Entry' });
+    } else {
+      this.setState({ reportLinkError: '' });
+    }
+    // this.setState({
+    //   reportLink,
+    // });
+    this.props.modifyReportDescription(description);
   };
 }

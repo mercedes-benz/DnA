@@ -1,8 +1,8 @@
 import cn from 'classnames';
 import React, { useState } from 'react';
-import { IconImage } from '../../../../../components/icons/IconImage';
-import { SOLUTION_LOGO_IMAGE_TYPES } from '../../../../../globals/constants';
-import { ILogoDetails } from '../../../../../globals/types';
+import { IconImage } from 'components/icons/IconImage';
+import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
+import { ILogoDetails } from 'globals/types';
 import AddImageModal from './addImageModal/AddImageModal';
 import LogoImage from './LogoImage/LogoImage';
 import Styles from './LogoManager.scss';

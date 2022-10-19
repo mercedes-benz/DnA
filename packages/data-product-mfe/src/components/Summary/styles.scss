@@ -1,0 +1,106 @@
+.mainPanel {
+    padding: 50px 184px 0px 114px;
+    .summaryBannerTitle {
+        min-width: 260px;
+        max-width: 390px;
+        margin: 19px 0 70px 0;
+        h2 {
+            font-size: var(--font-size-headline-big);
+            line-height: 33px;
+        }
+    }
+    .summaryBannerimg {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+.firstPanel {
+    background: #252a33;
+    margin-bottom: 15px;
+
+    .flexLayout {
+        display: flex;
+        justify-content: space-between;
+        margin: 40px;
+        > div {
+            width: calc(50% - 7px);
+        }
+        &.fourColumn {
+            > div {
+                width: calc(25% - 7px);
+            }
+        }
+        &.threeColumn {
+            > div {
+                width: calc(33% - 7px);
+            }
+        }
+    }
+
+    .formWrapper {
+        margin: 60px 0px 0;
+    }
+}
+
+.sectionWrapper {
+    background: #252a33;
+    flex: 1 auto;
+    padding: 25px 0px;
+    margin: 15px 0;
+    h5 {
+        color: #99a5b3;
+    }
+    .flexLayout {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 40px;
+        > div {
+            width: calc(50% - 7px);
+        }
+        &.fourColumn {
+            > div {
+                width: calc(25% - 7px);
+            }
+        }
+        &.threeColumn {
+            > div {
+                width: calc(33% - 7px);
+            }
+        }
+    }
+}
+
+hr {
+    background-color: #697582;
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+:global {
+    #data-product-summary-tabs {
+        min-width: 540px;
+    }
+
+    #data-product-summary-tabs .scrollable.tabs-wrapper {
+        height: 44px;
+    }
+
+    #data-product-summary-tabs .scrollable.tabs-wrapper nav {
+        height: 44px;
+    }
+
+    #data-product-summary-tabs .tab {
+        min-width: max-content;
+        > a {
+            position: relative;
+            padding: 10px 50px 12px 40px;
+        }
+    }
+    label.input-label.summary {
+        color: #99a5b3;
+        font-size: var(--font-size-small);
+        font-weight: bold;
+    }
+}

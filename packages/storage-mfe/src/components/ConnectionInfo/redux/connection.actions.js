@@ -2,7 +2,7 @@ import { bucketsApi } from '../../../apis/buckets.api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
-export const getConnectionInfo = (bucketName) => {
+export const getConnectionInfo = (bucketName, createdBy) => {
   return async (dispatch) => {
     dispatch({
       type: 'CONNECTION_LOADING',
@@ -17,6 +17,7 @@ export const getConnectionInfo = (bucketName) => {
           payload: {
             bucketName,
             modal: true,
+            creator: createdBy,
             accessInfo: response.data.data.userVO,
             dataikuProjects: response.data.data.dataikuProjects || [],
           },

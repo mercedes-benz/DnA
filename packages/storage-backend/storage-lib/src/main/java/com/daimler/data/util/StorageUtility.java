@@ -28,12 +28,15 @@
 package com.daimler.data.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 public class StorageUtility {
 
@@ -70,6 +73,57 @@ public class StorageUtility {
 	 */
 	public static String getDataikuConnectionName(String projectKey, String bucketName) {
 		return projectKey+"_"+bucketName;
+	}
+	
+	/**
+	 * Remove string and empty values from comma separated string
+	 * 
+	 * @param baseString
+	 * @param stringToBeRemoved
+	 * @return result {@code String}
+	 */
+	public static String removePolicy(String baseString, String stringToBeRemoved) {
+		if(StringUtils.hasText(baseString)) {
+			List<String> policies = new ArrayList<>();
+			policies.addAll(Arrays.asList(baseString.split(",")));
+			policies.removeAll(Arrays.asList("", null,stringToBeRemoved));
+			baseString = String.join(",", policies);
+		}
+		return baseString;
+	}
+	
+	/**
+	 * Append new string and remove empty values from comma separated string
+	 * 
+	 * @param baseString
+	 * @param stringToBeAdded
+	 * @return result {@code String}
+	 */
+	public static String addPolicy(String baseString, String stringToBeAdded) {
+		if (StringUtils.hasText(baseString) && !hasText(baseString, stringToBeAdded)) {
+			List<String> policies = new ArrayList<>();
+			policies.addAll(Arrays.asList(baseString.split(",")));
+			policies.removeAll(Arrays.asList("", null));
+			policies.add(stringToBeAdded);
+			baseString = String.join(",", policies);
+		}
+		return baseString;
+	}
+	
+	
+	/**
+	 * To find exact match in base String
+	 * 
+	 * @param baseString
+	 * @param toBeSearched
+	 * @return hasText {@code boolean}
+	 */
+	public static boolean hasText(String baseString, String stringToBeMatched) {
+		boolean hasText = false;
+		if (Pattern.compile("\\b" + stringToBeMatched + "\\b", Pattern.CASE_INSENSITIVE).matcher(baseString).find()) {
+			hasText = true;
+		}
+		return hasText;
 	}
 	
 }

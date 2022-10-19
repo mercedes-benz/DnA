@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import "./css-custom-properties.css";
 
 /* Uilab dark theme overrides and New Icons override SCSS */
@@ -405,14 +406,14 @@
     }
 
     &.search-field {
-      body::after {
-        content: "\E93B";
-        font-family: "dna-icons";
-        font-size: var(--font-size-icon-medium);
-        position: absolute;
-        right: 12px;
-        bottom: 6px;
-      }
+      // body::after {
+      //   content: "\E93B";
+      //   font-family: "dna-icons";
+      //   font-size: var(--font-size-icon-medium);
+      //   position: absolute;
+      //   right: 12px;
+      //   bottom: 6px;
+      // }
 
       input {
         padding-right: 40px;
@@ -1031,9 +1032,9 @@
       content: "\e940";
     }
 
-    &.profile-thin::before {
-      content: "\e939";
-    }
+    // &.profile-thin::before {
+    //   content: "\e939";
+    // }
 
     &.alert.circle::before {
       content: "\e930";
@@ -1057,6 +1058,10 @@
 
     &.delete.circle::before {
       content: "\e932";
+    }
+
+    &.delete-new::before {
+      content: "\e946";
     }
 
     &.error.circle::before {
@@ -1168,6 +1173,9 @@
     &.copy:before {
       content: "\e923";
     }
+    &.copy-new:before {
+      content: "\e942";
+    }
     &.visibility-hide:before {
       content: "\e926";
     }
@@ -1191,6 +1199,30 @@
     }
     &.document:before {
       content: "\e910";
+    }
+    &.light_bulb::before {
+      content: "\e94a";
+    }
+    &.back_files::before {
+      content: "\e937";
+    }
+    &.storage::before {
+      content: "\e939";
+    }
+    &.trino_cancel::before {
+      content: "\e93b";
+    }
+    &.trino_shared-folder::before {
+      content: "\e93e";
+    }
+    &.add_folder::before {
+      content: "\e941";
+    }
+    &.data-sharing::before {
+      content: "\e945";
+    }
+    &.share::before {
+      content: "\e94e";
     }
   }
   .airflowexpansionPanel {

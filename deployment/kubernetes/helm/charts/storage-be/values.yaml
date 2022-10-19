@@ -40,12 +40,12 @@ envs:
     value: http://my-release-minio.minio.svc.cluster.local:9000
   - name: MINIO_CLIENT_API
     value: ""
-  - name: MINIO_ADMIN_ACCESS_KEY
+  - name: MINIO_ROOT_USER
     valueFrom:
       secretKeyRef:
         key: minioAccessKey
         name: storage-be  
-  - name: MINIO_ADMIN_SECRET_KEY
+  - name: MINIO_ROOT_PASSWORD
     valueFrom:
       secretKeyRef:
         key: minioSecretKey
@@ -176,3 +176,26 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+## Inject the application environment variable from vault service
+# If you enable vault injector, the environment variables specified above will be will be override from vault
+vaultInjector:
+  enable: false
+  annotations:
+    vault.hashicorp.com/agent-inject: 'true'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-envvar: 'kv/dna/kubernetesSecret/storageService'
+    vault.hashicorp.com/agent-inject-template-envvar: | 
+      {{- with secret "kv/dna/kubernetesSecret/storageService" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}
+      {{- with secret "kv/dna/kubernetesSecret/minio" -}}
+        {{- range $k, $v := .Data.data }}
+            export {{ $k }}="{{ $v }}"
+        {{- end }}
+      {{- end }}        
+  saName: "default"
+  jarName: "storage-lib*.jar"

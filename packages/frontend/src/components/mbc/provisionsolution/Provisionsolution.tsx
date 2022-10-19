@@ -3,7 +3,7 @@ import Styles from './Provisionsolution.scss';
 import Description from '../createNewSolution/description/Description';
 import { ApiClient } from '../../../services/ApiClient';
 
-import SelectBox from '../../formElements/SelectBox/SelectBox';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 // @ts-ignore
@@ -13,7 +13,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 
 // @ts-ignore
 import * as _ from 'lodash';
-import { ComputeFixedTag, ProvisionSource } from '../../../globals/Enums';
+import { ComputeFixedTag, ProvisionSource } from 'globals/Enums';
 
 import {
   IAnalytics,
@@ -45,7 +45,7 @@ import {
   ITag,
   ITeams,
   IUserInfo,
-} from '../../../globals/types';
+} from 'globals/types';
 
 export interface IProvisionSolutionState {
   locations: ILocation[];
@@ -192,7 +192,7 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           businessGoalsList: [],
           dataStrategyDomain: '',
           requestedFTECount: 0,
-          additionalResource: ''
+          additionalResource: '',
         },
         openSegments: [],
         team: [],

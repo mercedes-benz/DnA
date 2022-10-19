@@ -6,7 +6,7 @@ import Button from '../../../../assets/modules/uilab/js/src/button';
 // @ts-ignore
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { history } from '../../../../router/History';
-import { IDescriptionRequest, ILogoDetails } from '../../../../globals/types';
+import { IDescriptionRequest, ILogoDetails } from 'globals/types';
 import Styles from './DescriptionSummary.scss';
 
 const classNames = cn.bind(Styles);
@@ -20,6 +20,7 @@ export interface IDescriptionReportProps {
   onDelete: (reportId: string) => void;
   onExportToPDFDocument: JSX.Element;
   bookmarked?: boolean;
+  reportLink?: string;
 }
 export interface IDescriptionReportRequest {
   reportName: string;
@@ -139,6 +140,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
           })
         : 'NA';
     const pdfFileName = reportName?.replace(/[/|\\:*?"<>]/g, '').replace(/ /g, '-');
+    const reportLink = this.props.reportLink;
 
     return (
       <React.Fragment>
@@ -170,7 +172,8 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     </li>
                   )}
                   <li className="contextListItem">
-                    {// @ts-ignore
+                    {
+                      // @ts-ignore
                       <PDFDownloadLink
                         document={this.props.onExportToPDFDocument}
                         className={Styles.pdfLink}
@@ -192,9 +195,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <label className="input-label summary">Description</label>
                     <br />
                     <div>
-                      <pre className={Styles.reportPre}>
-                        {description.productDescription}
-                      </pre>
+                      <pre className={Styles.reportPre}>{description.productDescription}</pre>
                     </div>
                   </div>
                   <div id="tags">
@@ -202,13 +203,24 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <br />
                     <div className={Styles.tagColumn}>{chips}</div>
                   </div>
+                  <div id="reportLink">
+                    <label className="input-label summary">Report Link</label>
+                    <br />
+                    <div className={Styles.reportLinkColumn}>
+                      <a href={reportLink} target="_blank" rel="noreferrer">
+                        {reportLink}
+                      </a>
+                    </div>
+                  </div>
                 </div>
                 <hr className="divider1" />
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {description.division?.name || 'N/A'}
+                    {description.division?.name || description.division?.name === 'Choose'
+                      ? 'N/A'
+                      : description.division?.name}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>
@@ -216,16 +228,16 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     {description.division?.subdivision?.name ? description.division.subdivision.name : 'None'}
                   </div>
                   <div id="department">
-                    <label className="input-label summary">Department</label>
+                    <label className="input-label summary">E2-Department</label>
                     <br />
                     {description.department}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="productPhase">
-                    <label className="input-label summary">Product Phase</label>
+                    <label className="input-label summary">Report Type</label>
                     <br />
-                    {description.productPhase}
+                    {description.reportType ? description.reportType : 'N/A'}
                   </div>
                   <div id="status">
                     <label className="input-label summary">Status </label>
@@ -235,25 +247,26 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="integratedinportal">
                     <label className="input-label summary">Integrated In Portal</label>
                     <br />
-                    {description.integratedPortal?.join(', ') || 'N/A'}
+                    {description.integratedPortal || 'N/A'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="agileReleaseTrain">
                     <label className="input-label summary">Agile Release Train</label>
                     <br />
-                    {description.agileReleaseTrains?.join(', ') || 'N/A'}
+                    {description.agileReleaseTrain || 'N/A'}
                   </div>
-                  <div id="designguideimplemented">
+                  {/* <div id="designguideimplemented">
                     <label className="input-label summary">Design Guide Implemented</label>
                     <br />
-                    {description.designGuideImplemented}
-                  </div>
+                    {description.designGuideImplemented ? description.designGuideImplemented : 'N/A'}
+                  </div> */}
                   <div id="frmonEndTech">
                     <label className="input-label summary">Frontend Technologies</label>
                     <br />
                     {description.frontendTechnologies}
                   </div>
+                  <div></div>
                 </div>
               </div>
             </div>

@@ -4,6 +4,6 @@ services:
     image: ${HIVE_METASTORE_IMAGE:-hive_metastore}
     container_name: hive-metastore
     build:
-      #context: ./dockerfiles/hive-metastore/Dockerfile
+      context: .
       dockerfile: $PWD/Dockerfile
     

@@ -27,8 +27,13 @@
 
 package com.daimler.data.application.filter;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,8 +41,10 @@ import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 
@@ -48,9 +55,36 @@ public class JWTGenerator {
 
 	private static String SECRET_KEY;
 
+	private static int TOKEN_EXPIRY;
+
+	private static String KID;
+
 	@Value("${jwt.secret.key}")
 	public void setSecretKey(String secretKey) {
 		SECRET_KEY = secretKey;
+	}
+
+	@Value("${jwt.secret.tokenExpiry}")
+	public void setTokenExpiry(int tokenExpiry) {
+		TOKEN_EXPIRY = tokenExpiry;
+	}
+
+	@Value("${jwt.secret.kid}")
+	public void setKid(String kid) {
+		KID = kid;
+	}
+
+	public static String generateJWT(String appId) {
+		byte[] bytesEncoded = Base64.encodeBase64(SECRET_KEY.getBytes());
+		final Map<String, Object> tokenData = new HashMap<>();
+		tokenData.put("kid", KID);
+		tokenData.put("nounce", Math.random());
+		tokenData.put("appId", appId);
+		final JwtBuilder jwtBuilder = Jwts.builder();
+		jwtBuilder.setClaims(tokenData);
+		jwtBuilder.setExpiration(new Date(System.currentTimeMillis() + TOKEN_EXPIRY * 60 * 1000));
+		final String token = jwtBuilder.signWith(SignatureAlgorithm.HS256, new String(bytesEncoded)).compact();
+		return token;
 	}
 
 	public static Claims decodeJWT(String jwt) {

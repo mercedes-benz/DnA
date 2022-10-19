@@ -44,7 +44,7 @@ public class SingleDataSource implements Serializable {
 
 	private static final long serialVersionUID = 152482308131566126L;
 
-	private List<String> dataSources;
-	private List<String> subsystems;
-	private List<String> connectionTypes;
+	private List<DataSource> dataSources;
+	private String dataClassification;
+	private String connectionType;
 }

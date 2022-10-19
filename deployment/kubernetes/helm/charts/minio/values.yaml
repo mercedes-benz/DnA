@@ -134,6 +134,8 @@ tls:
 extraEnvVars:
     - name: MINNIO_LOG_LEVEL
       value: DEBUG
+    - name: MINIO_PROMETHEUS_URL
+      value: "http://i3-monitoring-prometheus-server.i3-monitoring.svc.cluster.local"
 ## @param extraEnvVarsCM ConfigMap with extra environment variables
 ##
 extraEnvVarsCM: ""
@@ -343,7 +345,20 @@ podLabels: {}
 ## @param podAnnotations Annotations for MinIO&reg; pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
-podAnnotations: {}
+podAnnotations:
+    vault.hashicorp.com/agent-inject: 'false'
+    vault.hashicorp.com/role: 'dna'
+    vault.hashicorp.com/agent-pre-populate-only: 'true'
+    vault.hashicorp.com/agent-inject-secret-root-user: 'kv/dna/kubernetesSecret/minio'
+    vault.hashicorp.com/agent-inject-secret-root-password: 'kv/dna/kubernetesSecret/minio'
+    vault.hashicorp.com/agent-inject-template-root-user: | 
+      {{`{{- with secret "kv/dna/kubernetesSecret/minio" -}}
+      {{ .Data.data.MINIO_ROOT_USER }}
+      {{- end }}`}}
+    vault.hashicorp.com/agent-inject-template-root-password: | 
+      {{`{{- with secret "kv/dna/kubernetesSecret/minio" -}}
+      {{ .Data.data.MINIO_ROOT_PASSWORD }}
+      {{- end }}`}}
 ## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
 ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
 ##

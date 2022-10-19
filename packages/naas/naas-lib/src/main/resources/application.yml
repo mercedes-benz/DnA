@@ -2,7 +2,14 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: notification-service
-  
+  cache:
+    type: redis
+  redis:
+    host: ${REDIS_HOST:XXXX}
+    port: ${REDIS_PORT:XXXX}
+    user: ${REDIS_ROOT_USER:XXXX}
+    password: ${REDIS_ROOT_PASSWORD:XXXX}
+
   mail:
     host: ${DNA_MAIL_SERVER_HOST:XXXX}
     port: ${DNA_MAIL_SERVER_PORT:XXXX}

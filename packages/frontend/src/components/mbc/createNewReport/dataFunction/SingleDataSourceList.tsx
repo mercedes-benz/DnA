@@ -1,11 +1,13 @@
 import React from 'react';
 import cn from 'classnames';
 import Styles from './DataFunction.scss';
-import { IDataWarehouseInUse, ISingleDataSources } from '../../../../globals/types';
+import { IDataSourceMaster, IDataWarehouseInUse, ISingleDataSources } from 'globals/types';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
 interface SingleDataSourceProps {
+  dataSources: IDataSourceMaster[],
   list: ISingleDataSources[];
   currentColumnToSort: string;
   currentSortOrder: string;
@@ -16,6 +18,7 @@ interface SingleDataSourceProps {
 }
 
 export const SingleDataSourceList = ({
+  dataSources,
   list,
   currentColumnToSort,
   currentSortOrder,
@@ -50,17 +53,6 @@ export const SingleDataSourceList = ({
                     <div className={Styles.dataSourceTitleCol}>
                       <label
                         className={
-                          'sortable-column-header ' + (currentColumnToSort === 'subsystems' ? currentSortOrder : '')
-                        }
-                        // onClick={this.sortByColumn('subsystems', this.state.nextSortOrder)}
-                      >
-                        {/* <i className="icon sort" /> */}
-                        Subsystem
-                      </label>
-                    </div>
-                    <div className={Styles.dataSourceTitleCol}>
-                      <label
-                        className={
                           'sortable-column-header ' +
                           (currentColumnToSort === 'connectionTypes' ? currentSortOrder : '')
                         }
@@ -70,6 +62,17 @@ export const SingleDataSourceList = ({
                         Connection Type
                       </label>
                     </div>
+                    <div className={Styles.dataSourceTitleCol}>
+                      <label
+                        className={
+                          'sortable-column-header ' + (currentColumnToSort === 'dataClassification' ? currentSortOrder : '')
+                        }
+                        // onClick={this.sortByColumn('dataClassification', this.state.nextSortOrder)}
+                      >
+                        {/* <i className="icon sort" /> */}
+                        Data Classification
+                      </label>
+                    </div>
                     <div className={Styles.dataSourceTitleCol}>Action</div>
                   </div>
                 </div>
@@ -77,9 +80,50 @@ export const SingleDataSourceList = ({
                 ''
               )}
               {list?.map((dataSourcesAndFunctions: ISingleDataSources, index: number) => {
-                const connectionTypes = dataSourcesAndFunctions.connectionTypes?.map((item) => item.name)?.join(', ');
-                const subSystem = dataSourcesAndFunctions.subsystems?.map((item) => item.name)?.join(', ');
-                const dataSources = dataSourcesAndFunctions.dataSources?.map((item) => item.name)?.join(', ');
+                const connectionType = dataSourcesAndFunctions.connectionType;
+                const dataClassification = dataSourcesAndFunctions.dataClassification;
+                const selectedDataSources = dataSourcesAndFunctions.dataSources;
+
+                 const dsChips =
+                   selectedDataSources && selectedDataSources.length > 0
+                     ? selectedDataSources.map((chip: any, index: number) => {
+                         const lastIndex: boolean = index === selectedDataSources.length - 1;
+
+                         let dsBadge: any = Envs.DNA_APPNAME_HEADER;
+                         if (dataSources.length > 0) {
+                           const dataSource = dataSources.filter((ds: any) => ds.name === chip.dataSource);
+                           if (dataSource.length === 1) {
+                             if (dataSource[0].source !== null && dataSource[0].dataType !== null) {
+                               if (dataSource[0].dataType !== undefined && dataSource[0].source !== undefined) {
+                                 if (dataSource[0].dataType === 'Not set') {
+                                   dsBadge = dataSource[0].source;
+                                 } else {
+                                   dsBadge =
+                                     dataSource[0].source +
+                                     '-' +
+                                     dataSource[0].dataType.charAt(0).toUpperCase() +
+                                     dataSource[0].dataType.slice(1);
+                                 }
+                               }
+                             }
+                           }
+                         }
+
+                         return (
+                           <React.Fragment key={index}>
+                             {chip.dataSource}{' '}
+                             <span className={Styles.badge}>
+                               {dsBadge}
+                               {chip.weightage !== 0 && ' / '}
+                               <strong className={Styles.bold}>
+                                 {chip.weightage !== 0 ? chip.weightage + '%' : ''}
+                               </strong>
+                             </span>
+                             &nbsp;{!lastIndex && `\u002F\xa0`}&nbsp;
+                           </React.Fragment>
+                         );
+                       })
+                     : 'NA';
 
                 return (
                   <div
@@ -95,9 +139,9 @@ export const SingleDataSourceList = ({
                       >
                         <div className={classNames(Styles.dataSourceTile, Styles.singleDataSourceColWidth)}>
                           <div className={Styles.dataSourceTitleCol}>{`Data Source ${index + 1}`}</div>
-                          <div className={Styles.dataSourceTitleCol}>{dataSources || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{subSystem || '-'}</div>
-                          <div className={Styles.dataSourceTitleCol}>{connectionTypes || '-'}</div>
+                          <div className={classNames(Styles.dataSourceTitleCol, Styles.chips)}>{dsChips || '-'}</div>                          
+                          <div className={Styles.dataSourceTitleCol}>{connectionType || '-'}</div>
+                          <div className={Styles.dataSourceTitleCol}>{dataClassification || '-'}</div>
                           <div className={Styles.dataSourceTitleCol}></div>
                         </div>
                         <i tooltip-data="Expand" className="icon down-up-flip"></i>

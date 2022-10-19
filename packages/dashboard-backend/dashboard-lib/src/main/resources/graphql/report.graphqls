@@ -1,11 +1,11 @@
 type Query {
-    reports(published: Boolean, productPhase: String, status: String,
+    reports(published: Boolean, status: String,
     searchTerm: String, tags: String, offset: Int, limit: Int, sortBy: String,
     sortOrder: String, division: String, department: String, processOwner: String, productOwner: String, art: String): ReportCollection!
     report(string: ID):ReportVO
 }
 
-scalar Date
+scalar ISODate
 
 type ReportCollection{
    totalCount: Int,
@@ -14,10 +14,11 @@ type ReportCollection{
 
 type ReportVO {
 	id: ID!,
+	reportId: String,
     productName: String,
-    createdDate: String,
-    lastModifiedDate: String,
-    closeDate: String,
+    createdDate: ISODate,
+    lastModifiedDate: ISODate,
+    closeDate: ISODate,
     createdBy:CreatedByVO,
     publish: Boolean,
     description: DescriptionVO,
@@ -37,14 +38,15 @@ type CreatedByVO{
 }
 
 type DescriptionVO{
+    reportLink: String,
 	productDescription: String,
-	productPhase: String,
+	reportType: String,
+	piiData: String,
 	status: String,
-	integratedPortal: [String],
+	integratedPortal: String,
 	frontendTechnologies: [String],
 	tags:[String],
-	agileReleaseTrains:[String],
-	designGuideImplemented: String,
+	agileReleaseTrain: String,
 	division : DivisionVO,
 	department: String
 }
@@ -60,21 +62,33 @@ type SubdivisionVO{
 }
 
 type CustomerVO{
-	customerDetails: [CustomerDetailsVO],
-	processOwners: [TeamMemberVO]
+	internalCustomers: [InternalCustomerVO],
+	externalCustomers: [ExternalCustomerVO]
 }
 
-type CustomerDetailsVO{
-	hierarchy: String,
-	ressort: String,
+type InternalCustomerVO{
+	name: TeamMemberVO,
+	customerRelation: String,
+	level: String,
+	division: DivisionVO,
 	department: String,
+	legalEntity: String,
+	accessToSensibleData: String,
+	comment: String,
+	processOwner: TeamMemberVO
+}
+
+type ExternalCustomerVO{
+	name: TeamMemberVO,
+	customerRelation: String,
+	companyName: String,
 	comment: String
 }
 
 type KPIVO{
 	name: String,
 	reportingCause: String,
-	comment: String,
+	description: String,
 	kpiLink: String
 }
 
@@ -86,22 +100,24 @@ type DataAndFunctionVO{
 type DataWarehouseVO{
 	dataWarehouse: String,
 	commonFunctions: [String],
-	specificFunctions: [String],
-	queries: [String],
-	dataSources: [String],
-	connectionTypes: [String]
+	dataClassification: String,
+	connectionType: String
 }
 
 type SingleDataSourceVO{
-	dataSources: [String],
-	subsystems: [String],
-	connectionTypes: [String]
+	dataSources: [DataSourceVO],
+	dataClassification: String,
+	connectionType: String
+}
+
+type DataSourceVO{
+	dataSource: String,
+	weightage: Int
 }
 
 type MemberVO{
-	developers: [TeamMemberVO],
-	productOwners: [TeamMemberVO],
-    admin: [TeamMemberVO]
+	reportOwners: [TeamMemberVO],
+    reportAdmins: [TeamMemberVO]
 }
 
 type TeamMemberVO{
