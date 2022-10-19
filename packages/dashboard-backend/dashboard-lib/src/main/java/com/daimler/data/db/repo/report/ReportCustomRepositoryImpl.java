@@ -60,10 +60,9 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	@Override
 	public List<ReportNsql> getAllWithFiltersUsingNativeQuery(Boolean published, List<String> statuses, String userId,
 			Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy,
-			String sortOrder, String division, List<String> department, List<String> processOwner,
-			List<String> productOwner, List<String> art) {
+			String sortOrder, String division, List<String> department, List<String> processOwner, List<String> art) {
 		Query q = getNativeQueryWithFilters("", published, statuses, userId, isAdmin, searchTerms, tags, offset, limit,
-				sortBy, sortOrder, "", "", division, department, processOwner, productOwner, art);
+				sortBy, sortOrder, "", "", division, department, processOwner, art);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<ReportNsql> convertedResults = results.stream().map(temp -> {
@@ -85,10 +84,10 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	@Override
 	public Long getCountUsingNativeQuery(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
 			List<String> searchTerms, List<String> tags, String division, List<String> department,
-			List<String> processOwner, List<String> productOwner, List<String> art) {
+			List<String> processOwner, List<String> art) {
 
 		Query q = getNativeQueryWithFilters("select count(*) ", published, statuses, userId, isAdmin, searchTerms, tags,
-				0, 0, "", "asc", "", "", division, department, processOwner, productOwner, art);
+				0, 0, "", "asc", "", "", division, department, processOwner, art);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
@@ -96,14 +95,14 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 	private Query getNativeQueryWithFilters(String selectFieldsString, Boolean published, List<String> statuses,
 			String userId, Boolean isAdmin, List<String> searchTerms, List<String> tags, int offset, int limit,
 			String sortBy, String sortOrder, String additionalPredicatesString, String groupByString, String division,
-			List<String> department, List<String> processOwner, List<String> productOwner, List<String> art) {
+			List<String> department, List<String> processOwner, List<String> art) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
 		prefix = prefix + "from report_nsql";
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(published, statuses, userId, isAdmin, searchTerms, tags,
-				division, department, processOwner, productOwner, art);
+				division, department, processOwner, art);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
@@ -119,9 +118,6 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 				break;
 			case "art":
 				sortQueryString = " order by lower(jsonb_extract_path_text(data,'description','agileReleaseTrain')) ";
-				break;
-			case "productOwner":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'member','reportOwners')) ";
 				break;
 			default:
 				sortQueryString = "";
@@ -149,13 +145,13 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 
 	private String buildPredicateString(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
 			List<String> searchTerms, List<String> tags, String division, List<String> department,
-			List<String> processOwner, List<String> productOwner, List<String> art) {
+			List<String> processOwner, List<String> art) {
 
 		return getPublishedAndAccessPredicate(published, userId, isAdmin) + "\n"
 				+ getProjectStatusesPredicateString(statuses) + "\n" + getSearchTermsPredicateString(searchTerms) + "\n"
 				+ getTagsPredicateString(tags) + "\n" + getDivisionsPredicateString(division) + "\n"
 				+ getDepartmentsPredicateString(department) + "\n" + getProcessOwnersPredicateString(processOwner)
-				+ "\n" + getProductOwnersPredicateString(productOwner) + "\n" + getArtsPredicateString(art);
+				+ "\n" + getArtsPredicateString(art);
 	}
 
 	private String getPublishedAndAccessPredicate(Boolean published, String userId, Boolean isAdmin) {
@@ -165,8 +161,8 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		String query = "";
 		if (userId != null) {
 
-			String isReportOwnerPredicate = " lower(jsonb_extract_path_text(data,'member','reportOwners')) like "
-					+ "'%" + userId.toLowerCase() + "%'";
+			String isReportOwnerPredicate = " lower(jsonb_extract_path_text(data,'member','reportOwners')) like " + "'%"
+					+ userId.toLowerCase() + "%'";
 
 			String isReportAdminPredicate = " lower(jsonb_extract_path_text(data,'member','reportAdmins')) like " + "'%"
 					+ userId.toLowerCase() + "%'";
@@ -225,6 +221,8 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'description','division')) similar to "
 					+ delimiterSeparatedSearchTerms + " or "
+					+ "lower(jsonb_extract_path_text(data,'member','reportOwners')) similar to "
+					+ delimiterSeparatedSearchTerms + " or "
 					+ "lower(jsonb_extract_path_text(data,'description','department')) similar to "
 					+ delimiterSeparatedSearchTerms + " ) ";
 		}
@@ -262,17 +260,6 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		return "";
 	}
 
-	private String getProductOwnersPredicateString(List<String> productOwners) {
-		if (productOwners != null && !productOwners.isEmpty()) {
-			String delimiterSeparatedProductOwners = productOwners.stream().map(String::toLowerCase)
-					.collect(Collectors.joining("%|%", "%", "%"));
-			delimiterSeparatedProductOwners = "'" + delimiterSeparatedProductOwners + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'member','reportOwners')) similar to "
-					+ delimiterSeparatedProductOwners + " ) ";
-		}
-		return "";
-	}
-
 	private String getProcessOwnersPredicateString(List<String> processOwners) {
 		if (processOwners != null && !processOwners.isEmpty()) {
 			String delimiterSeparatedProcessOwners = processOwners.stream().map(String::toLowerCase)
@@ -282,14 +269,6 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 					+ delimiterSeparatedProcessOwners + " ) ";
 		}
 		return "";
-	}
-
-	@Override
-	public List<TeamMemberVO> getAllProductOwnerUsingNativeQuery() {
-		String prefix = "select cast(data -> 'member' -> 'productOwners' as text) from report_nsql";
-		String basicpredicate = " where jsonb_extract_path_text(data,'member','reportOwners') is not null";
-		String query = prefix + basicpredicate;
-		return getReportOwners(query);
 	}
 
 	@Override
