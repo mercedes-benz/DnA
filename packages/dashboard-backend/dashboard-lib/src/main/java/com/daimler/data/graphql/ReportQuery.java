@@ -58,10 +58,10 @@ public class ReportQuery implements GraphQLQueryResolver {
 
 	public ReportCollection getReports(Boolean published, String status, String searchTerm, String tags, int offset,
 			int limit, String sortBy, String sortOrder, String division, String department, String processOwner,
-			String productOwner, String art) {
+			String art) {
 
 		ResponseEntity<ReportCollection> reports = reportController.getAll(published, status, searchTerm, tags, offset,
-				limit, sortBy, sortOrder, division, department, processOwner, productOwner, art);
+				limit, sortBy, sortOrder, division, department, processOwner, art);
 
 		if (reports != null && reports.getBody() != null) {
 			return reports.getBody();
