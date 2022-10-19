@@ -321,7 +321,7 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
         <Text style={styles.sectionTitle}>Report Type</Text>
-        <Text>{description.reportType || 'NA'}</Text>
+        <Text>{description.reportType && description?.reportType != '0' ? description.reportType : 'NA'}</Text>
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Status</Text>
@@ -329,7 +329,7 @@ const Description = (description: IDescriptionRequest) => (
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Integrated In Portal</Text>
-        {description.integratedPortal ? (
+        {description.integratedPortal && description?.integratedPortal != '0' ? (
           <Text>{description.integratedPortal}</Text>
         ) : (
           <Text>NA</Text>
@@ -339,7 +339,7 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
         <Text style={styles.sectionTitle}>Agile Release Train</Text>
-        {description.agileReleaseTrain ? (
+        {description.agileReleaseTrain && description.agileReleaseTrain != '0' ? (
           <Text>{description.agileReleaseTrain}</Text>
         ) : (
           <Text>NA</Text>
