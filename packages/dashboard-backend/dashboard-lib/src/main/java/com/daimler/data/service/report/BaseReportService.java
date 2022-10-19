@@ -69,7 +69,6 @@ import com.daimler.data.dto.report.CustomerVO;
 import com.daimler.data.dto.report.InternalCustomerVO;
 import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
-import com.daimler.data.dto.report.ProductOwnerCollection;
 import com.daimler.data.dto.report.ReportResponseVO;
 import com.daimler.data.dto.report.ReportVO;
 import com.daimler.data.dto.report.SubdivisionVO;
@@ -149,11 +148,10 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Override
 	public List<ReportVO> getAllWithFilters(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
 			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder,
-			String division, List<String> department, List<String> processOwner, List<String> productOwner,
-			List<String> art) {
+			String division, List<String> department, List<String> processOwner, List<String> art) {
 		List<ReportNsql> reportEntities = reportCustomRepository.getAllWithFiltersUsingNativeQuery(published, statuses,
 				userId, isAdmin, searchTerms, tags, offset, limit, sortBy, sortOrder, division, department,
-				processOwner, productOwner, art);
+				processOwner, art);
 		if (!ObjectUtils.isEmpty(reportEntities))
 			return reportEntities.stream().map(n -> reportAssembler.toVo(n)).collect(Collectors.toList());
 		else
@@ -163,9 +161,9 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	@Override
 	public Long getCount(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
 			List<String> searchTerms, List<String> tags, String division, List<String> department,
-			List<String> processOwner, List<String> productOwner, List<String> art) {
+			List<String> processOwner, List<String> art) {
 		return reportCustomRepository.getCountUsingNativeQuery(published, statuses, userId, isAdmin, searchTerms, tags,
-				division, department, processOwner, productOwner, art);
+				division, department, processOwner, art);
 	}
 
 	@Override
@@ -174,7 +172,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		List<ReportNsql> reports = null;
 		if (StringUtils.hasText(name)) {
 			reports = reportCustomRepository.getAllWithFiltersUsingNativeQuery(null, null, null, true,
-					Arrays.asList(name), null, 0, 0, null, null, null, null, null, null, null);
+					Arrays.asList(name), null, 0, 0, null, null, null, null, null, null);
 		}
 		if (!ObjectUtils.isEmpty(reports)) {
 			reports.forEach(reportNsql -> {
@@ -366,7 +364,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 		List<ReportNsql> reports = null;
 		if (StringUtils.hasText(oldValue)) {
 			reports = reportCustomRepository.getAllWithFiltersUsingNativeQuery(null, null, null, true,
-					Arrays.asList(oldValue), null, 0, 0, null, null, null, null, null, null, null);
+					Arrays.asList(oldValue), null, 0, 0, null, null, null, null, null, null);
 		}
 		if (!ObjectUtils.isEmpty(reports)) {
 			reports.forEach(reportNsql -> {
@@ -862,23 +860,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				return new ResponseEntity<>(processOwnerCollection, HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			LOGGER.error("Failed to fetch processOwners with exception {} ", e.getMessage());
-			throw e;
-		}
-	}
-
-	@Override
-	public ResponseEntity<ProductOwnerCollection> getProductOwners() {
-		ProductOwnerCollection productOwnerCollection = new ProductOwnerCollection();
-		try {
-			List<TeamMemberVO> productOwnerList = reportCustomRepository.getAllProductOwnerUsingNativeQuery();
-			LOGGER.debug("ProductOwners fetched successfully");
-			if (!ObjectUtils.isEmpty(productOwnerList)) {
-				productOwnerCollection.setRecords(productOwnerList);
-				return new ResponseEntity<>(productOwnerCollection, HttpStatus.OK);
-			} else
-				return new ResponseEntity<>(productOwnerCollection, HttpStatus.NO_CONTENT);
-		} catch (Exception e) {
-			LOGGER.error("Failed to fetch productOwners with exception {} ", e.getMessage());
 			throw e;
 		}
 	}

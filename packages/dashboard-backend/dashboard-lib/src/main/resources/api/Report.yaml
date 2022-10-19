@@ -110,7 +110,7 @@ paths:
           description: Sort reports by a given variable like productName, status
           required: false
           type: string
-          enum: [productName, status, department, productOwner, art]
+          enum: [productName, status, department, art]
         - name: sortOrder
           in: query
           description: Sort reports based on the given order, example asc,desc
@@ -130,11 +130,6 @@ paths:
         - name: processOwner
           in: query
           description: List of processOwner. Example shortID1,shortId2
-          required: false
-          type: string
-        - name: productOwner
-          in: query
-          description: List of productOwner. Example shortID1,shortId2
           required: false
           type: string
         - name: art
@@ -306,37 +301,6 @@ paths:
           description: "Returns message of success or failure"
           schema:
             $ref: "#/definitions/ProcessOwnerCollection"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"            
-
-  # path to get all productOwner
-  #
-  #  supported http methods GET
-  #
-  # path example ../reports/productowners
-
-  /reports/productowners:
-    get:
-      tags:
-        - "reports"
-      summary: "Get all available productOwners."
-      description: "Get all productOwners. This endpoints will be used to get all valid available productOwners records."
-      operationId: "getAllProductOwner"
-      responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/ProductOwnerCollection"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -724,17 +688,7 @@ definitions:
       records:
         type: array
         items:
-          $ref: "#/definitions/TeamMemberVO" 
-          
-  ProductOwnerCollection:
-    description: "Collection of productOwners."
-    type: object
-    properties:
-      records:
-        type: array
-        items:
-          $ref: "#/definitions/TeamMemberVO"          
-                        
+          $ref: "#/definitions/TeamMemberVO"                               
           
   CreatedByVO:
     type: object
