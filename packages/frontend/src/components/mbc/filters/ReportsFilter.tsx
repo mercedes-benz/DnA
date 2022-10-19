@@ -81,7 +81,9 @@ const ReportsFilter = ({
 
   // selected filter values
   const [artFilterValues, setArtFilterValues] = useState([]);
-  const [productOwnerFilterValues, setProductOwnerFilterValues] = useState([]);
+  const [productOwnerFilterValues, 
+    // setProductOwnerFilterValues
+  ] = useState([]);
   const [processOwnerFilterValues, setProcessOwnerFilterValues] = useState([]);
   const [divisionFilterValues, setDivisionFilterValues] = useState([]);
   const [subDivisionFilterValues, setSubDivisionFilterValues] = useState([]);
@@ -344,24 +346,24 @@ const ReportsFilter = ({
     setDepartmentFilterValues(selectedValues);
   };
 
-  const onProductOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
-    const selectedValues: IMember[] = [];
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const ids: string[] = [];
+  // const onProductOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
+  //   const selectedValues: IMember[] = [];
+  //   const selectedOptions = e.currentTarget.selectedOptions;
+  //   const ids: string[] = [];
 
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        const productOwner: IMember = { id: '0', name: null };
-        productOwner.id = option.value;
-        productOwner.name = option.textContent;
-        selectedValues.push(productOwner);
-        ids.push(option.value);
-      });
-    }
+  //   if (selectedOptions.length) {
+  //     Array.from(selectedOptions).forEach((option) => {
+  //       const productOwner: IMember = { id: '0', name: null };
+  //       productOwner.id = option.value;
+  //       productOwner.name = option.textContent;
+  //       selectedValues.push(productOwner);
+  //       ids.push(option.value);
+  //     });
+  //   }
 
-    focusedItems['productOwners'] && applyFilter('productOwners', ids);
-    setProductOwnerFilterValues(selectedValues);
-  };
+  //   focusedItems['productOwners'] && applyFilter('productOwners', ids);
+  //   setProductOwnerFilterValues(selectedValues);
+  // };
 
   const onProcessOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedValues: IMember[] = [];
@@ -598,7 +600,7 @@ const ReportsFilter = ({
                 </div>
               </div>
             </div>
-            <div>
+            {/* <div>
               <div
                 id="productOwnerContainer"
                 className={`input-field-group ${productOwners?.length ? '' : 'disabled'}`}
@@ -622,7 +624,7 @@ const ReportsFilter = ({
                   </select>
                 </div>
               </div>
-            </div>
+            </div> */}
             <div>
               <div
                 id="artContainer"

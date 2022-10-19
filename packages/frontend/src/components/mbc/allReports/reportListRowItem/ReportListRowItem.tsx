@@ -1,6 +1,8 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { IAllReportsListItem, ITeams } from 'globals/types';
+import { IAllReportsListItem, 
+  // ITeams 
+} from 'globals/types';
 import { history } from '../../../../router/History';
 import Styles from './ReportListRowItem.scss';
 // import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
@@ -148,14 +150,14 @@ export default class ReportListRowItem extends React.Component<IReportListRowIte
             {!report?.publish ? <span className={Styles.draftIndicator}>DRAFT</span> : ''}
           </td>
           <td className="wrap-text">{report?.description.department || 'NA'}</td>
-          <td>
+          {/* <td>
             {report?.members.reportOwners?.length
               ? report?.members.reportOwners?.map((item: ITeams) => `${item.firstName} ${item.lastName}`)?.toString()
               : 'NA'}
-          </td>
+          </td> */}
           <td>
             <div className={Styles.locationDataWrapper}>
-              {report?.description.agileReleaseTrain ? report?.description.agileReleaseTrain : 'NA'}
+              {report?.description.agileReleaseTrain && report?.description?.agileReleaseTrain != '0' ? report?.description.agileReleaseTrain : 'NA'}
               {/* {report?.description.agileReleaseTrain ? (
                 <div
                   className={classNames(
