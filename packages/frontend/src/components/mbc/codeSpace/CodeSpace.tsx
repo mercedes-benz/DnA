@@ -3,10 +3,11 @@ import * as React from 'react';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
+import SelectBox from 'components/formElements/SelectBox/SelectBox';
 
 // @ts-ignore
 import { Envs } from 'globals/Envs';
-import { IUserInfo } from 'globals/types';
+import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
 import { trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
@@ -36,11 +37,16 @@ export interface ICodeSpaceData {
   environment?: string;
   deployed?: boolean;
   deployedUrl?: string;
+  deployedBranch?: string;
+  prodDeployed?: boolean;
+  prodDeployedUrl?: string;
+  prodDeployedBranch?: string;
   createdDate?: string;
   lastDeployedDate?: string;
   url: string;
   running: boolean;
   status?: string;
+  collaborators?: ICodeCollaborator[];
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
@@ -61,10 +67,27 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [codeDeploying, setCodeDeploying] = useState<boolean>(false);
   const [codeDeployed, setCodeDeployed] = useState<boolean>(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState<string>();
+  const [codeDeployedBranch, setCodeDeployedBranch] = useState<string>('main');
+  const [prodCodeDeployed, setProdCodeDeployed] = useState<boolean>(false);
+  const [prodCodeDeployedUrl, setProdCodeDeployedUrl] = useState<string>();
+  const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
   const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
 
   const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
+
+  const [branchValue, setBranchValue] = useState('main');
+  const [deployEnvironment, setDeployEnvironment] = useState('staging');
+  const branches = [
+    { id: 'main', name: 'main' },
+    { id: 'dev', name: 'dev' },
+    { id: 'test', name: 'test' },
+    { id: 'feature/code-space', name: 'feature/code-space' },
+  ];
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [showCodeDeployModal]);
 
   useEffect(() => {
     CodeSpaceApiClient.getCodeSpaceStatus(id)
@@ -98,6 +121,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           });
           setCodeDeployed(deployed);
           setCodeDeployedUrl(deployedUrl);
+          setCodeDeployedBranch(branchValue);
           Tooltip.defaultSetup();
           if (res.status === 'DEPLOY_REQUESTED') {
             setCodeDeploying(true);
@@ -185,9 +209,17 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               //   deployedUrl: res.deployedUrl,
               //   lastDeployedDate: res.lastDeployedOn
               // });
-              setCodeDeployed(true);
               setCodeDeploying(false);
-              setCodeDeployedUrl(res.deploymentUrl);
+              if (deployEnvironment === 'staging') {
+                setCodeDeployed(true);
+                setCodeDeployedUrl(res.deploymentUrl);
+                setCodeDeployedBranch(branchValue);
+              } else if (deployEnvironment === 'production') {
+                setProdCodeDeployed(true);
+                setProdCodeDeployedUrl(res.deploymentUrl);
+                setProdCodeDeployedBranch(branchValue);
+              }
+              
               Tooltip.defaultSetup();
               setShowCodeDeployModal(false);
               Notification.show(`Code from code space ${res.name} succesfully deployed.`);
@@ -210,6 +242,14 @@ const CodeSpace = (props: ICodeSpaceProps) => {
         });
     }, 2000);
     setLivelinessInterval(intervalId);
+  };
+
+  const onBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setBranchValue(e.currentTarget.value);
+  };
+
+  const onDeployEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    setDeployEnvironment(evnt.currentTarget.value.trim());
   };
 
   const onAcceptCodeDeploy = () => {
@@ -273,10 +313,19 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               {codeSpaceData.running && (
                 <div className={Styles.headerright}>
                   {codeDeployed && (
-                    <div className={Styles.urlLink} tooltip-data="API BASE URL">
+                    <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
                       <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                        <i className="icon mbc-icon link" />
+                        <i className="icon mbc-icon link" /> Staging ({codeDeployedBranch})
                       </a>
+                      &nbsp;
+                    </div>
+                  )}
+                  {prodCodeDeployed && (
+                    <div className={Styles.urlLink} tooltip-data="API BASE URL - Production">
+                      <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                        <i className="icon mbc-icon link" /> Production ({prodCodeDeployedBranch})
+                      </a>
+                      &nbsp;
                     </div>
                   )}
                   <div>
@@ -284,7 +333,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                       className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')}
                       onClick={onShowCodeDeployModal}
                     >
-                      {codeDeployed && '(Re)'}Deploy{codeDeploying && 'ing...'}
+                      {(codeDeployed || prodCodeDeployed) && '(Re)'}Deploy{codeDeploying && 'ing...'}
                     </button>
                   </div>
                   <div tooltip-data="Open New Tab" className={Styles.OpenNewTab} onClick={openInNewtab}>
@@ -358,6 +407,59 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                 The code from your workspace will be deployed and is run in a container and you will get the access url
                 after the deployment.
               </p>
+              <div className={Styles.flexLayout}>
+                <div>
+                  <div id="branchContainer" className="input-field-group">
+                    <label id="branchLabel" className="input-label" htmlFor="branchSelect">
+                      Code Branch to Deploy
+                    </label>
+                    <div id="branch" className="custom-select">
+                      <select id="branchSelect" onChange={onBranchChange} value={branchValue}>
+                        {branches.map((obj: any) => (
+                          <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
+                            {obj.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div id="deployEnvironmentContainer" className="input-field-group">
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Deploy Environment
+                    </label>
+                    <div>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="staging"
+                            name="deployEnvironment"
+                            onChange={onDeployEnvironmentChange}
+                            checked={deployEnvironment === 'staging'}
+                          />
+                        </span>
+                        <span className="label">Staging</span>
+                      </label>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="production"
+                            name="deployEnvironment"
+                            onChange={onDeployEnvironmentChange}
+                            checked={deployEnvironment === 'production'}
+                          />
+                        </span>
+                        <span className="label">Production</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div>
                 <label className="checkbox">
                   <span className="wrapper">
