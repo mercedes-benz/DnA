@@ -89,6 +89,8 @@ public class CacheUpdateEventListener {
 	private static String NOTEBOOK_NOTIFICATION_KEY = "Notebook";
 	private static String STORAGE_NOTIFICATION_KEY = "Storage";
 	private static String DASHBOARD_NOTIFICATION_KEY = "Dashboard";
+	private static String DATAPRODUCT_NOTIFICATION_KEY = "DataProduct";
+	private static String DATACOMPLIANCE_NOTIFICATION_KEY = "DataCompliance";
 	
 	//@PostConstruct
 	public void init() {
@@ -168,6 +170,14 @@ public class CacheUpdateEventListener {
 								if(record.value().getEventType().contains(DASHBOARD_NOTIFICATION_KEY)) {
 									appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
 									emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getDataProductNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getDataProductNotificationPref().isEnableEmailNotifications();
+								}
+								if(record.value().getEventType().contains(DATACOMPLIANCE_NOTIFICATION_KEY)) {
+									appNotificationPreferenceFlag = preferenceVO.getDataComplianceNotificationPref().isEnableAppNotifications();
+									emailNotificationPreferenceFlag =  preferenceVO.getDataComplianceNotificationPref().isEnableEmailNotifications();
 								}
 								NotificationVO vo = new NotificationVO();
 								vo.setDateTime(record.value().getTime());
