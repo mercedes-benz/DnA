@@ -109,7 +109,7 @@ const ReportsFilter = ({
           ) as IFilterParams;
           const arts: IART[] = response[0].data;
           const processOwners: ITeams[] = response[3].records;
-          const productOwners: ITeams[] = response[4].records;
+          // const productOwners: ITeams[] = response[4].records;
           const divisions = response[1];
           const divisionsToPass =
             portfolioFilterValues.current && portfolioFilterValues.current.division?.length > 0
@@ -184,7 +184,7 @@ const ReportsFilter = ({
                 ?.map((item) => item.name) as any;
               queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => art.name);
               queryParams.processOwners = filterPreferences.processOwners as any;
-              queryParams.productOwners = filterPreferences.productOwners as any;
+              // queryParams.productOwners = filterPreferences.productOwners as any;
               // populate subDivision dropdown values
               ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
                 setSubDivisions(subDivisionsList);
