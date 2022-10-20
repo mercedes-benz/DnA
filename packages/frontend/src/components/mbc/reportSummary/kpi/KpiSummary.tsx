@@ -70,7 +70,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                         </div>
                       </div>
                       <div className={Styles.commentSection}>
-                        <label className="input-label summary">Comment</label>
+                        <label className="input-label summary">KPI Description</label>
                         <p>
                           <pre className={Styles.commentPre}>{kpi.description}</pre>
                         </p>
