@@ -3,6 +3,15 @@
     padding: 20px 0 30px 114px;
     margin-right: 184px;
     min-height: 100vh;
+
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+      > div {
+        width: calc(50% - 7px);
+      }
+    }
+
     .codeSpaceContent {
       color: #c5c5c5;
       padding: 0;
@@ -56,9 +65,12 @@
         font-size: var(--font-size-default);
         line-height: var(--font-size-headline);
       }
-      i {
-        font-size: var(--font-size-icon-nav);
-        margin: 0 10px;
+      a {
+        font-size: var(--font-size-medium);
+        margin-right: 10px;
+        i {
+          font-size: var(--font-size-icon-nav);
+        }
       }
       .nbtitle {
         padding-right: 30px;
