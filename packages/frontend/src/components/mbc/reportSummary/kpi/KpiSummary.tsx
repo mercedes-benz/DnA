@@ -39,7 +39,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                       <span className={Styles.kpiNo}>{`KPI ${index + 1}`}</span>
                       <div className={Styles.flexLayout}>
                         <div id="kpiName">
-                          <label className="input-label summary">Name</label>
+                          <label className="input-label summary">KPI Name</label>
                           <br />
                           <div>{kpi.name}</div>
                         </div>
@@ -49,7 +49,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                           <div>{kpi.reportingCause}</div>
                         </div>
                         <div id="kpiLink">
-                          <label className="input-label summary">KPI-Link</label>
+                          <label className="input-label summary">Link KPI-Wiki</label>
                           <br />
                           <div>
                             {kpi.kpiLink ? (
