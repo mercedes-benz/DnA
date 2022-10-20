@@ -150,12 +150,18 @@ definitions:
       $ref: "#/definitions/NotificationPreferenceVO"
     dashboardNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO"
+    dataComplianceNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"
+    dataProductNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"            
   required:
      - userId
      - solutionNotificationPref
      - notebookNotificationPref
      - persistenceNotificationPref
      - dashboardNotificationPref
+     - dataComplianceNotificationPref
+     - dataProductNotificationPref
      
  NotificationPreferenceVO:
   type: object
