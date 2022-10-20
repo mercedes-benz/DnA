@@ -87,6 +87,11 @@
     border-radius: 2px;
     margin-left: 20px;
 
+    &.colloboration {
+      border: 1px solid #35ADAC;
+      color: #35ADAC;
+    }
+
     &.deploying {
       border: 1px solid #f3e537;
       color: #f3e537;

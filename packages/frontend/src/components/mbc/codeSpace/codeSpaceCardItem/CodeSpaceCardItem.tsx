@@ -11,15 +11,20 @@ import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { trackEvent } from '../../../../services/utils';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
+import { ICodeCollaborator, IUserInfo } from 'globals/types';
 
 interface CodeSpaceCardItemProps {
+  userInfo: IUserInfo;
   codeSpace: ICodeSpaceData;
   onDeleteSuccess?: () => void;
   toggleProgressMessage?: (show: boolean) => void;
+  onShowCodeSpaceOnBoard: (codeSpace: ICodeSpaceData) => void;
 }
 
 const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const codeSpace = props.codeSpace;
+  const collaborationCodeSpace = codeSpace.collaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
+  const enableOnboard = collaborationCodeSpace ? collaborationCodeSpace.status === 'REQUESTED' : false;
   const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
@@ -68,7 +73,11 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   };
 
   const onCardNameClick = () => {
-    history.push(`codespace/${codeSpace.name}`);
+    if (enableOnboard) {
+      props.onShowCodeSpaceOnBoard(codeSpace);
+    } else {
+      history.push(`codespace/${codeSpace.name}`);
+    }
   };
 
   return (
@@ -111,35 +120,43 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           </div>
         </div>
         <div className={Styles.cardFooter}>
-          <div>
-            {codeDeploying && (
-              <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
-            )}
-            {codeSpace.deployed && (
-              <>
-                <span className={Styles.statusIndicator}>Deployed</span>
-                <a href={codeSpace.deployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
-                  <i className="icon mbc-icon link" />
-                </a>
-              </>
-            )}
-            {deleteInProgress && (
-              <span className={classNames(Styles.statusIndicator, Styles.deleting)}>Deleting...</span>
-            )}
-            {createInProgress && (
-              <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
-            )}
-          </div>
-          <div className={Styles.btnGrp}>
-            <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
-              <i className="icon mbc-icon edit"></i>
-            </button>
-            {!deleteInProgress && !createInProgress && (
-              <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-                <i className="icon delete"></i>
-              </button>
-            )}
-          </div>
+          {enableOnboard ? (
+            <div>
+              <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>Collaboration Requested...</span>
+            </div>
+          ) : (
+            <>
+              <div>
+                {codeDeploying && (
+                  <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+                )}
+                {codeSpace.deployed && (
+                  <>
+                    <span className={Styles.statusIndicator}>Deployed</span>
+                    <a href={codeSpace.deployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                      <i className="icon mbc-icon link" />
+                    </a>
+                  </>
+                )}
+                {deleteInProgress && (
+                  <span className={classNames(Styles.statusIndicator, Styles.deleting)}>Deleting...</span>
+                )}
+                {createInProgress && (
+                  <span className={classNames(Styles.statusIndicator, Styles.creating)}>Creating...</span>
+                )}
+              </div>
+              <div className={Styles.btnGrp}>
+                <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
+                  <i className="icon mbc-icon edit"></i>
+                </button>
+                {!deleteInProgress && !createInProgress && (
+                  <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+                    <i className="icon delete"></i>
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
       <ConfirmModal
