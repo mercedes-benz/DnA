@@ -376,6 +376,10 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             </View>
             <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
               <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>Name</Text>
+                <Text>{data?.name?.firstName +' '+ data?.name?.lastName || 'NA'}</Text>
+              </View>
+              <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Level</Text>
                 <Text>{data.level || 'NA'}</Text>
               </View>
@@ -383,13 +387,18 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
                 <Text style={styles.sectionTitle}>Department</Text>
                 <Text>{data.department || 'NA'}</Text>
               </View>
-              <View style={styles.flexCol2}>
-                <Text style={styles.sectionTitle}>MB Legal Entity</Text>
-                <Text>{data.legalEntity || 'NA'}</Text>
-              </View>
+              
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
               <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>MB Legal Entity</Text>
+                <Text>{data.legalEntity || 'NA'}</Text>
+              </View>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Customer Relation</Text>
+                <Text>{data.customerRelation}</Text>
+              </View>
+              <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Comment</Text>
                 <Text>{data.comment}</Text>
               </View>
@@ -399,6 +408,42 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             ) : null}
           </React.Fragment>
         ))}
+
+      {showCustomer &&
+        customer.externalCustomers?.length &&
+        customer.externalCustomers?.map((data: any, index: number) => (
+          <React.Fragment key={index}>
+            <View style={[styles.flexLayout, { marginBottom: 0 }]} wrap={false}>
+              <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>{`External Customer ${index + 1}`}</Text>
+              </View>
+            </View>
+            <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
+              <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>Name</Text>
+                <Text>{data?.name?.firstName +' '+ data?.name?.lastName || 'NA'}</Text>
+              </View>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Company Name</Text>
+                <Text>{data.companyName || 'NA'}</Text>
+              </View>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Customer Relation</Text>
+                <Text>{data.customerRelation}</Text>
+              </View>
+              
+            </View>
+            <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Comment</Text>
+                <Text>{data.comment}</Text>
+              </View>
+            </View>
+            {customer.internalCustomers?.length > 0 ? (
+              <View style={styles.seperatorLine} />
+            ) : null}
+          </React.Fragment>
+        ))}  
       {/* {showCustomer && customer.processOwners?.length && (
         <View wrap={false}>
           <View style={[styles.firstCol, styles.setMarginTop]}>
