@@ -472,7 +472,7 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
               </View>
               <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
                 <View style={styles.firstCol}>
-                  <Text style={styles.sectionTitle}>Name</Text>
+                  <Text style={styles.sectionTitle}>KPI Name</Text>
                   <Text>{kpi.name || 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
@@ -480,13 +480,13 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
                   <Text>{kpi.reportingCause || 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
-                  <Text style={styles.sectionTitle}>KPI-Link</Text>
+                  <Text style={styles.sectionTitle}>Link KPI-Wiki</Text>
                   {kpi.kpiLink ? <Link src={kpi.kpiLink}>{kpi.kpiLink}</Link> : <Text>NA</Text>}
                 </View>
               </View>
               <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
                 <View style={styles.firstCol}>
-                  <Text style={styles.sectionTitle}>Comment</Text>
+                  <Text style={styles.sectionTitle}>KPI Description</Text>
                   <Text>{kpi.comment}</Text>
                 </View>
               </View>
