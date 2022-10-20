@@ -37,29 +37,42 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                     return (
                       <React.Fragment key={index}>
                         <div className={Styles.customerListView}>
-                          <span className={Styles.description}>{`Customer ${index + 1}`}</span>
+                          <span className={Styles.description}>{`Internal Customer ${index + 1}`}</span>
                           <div className={Styles.flexLayout}>
+                            <div id="name">
+                              <label className="input-label summary">Name</label>
+                              <br />
+                              <div>{customer.name?.firstName}{' '}{customer.name?.lastName}</div>
+                            </div>
                             <div id="hierarchy">
-                              <label className="input-label summary">Hierarchy</label>
+                              <label className="input-label summary">Level</label>
                               <br />
                               <div>{customer.level}</div>
                             </div>
                             <div id="department">
-                              <label className="input-label summary">Department</label>
+                              <label className="input-label summary">E2-Department</label>
                               <br />
                               <div>{customer.department}</div>
                             </div>
+                          </div>
+                          <div className={Styles.flexLayout}>
                             <div id="ressort">
-                              <label className="input-label summary">Ressort</label>
+                              <label className="input-label summary">MB Legal Entity</label>
                               <br />
                               <div>{customer.legalEntity}</div>
                             </div>
-                          </div>
-                          <div className={Styles.commentSection}>
-                            <label className="input-label summary">Comment</label>
-                            <p>
-                              <pre className={Styles.commentPre}>{customer.comment}</pre>
-                            </p>
+                            <div id="customerRelation">
+                              <label className="input-label summary">Customer Relation</label>
+                              <br />
+                              <div>{customer.customerRelation}</div>
+                            </div>
+                            <div id="comment">
+                              <label className="input-label summary">Comment</label>
+                              <p>
+                                <pre className={Styles.commentPre}>{customer.comment}</pre>
+                              </p>
+                            </div>
+                            
                           </div>
                           {(this.props.customers.internalCustomers?.length > 1 ||
                             this.props.customers.internalCustomers?.length) && <hr className="divider1" />}
@@ -68,6 +81,42 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                     );
                   })
                 : null}
+              {this.props.customers.externalCustomers?.length
+                ? this.props.customers.externalCustomers?.map((customer, index) => {
+                    return (
+                      <React.Fragment key={'external'+ index}>
+                        <div className={Styles.customerListView}>
+                          <span className={Styles.description}>{`External Customer ${index + 1}`}</span>
+                          <div className={Styles.flexLayout}>
+                            <div id="nameExternal">
+                              <label className="input-label summary">Name</label>
+                              <br />
+                              <div>{customer.name?.firstName}{' '}{customer.name?.lastName}</div>
+                            </div>
+                            <div id="companyName">
+                              <label className="input-label summary">Company Name</label>
+                              <br />
+                              <div>{customer.companyName}</div>
+                            </div>
+                            <div id="customerRelationExternal">
+                              <label className="input-label summary">Customer Relation</label>
+                              <br />
+                              <div>{customer.customerRelation}</div>
+                            </div>
+                          </div>
+                          <div className={Styles.commentSection}>
+                            <label className="input-label summary">Comment</label>
+                            <p>
+                              <pre className={Styles.commentPre}>{customer.comment}</pre>
+                            </p>
+                          </div>
+                          {(this.props.customers.externalCustomers?.length > 1 ||
+                            this.props.customers.externalCustomers?.length) && <hr className="divider1" />}
+                        </div>
+                      </React.Fragment>
+                    );
+                  })
+                : null}  
               {/* {this.props.customers.processOwners?.length ? (
                 <div className={Styles.customerListView}>
                   <div className={Styles.processOwnerCardSection}>
