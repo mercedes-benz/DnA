@@ -36,7 +36,7 @@ export const getDataForCSV = (
     { label: 'KPIs', key: 'kpis' },
     { label: 'Data Warehouse', key: 'datawarehouses' },
     { label: 'Single Datasource', key: 'singledatasources' },
-    { label: 'Report Member', key: 'reportOwners' },
+    { label: 'Report Member', key: 'reportMembers' },
     // { label: 'Developers', key: 'developers' },
     { label: 'Report Admin', key: 'reportAdmins' },
     { label: 'IsPublished', key: 'publish' },
@@ -101,24 +101,46 @@ export const getDataForCSV = (
             frontendTechnologies: report.description.frontendTechnologies?.length
               ? report.description.frontendTechnologies?.join(', ')
               : 'NA',
-            internalCustomers: report.customer?.internalCustomers?.length
-              ? report.customer?.internalCustomers?.map((customer) => Object.values(customer)?.join(' | '))
-              : 'NA',
+            internalCustomers: (report.customer?.internalCustomers?.length
+              ? report.customer?.internalCustomers?.map((customer) => 
+              'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
+              + '|' + 'customerRelation: ' + customer?.customerRelation
+              + '|' + 'level: ' + customer?.level
+              + '|' + 'customerDivision: ' + customer?.division?.name
+              + '|' + 'e2-department: ' + customer?.department
+              + '|' + 'mbLegalEntity: ' + customer?.legalEntity
+              + '|' + 'usRisk: ' + customer?.accessToSensibleData
+              + '|' + 'comment: ' + customer?.comment
+              + '|' + 'processOwner: ' + JSON.parse(JSON.stringify(customer?.processOwner))?.firstName +' '+ JSON.parse(JSON.stringify(customer?.processOwner))?.lastName)
+              : 'NA'),
             externalCustomers: report.customer?.externalCustomers?.length
-              ? report.customer.externalCustomers?.map((customer) => Object.values(customer)?.join(' | '))
+              ? report.customer.externalCustomers?.map((customer) =>               
+              'name: ' + (customer?.name?.firstName +' '+ customer?.name?.lastName)
+              + '|' + 'customerRelation: ' + customer?.customerRelation
+              + '|' + 'companyName: ' + customer?.companyName
+              + '|' + 'comment: ' + customer?.comment
+              )
               : 'NA',
             kpis: report.kpis?.length ? report.kpis?.map((kpi) => Object.values(kpi)?.join(' | ')) : 'NA',
             datawarehouses: report.dataAndFunctions?.dataWarehouseInUse?.length
               ? report.dataAndFunctions.dataWarehouseInUse
-                  ?.map((datawarehouse) => Object.values(datawarehouse)?.join(' | '))
-                  
+                  ?.map((datawarehouse) => 
+                  'datawarehouse: ' + (datawarehouse?.dataWarehouse)
+                  + '|' + 'connectionType: ' + datawarehouse?.connectionType
+                  + '|' + 'commonFunctions: ' + datawarehouse?.commonFunctions
+                  + '|' + 'dataClassification: ' + datawarehouse?.dataClassification
+                  )   
               : 'NA',
             singledatasources: report.dataAndFunctions?.singleDataSources?.length
               ? report.dataAndFunctions.singleDataSources
-                  ?.map((singledatasource) => Object.values(singledatasource)?.join(' | '))
-                  
+                  ?.map((singledatasource) => 
+                  // Object.values(singledatasource)?.join(' | ')
+                  'dataSource: ' + (singledatasource?.dataSources.map(item => item.dataSource ))
+                  + '|' + 'connectionType: ' + singledatasource?.connectionType
+                  + '|' + 'dataClassification: ' + singledatasource?.dataClassification
+                  )
               : 'NA',
-            productOwners: report.members.reportOwners?.length
+              reportMembers: report.members.reportOwners?.length
               ? report.members.reportOwners?.map((member) => member.shortId)?.join(', ')
               : 'NA',
             // developers: report.members.developers?.length
