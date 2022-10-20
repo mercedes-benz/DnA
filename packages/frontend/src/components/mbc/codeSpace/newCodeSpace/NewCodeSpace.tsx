@@ -13,14 +13,15 @@ import { trackEvent } from '../../../../services/utils';
 import TextBox from '../../shared/textBox/TextBox';
 import { ICodeSpaceData } from '../CodeSpace';
 import { useEffect } from 'react';
-import { IUserInfo } from 'globals/types';
+import { ICodeCollaborator, IUserDetails, IUserInfo } from 'globals/types';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
+import AddUser from '../../addUser/AddUser';
 
 const classNames = cn.bind(Styles);
 
 export interface ICodeSpaceProps {
   user: IUserInfo;
-  lastCreatedId?: number;
+  onBoardingCodeSpace?: ICodeSpaceData;
   isCodeSpaceCreationSuccess?: (status: boolean, codeSpaceData: ICodeSpaceData) => void;
   toggleProgressMessage?: (show: boolean) => void;
 }
@@ -35,6 +36,7 @@ export interface ICreateCodeSpaceData {
 }
 
 const NewCodeSpace = (props: ICodeSpaceProps) => {
+  const onBoadingMode = props.onBoardingCodeSpace !== undefined;
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
@@ -56,6 +58,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     password: '',
     confirmPassword: '',
   });
+  const [githubToken, setGithubToken] = useState('');
+  const [githubTokenError, setGithubTokenError] = useState('');
+  const [codeSpaceCollaborators, setCodeSpaceCollaborators] = useState([]);
+  // const [codeSpaceCollaboratorsError, setCodeSpaceCollaboratorsError] = useState('');
+
+
   const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
 
   // const [createdCodeSpaceName, setCreatedCodeSpaceName] = useState('');
@@ -91,6 +99,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
         : '',
     );
   };
+  
+  const onGithubTokenOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
+    const githubTokenVal = evnt.currentTarget.value.trim();
+    setGithubToken(githubTokenVal);
+  };
 
   const onEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     setEnvironment(evnt.currentTarget.value.trim());
@@ -120,12 +133,14 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     const passwordInputFieldName = evnt.currentTarget.name;
     //for password
     if (passwordInputFieldName === 'password') {
+      const oneLetterRegExp = /(?=.*?[a-zA-Z])/;
       // const uppercaseRegExp = /(?=.*?[A-Z])/;
       // const lowercaseRegExp = /(?=.*?[a-z])/;
       const digitsRegExp = /(?=.*?[0-9])/;
       // const specialCharRegExp = /(?=.*?[#?!@$%^&*-])/;
       const minLengthRegExp = /.{8,}/;
       const passwordLength = passwordInputValue.length;
+      const atleastOneLetter = oneLetterRegExp.test(passwordInputValue);
       // const uppercasePassword = uppercaseRegExp.test(passwordInputValue);
       // const lowercasePassword = lowercaseRegExp.test(passwordInputValue);
       const digitsPassword = digitsRegExp.test(passwordInputValue);
@@ -134,6 +149,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       let errMsg = '';
       if (passwordLength === 0) {
         errMsg = 'Password is empty';
+      } else if (!atleastOneLetter) {
+        errMsg = 'At least one letter';
       } else if (!digitsPassword) {
         /*else if (!uppercasePassword) {
         errMsg = 'At least one Uppercase';
@@ -166,6 +183,58 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // User Name
   const namePrefix = props.user.firstName;
 
+  const getCollabarators = (collaborator: IUserDetails) => {
+    const collabarationData = {
+      firstName: collaborator.firstName,
+      lastName: collaborator.lastName,
+      shortId: collaborator.shortId,
+      department: collaborator.department,
+      email: collaborator.email,
+      mobileNumber: collaborator.mobileNumber,
+      // permission: { read: true, write: false },
+    };
+
+    let duplicateMember = false;
+    duplicateMember = codeSpaceCollaborators.filter((member: IUserDetails) => member.shortId === collaborator.shortId)?.length
+      ? true
+      : false;
+    const isCreator = props.user.id === collaborator.shortId;
+
+    if (duplicateMember) {
+      Notification.show('Collaborator Already Exist.', 'warning');
+    } else if (isCreator) {
+      Notification.show(
+        `${collaborator.firstName} ${collaborator.lastName} is a creator. Creator can't be added as collaborator.`,
+        'warning',
+      );
+    } else {
+      codeSpaceCollaborators.push(collabarationData);
+      setCodeSpaceCollaborators([...codeSpaceCollaborators]);
+    }
+  };
+
+  const onCollaboratorPermission = (e: React.ChangeEvent<HTMLInputElement>, userName: string) => {
+    const codeSpaceCollaborator = codeSpaceCollaborators.find((item: ICodeCollaborator) => {
+      return item.shortId == userName;
+    });
+
+    if (e.target.checked) {
+      codeSpaceCollaborator.canDeploy = true;
+    } else {
+      codeSpaceCollaborator.canDeploy = false;
+    }
+    setCodeSpaceCollaborators([...codeSpaceCollaborators]);
+  };
+
+  const onCollabaratorDelete = (userName: string) => {
+    return () => {
+      const currentCollList = codeSpaceCollaborators.filter((item) => {
+        return item.shortId !== userName;
+      });
+      setCodeSpaceCollaborators(currentCollList);
+    };
+  };
+
   const validateNewCodeSpaceForm = () => {
     let formValid = true;
     if (!projectName.length) {
@@ -184,7 +253,11 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setConfirmPasswordError(requiredError);
       formValid = false;
     }
-    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '') {
+    if (githubToken === '') {
+      setGithubTokenError(requiredError);
+      formValid = false;
+    }
+    if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
       formValid = false;
     }
     return formValid;
@@ -315,134 +388,310 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     //     });
     // }
   };
-
+  console.log(props.onBoardingCodeSpace);
   return (
     <React.Fragment>
-      <div className={Styles.newCodeSpacePanel}>
-        <div className={Styles.addicon}> &nbsp; </div>
-        <h3>Hello {namePrefix}, Create your Code Space</h3>
-        <p>Protect your code space with the password of your own.</p>
-        {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
-        <div
-          id="recipeContainer"
-          className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
-        >
-          <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
-            Code Recipe<sup>*</sup>
-          </label>
-          <div id="recipe" className="custom-select">
-            <select
-              id="recipeSelect"
-              multiple={false}
-              required={true}
-              required-error={requiredError}
-              onChange={onRecipeChange}
-              value={recipeValues.join('')}
-            >
-              <option id="defaultStatus" value={0}>
-                Select Code Recipe
-              </option>
-              {recipes.map((obj: any) => (
-                <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
-                  {obj.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
-        </div>
-        <div className={Styles.flexLayout}>
-          <div>
-            <TextBox
-              type="text"
-              controlId={'productNameInput'}
-              labelId={'productNameLabel'}
-              label={'Code Space Name'}
-              placeholder={'Type here'}
-              value={projectName}
-              errorText={projectNameError}
-              required={true}
-              maxLength={39}
-              onChange={onProjectNameOnChange}
-            />
-          </div>
-          <div>
-            <div id="environmentContainer" className={classNames('input-field-group include-error')}>
-              <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Evironment<sup>*</sup>
-              </label>
-              <div className={Styles.pIIField}>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value={'DHC-CaaS'}
-                      name="environment"
-                      onChange={onEnvironmentChange}
-                      checked={true}
-                    />
-                  </span>
-                  <span className="label">DHC CaaS</span>
-                </label>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="azure"
-                      name="environment"
-                      onChange={onEnvironmentChange}
-                      checked={false}
-                      disabled={true}
-                    />
-                  </span>
-                  <span className="label">Azure (Coming Soon)</span>
-                </label>
+      {onBoadingMode ? (
+        <div className={Styles.newCodeSpacePanel}>
+          <div className={Styles.addicon}> &nbsp; </div>
+          <h3>Hello {namePrefix}, On-board to Code Space - {props.onBoardingCodeSpace.name}</h3>
+          <p>Protect your code space with the password of your own.</p>
+          <div className={Styles.codeSpaceDetails}>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label>Name</label>
+              </div>
+              <div>
+                {props.onBoardingCodeSpace.name}
+              </div>
+            </div>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label>Recipe</label>
+              </div>
+              <div>
+                {props.onBoardingCodeSpace.recipe}
+              </div>
+            </div>
+            <div className={Styles.flexLayout}>
+              <div>
+                <label>Environment</label>
+              </div>
+              <div>
+                {props.onBoardingCodeSpace.environment}
               </div>
             </div>
           </div>
-        </div>
-        <div className={Styles.flexLayout}>
-          <div>
-            <TextBox
-              type="password"
-              controlId={'codeSpacePasswordInput'}
-              name="password"
-              labelId={'codeSpacePasswordLabel'}
-              label={'Code Space Password (min 8 chars & alpha numeric)'}
-              placeholder={'Type here'}
-              value={passwordInput.password}
-              errorText={passwordError}
-              required={true}
-              maxLength={20}
-              onChange={handlePasswordChange}
-              onKeyUp={handleValidation}
-            />
+          <div className={Styles.flexLayout}>
+            <div>
+              <TextBox
+                type="password"
+                controlId={'codeSpacePasswordInput'}
+                name="password"
+                labelId={'codeSpacePasswordLabel'}
+                label={'Code Space Password (min 8 chars & alpha numeric)'}
+                placeholder={'Type here'}
+                value={passwordInput.password}
+                errorText={passwordError}
+                required={true}
+                maxLength={20}
+                onChange={handlePasswordChange}
+                onKeyUp={handleValidation}
+              />
+            </div>
+            <div>
+              <TextBox
+                type="password"
+                controlId={'codeSpaceConfirmPasswordInput'}
+                name="confirmPassword"
+                labelId={'codeSpaceConfirmPasswordLabel'}
+                label={'Confirm Code Space Password'}
+                placeholder={'Type here'}
+                value={passwordInput.confirmPassword}
+                errorText={confirmPasswordError}
+                required={true}
+                maxLength={20}
+                onChange={handlePasswordChange}
+                onKeyUp={handleValidation}
+              />
+            </div>
           </div>
           <div>
-            <TextBox
-              type="password"
-              controlId={'codeSpaceConfirmPasswordInput'}
-              name="confirmPassword"
-              labelId={'codeSpaceConfirmPasswordLabel'}
-              label={'Confirm Code Space Password'}
-              placeholder={'Type here'}
-              value={passwordInput.confirmPassword}
-              errorText={confirmPasswordError}
-              required={true}
-              maxLength={20}
-              onChange={handlePasswordChange}
-              onKeyUp={handleValidation}
-            />
+            <div>
+              <TextBox
+                type="text"
+                controlId={'githubTokenInput'}
+                labelId={'githubTokenLabel'}
+                label={'Your Github Accesstoken'}
+                placeholder={'Type here'}
+                value={githubToken}
+                errorText={githubTokenError}
+                required={true}
+                maxLength={50}
+                onChange={onGithubTokenOnChange}
+              />
+            </div>
+          </div>
+          <div className={Styles.newCodeSpaceBtn}>
+            <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
+              On-board to Code Space
+            </button>
           </div>
         </div>
-        <div className={Styles.newCodeSpaceBtn}>
-          <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
-            Create Code Space
-          </button>
+      ) : (
+        <div className={Styles.newCodeSpacePanel}>
+          <div className={Styles.addicon}> &nbsp; </div>
+          <h3>Hello {namePrefix}, Create your Code Space</h3>
+          <p>Protect your code space with the password of your own.</p>
+          {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
+          <div
+            id="recipeContainer"
+            className={classNames('input-field-group include-error', recipeError.length ? 'error' : '')}
+          >
+            <label id="recipeLabel" className="input-label" htmlFor="recipeSelect">
+              Code Recipe<sup>*</sup>
+            </label>
+            <div id="recipe" className="custom-select">
+              <select
+                id="recipeSelect"
+                multiple={false}
+                required={true}
+                required-error={requiredError}
+                onChange={onRecipeChange}
+                value={recipeValues.join('')}
+              >
+                <option id="defaultStatus" value={0}>
+                  Select Code Recipe
+                </option>
+                {recipes.map((obj: any) => (
+                  <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
+                    {obj.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <span className={classNames('error-message', recipeError.length ? '' : 'hide')}>{recipeError}</span>
+          </div>
+          <div className={Styles.flexLayout}>
+            <div>
+              <TextBox
+                type="text"
+                controlId={'productNameInput'}
+                labelId={'productNameLabel'}
+                label={'Code Space Name'}
+                placeholder={'Type here'}
+                value={projectName}
+                errorText={projectNameError}
+                required={true}
+                maxLength={39}
+                onChange={onProjectNameOnChange}
+              />
+            </div>
+            <div>
+              <div id="environmentContainer" className={classNames('input-field-group include-error')}>
+                <label className={classNames(Styles.inputLabel, 'input-label')}>
+                  Environment<sup>*</sup>
+                </label>
+                <div>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value={'DHC-CaaS'}
+                        name="environment"
+                        onChange={onEnvironmentChange}
+                        checked={true}
+                      />
+                    </span>
+                    <span className="label">DHC CaaS</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="azure"
+                        name="environment"
+                        onChange={onEnvironmentChange}
+                        checked={false}
+                        disabled={true}
+                      />
+                    </span>
+                    <span className="label">Azure (Coming Soon)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className={Styles.flexLayout}>
+            <div>
+              <TextBox
+                type="password"
+                controlId={'codeSpacePasswordInput'}
+                name="password"
+                labelId={'codeSpacePasswordLabel'}
+                label={'Code Space Password (min 8 chars & alpha numeric)'}
+                placeholder={'Type here'}
+                value={passwordInput.password}
+                errorText={passwordError}
+                required={true}
+                maxLength={20}
+                onChange={handlePasswordChange}
+                onKeyUp={handleValidation}
+              />
+            </div>
+            <div>
+              <TextBox
+                type="password"
+                controlId={'codeSpaceConfirmPasswordInput'}
+                name="confirmPassword"
+                labelId={'codeSpaceConfirmPasswordLabel'}
+                label={'Confirm Code Space Password'}
+                placeholder={'Type here'}
+                value={passwordInput.confirmPassword}
+                errorText={confirmPasswordError}
+                required={true}
+                maxLength={20}
+                onChange={handlePasswordChange}
+                onKeyUp={handleValidation}
+              />
+            </div>
+          </div>
+          <div>
+            <div>
+              <TextBox
+                type="text"
+                controlId={'githubTokenInput'}
+                labelId={'githubTokenLabel'}
+                label={'Your Github Accesstoken'}
+                placeholder={'Type here'}
+                value={githubToken}
+                errorText={githubTokenError}
+                required={true}
+                maxLength={50}
+                onChange={onGithubTokenOnChange}
+              />
+            </div>
+          </div>
+          <div className={classNames('input-field-group include-error')}>
+            <label htmlFor="userId" className="input-label">
+              Find and add the collaborators you want to work with your code (Optional)
+            </label>
+            <div className={Styles.collaboratorSection}>
+              <div className={Styles.collaboratorSectionList}>
+                <div className={Styles.collaboratorSectionListAdd}>
+                  <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} />
+                </div>
+                <div className={Styles.collaboratorList}>
+                  {codeSpaceCollaborators?.length > 0 ? (
+                    <React.Fragment>
+                      <div className={Styles.collaboratorTitle}>
+                        <div className={Styles.collaboratorTitleCol}>User ID</div>
+                        <div className={Styles.collaboratorTitleCol}>Name</div>
+                        <div className={Styles.collaboratorTitleCol}>Permission</div>
+                        <div className={Styles.collaboratorTitleCol}></div>
+                      </div>
+                      <div className={classNames('mbc-scroll', Styles.collaboratorContent)}>
+                        {codeSpaceCollaborators?.map((item, collIndex) => {
+                          return (
+                            <div key={collIndex} className={Styles.collaboratorContentRow}>
+                              <div className={Styles.collaboratorTitleCol}>{item.shortId}</div>
+                              <div className={Styles.collaboratorTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                              <div className={Styles.collaboratorTitleCol}>
+                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                                  <span className="wrapper">
+                                    <input type="checkbox" className="ff-only" value="develop" checked={true} readOnly />
+                                  </span>
+                                  <span className="label">Develop</span>
+                                </label>
+                              </div>
+                              &nbsp;&nbsp;&nbsp;
+                              <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                <label className={'checkbox'}>
+                                  <span className="wrapper">
+                                    <input
+                                      type="checkbox"
+                                      className="ff-only"
+                                      value="deploy"
+                                      checked={true}
+                                      readOnly
+                                      // checked={item?.permission !== null ? item?.canDeploy : false}
+                                      onChange={(e) => onCollaboratorPermission(e, item.shortId)}
+                                    />
+                                  </span>
+                                  <span className="label">Deploy</span>
+                                </label>
+                              </div>
+                            </div>
+                              <div className={Styles.collaboratorTitleCol}>
+                                <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.shortId)}>
+                                  <i className="icon mbc-icon trash-outline" />
+                                  Delete Entry
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </React.Fragment>
+                  ) : (
+                    <div className={Styles.collaboratorSectionEmpty}>
+                      <h6> Collaborators Not Exist!</h6>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className={Styles.newCodeSpaceBtn}>
+            <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
+              Create Code Space
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </React.Fragment>
   );
 };
