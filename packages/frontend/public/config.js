@@ -57,7 +57,7 @@ window['INJECTED_ENVIRONMENT'] = {
 };
 
 window['STORAGE_INJECTED_ENVIRONMENT'] = {
-  CONTAINER_APP_URL: 'http://localhost:8080',
+  CONTAINER_APP_URL: 'http://localhost:9090',
   API_BASEURL: 'http://localhost:7171/api',
   STORAGE_API_BASEURL: 'http://localhost:7175/api',
   TOU_HTML: '<div>I agree to <a href="#" target="_blank" rel="noopener noreferrer">terms of use</a></div>',
@@ -73,11 +73,12 @@ window['DATA_PRODUCT_INJECTED_ENVIRONMENT'] = {
     '<p>If yes, and due to the complexity of corresponding Data Governance requirements, we recommend you reach out to us at the <a href="#" target="_blank" rel="noopener noreferrer"> Data Governance Office FM </a> directly.</p>',
   DATA_PRODUCT_TOU_HTML:
     '<div>On behalf of my above mentioned Business Owner, I confirm the corresponding minimum information to be correct and complete to the best of my knowledge. I accept the conditions.</div>',
+  INFORMATION_POLICY_LINK: '#/dataproduct',
 };
 
 window['CHRONOS_INJECTED_ENVIRONMENT'] = {
   CONTAINER_APP_URL: 'http://localhost:9090',
   CHRONOS_API_BASEURL: '',
-  ENABLE_CHRONOS_ONEAPI: false, 
-  CHRONOS_ONEAPI_URL: "YOUR_CHRONOS_ONEAPI_URL",
+  ENABLE_CHRONOS_ONEAPI: false,
+  CHRONOS_ONEAPI_URL: 'YOUR_CHRONOS_ONEAPI_URL',
 };
