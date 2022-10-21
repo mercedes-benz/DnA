@@ -1097,6 +1097,8 @@ export interface INoticationModules {
   notebookNotificationPref: INotificationEnableDisable;
   dashboardNotificationPref: INotificationEnableDisable;
   persistenceNotificationPref: INotificationEnableDisable;
+  dataProductNotificationPref: INotificationEnableDisable;
+  dataComplianceNotificationPref: INotificationEnableDisable;
   userId: string;
 }
 
