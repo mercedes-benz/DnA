@@ -6,7 +6,11 @@
     padding: 25px 0;
     position: relative;
 
-    h3,
+    .customersHeading{
+        padding: 0 38px;
+        color: white;
+        font-size: var(--font-size-headline-medium);
+    }
     span.description {
       padding: 0 38px;
       color: #99A5B3;
