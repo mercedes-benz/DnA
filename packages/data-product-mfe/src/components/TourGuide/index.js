@@ -25,7 +25,7 @@ const TourGuide = () =>
 
     const guideContent = (
       <div className="tourGuideContainer">
-        <div className={Styles.tourGuidesummary} style={{ fontSize: 'var(--font-size-medium)', marginBottom: 10 }}>
+        <div className={Styles.tourGuidesummary}>
           When sharing data internally, i.e. within MB Group, the{' '}
           <a href={Envs.INFORMATION_POLICY_LINK}>Global Data & Information Policy A22</a> requires the responsible
           Information Owner(s) usually coordinated by the corresponding business owner of application to:
@@ -109,7 +109,7 @@ const TourGuide = () =>
     return (
       <Modal
         // title={isProviderForm ? 'What purpose does this process serve' : 'What purpose does this process serve'}
-        title="What purpose does this process serve?"
+        title="What purpose does this process serve ?"
         showAcceptButton={false}
         showCancelButton={false}
         onCancel={() => setShowTourGuide(false)}
