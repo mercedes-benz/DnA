@@ -321,7 +321,7 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
         <Text style={styles.sectionTitle}>Report Type</Text>
-        <Text>{description.reportType || 'NA'}</Text>
+        <Text>{description.reportType && description?.reportType != '0' ? description.reportType : 'NA'}</Text>
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Status</Text>
@@ -329,7 +329,7 @@ const Description = (description: IDescriptionRequest) => (
       </View>
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Integrated In Portal</Text>
-        {description.integratedPortal ? (
+        {description.integratedPortal && description?.integratedPortal != '0' ? (
           <Text>{description.integratedPortal}</Text>
         ) : (
           <Text>NA</Text>
@@ -339,7 +339,7 @@ const Description = (description: IDescriptionRequest) => (
     <View style={styles.flexLayout} wrap={false}>
       <View style={styles.firstCol}>
         <Text style={styles.sectionTitle}>Agile Release Train</Text>
-        {description.agileReleaseTrain ? (
+        {description.agileReleaseTrain && description.agileReleaseTrain != '0' ? (
           <Text>{description.agileReleaseTrain}</Text>
         ) : (
           <Text>NA</Text>
@@ -367,6 +367,10 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
     <>
       {showCustomer &&
         customer.internalCustomers?.length &&
+        <Text style={[styles.subTitle, styles.setMarginTop]}>Customer</Text>
+      }
+      {showCustomer &&
+        customer.internalCustomers?.length &&
         customer.internalCustomers?.map((data: any, index: number) => (
           <React.Fragment key={index}>
             <View style={[styles.flexLayout, { marginBottom: 0 }]} wrap={false}>
@@ -376,6 +380,16 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             </View>
             <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
               <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>Name</Text>
+                <View style={styles.flexLayout}>{teamMembersList([data?.name])}</View>
+              </View>
+              <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>Process Owner</Text>
+                <View style={styles.flexLayout}>{teamMembersList([data?.processOwner])}</View>
+              </View>
+            </View>
+            <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>  
+              <View style={styles.firstCol}>
                 <Text style={styles.sectionTitle}>Level</Text>
                 <Text>{data.level || 'NA'}</Text>
               </View>
@@ -384,12 +398,27 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
                 <Text>{data.department || 'NA'}</Text>
               </View>
               <View style={styles.flexCol2}>
-                <Text style={styles.sectionTitle}>MB Legal Entity</Text>
-                <Text>{data.legalEntity || 'NA'}</Text>
+                <Text style={styles.sectionTitle}>US-Risk (US-Access to sensible data)</Text>
+                <Text>{data.accessToSensibleData || 'NA'}</Text>
               </View>
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
               <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>MB Legal Entity</Text>
+                <Text>{data.legalEntity || 'NA'}</Text>
+              </View>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Customer Relation</Text>
+                <Text>{data.customerRelation}</Text>
+              </View>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Customer Division</Text>
+                <Text>{data.division?.name}</Text>
+              </View>
+              
+            </View>
+            <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
+              <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Comment</Text>
                 <Text>{data.comment}</Text>
               </View>
@@ -399,6 +428,42 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
             ) : null}
           </React.Fragment>
         ))}
+
+      {showCustomer &&
+        customer.externalCustomers?.length &&
+        customer.externalCustomers?.map((data: any, index: number) => (
+          <React.Fragment key={index}>
+            <View style={[styles.flexLayout, { marginBottom: 0 }]} wrap={false}>
+              <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>{`External Customer ${index + 1}`}</Text>
+              </View>
+            </View>
+            <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
+              <View style={styles.firstCol}>
+                <Text style={styles.sectionTitle}>Name</Text>
+                <Text>{data?.name?.firstName +' '+ data?.name?.lastName || 'NA'}</Text>
+              </View>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Company Name</Text>
+                <Text>{data.companyName || 'NA'}</Text>
+              </View>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Customer Relation</Text>
+                <Text>{data.customerRelation}</Text>
+              </View>
+              
+            </View>
+            <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
+              <View style={styles.flexCol2}>
+                <Text style={styles.sectionTitle}>Comment</Text>
+                <Text>{data.comment}</Text>
+              </View>
+            </View>
+            {customer.internalCustomers?.length > 0 ? (
+              <View style={styles.seperatorLine} />
+            ) : null}
+          </React.Fragment>
+        ))}  
       {/* {showCustomer && customer.processOwners?.length && (
         <View wrap={false}>
           <View style={[styles.firstCol, styles.setMarginTop]}>
@@ -416,6 +481,10 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
   return (
     <>
       {showKPI &&
+        kpis?.length && 
+        <Text style={[styles.subTitle, styles.setMarginTop]}>KPI</Text>
+      }
+      {showKPI &&
         kpis?.length &&
         kpis?.map((kpi: any, index: number) => (
           <React.Fragment key={index}>
@@ -427,7 +496,7 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
               </View>
               <View style={[styles.flexLayout, { marginVertical: 5 }]} wrap={false}>
                 <View style={styles.firstCol}>
-                  <Text style={styles.sectionTitle}>Name</Text>
+                  <Text style={styles.sectionTitle}>KPI Name</Text>
                   <Text>{kpi.name || 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
@@ -435,13 +504,13 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
                   <Text>{kpi.reportingCause || 'NA'}</Text>
                 </View>
                 <View style={styles.flexCol2}>
-                  <Text style={styles.sectionTitle}>KPI-Link</Text>
+                  <Text style={styles.sectionTitle}>Link KPI-Wiki</Text>
                   {kpi.kpiLink ? <Link src={kpi.kpiLink}>{kpi.kpiLink}</Link> : <Text>NA</Text>}
                 </View>
               </View>
               <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
                 <View style={styles.firstCol}>
-                  <Text style={styles.sectionTitle}>Comment</Text>
+                  <Text style={styles.sectionTitle}>KPI Description</Text>
                   <Text>{kpi.comment}</Text>
                 </View>
               </View>
@@ -498,7 +567,7 @@ const DataAndFunction = ({ dataAndFunctions, showDataAndFunction, showMembers }:
                   <View style={styles.flexLayout} wrap={false}>
                     <View style={styles.firstCol}>
                       <Text style={styles.sectionTitle}>Data Sources</Text>
-                      {data.dataSource ? <Text>{JSON.parse(data.dataSource)?.map((item:any) => item.dataSource).join(' / ')}</Text> : <Text>NA</Text>}
+                      {data.dataSources ? <Text>{data.dataSources?.map((item:any) => item.dataSource).join(' / ')}</Text> : <Text>NA</Text>}
                     </View>
                     <View style={styles.flexCol2}>
                       <Text style={styles.sectionTitle}>Data Classification</Text>

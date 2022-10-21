@@ -984,7 +984,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       this.setState({ showDepartmentMissingError: true });
       formValid = false;
     }
-    if (!this.state.frontEndTechValue || this.state.frontEndTechValue[0] === 'Choose') {
+    if (!this.state.frontEndTechValue || this.state.frontEndTechValue.length === 0) {
       this.setState({ frontEndTechError: errorMissingEntry });
       formValid = false;
     }
