@@ -927,7 +927,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
     //   this.setState({ integratedPortalError: errorMissingEntry });
     //   formValid = false;
     // }
-    if (!this.state.reportTypeValue || this.state.reportTypeValue === 'Choose') {
+    if (!this.state.reportTypeValue || this.state.reportTypeValue === '0') {
       this.setState({ reportTypeError: errorMissingEntry });
       formValid = false;
     }
