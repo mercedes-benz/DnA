@@ -367,6 +367,10 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
     <>
       {showCustomer &&
         customer.internalCustomers?.length &&
+        <Text style={[styles.subTitle, styles.setMarginTop]}>Customer</Text>
+      }
+      {showCustomer &&
+        customer.internalCustomers?.length &&
         customer.internalCustomers?.map((data: any, index: number) => (
           <React.Fragment key={index}>
             <View style={[styles.flexLayout, { marginBottom: 0 }]} wrap={false}>
@@ -476,6 +480,10 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
 const KPI = ({ kpis, showKPI }: IKPIProps) => {
   return (
     <>
+      {showKPI &&
+        kpis?.length && 
+        <Text style={[styles.subTitle, styles.setMarginTop]}>KPI</Text>
+      }
       {showKPI &&
         kpis?.length &&
         kpis?.map((kpi: any, index: number) => (
