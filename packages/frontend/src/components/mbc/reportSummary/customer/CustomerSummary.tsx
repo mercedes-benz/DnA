@@ -8,7 +8,7 @@ import Styles from './CustomerSummary.scss';
 import { ICustomers, 
   // ITeams 
 } from 'globals/types';
-// import TeamMemberListItem from 'components/mbc/summary/team/teamMemberListItem/TeamMemberListItem';
+import TeamMemberListItem from 'components/mbc/summary/team/teamMemberListItem/TeamMemberListItem';
 const classNames = cn.bind(Styles);
 
 interface ICustomerSummaryProps {
@@ -27,6 +27,7 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
     // const teamMembersList = this.props.customers.processOwners?.map((member: ITeams, index: number) => {
     //   return <TeamMemberListItem key={index} itemIndex={index} teamMember={member} />;
     // });
+    
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
@@ -34,6 +35,10 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
             <div className={Styles.firstPanel}>
               {this.props.customers.internalCustomers?.length
                 ? this.props.customers.internalCustomers?.map((customer, index) => {
+                  const processOwnerDetails: any = customer?.processOwner;
+                  const processOwner = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={processOwnerDetails} />;
+
+                  const customerName = <TeamMemberListItem key={'processOwner-1'} itemIndex={1} teamMember={customer.name} />;
                     return (
                       <React.Fragment key={index}>
                         <div className={Styles.customerListView}>
@@ -42,8 +47,15 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                             <div id="name">
                               <label className="input-label summary">Name</label>
                               <br />
-                              <div>{customer.name?.firstName}{' '}{customer.name?.lastName}</div>
+                              <div>{customerName}</div>
                             </div>
+                            <div id="processOwner">
+                              <label className="input-label summary">Process Owner</label>
+                              <br />
+                              <div>{processOwner}</div>
+                            </div>
+                          </div>
+                          <div className={Styles.flexLayout}>  
                             <div id="hierarchy">
                               <label className="input-label summary">Level</label>
                               <br />
@@ -53,6 +65,11 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                               <label className="input-label summary">E2-Department</label>
                               <br />
                               <div>{customer.department}</div>
+                            </div>
+                            <div id="ressort">
+                              <label className="input-label summary">US-Risk (US-Access to sensible data)</label>
+                              <br />
+                              <div>{customer.accessToSensibleData ? 'Yes' : 'No'}</div>
                             </div>
                           </div>
                           <div className={Styles.flexLayout}>
@@ -66,12 +83,23 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                               <br />
                               <div>{customer.customerRelation}</div>
                             </div>
+                            <div id="customerDivision">
+                              <label className="input-label summary">Customer Division</label>
+                              <div className={Styles.customerDivision}>
+                                {customer?.division?.name}
+                              </div>
+                            </div>
+                            
+                          </div>
+                          <div className={Styles.flexLayout}>
+                            
                             <div id="comment">
                               <label className="input-label summary">Comment</label>
                               <p>
                                 <pre className={Styles.commentPre}>{customer.comment}</pre>
                               </p>
                             </div>
+                            
                             
                           </div>
                           {(this.props.customers.internalCustomers?.length > 1 ||
