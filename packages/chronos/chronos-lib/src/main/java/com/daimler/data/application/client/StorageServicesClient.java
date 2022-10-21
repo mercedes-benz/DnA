@@ -27,6 +27,7 @@ import com.daimler.data.dto.storage.CollaboratorsDto;
 import com.daimler.data.dto.storage.CreateBucketRequestDto;
 import com.daimler.data.dto.storage.CreateBucketRequestWrapperDto;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.FileDownloadResponseDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.dto.storage.PermissionsDto;
 
@@ -159,7 +160,33 @@ public class StorageServicesClient {
 		return uploadResponse;
 	}
 	
-	
+	public FileDownloadResponseDto getFileContents(String bucketName, String path) {
+		FileDownloadResponseDto downloadResponse = new FileDownloadResponseDto();
+		ByteArrayResource data = null;
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			
+			String getFileUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/objects/metadata?prefix=" + path;
+			ResponseEntity<ByteArrayResource> response = restTemplate.exchange(getFileUrl, HttpMethod.GET,requestEntity, ByteArrayResource.class);
+			if (response.hasBody()) {
+				data = response.getBody();
+				downloadResponse.setData(data);
+			}
+			}catch(Exception e) {
+				log.error("Failed while downloading result files {} from minio bucket {} with exception {}", path, bucketName,e.getMessage());
+				MessageDescription errMsg = new MessageDescription("Failed while downloading file with exception " + e.getMessage());
+				errors.add(errMsg);
+				downloadResponse.setErrors(errors);
+				downloadResponse.setData(data);
+			}
+		return downloadResponse;
+	}
 	
 	
 }
