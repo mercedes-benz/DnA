@@ -81,7 +81,9 @@ const ReportsFilter = ({
 
   // selected filter values
   const [artFilterValues, setArtFilterValues] = useState([]);
-  const [productOwnerFilterValues, setProductOwnerFilterValues] = useState([]);
+  const [productOwnerFilterValues, 
+    // setProductOwnerFilterValues
+  ] = useState([]);
   const [processOwnerFilterValues, setProcessOwnerFilterValues] = useState([]);
   const [divisionFilterValues, setDivisionFilterValues] = useState([]);
   const [subDivisionFilterValues, setSubDivisionFilterValues] = useState([]);
@@ -107,7 +109,7 @@ const ReportsFilter = ({
           ) as IFilterParams;
           const arts: IART[] = response[0].data;
           const processOwners: ITeams[] = response[3].records;
-          const productOwners: ITeams[] = response[4].records;
+          // const productOwners: ITeams[] = response[4].records;
           const divisions = response[1];
           const divisionsToPass =
             portfolioFilterValues.current && portfolioFilterValues.current.division?.length > 0
@@ -182,7 +184,7 @@ const ReportsFilter = ({
                 ?.map((item) => item.name) as any;
               queryParams.agileReleaseTrains = filterPreferences.arts?.map((art: IART) => art.name);
               queryParams.processOwners = filterPreferences.processOwners as any;
-              queryParams.productOwners = filterPreferences.productOwners as any;
+              // queryParams.productOwners = filterPreferences.productOwners as any;
               // populate subDivision dropdown values
               ApiClient.getSubDivisionsData(filterPreferences.divisions).then((subDivisionsList) => {
                 setSubDivisions(subDivisionsList);
@@ -344,24 +346,24 @@ const ReportsFilter = ({
     setDepartmentFilterValues(selectedValues);
   };
 
-  const onProductOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
-    const selectedValues: IMember[] = [];
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const ids: string[] = [];
+  // const onProductOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
+  //   const selectedValues: IMember[] = [];
+  //   const selectedOptions = e.currentTarget.selectedOptions;
+  //   const ids: string[] = [];
 
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        const productOwner: IMember = { id: '0', name: null };
-        productOwner.id = option.value;
-        productOwner.name = option.textContent;
-        selectedValues.push(productOwner);
-        ids.push(option.value);
-      });
-    }
+  //   if (selectedOptions.length) {
+  //     Array.from(selectedOptions).forEach((option) => {
+  //       const productOwner: IMember = { id: '0', name: null };
+  //       productOwner.id = option.value;
+  //       productOwner.name = option.textContent;
+  //       selectedValues.push(productOwner);
+  //       ids.push(option.value);
+  //     });
+  //   }
 
-    focusedItems['productOwners'] && applyFilter('productOwners', ids);
-    setProductOwnerFilterValues(selectedValues);
-  };
+  //   focusedItems['productOwners'] && applyFilter('productOwners', ids);
+  //   setProductOwnerFilterValues(selectedValues);
+  // };
 
   const onProcessOwnerChange = (e: React.FormEvent<HTMLSelectElement>) => {
     const selectedValues: IMember[] = [];
@@ -598,7 +600,7 @@ const ReportsFilter = ({
                 </div>
               </div>
             </div>
-            <div>
+            {/* <div>
               <div
                 id="productOwnerContainer"
                 className={`input-field-group ${productOwners?.length ? '' : 'disabled'}`}
@@ -622,7 +624,7 @@ const ReportsFilter = ({
                   </select>
                 </div>
               </div>
-            </div>
+            </div> */}
             <div>
               <div
                 id="artContainer"
