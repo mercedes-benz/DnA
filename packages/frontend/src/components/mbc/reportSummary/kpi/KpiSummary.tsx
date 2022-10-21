@@ -32,6 +32,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
         <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
           <div className={Styles.wrapper}>
             <div className={Styles.firstPanel}>
+            <h3 className={Styles.kpiHeading}>KPI</h3>
               {this.props.kpis?.map((kpi, index) => {
                 return (
                   <React.Fragment key={index}>
@@ -39,7 +40,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                       <span className={Styles.kpiNo}>{`KPI ${index + 1}`}</span>
                       <div className={Styles.flexLayout}>
                         <div id="kpiName">
-                          <label className="input-label summary">Name</label>
+                          <label className="input-label summary">KPI Name</label>
                           <br />
                           <div>{kpi.name}</div>
                         </div>
@@ -49,7 +50,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                           <div>{kpi.reportingCause}</div>
                         </div>
                         <div id="kpiLink">
-                          <label className="input-label summary">KPI-Link</label>
+                          <label className="input-label summary">Link KPI-Wiki</label>
                           <br />
                           <div>
                             {kpi.kpiLink ? (
@@ -70,7 +71,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                         </div>
                       </div>
                       <div className={Styles.commentSection}>
-                        <label className="input-label summary">Comment</label>
+                        <label className="input-label summary">KPI Description</label>
                         <p>
                           <pre className={Styles.commentPre}>{kpi.description}</pre>
                         </p>
