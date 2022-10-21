@@ -33,6 +33,7 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
         <div className={classNames(Styles.mainPanel, 'mainPanelSection')}>
           <div className={Styles.wrapper}>
             <div className={Styles.firstPanel}>
+            <h3 className={Styles.customersHeading}>Customer</h3>
               {this.props.customers.internalCustomers?.length
                 ? this.props.customers.internalCustomers?.map((customer, index) => {
                   const processOwnerDetails: any = customer?.processOwner;
