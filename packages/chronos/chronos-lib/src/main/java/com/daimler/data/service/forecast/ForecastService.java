@@ -11,6 +11,7 @@ import com.daimler.data.db.entities.ForecastNsql;
 import com.daimler.data.dto.forecast.ForecastRunResponseVO;
 import com.daimler.data.dto.forecast.ForecastVO;
 import com.daimler.data.dto.forecast.RunVO;
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.common.CommonService;
 
@@ -33,6 +34,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 	List<RunVO> getAllRunsForProject( int limit,  int offset, ForecastVO existingForecast);
 
 	GenericMessage deletRunByUUID(String id, String rid);
+
+	RunVisualizationVO getRunVisualizationsByUUID(String id, String rid);
 
 
 }
