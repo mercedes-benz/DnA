@@ -6,7 +6,11 @@
     padding: 25px 0;
     position: relative;
 
-    h3,
+    .kpiHeading{
+      padding: 0 38px;
+      color: white;
+      font-size: var(--font-size-headline-medium);
+    }
     span.kpiNo {
       padding: 0 38px;
       color: #99A5B3;
