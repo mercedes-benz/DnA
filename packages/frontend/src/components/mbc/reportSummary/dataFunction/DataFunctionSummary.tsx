@@ -31,41 +31,32 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                 return (
                   <React.Fragment key={`dataWarehouse${index}`}>
                     <div className={Styles.dataFunctionListView}>
-                      <div className={Styles.dataWarehouse}>
-                        <label className="input-label summary">Data Warehouse</label>
-                        <br />
-                        <span>{data.dataWarehouse}</span>
-                      </div>
+                      
                       <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                        <div id='datawarehouse'>
+                          <label className="input-label summary">Data Warehouse</label>
+                          <br />
+                          <span>{data.dataWarehouse}</span>
+                        </div>
                         <div id="commonFunctions">
                           <label className="input-label summary">Common Functions</label>
                           <br />
                           {data.commonFunctions?.join(', ')}
                         </div>
-                        {/* <div id="specificFunctions">
-                          <label className="input-label summary">Specific Functions</label>
-                          <br />
-                          {data.specificFunctions?.join(', ')}
-                        </div> */}
-                        {/* <div id="queries">
-                          <label className="input-label summary">Queries</label>
-                          <br />
-                          {data.queries?.join(', ')}
-                        </div> */}
-                      </div>
-                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                        {/* <div id="dataSources">
-                          <label className="input-label summary">Original Data Sources</label>
-                          <br />
-                          {data.dataSources?.join(', ')}
-                        </div> */}
                         <div id="connectionType">
                           <label className="input-label summary">Connection Type</label>
                           <br />
                           {data.connectionType}
                         </div>
-                        <div></div>
                       </div>
+                      <div className={classNames(Styles.flexLayout)}>
+                        <div id="dataClassification">
+                          <label className="input-label summary">Data Classification</label>
+                          <br />
+                          {data.dataClassification}
+                        </div>
+                      </div>
+                      
                     </div>
                     {this.props.dataAndFunctions.dataWarehouseInUse.length > 1 ||
                     this.props.dataAndFunctions.singleDataSources.length ? (
