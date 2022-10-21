@@ -335,6 +335,57 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 
 	@Override
+	 @ApiOperation(value = "Get visualization data for specific run.", nickname = "getRunVisualizationData", notes = "Get visualization data for specific run.", response = RunVisualizationVO.class, tags={ "forecast-runs", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = RunVisualizationVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/forecasts/{id}/runs/{rid}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<RunVisualizationVO> getRunVisualizationData(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "run id ",required=true) @PathVariable("rid") String rid){
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		ForecastVO existingForecast = service.getById(id);
+		boolean notFound = false;
+		boolean notAuthorized = true;
+		List<RunVO> runVOList = existingForecast.getRuns();
+		if(runVOList!= null && !runVOList.isEmpty()) {
+			for(RunVO run: runVOList) {
+				if(rid.equalsIgnoreCase(run.getId())) {
+					notFound = true;
+					if(!user.equalsIgnoreCase(run.getTriggeredBy())) {
+						notAuthorized = false;
+					}
+				}
+			}
+		}else
+			notFound = false;
+		if(!notFound) {
+			 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+		List<String> forecastProjectUsers = new ArrayList<>();
+		forecastProjectUsers.add(existingForecast.getCreatedBy().getId());
+		List<CollaboratorVO> collaborators = existingForecast.getCollaborators();
+		if(collaborators!=null && !collaborators.isEmpty()) {
+			collaborators.forEach(n-> forecastProjectUsers.add(n.getId()));
+		}
+		if(forecastProjectUsers!=null && !forecastProjectUsers.isEmpty()) {
+			if(!forecastProjectUsers.contains(requestUser.getId())) {
+				log.warn("User not part of forecast project with id {} and name {}, Not authorized to user other project inputs",id,existingForecast.getName());
+				return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+			}
+		}
+		RunVisualizationVO visualizationData = service.getRunVisualizationsByUUID(id, rid);
+		return new ResponseEntity<>(visualizationData, HttpStatus.OK);
+	}
+    
+	@Override
 	@ApiOperation(value = "Get all forecast projects for the user.", nickname = "getAllRunsForProject", notes = "Get all forecasts projects for the user.", response = ForecastRunCollectionVO.class, tags = {
 			"forecast-runs", })
 	@ApiResponses(value = {
