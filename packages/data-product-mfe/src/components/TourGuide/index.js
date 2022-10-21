@@ -27,8 +27,11 @@ const TourGuide = () =>
       <div className="tourGuideContainer">
         <div className={Styles.tourGuidesummary}>
           When sharing data internally, i.e. within MB Group, the{' '}
-          <a href={Envs.INFORMATION_POLICY_LINK}>Global Data & Information Policy A22</a> requires the responsible
-          Information Owner(s) usually coordinated by the corresponding business owner of application to:
+          <a href={Envs.INFORMATION_POLICY_LINK} target={'_blank'} rel="noopener noreferrer">
+            Global Data & Information Policy A22
+          </a>{' '}
+          requires the responsible Information Owner(s) usually coordinated by the corresponding business owner of
+          application to:
           <ul style={{ margin: '10px 0px' }}>
             <li>Document minimum information for their data before sharing it (task on data providing side)</li>
             <li>
