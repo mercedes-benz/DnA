@@ -35,7 +35,7 @@ const protectedRoutes = [
   {
     component: ForecastingResults,
     exact: true,
-    path: '/results',
+    path: '/results/:projectid/:runid',
   },
 ];
 
