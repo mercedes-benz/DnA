@@ -35,6 +35,12 @@ const getForecastRuns = (id) => {
   });
 };
 
+const getForecastRun = (id, rid) => {
+  return server.get(`/forecasts/${id}/runs/${rid}`, {
+    data: {},
+  });
+};
+
 const deleteForecastRun = (id, rid) => {
   return server.delete(`/forecasts/${id}/runs/${rid}`, {
     data: {},
@@ -47,6 +53,7 @@ export const chronosApi = {
     createForecastProject,
     getAllInputFiles,
     createForecastRun,
+    getForecastRun,
     deleteForecastRun,
     getForecastRuns
 };
