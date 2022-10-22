@@ -25,9 +25,6 @@ const ForeCastingProjects = ({ user, history }) => {
   const [createProject, setCreateProject] = useState(false);
   const [editProject, setEditProject] = useState(false);
 
-  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1); 
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-
   const [generateApiKey, setGenerateApiKey] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -52,17 +49,71 @@ const ForeCastingProjects = ({ user, history }) => {
     dispatch(GetProjects());
   }, [dispatch]);
 
+  
+  // Pagination 
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
+
+  const [forecastProjects, setForecastProjects] = useState([...projects]);
+
+  /* getResults */
+  const getResults = async (action) => {
+    const showProgressIndicator = ['pagination'].includes(action);
+    console.log(action);
+
+    showProgressIndicator && ProgressIndicator.show();
+
+    let results = [];
+
+    await chronosApi.getAllForecastProjects()
+      .then((res) => {
+        if (res.data.records) {
+          results = [...res.data.records];
+        }
+      })
+      .catch((err) => {
+        Notification.show(err.message, 'alert');
+        setForecastProjects([]);
+      });
+
+    setForecastProjects(
+      results.slice(
+        currentPageOffset > results.length ? 0 : currentPageOffset,
+        currentPageOffset + maxItemsPerPage < results.length ? currentPageOffset + maxItemsPerPage : results.length,
+      ),
+    );
+    setTotalNumberOfPages(Math.ceil(results.length / maxItemsPerPage) === 0 ? 1 : Math.ceil(results.length / maxItemsPerPage));
+    setCurrentPageNumber(
+      currentPageNumber > Math.ceil(results.length / maxItemsPerPage)
+        ? Math.ceil(results.length / maxItemsPerPage) > 0
+          ? Math.ceil(results.length / maxItemsPerPage)
+          : 1
+        : currentPageNumber,
+    );
+    showProgressIndicator && ProgressIndicator.hide();
+  };
+
+  useEffect(() => {
+    getResults('pagination');
+  }, [maxItemsPerPage, currentPageOffset, currentPageNumber]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const onPaginationPreviousClick = () => {
-    // todo
-    setCurrentPageNumber(1);
-    setTotalNumberOfPages(1);
+    const currentPageNum = currentPageNumber - 1;
+    const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNum);
+    setCurrentPageOffset(currentPageOffset);
   };
   const onPaginationNextClick = () => {
-    // todo
+    const currentPageOffset = currentPageNumber * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNumber + 1);
+    setCurrentPageOffset(currentPageOffset);
   };
   const onViewByPageNum = (pageNum) => {
-    // todo
-    console.log(pageNum);
+    setCurrentPageNumber(1);
+    setCurrentPageOffset(0);
+    setMaxItemsPerPage(pageNum);
   };
 
   const handleCreateProject = (values) => {
@@ -304,7 +355,7 @@ const ForeCastingProjects = ({ user, history }) => {
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
-          {projects?.length === 0 ? (
+          {forecastProjects?.length === 0 ? (
             <FirstRun openCreateProjectModal={() => setCreateProject(true)} user={user} />
           ) : (
             <>
@@ -315,10 +366,10 @@ const ForeCastingProjects = ({ user, history }) => {
               <div className={classNames(Styles.caption)}>
                 <h3>My Forecasting Projects</h3>
                 <div className={classNames(Styles.listHeader)}>
-                  {projects?.length ? (
+                  {forecastProjects?.length ? (
                     <React.Fragment>
                       <button
-                        className={projects?.length === null ? Styles.btnHide : 'btn btn-primary'}
+                        className={forecastProjects?.length === null ? Styles.btnHide : 'btn btn-primary'}
                         type="button"
                         onClick={() => setCreateProject(true)}
                       >
@@ -335,7 +386,7 @@ const ForeCastingProjects = ({ user, history }) => {
                   <div className={Styles.addicon}> &nbsp; </div>
                   <label className={Styles.addlabel}>Create new project</label>
                 </div>
-                {projects?.map((project, index) => {
+                {forecastProjects?.map((project, index) => {
                   return (
                     <ProjectsCardItem
                       key={index}
@@ -349,7 +400,7 @@ const ForeCastingProjects = ({ user, history }) => {
                 })}
               </div>
 
-              {projects?.length ? (
+              {forecastProjects?.length > 0 ? (
                 <Pagination
                   totalPages={totalNumberOfPages}
                   pageNumber={currentPageNumber}

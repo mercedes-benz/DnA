@@ -1,14 +1,14 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, ReferenceArea } from 'recharts';
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, ReferenceArea, Brush } from 'recharts';
 import ContextMenu from '../shared/contextMenu/ContextMenu';
 import Styles from './styles.scss';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../shared/spinner/Spinner';
 
-const COLORS = ['#00ADF0', '#33ADAC', '#E0144C', '#EED180', '#AA8B56', '#A8E890', '#6F38C5'];
+const COLORS = ['#00ADF0', '#33ADAC', '#E0144C', '#EED180', '#AA8B56', '#A8E890', '#6F38C5', '#9E7676', '#D0B8A8', '#7895B2'];
 
 const ForecastingResults = () => {
   const history = useHistory();
@@ -41,6 +41,7 @@ const ForecastingResults = () => {
 
   const [loading, setLoading] = useState(true);
   const [forecastRun, setForecastRun] = useState([]);
+  const [forecastData, setForecastData] = useState([]);
   useEffect(() => {
     getForecastRun();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -54,9 +55,10 @@ const ForecastingResults = () => {
       } else {
         console.log(res);
         setForecastRun(res.data);
+        setForecastData(res.data.forecast.data);
         const cols = Object.keys(res.data.forecast.data[0]);
         const newCols = cols.filter(item => item !== 'name');
-        setColumns(newCols);
+        setColumns(newCols.slice(0, 10));
       }
       setLoading(false);
       ProgressIndicator.hide();
@@ -96,39 +98,44 @@ const ForecastingResults = () => {
       <div className={Styles.content}>
         <div className={Styles.header}>
           <h3>Forecast</h3>
-          {/* <p></p> */}
+          <p>Shows only upto first 10 columns</p>
           <div className={Styles.actionMenu}>
             <ContextMenu id={'trend'} items={contextMenuItems} />
           </div>
         </div>
         <div className={Styles.firstPanel}>
           { loading && <Spinner /> }
-          { !loading && 
-              <ResponsiveContainer width="100%" height={450}>
-                <LineChart
-                  data={forecastRun.forecast.data}
-                  margin={{
-                    top: 20,
-                    right: 5,
-                    left: -20,
-                    bottom: 15,
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {
-                    columns.length > 0 && columns.map((column, index) => {
-                      return <Line type="linear" key={column} dataKey={column} stroke={COLORS[index]} strokeWidth={2} dot={false} />
-                    })
-                  }
-                  <CartesianGrid stroke="#383F49" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={axisTextStyle} />
-                  <YAxis axisLine={false} tickLine={false} tick={axisTextStyle} />
-                  <ReferenceArea x1={forecastRun.forecast.data[forecastRun.forecast.data.length - parseInt(forecastRun.forecastHorizon)].name} x2={forecastRun.forecast.data[forecastRun.forecast.data.length - 1].name} stroke="gray" strokeOpacity={0.3} />
-                  {/* <Tooltip cursor={tooltipCursorBackground} /> */}
-                  <Tooltip contentStyle={{backgroundColor: '#252a33'}} />
-                  <Legend />
-                </LineChart>
-              </ResponsiveContainer>
+          { !loading && forecastRun.forecast.data.length === 0 && <p>No visualization for the given data.</p> }
+          { !loading && forecastRun.forecast.data.length > 0 &&
+              <>
+                <p className={Styles.chartLabel}>Forecast</p>
+                <ResponsiveContainer width="100%" height={450}>
+                  <LineChart
+                    data={forecastData}
+                    margin={{
+                      top: 20,
+                      right: 5,
+                      left: -20,
+                      bottom: 15,
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {
+                      columns.length > 0 && columns.map((column, index) => {
+                        if(index < 10)
+                          return <Line type="linear" key={column} dataKey={column} stroke={COLORS[index]} strokeWidth={2} dot={false} animationDuration={300} />
+                      })
+                    }
+                    <CartesianGrid stroke="#383F49" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={axisTextStyle} />
+                    <YAxis axisLine={false} tickLine={false} tick={axisTextStyle} />
+                    <ReferenceArea x1={forecastData[forecastData.length - parseInt(forecastRun.forecastHorizon)].name} x2={forecastData[forecastData.length - 1].name} stroke="gray" strokeOpacity={0.3} />
+                    <Tooltip contentStyle={{backgroundColor: '#252a33'}} />
+                    <Legend />
+                    <Brush dataKey="name" height={30} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </>
           }
         </div>
       </div>
