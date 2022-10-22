@@ -102,8 +102,8 @@ const ForecastResults = () => {
 
   /* Row actions */
   const history = useHistory();
-  const openForecastingResults = () => {
-    history.push('/results');
+  const openForecastingResults = (runId) => {
+    history.push('/results/' + projectId + '/' + runId);
   }
   return (
     <React.Fragment>
@@ -253,7 +253,7 @@ const ForecastResults = () => {
                               item={item}
                               key={item.id}
                               showDeleteConfirmModal={showDeleteConfirmModal}
-                              openDetails={openForecastingResults}
+                              openDetails={() => openForecastingResults(item.id)}
                             />
                           );
                         })}
