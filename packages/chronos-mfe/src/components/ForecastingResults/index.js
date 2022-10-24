@@ -98,7 +98,6 @@ const ForecastingResults = () => {
       <div className={Styles.content}>
         <div className={Styles.header}>
           <h3>Forecast</h3>
-          <p>Shows only upto first 10 columns</p>
           <div className={Styles.actionMenu}>
             <ContextMenu id={'trend'} items={contextMenuItems} />
           </div>
