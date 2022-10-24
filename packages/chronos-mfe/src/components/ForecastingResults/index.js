@@ -47,16 +47,35 @@ const ForecastingResults = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const csvToJSON = (csv) => {
+    let lines=csv.split("\n");
+    let result = [];
+    let headers=lines[0].split(",");
+    for(let i=1;i<lines.length;i++){
+      let obj = {};
+      let currentline=lines[i].split(",");
+      for(let j=0;j<headers.length;j++){
+        obj[headers[j]] = currentline[j];
+      }
+      result.push(obj);
+    }
+    return result;
+  }
+
   const getForecastRun = () => {
     ProgressIndicator.show();
     chronosApi.getForecastRun(projectId, runId).then((res) => {
       if(res.status === 204) {
         setForecastRun([]);
       } else {
-        console.log(res);
         setForecastRun(res.data);
-        setForecastData(res.data.forecast.data);
-        const cols = Object.keys(res.data.forecast.data[0]);
+        const y = 'name' + res.data.y;
+        const yObj = csvToJSON(y);
+        const yPred = 'name' + res.data.yPred;
+        const yPredObj = csvToJSON(yPred);
+        const forecastObj = [...yObj, ...yPredObj].filter(obj => obj.name !== '');
+        setForecastData(forecastObj);
+        const cols = Object.keys(forecastObj[0]);
         const newCols = cols.filter(item => item !== 'name');
         setColumns(newCols.slice(0, 10));
       }
@@ -104,8 +123,8 @@ const ForecastingResults = () => {
         </div>
         <div className={Styles.firstPanel}>
           { loading && <Spinner /> }
-          { !loading && forecastRun.forecast.data.length === 0 && <p>No visualization for the given data.</p> }
-          { !loading && forecastRun.forecast.data.length > 0 &&
+          { !loading && forecastData.length === 0 && <p>No visualization for the given data.</p> }
+          { !loading && forecastData.length > 0 &&
               <>
                 <p className={Styles.chartLabel}>Forecast</p>
                 <ResponsiveContainer width="100%" height={450}>
