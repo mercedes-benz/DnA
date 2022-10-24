@@ -1,8 +1,5 @@
 package com.daimler.data.service.forecast;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,8 +11,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,14 +33,13 @@ import com.daimler.data.dto.forecast.RunDetailsVO;
 import com.daimler.data.dto.forecast.RunNowResponseVO;
 import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationForecastCollectionVO;
-import com.daimler.data.dto.forecast.RunVisualizationForecastVO;
+
 import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.FileDownloadResponseDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.common.BaseCommonService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -283,67 +277,46 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		visualizationVO.setId(run.getId());
 		visualizationVO.setRunId(run.getRunId());
 		visualizationVO.setRunName(run.getRunName());
-		RunVisualizationForecastCollectionVO forecastCollectionVO = new RunVisualizationForecastCollectionVO();
-		List<RunVisualizationForecastVO> yForecastPlotVO = new ArrayList<>();
-		List<RunVisualizationForecastVO> yPredForecastPlotVO = new ArrayList<>();
+		RunState state = run.getRunState();
+		if(state!=null) {
+			if(!(state.getResult_state()!=null && "SUCCESS".equalsIgnoreCase(state.getResult_state()))) {
+				visualizationVO.setEda("");
+				visualizationVO.setY("");
+				visualizationVO.setYPred("");
+				return visualizationVO;
+			}
+		}
 		String commonPrefix = "/results/"+rid + "-" + run.getRunName();
 		try {
 			String yPrefix = commonPrefix +"/y.csv";
 			String yPredPrefix = commonPrefix +"/y_pred.csv";
+			String edaJsonPrefix = commonPrefix +"/eda.json";
 			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
 			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
+			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
+			JsonArray jsonArray = new JsonArray();
+			String yResult = "";
+			String yPredResult = "";
+			String edaResult = "";
 			if(yDownloadResponse!= null && yDownloadResponse.getData()!=null && (yDownloadResponse.getErrors()==null || yDownloadResponse.getErrors().isEmpty())) {
-				yForecastPlotVO = makeForecastPlot(yDownloadResponse.getData());
+				 yResult = new String(yDownloadResponse.getData().getByteArray()); 
 			 }
 			if(yPredDownloadResponse!= null && yPredDownloadResponse.getData()!=null && (yPredDownloadResponse.getErrors()==null || yPredDownloadResponse.getErrors().isEmpty())) {
-				yPredForecastPlotVO = makeForecastPlot(yPredDownloadResponse.getData());
+				  yPredResult = new String(yPredDownloadResponse.getData().getByteArray()); 
 			 }
-			yForecastPlotVO.addAll(yPredForecastPlotVO);
-			forecastCollectionVO.setData(yForecastPlotVO);
+			if(edaJsonDownloadResponse!= null && edaJsonDownloadResponse.getData()!=null && (edaJsonDownloadResponse.getErrors()==null || edaJsonDownloadResponse.getErrors().isEmpty())) {
+				edaResult = new String(edaJsonDownloadResponse.getData().getByteArray()); 
+			 }
+			visualizationVO.setEda(edaResult);
+			visualizationVO.setY(yResult);
+			visualizationVO.setYPred(yPredResult);
 		}catch(Exception e) {
-			log.error("Failed while parsing results data with exception {} ", e.getMessage());
-		}
-		visualizationVO.setForecast(forecastCollectionVO);
-		String edaJsonPrefix = commonPrefix +"/eda.json";
-		FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
-		ByteArrayResource edaData = edaJsonDownloadResponse.getData();
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			JSONObject edaJson=new JSONObject(new String(edaData.getByteArray()));
-			JSONObject decompositionJson = edaJson.getJSONObject("Result 2").getJSONObject("decomposition").getJSONObject("stl_decomposition");
-			String trendRaw = decompositionJson.getString("stl_trend");
-			String seasonalRaw = decompositionJson.getString("stl_seasonal");
-			String residRaw = decompositionJson.getString("stl_resid");
-		} catch (Exception e) {
-			log.error("Failed while parsing decomposition data with exception {} ", e.getMessage());
+			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
 		}
 		return visualizationVO;
 	}
 			
-	private List<RunVisualizationForecastVO> makeForecastPlot(ByteArrayResource data) throws Exception{
-		List<RunVisualizationForecastVO> forecastPlotListVO = new ArrayList<>();
-	    Reader reader = new InputStreamReader(data.getInputStream());
-	    BufferedReader br = new BufferedReader(reader);
-	    String line = " ";
-	    String[] tempArr;
-	    int flag = 0;
-	    while ((line = br.readLine()) != null) {
-	    	if(flag==0) {
-	    		flag=1;
-	    		continue;
-	    	}
-	        tempArr = line.split(",");
-	        RunVisualizationForecastVO tempForecastPlotEntry = new RunVisualizationForecastVO();
-	        if(tempArr!=null && tempArr.length==3) {
-	        	tempForecastPlotEntry.setName(tempArr[0]);
-        		tempForecastPlotEntry.setCol1(tempArr[1]);
-		        tempForecastPlotEntry.setCol2(tempArr[2]);
-		        forecastPlotListVO.add(tempForecastPlotEntry);
-	        }
-	      }
-	      br.close();
-	      return forecastPlotListVO;
-	}
+
 	
 	@Override
 	public GenericMessage deletRunByUUID(String id, String rid) {

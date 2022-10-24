@@ -19,6 +19,7 @@ import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
 import com.daimler.data.dto.forecast.JobRunsListVO;
 import com.daimler.data.dto.forecast.RunDetailsVO;
 import com.daimler.data.dto.forecast.RunNowResponseVO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,7 +72,12 @@ public class DataBricksClient {
 					notebookParams.setConfig(dataBricksJobDefaultConfigYml);
 				requestWrapper.setJob_id(dataBricksJobId);
 				requestWrapper.setNotebook_params(notebookParams);
-				
+				try {
+				ObjectMapper mapper = new ObjectMapper();
+				System.out.println(mapper.writeValueAsString(requestWrapper));
+				}catch(Exception e) {
+					log.error("Failed to parse runnow request with exception {} ",e.getMessage());
+				}
 				HttpEntity<DatabricksJobRunNowRequestDto> requestEntity = new HttpEntity<>(requestWrapper,headers);
 				ResponseEntity<RunNowResponseVO> response = proxyRestTemplate.exchange(runNowUrl, HttpMethod.POST,
 						requestEntity, RunNowResponseVO.class);

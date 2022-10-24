@@ -852,50 +852,6 @@ definitions:
         type: string
         description: "Mobile number of the user" 
 
-  RunVisualizationForecastCollectionVO:
-    type: object
-    properties: 
-      data:
-        type: array
-        items:
-          $ref: "#/definitions/RunVisualizationForecastVO"
-                
-  RunVisualizationForecastVO:
-    type: object
-    properties: 
-      name: 
-        type: string
-      col1:
-        type: string
-      col2:
-        type: string
-
-  DecompositionComponentCollectionVO:
-    type: object
-    properties:
-      data:
-        type: array
-        items:
-          $ref: "#/definitions/DecompositionComponentVO"
-        
-  DecompositionComponentVO:
-    type: object
-    properties:
-      name:
-        type: string
-      value:
-        type: string
-            
-  RunVisualizationDecompositionVO:
-    type: object
-    properties: 
-      trend: 
-        $ref: "#/definitions/DecompositionComponentCollectionVO"
-      seasonal:
-        $ref: "#/definitions/DecompositionComponentCollectionVO"
-      col2:
-        $ref: "#/definitions/DecompositionComponentCollectionVO"
-
   RunVisualizationVO:
     type: object
     properties: 
@@ -909,10 +865,12 @@ definitions:
         type: string
       forecastHorizon:
         type: string
-      forecast:
-        $ref: "#/definitions/RunVisualizationForecastCollectionVO"
-      decomposition:
-        $ref: "#/definitions/RunVisualizationDecompositionVO"
+      y:
+        type: string
+      yPred:
+        type: string
+      eda:
+        type: string
       response:
         $ref: "#/definitions/GenericMessage"
  
