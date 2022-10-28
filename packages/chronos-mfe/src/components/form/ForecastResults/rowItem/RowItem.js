@@ -92,11 +92,13 @@ const RowItem = (props) => {
           {item.runName}
         </td>
         <td>
-          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />}
-          {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
-          {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
-          {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />}
-          {item.state.result_state === null && <CircularProgressBar />}
+          {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} tooltip-data={item.state.result_state} />}
+          {item.state.result_state === 'CANCELED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} tooltip-data={item.state.result_state} />}
+          {item.state.result_state === 'FAILED' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} tooltip-data={item.state.result_state} />}
+          {item.state.result_state === 'TIMEDOUT' && <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} tooltip-data={item.state.result_state} />}
+          {item.state.result_state === 'WARNING' && <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} tooltip-data={'Lorem ipsum some warning message here'} />}
+          {/* <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} tooltip-data={'Lorem ipsum some warning message here'} /> */}
+          {item.state.result_state === null && <div tooltip-data={'IN PROGRESS'} ><CircularProgressBar /></div>}
         </td>
         <td>
           {regionalDateAndTimeConversionSolution(item.triggeredOn)}
@@ -111,7 +113,7 @@ const RowItem = (props) => {
           {item.forecastHorizon}
         </td>
         <td>
-          Yes
+          No
         </td>
         <td>
           <ContextMenu id={item.id} items={contextMenuItems} isMenuOpen={handleShowContextMenu} />
