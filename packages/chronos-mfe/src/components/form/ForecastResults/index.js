@@ -17,39 +17,6 @@ import Spinner from '../../shared/spinner/Spinner';
 const ForecastResults = () => {
   const { id: projectId } = useParams();
 
-  /* Pagination */
-  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  useEffect(() => {
-    setTotalNumberOfPages(1);
-    setCurrentPageNumber(1);
-  }, []);
-  const onPaginationPreviousClick = () => {
-    /* previous click */
-  };
-  const onPaginationNextClick = () => {
-    /* next click */
-  };
-  const onViewByPageNum = (pageNum) => {
-    /* page number click */
-    console.log(pageNum);
-  };
-
-  /* Sort */
-  const [sortBy, setSortBy] = useState({
-    name: 'name',
-    currentSortType: 'desc',
-    nextSortType: 'asc',
-  });
-  const sortResults = (propName, sortOrder) => {
-    const tempSortBy = {
-      name: propName,
-      currentSortType: sortOrder,
-      nextSortType: sortBy.currentSortType,
-    };
-    setSortBy(tempSortBy);
-  };
-
   const [loading, setLoading] = useState(true);
   const [forecastRuns, setForecastRuns] = useState([]);
   useEffect(() => {
@@ -68,11 +35,160 @@ const ForecastResults = () => {
       setLoading(false);
       ProgressIndicator.hide();
     }).catch(error => {
-      console.log(error.message);
+      Notification.show(
+        error?.response?.data?.errors?.[0]?.message || 'Error while fetching forecast projects',
+        'alert',
+      );
       setLoading(false);
       ProgressIndicator.hide();
     });
   };
+
+  // Pagination 
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
+
+  /* getResults */
+  const getResults = async (action) => {
+    const showProgressIndicator = ['pagination'].includes(action);
+    console.log(action);
+
+    showProgressIndicator && ProgressIndicator.show();
+
+    let results = [];
+
+    await chronosApi.getForecastRuns(projectId)
+      .then((res) => {
+        console.log('oye hoye');
+        console.log(res);
+        if(res.status === 204) {
+          results = [];
+        } else {
+          if (res.data.records) {
+            results = [...res.data.records];
+          }
+        }
+        setLoading(false);
+        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message || 'Error while fetching forecast projects',
+          'alert',
+        );
+        setForecastRuns([]);
+      });
+
+    if (sortBy) {
+      if (sortBy.name === 'runName') {
+        results = results.sort((a, b) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.runName.toLowerCase() === b.runName.toLowerCase() ? 0 : -1;
+          } else {
+            return a.runName.toLowerCase() === b.runName.toLowerCase() ? -1 : 0;
+          }
+        });
+      } else if (sortBy.name === 'result_state') {
+        results = results.sort((a, b) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.result_state.toLowerCase() === b.result_state.toLowerCase() ? 0 : -1;
+          } else {
+            return a.result_state.toLowerCase() === b.result_state.toLowerCase() ? -1 : 0;
+          }
+        });
+      } else if (sortBy.name === 'triggeredOn') {
+        results = results.sort((a, b) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.triggeredOn.toLowerCase() === b.triggeredOn.toLowerCase() ? 0 : -1;
+          } else {
+            return a.triggeredOn.toLowerCase() === b.triggeredOn.toLowerCase() ? -1 : 0;
+          }
+        });
+      } else if (sortBy.name === 'triggeredBy') {
+        results = results.sort((a, b) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.triggeredBy.toLowerCase() === b.triggeredBy.toLowerCase() ? 0 : -1;
+          } else {
+            return a.triggeredBy.toLowerCase() === b.triggeredBy.toLowerCase() ? -1 : 0;
+          }
+        });
+      } else if (sortBy.name === 'inputFile') {
+        results = results.sort((a, b) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.inputFile.toLowerCase() === b.inputFile.toLowerCase() ? 0 : -1;
+          } else {
+            return a.inputFile.toLowerCase() === b.inputFile.toLowerCase() ? -1 : 0;
+          }
+        });
+      } else if (sortBy.name === 'forecastHorizon') {
+        results = results.sort((a, b) => {
+          if (sortBy.currentSortType === 'asc') {
+            return a.forecastHorizon.toLowerCase() === b.forecastHorizon.toLowerCase() ? 0 : -1;
+          } else {
+            return a.forecastHorizon.toLowerCase() === b.forecastHorizon.toLowerCase() ? -1 : 0;
+          }
+        });
+      }
+    }
+
+    setForecastRuns(
+      results.slice(
+        currentPageOffset > results.length ? 0 : currentPageOffset,
+        currentPageOffset + maxItemsPerPage < results.length ? currentPageOffset + maxItemsPerPage : results.length,
+      ),
+    );
+    setTotalNumberOfPages(Math.ceil(results.length / maxItemsPerPage) === 0 ? 1 : Math.ceil(results.length / maxItemsPerPage));
+    setCurrentPageNumber(
+      currentPageNumber > Math.ceil(results.length / maxItemsPerPage)
+        ? Math.ceil(results.length / maxItemsPerPage) > 0
+          ? Math.ceil(results.length / maxItemsPerPage)
+          : 1
+        : currentPageNumber,
+    );
+    showProgressIndicator && ProgressIndicator.hide();
+  };
+
+  useEffect(() => {
+    getResults('pagination');
+  }, [maxItemsPerPage, currentPageOffset, currentPageNumber]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onPaginationPreviousClick = () => {
+    const currentPageNum = currentPageNumber - 1;
+    const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNum);
+    setCurrentPageOffset(currentPageOffset);
+  };
+  const onPaginationNextClick = () => {
+    const currentPageOffset = currentPageNumber * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNumber + 1);
+    setCurrentPageOffset(currentPageOffset);
+  };
+  const onViewByPageNum = (pageNum) => {
+    setCurrentPageNumber(1);
+    setCurrentPageOffset(0);
+    setMaxItemsPerPage(pageNum);
+  };
+
+  /* Sort */
+  const [sortBy, setSortBy] = useState({
+    name: 'runName',
+    currentSortType: 'desc',
+    nextSortType: 'asc',
+  });
+  const sortResults = (propName, sortOrder) => {
+    const tempSortBy = {
+      name: propName,
+      currentSortType: sortOrder,
+      nextSortType: sortBy.currentSortType,
+    };
+    setSortBy(tempSortBy);
+  };
+
+  useEffect(() => {
+    getResults('sort');
+  }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Delete */
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -94,7 +210,10 @@ const ForecastResults = () => {
         ProgressIndicator.hide();
         getProjectForecastRuns();
       }).catch(error => {
-        Notification.show(error.message, 'alert');
+        Notification.show(
+          error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.errors?.[0]?.message || 'Error while creating forecast project',
+          'alert',
+        );
         ProgressIndicator.hide();
       });
     }
@@ -151,12 +270,12 @@ const ForecastResults = () => {
                             </div>
                           </th>
                           <th 
-                            onClick={() => sortResults('name', sortBy.nextSortType)}
+                            onClick={() => sortResults('runName', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' + 
-                                (sortBy.name === 'name' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'runName' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -164,12 +283,12 @@ const ForecastResults = () => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('status', sortBy.nextSortType)}
+                            onClick={() => sortResults('resultState', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'status' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'resultState' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -177,12 +296,12 @@ const ForecastResults = () => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('datetime', sortBy.nextSortType)}
+                            onClick={() => sortResults('triggeredOn', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'datetime' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'triggeredOn' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
@@ -190,12 +309,12 @@ const ForecastResults = () => {
                             </label>
                           </th>
                           <th 
-                            onClick={() => sortResults('ranBy', sortBy.nextSortType)}
+                            onClick={() => sortResults('triggeredBy', sortBy.nextSortType)}
                             >
                             <label
                               className={
                                 'sortable-column-header ' +
-                                (sortBy.name === 'ranBy' ? sortBy.currentSortType : '')
+                                (sortBy.name === 'triggeredBy' ? sortBy.currentSortType : '')
                               }
                             >
                               <i className="icon sort" />
