@@ -264,7 +264,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="frmonEndTech">
                     <label className="input-label summary">Frontend Technologies</label>
                     <br />
-                    {description.frontendTechnologies}
+                    {description.frontendTechnologies?.join(', ')}
                   </div>
                   <div></div>
                 </div>
