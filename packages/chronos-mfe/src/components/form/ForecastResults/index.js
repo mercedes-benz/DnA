@@ -61,8 +61,6 @@ const ForecastResults = () => {
 
     await chronosApi.getForecastRuns(projectId)
       .then((res) => {
-        console.log('oye hoye');
-        console.log(res);
         if(res.status === 204) {
           results = [];
         } else {
