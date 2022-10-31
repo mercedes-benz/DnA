@@ -189,8 +189,55 @@ const ForecastResults = () => {
   }, [sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Delete */
+  const [checkAll, setCheckAll] = useState(false);
+  const [selectedRuns, setSelectedRuns] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [runToBeDeleted, setRunToBeDeleted] = useState();
+
+  const onChangeSelectAll = (event) => {
+    if (event.currentTarget.checked) {
+      setSelectedRuns(
+        forecastRuns.filter((item) => item.state.result_state !== null).map((item) => item.id),
+      );
+      setCheckAll(!checkAll);
+    } else {
+      setSelectedRuns([]);
+      setCheckAll(!checkAll);
+    }
+  };
+  
+  const removeSelected = () => {
+    ProgressIndicator.show();
+    chronosApi.deleteForecastRuns(selectedRuns, projectId)
+      .then((res) => {
+        console.log(res);
+        setSelectedRuns([]);
+        setCheckAll(false);
+        getProjectForecastRuns();
+        Notification.show('Run(s) deleted successfully.');
+        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        console.log(err);
+        Notification.show('Something went wrong', 'alert');
+        ProgressIndicator.hide();
+      });
+  };
+
+  const selectRun = (id) => {
+    const tempNotifId = id.split('box-')[1];
+    setSelectedRuns((prevArray) => [...prevArray, tempNotifId]);
+  };
+
+  const deselectRun = (id) => {
+    const tempNotifId = id.split('box-')[1];
+    setSelectedRuns(selectedRuns.filter((item) => item !== tempNotifId));
+  };
+
+  const unCheckAll = () => {
+    setCheckAll(false);
+  };
+
   const showDeleteConfirmModal = (run) => {
     setShowDeleteModal(true);
     setRunToBeDeleted(run);
@@ -199,22 +246,27 @@ const ForecastResults = () => {
     setShowDeleteModal(false);
   };
   const onAcceptDelete = () => {
-    setShowDeleteModal(false);
-    if(runToBeDeleted.id !== '' || runToBeDeleted.id !== null) {
-      ProgressIndicator.show();
-      chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
-        console.log(res);
-        Notification.show('Run deleted');
-        ProgressIndicator.hide();
-        getProjectForecastRuns();
-      }).catch(error => {
-        Notification.show(
-          error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.errors?.[0]?.message || 'Error while creating forecast project',
-          'alert',
-        );
-        ProgressIndicator.hide();
-      });
+    if(selectedRuns.length > 0) {
+      console.log('hehe');
+      removeSelected();
+    } else {
+      if(runToBeDeleted.id !== '' || runToBeDeleted.id !== null) {
+        ProgressIndicator.show();
+        chronosApi.deleteForecastRun(projectId, runToBeDeleted.id).then((res) => {
+          console.log(res);
+          Notification.show('Run deleted');
+          ProgressIndicator.hide();
+          getProjectForecastRuns();
+        }).catch(error => {
+          Notification.show(
+            error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.errors?.[0]?.message || 'Error while creating forecast project',
+            'alert',
+          );
+          ProgressIndicator.hide();
+        });
+      }
     }
+    setShowDeleteModal(false);
   }
 
   /* Row actions */
@@ -225,20 +277,18 @@ const ForecastResults = () => {
   return (
     <React.Fragment>
         <div className={Styles.content}>
-          {/* <div>
+          <div>
             <div className={Styles.removeBlock} 
-              onClick={openDeleteModal}
+              onClick={showDeleteConfirmModal}
               >
-                {checkAll || selectedNotifications.length > 0 ? (
+                {checkAll || selectedRuns.length > 0 ? (
                   <React.Fragment>
                     <i className={classNames('icon delete')} />
                     Remove selected
                   </React.Fragment>
-                ) : (
-                  ''
-                )}
+                ) : null }
             </div>
-          </div> */}
+          </div>
 
           <div className={Styles.forecastResultListWrapper}>
             <div className={Styles.listContent}>
@@ -260,8 +310,8 @@ const ForecastResults = () => {
                                   <input
                                     type="checkbox"
                                     className="ff-only"
-                                    // checked={checkAll}
-                                    // onChange={(event) => onChangeSelectAll(event)}
+                                    checked={checkAll}
+                                    onChange={(event) => onChangeSelectAll(event)}
                                   />
                                 </span>
                               </label>
@@ -371,6 +421,11 @@ const ForecastResults = () => {
                               key={item.id}
                               showDeleteConfirmModal={showDeleteConfirmModal}
                               openDetails={() => openForecastingResults(item.id)}
+                              checkedAll={checkAll}
+                              selectedRuns={selectedRuns}
+                              selectRun={selectRun}
+                              deselectRun={deselectRun}
+                              unCheckAll={unCheckAll}
                             />
                           );
                         })}
