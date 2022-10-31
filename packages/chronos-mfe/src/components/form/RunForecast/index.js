@@ -27,13 +27,21 @@ const SelectedFile = ({ selectedFile, setSelected, setFileValid }) => {
           <span>Input File</span>
           <span>{selectedFile.name}</span>
         </div>
-        <span>
+        <div className={Styles.msgContainer}>
           <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
           <span>File is ready to use.</span>
-        </span>
-        <span>
+        </div>
+        {/* <div className={Styles.msgContainer}>
+          <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
+          <span>Something&#8217;s wrong with the Input File. Please select correct data set. <a href="#">Here</a> you can find further information on how to set up data correctly.</span>
+        </div>
+        <div className={Styles.msgContainer}>
+          <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
+          <span>Index not sorted. Either delete Input File and select another one or try to run anyway.</span>
+        </div> */}
+        <div>
           <i onClick={() => { setSelected(false); setFileValid(true); }} className={classNames('icon delete', Styles.deleteIcon)} />
-        </span>
+        </div>
       </div>
     </>
   );
@@ -73,6 +81,8 @@ const RunForecast = () => {
   const [savedFiles, setSavedFiles] = useState([]);
   const [isExistingFile, setIsExistingFile] = useState(false);
   const [configurationFiles, setConfigurationFiles] = useState([]);
+  const [dropped, setDropped] = useState(false);
+  const [droppedFile, setDroppedFile] = useState();
   
 
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
@@ -222,8 +232,9 @@ const RunForecast = () => {
   );
 
   const onDrop = (e) => {
-    console.log('Dropped files', e.dataTransfer.files);
+    setDropped(true);
     const file = e.dataTransfer.files?.[0];
+    setDroppedFile(file);
     const isValid = isValidFile(file);
     if (!isValid) {
       Notification.show('File is not valid.', 'alert');
@@ -257,7 +268,11 @@ const RunForecast = () => {
     if(selectedInputFile?.path !== undefined) {
       formData.append("file", '');
     } else {
-      formData.append("file", data.file[0]);
+      if(dropped) {
+        formData.append("file", droppedFile);
+      } else {
+        formData.append("file", data.file[0]);
+      }
     }
     formData.append("runName", data.runName);
     formData.append("configurationFile", data.configurationFile);
@@ -329,7 +344,7 @@ const RunForecast = () => {
                     className={classNames('upload-container', Styles.uploadContainer)}
                   >
                     <input type="file" id="file" name="file" 
-                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); setIsExistingFile(false); }})}
+                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setDropped(false); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); setIsExistingFile(false); }})}
                       accept=".csv, .xlsx"
                       />
                     <div className={Styles.rcUpload}>
@@ -350,6 +365,7 @@ const RunForecast = () => {
                             setShowExistingFiles(true);
                             setKeepExistingFiles(false);
                             setIsExistingFile(true);
+                            setDropped(false);
                           }}
                         >
                           <p>
@@ -535,7 +551,7 @@ const RunForecast = () => {
                       )}
                     >
                       <label id="hierarchyLabel" htmlFor="hierarchyField" className="input-label">
-                        Level of Hierarchy
+                        Levels of Hierarchy
                         {/* <i className="icon mbc-icon info" tooltip-data={hierarchyTooltipContent} /> */}
                       </label>
                       <div className="custom-select" 
@@ -546,7 +562,7 @@ const RunForecast = () => {
                           {...register('hierarchy')}
                         >
                           <option id="hierarchyOption" value={''}>
-                            Choose
+                            No Hierarchy
                           </option>
                           {/* <option value={''}>No hierachy</option> */}
                           <option value={'2'}>2</option>

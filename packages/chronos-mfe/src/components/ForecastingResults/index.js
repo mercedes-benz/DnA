@@ -2,6 +2,8 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, ReferenceArea, Brush } from 'recharts';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import ContextMenu from '../shared/contextMenu/ContextMenu';
 import Styles from './styles.scss';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -11,6 +13,8 @@ import Spinner from '../shared/spinner/Spinner';
 const COLORS = ['#00ADF0', '#33ADAC', '#E0144C', '#EED180', '#AA8B56', '#A8E890', '#6F38C5', '#9E7676', '#D0B8A8', '#7895B2'];
 
 const ForecastingResults = () => {
+  const printRef = React.useRef();
+
   const history = useHistory();
   const goback = () => {
     history.goBack();
@@ -24,20 +28,6 @@ const ForecastingResults = () => {
   // const tooltipCursorBackground = { fill: '#1f2124', opacity: 1 };
 
   const [columns, setColumns] = useState([]);
-
-  const onDummyClick = () => {
-    console.log('dummy click');
-  }
-  const contextMenuItems = [
-    {
-      title: 'Export to PDF',
-      onClickFn: onDummyClick
-    },
-    {
-      title: 'Export to PNG',
-      onClickFn: onDummyClick
-    }
-  ];
 
   const [loading, setLoading] = useState(true);
   const [forecastRun, setForecastRun] = useState([]);
@@ -88,6 +78,49 @@ const ForecastingResults = () => {
     });
   };
 
+  const exportToPdf = async () => {
+    const element = printRef.current;
+    const canvas = await html2canvas(element);
+    const data = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF();
+    const imgProperties = pdf.getImageProperties(data);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight =
+      (imgProperties.height * pdfWidth) / imgProperties.width;
+
+    pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(forecastRun?.runName + '.pdf');
+  }
+  const exportToPng = async () => {
+    const element = printRef.current;
+    const canvas = await html2canvas(element);
+
+    const data = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+
+    if (typeof link.download === 'string') {
+      link.href = data;
+      link.download = forecastRun?.runName + '.png';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      window.open(data);
+    }
+  }
+  const contextMenuItems = [
+    {
+      title: 'Export to PDF',
+      onClickFn: exportToPdf
+    },
+    {
+      title: 'Export to PNG',
+      onClickFn: exportToPng
+    }
+  ];
+
   return (
     <div className={classNames(Styles.mainPanel)}>
       <div className={Styles.backButtonWapper}>
@@ -121,7 +154,7 @@ const ForecastingResults = () => {
             <ContextMenu id={'trend'} items={contextMenuItems} />
           </div>
         </div>
-        <div className={Styles.firstPanel}>
+        <div className={Styles.firstPanel} ref={printRef}>
           { loading && <Spinner /> }
           { !loading && forecastData.length === 0 && <p>No visualization for the given data.</p> }
           { !loading && forecastData.length > 0 &&
