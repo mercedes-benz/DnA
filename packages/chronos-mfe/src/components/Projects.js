@@ -160,7 +160,7 @@ const ForeCastingProjects = ({ user, history }) => {
   };
 
   const copyApiKey = () => {
-    navigator.clipboard.writeText('dummy api key').then(() => {
+    navigator.clipboard.writeText('123823').then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -304,7 +304,7 @@ const ForeCastingProjects = ({ user, history }) => {
                     <div className={Styles.appIdParentDiv}>
                       <div className={Styles.refreshedKey}>
                         { showApiKey ? (
-                          <p>2983432j38293nf9sdjfsdhfs98</p>
+                          <p>123823</p>
                         ) : (
                           <React.Fragment>
                             &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
