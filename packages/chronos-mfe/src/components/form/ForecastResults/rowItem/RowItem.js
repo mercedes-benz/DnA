@@ -25,9 +25,9 @@ const RowItem = (props) => {
   const onChangeCheck = (event) => {
     if (!event.currentTarget.checked) {
       props.unCheckAll();
-      props.deselectNotification(event.currentTarget.id);
+      props.deselectRun(event.currentTarget.id);
     } else {
-      props.selectNotification(event.currentTarget.id);
+      props.selectRun(event.currentTarget.id);
     }
     setIsChecked(event.currentTarget.checked);
     event.nativeEvent.stopImmediatePropagation();
