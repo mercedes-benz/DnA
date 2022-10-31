@@ -85,9 +85,10 @@
 }
 
 .removeBlock {
-  /*margin-top: 10px;*/
   color: #c0c8d0;
-  display: inline-block;
+  display: block;
+  text-align: right;
+  margin-right: 34px;
   &:hover {
     cursor: pointer;
     i {
