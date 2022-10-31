@@ -41,7 +41,15 @@
     },
     "rules": {
       "react/prop-types": "off",
-      "react/no-unknown-property": ["error", { "ignore": ["tooltip-data", "required-error"] }]
+      "react/no-unknown-property": [
+        "error",
+        {
+          "ignore": [
+            "tooltip-data",
+            "required-error"
+          ]
+        }
+      ]
     }
   },
   "browserslist": {
@@ -66,6 +74,8 @@
     "env-cmd": "^10.1.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "popper.js": "^1.16.1",
     "postcss-loader": "^7.0.1",
     "rc-upload": "^4.3.4",

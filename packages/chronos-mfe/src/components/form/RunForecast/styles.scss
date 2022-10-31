@@ -85,11 +85,28 @@
         display: flex;
         flex-direction: column;
         margin-bottom: 3px;
+        min-width: 140px;
     }
-    span {
+    .msgContainer {
+        display: flex;
+        align-items: center;
+        flex: 2;
         font-size: var(--font-size-medium);
         margin-top: auto;
         margin-bottom: auto;
+        margin-right: 46px;
+        > i {
+            margin-top: -10px;
+            margin-right: 14px;
+        }
+        .closeCircle {
+            color: #e94d47;
+            font-size: 17px;
+        }
+        .alertCircle {
+            color: #ffff4c;
+            font-size: 16px;
+          }
     }
     .checkCircle {
         color: #12e7ab;
