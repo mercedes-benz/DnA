@@ -373,40 +373,40 @@ paths:
   # path example ../forecasts/{id}/runs/{rid}
 
   /forecasts/{id}/runs/{rid}:
-#    get:
-#      tags:
-#        - "forecast-runs"
-#      summary: "Get all forecast projects for the user."
-#      description:  "Get all forecasts projects for the user."
-#      operationId: "getRunVisualizationData"
-#      parameters:
-#          - in: "path"
-#            name: "id"
-#            description: "forecast project ID "
-#            required: true
-#            type: "string"
-#          - in: "path"
-#            name: "rid"
-#            description: "run id "
-#            required: true
-#            type: "string"
-#      responses:
-#        201:
-#          description: "Returns message of success or failure"
-#          schema:
-#            $ref: "#/definitions/RunVisualizationVO"
-#        204:
-#          description: "Fetch complete, no content found."
-#        400:
-#          description: "Bad request."
-#        401:
-#          description: "Request does not have sufficient credentials."
-#        403:
-#          description: "Request is not authorized."
-#        405:
-#          description: "Method not allowed"
-#        500:
-#          description: "Internal error"
+    get:
+      tags:
+        - "forecast-runs"
+      summary: "Get visualization data for specific run."
+      description:  "Get visualization data for specific run."
+      operationId: "getRunVisualizationData"
+      parameters:
+          - in: "path"
+            name: "id"
+            description: "forecast project ID "
+            required: true
+            type: "string"
+          - in: "path"
+            name: "rid"
+            description: "run id "
+            required: true
+            type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/RunVisualizationVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
           
     delete:
       tags:
@@ -805,13 +805,6 @@ definitions:
             type: array
             items:
                 $ref: "#/definitions/RunVO"
-              
-  RunVisualizationVO:
-    type: object
-    properties:  
-        value: 
-            type: string
-            message: json string value containing visualization data
           
   BindingResult:
     type: object
@@ -858,5 +851,27 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user" 
+
+  RunVisualizationVO:
+    type: object
+    properties: 
+      id:
+        type: string
+      runId: 
+        type: string
+      runName:
+        type: string
+      frequency:
+        type: string
+      forecastHorizon:
+        type: string
+      y:
+        type: string
+      yPred:
+        type: string
+      eda:
+        type: string
+      response:
+        $ref: "#/definitions/GenericMessage"
  
  

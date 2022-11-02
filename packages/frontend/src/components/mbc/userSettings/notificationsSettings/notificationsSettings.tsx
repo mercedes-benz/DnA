@@ -57,6 +57,12 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'dashboardNotificationPref':
             temp.title = 'Configure Notifications for Dashboard';
             break;
+          case 'dataProductNotificationPref':
+            temp.title = 'Configure Notification Data Product';
+            break;
+          case 'dataComplianceNotificationPref':
+            temp.title = 'Configure Notification Data Compliance';
+            break;
         }
         tempArr.push(temp);
       }
@@ -104,6 +110,26 @@ const NotificationsSettings = (props: INotificationSettings) => {
     callToUpdatePreference(messageForNotification);
   };
 
+  const onChangeEmailNotificationForDataProduct = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.dataProductNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
+  const onChangeEmailNotificationForDataCompliance = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.dataComplianceNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  };
+
   const callToUpdatePreference = (message: string) => {
     ProgressIndicator.show();
     ApiClient.enableEmailNotifications(notificationPreferences)
@@ -136,6 +162,12 @@ const NotificationsSettings = (props: INotificationSettings) => {
       case 'dashboardNotificationPref':
         onChangeEmailNotificationForDashboard(e);
         break;
+      case 'dataProductNotificationPref':
+        onChangeEmailNotificationForDataProduct(e);
+        break;
+      case 'dataComplianceNotificationPref':
+        onChangeEmailNotificationForDataCompliance(e);
+        break;  
     }
   };
 
