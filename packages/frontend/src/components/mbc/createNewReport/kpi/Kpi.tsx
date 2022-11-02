@@ -9,7 +9,7 @@ import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from 'globals/Enums';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
-import IconAvatarNew from 'components/icons/IconAvatarNew';
+import IconAddKPI from 'components/icons/IconAddKPI';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
@@ -314,7 +314,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
                 <div className={Styles.kpiWrapper}>
                   <div className={Styles.kpiWrapperNoList}>
                     <div className={Styles.addKpiWrapper}>
-                      <IconAvatarNew className={Styles.avatarIcon} />
+                      <IconAddKPI className={Styles.avatarIcon} />
                       <button id="AddKpiBtn" onClick={this.addKpiModel}>
                         <i className="icon mbc-icon plus" />
                         <span>Add Kpi</span>
@@ -329,7 +329,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               <br />
               {this.state.kpis?.length > 0 && (
                 <div className={Styles.addKpiWrapper}>
-                  <IconAvatarNew className={Styles.avatarIcon} />
+                  <IconAddKPI className={Styles.avatarIcon} />
                   <button id="AddKpiBtn" onClick={this.addKpiModel}>
                     <i className="icon mbc-icon plus" />
                     <span>Add Kpi</span>
