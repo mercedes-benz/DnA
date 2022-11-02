@@ -940,38 +940,40 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>Please add data source & functions </h3>
-            <br />
-            {(this.state.dataAndFunctions.dataWarehouseInUse?.length > 0 || this.state.dataAndFunctions.singleDataSources?.length > 0) && (
-              <div className={Styles.addDataSourceWrapper}>
-                <IconDataSource className={Styles.avatarIcon} />
-                <button id="AddDataSourceBtn" onClick={() => this.showDataSourceModal()}>
-                  <i className="icon mbc-icon plus" />
-                  <span>Add Data Source</span>
-                </button>
-              </div>              
-            )}
-            <br />
-            <DataWarehouseList
-              dataWarehouselist={this.state.dataAndFunctions.dataWarehouseInUse}
-              singleDataSourceList={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
-              currentColumnToSort={this.state.currentColumnToSort}
-              currentSortOrder={this.state.currentSortOrder}
-              onEdit={this.onEditDatasourceOpen}
-              onDelete={this.onDeleteDatasource}
-              showDataSourceModal={this.showDataSourceModal}
-              dataAndFunctionTabError={this.state.dataAndFunctionTabError}
-            />
-            <SingleDataSourceList
-              dataSources={this.props.dataSources}
-              dataWarehouseList={this.state.dataAndFunctions.dataWarehouseInUse}
-              list={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
-              currentColumnToSort={this.state.currentColumnToSort}
-              currentSortOrder={this.state.currentSortOrder}
-              onEdit={this.onEditSingleDataSourceOpen}
-              onDelete={this.onDeleteDatasource}
-              showDataSourceModal={this.showDataSourceModal}
-            />
+            <h3>Please add data source & functions </h3>            
+            <div className={Styles.listWrapper}>
+              <br />
+              {(this.state.dataAndFunctions.dataWarehouseInUse?.length > 0 || this.state.dataAndFunctions.singleDataSources?.length > 0) && (
+                <div className={Styles.addDataSourceWrapper}>
+                  <IconDataSource className={Styles.avatarIcon} />
+                  <button id="AddDataSourceBtn" onClick={() => this.showDataSourceModal()}>
+                    <i className="icon mbc-icon plus" />
+                    <span>Add Data Source</span>
+                  </button>
+                </div>              
+              )}
+              <br />
+              <DataWarehouseList
+                dataWarehouselist={this.state.dataAndFunctions.dataWarehouseInUse}
+                singleDataSourceList={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
+                currentColumnToSort={this.state.currentColumnToSort}
+                currentSortOrder={this.state.currentSortOrder}
+                onEdit={this.onEditDatasourceOpen}
+                onDelete={this.onDeleteDatasource}
+                showDataSourceModal={this.showDataSourceModal}
+                dataAndFunctionTabError={this.state.dataAndFunctionTabError}
+              />
+              <SingleDataSourceList
+                dataSources={this.props.dataSources}
+                dataWarehouseList={this.state.dataAndFunctions.dataWarehouseInUse}
+                list={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
+                currentColumnToSort={this.state.currentColumnToSort}
+                currentSortOrder={this.state.currentSortOrder}
+                onEdit={this.onEditSingleDataSourceOpen}
+                onDelete={this.onDeleteDatasource}
+                showDataSourceModal={this.showDataSourceModal}
+              />
+            </div>
           </div>
         </div>
         <div className="btnConatiner">
