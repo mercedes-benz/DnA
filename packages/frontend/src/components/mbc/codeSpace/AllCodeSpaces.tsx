@@ -21,7 +21,7 @@ export interface IAllCodeSpacesProps {
 
 const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [lastCreatedId, setLastCreatedId] = useState<number>(0);
+  // const [lastCreatedId, setLastCreatedId] = useState<number>(0);
   // const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
   //   url: `https://code-spaces.dev.dna.app.corpintra.net/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
   //   running: false
@@ -34,9 +34,66 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       maxItemsPerPage: 15,
     }),
     [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState<boolean>(false),
-    [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false);
+    [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
+    [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>();
+
 
   const formatCodeSpaceData = (records: any[]) => {
+    records.push(
+      {
+        id: '1110e328-1339-41e0-941c-1ba9e3ae73b2',
+        name: 'code-collab-sample',
+        description: null,
+        owner: 'BEALURI',
+        recipeId: 'springboot',
+        intiatedOn: '2022-08-25T10:18:39.460+00:00',
+        lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
+        deploymentUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/demo',
+        workspaceUrl: 'https://code-spaces.dev.dna.app.corpintra.net/bealuri/wsx1/?folder=/home/coder/projects/demo',
+        environment: 'Development',
+        cloudServiceProvider: 'DHC-CaaS',
+        ramSize: '1',
+        ramMetrics: 'GB',
+        cpuCapacity: '1',
+        operatingSystem: 'Debian-OS-11',
+        status: 'CREATED',
+        collaborators: [
+          {
+            department: "ITT/QIG",
+            email: "kameshwara.rao@daimler.com",
+            firstName: "Kameswara",
+            lastName: "Rao",
+            shortId: "KAMERAO",
+            id: "KAMERAO",
+            mobileNumber: "",
+            status: "REQUESTED",
+            canDeploy: true,
+          },
+          {
+            department: "ITT/QIG",
+            email: "benson_boon.aluri@mercedes-benz.com",
+            firstName: "Benson Boon",
+            lastName: "Aluri",
+            shortId: "BEALURI",
+            id: "BEALURI",
+            mobileNumber: "",
+            status: "REQUESTED",
+            canDeploy: true,
+          },
+          {
+            department: "ITT/QIG",
+            email: "anna_agnel.maria_rathinam@mercedes-benz.com",
+            firstName: "Anna Agnel Praveen",
+            lastName: "Maria Rathinam",
+            shortId: "AMARIAR",
+            id: "AMARIAR",
+            mobileNumber: "",
+            status: "REQUESTED",
+            canDeploy: true,
+          }
+        ],
+      }
+    );
     return records.map((record: any) => {
       return {
         id: record.id,
@@ -53,6 +110,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
         url: record.workspaceUrl,
         running: !!record.intiatedOn,
         status: record.status,
+        collaborators: record.collaborators,
       } as ICodeSpaceData;
     });
   };
@@ -63,7 +121,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
       .then((res: any) => {
         setLoading(false);
         setCodeSpaces(Array.isArray(res) ? res : (formatCodeSpaceData(res.records) as ICodeSpaceData[]));
-        setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
+        // setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
       })
       .catch((err: Error) => {
         setLoading(false);
@@ -152,10 +210,16 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
 
   const onNewCodeSpaceModalCancel = () => {
     setShowNewCodeSpaceModal(false);
+    setOnBoardCodeSpace(undefined);
   };
 
   const onDeleteSuccess = () => {
     getCodeSpacesData();
+  };
+
+  const onShowCodeSpaceOnBoard = (codeSpace: ICodeSpaceData) => {
+    setOnBoardCodeSpace(codeSpace);
+    setShowNewCodeSpaceModal(true);
   };
 
   const switchBackToCodeSpace = () => {
@@ -228,9 +292,11 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
                         return (
                           <CodeSpaceCardItem
                             key={index}
+                            userInfo={props.user}
                             codeSpace={codeSpace}
                             toggleProgressMessage={toggleProgressMessage}
                             onDeleteSuccess={onDeleteSuccess}
+                            onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                           />
                         );
                       })}
@@ -264,7 +330,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
           content={
             <NewCodeSpace
               user={props.user}
-              lastCreatedId={lastCreatedId}
+              onBoardingCodeSpace={onBoardCodeSpace}
               isCodeSpaceCreationSuccess={isCodeSpaceCreationSuccess}
               toggleProgressMessage={toggleProgressMessage}
             />

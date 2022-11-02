@@ -25,9 +25,6 @@ const ForeCastingProjects = ({ user, history }) => {
   const [createProject, setCreateProject] = useState(false);
   const [editProject, setEditProject] = useState(false);
 
-  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1); 
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-
   const [generateApiKey, setGenerateApiKey] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -52,17 +49,74 @@ const ForeCastingProjects = ({ user, history }) => {
     dispatch(GetProjects());
   }, [dispatch]);
 
+  
+  // Pagination 
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [currentPageOffset, setCurrentPageOffset] = useState(0);
+  const [maxItemsPerPage, setMaxItemsPerPage] = useState(15);
+
+  const [forecastProjects, setForecastProjects] = useState([...projects]);
+
+  /* getResults */
+  const getResults = async (action) => {
+    const showProgressIndicator = ['pagination'].includes(action);
+    console.log(action);
+
+    showProgressIndicator && ProgressIndicator.show();
+
+    let results = [];
+
+    await chronosApi.getAllForecastProjects()
+      .then((res) => {
+        if (res.data.records) {
+          results = [...res.data.records];
+        }
+      })
+      .catch((err) => {
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message || 'Error while fetching forecast projects',
+          'alert',
+        );
+        setForecastProjects([]);
+      });
+
+    setForecastProjects(
+      results.slice(
+        currentPageOffset > results.length ? 0 : currentPageOffset,
+        currentPageOffset + maxItemsPerPage < results.length ? currentPageOffset + maxItemsPerPage : results.length,
+      ),
+    );
+    setTotalNumberOfPages(Math.ceil(results.length / maxItemsPerPage) === 0 ? 1 : Math.ceil(results.length / maxItemsPerPage));
+    setCurrentPageNumber(
+      currentPageNumber > Math.ceil(results.length / maxItemsPerPage)
+        ? Math.ceil(results.length / maxItemsPerPage) > 0
+          ? Math.ceil(results.length / maxItemsPerPage)
+          : 1
+        : currentPageNumber,
+    );
+    showProgressIndicator && ProgressIndicator.hide();
+  };
+
+  useEffect(() => {
+    getResults('pagination');
+  }, [maxItemsPerPage, currentPageOffset, currentPageNumber]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const onPaginationPreviousClick = () => {
-    // todo
-    setCurrentPageNumber(1);
-    setTotalNumberOfPages(1);
+    const currentPageNum = currentPageNumber - 1;
+    const currentPageOffset = (currentPageNum - 1) * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNum);
+    setCurrentPageOffset(currentPageOffset);
   };
   const onPaginationNextClick = () => {
-    // todo
+    const currentPageOffset = currentPageNumber * maxItemsPerPage;
+    setCurrentPageNumber(currentPageNumber + 1);
+    setCurrentPageOffset(currentPageOffset);
   };
   const onViewByPageNum = (pageNum) => {
-    // todo
-    console.log(pageNum);
+    setCurrentPageNumber(1);
+    setCurrentPageOffset(0);
+    setMaxItemsPerPage(pageNum);
   };
 
   const handleCreateProject = (values) => {
@@ -86,8 +140,10 @@ const ForeCastingProjects = ({ user, history }) => {
       Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
-      Notification.show(error.message, 'alert');
-      Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating forecast project',
+        'alert',
+      );
     });
   };
   const handleEditProject = (values) => {
@@ -104,7 +160,7 @@ const ForeCastingProjects = ({ user, history }) => {
   };
 
   const copyApiKey = () => {
-    navigator.clipboard.writeText('dummy api key').then(() => {
+    navigator.clipboard.writeText('123823').then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -198,7 +254,7 @@ const ForeCastingProjects = ({ user, history }) => {
                     id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-]+$/ })}
                   />
                   <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
                 </div>
@@ -248,7 +304,7 @@ const ForeCastingProjects = ({ user, history }) => {
                     <div className={Styles.appIdParentDiv}>
                       <div className={Styles.refreshedKey}>
                         { showApiKey ? (
-                          <p>2983432j38293nf9sdjfsdhfs98</p>
+                          <p>123823</p>
                         ) : (
                           <React.Fragment>
                             &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
@@ -304,7 +360,7 @@ const ForeCastingProjects = ({ user, history }) => {
     <>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
-          {projects?.length === 0 ? (
+          {forecastProjects?.length === 0 ? (
             <FirstRun openCreateProjectModal={() => setCreateProject(true)} user={user} />
           ) : (
             <>
@@ -315,10 +371,10 @@ const ForeCastingProjects = ({ user, history }) => {
               <div className={classNames(Styles.caption)}>
                 <h3>My Forecasting Projects</h3>
                 <div className={classNames(Styles.listHeader)}>
-                  {projects?.length ? (
+                  {forecastProjects?.length ? (
                     <React.Fragment>
                       <button
-                        className={projects?.length === null ? Styles.btnHide : 'btn btn-primary'}
+                        className={forecastProjects?.length === null ? Styles.btnHide : 'btn btn-primary'}
                         type="button"
                         onClick={() => setCreateProject(true)}
                       >
@@ -335,7 +391,7 @@ const ForeCastingProjects = ({ user, history }) => {
                   <div className={Styles.addicon}> &nbsp; </div>
                   <label className={Styles.addlabel}>Create new project</label>
                 </div>
-                {projects?.map((project, index) => {
+                {forecastProjects?.map((project, index) => {
                   return (
                     <ProjectsCardItem
                       key={index}
@@ -349,7 +405,7 @@ const ForeCastingProjects = ({ user, history }) => {
                 })}
               </div>
 
-              {projects?.length ? (
+              {forecastProjects?.length > 0 ? (
                 <Pagination
                   totalPages={totalNumberOfPages}
                   pageNumber={currentPageNumber}
@@ -376,6 +432,8 @@ const ForeCastingProjects = ({ user, history }) => {
           onCancel={() => {
             setCreateProject(false);
             setEditProject(false);
+            reset({ name: '' });
+            setTeamMembers([]);
           }}
           modalStyle={{
             padding: '50px 35px 35px 35px',

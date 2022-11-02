@@ -122,11 +122,15 @@ public class KafkaCoreCampaignService {
 						appNotificationPreferenceFlag = preferenceVO.getDashboardNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getDashboardNotificationPref().isEnableEmailNotifications();
 					}
-					if (message.getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY)
-							|| message.getEventType().contains(DATACOMPLIANCE_NOTIFICATION_KEY)) {
-						appNotificationPreferenceFlag = true;
-						emailNotificationPreferenceFlag = true;
+					if(message.getEventType().contains(DATAPRODUCT_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getDataProductNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getDataProductNotificationPref().isEnableEmailNotifications();
 					}
+					if(message.getEventType().contains(DATACOMPLIANCE_NOTIFICATION_KEY)) {
+						appNotificationPreferenceFlag = preferenceVO.getDataComplianceNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag =  preferenceVO.getDataComplianceNotificationPref().isEnableEmailNotifications();
+					}
+
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
 					vo.setEventType(message.getEventType());
