@@ -715,8 +715,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               key={'internal'+index}
               itemIndex={index}
               teamMember={member.name}
-              showMoveUp={index !== 0}
-              showMoveDown={index + 1 !== this.state.customer.internalCustomers.length}
+              showMoveUp={false}
+              showMoveDown={false}
               division={member?.division?.name}
               department={member.department}
               relation={member.customerRelation}
@@ -738,8 +738,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
               key={'external-'+index}
               itemIndex={index}
               teamMember={member.name}
-              showMoveUp={index !== 0}
-              showMoveDown={index + 1 !== this.state.customer.externalCustomers.length}
+              showMoveUp={false}
+              showMoveDown={false}
               relation={member.customerRelation}
               companyName={member.companyName}
               editOptionText={'Edit Customer'}
