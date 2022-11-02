@@ -61,7 +61,7 @@ const ProjectDetails = () => {
   };
 
   const copyApiKey = () => {
-    navigator.clipboard.writeText('dummy api key').then(() => {
+    navigator.clipboard.writeText(project?.apiKey).then(() => {
       Notification.show('Copied to Clipboard');
     });
   };

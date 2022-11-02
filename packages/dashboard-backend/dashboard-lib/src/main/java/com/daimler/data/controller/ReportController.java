@@ -51,7 +51,6 @@ import com.daimler.data.assembler.ReportAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
-import com.daimler.data.dto.report.ProductOwnerCollection;
 import com.daimler.data.dto.report.ReportCollection;
 import com.daimler.data.dto.report.ReportRequestVO;
 import com.daimler.data.dto.report.ReportResponseVO;
@@ -152,12 +151,11 @@ public class ReportController implements ReportsApi {
 			@ApiParam(value = "tags to filter reports. tags is comma seperated search keywords which are used to search Tags of reports. Example \"BAT, java\"") @Valid @RequestParam(value = "tags", required = false) String tags,
 			@ApiParam(value = "page number from which listing of reports should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
 			@ApiParam(value = "page size to limit the number of reports, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
-			@ApiParam(value = "Sort reports by a given variable like productName, status", allowableValues = "productName, status, department, productOwner, art") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort reports by a given variable like productName, status", allowableValues = "productName, status, department, art") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
 			@ApiParam(value = "Sort reports based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
 			@ApiParam(value = "List of IDs of divisions and subdivisions under each division of reports. Example [{1,[2,3]},{2,[1]},{3,[4,5]}]") @Valid @RequestParam(value = "division", required = false) String division,
 			@ApiParam(value = "List of deparments. Example dep1,dep2,dep3") @Valid @RequestParam(value = "department", required = false) String department,
 			@ApiParam(value = "List of processOwner. Example shortID1,shortId2") @Valid @RequestParam(value = "processOwner", required = false) String processOwner,
-			@ApiParam(value = "List of productOwner. Example shortID1,shortId2") @Valid @RequestParam(value = "productOwner", required = false) String productOwner,
 			@ApiParam(value = "List of art. Example art1,art2,art3") @Valid @RequestParam(value = "art", required = false) String art) {
 		try {
 			ReportCollection reportCollection = new ReportCollection();
@@ -184,14 +182,14 @@ public class ReportController implements ReportsApi {
 			Long count = reportService.getCount(published, reportAssembler.toList(status), userId, isAdmin,
 					reportAssembler.toList(searchTerm), reportAssembler.toList(tags), division,
 					reportAssembler.toList(department), reportAssembler.toList(processOwner),
-					reportAssembler.toList(productOwner), reportAssembler.toList(art));
+					reportAssembler.toList(art));
 			if (count < offset)
 				offset = 0;
 
 			List<ReportVO> reports = reportService.getAllWithFilters(published, reportAssembler.toList(status), userId,
 					isAdmin, reportAssembler.toList(searchTerm), reportAssembler.toList(tags), offset, limit, sortBy,
 					sortOrder, division, reportAssembler.toList(department), reportAssembler.toList(processOwner),
-					reportAssembler.toList(productOwner), reportAssembler.toList(art));
+					reportAssembler.toList(art));
 			LOGGER.debug("Reports fetched successfully");
 			if (!ObjectUtils.isEmpty(reports)) {
 				reportCollection.setTotalCount(count.intValue());
@@ -248,23 +246,6 @@ public class ReportController implements ReportsApi {
 			"application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<ProcessOwnerCollection> getAllProcessOwner() {
 		return reportService.getProcessOwners();
-	}
-
-	@Override
-	@ApiOperation(value = "Get all available productOwners.", nickname = "getAllProductOwner", notes = "Get all productOwners. This endpoints will be used to get all valid available productOwners records.", response = ProductOwnerCollection.class, tags = {
-			"reports", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of success or failure", response = ProductOwnerCollection.class),
-			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
-			@ApiResponse(code = 400, message = "Bad request."),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/reports/productowners", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<ProductOwnerCollection> getAllProductOwner() {
-		return reportService.getProductOwners();
 	}
 
 }
