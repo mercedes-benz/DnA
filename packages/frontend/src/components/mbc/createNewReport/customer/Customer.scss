@@ -43,6 +43,7 @@
 .addTeamMemberWrapper {
   min-height: 70px;
   margin-top: 25px;
+  padding-left: 40px;
   button {
     padding: 0;
     margin: 0;
@@ -555,5 +556,13 @@
   color: #acb8c4;
   font-size: var(--font-size-smallest);
   font-family: Roboto-Medium;
+}
+
+.avatar{
+  .avatarIcon {
+    width: 55px;
+    height: 55px;
+    margin-right:30px
+  }
 }
 
