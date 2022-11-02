@@ -57,16 +57,9 @@ export interface ICustomerState {
   nameToDisplay: string;
   processOwnerToDisplay: string;
   customerType: string;
-
-
-  showContextMenu: boolean;
-  showLocationsContextMenu: boolean;
-  contextMenuOffsetTop: number;
-  contextMenuOffsetRight: number;
 }
 export default class Customer extends React.Component<ICustomerProps, ICustomerState> {
-  protected isTouch = false;
-  protected listRowElement: HTMLElement;
+  
   public static getDerivedStateFromProps(props: ICustomerProps, state: ICustomerState) {
     return {
       customer: props.customer,
@@ -202,11 +195,6 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       nameToDisplay: '',
       processOwnerToDisplay: '',
       customerType: 'Internal',
-
-      showContextMenu: false,
-      showLocationsContextMenu: false,
-      contextMenuOffsetTop: 0,
-      contextMenuOffsetRight: 0,
     };
     this.onUsRiskChange = this.onUsRiskChange.bind(this);
   }
@@ -250,14 +238,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
   }
 
   public componentWillMount() {
-    document.addEventListener('touchend', this.handleContextMenuOutside, true);
-    document.addEventListener('click', this.handleContextMenuOutside, true);
+    
   }
 
-  public componentWillUnmount() {
-    document.removeEventListener('touchend', this.handleContextMenuOutside, true);
-    document.removeEventListener('click', this.handleContextMenuOutside, true);
-  }
+  
 
 
   public render() {
@@ -830,18 +814,6 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       </React.Fragment>
     );
   }
-
-  public toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
-    e.stopPropagation();
-    const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
-    const relativeParentTable: ClientRect = document.querySelector('.internalCustomerList').getBoundingClientRect();
-    this.setState({
-      contextMenuOffsetTop: elemRect.top - (relativeParentTable.top + 10),
-      contextMenuOffsetRight: 10,
-      showLocationsContextMenu: false,
-      showContextMenu: !this.state.showContextMenu,
-    });
-  };
 
   public resetChanges = () => {
     if (this.props.customer) {
@@ -2086,56 +2058,5 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         },
       }));
     };
-  };
-
-  protected handleContextMenuOutside = (event: MouseEvent | TouchEvent) => {
-    if (event.type === 'touchend') {
-      this.isTouch = true;
-    }
-
-    // Click event has been simulated by touchscreen browser.
-    if (event.type === 'click' && this.isTouch === true) {
-      return;
-    }
-
-    const target = event.target as Element;
-    const { showContextMenu, showLocationsContextMenu } = this.state;
-    const elemClasses = target.classList;
-    const listRowElement = this.listRowElement;
-    const contextMenuWrapper = listRowElement.querySelector('.contextMenuWrapper');
-    if (
-      listRowElement &&
-      !target.classList.contains('trigger') &&
-      !target.classList.contains('context') &&
-      !target.classList.contains('contextList') &&
-      !target.classList.contains('contextListItem') &&
-      contextMenuWrapper !== null &&
-      contextMenuWrapper.contains(target) === false &&
-      (showContextMenu || showLocationsContextMenu)
-    ) {
-      this.setState({
-        showContextMenu: false,
-        showLocationsContextMenu: false,
-      });
-    } else if (this.listRowElement.contains(target) === false) {
-      this.setState({
-        showContextMenu: false,
-        showLocationsContextMenu: false,
-      });
-    }
-
-    if (
-      (showContextMenu || showLocationsContextMenu) &&
-      (elemClasses.contains('contextList') ||
-        elemClasses.contains('contextListItem') ||
-        elemClasses.contains('contextMenuWrapper') ||
-        elemClasses.contains('locationsText'))
-    ) {
-      event.stopPropagation();
-    }
-  };
-
-  protected listRow = (element: HTMLTableRowElement) => {
-    this.listRowElement = element;
   };
 }
