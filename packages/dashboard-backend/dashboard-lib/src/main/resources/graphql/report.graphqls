@@ -1,7 +1,7 @@
 type Query {
     reports(published: Boolean, status: String,
     searchTerm: String, tags: String, offset: Int, limit: Int, sortBy: String,
-    sortOrder: String, division: String, department: String, processOwner: String, productOwner: String, art: String): ReportCollection!
+    sortOrder: String, division: String, department: String, processOwner: String, art: String): ReportCollection!
     report(string: ID):ReportVO
 }
 
@@ -111,8 +111,7 @@ type SingleDataSourceVO{
 }
 
 type DataSourceVO{
-    id: ID!,
-	name: String,
+	dataSource: String,
 	weightage: Int
 }
 

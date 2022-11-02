@@ -34,6 +34,14 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO dashboarNotificationPrefVO = this.toNotificationPrefVO(dashboardNotificationPrefJson);
 				vo.setDashboardNotificationPref(dashboarNotificationPrefVO);
 				
+				NotificationPreference dataComplianceNotificationPrefJson = data.getDataComplianceNotificationPref();
+				NotificationPreferenceVO dataComplianceNotificationPrefVO = this.toNotificationPrefVO(dataComplianceNotificationPrefJson);
+				vo.setDataComplianceNotificationPref(dataComplianceNotificationPrefVO);
+				
+				NotificationPreference dataProductNotificationPrefJson = data.getDataProductNotificationPref();
+				NotificationPreferenceVO dataProductNotificationPrefVO = this.toNotificationPrefVO(dataProductNotificationPrefJson);
+				vo.setDataProductNotificationPref(dataProductNotificationPrefVO);
+				
 				vo.setUserId(data.getUserId());
 			}
 		}
@@ -68,6 +76,10 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setPersistenceNotificationPref(persistencePreference);
 			NotificationPreference dashboardPreference = this.toNotificationPrefJson(vo.getDashboardNotificationPref());
 			userNotificationPreferenceJsonb.setDashboardNotificationPref(dashboardPreference);
+			NotificationPreference dataCompliancePreference = this.toNotificationPrefJson(vo.getDataComplianceNotificationPref());
+			userNotificationPreferenceJsonb.setDataComplianceNotificationPref(dataCompliancePreference);
+			NotificationPreference dataProductPreference = this.toNotificationPrefJson(vo.getDataProductNotificationPref());
+			userNotificationPreferenceJsonb.setDataProductNotificationPref(dataProductPreference);
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);

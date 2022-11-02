@@ -27,17 +27,48 @@ const SelectedFile = ({ selectedFile, setSelected, setFileValid }) => {
           <span>Input File</span>
           <span>{selectedFile.name}</span>
         </div>
-        <span>
+        <div className={Styles.msgContainer}>
           <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} />
           <span>File is ready to use.</span>
-        </span>
-        <span>
+        </div>
+        {/* <div className={Styles.msgContainer}>
+          <i className={classNames('icon mbc-icon close circle', Styles.closeCircle)} />
+          <span>Something&#8217;s wrong with the Input File. Please select correct data set. <a href="#">Here</a> you can find further information on how to set up data correctly.</span>
+        </div>
+        <div className={Styles.msgContainer}>
+          <i className={classNames('icon mbc-icon alert circle', Styles.alertCircle)} />
+          <span>Index not sorted. Either delete Input File and select another one or try to run anyway.</span>
+        </div> */}
+        <div>
           <i onClick={() => { setSelected(false); setFileValid(true); }} className={classNames('icon delete', Styles.deleteIcon)} />
-        </span>
+        </div>
       </div>
     </>
   );
 };
+
+const configFiles = [
+  {
+    id: 1,
+    name: 'Default Configuration',
+    path: '/defualt-configuration'
+  },
+  {
+    id: 2,
+    name: 'Custom Configuration',
+    path: '/defualt-configuration'
+  },
+  {
+    id: 3,
+    name: 'Forecast Configuration',
+    path: '/defualt-configuration'
+  },
+  {
+    id: 4,
+    name: 'Three Configuration',
+    path: '/defualt-configuration'
+  },
+]
 
 const RunForecast = () => {
   const { id: projectId } = useParams();
@@ -49,6 +80,9 @@ const RunForecast = () => {
   const [expertView, setExpertView] = useState(false);
   const [savedFiles, setSavedFiles] = useState([]);
   const [isExistingFile, setIsExistingFile] = useState(false);
+  const [configurationFiles, setConfigurationFiles] = useState([]);
+  const [dropped, setDropped] = useState(false);
+  const [droppedFile, setDroppedFile] = useState();
   
 
   const isValidFile = (file) => ['csv', 'xlsx'].includes(file?.name?.split('.')[1]);
@@ -89,12 +123,33 @@ const RunForecast = () => {
       }
       SelectBox.defaultSetup();
     }).catch(error => {
-      if(error?.response?.data?.errors[0]?.message) {
-        Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
-      } else {
-        Notification.show(error.message, 'alert');
-      }
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while fetching input files',
+        'alert',
+      );
     });
+  }
+
+  useEffect(() => {
+    getConfigurationFiles();
+    //eslint-disable-next-line
+  }, []);
+
+  const getConfigurationFiles = () => {
+    setConfigurationFiles(configFiles);
+    SelectBox.defaultSetup();
+    // chronosApi.getAllInputFiles(projectId).then((res) => {
+    //   if(res.data !== '') {
+    //     setSavedFiles(res.data.files);
+    //   }
+    //   SelectBox.defaultSetup();
+    // }).catch(error => {
+    //   if(error?.response?.data?.errors[0]?.message) {
+    //     Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
+    //   } else {
+    //     Notification.show(error.message, 'alert');
+    //   }
+    // });
   }
   
   const existingFilesContent = (
@@ -135,8 +190,6 @@ const RunForecast = () => {
                     </>
                   )
               }
-            
-            
             </select>
           </div>
           <span className={classNames('error-message')}>{errors?.savedInputPath && '*Missing entry'}</span>
@@ -166,7 +219,7 @@ const RunForecast = () => {
         <button
           className="btn btn-primary"
           type="submit"
-          disabled={isSubmitting}
+          disabled={savedFiles.length === 0 ? true : false}
           onClick={() => {
             setShowExistingFiles(false);
             setIsSelectedFile(true);
@@ -179,12 +232,16 @@ const RunForecast = () => {
   );
 
   const onDrop = (e) => {
-    console.log('Dropped files', e.dataTransfer.files);
+    setDropped(true);
     const file = e.dataTransfer.files?.[0];
+    setDroppedFile(file);
     const isValid = isValidFile(file);
-    if (!isValid) Notification.show('File is not valid.', 'alert');
-    setIsSelectedFile(true);
-    setSelectedInputFile({name: e.dataTransfer.files?.[0].name});
+    if (!isValid) {
+      Notification.show('File is not valid.', 'alert');
+    } else {
+      setIsSelectedFile(true);
+      setSelectedInputFile({name: e.dataTransfer.files?.[0].name});
+    }
   };
 
   const onFileDrop = (e) => {
@@ -211,7 +268,11 @@ const RunForecast = () => {
     if(selectedInputFile?.path !== undefined) {
       formData.append("file", '');
     } else {
-      formData.append("file", data.file[0]);
+      if(dropped) {
+        formData.append("file", droppedFile);
+      } else {
+        formData.append("file", data.file[0]);
+      }
     }
     formData.append("runName", data.runName);
     formData.append("configurationFile", data.configurationFile);
@@ -243,12 +304,16 @@ const RunForecast = () => {
         ProgressIndicator.hide();
       }).catch(error => {
         ProgressIndicator.hide();
-        if(error?.response?.data?.errors[0]?.message) {
-          Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
-        } else {
-          Notification.show(error.message, 'alert');
-        }
+        Notification.show(
+          error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating run',
+          'alert',
+        );
       });
+  }
+
+  const handleSetExpertView = () => {
+    setExpertView(!expertView); 
+    SelectBox.defaultSetup();
   }
 
   return (
@@ -279,7 +344,7 @@ const RunForecast = () => {
                     className={classNames('upload-container', Styles.uploadContainer)}
                   >
                     <input type="file" id="file" name="file" 
-                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); setIsExistingFile(false); }})}
+                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setDropped(false); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); setIsExistingFile(false); }})}
                       accept=".csv, .xlsx"
                       />
                     <div className={Styles.rcUpload}>
@@ -300,6 +365,7 @@ const RunForecast = () => {
                             setShowExistingFiles(true);
                             setKeepExistingFiles(false);
                             setIsExistingFile(true);
+                            setDropped(false);
                           }}
                         >
                           <p>
@@ -349,7 +415,7 @@ const RunForecast = () => {
                     value={expertView}
                     type="checkbox"
                     className="ff-only"
-                    onChange={() => setExpertView(!expertView)}
+                    onChange={handleSetExpertView}
                     checked={expertView}
                   />
                 </span>
@@ -359,10 +425,10 @@ const RunForecast = () => {
               <div className={Styles.flexLayout}>
                 <div className={classNames('input-field-group include-error', errors.runName ? 'error' : '')}>
                   <label id="runNameLabel" htmlFor="runNameInput" className="input-label">
-                    Run Name <sup>*</sup>
+                    Run Name
                   </label>
                   <input
-                    {...register('runName', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
+                    {...register('runName', { pattern: /^[a-z0-9-]+$/ })}
                     type="text"
                     className="input-field"
                     id="runNameInput"
@@ -370,7 +436,7 @@ const RunForecast = () => {
                     placeholder="Type here"
                     autoComplete="off"
                   />
-                  <span className={classNames('error-message')}>{errors.runName?.message}{errors.runName?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
+                  <span className={classNames('error-message')}>{errors.runName?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
                 </div>
                 <div className={Styles.configurationContainer}>
                   <div
@@ -392,10 +458,28 @@ const RunForecast = () => {
                           validate: (value) => value !== '0' || '*Missing entry',
                         })}
                       >
-                        <option id="configurationOption" value={0}>
+                        {/* <option id="configurationOption" value={0}>
                           Choose
                         </option>
-                        <option value={'Default-Settings'}>Default Configuration</option>
+                        <option value={'Default-Settings'}>Default Configuration</option> */}
+                        {
+                          configurationFiles.length === 0 ? (
+                            <option id="configurationOption" value={0}>
+                              None
+                            </option>
+                            ) : (
+                              <>
+                                <option id="configurationOption" value={0}>
+                                  Choose
+                                </option>
+                                {configurationFiles.map((file) => (
+                                  <option id={file.name} key={file.id} value={file.path}>
+                                    {file.name}
+                                  </option>
+                                ))}
+                              </>
+                            )
+                        }
                       </select>
                     </div>
                     <span className={classNames('error-message')}>{errors?.configurationFile?.message}</span>
@@ -457,6 +541,54 @@ const RunForecast = () => {
                   </div>
                 </div>
               </div>
+                <div className={Styles.flexLayout}>
+                  <div className={Styles.hierarchyContainer}>
+                    <div
+                      className={classNames(
+                        `input-field-group`,
+                        Styles.tooltipIcon,
+                        expertView ? '' : Styles.hide
+                      )}
+                    >
+                      <label id="hierarchyLabel" htmlFor="hierarchyField" className="input-label">
+                        Levels of Hierarchy
+                        {/* <i className="icon mbc-icon info" tooltip-data={hierarchyTooltipContent} /> */}
+                      </label>
+                      <div className="custom-select" 
+                        // onBlur={() => trigger('hierarchy')}
+                        >
+                        <select
+                          id="hierarchyField"
+                          {...register('hierarchy')}
+                        >
+                          <option id="hierarchyOption" value={''}>
+                            No Hierarchy
+                          </option>
+                          {/* <option value={''}>No hierachy</option> */}
+                          <option value={'2'}>2</option>
+                          <option value={'3'}>3</option>
+                          <option value={'4'}>4</option>
+                          <option value={'5'}>5</option>
+                          <option value={'6'}>6</option>
+                          <option value={'7'}>7</option>
+                          <option value={'8'}>8</option>
+                          <option value={'9'}>9</option>
+                          <option value={'10'}>10</option>
+                          <option value={'11'}>11</option>
+                          <option value={'12'}>12</option>
+                          <option value={'13'}>13</option>
+                          <option value={'14'}>14</option>
+                          <option value={'15'}>15</option>
+                          <option value={'16'}>16</option>
+                          <option value={'17'}>17</option>
+                          <option value={'18'}>18</option>
+                          <option value={'19'}>19</option>
+                          <option value={'20'}>20</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               <div>
                 <div
                   id="comment"

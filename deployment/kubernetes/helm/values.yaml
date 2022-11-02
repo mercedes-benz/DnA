@@ -6,90 +6,94 @@
 frontend:
   enabled: true
   namespace: dna
-  imagePullSecret: 
+  imagePullSecret:
     name: dockerregistry
-    key: "docker-config" 
+    #Update the .dockerconfigjson value in the below key parameter.
+    key: ""
   ingress:
     enabled: false
     namespace: ingress
-    host: "localhost"
+    host: ""
     lbIP: ""
+    
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ""
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
+  configJs: |
+      window["INJECTED_ENVIRONMENT"]={
+        OIDC_DISABLED: true,
+        OIDC_PROVIDER: "OKTA",
+        API_BASEURL: "api",
+        CLIENT_IDS: 'YOUR_CLIENT_ID',
+        REDIRECT_URLS: 'YOUR_OKTA_REDIRECT_URL',
+        OAUTH2_AUTH_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/authorize',
+        OAUTH2_LOGOUT_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/logout',
+        OAUTH2_REVOKE_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/revoke',
+        OAUTH2_TOKEN_URL: 'https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/token',
+        DNA_COMPANY_NAME: "Company_Name",
+        DNA_APPNAME_HEADER: "DnA App",
+        DNA_APPNAME_HOME: "Data and Analytics",
+        DNA_CONTACTUS_HTML: "<div><p>There could be many places where you may need our help, and we are happy to support you. <br \/> Please add your communication channels links here<\/p><\/div>",
+        DNA_BRAND_LOGO_URL: "/images/branding/logo-brand.png",
+        DNA_APP_LOGO_URL: "/images/branding/logo-app.png",
+        ENABLE_INTERNAL_USER_INFO: false,
+        ENABLE_DATA_COMPLIANCE: false,
+        ENABLE_JUPYTER_WORKSPACE: true,
+        JUPYTER_NOTEBOOK_URL: "http://localhost:9001",
+        JUPYTER_NOTEBOOK_OIDC_POPUP_URL: "http://localhost:9001/hub/oauth_login?next=",
+        JUPYTER_NOTEBOOK_OIDC_POPUP_WAIT_TIME: 5000,
+        ENABLE_DATAIKU_WORKSPACE: false,
+        DATAIKU_LIVE_APP_URL: "",
+        DATAIKU_TRAINING_APP_URL: "",
+        DATAIKU_FERRET_URL: "",
+        ENABLE_MALWARE_SCAN_SERVICE: true,
+        MALWARE_SCAN_SWAGGER_UI_URL: "http://localhost:9002/swagger-ui.html",
+        ENABLE_MALWARE_SCAN_ONEAPI_INFO: false,
+        ENABLE_DATA_PIPELINE_SERVICE: true,
+        ENABLE_STORAGE_SERVICE: true,
+        STORAGE_MFE_APP_URL: "http://localhost:7175",
+        ENABLE_REPORTS: true,
+        ENABLE_ML_PIPELINE_SERVICE: false,
+        ENABLE_NOTIFICATION: true,
+        DATA_PIPELINES_APP_BASEURL: "http://localhost:9010",
+        DATA_PIPELINES_API_BASEURL: "http://localhost:9003/airflow/api",
+        NOTIFICATIONS_API_BASEURL: "http://localhost:9004/api",
+        DASHBOARD_API_BASEURL: "http://localhost:9005/api",
+        MALWARESCAN_API_BASEURL: "http://localhost:9002/api",
+        ML_PIPELINE_URL: "",
+        MODEL_REGISTRY_API_BASEURL: "",
+        INTERNAL_USER_TEAMS_INFO: '(Recommended to use Short ID. To find Short ID use <a href=\"YOUR_TEAMS_INFO_URL\" target=\"_blank\" rel=\"noreferrer noopener\">Teams<\/a>)'
+      };
+
+      window["STORAGE_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL: "http://localhost:8080",
+        STORAGE_API_BASEURL: "http://localhost:7175/api",
+        TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use<\/a><\/div>",
+        ENABLE_DATA_CLASSIFICATION_SECRET: false,
+        API_BASEURL: "http://localhost:8080/api"
+      };
+  
+  probes:
+    initialDelaySeconds: 30
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+
+    readinessProbe:
+      path: /
+      port: 3000
+      
   appFrontend:
     replicaCount: 1
-    #Specify the frontend image, after building the image from docker file
-    image: ""
-    config:
-    #If you want to enable OIDC authentication then set oidcDisabled to "false"
-      oidcDisabled: true
-      oidcProvider: INTERNAL
-      apiBaseUrl: api
-    #Specify the Jupyter Notebook url 
-      jupyterNotebookUrl: http://localhost/notebooks
-      jupyterNotebookOidcPopUpUrl: http://localhost/notebooks/hub/oauth_login?next=
-    #Specify the dataiku live application URL
-      dataikuLiveAppUrl: ""
-      dataikuTrainingAppUrl: ""
-    #Specify the OAuth token URL for OIDC authentication
-      oauth2TokenUrl: ""
-      oauth2AuthUrl: ""
-      oauth2RevokeUrl: ""
-      oauth2LogoutUrl: ""
-      oauth2IntrospectionUrl: ""
-      oauth2UserInfoUrl: ""
-      frontendClientid: ""
-      redirectUrls: ""
-
-
-    #Specify the swagger URL for malwarescan
-      swaggerUiUrl: http://localhost/avscan/swagger-ui.html#/
-      dataikuFerretUrl: ""
-    #Specify the ML pipeline URL
-      mlPipelineUrl: ""
-    #Specify the App Header
-      appNameHeader: ""
-      appNameHome: ""
-      contactUsHtml: <div><p>There could be many places where you may need our help, and we are happy to support you. <br /> Please add your communication channels links here</p></div>
-      brandLogoUrl: /images/branding/logo-brand.png
-      appLogoUrl: /images/branding/logo-app.png
-      enableInternalUserInfo: true
-      enableDataCompliance: true
-    # Set enabledReports to "true" if you want to enable reports, by default value is "false"
-      enabledReports: true
-    # Set enableJupyterWorkspace to "true", if you want to enable Jupyter Workspace
-      enableJupyterWorkspace: false
-    # Set enableDataikuWorkspace to "true", if you want to enable Dataiku Workspace, by default value is "false"
-      enableDataikuWorkspace: false
-      enableMalwareService: true
-      enableDataPipelineService: false
-    # Set enableStorageService to "true" to enable Storage Service
-      enableStorageService: true
-      storageMFEAppURL: http://localhost:7175
-      enablePipelineService: false
-      enabledMlPipelineService: false
-      enableMalwareApiInfo: false
-    # If you want to enable notification, set enableNotification to "true", by default it is false
-      enableNotification: true
-    # Specify the company name 
-      companyName: XYZ
-      backendHost: dna-service
-
-  # Configure ngnix as per the 
+  #Build & update the image of the app-frontend service in the docker-compose-local-basic and update the value here.
+    image: dna/app-frontend
     ngnix:
       backend: http://dna-service.dna.svc.cluster.local:80
-      jupyServer: http://proxy-public:8000
       grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
-      avscanServer: http://clamav-rest-service.clamav.svc.cluster.local:8181
       avscanMgwServer: http://dna-microgateway.clamav.svc.cluster.local:80
-      airflowServer: http://airflow.airflow.svc.cluster.local:8080
-      naasServer: http://naas-backend-service.naas.svc.cluster.local:7272
-      dashboard: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
-      storage: http://storage-be.storage.svc.cluster.local:80      
 
 #Suchart properties for backend
 backend:
@@ -97,11 +101,12 @@ backend:
   namespace: dna
   imagePullSecret: 
     name: dockerregistry
-    key: "docker-config" 
+  #Update the .dockerconfigjson value in the below key parameter.
+    key:  
   ingress:
     enabled: false
     namespace: ingress
-    host: "ingress-host"
+    host: ""
     lbIP: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -112,67 +117,80 @@ backend:
   app:
     backend:
       replicaCount: 1
-      
-      image: ""
+      #Update the image of the app-backend service in the docker-compose-local-basic.yml
+      image: dna/app-backend
       #Specify the secrets which will be used by backend to run properly, Secrets will be encoded in base64 at the time of deployment
       secrets: 
         name: app-secrets
+        #Notebook secret key was the jupyter.api_token that was generated in the hub-config.yaml
         notebookSecretToken: ""
-        oidcClientID: ""
-        oidcClientSecret: "" 
+        oidcClientID: YOUR_CLIENT_ID
+        oidcClientSecret: YOUR_CLIENT_SECRET
         drdCertPassword: ""
-        jwtSecretKey: 
-        s3AccessKey: 
+        jwtSecretKey: ""
+        s3AccessKey: admin
+        #Generate the minio secret key as per the documentation and update this below paramter "s3Secretkey"
         s3SecretKey: 
         dataikuProdApiKey: ""
         dataikuTrainingApiKey: "" 
+        #Go to Malware scan and generate the api key . After generating copy the application key in the below parameter "avscanApikey"
         avscanApiKey: ""
         appDBUserName: postgres
         appDBPassword: postgres
       config:
         enableItsmm: false
-        enableJupyterNotebook: false
+        enableJupyterNotebook: true
         enableDataiku: false
         enableAttachmentScan: true
         enableInternalUser: false
-        redirectUrl: ""
+        redirectUrl: http://localhost:8080
         dbUri: jdbc:postgresql://dna-bitnamipostgresql:5432/db
-        oidcUserInfoUrl: "" 
-        oidcTokenIntrospectionUrl: "" 
-        oidcProvider: INTERNAL
-        oidcTokenRevocationUrl: ""
+        oidcUserInfoUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo
+        oidcTokenIntrospectionUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/introspect
+        oidcProvider: OKTA
+        oidcTokenRevocationUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/revoke
         internalUserRequestUrl: ""
         internalCertFile: ""
         oidcDisabled: true
-        #Create a bucket in the minio and mention the bucket name in the s3BuckerName
-        s3BucketName: ""
+        s3BucketName: dna
         s3Url: http://minio.storage.svc.cluster.local:9000
-        corosOriginUrl: ""
-        jupyterNotebookUrl: "" 
-        vaultHost: vault.vault.svc.cluster.local
-        vaultPort: 8200
+        corosOriginUrl: http://*
+        jupyterNotebookUrl: http://proxy-public.notebooks.svc.cluster.local:8000/hub/api/users
         dataikuProdUri: ""
         dataikuProdAdminGroup: "" 
         dataikutraininguri: ""
+        #update the application id in the avscanAppID parameter from the generated api key
         avscanAppId: ""
         naasBroker: ""
         loggingEnvironment: dev
         loggingPath: /tmp/app/log
         dataikuProjectUri: /projects/
+	#The below feature like apacCorpdir,emeaCorpDir,dataikuUserRoleUriPath,PermissionUriPath are coming soon features
+        apacCorpDir: ""
+        emeaCorpDir: ""
+        dataikuUserRoleUriPath: ""
+        dataikuPermissionUriPath:
         dataikuTrainingAdminGroup: ""
-        avscanUri: http://clamav-rest-service.clamav.svc.cluster.local:8181/avscan/api/v1
+        avscanUri: http://clamav-rest-service.clamav.svc.cluster.local:8181
         flywayBaseline: "true"
         flywayBaselineOnMigrate: "true"
         flywayBaselineVersion: "0"
         flywaySchema: "public"
-        dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173/dashboards
+        dashboardUri: http://dashboard-backend-service.dashboard.svc.cluster.local:7173
 
-    vault:
-      secret:
-        name: vault-secrets
-        rootToken: ""
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /actuator/health/liveness
+      port: 7171
+    readinessProbe:
+      path: /actuator/health/readiness
+      port: 7171 
 
-#Suchart properties for i3postgressql database
+#Subchart properties for i3postgressql database
 postgresql-helm:
   enabled: false
   namespace: dna
@@ -709,14 +727,21 @@ clamav:
   enabled: true
   appName: clamav
   namespace: clamav
+    
+  securityContext:
+    runasUser: 0 
   app:
     backend:
       name: clamav-rest
-      image: ""
+      #Update the image of the dna/malware-backend service in the docker-compose-local-basic.yml
+      image: dna/malware-backend
       replicaCount: 1
       secrets:
         name: oneapi-secrets
         onapiBasicAuthToken: ""
+        jwtSecretKey: ""
+        appDBUserName: malware
+        appDBPassword: malware123
       config: 
         clamav_backend_url: clamav-service
         clamav_backend_port: 3310
@@ -725,14 +750,30 @@ clamav:
         api_request_limit: 20
         with_in: 2
         time_unit: seconds
-        auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription/validate
-        restricted_url_pattern: /avscan/api/v1/scan.*
+        auth_api_host: http://dna-service.dna.svc.cluster.local:80/api/subscription
+        restricted_url_pattern: api/v1/*
         loggingPath: /tmp/clamav/log
         loggingEnvironment: dev
-        corsOriginUrl: ""
+        corsOriginUrl: http://*
+        dbUri: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/malware
+        flywayEnabled: true
+        flywayBaselineOnMigrate: true
+        flywayBaselineVersion: 0
+        flywaySchema: public
+        vaultHost: vault.vault.svc.cluster.local
+        vaultPort: 8200
+        appUrl: http://dna-service.dna.svc.cluster.local:80
+        enableAuth: true
+        verifyLoginApi: /api/verifyLogin
+        unscribeMalwareScanApi: /api/malwarescan/unsubscribe/
+        naas_broker: ""
 
-  securityContext:
-    runasUser: 0 
+  #Update your kafka service FQDN name in the "NAAS_BROKER" parameter
+        naas_broker: ""
+  #The root token that will be generated while initalizing the vault service
+    vault:
+      secret:
+        rootToken: ""
 
     probes:
       initialDelaySeconds: 60
@@ -740,18 +781,20 @@ clamav:
       periodSeconds: 10
       failureThreshold: 3
       livenessProbe:
-        path: /avscan/actuator/health/liveness
+        path: /actuator/health/liveness
         port: api
       
       readinessProbe:
-        path: /avscan/actuator/health/readiness
+        path: /actuator/health/readiness
         port: api
+
+  #Update the image of clamav service in the docker-compose-local-basic.yml
   image:
-    repo: ""
+    repo: mkodockx/docker-clamav:stretch-slim
     replicaCount: 1
     pullPolicy: Always
   ingress:
-    enabled: false 
+    enabled: false
     host: "" 
     annotations:
       traefik.frontend.rule.type: PathPrefix
@@ -768,22 +811,23 @@ clamav:
     accessModes: ReadWriteOnce
     size: 2G
 
-  # resources:
-  #   requests:
-  #     memory: "512Mi"
-  #     cpu: "250m"
-  #   limits:
-  #     memory: "1000Mi"
-  #     cpu: "500m"
+  resources:
+    requests:
+      memory: "5000Mi"
+      cpu: "500m"
+    limits:
+      memory: "8000Mi"
+      cpu: "700m"
       
 #Subchart properties for naas
 naas:
   enabled: true
   appName: naas
   namespace: naas
+  #update the image name of the naas-backend service in the docker-compose-local-basic.yml
   app:
     backend:
-      image: ""
+      image: dna/naas-backend
       secrets:
         name: naas-app-secrets
         authApiToken: ""
@@ -796,38 +840,39 @@ naas:
         naas_broker: ""
         max_poll_records: 6000
         dna_uri: http://dna-service.dna.svc.cluster.local:80
-        dna_auth_enable: false
+        dna_auth_enable: true
         mailServerHost: ""
         mailServerPort: ""
         notificationSenderEmail: "" 
         poll_time: 5000
-        naas_central_topic: CentralEventTopic
-        naas_centralread_topic: CentralReadTopic
-        naas_centraldelte_topic: CentralDeleteTopic
+        naas_central_topic: dnaCentralEventTopic
+        naas_centralread_topic: dnaCentralReadTopic
+        naas_centraldelte_topic: dnaCentralDeleteTopic
         loggingPath: /tmp/naas/log
         loggingEnvironment: dev
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-      limits:
-        memory: "1000Mi"
-        cpu: "500m"
+        corsOriginUrl: http://*
+    # resources:
+    #   requests:
+    #     memory: "512Mi"
+    #     cpu: "250m"
+    #   limits:
+    #     memory: "1000Mi"
+    #     cpu: "500m"
     probes:
       initialDelaySeconds: 180
       timeoutSeconds: 10
       periodSeconds: 30
       failureThreshold: 3
       livenessProbe:
-        path: /naas/actuator/health/liveness
+        path: /actuator/health/liveness
         port: api
       
       readinessProbe:
-        path: /naas/actuator/health/readiness
+        path: /actuator/health/readiness
         port: api
   
   image:
-  pullPolicy: Always
+    pullPolicy: Always
       
   ingress:
     enabled: false
@@ -844,40 +889,46 @@ naas:
   
 #Subchart properties for notebooks
 notebooks:
-  enabled: false
+  enabled: true 
   namespace: notebooks
   app:
     jupyter:
       config:
         configproxy_auth_token: ""
-        kf_pipelines_endpoint: http://ml-pipeline-ui.kubeflow
+        kf_pipelines_endpoint: ""
+  #Build & update the image of the result hub service in the docker-compose-notebook.yml 
     image:
-      name: jupyterhub:1.0
+      name: jupyterhub:latest
       pullPolicy: Always
-    
-    profileListImages:
-      default: pyspark-notebook:1.0-default
-      tensorflow: pyspark-notebook:1.0-tensorflow
-      chronos: pyspark-notebook:1.0-chronos    
 
+  #Build & Update the images of the pyspark-notebook-default & pyspark-notebook-tensorflow services in the docker-compose-notebook.yml . Keep the chronos parameter to empty value
+    profileListImages:
+      default: pyspark-notebook-default:latest
+      tensorflow: pyspark-notebook-tensorflow:latest
+  #Chronos image is a coming soon feature
+      chronos: ""
+
+  #Build & update the image of the result-configurable-httpproxy services in the docker-compose-notbook.yml
     proxy:
       image: configurable-http-proxy:latest
-      
-    
+
+  #Build & update the image of the pyspark-notebook-base service in the docker-compose-notebook.yml
     hubConfig:
       name: hub-config
-      KubeSpawnerimage: pyspark-notebook:1.0-default
-      securitycontext: ""
-      serviceAccount: "hub"
+      KubeSpawnerimage: pyspark-notebook-default:latest
+      serviceAccount: hub 
+      #Inorder to use the iframe for the notebooks service in the dna platform update the security context with frontend domain & Notebook domain name . For testing purpose we port-forwarded the dna-frontend and notebook service to 8080 and 9001 respectively and mentioned in the security context
+      securitycontext: HOST http://localhost:8080/* http://localhost:9001
       oauthAuthenticator: GenericOAuthenticator
-      oauthClientId: ""
-      oauthClientSecret: ""
-      oauthCallback: ""
-      oauthAuthorizeUrl: ""
-      oauthTokenUrl: ""
-      oauthUserDataUrl: ""
+      oauthClientId: YOUR_CLIENT_ID
+      oauthClientSecret: YOUR_CLIENT_SECRET
+      oauthCallback: http://localhost:9001/hub/oauth_callback
+      oauthAuthorizeUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/authorize
+      oauthTokenUrl: https://YOUR_OKTA_DOMAIN.okta.com/v1/token
+      oauthUserDataUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo
       oauthUsrKey: sub
-      oauthLoginSvc: OIDC
+      #OIDC Provider = oauthLoginSvc
+      oauthLoginSvc: OKTA
       prespawn_hook: ""
       enableUserNS: "False"
       userNameSpaceTemplate: kubeflow
@@ -896,16 +947,21 @@ notebooks:
     storageClass: ""
     accessModes: ReadWriteOnce
     size: 1G
-  
+
   resources:
     cpu: 1
-    memory: 1G
+    memory: 4G
+  
+  # resources:
+  #   cpu: 1
+  #   memory: 4G
 
 #Subchart properties for dashboard
 dashboard:
   enabled: true
   namespace: dashboard
-  image: ""
+  #Build & Update the image of the dashboard-backend in the docker-compose-local-basic.yml
+  image: dna/dashboard-backend
   imagePullSecret: 
     name: dockerregistry
     key: "docker-config" 
@@ -914,10 +970,9 @@ dashboard:
     name: dashboard-secrets
     appUserName: dashboard
     appPassword: dashboard
-    jwtKey: 
-    
+    jwtKey: ""
   appUrl: http://dna-service.dna.svc.cluster.local:80
-  enableAuth: false
+  enableAuth: true
   loggingPath: /tmp/dashboard/log
   loggingEnvironment: dev
   flywayBaseline: "true"
@@ -925,6 +980,11 @@ dashboard:
   flywayBaselineVersion: "0"
   flywaySchema: "public"
   containerPort: 7173
+  corsOriginUrl: http://*
+
+  #Update your kafka service FQDN name in the naasBroker parameter
+  naasBroker: ""
+
   ingress:
     enabled: false
     host: ""
@@ -948,43 +1008,43 @@ dashboard:
     periodSeconds: 20
     failureThreshold: 3
     livenessProbe:
-      path: /dashboards/actuator/health/liveness
+      path: /actuator/health/liveness
       port: api
         
     readinessProbe:
-      path: /dashboards/actuator/health/readiness
+      path: /actuator/health/readiness
       port: api
 
 #Subchart properties for airflow
 airflow:
-  enabled: false
+  enabled: true
   appName: airflow
   namespace: airflow
-  imagePullSecret: 
+   imagePullSecret: 
     name: dockerregistry
-    key: "docker-config" 
-  airflowIngressRoute:
-    enabled: false
-  airflowMiddleware:
-    enabled: false 
+    #update the .dockerconfigjson of our image registry into the below key parameter
+    key:  ""
+  #Update the Airflow backend image name to the below parameter (docker-compose -f docker-compose-airflow.yml build)
   backend:
-    image: ""
+    image: airflow_backend
     imagePullPolicy: Always
+  #Update the jdbc postgresql url to the below url paramater "jdbc:postgresql://host(Datbase service FQDN):port/database"
     dbUrl: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
     secret:
       name: airflow-backend-secrets
+  #Update your airflow database username and passwords to the below values 
       dbPassword: airflow
       dbUsername: airflow
-      gitToken: "" 
-      jwtKey: 
-      oidcClientID: ""
-      oidcClientSecret: ""
+      gitToken: ""
+      jwtKey: ""
+      oidcClientID: YOUR_CLIENT_ID 
+      oidcClientSecret: YOUR_CLIENT_ID
     containerPort: 7171
-    crossOriginUrl: ""
+    crossOriginUrl: http://*
     apiUrl: http://dna-service.dna.svc.cluster.local:80
-    oidcInfoUrl: "" 
-    oidcIntrospectionUrl: "" 
-    oidcRevocationUrl: "" 
+    oidcInfoUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo  
+    oidcIntrospectionUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/introspect 
+    oidcRevocationUrl: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/revoke  
     oidcDisabled: true
     gitUrl: ""
     gitMountPath: /git/airflow-user-dags
@@ -1000,37 +1060,65 @@ airflow:
     flywayBaselineOnMigrate: "true"
     flywayBaselineVersion: "0"
     flywaySchema: "public"
-
+  ##Ingress for airflow backend service
   ingress:
-    enabled: true
+    enabled: false
     host: ""
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: ""
       traefik.ingress.kubernetes.io/router.tls: "true"
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       cert-manager.io/cluster-issuer: ""
-
-  pullSecretData: 
+  ##Ingress for the airflow Application
+  airflow:
+    ingress:
+      enabled: false
+      host: ""
+      annotations:
+        traefik.frontend.rule.type: PathPrefix
+        kubernetes.io/ingress.class: ""
+        traefik.ingress.kubernetes.io/router.tls: "true"
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        cert-manager.io/cluster-issuer: ""
+  #pullsecretdata was nothing but the key that was used to pull the images from the registry
+  pullSecretData: ""
   secret:
-    gitUserName: 
-    gitPassword: 
+    gitUserName: ""
+    gitPassword: ""
     #gitSshKey: ""
     knownHosts: ""
     postgresql:
+    #sqlAlchemyconn == postgresql+psycopg2://<database_username>:<database_password>@db_service_FQDN:DB_port/<database_name>
       sqlAlchemyConn: postgresql+psycopg2://airflow:airflow@dna-bitnamipostgresql.dna.svc.cluster.local:5432/airflow
-    #clientSecret: eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY0OTY2Mzg5MCwiaWF0IjoxNjQ5NjYzODkwfQ.0bHIjToqnWk5zOq0a-Bn-HV6jw6-bnVCNx56L5QnVkg
-
+    clientSecret: CSAgewogICAgIndlYiI6IHsKICAgICAgICAiY2xpZW50X2lkIjogIjBvYTVoczQxNXRqeDNveW9LNWQ3IiwKICAgICAgICAiY2xpZW50X3NlY3JldCI6ICJpVEVXVll2WXpwOXYxRkVHa3hKOTFOanR4ZmFZTDZlRUMteDZOT0Y5IiwKICAgICAgICAiYXV0aF91cmkiOiAiaHR0cHM6Ly9kZXYtMzY5ODA1OTUub2t0YS5jb20vb2F1dGgyL3YxL2F1dGhvcml6ZSIsCiAgICAgICAgInRva2VuX3VyaSI6ICJodHRwczovL2Rldi0zNjk4MDU5NS5va3RhLmNvbS9vYXV0aDIvdjEvdG9rZW4iLAogICAgICAgICJ1c2VyaW5mb191cmkiOiAiaHR0cHM6Ly9kZXYtMzY5ODA1OTUub2t0YS5jb20vb2F1dGgyL3YxL3VzZXJpbmZvIiwKICAgICAgICAiaXNzdWVyIjogImh0dHBzOi8vZGV2LTM2OTgwNTk1Lm9rdGEuY29tIiwKICAgICAgICAicmVkaXJlY3RfdXJpcyI6IFsiaHR0cDovL2xvY2FsaG9zdDo5MDEwLyoiXQogICAgfQp9
+    #clientsecret is a base64 encoded value of the below OIDC parameters
+    # {
+    # "web": {
+    #     "client_id": YOUR_CLIENT_ID,
+    #     "client_secret": YOUR_CLIENT_ID,
+    #     "auth_uri": "https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/authorize",
+    #     "token_uri": "https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/token",
+    #     "userinfo_uri": "https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/userinfo",
+    #     "issuer": "https://YOUR_OKTA_DOMAIN.okta.com",
+    #     "redirect_uris": ["http://localhost:9010/*"]
+    # }
+    #   }
+  #update the git-sync image to the below image paramaeter (docker build ./dockerfiles/airflow -t <image_name_of_your_wish> -f ./dockerfiles/airflow/git-sync.Dockerfile)
   gitSync:
-    image: ""
-    repo: https://github.com/airflow_dags.git
+    image: dna/git-sync:latest
+    repo: 
     dest: git-sync
     branch: main
     ssh: "false"
     root: /git
 
+  airflowIngressRoute:
+    enabled: false 
+  airflowMiddleware: 
+    enabled: false
   # editor:
-  #   gitEnabled: True
+  #   gitEnabled: false
   #   gitCMD: /usr/bin/git
   #   gitDefaultArgs: -c color.ui=true
   #   gitIntRepo: False
@@ -1060,9 +1148,11 @@ airflow:
       maxTisPerQuery: 0
       authenticate: False
       catchupByDefault: True
+
+  #Domain name of the airflow service need to used in the baseurl, For local testing purpose i am port-forwarding the airflow service to 9010
     webserver:
-      baseUrl: ""
-      path: /pipelines
+      baseUrl: http://localhost:9010
+      path: /
       rbac: True
       host: 0.0.0.0
       port: 8080
@@ -1070,6 +1160,7 @@ airflow:
       workerTimeout: 120
       workerRefreshBatchSize: 1
       workerRefreshInterval: 30
+  #This is secret key used to run the flask app and this can be generated by using the "Python command shown in the Flask docs: python -c 'import os; print(os.urandom(16))'Or, since the secret_key may be in unicode, you can use any online key generator to create one, or just enter some random string of letters and numbers"
       secretKey: ""
       numberOfWorkers: 4
       workerClass: sync
@@ -1097,15 +1188,16 @@ airflow:
       airflowWorker:
 
   docker:
+  #Build the airflow image using the airflow.Dockerfile
     image:
-      name: ""
+      name: dna/airflow-service
       tag: latest
 
   service:
     port: 8080
 
   db:
-    port: 64000
+    port: 5432
 
   webserver:
     requests:
@@ -1152,12 +1244,24 @@ airflow:
 
   oidc:
     logout:
-      uri: ""
+      uri: https://YOUR_OKTA_DOMAIN.okta.com/oauth2/v1/logout
 
   Storage:
     storageClass: ""
     accessModes: ReadWriteOnce
     size: 1Gi
+  probes:
+    initialDelaySeconds: 120
+    timeoutSeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    livenessProbe:
+      path: /airflow/actuator/health/liveness
+      port: api-http
+      
+    readinessProbe:
+      path: /airflow/actuator/health/readiness
+      port: api-http
   
 #Subchart properties for microgateway
 
@@ -2030,7 +2134,6 @@ vault:
           path = "vault"
           address = "HOST_IP:8500"
         }
-
         service_registration "kubernetes" {}
 
         # Example configuration for using auto-unseal, using Google Cloud KMS. The
@@ -2228,22 +2331,27 @@ vault:
 
 #subchart  value for  storageMfe
 storagemfe:
-  enabled: true
+  enabled: true 
   namespace: storage
+  configJs: |
+    window["STORAGE_INJECTED_ENVIRONMENT"]={
+        CONTAINER_APP_URL: "http:localhost:8080",
+        STORAGE_API_BASEURL: "http:localhost:7175/api",
+        TOU_HTML: "<div>I agree to <a href=\"https://social/docs/DOC-467646\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
+        ENABLE_DATA_CLASSIFICATION_SECRET: false,
+        API_BASEURL: "http://localhost:8080/api"
+        TRINO_API_BASEURL: "http://localhost:7575/api"
+      }; 
   conf:
     storageBackendUrl: http://storage-be.storage.svc.cluster.local:80 
 
 
-  envs:
-  #Add new env as array value with name/value field. Keep one tab indentation.
-    - name: PROJECTSMO_CONTAINER_APP_URL
-      value: http://localhost:7179
-    - name: PROJECTSMO_FRONTEND_API_BASEURL
-      value: api
+
   replicaCount: 1
 
   image:
-    repository: ""
+    #Build & update the storage-frontend service in the docker-compose-local-basic.yml
+    repository: dna/storage-frontend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
@@ -2325,9 +2433,12 @@ storagebe:
           key: jwt.secret.key
           name: storage-be
     - name: CORS_ORIGIN_URL
-      value: "" 
+      value: http://* 
     - name: MINIO_ENDPOINT
       value: http://minio.storage.svc.cluster.local:9000
+      #The minio_client_api is a coming soon feature
+    - name: MINIO_CLIENT_API
+      value: ""
     - name: MINIO_ADMIN_ACCESS_KEY
       valueFrom:
         secretKeyRef:
@@ -2343,8 +2454,55 @@ storagebe:
     - name: LOGGING_ENVIRONMENT
       value: DEV   
     - name: LOGGING_PATH
-      value: /tmp/log/   
+      value: /tmp/storage/log/
+    - name: ATTACHMENT_MALWARE_SCAN
+      value: "true"  
+    - name: MALWARE_SCANNER_URI
+      value: http://localhost:9002/api/v1
+    - name: MALWARE_SCANNER_APP_ID
+      valueFrom:
+        secretKeyRef:
+          key: malwareApiId
+          name: storage-be  
+    - name: MALWARE_SCANNER_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: malwareApiKey
+          name: storage-be
+    - name: API_DB_USER
+      valueFrom:
+        secretKeyRef:
+          key: dbUser
+          name: storage-be
+    - name: API_DB_PASS
+      valueFrom:
+        secretKeyRef:
+          key: dbPassword
+          name: storage-be
+    - name: API_DB_URL
+      value: jdbc:postgresql://dna-bitnamipostgresql.dna.svc.cluster.local:5432/storage
 
+      #Update the naas Broker FQDN in the "NAAS_BROKER" parameter
+    - name: NAAS_BROKER
+      value: 
+
+    - name: STORAGE_TERMS_OF_USE_URL
+      value: ""
+    - name: DATAIKU_PROD_URI
+      value: ""    
+    - name: DATAIKU_PROD_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: dataikuProdApiKey
+          name: storage-be
+    - name: DATAIKU_TRAINING_URI
+      value: ""
+    - name: DATAIKU_TRAINING_API_KEY
+      valueFrom:
+        secretKeyRef:
+          key: dataikuTrainingApiKey
+          name: storage-be  
+  #Update the root token of the vault which you have generated by Initializing the vault to the below "vaultToken" parameter.
   secret:
     - key: vaultToken
       value: ""
@@ -2354,11 +2512,24 @@ storagebe:
       value: 
     - key: minioSecretKey
       value: 
+    - key: malwareApiId 
+      value: ""
+    - key: malwareApiKey
+      value: ""
+    - key: dbUser
+      value: storage
+    - key: dbPassword
+      value: storage123
+      #The below dataiku are coming soon features
+    - key: dataikuProdApiKey
+      value: ""
+    - key: dataikuTrainingApiKey
+      value: ""  
 
   replicaCount: 1
-
+  #Build & Update the storage-backend service in the docker-compose-local-basic.yml
   image:
-    repository: ""
+    repository: dna/storage-backend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: latest
@@ -2379,10 +2550,10 @@ storagebe:
     port: 80
 
   ingress:
-    enabled: true
+    enabled: false
     annotations:
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
       traefik.frontend.rule.type: PathPrefix
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.tls: "true"
@@ -2426,7 +2597,7 @@ minio:
 #Subchart properties for model-registry
 
 model-registry:
-  enabled: true
+  enabled: false
 
 #subChart properties for trinoBackend
 trinoBackend:
@@ -2457,3 +2628,4 @@ vault-auto-unseal:
 
 vault-backup: 
   enabled: true
+
