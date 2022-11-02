@@ -35,6 +35,12 @@ public class UserNotificationPrefVO   {
   @JsonProperty("dashboardNotificationPref")
   private NotificationPreferenceVO dashboardNotificationPref = null;
 
+  @JsonProperty("dataComplianceNotificationPref")
+  private NotificationPreferenceVO dataComplianceNotificationPref = null;
+
+  @JsonProperty("dataProductNotificationPref")
+  private NotificationPreferenceVO dataProductNotificationPref = null;
+
   public UserNotificationPrefVO id(String id) {
     this.id = id;
     return this;
@@ -164,6 +170,50 @@ public class UserNotificationPrefVO   {
     this.dashboardNotificationPref = dashboardNotificationPref;
   }
 
+  public UserNotificationPrefVO dataComplianceNotificationPref(NotificationPreferenceVO dataComplianceNotificationPref) {
+    this.dataComplianceNotificationPref = dataComplianceNotificationPref;
+    return this;
+  }
+
+  /**
+   * Get dataComplianceNotificationPref
+   * @return dataComplianceNotificationPref
+  **/
+  @ApiModelProperty(required = true, value = "")
+  @NotNull
+
+  @Valid
+
+  public NotificationPreferenceVO getDataComplianceNotificationPref() {
+    return dataComplianceNotificationPref;
+  }
+
+  public void setDataComplianceNotificationPref(NotificationPreferenceVO dataComplianceNotificationPref) {
+    this.dataComplianceNotificationPref = dataComplianceNotificationPref;
+  }
+
+  public UserNotificationPrefVO dataProductNotificationPref(NotificationPreferenceVO dataProductNotificationPref) {
+    this.dataProductNotificationPref = dataProductNotificationPref;
+    return this;
+  }
+
+  /**
+   * Get dataProductNotificationPref
+   * @return dataProductNotificationPref
+  **/
+  @ApiModelProperty(required = true, value = "")
+  @NotNull
+
+  @Valid
+
+  public NotificationPreferenceVO getDataProductNotificationPref() {
+    return dataProductNotificationPref;
+  }
+
+  public void setDataProductNotificationPref(NotificationPreferenceVO dataProductNotificationPref) {
+    this.dataProductNotificationPref = dataProductNotificationPref;
+  }
+
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -179,12 +229,14 @@ public class UserNotificationPrefVO   {
         Objects.equals(this.solutionNotificationPref, userNotificationPrefVO.solutionNotificationPref) &&
         Objects.equals(this.notebookNotificationPref, userNotificationPrefVO.notebookNotificationPref) &&
         Objects.equals(this.persistenceNotificationPref, userNotificationPrefVO.persistenceNotificationPref) &&
-        Objects.equals(this.dashboardNotificationPref, userNotificationPrefVO.dashboardNotificationPref);
+        Objects.equals(this.dashboardNotificationPref, userNotificationPrefVO.dashboardNotificationPref) &&
+        Objects.equals(this.dataComplianceNotificationPref, userNotificationPrefVO.dataComplianceNotificationPref) &&
+        Objects.equals(this.dataProductNotificationPref, userNotificationPrefVO.dataProductNotificationPref);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, userId, solutionNotificationPref, notebookNotificationPref, persistenceNotificationPref, dashboardNotificationPref);
+    return Objects.hash(id, userId, solutionNotificationPref, notebookNotificationPref, persistenceNotificationPref, dashboardNotificationPref, dataComplianceNotificationPref, dataProductNotificationPref);
   }
 
   @Override
@@ -198,6 +250,8 @@ public class UserNotificationPrefVO   {
     sb.append("    notebookNotificationPref: ").append(toIndentedString(notebookNotificationPref)).append("\n");
     sb.append("    persistenceNotificationPref: ").append(toIndentedString(persistenceNotificationPref)).append("\n");
     sb.append("    dashboardNotificationPref: ").append(toIndentedString(dashboardNotificationPref)).append("\n");
+    sb.append("    dataComplianceNotificationPref: ").append(toIndentedString(dataComplianceNotificationPref)).append("\n");
+    sb.append("    dataProductNotificationPref: ").append(toIndentedString(dataProductNotificationPref)).append("\n");
     sb.append("}");
     return sb.toString();
   }

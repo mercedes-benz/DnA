@@ -522,6 +522,17 @@ export interface IUserDetails {
   lastName: string;
   mobileNumber?: string;
 }
+export interface ICodeCollaborator {
+  firstName: string;
+  shortId: string;
+  department: string;
+  email: string;
+  id?: string;
+  lastName: string;
+  mobileNumber?: string;
+  status?: string;
+  canDeploy: boolean;
+}
 export interface IError {
   message: string;
 }
@@ -1086,6 +1097,8 @@ export interface INoticationModules {
   notebookNotificationPref: INotificationEnableDisable;
   dashboardNotificationPref: INotificationEnableDisable;
   persistenceNotificationPref: INotificationEnableDisable;
+  dataProductNotificationPref: INotificationEnableDisable;
+  dataComplianceNotificationPref: INotificationEnableDisable;
   userId: string;
 }
 

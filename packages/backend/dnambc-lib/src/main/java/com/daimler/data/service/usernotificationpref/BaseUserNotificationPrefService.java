@@ -93,6 +93,14 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				dashboardNotificationPref.setEnableAppNotifications(true);
 				dashboardNotificationPref.setEnableEmailNotifications(false);
 				preferencesVO.setDashboardNotificationPref(dashboardNotificationPref);
+				NotificationPreferenceVO dataComplianceNotificationPref = new NotificationPreferenceVO();
+				dataComplianceNotificationPref.setEnableAppNotifications(true);
+				dataComplianceNotificationPref.setEnableEmailNotifications(false);
+				preferencesVO.setDataComplianceNotificationPref(dataComplianceNotificationPref);
+				NotificationPreferenceVO dataProductNotificationPref = new NotificationPreferenceVO();
+				dataProductNotificationPref.setEnableAppNotifications(true);
+				dataProductNotificationPref.setEnableEmailNotifications(false);
+				preferencesVO.setDataProductNotificationPref(dataProductNotificationPref);
 				try {
 					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
 					log.info("Notification preferences created for user {} ", value);

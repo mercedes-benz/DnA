@@ -34,7 +34,6 @@ import org.springframework.http.ResponseEntity;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.ReportNsql;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
-import com.daimler.data.dto.report.ProductOwnerCollection;
 import com.daimler.data.dto.report.ReportResponseVO;
 import com.daimler.data.dto.report.ReportVO;
 import com.daimler.data.service.common.CommonService;
@@ -64,8 +63,7 @@ public interface ReportService extends CommonService<ReportVO, ReportNsql, Strin
 	 */
 	List<ReportVO> getAllWithFilters(Boolean published, List<String> statuses, String userId, Boolean isAdmin,
 			List<String> searchTerms, List<String> tags, int offset, int limit, String sortBy, String sortOrder,
-			String division, List<String> department, List<String> processOwner, List<String> productOwner,
-			List<String> art);
+			String division, List<String> department, List<String> processOwner, List<String> art);
 
 	/**
 	 * To get Count of all the reports with given filters.
@@ -79,8 +77,7 @@ public interface ReportService extends CommonService<ReportVO, ReportNsql, Strin
 	 * @return count{Long}
 	 */
 	Long getCount(Boolean published, List<String> statuses, String userId, Boolean isAdmin, List<String> searchTerms,
-			List<String> tags, String division, List<String> department, List<String> processOwner,
-			List<String> productOwner, List<String> art);
+			List<String> tags, String division, List<String> department, List<String> processOwner, List<String> art);
 
 	/**
 	 * To delete for each report.
@@ -115,8 +112,6 @@ public interface ReportService extends CommonService<ReportVO, ReportNsql, Strin
 	ResponseEntity<GenericMessage> deleteReport(String id);
 
 	ResponseEntity<ProcessOwnerCollection> getProcessOwners();
-
-	ResponseEntity<ProductOwnerCollection> getProductOwners();
 
 	/**
 	 * To update for each report.

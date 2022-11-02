@@ -216,10 +216,6 @@ definitions:
         type: array
         items:
           type: string
-      productOwners:
-        type: array
-        items:
-          type: string
       processOwners:
         type: array
         items:

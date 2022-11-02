@@ -33,9 +33,13 @@ import com.daimler.data.dto.forecast.RunDetailsVO;
 import com.daimler.data.dto.forecast.RunNowResponseVO;
 import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunVO;
+
+import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
+import com.daimler.data.dto.storage.FileDownloadResponseDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.common.BaseCommonService;
+import com.google.gson.JsonArray;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -257,6 +261,63 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return updatedRunVOList;
 	}
 
+	@Override
+	public RunVisualizationVO getRunVisualizationsByUUID(String id, String rid) {
+		RunVisualizationVO visualizationVO = new RunVisualizationVO();
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		ForecastNsql entity = entityOptional.get();
+		String bucketName = entity.getData().getBucketName();
+		Optional<RunDetails>  requestedRun = entity.getData().getRuns().stream().filter(x -> rid.equalsIgnoreCase(x.getId())).findFirst();
+		RunDetails run = requestedRun.get();
+		visualizationVO.setForecastHorizon(run.getForecastHorizon());
+		visualizationVO.setFrequency(run.getFrequency());
+		visualizationVO.setId(run.getId());
+		visualizationVO.setRunId(run.getRunId());
+		visualizationVO.setRunName(run.getRunName());
+		RunState state = run.getRunState();
+		if(state!=null) {
+			if(!(state.getResult_state()!=null && "SUCCESS".equalsIgnoreCase(state.getResult_state()))) {
+				visualizationVO.setEda("");
+				visualizationVO.setY("");
+				visualizationVO.setYPred("");
+				return visualizationVO;
+			}
+		}
+		String commonPrefix = "/results/"+rid + "-" + run.getRunName();
+		try {
+			String yPrefix = commonPrefix +"/y.csv";
+			String yPredPrefix = commonPrefix +"/y_pred.csv";
+			String edaJsonPrefix = commonPrefix +"/eda.json";
+			FileDownloadResponseDto yDownloadResponse = storageClient.getFileContents(bucketName, yPrefix);
+			FileDownloadResponseDto yPredDownloadResponse = storageClient.getFileContents(bucketName, yPredPrefix);
+			FileDownloadResponseDto edaJsonDownloadResponse = storageClient.getFileContents(bucketName, edaJsonPrefix);
+			JsonArray jsonArray = new JsonArray();
+			String yResult = "";
+			String yPredResult = "";
+			String edaResult = "";
+			if(yDownloadResponse!= null && yDownloadResponse.getData()!=null && (yDownloadResponse.getErrors()==null || yDownloadResponse.getErrors().isEmpty())) {
+				 yResult = new String(yDownloadResponse.getData().getByteArray()); 
+			 }
+			if(yPredDownloadResponse!= null && yPredDownloadResponse.getData()!=null && (yPredDownloadResponse.getErrors()==null || yPredDownloadResponse.getErrors().isEmpty())) {
+				  yPredResult = new String(yPredDownloadResponse.getData().getByteArray()); 
+			 }
+			if(edaJsonDownloadResponse!= null && edaJsonDownloadResponse.getData()!=null && (edaJsonDownloadResponse.getErrors()==null || edaJsonDownloadResponse.getErrors().isEmpty())) {
+				edaResult = new String(edaJsonDownloadResponse.getData().getByteArray()); 
+			 }
+			visualizationVO.setEda(edaResult);
+			visualizationVO.setY(yResult);
+			visualizationVO.setYPred(yPredResult);
+		}catch(Exception e) {
+			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
+		}
+		return visualizationVO;
+	}
+			
+
+	
 	@Override
 	public GenericMessage deletRunByUUID(String id, String rid) {
 		GenericMessage responseMessage = new GenericMessage();
