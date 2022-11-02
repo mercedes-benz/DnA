@@ -22,6 +22,7 @@ import { SingleDataSourceList } from './SingleDataSourceList';
 import { DataWarehouseList } from './DataWarehouseList';
 import { DataWarehouse } from './DataFunctionModal/DataWarehouse';
 import { SingleDataSource } from './DataFunctionModal/SingleDataSource';
+import { IconDataSource } from 'components/icons/IconIDataSource';
 
 const classNames = cn.bind(Styles);
 export interface IDataWarehouseErrors {
@@ -939,7 +940,18 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>Data Sources Information </h3>
+            <h3>Please add data source & functions </h3>
+            <br />
+            {(this.state.dataAndFunctions.dataWarehouseInUse?.length > 0 || this.state.dataAndFunctions.singleDataSources?.length > 0) && (
+              <div className={Styles.addDataSourceWrapper}>
+                <IconDataSource className={Styles.avatarIcon} />
+                <button id="AddDataSourceBtn" onClick={() => this.showDataSourceModal()}>
+                  <i className="icon mbc-icon plus" />
+                  <span>Add Data Source</span>
+                </button>
+              </div>              
+            )}
+            <br />
             <DataWarehouseList
               dataWarehouselist={this.state.dataAndFunctions.dataWarehouseInUse}
               singleDataSourceList={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
