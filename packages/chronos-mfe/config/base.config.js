@@ -100,6 +100,12 @@ module.exports = {
         ],
         include: [path.resolve(__dirname, path.join('..', 'public'))],
       },
+      {
+        test: /\.m?js/,
+        resolve: {
+          fullySpecified: false,
+        },
+      }
     ],
   },
   plugins: [

@@ -62,6 +62,9 @@ const ProjectCardItem = ({project, history}) => {
             <button className="btn btn-primary" disabled={true}>
               <i className="icon mbc-icon data-sharing"></i>
             </button>
+            <button className="btn btn-primary" disabled={true}>
+              <i className="icon delete"></i>
+            </button>
           </div>
         </div>
       </div>

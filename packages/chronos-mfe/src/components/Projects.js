@@ -74,7 +74,10 @@ const ForeCastingProjects = ({ user, history }) => {
         }
       })
       .catch((err) => {
-        Notification.show(err.message, 'alert');
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message || 'Error while fetching forecast projects',
+          'alert',
+        );
         setForecastProjects([]);
       });
 
@@ -137,8 +140,10 @@ const ForeCastingProjects = ({ user, history }) => {
       Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
-      Notification.show(error.message, 'alert');
-      Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating forecast project',
+        'alert',
+      );
     });
   };
   const handleEditProject = (values) => {
@@ -155,7 +160,7 @@ const ForeCastingProjects = ({ user, history }) => {
   };
 
   const copyApiKey = () => {
-    navigator.clipboard.writeText('dummy api key').then(() => {
+    navigator.clipboard.writeText('123823').then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -249,7 +254,7 @@ const ForeCastingProjects = ({ user, history }) => {
                     id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z]+$/ })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-]+$/ })}
                   />
                   <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
                 </div>
@@ -299,7 +304,7 @@ const ForeCastingProjects = ({ user, history }) => {
                     <div className={Styles.appIdParentDiv}>
                       <div className={Styles.refreshedKey}>
                         { showApiKey ? (
-                          <p>2983432j38293nf9sdjfsdhfs98</p>
+                          <p>123823</p>
                         ) : (
                           <React.Fragment>
                             &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
@@ -427,6 +432,8 @@ const ForeCastingProjects = ({ user, history }) => {
           onCancel={() => {
             setCreateProject(false);
             setEditProject(false);
+            reset({ name: '' });
+            setTeamMembers([]);
           }}
           modalStyle={{
             padding: '50px 35px 35px 35px',
