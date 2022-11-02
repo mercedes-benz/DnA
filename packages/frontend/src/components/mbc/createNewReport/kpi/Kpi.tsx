@@ -9,6 +9,7 @@ import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import { ErrorMsg } from 'globals/Enums';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
@@ -33,6 +34,10 @@ export interface IKpiState {
   nextSortOrder: string;
   kpiTabError: string;
   showDeleteModal: boolean;
+
+  showContextMenu: boolean;
+  contextMenuOffsetTop: number;
+  contextMenuOffsetRight: number;
 }
 export interface IKpiList {
   name: string;
@@ -41,6 +46,8 @@ export interface IKpiList {
   comment: string;
 }
 export default class Kpi extends React.Component<IKpiProps, IKpiState> {
+  protected isTouch = false;
+  protected listRowElement: HTMLElement;
   public static getDerivedStateFromProps(props: IKpiProps, state: IKpiState) {
     return {
       kpis: props.kpis,
@@ -73,13 +80,35 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       nextSortOrder: 'asc',
       kpiTabError: '',
       showDeleteModal: false,
+
+      showContextMenu: false,
+      contextMenuOffsetTop: 0,
+      contextMenuOffsetRight: 0,
     };
   }
 
   public componentDidMount() {
     ExpansionPanel.defaultSetup();
+    // document.addEventListener('touchend', this.handleContextMenuOutside, true);
+    // document.addEventListener('click', this.handleContextMenuOutside, true);
     Tooltip.defaultSetup();
   }
+
+  public componentWillUnmount() {
+    document.removeEventListener('touchend', this.handleContextMenuOutside, true);
+    document.removeEventListener('click', this.handleContextMenuOutside, true);
+  }
+
+  public toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
+    e.stopPropagation();
+    const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
+    const relativeParentTable: ClientRect = document.querySelector('.kpiList').getBoundingClientRect();
+    this.setState({
+      contextMenuOffsetTop: elemRect.top - (relativeParentTable.top + 10),
+      contextMenuOffsetRight: 10,
+      showContextMenu: !this.state.showContextMenu,
+    });
+  };
 
   public render() {
     const requiredError = '*Missing entry';
@@ -206,131 +235,87 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         <div className={Styles.modalContent}>This KPI will be deleted permanently.</div>
       </div>
     );
+
+    const kpiData = this.state.kpis?.map((kpi: IKpis, index: number) => {
+
+      return (
+        // <ReportListRowItem
+        //   key={report?.id}
+        //   report={report}
+        //   reportId={report?.reportId}
+        //   bookmarked={false}
+        //   canEdit={
+        //     isReportAdmin !== undefined ||
+        //     isSuperAdmin !== undefined ||
+        //     isProductOwner !== undefined ||
+        //     userInfo.id === this.checkUserCanEditReport(userInfo, report)
+        //   }
+        //   onEdit={()=>this.onEditReport(report?.reportId)}
+        //   onDelete={()=>this.onDeleteReport(report?.id)}
+        // />
+        <tr
+          id={'kpi-'+index}
+          key={index}
+          className={classNames(
+            'data-row',
+            Styles.reportRow,
+            this.state.showContextMenu ? Styles.contextOpened : null,
+          )}
+          // ref={this.listRow}
+          // onClick={this.goToSummary}
+        >
+          <td className={'wrap-text ' + classNames(Styles.reportName)}>
+            <div className={Styles.solIcon}>
+              {kpi?.name}
+            </div>
+          </td>
+          <td className="wrap-text">{kpi?.reportingCause || 'NA'}</td>
+          <td className="wrap-text">{kpi?.kpiLink ? <a href={kpi?.kpiLink} target='_blank' rel="noreferrer">{kpi?.kpiLink}</a> : 'NA'}</td>
+          <td>
+            <div
+              className={classNames(
+                Styles.contextMenu,
+                this.state.showContextMenu ? Styles.open : '',
+              )}
+            >
+              <span onClick={this.toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
+                <i className="icon mbc-icon listItem context" />
+              </span>
+              <div
+                style={{
+                  top: this.state.contextMenuOffsetTop + 'px',
+                  right: this.state.contextMenuOffsetRight + 'px',
+                }}
+                className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}
+              >
+                <ul className="contextList">                  
+                  <li className="contextListItem">
+                    <span onClick={() => this.onEditKpiOpen(kpi)}>Edit KPI</span>
+                  </li>
+                
+                  <li className="contextListItem">
+                    <span onClick={() => this.onDeleteKpi(kpi)}>Delete KPI</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </td>
+        </tr>
+      );
+    });
     return (
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>KPIs</h3>
+            <h3>Please add or edit the report's KPIs</h3>
             <div className={classNames(Styles.formWrapper)}>
               <div className={classNames('expanstion-table', Styles.kpiList)}>
-                <div className={Styles.kpiGrp}>
-                  <div className={Styles.kpiGrpList}>
-                    <div className={Styles.kpiGrpListItem}>
-                      {this.state.kpis?.length ? (
-                        <div className={Styles.kpiCaption}>
-                          <div className={Styles.kpiTile}>
-                            <div className={Styles.kpiTitleCol}>
-                              <label>KPI No.</label>
-                            </div>
-                            <div className={Styles.kpiTitleCol}>
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort === 'name' ? this.state.currentSortOrder : '')
-                                }
-                                onClick={this.sortByColumn('name', this.state.nextSortOrder)}
-                              >
-                                <i className="icon sort" />
-                                KPI Name
-                              </label>
-                            </div>
-                            <div className={Styles.kpiTitleCol}>
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort === 'reportingCause'
-                                    ? this.state.currentSortOrder
-                                    : '')
-                                }
-                                onClick={this.sortByColumn('reportingCause', this.state.nextSortOrder)}
-                              >
-                                <i className="icon sort" />
-                                Reporting Cause
-                              </label>
-                            </div>
-                            <div className={Styles.kpiTitleCol}>KPI-Link</div>
-                            <div className={Styles.kpiTitleCol}>Action</div>
-                          </div>
-                        </div>
-                      ) : (
-                        ''
-                      )}
-                      {this.state.kpis?.map((kpi: IKpis, index: number) => {
-                        return (
-                          <div
-                            key={index}
-                            className={'expansion-panel-group airflowexpansionPanel ' + Styles.kpiGrpListItemPanel}
-                          >
-                            <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
-                              <span className="animation-wrapper"></span>
-                              <input type="checkbox" id={index + '1'} defaultChecked={index === 0} />
-                              <label
-                                className={Styles.expansionLabel + ' expansion-panel-label '}
-                                htmlFor={index + '1'}
-                              >
-                                <div className={Styles.kpiTile}>
-                                  <div className={Styles.kpiTitleCol}>{`KPI ${index + 1}`}</div>
-                                  <div className={Styles.kpiTitleCol}>{kpi.name || '-'}</div>
-                                  <div className={Styles.kpiTitleCol}>{kpi.reportingCause || '-'}</div>
-                                  <div className={Styles.kpiTitleCol}>
-                                    {kpi.kpiLink ? (
-                                      <span>
-                                        <a href={kpi.kpiLink} target="_blank" rel="noopener noreferrer">
-                                          {kpi.kpiLink}
-                                        </a>{' '}
-                                        <i
-                                          style={{ position: 'relative' }}
-                                          tooltip-data="Open in New Tab"
-                                          className={'icon mbc-icon new-tab'}
-                                          onClick={() => window.open(kpi.kpiLink, '_blank', 'noopener,noreferrer')}
-                                        />
-                                      </span>
-                                    ) : (
-                                      '-'
-                                    )}
-                                  </div>
-                                  <div className={Styles.kpiTitleCol}></div>
-                                </div>
-                                <i tooltip-data="Expand" className="icon down-up-flip"></i>
-                              </label>
-                              <div className="expansion-panel-content">
-                                <div className={Styles.kpiCollContent}>
-                                  <div className={Styles.kpiDesc}>
-                                    <pre className={Styles.commentPre}>{kpi.description}</pre>
-                                  </div>
-                                  <div className={Styles.kpiBtnGrp}>
-                                    <button
-                                      className={'btn btn-primary'}
-                                      type="button"
-                                      onClick={() => this.onEditKpiOpen(kpi)}
-                                    >
-                                      <i className="icon mbc-icon edit"></i>
-                                      <span>Edit KPI</span>
-                                    </button>
-                                    <button
-                                      className={'btn btn-primary'}
-                                      type="button"
-                                      onClick={() => this.onDeleteKpi(kpi)}
-                                    >
-                                      <i className="icon delete"></i>
-                                      <span>Delete KPI </span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
               {this.state.kpis?.length < 1 && (
                 <div className={Styles.kpiWrapper}>
                   <div className={Styles.kpiWrapperNoList}>
                     <div className={Styles.addKpiWrapper}>
-                      <button id="AddTeamMemberBtn" onClick={this.addKpiModel}>
+                      <IconAvatarNew className={Styles.avatarIcon} />
+                      <button id="AddKpiBtn" onClick={this.addKpiModel}>
                         <i className="icon mbc-icon plus" />
                         <span>Add Kpi</span>
                       </button>
@@ -344,12 +329,30 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               <br />
               {this.state.kpis?.length > 0 && (
                 <div className={Styles.addKpiWrapper}>
+                  <IconAvatarNew className={Styles.avatarIcon} />
                   <button id="AddKpiBtn" onClick={this.addKpiModel}>
                     <i className="icon mbc-icon plus" />
                     <span>Add Kpi</span>
                   </button>
                 </div>
               )}
+              <br />
+                <div className={Styles.kpiGrp}>
+                  <div className={Styles.kpiGrpList}>
+                    <div className={Styles.kpiGrpListItem}>                      
+                      <table
+                        className={classNames(
+                          'ul-table kpiList',
+                          Styles.reportsMarginNone,
+                          this.state.kpis?.length === 0 ? 'hide' : '',
+                        )}
+                      >
+                        <tbody>{kpiData}</tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -686,5 +689,55 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
         kpis: sortedArray,
       });
     };
+  };
+
+
+  protected handleContextMenuOutside = (event: MouseEvent | TouchEvent) => {
+    if (event.type === 'touchend') {
+      this.isTouch = true;
+    }
+
+    // Click event has been simulated by touchscreen browser.
+    if (event.type === 'click' && this.isTouch === true) {
+      return;
+    }
+
+    const target = event.target as Element;
+    const { showContextMenu } = this.state;
+    const elemClasses = target.classList;
+    const listRowElement = this.listRowElement;
+    const contextMenuWrapper = listRowElement.querySelector('.contextMenuWrapper');
+    if (
+      listRowElement &&
+      !target.classList.contains('trigger') &&
+      !target.classList.contains('context') &&
+      !target.classList.contains('contextList') &&
+      !target.classList.contains('contextListItem') &&
+      contextMenuWrapper !== null &&
+      contextMenuWrapper.contains(target) === false &&
+      (showContextMenu)
+    ) {
+      this.setState({
+        showContextMenu: false,
+      });
+    } else if (this.listRowElement.contains(target) === false) {
+      this.setState({
+        showContextMenu: false,
+      });
+    }
+
+    if (
+      (showContextMenu) &&
+      (elemClasses.contains('contextList') ||
+        elemClasses.contains('contextListItem') ||
+        elemClasses.contains('contextMenuWrapper') ||
+        elemClasses.contains('locationsText'))
+    ) {
+      event.stopPropagation();
+    }
+  };
+
+  protected listRow = (element: HTMLTableRowElement) => {
+    this.listRowElement = element;
   };
 }
