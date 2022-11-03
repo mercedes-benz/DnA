@@ -173,6 +173,7 @@ public class WorkspaceController  implements CodeServerApi{
 		reqVO.setWorkspaceId(null);
 		reqVO.setWorkspaceUrl("");
 		reqVO.setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+		reqVO.getProjectDetails().setGitRepoName(reqVO.getProjectDetails().getProjectName());
 		reqVO.getProjectDetails().setIntDeploymentDetails(new CodeServerDeploymentDetailsVO());
 		reqVO.getProjectDetails().setProjectOwner(currentUserVO);
 		reqVO.getProjectDetails().setProdDeploymentDetails(new CodeServerDeploymentDetailsVO());
