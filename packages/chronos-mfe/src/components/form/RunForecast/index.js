@@ -19,7 +19,7 @@ import { Link } from 'react-router-dom';
 import IconUpload from '../../../assets/icon_upload.png';
 import { chronosApi } from '../../../apis/chronos.api';
 
-const SelectedFile = ({ selectedFile, setSelected, setFileValid }) => {
+const SelectedFile = ({ selectedFile, setSelected }) => {
   return (
     <>
       <div className={Styles.selectedFile}>
@@ -40,7 +40,7 @@ const SelectedFile = ({ selectedFile, setSelected, setFileValid }) => {
           <span>Index not sorted. Either delete Input File and select another one or try to run anyway.</span>
         </div> */}
         <div>
-          <i onClick={() => { setSelected(false); setFileValid(true); }} className={classNames('icon delete', Styles.deleteIcon)} />
+          <i onClick={() => { setSelected(false); }} className={classNames('icon delete', Styles.deleteIcon)} />
         </div>
       </div>
     </>
@@ -251,18 +251,6 @@ const RunForecast = () => {
     }
   };
 
-  const [fileValid, setFileValid] = useState(true);
-
-  const validateFile = (file) => {
-    const fileName = file.name.split('.');
-    const extension = fileName[fileName.length - 1];
-    if(extension === 'csv' || extension === 'xlsx') {
-      setFileValid(true);
-    } else {
-      setFileValid(false);
-    }
-  }
-
   const onSubmit = (data) => {
     const formData = new FormData();
     if(selectedInputFile?.path !== undefined) {
@@ -283,7 +271,7 @@ const RunForecast = () => {
     if(selectedInputFile?.path !== undefined) {
       formData.append("savedInputPath", selectedInputFile.path);
     } else {
-      formData.append("savedInputPath", null); // todo file path
+      formData.append("savedInputPath", null);
     }
 
     ProgressIndicator.show();
@@ -344,7 +332,17 @@ const RunForecast = () => {
                     className={classNames('upload-container', Styles.uploadContainer)}
                   >
                     <input type="file" id="file" name="file" 
-                      {...register('file', { required: '*Missing entry', onChange: (e) => { setIsSelectedFile(true); setDropped(false); setSelectedInputFile({name: e.target.files[0].name}); validateFile(e.target.files[0]); setIsExistingFile(false); }})}
+                      {...register('file', { required: '*Missing entry', onChange: (e) => { 
+                        setDropped(false); 
+                        setIsExistingFile(false);
+                        const isValid = isValidFile(e.target.files[0]);
+                        if (!isValid) {
+                          Notification.show('File is not valid.', 'alert');
+                        } else {
+                          setIsSelectedFile(true);
+                          setSelectedInputFile({name: e.target.files[0].name});
+                        }
+                      }})}
                       accept=".csv, .xlsx"
                       />
                     <div className={Styles.rcUpload}>
@@ -379,9 +377,8 @@ const RunForecast = () => {
                   {errors.file && <span className={Styles.errorMessage}>{errors.file?.message}</span>}
                 </div>
               ) : (
-                <SelectedFile selectedFile={selectedInputFile} setSelected={setSelectedInput} setFileValid={setFileValid} />
+                <SelectedFile selectedFile={selectedInputFile} setSelected={setSelectedInput} />
               )}
-              {!fileValid && <span className={Styles.errorMessage}>Only .xlsx files allowed</span>}
               <div className={Styles.checkbox}>
                 <label className="checkbox">
                   <span className="wrapper">
@@ -428,7 +425,7 @@ const RunForecast = () => {
                     Run Name
                   </label>
                   <input
-                    {...register('runName', { pattern: /^[a-z0-9-]+$/ })}
+                    {...register('runName', { pattern: /^[a-z0-9-.]+$/ })}
                     type="text"
                     className="input-field"
                     id="runNameInput"
@@ -436,7 +433,7 @@ const RunForecast = () => {
                     placeholder="Type here"
                     autoComplete="off"
                   />
-                  <span className={classNames('error-message')}>{errors.runName?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
+                  <span className={classNames('error-message')}>{errors.runName?.type === 'pattern' && 'Run names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                 </div>
                 <div className={Styles.configurationContainer}>
                   <div
@@ -458,10 +455,6 @@ const RunForecast = () => {
                           validate: (value) => value !== '0' || '*Missing entry',
                         })}
                       >
-                        {/* <option id="configurationOption" value={0}>
-                          Choose
-                        </option>
-                        <option value={'Default-Settings'}>Default Configuration</option> */}
                         {
                           configurationFiles.length === 0 ? (
                             <option id="configurationOption" value={0}>
@@ -561,10 +554,7 @@ const RunForecast = () => {
                           id="hierarchyField"
                           {...register('hierarchy')}
                         >
-                          <option id="hierarchyOption" value={''}>
-                            No Hierarchy
-                          </option>
-                          {/* <option value={''}>No hierachy</option> */}
+                          <option id="hierarchyOption" value={''}>No Hierarchy</option>
                           <option value={'2'}>2</option>
                           <option value={'3'}>3</option>
                           <option value={'4'}>4</option>
