@@ -58,6 +58,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemE
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
@@ -87,7 +88,56 @@ public class WorkspaceController  implements CodeServerApi{
 	@Value("${codeServer.env.value}")
 	private String codeServerEnvValue;
 
-	@ApiOperation(value = "Initialize/Create Workbench for user in code-server.", nickname = "createWorkspace", notes = "Create workspace for user in code-server with given password", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
+	@Override
+	@ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+    public ResponseEntity<InitializeWorkspaceResponseVO> initializeWorkspace(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody InitializeCollabWorkspaceRequestVO initializeCollabWSRequestVO){
+		HttpStatus responseStatus = HttpStatus.OK;
+		CreatedByVO currentUser = this.userStore.getVO();
+		InitializeWorkspaceResponseVO responseMessage = new InitializeWorkspaceResponseVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO collabUserVO = service.getById(userId, id);
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		responseMessage.setData(collabUserVO);
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess("FAILED");
+		if (collabUserVO != null && collabUserVO.getWorkspaceId()!=null ) {
+			String status = collabUserVO.getStatus();
+			if(status!=null) {
+				if(!ConstantsUtility.COLLABREQUESTEDSTATE.equalsIgnoreCase(status)) {
+					MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
+					errors.add(errMsg);
+					responseMessage.setErrors(errors);
+					return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+				}
+			}
+		}else {
+			MessageDescription errMsg = new MessageDescription("Cannot reinitiate the workbench");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			responseMessage.setData(null);
+			return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+		}
+		String password = initializeCollabWSRequestVO.getPassword();
+		String pat = initializeCollabWSRequestVO.getPat();
+		
+		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(id, pat, password);
+		return new ResponseEntity<>(responseData, responseStatus);
+	}
+    
+	@ApiOperation(value = "Create Workbench for user in code-server.", nickname = "createWorkspace", notes = "Create workspace for user in code-server with given password", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),

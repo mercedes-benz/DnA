@@ -19,11 +19,14 @@ public class GitClient {
 	@Value("${codeServer.git.baseuri}")
 	private String gitBaseUri;
 	
+	@Value("${codeServer.git.pat}")
+	private String personalAccessToken;
+	
 	@Autowired
 	private RestTemplate restTemplate;
 	
 	
-	public HttpStatus createRepo(String gitOrgName, String repoName, String personalAccessToken) {
+	public HttpStatus createRepo(String gitOrgName, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -43,7 +46,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 		
-	public HttpStatus deleteRepo(String gitOrgName, String repoName, String personalAccessToken) {
+	public HttpStatus deleteRepo(String gitOrgName, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -62,7 +65,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public HttpStatus addUserToRepo(String gitOrgName, String username, String repoName, String personalAccessToken) {
+	public HttpStatus addUserToRepo(String gitOrgName, String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -81,7 +84,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public HttpStatus deleteUserFromRepo(String gitOrgName, String username, String repoName, String personalAccessToken) {
+	public HttpStatus deleteUserFromRepo(String gitOrgName, String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
