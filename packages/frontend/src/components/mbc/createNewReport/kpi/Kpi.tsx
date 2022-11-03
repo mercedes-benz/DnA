@@ -47,7 +47,7 @@ export interface IKpiList {
 }
 export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   protected isTouch = false;
-  protected listRowElement: HTMLElement;
+  protected listRowElement: HTMLTableRowElement;
   public static getDerivedStateFromProps(props: IKpiProps, state: IKpiState) {
     return {
       kpis: props.kpis,
@@ -89,8 +89,8 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
 
   public componentDidMount() {
     ExpansionPanel.defaultSetup();
-    // document.addEventListener('touchend', this.handleContextMenuOutside, true);
-    // document.addEventListener('click', this.handleContextMenuOutside, true);
+    document.addEventListener('touchend', this.handleContextMenuOutside, true);
+    document.addEventListener('click', this.handleContextMenuOutside, true);
     Tooltip.defaultSetup();
   }
 
@@ -102,7 +102,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
   public toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
     e.stopPropagation();
     const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
-    const relativeParentTable: ClientRect = document.querySelector('.kpiList').getBoundingClientRect();
+    const relativeParentTable: ClientRect = document.querySelector('table.kpiList').getBoundingClientRect();
     this.setState({
       contextMenuOffsetTop: elemRect.top - (relativeParentTable.top + 10),
       contextMenuOffsetRight: 10,
