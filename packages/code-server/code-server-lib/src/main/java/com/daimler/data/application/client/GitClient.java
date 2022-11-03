@@ -19,6 +19,9 @@ public class GitClient {
 	@Value("${codeServer.git.baseuri}")
 	private String gitBaseUri;
 	
+	@Value("${codeServer.git.orgname}")
+	private String gitOrgName;
+	
 	@Value("${codeServer.git.pat}")
 	private String personalAccessToken;
 	
@@ -26,14 +29,14 @@ public class GitClient {
 	private RestTemplate restTemplate;
 	
 	
-	public HttpStatus createRepo(String gitOrgName, String repoName) {
+	public HttpStatus createRepo(String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
 			String url = gitBaseUri+"/orgs/"+gitOrgName+"/repos";
-			String requestJsonString = "{\"name\":\"" + gitOrgName + "\",\"description\":\"Repository creation from DnA codespaces\",\"private\":true,\"has_issues\":true,\"has_projects\":true,\"has_wiki\":true, \"auto_init\": true}";
+			String requestJsonString = "{\"name\":\"" + repoName + "\",\"description\":\"Repository creation from DnA codespaces\",\"private\":true,\"has_issues\":true,\"has_projects\":true,\"has_wiki\":true, \"auto_init\": true}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString,headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -46,7 +49,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 		
-	public HttpStatus deleteRepo(String gitOrgName, String repoName) {
+	public HttpStatus deleteRepo(String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -65,7 +68,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public HttpStatus addUserToRepo(String gitOrgName, String username, String repoName) {
+	public HttpStatus addUserToRepo(String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
@@ -84,7 +87,7 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public HttpStatus deleteUserFromRepo(String gitOrgName, String username, String repoName) {
+	public HttpStatus deleteUserFromRepo( String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
