@@ -29,4 +29,12 @@ package com.daimler.data.util;
 
 public class ConstantsUtility {
 
+	public static final String CREATEACTION = "create";
+	public static final String SPRINGBOOT = "springboot";
+	public static final String PYFASTAPI = "py-fastapi";
+	public static final String GRADLE = "gradle";
+	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
+	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
+	public static final String WORKSPACEPREFIX = "WS";
+	public static final String DEPLOYACTION = "deploy";
 }

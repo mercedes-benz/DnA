@@ -51,64 +51,63 @@ public class WorkspaceJobStatusUpdateController  {
     public ResponseEntity<GenericMessage> updateWorkspace(@ApiParam(value = "Name of workspace that needs to be updated",required=true) @PathVariable("name") String name,
     		@ApiParam(value = "user for which workspaces needs to be updated",required=true) @PathVariable("userId") String userId,
     		@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
-		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"name", name);
-		if (existingVO != null && existingVO.getOwner()!=null) {
-			String owner = existingVO.getOwner();
-			if(!userId.equalsIgnoreCase(owner)) {
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage(
-						"Not authorized to update other's workspace. User does not have privileges.");
-				GenericMessage errorMessage = new GenericMessage();
-				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {} and owner is {}", userId,name,owner);
-				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-			}
-//			if(updateRequestVO.getLastDeployedOn()!=null)
-//				existingVO.setLastDeployedOn(updateRequestVO.getLastDeployedOn());
-			String existingStatus = existingVO.getStatus();
-			String latestStatus = updateRequestVO.getStatus().name();
-			boolean invalidStatus = false;
-			switch(existingStatus) {
-				case "CREATE_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("CREATED") || latestStatus.equalsIgnoreCase("CREATE_FAILED")))
-						invalidStatus = true;
-					break;
-				case "DELETE_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("DELETED") || latestStatus.equalsIgnoreCase("DELETE_FAILED") || latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED") ))
-						invalidStatus = true;
-					break;
-				case "DEPLOY_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("DEPLOYED") || latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")))
-						invalidStatus = true;
-					break;
-				case "UNDEPLOY_REQUESTED": 
-					if(!(latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")))
-						invalidStatus = true;
-					break;
-				default:
-					invalidStatus = false;
-					break;
-			  
-			}
-			if(invalidStatus) {
-				log.info("workspace {} is in status {} , cannot be changed to invalid status {} ",name, existingStatus, latestStatus);
-				MessageDescription invalidMsg = new MessageDescription("Cannot change workspace status from " + existingStatus + " to " + latestStatus + ". Invalid status.");
-				GenericMessage errorMessage = new GenericMessage();
-				errorMessage.addErrors(invalidMsg);
-				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-			}
-			existingVO.setLastDeployedOn(new Date());
-			existingVO.setStatus(latestStatus);
-			GenericMessage responseMessage = service.update(existingVO);
-			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
-		}else {
-			log.info("workspace {} doesnt exists for User {} ",existingVO.getName(), userId);
-			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
-			GenericMessage errorMessage = new GenericMessage();
-			errorMessage.addErrors(invalidMsg);
-			log.error("No workspace found with id {}, failed to update", existingVO.getName());
-			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-		}
-		
+//		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"name", name);
+//		if (existingVO != null && existingVO.getOwner()!=null) {
+//			String owner = existingVO.getOwner();
+//			if(!userId.equalsIgnoreCase(owner)) {
+//				MessageDescription notAuthorizedMsg = new MessageDescription();
+//				notAuthorizedMsg.setMessage(
+//						"Not authorized to update other's workspace. User does not have privileges.");
+//				GenericMessage errorMessage = new GenericMessage();
+//				errorMessage.addErrors(notAuthorizedMsg);
+//				log.info("User {} cannot update workspace {}, insufficient privileges. Workspace name: {} and owner is {}", userId,name,owner);
+//				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+//			}
+////			if(updateRequestVO.getLastDeployedOn()!=null)
+////				existingVO.setLastDeployedOn(updateRequestVO.getLastDeployedOn());
+//			String existingStatus = existingVO.getStatus();
+//			String latestStatus = updateRequestVO.getStatus().name();
+//			boolean invalidStatus = false;
+//			switch(existingStatus) {
+//				case "CREATE_REQUESTED": 
+//					if(!(latestStatus.equalsIgnoreCase("CREATED") || latestStatus.equalsIgnoreCase("CREATE_FAILED")))
+//						invalidStatus = true;
+//					break;
+//				case "DELETE_REQUESTED": 
+//					if(!(latestStatus.equalsIgnoreCase("DELETED") || latestStatus.equalsIgnoreCase("DELETE_FAILED") || latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED") ))
+//						invalidStatus = true;
+//					break;
+//				case "DEPLOY_REQUESTED": 
+//					if(!(latestStatus.equalsIgnoreCase("DEPLOYED") || latestStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")))
+//						invalidStatus = true;
+//					break;
+//				case "UNDEPLOY_REQUESTED": 
+//					if(!(latestStatus.equalsIgnoreCase("UNDEPLOYED") || latestStatus.equalsIgnoreCase("UNDEPLOY_FAILED")))
+//						invalidStatus = true;
+//					break;
+//				default:
+//					break;
+//			  
+//			}
+//			if(invalidStatus) {
+//				log.info("workspace {} is in status {} , cannot be changed to invalid status {} ",name, existingStatus, latestStatus);
+//				MessageDescription invalidMsg = new MessageDescription("Cannot change workspace status from " + existingStatus + " to " + latestStatus + ". Invalid status.");
+//				GenericMessage errorMessage = new GenericMessage();
+//				errorMessage.addErrors(invalidMsg);
+//				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+//			}
+//			existingVO.setLastDeployedOn(new Date());
+//			existingVO.setStatus(latestStatus);
+//			GenericMessage responseMessage = service.update(existingVO);
+//			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+//		}else {
+//			log.info("workspace {} doesnt exists for User {} ",existingVO.getName(), userId);
+//			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
+//			GenericMessage errorMessage = new GenericMessage();
+//			errorMessage.addErrors(invalidMsg);
+//			log.error("No workspace found with id {}, failed to update", existingVO.getName());
+//			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+//		}
+		return null;
     }
 }

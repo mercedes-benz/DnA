@@ -47,6 +47,7 @@ codeServer:
   gitjob.deployuri: ${CODE_SERVER_GITJOB_DEPLOY_URI:XXXX}
   gitjob.manageuri: ${CODE_SERVER_GITJOB_MANAGE_URI:XXXX}
   git.pat: ${CODE_SERVER_GIT_PIT:XXXX}
+  git.baseuri: ${CODE_SERVER_GIT_BASEURI:XXXXXX}
   base.uri: ${CODE_BASE_URI:XXXX}
   env.ref: ${CODE_SERVER_GIT_ENVREF:dev}
   env.value: ${CODE_SERVER_GIT_ENV:Development}
