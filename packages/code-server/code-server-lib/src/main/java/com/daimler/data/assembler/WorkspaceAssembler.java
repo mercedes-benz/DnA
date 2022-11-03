@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -54,6 +55,10 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 @Component
 public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceVO, CodeServerWorkspaceNsql> {
 
+
+	@Value("${codeServer.env.value}")
+	private String codeServerEnvValue;
+	
 	private UserInfoVO toUserInfoVO(UserInfo userInfo) {
 		UserInfoVO vo = new UserInfoVO();
 		if(userInfo!=null) {
@@ -93,7 +98,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		if(vo!=null) {
 			recipeDetails.setCpuCapacity(vo.getCpuCapacity().name());
 			recipeDetails.setCloudServiceProvider(vo.getCloudServiceProvider().name());
-			recipeDetails.setEnvironment(vo.getEnvironment().name());
+			recipeDetails.setEnvironment(codeServerEnvValue);
 			recipeDetails.setOperatingSystem(vo.getOperatingSystem().name());
 			recipeDetails.setRamSize(vo.getRamSize().name());
 			recipeDetails.setRecipeId(vo.getRecipeId().name());
