@@ -35,7 +35,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 public interface WorkspaceService {
 
-	InitializeWorkspaceResponseVO create(CodeServerWorkspaceVO vo, String password);
+//	InitializeWorkspaceResponseVO create(CodeServerWorkspaceVO vo, String password);
 
 	GenericMessage deleteById(String userId,String id);
 
@@ -52,5 +52,11 @@ public interface WorkspaceService {
 	Integer getCount(String userId);
 
 	GenericMessage undeployWorspace(String userId,String id);
+
+	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat, String password);
+
+	InitializeWorkspaceResponseVO initiateWorkspace(String wsid, String pat, String password);
+
+	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
 }
