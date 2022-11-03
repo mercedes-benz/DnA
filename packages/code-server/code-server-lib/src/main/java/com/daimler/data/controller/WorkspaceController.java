@@ -35,7 +35,6 @@ import javax.validation.Valid;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,8 +84,6 @@ public class WorkspaceController  implements CodeServerApi{
 	@Autowired
 	private UserStore userStore;
 	
-	@Value("${codeServer.env.value}")
-	private String codeServerEnvValue;
 
 	@Override
 	@ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
