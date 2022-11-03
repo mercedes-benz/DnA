@@ -425,7 +425,7 @@ const RunForecast = () => {
                     Run Name
                   </label>
                   <input
-                    {...register('runName', { pattern: /^[a-z0-9-]+$/ })}
+                    {...register('runName', { pattern: /^[a-z0-9-.]+$/ })}
                     type="text"
                     className="input-field"
                     id="runNameInput"
@@ -433,7 +433,7 @@ const RunForecast = () => {
                     placeholder="Type here"
                     autoComplete="off"
                   />
-                  <span className={classNames('error-message')}>{errors.runName?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
+                  <span className={classNames('error-message')}>{errors.runName?.type === 'pattern' && 'Run names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                 </div>
                 <div className={Styles.configurationContainer}>
                   <div
