@@ -420,14 +420,11 @@ definitions:
         $ref: "#/definitions/CodeServerRecipeDetailsVO"
       gitRepoName:
         type: string
-      gitOrgName:
-        type: string
       projectCreatedOn:
         type: string
         format: date
       required:
         -gitRepoName
-        -gitOrgName
         -projectName
         -recipeDetails
         
