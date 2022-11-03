@@ -33,7 +33,7 @@ public class CodeServerClient {
 	@Value("${codeServer.gitjob.manageuri}")
 	private String codeServerGitJobManageUri;
 	
-	@Value("${codeServer.git.pat}")
+	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
 	
 	@Value("${codeServer.base.uri}")
