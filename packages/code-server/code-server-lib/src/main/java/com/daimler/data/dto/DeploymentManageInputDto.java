@@ -1,7 +1,5 @@
 package com.daimler.data.dto;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -12,11 +10,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties
-public class WorkBenchActionRequestDto<T> implements Serializable{
-	
-	private static final long serialVersionUID = -5040393756376282259L;
-	
-	private String ref;
-	private T inputs;
+public class DeploymentManageInputDto {
 
+	private String environment;
+	private String wsid;
+	private String shortid;
+	private String action;
+	private String type;
+	private String repo;
+	private String branch;
+	private String target_env;
+	
 }
