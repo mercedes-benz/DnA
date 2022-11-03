@@ -5,6 +5,7 @@ WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 #Step-2
 FROM openjdk:17-jdk
+USER 1000
 ENV ARTIFACT_NAME=code-server-lib-1.0.0.jar
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
