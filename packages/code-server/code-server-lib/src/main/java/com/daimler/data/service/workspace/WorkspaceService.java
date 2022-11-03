@@ -55,7 +55,7 @@ public interface WorkspaceService {
 
 	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat, String password);
 
-	InitializeWorkspaceResponseVO initiateWorkspace(String wsid, String pat, String password);
+	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat, String password);
 
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
