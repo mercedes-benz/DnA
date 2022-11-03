@@ -71,6 +71,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Value("${codeServer.base.uri}")
 	private String codeServerBaseUri;
 	
+	@Value("${codeServer.git.orgname}")
+	private String gitOrgName;
+	
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
 	@Autowired
@@ -155,8 +158,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoName = entity.getData().getProjectDetails().getGitRepoName();
-			 String orgName = entity.getData().getProjectDetails().getGitOrgName();
-			 String repoNameWithOrg =  orgName + "/" + repoName;
+			 String repoNameWithOrg =  gitOrgName + "/" + repoName;
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 ownerWorkbenchCreateInputsDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
@@ -168,9 +170,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) || 
 						 	(createOwnerWSResponse.getErrors()!=null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						 	(createOwnerWSResponse.getWarnings()!=null && !createOwnerWSResponse.getWarnings().isEmpty())) {
-					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(orgName,repoName);
+					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
 					 	if(!deleteRepoStatus.is2xxSuccessful()) {
-					 		MessageDescription errMsg = new MessageDescription("Created git repository " + orgName+"/"+repoName + " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
+					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
 							errors.add(errMsg);
 							errors.addAll(createOwnerWSResponse.getErrors());
 							warnings.addAll(createOwnerWSResponse.getWarnings());
@@ -178,7 +180,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							responseVO.setWarnings(warnings);
 							return responseVO;
 					 	}else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " + orgName+"/"+repoName + " successfully and added collaborator(s). Failed to initialize workbench. Unable to delete repository, please delete repository manually and retry");
+							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName + " successfully and added collaborator(s). Failed to initialize workbench. Unable to delete repository, please delete repository manually and retry");
 							errors.add(errMsg);
 							errors.addAll(createOwnerWSResponse.getErrors());
 							warnings.addAll(createOwnerWSResponse.getWarnings());
@@ -218,10 +220,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			//initialize repo
 			String repoName = vo.getProjectDetails().getGitRepoName();
-			String orgName = vo.getProjectDetails().getGitOrgName();
-			HttpStatus createRepoStatus = gitClient.createRepo(orgName,repoName);
+			HttpStatus createRepoStatus = gitClient.createRepo(repoName);
 			if(!createRepoStatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Failed while initializing git repository " + orgName+"/"+repoName + " for codespace with status " + createRepoStatus.name() + " . Please verify inputs/permissions and retry.");
+				MessageDescription errMsg = new MessageDescription("Failed while initializing git repository " +repoName + " for codespace with status " + createRepoStatus.name() + " . Please verify inputs/permissions and retry.");
 				errors.add(errMsg);
 				responseVO.setErrors(errors);
 				return responseVO;
@@ -236,16 +237,16 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 gitUsers.addAll(collabsGitUserNames);
 			 }
 			 for(String gitUser: gitUsers) {
-				 HttpStatus addGitUser = gitClient.addUserToRepo(orgName,gitUser, repoName);
+				 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 				 if(!addGitUser.is2xxSuccessful()) {
-					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(orgName,repoName);
+					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
 					 	if(!deleteRepoStatus.is2xxSuccessful()) {
-					 		MessageDescription errMsg = new MessageDescription("Created git repository " + orgName+"/"+repoName + " successfully. Failed while adding " + owner.getGitUserName()  + "as collaborator. Deleted repository successfully, please retry");
+					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " + owner.getGitUserName()  + "as collaborator. Deleted repository successfully, please retry");
 							errors.add(errMsg);
 							responseVO.setErrors(errors);
 							return responseVO;
 					 	}else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " + orgName+"/"+repoName + " successfully. Failed while adding " + owner.getGitUserName()  + "as collaborator. Unable to delete repository, please delete repository manually and retry");
+							MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " + owner.getGitUserName()  + "as collaborator. Unable to delete repository, please delete repository manually and retry");
 							errors.add(errMsg);
 							responseVO.setErrors(errors);
 							return responseVO;
@@ -267,7 +268,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator(false);
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
-			 String repoNameWithOrg =  orgName + "/" + repoName;
+			 String repoNameWithOrg =  gitOrgName + "/" + repoName;
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
@@ -280,9 +281,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) || 
 						 	(createOwnerWSResponse.getErrors()!=null && !createOwnerWSResponse.getErrors().isEmpty()) ||
 						 	(createOwnerWSResponse.getWarnings()!=null && !createOwnerWSResponse.getWarnings().isEmpty())) {
-					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(orgName,repoName);
+					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
 					 	if(!deleteRepoStatus.is2xxSuccessful()) {
-					 		MessageDescription errMsg = new MessageDescription("Created git repository " + orgName+"/"+repoName + " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
+					 		MessageDescription errMsg = new MessageDescription("Created git repository " + repoName + " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository successfully, please retry");
 							errors.add(errMsg);
 							errors.addAll(createOwnerWSResponse.getErrors());
 							warnings.addAll(createOwnerWSResponse.getWarnings());
@@ -290,7 +291,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							responseVO.setWarnings(warnings);
 							return responseVO;
 					 	}else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " + orgName+"/"+repoName + " successfully and added collaborator(s). Failed to initialize workbench. Unable to delete repository, please delete repository manually and retry");
+							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName + " successfully and added collaborator(s). Failed to initialize workbench. Unable to delete repository, please delete repository manually and retry");
 							errors.add(errMsg);
 							errors.addAll(createOwnerWSResponse.getErrors());
 							warnings.addAll(createOwnerWSResponse.getWarnings());
