@@ -175,7 +175,43 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+    
+    put:
+      tags:
+        - "code-server"
+      summary: "Initialize Workbench for user."
+      description: "Initialize workbench for collab user"
+      operationId: "InitializeWorkspace"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "initializeCollabWSRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/InitializeCollabWorkspaceRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/InitializeWorkspaceResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+                
     delete:
       tags:
         - "code-server"
@@ -504,6 +540,19 @@ definitions:
         type: string
         description: "message"
   
+  InitializeCollabWorkspaceRequestVO:
+    type: object
+    properties:
+      password:
+        type: string
+        description: "Create Password, required to login to workbench of codeserver"
+      pat:
+        type: string
+        description: "Provide PAT to manage git repositories"
+      required:
+       - pat
+       - password     
+        
   InitializeWorkspaceRequestVO:
     type: object
     properties:
