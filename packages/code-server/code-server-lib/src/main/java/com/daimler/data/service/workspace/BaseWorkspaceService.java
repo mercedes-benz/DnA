@@ -140,15 +140,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Override
 	@Transactional
-	public InitializeWorkspaceResponseVO initiateWorkspace(String wsid, String pat, String password) {
+	public InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat, String password) {
 		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
 		responseVO.setData(null);
 		responseVO.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral("workspaceId", wsid);
-			
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);			
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -162,7 +161,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 ownerWorkbenchCreateInputsDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId()));
-			 ownerWorkbenchCreateInputsDto.setWsid(wsid);
+			 ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 
 			 GenericMessage createOwnerWSResponse = client.manageWorkBench(ownerWorkbenchCreateDto);
