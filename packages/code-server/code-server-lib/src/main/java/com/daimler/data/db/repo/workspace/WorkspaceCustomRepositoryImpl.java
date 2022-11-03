@@ -53,7 +53,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
 		CriteriaQuery<CodeServerWorkspaceNsql> getAll = cq.select(root);
 		Predicate p1 = cb.equal(cb.lower(
-				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceOwner"), cb.literal("id"))),
 				userId.toLowerCase());
 		Predicate p2 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
@@ -75,7 +75,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Root<CodeServerWorkspaceNsql> root = cq.from(CodeServerWorkspaceNsql.class);
 		CriteriaQuery<Long> getAll = cq.select(cb.count(root));
 		Predicate p1 = cb.equal(cb.lower(
-				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceOwner"), cb.literal("id"))),
 				userId.toLowerCase());
 		Predicate p2 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
@@ -88,6 +88,31 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
+	public CodeServerWorkspaceNsql findbyProjectName(String userId, String projectName) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))),
+				projectName.toLowerCase());
+		Predicate con2 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceOwner"), cb.literal("id"))),
+				userId.toLowerCase());
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con2, con3);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities.get(0);
+		else
+			return null;
+	}
+	
+	@Override
 	public CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
@@ -97,7 +122,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal(uniqueLiteral))),
 				value.toLowerCase());
 		Predicate con2 = cb.equal(cb.lower(
-				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceOwner"), cb.literal("id"))),
 				userId.toLowerCase());
 		Predicate con3 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
@@ -120,7 +145,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
 		Predicate con1 = cb.equal(root.get("id"),id);
 		Predicate con2 = cb.equal(cb.lower(
-				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("owner"))),
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceOwner"), cb.literal("id"))),
 				userId.toLowerCase());
 		Predicate con3 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
