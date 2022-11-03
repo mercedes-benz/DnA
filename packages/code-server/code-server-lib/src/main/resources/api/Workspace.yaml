@@ -424,7 +424,6 @@ definitions:
         type: string
         format: date
       required:
-        -gitRepoName
         -projectName
         -recipeDetails
         
