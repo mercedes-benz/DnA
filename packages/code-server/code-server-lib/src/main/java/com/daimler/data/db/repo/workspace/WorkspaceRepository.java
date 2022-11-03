@@ -28,9 +28,13 @@
 package com.daimler.data.db.repo.workspace;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 
 public interface WorkspaceRepository extends JpaRepository<CodeServerWorkspaceNsql, String> {
 
+	@Query(value = "SELECT nextval('workspaceid_seq')", nativeQuery = true)
+	Long getNextWorkspaceSeqId();
+	
 }

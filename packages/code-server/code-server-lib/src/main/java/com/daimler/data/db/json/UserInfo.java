@@ -25,23 +25,24 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.workspace;
+package com.daimler.data.db.json;
 
-import java.util.List;
+import java.io.Serializable;
 
-import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServerWorkspaceNsql, String> {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserInfo implements Serializable{
 
-	List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset);
-
-	Integer getCount(String userId);
-
-	CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value);
-
-	CodeServerWorkspaceNsql findById(String userId, String id);
-
-	CodeServerWorkspaceNsql findbyProjectName(String userId, String projectName);
-
+	private String id;
+	private String firstName;
+	private String lastName;
+	private String department;
+	private String email;
+	private String mobileNumber;
+	private String gitUserName;
 }

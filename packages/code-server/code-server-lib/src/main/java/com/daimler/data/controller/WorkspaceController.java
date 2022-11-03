@@ -33,6 +33,7 @@ import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -48,18 +49,21 @@ import com.daimler.data.api.workspace.CodeServerApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CloudServiceProviderEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.CpuCapacityEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.EnvironmentEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.OperatingSystemEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RamMetricsEnum;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO.RamSizeEnum;
+import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.util.ConstantsUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -98,34 +102,43 @@ public class WorkspaceController  implements CodeServerApi{
     public ResponseEntity<InitializeWorkspaceResponseVO> createWorkspace(@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user" ,required=true )  @Valid @RequestBody InitializeWorkspaceRequestVO codeServerRequestVO){
 		HttpStatus responseStatus = HttpStatus.OK;
 		CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+		
 		InitializeWorkspaceResponseVO responseMessage = new InitializeWorkspaceResponseVO();
 		String userId = currentUser != null ? currentUser.getId() : null;
 		CodeServerWorkspaceVO reqVO = codeServerRequestVO.getData();
-		reqVO.setOwner(userId);
-		reqVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
-		reqVO.setCpuCapacity(CpuCapacityEnum._1);
-		reqVO.setId(null);
-		reqVO.setIntiatedOn(null);
-		reqVO.setLastDeployedOn(null);
-		reqVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
-		reqVO.setRamMetrics(RamMetricsEnum.GB);
-		reqVO.setRamSize(RamSizeEnum._1);
-		reqVO.setEnvironment(EnvironmentEnum.valueOf(codeServerEnvValue.toUpperCase()));
 		String password = codeServerRequestVO.getPassword();
-		CodeServerWorkspaceVO existingVO = service.getByUniqueliteral(userId,"name", reqVO.getName());
-		if (existingVO != null && existingVO.getName() != null) {
+		String pat = codeServerRequestVO.getPat();
+		CodeServerWorkspaceVO existingVO = service.getByProjectName(userId,reqVO.getProjectDetails().getProjectName());
+		if (existingVO != null && existingVO.getWorkspaceId() != null) {
 			responseMessage.setData(existingVO);
 			responseMessage.setSuccess("EXISTING");
-			log.info("workspace {} already exists for User {} ",reqVO.getName(), userId);
+			log.info("workspace {} already exists for User {} ",reqVO.getProjectDetails().getProjectName() , userId);
 			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
 		}
+		currentUserVO.setGitUserName(reqVO.getGitUserName());
+		reqVO.setWorkspaceOwner(currentUserVO);
 		reqVO.setId(null);
-		responseMessage = service.create(reqVO,password);
+		reqVO.setWorkspaceId(null);
+		reqVO.setWorkspaceUrl("");
+		reqVO.setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+		reqVO.getProjectDetails().setIntDeploymentDetails(new CodeServerDeploymentDetailsVO());
+		reqVO.getProjectDetails().setProjectOwner(currentUserVO);
+		reqVO.getProjectDetails().setProdDeploymentDetails(new CodeServerDeploymentDetailsVO());
+		CodeServerRecipeDetailsVO newRecipeVO = reqVO.getProjectDetails().getRecipeDetails();
+		newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.DHC_CAAS);
+		newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
+		newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
+		newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
+		newRecipeVO.setRamSize(RamSizeEnum._1);
+		reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
+		responseMessage = service.createWorkspace(reqVO,pat,password);
 		if("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			responseStatus = HttpStatus.CREATED;
-			log.info("User {} created workspace {}", userId,reqVO.getName());
+			log.info("User {} created workspace {}", userId,reqVO.getProjectDetails().getProjectName());
 		}else {
-			log.info("Failed while creating workspace {} for user {}", reqVO.getName(), userId);
+			log.info("Failed while creating workspace {} for user {}", reqVO.getProjectDetails().getProjectName(), userId);
 			responseStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 		}
 		return new ResponseEntity<>(responseMessage, responseStatus);
@@ -150,7 +163,7 @@ public class WorkspaceController  implements CodeServerApi{
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			CodeServerWorkspaceVO vo = service.getById(userId,id);
-			if(vo==null || vo.getName()==null) {
+			if(vo==null || vo.getWorkspaceId()==null) {
 				log.debug("No workspace found, returning empty");
 				GenericMessage emptyResponse = new GenericMessage();
 				List<MessageDescription> warnings = new ArrayList<>();
@@ -159,13 +172,13 @@ public class WorkspaceController  implements CodeServerApi{
 				warnings.add(msg);
 				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			}
-			if(!(vo!=null && vo.getOwner()!=null && vo.getOwner().equalsIgnoreCase(userId))) {
+			if(!(vo!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage(
 						"Not authorized to delete workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot delete workspace, insufficient privileges. Workspace name: {}", userId,vo.getName());
+				log.info("User {} cannot delete workspace, insufficient privileges. Workspace name: {}", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 			if("DELETE_REQUESTED".equalsIgnoreCase(vo.getStatus())) {
@@ -174,11 +187,11 @@ public class WorkspaceController  implements CodeServerApi{
 						"Delete workspace already requested. Your workspace is getting deleted.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addWarnings(notAuthorizedMsg);
-				log.info("User {} already requested delete workspace {}", userId,vo.getName());
+				log.info("User {} already requested delete workspace {}", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 			}
 			GenericMessage responseMsg = service.deleteById(userId,id);
-			log.info("User {} deleted workspace {}", userId,vo.getName());
+			log.info("User {} deleted workspace {}", userId,vo.getWorkspaceId());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());
@@ -215,7 +228,7 @@ public class WorkspaceController  implements CodeServerApi{
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			CodeServerWorkspaceVO vo = service.getById(userId,id);
-			if(vo==null || vo.getName()==null) {
+			if(vo==null || vo.getWorkspaceId()==null) {
 				log.debug("No workspace found, returning empty");
 				GenericMessage emptyResponse = new GenericMessage();
 				List<MessageDescription> warnings = new ArrayList<>();
@@ -224,26 +237,26 @@ public class WorkspaceController  implements CodeServerApi{
 				warnings.add(msg);
 				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			}
-			if(!(vo!=null && vo.getOwner()!=null && vo.getOwner().equalsIgnoreCase(userId))) {
+			if(!(vo!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage(
 						"Not authorized to deploy project for workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,vo.getName());
+				log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
-			if(vo!=null && "default".equalsIgnoreCase(vo.getRecipeId().name())) {
+			if(vo!=null && "default".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name())) {
 				MessageDescription invalidTypeMsg = new MessageDescription();
 				invalidTypeMsg.setMessage(
 						"Invalid type, cannot deploy this type of recipe");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(invalidTypeMsg);
-				log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId, vo.getRecipeId().name(), vo.getName());
+				log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId, vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
 			GenericMessage responseMsg = service.deployWorspace(userId,id);
-			log.info("User {} deployed workspace {} project {}", userId,vo.getName(),vo.getRecipeId());
+			log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());
@@ -279,7 +292,7 @@ public class WorkspaceController  implements CodeServerApi{
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			CodeServerWorkspaceVO vo = service.getById(userId,id);
-			if(vo==null || vo.getName()==null) {
+			if(vo==null || vo.getWorkspaceId()==null) {
 				log.debug("No workspace found, returning empty");
 				GenericMessage emptyResponse = new GenericMessage();
 				List<MessageDescription> warnings = new ArrayList<>();
@@ -288,17 +301,17 @@ public class WorkspaceController  implements CodeServerApi{
 				warnings.add(msg);
 				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			}
-			if(!(vo!=null && vo.getName()!=null && vo.getOwner()!=null && vo.getOwner().equalsIgnoreCase(userId))) {
+			if(!(vo!=null && vo.getWorkspaceId()!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage(
 						"Not authorized to undeploy project for workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot undeploy project for workspace {}, insufficient privileges.", userId,vo.getName());
+				log.info("User {} cannot undeploy project for workspace {}, insufficient privileges.", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
 			GenericMessage responseMsg = service.undeployWorspace(userId,id);
-			log.info("User {} undeployed workspace {} project {}", userId,vo.getName(),vo.getRecipeId());
+			log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			log.error(e.getLocalizedMessage());
@@ -342,7 +355,7 @@ public class WorkspaceController  implements CodeServerApi{
     	final List<CodeServerWorkspaceVO> workspaces = service.getAll(userId,offset,limit);
     	WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
     	collection.setTotalCount(service.getCount(userId));
-		log.debug("Sending all algorithms");
+		log.debug("Sending all workspaces");
 		if (workspaces != null && workspaces.size() > 0) {
 			collection.setRecords(workspaces);
 			return new ResponseEntity<>(collection, HttpStatus.OK);
@@ -370,14 +383,14 @@ public class WorkspaceController  implements CodeServerApi{
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		CodeServerWorkspaceVO vo = service.getById(userId,id);
-		if (vo != null && vo.getName()!=null) {
-			if(!(vo.getOwner()!=null && vo.getOwner().equalsIgnoreCase(userId))) {
+		if (vo != null && vo.getWorkspaceId()!=null) {
+			if(!(vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage(
 						"Not authorized to view this workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot view other's workspace, insufficient privileges. Workspace name: {}", userId,vo.getName());
+				log.info("User {} cannot view other's workspace, insufficient privileges. Workspace name: {}", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			}
 			log.info("Returning workspace details");
@@ -406,14 +419,14 @@ public class WorkspaceController  implements CodeServerApi{
     	CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		CodeServerWorkspaceVO vo = service.getByUniqueliteral(userId,"name",name);
-		if (vo != null && vo.getName()!=null) {
-			if(!(vo.getOwner()!=null && vo.getOwner().equalsIgnoreCase(userId))) {
+		if (vo != null && vo.getWorkspaceId()!=null) {
+			if(!(vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage(
 						"Not authorized to view this workspace. User does not have privileges.");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(notAuthorizedMsg);
-				log.info("User {} cannot view other's workspace, insufficient privileges. Workspace name: {}", userId,vo.getName());
+				log.info("User {} cannot view other's workspace, insufficient privileges. Workspace name: {}", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			}
 			log.info("Returning workspace details");
