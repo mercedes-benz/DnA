@@ -35,6 +35,6 @@ public class ConstantsUtility {
 	public static final String GRADLE = "gradle";
 	public static final String COLLABREQUESTEDSTATE = "COLLABORATION_REQUESTED";
 	public static final String CREATEREQUESTEDSTATE = "CREATE_REQUESTED";
-	public static final String WORKSPACEPREFIX = "WS";
+	public static final String WORKSPACEPREFIX = "ws";
 	public static final String DEPLOYACTION = "deploy";
 }
