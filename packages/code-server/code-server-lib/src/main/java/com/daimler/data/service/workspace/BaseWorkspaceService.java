@@ -154,7 +154,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			 ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			 ownerWorkbenchCreateInputsDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-			 ownerWorkbenchCreateInputsDto.setIsCollaborator(true);
+			 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoName = entity.getData().getProjectDetails().getGitRepoName();
@@ -265,7 +265,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
 			 ownerWorkbenchCreateInputsDto.setAction(ConstantsUtility.CREATEACTION);
 			 ownerWorkbenchCreateInputsDto.setEnvironment(ownerEntity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
-			 ownerWorkbenchCreateInputsDto.setIsCollaborator(false);
+			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
 			 ownerWorkbenchCreateInputsDto.setPassword(password);
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg =  gitOrgName + "/" + repoName;

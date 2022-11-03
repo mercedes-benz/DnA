@@ -20,6 +20,6 @@ public class WorkbenchManageInputDto {
 	private String repo;
 	private String password;
 	private String pat;
-	private Boolean isCollaborator;
+	private String isCollaborator;
 	
 }
