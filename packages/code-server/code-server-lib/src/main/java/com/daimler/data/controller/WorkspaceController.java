@@ -133,7 +133,7 @@ public class WorkspaceController  implements CodeServerApi{
 		String password = initializeCollabWSRequestVO.getPassword();
 		String pat = initializeCollabWSRequestVO.getPat();
 		
-		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(id, pat, password);
+		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(collabUserVO, pat, password);
 		return new ResponseEntity<>(responseData, responseStatus);
 	}
     
