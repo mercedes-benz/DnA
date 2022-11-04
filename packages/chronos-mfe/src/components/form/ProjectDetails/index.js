@@ -347,7 +347,7 @@ const ProjectDetails = () => {
         </div>
         </div>
       </div>
-      <div className={Styles.content}>
+      <div className={Styles.content + ' ' + Styles.hide}>
         <h3 id="productName">API Key</h3>
         <div className={Styles.firstPanel}>
           <div className={classNames(Styles.flexLayout)}>
