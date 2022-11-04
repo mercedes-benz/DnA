@@ -33,17 +33,17 @@
         > a {
             position: relative;
             padding: 10px 50px 12px 40px;
-            &::before {
-                font-family: "dna-icons";
-                content: "\e949";
-                position: absolute;
-                right: 20px;
-                font-size: var(--font-size-icon-highlight);
-            }
+            // &::before {
+            //     font-family: "dna-icons";
+            //     content: "\e949";
+            //     position: absolute;
+            //     right: 20px;
+            //     font-size: var(--font-size-icon-highlight);
+            // }
         }
-        a::before {
-            color: #00adef;
-        }
+        // a::before {
+        //     color: #00adef;
+        // }
     }
 
     .btnContainer {
