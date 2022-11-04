@@ -22,6 +22,12 @@ export interface ITeamMemberListItemProps {
   hidePosition?: boolean;
   showInfoStacked?: boolean;
   hideContextMenu?: boolean;
+  division?: string;
+  department?: string;
+  relation?: string;
+  companyName?: string;
+  editOptionText?: string;
+  deleteOptionText?: string;
 }
 
 export interface ITeamMemberListItemState {
@@ -107,12 +113,18 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
               <div className={Styles.memberDetails}>
                 <div>
                   {teamMember?.firstName} {teamMember?.lastName} <br />
-                  {teamMember?.department}
+                  {this.props.division ? (this.props.division+' / '+this.props.department) : teamMember?.department}
                 </div>
                 <div>
                   <a href={`mailto:${teamMember.email}`}>{teamMember.email}</a>
                   {this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div>}
                 </div>
+                { this.props?.relation && 
+                  <div className={Styles.relationSection}>
+                    {this.props?.relation}
+                  </div>
+                }
+                
                 {!this.props?.showInfoStacked && <div>{teamMember.mobileNumber}</div>}
                 {Envs.ENABLE_INTERNAL_USER_INFO && !this.props?.showInfoStacked ? (
                   <div>
@@ -131,10 +143,10 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                 <div className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}>
                   <ul>
                     <li>
-                      <span onClick={this.onEdit}>Edit team member</span>
+                      <span onClick={this.onEdit}>{this.props?.editOptionText ? this.props?.editOptionText : 'Edit team member'}</span>
                     </li>
                     <li>
-                      <span onClick={this.onDelete}>Delete selected entry</span>
+                      <span onClick={this.onDelete}>{this.props?.deleteOptionText ? this.props?.deleteOptionText : 'Delete selected entry'}</span>
                     </li>
                   </ul>
                 </div>
@@ -179,11 +191,19 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
                       <>
                         {teamMember.firstName} {teamMember.lastName}
                         <br />
-                        {teamMember.email}
+                        {this.props.companyName ? this.props.companyName : teamMember.email}
+                        {/* {teamMember.email} */}
                       </>
                     )}
                   </div>
                 )}
+                { this.props?.relation && <div></div>}
+                { this.props?.relation && 
+                  <div className={Styles.relationSection}>
+                    {this.props?.relation}
+                  </div>
+                }
+                { this.props?.relation && <div></div>}
               </div>
             </div>
             <span className={Styles.contextMenu} onClick={this.toggleContextMenu}>
@@ -192,10 +212,10 @@ export default class TeamMemberListItem extends React.Component<ITeamMemberListI
             <div className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}>
               <ul>
                 <li>
-                  <span onClick={this.onEdit}>Edit team member</span>
+                  <span onClick={this.onEdit}>{this.props?.editOptionText ? this.props?.editOptionText : 'Edit team member'}</span>
                 </li>
                 <li>
-                  <span onClick={this.onDelete}>Delete selected entry</span>
+                  <span onClick={this.onDelete}>{this.props?.deleteOptionText ? this.props?.deleteOptionText : 'Delete selected entry'}</span>
                 </li>
               </ul>
             </div>
