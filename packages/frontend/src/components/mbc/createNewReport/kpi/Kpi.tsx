@@ -219,7 +219,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
               onChange={this.handleChange}
               onBlur={this.validateKpiModal}
             />
-            {this.state.duplicateKpiAdded ? <span className={'error-message'}>KPI already exist</span> : ''}
+            {/* {this.state.duplicateKpiAdded ? <span className={'error-message'}>KPI already exist</span> : ''} */}
             <div className="btnConatiner">
               <button
                 className="btn btn-primary"
