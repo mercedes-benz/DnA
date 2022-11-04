@@ -71,6 +71,9 @@ export interface IDataAndFunctionsState {
   showDeleteModal: boolean;
   isDataWarehouseSection: boolean;
   dataSources: IDataSources[];
+
+  isSingleDataSourceContextMenuOpened: boolean;
+  isDataWarehouseContextMenuOpened: boolean;
 }
 export interface IDataFunction {
   carLaPlatform: string;
@@ -133,6 +136,8 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       showDeleteModal: false,
       isDataWarehouseSection: false,
       dataSources: [],
+      isDataWarehouseContextMenuOpened: false,
+      isSingleDataSourceContextMenuOpened: false
     };
   }
 
@@ -838,6 +843,18 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //   };
   // };
 
+  protected setDataWarehouseContextMenuStatus = (status: boolean) => {
+    this.setState({
+      isDataWarehouseContextMenuOpened: status
+    })
+  }
+
+  protected setSingleDataSourceContextMenuStatus = (status: boolean) => {
+    this.setState({
+      isSingleDataSourceContextMenuOpened: status
+    })
+  }
+
   public render() {
     const requiredError = '*Missing entry';
 
@@ -962,6 +979,9 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
                 onDelete={this.onDeleteDatasource}
                 showDataSourceModal={this.showDataSourceModal}
                 dataAndFunctionTabError={this.state.dataAndFunctionTabError}
+                isSingleDataSourceContextMenuOpened = {this.state.isSingleDataSourceContextMenuOpened}
+                setDataWarehouseContextMenuStatus = {this.setDataWarehouseContextMenuStatus}
+                setSingleDataSourceContextMenuStatus = {this.setSingleDataSourceContextMenuStatus}
               />
               <SingleDataSourceList
                 dataSources={this.props.dataSources}
@@ -972,6 +992,9 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
                 onEdit={this.onEditSingleDataSourceOpen}
                 onDelete={this.onDeleteDatasource}
                 showDataSourceModal={this.showDataSourceModal}
+                isDataWarehouseContextMenuOpened = {this.state.isDataWarehouseContextMenuOpened}
+                setSingleDataSourceContextMenuStatus = {this.setSingleDataSourceContextMenuStatus}
+                setDataWarehouseContextMenuStatus = {this.setDataWarehouseContextMenuStatus}
               />
             </div>
           </div>
