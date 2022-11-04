@@ -1,4 +1,4 @@
-import classNames from 'classnames';
+import cn from 'classnames';
 import * as React from 'react';
 import Styles from './Customer.scss';
 import Modal from 'components/formElements/modal/Modal';
@@ -15,6 +15,11 @@ import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModa
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import TextBox from 'components/mbc/shared/textBox/TextBox';
 import TeamSearch from '../../teamSearch/TeamSearch';
+// import { IconAvatar } from 'components/icons/IconAvatar';
+import TeamMemberListItem from 'components/mbc/addTeamMember/teamMemberListItem/TeamMemberListItem';
+import IconAvatarNew from 'components/icons/IconAvatarNew';
+
+const classNames = cn.bind(Styles);
 
 export interface ICustomerProps {
   customer: ICustomers;
@@ -54,6 +59,7 @@ export interface ICustomerState {
   customerType: string;
 }
 export default class Customer extends React.Component<ICustomerProps, ICustomerState> {
+  
   public static getDerivedStateFromProps(props: ICustomerProps, state: ICustomerState) {
     return {
       customer: props.customer,
@@ -188,7 +194,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       searchTermForName: '',
       nameToDisplay: '',
       processOwnerToDisplay: '',
-      customerType: 'Internal'
+      customerType: 'Internal',
     };
     this.onUsRiskChange = this.onUsRiskChange.bind(this);
   }
@@ -230,6 +236,12 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       },
     }));
   }
+
+  public componentWillMount() {
+    
+  }
+
+  
 
 
   public render() {
@@ -376,20 +388,20 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    this.state.internalCustomerInfo.division.id === '0' ? 'error' : '',
+                    // this.state.internalCustomerInfo.division.id === '0' ? 'error' : '',
                   )}
                 >
                   <label id="divisionLabel" htmlFor="divisionField" className="input-label">
-                    Customer Division<sup>*</sup>
+                    Customer Division
                   </label>
                   <div className="custom-select">
                     <select
                       id="divisionField"
                       name="division"
-                      required={true}
-                      required-error={requiredError}
+                      // required={true}
+                      // required-error={requiredError}
                       onChange={this.onDivisionChange}
-                      value={this.state.internalCustomerInfo.division.id}
+                      value={this.state.internalCustomerInfo?.division?.id}
                     >
                       <option id="divisionOption" value={''}>
                         Choose
@@ -401,9 +413,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                       ))}
                     </select>
                   </div>
-                  <span className={classNames('error-message', this.state.internalCustomerInfo.division.id === '0' ? '' : 'hide')}>
+                  {/* <span className={classNames('error-message', this.state.internalCustomerInfo.division.id === '0' ? '' : 'hide')}>
                     *Missing entry
-                  </span>
+                  </span> */}
                 </div>
               </div>
             </div>            
@@ -628,7 +640,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             </div>
             ): ''}
             
-            {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''}
+            {/* {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''} */}
             <div className="btnConatiner">
               { this.state.customerType === 'Internal'?
                 <button
@@ -678,202 +690,85 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       </div>
     );
 
+    
+
+    const internalCustomersList = this.state.customer.internalCustomers
+      ? this.state.customer.internalCustomers?.map((member: any, index: number) => {
+          return (
+            <TeamMemberListItem
+              key={'internal'+index}
+              itemIndex={index}
+              teamMember={member.name}
+              showMoveUp={false}
+              showMoveDown={false}
+              division={member?.division?.name}
+              department={member.department}
+              relation={member.customerRelation}
+              editOptionText={'Edit Customer'}
+              deleteOptionText={'Delete Customer'}
+              onMoveUp={() => {}}
+              onMoveDown={() => {}}
+              onEdit={() => this.onInternalEditCustomerOpen(member)}
+              onDelete={() => this.onDeleteInternalCustomer(member)}
+            />
+          );
+        })
+      : [];
+
+    const externalCustomersList = this.state.customer.externalCustomers
+      ? this.state.customer.externalCustomers?.map((member: any, index: number) => {
+          return (
+            <TeamMemberListItem
+              key={'external-'+index}
+              itemIndex={index}
+              teamMember={member.name}
+              showMoveUp={false}
+              showMoveDown={false}
+              relation={member.customerRelation}
+              companyName={member.companyName}
+              editOptionText={'Edit Customer'}
+              deleteOptionText={'Delete Customer'}
+              onMoveUp={() => {}}
+              onMoveDown={() => {}}
+              onEdit={() => this.onExternalEditCustomerOpen(member)}
+              onDelete={() => this.onDeleteExternalCustomer(member)}
+            />
+          );
+        })
+      : [];  
+
     return (
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>Customer</h3>
+            <h3>Please add or edit the report's customers</h3>
             <div className={classNames(Styles.formWrapper)}>
               <div className={classNames('expanstion-table', Styles.listOfCustomerTable)}>
                 <div className={Styles.customerGrp}>
                   <div className={Styles.customerGrpList}>
                     <div className={Styles.customerGrpListItem}>
-                      {this.state.customer.internalCustomers?.length ? (
-                        <div className={Styles.customerCaption}>
-                          <div className={Styles.customerTile}>
-                            <div className={Styles.customerTitleCol}>
-                              <label>Customer No.</label>
-                            </div>
-                            <div className={Styles.customerTitleCol}>
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort === 'hierarchy' ? this.state.currentSortOrder : '')
-                                }
-                                onClick={this.sortByColumn('hierarchy', this.state.nextSortOrder)}
-                              >
-                                <i className="icon sort" />
-                                Name
-                              </label>
-                            </div>
-                            {/* <div className={Styles.customerTitleCol}>
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort === 'ressort' ? this.state.currentSortOrder : '')
-                                }
-                                onClick={this.sortByColumn('ressort', this.state.nextSortOrder)}
-                              >
-                                <i className="icon sort" />
-                                MB Legal Entity
-                              </label>
-                            </div> */}
-                            <div className={Styles.customerTitleCol}>
-                              <label
-                                className={
-                                  'sortable-column-header ' +
-                                  (this.state.currentColumnToSort === 'department' ? this.state.currentSortOrder : '')
-                                }
-                                onClick={this.sortByColumn('department', this.state.nextSortOrder)}
-                              >
-                                <i className="icon sort" />
-                                Customer Relation
-                              </label>
-                            </div>
-                            <div className={Styles.customerTitleCol}>Action</div>
-                          </div>
-                        </div>
-                      ) : (
-                        ''
-                      )}
-                      {this.state.customer.internalCustomers?.map((customer, index) => {
-                        return (
-                          <div
-                            key={customer.customerRelation + index}
-                            className={'expansion-panel-group airflowexpansionPanel ' + Styles.customerGrpListItemPanel}
-                          >
-                            <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
-                              <span className="animation-wrapper"></span>
-                              <input type="checkbox" id={'internal'+index + '1'} defaultChecked={index === 0} />
-                              <label
-                                className={Styles.expansionLabel + ' expansion-panel-label '}
-                                htmlFor={'internal'+index + '1'}
-                              >
-                                <div className={Styles.customerTile}>
-                                  <div className={Styles.customerTitleCol}>{`Internal Customer ${index + 1}`}</div>
-                                  <div className={Styles.customerTitleCol}>{(customer.name.firstName ? customer.name.firstName : '') +' '+ (customer.name.lastName ? customer.name.lastName : '')}</div>
-                                  {/* <div className={Styles.customerTitleCol}>{customer.legalEntity || '-'}</div> */}
-                                  <div className={Styles.customerTitleCol}>{customer.department || '-'}</div>
-                                  <div className={Styles.customerTitleCol}></div>
-                                </div>
-                                <i tooltip-data="Expand" className="icon down-up-flip"></i>
-                              </label>
-                              <div className="expansion-panel-content">
-                                <div className={Styles.customerCollContent}>
-                                  <div className={Styles.customerDesc}>
-                                    <pre className={Styles.commentPre}>{customer.comment}</pre>
-                                  </div>
-                                  <div className={Styles.customerBtnGrp}>
-                                    <button
-                                      className={'btn btn-primary'}
-                                      type="button"
-                                      onClick={() => this.onInternalEditCustomerOpen(customer)}
-                                    >
-                                      <i className="icon mbc-icon edit"></i>
-                                      <span>Edit Customer </span>
-                                    </button>
-                                    <button
-                                      className={'btn btn-primary'}
-                                      type="button"
-                                      onClick={() => this.onDeleteInternalCustomer(customer)}
-                                    >
-                                      <i className="icon delete"></i>
-                                      <span>Delete Customer </span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
 
-
-
-                      {this.state.customer.externalCustomers?.map((customer, index) => {
-                        return (
-                          <div
-                            key={customer.customerRelation + index}
-                            className={'expansion-panel-group airflowexpansionPanel ' + Styles.customerGrpListItemPanel}
-                          >
-                            <div className={classNames('expansion-panel', index === 0 ? 'open' : '')}>
-                              <span className="animation-wrapper"></span>
-                              <input type="checkbox" id={'external'+index + '1'} defaultChecked={index === 0} />
-                              <label
-                                className={Styles.expansionLabel + ' expansion-panel-label '}
-                                htmlFor={'external'+index + '1'}
-                              >
-                                <div className={Styles.customerTile}>
-                                  <div className={Styles.customerTitleCol}>{`External Customer ${index + 1}`}</div>
-                                  <div className={Styles.customerTitleCol}>{(customer.name.firstName ? customer.name.firstName : '') +' '+ (customer.name.lastName ? customer.name.lastName : '')}</div>
-                                  {/* <div className={Styles.customerTitleCol}>{customer.companyName || '-'}</div> */}
-                                  <div className={Styles.customerTitleCol}>{customer.customerRelation || '-'}</div>
-                                  <div className={Styles.customerTitleCol}></div>
-                                </div>
-                                <i tooltip-data="Expand" className="icon down-up-flip"></i>
-                              </label>
-                              <div className="expansion-panel-content">
-                                <div className={Styles.customerCollContent}>
-                                  <div className={Styles.customerDesc}>
-                                    <pre className={Styles.commentPre}>{customer.comment}</pre>
-                                  </div>
-                                  <div className={Styles.customerBtnGrp}>
-                                    <button
-                                      className={'btn btn-primary'}
-                                      type="button"
-                                      onClick={() => this.onExternalEditCustomerOpen(customer)}
-                                    >
-                                      <i className="icon mbc-icon edit"></i>
-                                      <span>Edit Customer </span>
-                                    </button>
-                                    <button
-                                      className={'btn btn-primary'}
-                                      type="button"
-                                      onClick={() => this.onDeleteExternalCustomer(customer)}
-                                    >
-                                      <i className="icon delete"></i>
-                                      <span>Delete Customer </span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                      <div className={Styles.addTeamMemberWrapper}>
+                        <IconAvatarNew className={Styles.avatarIcon} />
+                        <button id="AddTeamMemberBtn" onClick={this.addCustomerModel}>
+                          <i className="icon mbc-icon plus" />
+                          <span>Add Customer</span>
+                        </button>
+                        {(!this.state.customer.internalCustomers?.length && !this.state.customer.externalCustomers?.length) && (
+                          <div className={classNames(this.state.customerTabError ? '' : 'hide')}>
+                            <span className="error-message">{this.state.customerTabError}</span>
                           </div>
-                        );
-                      })}
+                        )}
+                      </div>                     
+
+                      {internalCustomersList.length ? internalCustomersList : ''}
+
+                      {externalCustomersList.length ? externalCustomersList : ''}
+                      
                     </div>
                   </div>
                 </div>
               </div>
-              <div className={Styles.addTeamMemberWrapper}>
-                <button id="AddTeamMemberBtn" onClick={this.addCustomerModel}>
-                  <i className="icon mbc-icon plus" />
-                  <span>Add Customer</span>
-                </button>
-                {(!this.state.customer.internalCustomers?.length && !this.state.customer.externalCustomers?.length) && (
-                  <div className={classNames(this.state.customerTabError ? '' : 'hide')}>
-                    <span className="error-message">{this.state.customerTabError}</span>
-                  </div>
-                )}
-              </div>
-              <br />
-              {/* <div className={Styles.commentHeading}>
-                Process Owner {this.state.customer.processOwners?.length == 1 ? '' : ' (if applicable)'}
-              </div>
-              <div className={Styles.productOwnerList}>
-                {developerTeamMembersList?.length ? developerTeamMembersList : ''}
-              </div> */}
-              {/* {this.state.customer.processOwners?.length === 1 ? (
-                ''
-              ) : (
-                <div className={Styles.addTeamMemberWrapper}>
-                  <IconAvatarNew className={Styles.avatarIcon} />
-                  <button id="AddTeamMemberBtn" onClick={this.addDeveloperMember}>
-                    <i className="icon mbc-icon plus" />
-                    <span>Add Process Owner</span>
-                  </button>
-                </div>
-              )} */}
             </div>
           </div>
         </div>
@@ -919,6 +814,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       </React.Fragment>
     );
   }
+
   public resetChanges = () => {
     if (this.props.customer) {
       const customer = this.props.customer;
@@ -1474,7 +1370,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       comment,
       name,
       customerRelation,
-      division,
+      division : division.id ? division : null,
       accessToSensibleData,
       processOwner
     });
@@ -1764,7 +1660,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           comment,
           name,
           customerRelation,
-          division,
+          division: division ? division.id : null,
           accessToSensibleData,
           processOwner,
         }; // modify copied array
@@ -1941,10 +1837,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       errors.customerRelation = errorMissingEntry;
       formValid = false;
     }
-    if (this.state.internalCustomerInfo.division.id === '0') {
-      errors.division = errorMissingEntry;
-      formValid = false;
-    }
+    // if (this.state.internalCustomerInfo.division.id === '0') {
+    //   errors.division = errorMissingEntry;
+    //   formValid = false;
+    // }
     // if (!this.state.customerInfo.usRisk) {
     //   errors.usRisk = errorMissingEntry;
     //   formValid = false;
