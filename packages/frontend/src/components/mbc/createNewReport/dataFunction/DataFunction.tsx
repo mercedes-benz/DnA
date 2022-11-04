@@ -639,10 +639,10 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         formValid = false;
       }
 
-      if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
-        errors.commonFunctions = errorMissingEntry;
-        formValid = false;
-      }
+      // if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
+      //   errors.commonFunctions = errorMissingEntry;
+      //   formValid = false;
+      // }
 
       if (
         !this.state.dataWarehouseInUseInfo.dataClassification ||
@@ -652,21 +652,21 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         formValid = false;
       }
 
-      if (
-        !this.state.dataWarehouseInUseInfo.connectionType ||
-        this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
-      ) {
-        errors.connectionType = errorMissingEntry;
-        formValid = false;
-      }
+      // if (
+      //   !this.state.dataWarehouseInUseInfo.connectionType ||
+      //   this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
+      // ) {
+      //   errors.connectionType = errorMissingEntry;
+      //   formValid = false;
+      // }
     } else {
-      if (
-        !this.state.singleDataSourceInfo.connectionType ||
-        this.state.singleDataSourceInfo.connectionType === 'Choose'
-      ) {
-        singleDataSourceErrors.connectionType = errorMissingEntry;
-        formValid = false;
-      }
+      // if (
+      //   !this.state.singleDataSourceInfo.connectionType ||
+      //   this.state.singleDataSourceInfo.connectionType === 'Choose'
+      // ) {
+      //   singleDataSourceErrors.connectionType = errorMissingEntry;
+      //   formValid = false;
+      // }
       if (
         !this.state.singleDataSourceInfo.dataClassification ||
         this.state.singleDataSourceInfo.dataClassification === 'Choose'
