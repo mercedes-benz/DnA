@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import cn from 'classnames';
 import Styles from './DataFunction.scss';
 import { IDataSourceMaster, IDataWarehouseInUse, ISingleDataSources } from 'globals/types';
@@ -15,6 +15,9 @@ interface SingleDataSourceProps {
   onDelete: (isDatawarehouse: boolean, index: number) => void;
   dataWarehouseList: IDataWarehouseInUse[];
   showDataSourceModal: () => void;
+  isDataWarehouseContextMenuOpened: boolean;
+  setSingleDataSourceContextMenuStatus: (status: boolean) => void;
+  setDataWarehouseContextMenuStatus: (status: boolean) => void;
 }
 
 export const SingleDataSourceList = ({
@@ -26,19 +29,75 @@ export const SingleDataSourceList = ({
   onDelete,
   dataWarehouseList,
   showDataSourceModal,
+  isDataWarehouseContextMenuOpened,
+  setSingleDataSourceContextMenuStatus,
+  setDataWarehouseContextMenuStatus
 }: SingleDataSourceProps) => {
-
+  let isTouch = false;
+  const inputRef = useRef<HTMLTableRowElement>(null);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetRight, setContextMenuOffsetRight] = useState(0);
+  const [selectedContextMenu, setSelectedContextMenu] = useState('');
 
-  const toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
+  useEffect(() => {
+    document.addEventListener('touchend', handleContextMenuOutside, true);
+    document.addEventListener('clicked', handleContextMenuOutside, true);
+  });
+
+  const toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>, index: number) => {
     e.stopPropagation();
-    const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
-    const relativeParentTable: ClientRect = document.querySelector('.singleDataSource').getBoundingClientRect();
-    setContextMenuOffsetTop(elemRect.top - (relativeParentTable.top + 10));
+    setDataWarehouseContextMenuStatus(false);
+    // const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
+    // const relativeParentTable: ClientRect = document.querySelector('table.singleDataSource').getBoundingClientRect();
+    const contextMenuStatus = showContextMenu;
+    setSingleDataSourceContextMenuStatus(true);
+    // setContextMenuOffsetTop(elemRect.top - (relativeParentTable.top + 10));
+    setContextMenuOffsetTop(-9);
     setContextMenuOffsetRight(10);
-    setShowContextMenu(!showContextMenu);
+    setShowContextMenu(!contextMenuStatus);
+    setSelectedContextMenu('#singlesource-'+index);
+    
+  };
+
+  const handleContextMenuOutside = (event: MouseEvent | TouchEvent) => {
+    if (event.type === 'touchend') {
+      isTouch = true;
+    }
+
+    // Click event has been simulated by touchscreen browser.
+    if (event.type === 'click' && isTouch === true) {
+      return;
+    }
+
+    const target = event.target as Element;
+    const elemClasses = target.classList;
+    const listRowElement = inputRef;
+    const contextMenuWrapper = listRowElement.current.querySelector('.contextMenuWrapper');
+    if (
+      listRowElement &&
+      !target.classList.contains('trigger') &&
+      !target.classList.contains('context') &&
+      !target.classList.contains('contextList') &&
+      !target.classList.contains('contextListItem') &&
+      contextMenuWrapper !== null &&
+      contextMenuWrapper.contains(target) === false &&
+      (showContextMenu)
+    ) {      
+        setShowContextMenu(false)
+    } else if (listRowElement.current.contains(target) === false) {
+        setShowContextMenu(false);
+    }
+
+    if (
+      (showContextMenu) &&
+      (elemClasses.contains('contextList') ||
+        elemClasses.contains('contextListItem') ||
+        elemClasses.contains('contextMenuWrapper') ||
+        elemClasses.contains('locationsText'))
+    ) {
+      event.stopPropagation();
+    }
   };
 
   return list?.length ? (
@@ -109,7 +168,7 @@ export const SingleDataSourceList = ({
                     Styles.reportRow,
                     showContextMenu ? Styles.contextOpened : null,
                   )}
-                  // ref={this.listRow}
+                  ref={inputRef}
                   // onClick={this.goToSummary}
                 >
                   <td className={'wrap-text ' + classNames(Styles.singleDataSourceColWidth)}>
@@ -122,30 +181,32 @@ export const SingleDataSourceList = ({
                   <td>
                     <div
                       className={classNames(
-                        Styles.contextMenu,
-                        showContextMenu ? Styles.open : '',
+                        Styles.singleContextMenu,
+                        showContextMenu && selectedContextMenu == '#singlesource-'+index? Styles.open : '',
                       )}
                     >
-                      <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
+                      <span onClick={(e: React.FormEvent<HTMLSpanElement>) => toggleContextMenu(e, index)} className={classNames('trigger', Styles.contextMenuTrigger)}>
                         <i className="icon mbc-icon listItem context" />
                       </span>
-                      <div
-                        style={{
-                          top: contextMenuOffsetTop + 'px',
-                          right: contextMenuOffsetRight + 'px',
-                        }}
-                        className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
-                      >
-                        <ul className="contextList">                  
-                          <li className="contextListItem">
-                            <span onClick={() => onEdit(data, index)}>Edit KPI</span>
-                          </li>
-                        
-                          <li className="contextListItem">
-                            <span onClick={() => onDelete(true, index)}>Delete KPI</span>
-                          </li>
-                        </ul>
-                      </div>
+                      {selectedContextMenu == '#singlesource-'+index && !isDataWarehouseContextMenuOpened ?
+                        <div
+                          style={{
+                            top: contextMenuOffsetTop + 'px',
+                            right: contextMenuOffsetRight + 'px',
+                          }}
+                          className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
+                        >
+                          <ul className="contextList">                  
+                            <li className="contextListItem">
+                              <span onClick={() => onEdit(data, index)}>Edit KPI</span>
+                            </li>
+                          
+                            <li className="contextListItem">
+                              <span onClick={() => onDelete(true, index)}>Delete KPI</span>
+                            </li>
+                          </ul>
+                        </div>
+                      :''}
                     </div>
                   </td>
                 </tr>
