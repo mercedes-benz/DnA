@@ -388,20 +388,20 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                 <div
                   className={classNames(
                     'input-field-group include-error',
-                    this.state.internalCustomerInfo.division.id === '0' ? 'error' : '',
+                    // this.state.internalCustomerInfo.division.id === '0' ? 'error' : '',
                   )}
                 >
                   <label id="divisionLabel" htmlFor="divisionField" className="input-label">
-                    Customer Division<sup>*</sup>
+                    Customer Division
                   </label>
                   <div className="custom-select">
                     <select
                       id="divisionField"
                       name="division"
-                      required={true}
-                      required-error={requiredError}
+                      // required={true}
+                      // required-error={requiredError}
                       onChange={this.onDivisionChange}
-                      value={this.state.internalCustomerInfo.division.id}
+                      value={this.state.internalCustomerInfo?.division?.id}
                     >
                       <option id="divisionOption" value={''}>
                         Choose
@@ -413,9 +413,9 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                       ))}
                     </select>
                   </div>
-                  <span className={classNames('error-message', this.state.internalCustomerInfo.division.id === '0' ? '' : 'hide')}>
+                  {/* <span className={classNames('error-message', this.state.internalCustomerInfo.division.id === '0' ? '' : 'hide')}>
                     *Missing entry
-                  </span>
+                  </span> */}
                 </div>
               </div>
             </div>            
@@ -640,7 +640,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             </div>
             ): ''}
             
-            {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''}
+            {/* {this.state.duplicateCustomerAdded ? <span className={'error-message'}>Customer already exist</span> : ''} */}
             <div className="btnConatiner">
               { this.state.customerType === 'Internal'?
                 <button
@@ -1370,7 +1370,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       comment,
       name,
       customerRelation,
-      division,
+      division : division.id ? division : null,
       accessToSensibleData,
       processOwner
     });
@@ -1660,7 +1660,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           comment,
           name,
           customerRelation,
-          division,
+          division: division ? division.id : null,
           accessToSensibleData,
           processOwner,
         }; // modify copied array
@@ -1837,10 +1837,10 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
       errors.customerRelation = errorMissingEntry;
       formValid = false;
     }
-    if (this.state.internalCustomerInfo.division.id === '0') {
-      errors.division = errorMissingEntry;
-      formValid = false;
-    }
+    // if (this.state.internalCustomerInfo.division.id === '0') {
+    //   errors.division = errorMissingEntry;
+    //   formValid = false;
+    // }
     // if (!this.state.customerInfo.usRisk) {
     //   errors.usRisk = errorMissingEntry;
     //   formValid = false;
