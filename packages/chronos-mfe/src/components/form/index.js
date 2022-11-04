@@ -83,7 +83,7 @@ const ForecastForm = ({ user }) => {
                     Run Forecast
                   </a>
                 </li>
-                <li className={'tab valid'}>
+                <li className={'tab'}>
                   <a
                     href="#tab-content-2"
                     id="forecastResults"
@@ -107,7 +107,7 @@ const ForecastForm = ({ user }) => {
                     Manage Connections
                   </a>
                 </li> */}
-                <li className={'tab valid'}>
+                <li className={'tab'}>
                   <a
                     href="#tab-content-4"
                     id="projectDetails"
