@@ -748,19 +748,34 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   <div className={Styles.customerGrpList}>
                     <div className={Styles.customerGrpListItem}>
 
-                      <div className={Styles.addTeamMemberWrapper}>
-                        <IconAvatarNew className={Styles.avatarIcon} />
-                        <button id="AddTeamMemberBtn" onClick={this.addCustomerModel}>
-                          <i className="icon mbc-icon plus" />
-                          <span>Add Customer</span>
-                        </button>
-                        {(!this.state.customer.internalCustomers?.length && !this.state.customer.externalCustomers?.length) && (
-                          <div className={classNames(this.state.customerTabError ? '' : 'hide')}>
-                            <span className="error-message">{this.state.customerTabError}</span>
+                      {(this.state.customer.internalCustomers?.length < 1 || this.state.customer.externalCustomers?.length < 1) && (
+                        <div className={Styles.customerWrapper}>
+                          <div className={Styles.customerWrapperNoList}>
+                            <div className={Styles.addTeamMemberWrapper}>
+                              <IconAvatarNew className={Styles.avatarIcon} />
+                              <button id="AddTeamMemberBtn" onClick={this.addCustomerModel}>
+                                <i className="icon mbc-icon plus" />
+                                <span>Add Customer</span>
+                              </button>
+                            </div>
                           </div>
-                        )}
-                      </div>                     
-
+                        </div>
+                      )}
+                      <br />
+                      {(this.state.customer.internalCustomers?.length > 0 || this.state.customer.externalCustomers?.length > 0) && (
+                        <div className={Styles.addTeamMemberWrapper}>
+                          <IconAvatarNew className={Styles.avatarIcon} />
+                          <button id="AddTeamMemberBtn" onClick={this.addCustomerModel}>
+                            <i className="icon mbc-icon plus" />
+                            <span>Add Customer</span>
+                          </button>
+                          {(!this.state.customer.internalCustomers?.length && !this.state.customer.externalCustomers?.length) && (
+                            <div className={classNames(this.state.customerTabError ? '' : 'hide')}>
+                              <span className="error-message">{this.state.customerTabError}</span>
+                            </div>
+                          )}
+                        </div>                     
+                      )}
                       {internalCustomersList.length ? internalCustomersList : ''}
 
                       {externalCustomersList.length ? externalCustomersList : ''}
@@ -777,17 +792,19 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             Save & Next
           </button>
         </div>
-        <Modal
-          title={this.state.addCustomer ? 'Add Customer' : this.state.editCustomer && 'Edit Customer'}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'60%'}
-          buttonAlignment="right"
-          show={this.state.addCustomer || this.state.editCustomer}
-          content={addCustomerModelContent}
-          scrollableContent={true}
-          onCancel={this.addCustomerModelClose}
-        />
+        {(this.state.addCustomer || this.state.editCustomer) &&(
+          <Modal
+            title={this.state.addCustomer ? 'Add Customer' : this.state.editCustomer && 'Edit Customer'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'60%'}
+            buttonAlignment="right"
+            show={this.state.addCustomer || this.state.editCustomer}
+            content={addCustomerModelContent}
+            scrollableContent={true}
+            onCancel={this.addCustomerModelClose}
+          />
+        )}
         {/* {this.state.showAddTeamMemberModal && (
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
@@ -1385,6 +1402,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         (prevState: any) => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
+          nameToDisplay: '',
+          processOwnerToDisplay: '',
           customer: {
             ...prevState.customer,
             internalCustomers: [...prevState.customer.internalCustomers, ...selectedValues],
@@ -1489,6 +1508,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         (prevState: any) => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
+          nameToDisplay: '',
           externalCustomerInfo:{
             name: {
               company: '',

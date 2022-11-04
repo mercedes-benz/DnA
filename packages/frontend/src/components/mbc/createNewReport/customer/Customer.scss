@@ -30,6 +30,20 @@
   }
 }
 
+.customerWrapper {
+  .customerWrapperNoList {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    justify-content: center;
+    height: 150px;
+    position: relative;
+    border: 1px solid #383f49;
+    width: 100%;
+  }
+}
+
 .wrapper {
   background: #252a33 !important;
   margin-top: 60px !important;
