@@ -22,6 +22,7 @@ import { SingleDataSourceList } from './SingleDataSourceList';
 import { DataWarehouseList } from './DataWarehouseList';
 import { DataWarehouse } from './DataFunctionModal/DataWarehouse';
 import { SingleDataSource } from './DataFunctionModal/SingleDataSource';
+import { IconDataSource } from 'components/icons/IconIDataSource';
 
 const classNames = cn.bind(Styles);
 export interface IDataWarehouseErrors {
@@ -70,6 +71,9 @@ export interface IDataAndFunctionsState {
   showDeleteModal: boolean;
   isDataWarehouseSection: boolean;
   dataSources: IDataSources[];
+
+  isSingleDataSourceContextMenuOpened: boolean;
+  isDataWarehouseContextMenuOpened: boolean;
 }
 export interface IDataFunction {
   carLaPlatform: string;
@@ -132,6 +136,8 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       showDeleteModal: false,
       isDataWarehouseSection: false,
       dataSources: [],
+      isDataWarehouseContextMenuOpened: false,
+      isSingleDataSourceContextMenuOpened: false
     };
   }
 
@@ -633,10 +639,10 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         formValid = false;
       }
 
-      if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
-        errors.commonFunctions = errorMissingEntry;
-        formValid = false;
-      }
+      // if (!this.state.dataWarehouseInUseInfo.commonFunctions?.length) {
+      //   errors.commonFunctions = errorMissingEntry;
+      //   formValid = false;
+      // }
 
       if (
         !this.state.dataWarehouseInUseInfo.dataClassification ||
@@ -646,21 +652,21 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
         formValid = false;
       }
 
-      if (
-        !this.state.dataWarehouseInUseInfo.connectionType ||
-        this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
-      ) {
-        errors.connectionType = errorMissingEntry;
-        formValid = false;
-      }
+      // if (
+      //   !this.state.dataWarehouseInUseInfo.connectionType ||
+      //   this.state.dataWarehouseInUseInfo.connectionType === 'Choose'
+      // ) {
+      //   errors.connectionType = errorMissingEntry;
+      //   formValid = false;
+      // }
     } else {
-      if (
-        !this.state.singleDataSourceInfo.connectionType ||
-        this.state.singleDataSourceInfo.connectionType === 'Choose'
-      ) {
-        singleDataSourceErrors.connectionType = errorMissingEntry;
-        formValid = false;
-      }
+      // if (
+      //   !this.state.singleDataSourceInfo.connectionType ||
+      //   this.state.singleDataSourceInfo.connectionType === 'Choose'
+      // ) {
+      //   singleDataSourceErrors.connectionType = errorMissingEntry;
+      //   formValid = false;
+      // }
       if (
         !this.state.singleDataSourceInfo.dataClassification ||
         this.state.singleDataSourceInfo.dataClassification === 'Choose'
@@ -837,6 +843,18 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
   //   };
   // };
 
+  protected setDataWarehouseContextMenuStatus = (status: boolean) => {
+    this.setState({
+      isDataWarehouseContextMenuOpened: status
+    })
+  }
+
+  protected setSingleDataSourceContextMenuStatus = (status: boolean) => {
+    this.setState({
+      isSingleDataSourceContextMenuOpened: status
+    })
+  }
+
   public render() {
     const requiredError = '*Missing entry';
 
@@ -939,27 +957,46 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>Data Sources Information </h3>
-            <DataWarehouseList
-              dataWarehouselist={this.state.dataAndFunctions.dataWarehouseInUse}
-              singleDataSourceList={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
-              currentColumnToSort={this.state.currentColumnToSort}
-              currentSortOrder={this.state.currentSortOrder}
-              onEdit={this.onEditDatasourceOpen}
-              onDelete={this.onDeleteDatasource}
-              showDataSourceModal={this.showDataSourceModal}
-              dataAndFunctionTabError={this.state.dataAndFunctionTabError}
-            />
-            <SingleDataSourceList
-              dataSources={this.props.dataSources}
-              dataWarehouseList={this.state.dataAndFunctions.dataWarehouseInUse}
-              list={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
-              currentColumnToSort={this.state.currentColumnToSort}
-              currentSortOrder={this.state.currentSortOrder}
-              onEdit={this.onEditSingleDataSourceOpen}
-              onDelete={this.onDeleteDatasource}
-              showDataSourceModal={this.showDataSourceModal}
-            />
+            <h3>Please add data source & functions </h3>            
+            <div className={Styles.listWrapper}>
+              <br />
+              {(this.state.dataAndFunctions.dataWarehouseInUse?.length > 0 || this.state.dataAndFunctions.singleDataSources?.length > 0) && (
+                <div className={Styles.addDataSourceWrapper}>
+                  <IconDataSource className={Styles.avatarIcon} />
+                  <button id="AddDataSourceBtn" onClick={() => this.showDataSourceModal()}>
+                    <i className="icon mbc-icon plus" />
+                    <span>Add Data Source</span>
+                  </button>
+                </div>              
+              )}
+              <br />
+              <DataWarehouseList
+                dataWarehouselist={this.state.dataAndFunctions.dataWarehouseInUse}
+                singleDataSourceList={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
+                currentColumnToSort={this.state.currentColumnToSort}
+                currentSortOrder={this.state.currentSortOrder}
+                onEdit={this.onEditDatasourceOpen}
+                onDelete={this.onDeleteDatasource}
+                showDataSourceModal={this.showDataSourceModal}
+                dataAndFunctionTabError={this.state.dataAndFunctionTabError}
+                isSingleDataSourceContextMenuOpened = {this.state.isSingleDataSourceContextMenuOpened}
+                setDataWarehouseContextMenuStatus = {this.setDataWarehouseContextMenuStatus}
+                setSingleDataSourceContextMenuStatus = {this.setSingleDataSourceContextMenuStatus}
+              />
+              <SingleDataSourceList
+                dataSources={this.props.dataSources}
+                dataWarehouseList={this.state.dataAndFunctions.dataWarehouseInUse}
+                list={this.state.dataAndFunctions.singleDataSources ? this.state.dataAndFunctions.singleDataSources : []}
+                currentColumnToSort={this.state.currentColumnToSort}
+                currentSortOrder={this.state.currentSortOrder}
+                onEdit={this.onEditSingleDataSourceOpen}
+                onDelete={this.onDeleteDatasource}
+                showDataSourceModal={this.showDataSourceModal}
+                isDataWarehouseContextMenuOpened = {this.state.isDataWarehouseContextMenuOpened}
+                setSingleDataSourceContextMenuStatus = {this.setSingleDataSourceContextMenuStatus}
+                setDataWarehouseContextMenuStatus = {this.setDataWarehouseContextMenuStatus}
+              />
+            </div>
           </div>
         </div>
         <div className="btnConatiner">
