@@ -103,7 +103,7 @@ export const deserializeFormData = (item, type = 'provider') => {
         department: item.consumerInformation?.contactInformation?.department?.split(),
         division: item.consumerInformation?.contactInformation?.division.id,
         subDivision: item.consumerInformation?.contactInformation.division.subdivision.id || '0',
-        dateOfAgreement: item.consumerInformation?.contactInformation.agreementDate,
+        dateOfAgreement: item.consumerInformation?.contactInformation.agreementDate || '',
         lcoNeeded: item.consumerInformation?.contactInformation.lcoNeeded
           ? item.consumerInformation?.contactInformation.lcoNeeded
             ? 'Yes'

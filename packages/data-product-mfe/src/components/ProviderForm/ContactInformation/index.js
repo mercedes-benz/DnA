@@ -335,7 +335,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                 />
               </div>
               <div className={classNames('input-field-group include-error', errors.dateOfDataTransfer ? 'error' : '')}>
-                <label id="dateOfAgreementLabel" htmlFor="dateOfDataTransferInput" className="input-label">
+                <label id="dateOfDataTransferLabel" htmlFor="dateOfDataTransferInput" className="input-label">
                   Date of Data Transfer <sup>*</sup>
                 </label>
                 <Controller
