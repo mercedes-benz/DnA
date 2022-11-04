@@ -2,13 +2,14 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { regionalDateFormat } from '../../../Utility/utils';
+import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../Utility/utils';
 import Styles from './DataProductListItem.styles.scss';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { dataProductsApi } from '../../../apis/dataproducts.api';
 import { GetDataProducts } from '../../redux/dataProduct.services';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../common/modules/uilab/js/src/notification';
+import Tooltip from '../../../common/modules/uilab/js/src/tooltip';
 
 const DataProductListItem = ({ product, history, user }) => {
   const dispatch = useDispatch();
@@ -21,6 +22,10 @@ const DataProductListItem = ({ product, history, user }) => {
 
   const name = product?.providerInformation?.contactInformation?.name;
   const productOwnerName = `${name?.firstName} ${name?.lastName}`;
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, []);
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
@@ -61,6 +66,11 @@ const DataProductListItem = ({ product, history, user }) => {
       e.target.parentElement.classList.contains('contextList');
     !withinContextMenuWrapper && setShowContextMenu(false);
   };
+
+  useEffect(() => {
+    const dataProductList = document.querySelectorAll('[class*="arrowBtn"]');
+    setTooltipIfEllipsisShown(dataProductList);
+  }, []);
 
   useEffect(() => {
     document.addEventListener('click', handleContextMenuOutside, true);
