@@ -155,7 +155,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
       <React.Fragment>
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>Report Members</h3>
+            <h3>Please add report members</h3>
             <div className={classNames(Styles.teamListWrapper, POError ? 'error' : '')}>
               {/* <h5>
                 {' '}
@@ -198,7 +198,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         </div>
         <div className={classNames(Styles.adminWrapper)}>
           <div className={classNames(Styles.firstPanel)}>
-            <h3>Report Administrators</h3>
+            <h3>Please add report administrators</h3>
             <div className={classNames(Styles.teamListWrapper, adminError ? 'error' : '')}>
               {/* <h5>
                 {' '}
