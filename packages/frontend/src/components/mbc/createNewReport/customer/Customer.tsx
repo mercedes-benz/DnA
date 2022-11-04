@@ -777,17 +777,19 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
             Save & Next
           </button>
         </div>
-        <Modal
-          title={this.state.addCustomer ? 'Add Customer' : this.state.editCustomer && 'Edit Customer'}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'60%'}
-          buttonAlignment="right"
-          show={this.state.addCustomer || this.state.editCustomer}
-          content={addCustomerModelContent}
-          scrollableContent={true}
-          onCancel={this.addCustomerModelClose}
-        />
+        {(this.state.addCustomer || this.state.editCustomer) &&(
+          <Modal
+            title={this.state.addCustomer ? 'Add Customer' : this.state.editCustomer && 'Edit Customer'}
+            showAcceptButton={false}
+            showCancelButton={false}
+            modalWidth={'60%'}
+            buttonAlignment="right"
+            show={this.state.addCustomer || this.state.editCustomer}
+            content={addCustomerModelContent}
+            scrollableContent={true}
+            onCancel={this.addCustomerModelClose}
+          />
+        )}
         {/* {this.state.showAddTeamMemberModal && (
           <AddTeamMemberModal
             ref={this.addTeamMemberModalRef}
@@ -1385,6 +1387,8 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         (prevState: any) => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
+          nameToDisplay: '',
+          processOwnerToDisplay: '',
           customer: {
             ...prevState.customer,
             internalCustomers: [...prevState.customer.internalCustomers, ...selectedValues],
@@ -1489,6 +1493,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
         (prevState: any) => ({
           addCustomer: false,
           duplicateCustomerAdded: false,
+          nameToDisplay: '',
           externalCustomerInfo:{
             name: {
               company: '',
