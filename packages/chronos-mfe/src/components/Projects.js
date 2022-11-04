@@ -282,7 +282,7 @@ const ForeCastingProjects = ({ user, history }) => {
                 }
               </div>
             </div>
-            <div className={Styles.apiKeySection}>
+            <div className={Styles.apiKeySection + ' ' + Styles.hide}>
               <h3 className={Styles.modalSubTitle}>Generate API Key</h3>
               {
                 generateApiKey &&

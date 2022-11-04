@@ -130,7 +130,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       departmentTags: [],
       reportLink: null,
       reportLinkError: null,
-      reportTypeValue: 'Standard Report',
+      reportTypeValue: 'Self Service Report',
       reportTypeError: null,
       piiValue: null,
       piiError: null
@@ -381,7 +381,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
       })
       ?.toString();
 
-    const reportTypeValue = this.state.reportTypeValue;  
+    const reportTypeValue = this.state.reportTypeValue ? this.state.reportTypeValue : 'Self Service Report';  
 
     const piiValue = this.state.piiValue;
 
@@ -455,10 +455,10 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
                             <option id="reportTypeOption" value={0}>
                               Choose
                             </option>
-                            <option id='Standard Report' key={'Standard Report'} value={'Standard Report'}>
+                            <option id='StandardReport' value={'Standard Report'}>
                               Standard Report
                             </option>
-                            <option id='Standard Report' key={'Self Service Report'} value={'Self Service Report'}>
+                            <option id='SelfServiceReport' value={'Self Service Report'}>
                               Self Service Report
                             </option>
                             {/* {this.props.divisions?.map((obj) => (

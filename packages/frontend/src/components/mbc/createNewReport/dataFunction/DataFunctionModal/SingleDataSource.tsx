@@ -157,15 +157,17 @@ export const SingleDataSource = ({
         <div className={Styles.flexLayout}>
           <div>
             <div>
-              <div className={classNames('input-field-group include-error', errors.connectionType ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', 
+              // errors.connectionType ? 'error' : ''
+              )}>
                 <label id="connectionTypeSelectBoxLabel" htmlFor="connectionTypeSelectBox" className="input-label">
-                  Connection Type<sup>*</sup>
+                  Connection Type
                 </label>
                 <div className="custom-select">
                   <select
                     id="connectionTypeSelectBox"
-                    required={true}
-                    required-error={requiredError}
+                    // required={true}
+                    // required-error={requiredError}
                     name="connectionType"
                     value={singleSourceConnectionTypesValue}
                     onChange={onDropdownChange}
@@ -178,9 +180,9 @@ export const SingleDataSource = ({
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', errors.connectionType ? '' : 'hide')}>
+                {/* <span className={classNames('error-message', errors.connectionType ? '' : 'hide')}>
                   {errors.connectionType}
-                </span>
+                </span> */}
               </div>
             </div>
           </div>
