@@ -25,25 +25,17 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.lov;
+package com.daimler.data.service.datasource;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.http.ResponseEntity;
 
-import com.daimler.data.db.entities.lov.DataSourceSql;
-import com.daimler.data.db.repo.lov.DataSourceRepository;
-import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.dto.dataSource.DataSourceRequestVO;
 
-@Service
-public class BaseDataSourceService extends BaseCommonService<LovVO, DataSourceSql, Long> implements DataSourceService {
+public interface DataSourceService {
 
-	public BaseDataSourceService() {
-		super();
-	}
+	ResponseEntity<GenericMessage> updateDataSource(DataSourceRequestVO dataSourceRequestVO);
 
-	@Autowired
-	public BaseDataSourceService(DataSourceRepository jpaRepo) {
-		super(jpaRepo);
-	}
+	ResponseEntity<GenericMessage> deleteDataSource(String name);
+
 }
