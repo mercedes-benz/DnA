@@ -194,7 +194,7 @@ export const SingleDataSourceList = ({
                             top: contextMenuOffsetTop + 'px',
                             right: contextMenuOffsetRight + 'px',
                           }}
-                          className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
+                          className={classNames('contextMenuWrapper', showContextMenu ? Styles.contextMenuWrapperStyle : 'hide')}
                         >
                           <ul className="contextList">                  
                             <li className="contextListItem">
