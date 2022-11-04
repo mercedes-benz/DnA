@@ -14,6 +14,9 @@ interface DataWarehouseProps {
   singleDataSourceList: ISingleDataSources[];
   showDataSourceModal: () => void;
   dataAndFunctionTabError: string;
+  isSingleDataSourceContextMenuOpened: boolean;
+  setDataWarehouseContextMenuStatus:(status: boolean) => void;
+  setSingleDataSourceContextMenuStatus:(status: boolean) => void;
 }
 
 export const DataWarehouseList = ({
@@ -25,6 +28,9 @@ export const DataWarehouseList = ({
   onEdit,
   onDelete,
   dataAndFunctionTabError,
+  isSingleDataSourceContextMenuOpened,
+  setDataWarehouseContextMenuStatus,
+  setSingleDataSourceContextMenuStatus
 }: DataWarehouseProps) => {
   // let listRowElement: HTMLElement;
   let isTouch = false;
@@ -32,19 +38,25 @@ export const DataWarehouseList = ({
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetRight, setContextMenuOffsetRight] = useState(0);
+  const [selectedContextMenu, setSelectedContextMenu] = useState('');
   
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
     document.addEventListener('clicked', handleContextMenuOutside, true);
   });
 
-  const toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
+  const toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>, index: number) => {
     e.stopPropagation();
-    const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
-    const relativeParentTable: ClientRect = document.querySelector('table.dataWarehouseList').getBoundingClientRect();
-    setContextMenuOffsetTop(elemRect.top - (relativeParentTable.top + 10));
+    setSingleDataSourceContextMenuStatus(false);
+    // const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
+    // const relativeParentTable: ClientRect = document.querySelector('table.dataWarehouseList').getBoundingClientRect();
+    const contextMenuStatus = showContextMenu;
+    setDataWarehouseContextMenuStatus(true);
+    // setContextMenuOffsetTop(elemRect.top - (relativeParentTable.top + 10));
+    setContextMenuOffsetTop(-9);
     setContextMenuOffsetRight(10);
-    setShowContextMenu(!showContextMenu);
+    setShowContextMenu(!contextMenuStatus);
+    setSelectedContextMenu('#datawarehouse-'+index);
   };
 
   // const listRow = (element: HTMLTableRowElement) => {
@@ -126,30 +138,32 @@ export const DataWarehouseList = ({
         <td>
           <div
             className={classNames(
-              Styles.contextMenu,
-              showContextMenu ? Styles.open : '',
+              Styles.dataWarehouseContextMenu,
+              showContextMenu && selectedContextMenu == '#datawarehouse-'+index ? Styles.open : '',
             )}
           >
-            <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
+            <span onClick={(e: React.FormEvent<HTMLSpanElement>) => toggleContextMenu(e, index)} className={classNames('trigger', Styles.contextMenuTrigger)}>
               <i className="icon mbc-icon listItem context" />
             </span>
-            <div
-              style={{
-                top: contextMenuOffsetTop + 'px',
-                right: contextMenuOffsetRight + 'px',
-              }}
-              className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
-            >
-              <ul className="contextList">                  
-                <li className="contextListItem">
-                  <span onClick={() => onEdit(datawarehouse, index)}>Edit KPI</span>
-                </li>
-              
-                <li className="contextListItem">
-                  <span onClick={() => onDelete(true, index)}>Delete KPI</span>
-                </li>
-              </ul>
-            </div>
+            {selectedContextMenu == '#datawarehouse-'+index && !isSingleDataSourceContextMenuOpened ?
+              <div
+                style={{
+                  top: contextMenuOffsetTop + 'px',
+                  right: contextMenuOffsetRight + 'px',
+                }}
+                className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
+              >
+                <ul className="contextList">                  
+                  <li className="contextListItem">
+                    <span onClick={() => onEdit(datawarehouse, index)}>Edit KPI</span>
+                  </li>
+                
+                  <li className="contextListItem">
+                    <span onClick={() => onDelete(true, index)}>Delete KPI</span>
+                  </li>
+                </ul>
+              </div>
+            : ''}
           </div>
         </td>
       </tr>

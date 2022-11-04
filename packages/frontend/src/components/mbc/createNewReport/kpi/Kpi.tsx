@@ -10,6 +10,7 @@ import { ErrorMsg } from 'globals/Enums';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import TextArea from 'components/mbc/shared/textArea/TextArea';
 import IconAddKPI from 'components/icons/IconAddKPI';
+// import ReportListRowItem from 'components/mbc/allReports/reportListRowItem/ReportListRowItem';
 
 const classNames = cn.bind(Styles);
 export interface IKpiProps {
@@ -38,6 +39,7 @@ export interface IKpiState {
   showContextMenu: boolean;
   contextMenuOffsetTop: number;
   contextMenuOffsetRight: number;
+  selectedContextMenu: string;
 }
 export interface IKpiList {
   name: string;
@@ -84,29 +86,31 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
       showContextMenu: false,
       contextMenuOffsetTop: 0,
       contextMenuOffsetRight: 0,
+      selectedContextMenu: ''
     };
   }
 
   public componentDidMount() {
     ExpansionPanel.defaultSetup();
-    document.addEventListener('touchend', this.handleContextMenuOutside, true);
-    document.addEventListener('click', this.handleContextMenuOutside, true);
+    // document.addEventListener('touchend', this.handleContextMenuOutside, true);
+    // document.addEventListener('click', this.handleContextMenuOutside, true);
     Tooltip.defaultSetup();
   }
 
-  public componentWillUnmount() {
-    document.removeEventListener('touchend', this.handleContextMenuOutside, true);
-    document.removeEventListener('click', this.handleContextMenuOutside, true);
-  }
+  // public componentWillUnmount() {
+  //   document.removeEventListener('touchend', this.handleContextMenuOutside, true);
+  //   document.removeEventListener('click', this.handleContextMenuOutside, true);
+  // }
 
-  public toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
+  public toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>, index: number) => {
     e.stopPropagation();
     const elemRect: ClientRect = e.currentTarget.getBoundingClientRect();
-    const relativeParentTable: ClientRect = document.querySelector('table.kpiList').getBoundingClientRect();
+    const relativeParentTable: ClientRect = document.querySelector(`#kpi-${index}`).getBoundingClientRect();
     this.setState({
       contextMenuOffsetTop: elemRect.top - (relativeParentTable.top + 10),
       contextMenuOffsetRight: 10,
       showContextMenu: !this.state.showContextMenu,
+      selectedContextMenu: `#kpi-${index}`
     });
   };
 
@@ -239,68 +243,59 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
     const kpiData = this.state.kpis?.map((kpi: IKpis, index: number) => {
 
       return (
-        // <ReportListRowItem
-        //   key={report?.id}
-        //   report={report}
-        //   reportId={report?.reportId}
-        //   bookmarked={false}
-        //   canEdit={
-        //     isReportAdmin !== undefined ||
-        //     isSuperAdmin !== undefined ||
-        //     isProductOwner !== undefined ||
-        //     userInfo.id === this.checkUserCanEditReport(userInfo, report)
-        //   }
-        //   onEdit={()=>this.onEditReport(report?.reportId)}
-        //   onDelete={()=>this.onDeleteReport(report?.id)}
-        // />
-        <tr
-          id={'kpi-'+index}
-          key={index}
-          className={classNames(
-            'data-row',
-            Styles.reportRow,
-            this.state.showContextMenu ? Styles.contextOpened : null,
-          )}
-          // ref={this.listRow}
-          // onClick={this.goToSummary}
-        >
-          <td className={'wrap-text ' + classNames(Styles.reportName)}>
-            <div className={Styles.solIcon}>
-              {kpi?.name}
-            </div>
-          </td>
-          <td className="wrap-text">{kpi?.reportingCause || 'NA'}</td>
-          <td className="wrap-text">{kpi?.kpiLink ? <a href={kpi?.kpiLink} target='_blank' rel="noreferrer">{kpi?.kpiLink}</a> : 'NA'}</td>
-          <td>
-            <div
-              className={classNames(
-                Styles.contextMenu,
-                this.state.showContextMenu ? Styles.open : '',
-              )}
-            >
-              <span onClick={this.toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
-                <i className="icon mbc-icon listItem context" />
-              </span>
-              <div
-                style={{
-                  top: this.state.contextMenuOffsetTop + 'px',
-                  right: this.state.contextMenuOffsetRight + 'px',
-                }}
-                className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}
-              >
-                <ul className="contextList">                  
-                  <li className="contextListItem">
-                    <span onClick={() => this.onEditKpiOpen(kpi)}>Edit KPI</span>
-                  </li>
-                
-                  <li className="contextListItem">
-                    <span onClick={() => this.onDeleteKpi(kpi)}>Delete KPI</span>
-                  </li>
-                </ul>
+        <React.Fragment key={index}>
+          <tr
+            id={'kpi-'+index}
+            key={index}
+            className={classNames(
+              'data-row',
+              'kpi-'+index,
+              Styles.reportRow,
+              this.state.showContextMenu ? Styles.contextOpened : null,
+            )}
+            ref={this.listRow}
+            // onClick={this.goToSummary}
+          >
+            <td className={'wrap-text ' + classNames(Styles.reportName)}>
+              <div className={Styles.solIcon}>
+                {kpi?.name}
               </div>
-            </div>
-          </td>
-        </tr>
+            </td>
+            <td className="wrap-text">{kpi?.reportingCause || 'NA'}</td>
+            <td className="wrap-text">{kpi?.kpiLink ? <a href={kpi?.kpiLink} target='_blank' rel="noreferrer">{kpi?.kpiLink}</a> : 'NA'}</td>
+            <td>              
+              <div
+                className={classNames(
+                  Styles.contextMenu,
+                  this.state.showContextMenu && this.state.selectedContextMenu == '#kpi-'+index ? Styles.open : '',
+                )}
+              >
+                <span onClick={(e: React.FormEvent<HTMLSpanElement>) => {this.toggleContextMenu(e, index)}} className={classNames('trigger', Styles.contextMenuTrigger)}>
+                  <i className="icon mbc-icon listItem context" />
+                </span>
+                {this.state.selectedContextMenu == '#kpi-'+index ?
+                  <div
+                    style={{
+                      top: this.state.contextMenuOffsetTop + 'px',
+                      right: this.state.contextMenuOffsetRight + 'px',
+                    }}
+                    className={classNames('contextMenuWrapper', this.state.showContextMenu ? '' : 'hide')}
+                  >
+                    <ul className="contextList">                               
+                      <li className="contextListItem">
+                        <span onClick={() => this.onEditKpiOpen(kpi)}>Edit KPI</span>
+                      </li>
+                    
+                      <li className="contextListItem">
+                        <span onClick={() => this.onDeleteKpi(kpi)}>Delete KPI</span>
+                      </li>                 
+                    </ul>
+                  </div>
+                : ''}
+              </div>              
+            </td>
+          </tr>
+        </React.Fragment>
       );
     });
     return (

@@ -95,8 +95,38 @@
   min-height: 200px;
 }
 
-.contextMenu{
+.singleContextMenu{
   position: relative;
+  &.open .contextMenuTrigger {
+    z-index: 10;
+    position: relative;
+  }
+
+  .contextMenuTrigger {
+    padding: 12px 28px;
+    cursor: pointer;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
+}
+
+.dataWarehouseContextMenu{
+  position: relative;
+  &.open .contextMenuTrigger {
+    z-index: 10;
+    position: relative;
+  }
+
+  .contextMenuTrigger {
+    padding: 12px 28px;
+    cursor: pointer;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
 }
 
 .dataWarehouseTable{
