@@ -218,14 +218,14 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="division">
                     <label className="input-label summary">Division</label>
                     <br />
-                    {description.division?.name || description.division?.name === 'Choose'
-                      ? 'N/A'
+                    {!description.division?.name || description.division?.name === 'Choose'
+                      ? 'NA'
                       : description.division?.name}
                   </div>
                   <div id="subdivision">
                     <label className="input-label summary">Sub Division</label>
                     <br />
-                    {description.division?.subdivision?.name ? description.division.subdivision.name : 'None'}
+                    {description.division?.subdivision?.name ? description.division.subdivision.name : 'NA'}
                   </div>
                   <div id="department">
                     <label className="input-label summary">E2-Department</label>
@@ -237,7 +237,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="productPhase">
                     <label className="input-label summary">Report Type</label>
                     <br />
-                    {description.reportType && description?.reportType != '0' ? description.reportType : 'N/A'}
+                    {description.reportType && description?.reportType != '0' ? description.reportType : 'NA'}
                   </div>
                   <div id="status">
                     <label className="input-label summary">Status </label>
@@ -247,14 +247,14 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="integratedinportal">
                     <label className="input-label summary">Integrated In Portal</label>
                     <br />
-                    {description.integratedPortal && description?.integratedPortal != '0' ? description.integratedPortal : 'N/A'}
+                    {description.integratedPortal && description?.integratedPortal != '0' ? description.integratedPortal : 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
                   <div id="agileReleaseTrain">
                     <label className="input-label summary">Agile Release Train</label>
                     <br />
-                    {description.agileReleaseTrain && description?.agileReleaseTrain != '0' ? description.agileReleaseTrain : 'N/A'}
+                    {description.agileReleaseTrain && description?.agileReleaseTrain != '0' ? description.agileReleaseTrain : 'NA'}
                   </div>
                   {/* <div id="designguideimplemented">
                     <label className="input-label summary">Design Guide Implemented</label>
