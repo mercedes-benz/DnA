@@ -187,7 +187,7 @@ export default class Kpi extends React.Component<IKpiProps, IKpiState> {
             <div>
               <div className={classNames('input-field-group include-error', this.state.errors.kpiLink ? 'error' : '')}>
                 <label id="kpiLinkLabel" htmlFor="kpiLinkField" className="input-label">
-                  KPI Link-Wiki
+                Link KPI-Wiki
                 </label>
                 <input
                   type="text"
