@@ -103,7 +103,7 @@ export const DataWarehouse = ({
                 )}
               >
                 <label id="connectionTypeLabel" htmlFor="connectionTypeInput" className="input-label">
-                  Connection Type<sup>*</sup>
+                  Connection Type
                 </label>
                 <div className={`custom-select`}>
                   <select
@@ -111,8 +111,8 @@ export const DataWarehouse = ({
                     name="connectionType"
                     value={connectionTypesValue}
                     onChange={(e)=>onDropdownChange(e)}
-                    required={!isCarla}
-                    required-error={!isCarla ? requiredError : ''}
+                    // required={!isCarla}
+                    // required-error={!isCarla ? requiredError : ''}
                   >
                     {!isCarla && <option value="">Choose</option>}
                     {conntectionTypesDropdown?.map((item, ind) => (
@@ -122,9 +122,9 @@ export const DataWarehouse = ({
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', connectTypesError ? '' : 'hide')}>
+                {/* <span className={classNames('error-message', connectTypesError ? '' : 'hide')}>
                   {connectTypesError}
-                </span>
+                </span> */}
               </div>
             </div>
           </div>
@@ -139,14 +139,14 @@ export const DataWarehouse = ({
                 )}
               >
                 <label id="commonFunctionLabel" htmlFor="commonFunctionInput" className="input-label">
-                  Common Functions<sup>*</sup>
+                  Common Functions
                 </label>
                 <div className={`custom-select`}>
                   <select
                     id="commonFunctionField"
                     multiple={true}
-                    required={true}
-                    required-error={requiredError}
+                    // required={true}
+                    // required-error={requiredError}
                     name="commonFunctions"
                     value={commonFunctionsValue}
                     onChange={(e)=>onCommonFunctionsChange(e)}
@@ -158,9 +158,9 @@ export const DataWarehouse = ({
                     ))}
                   </select>
                 </div>
-                <span className={classNames('error-message', commonFunctionsError ? '' : 'hide')}>
+                {/* <span className={classNames('error-message', commonFunctionsError ? '' : 'hide')}>
                   {commonFunctionsError}
-                </span>
+                </span> */}
               </div>
             </div>
           </div>
