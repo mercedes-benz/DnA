@@ -88,6 +88,25 @@
 
 .contextMenu{
   position: relative;
+  
+
+  .contextMenuTrigger {
+    padding: 12px 28px;
+    cursor: pointer;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
+}
+.open .contextMenuTrigger {
+  z-index: 10!important;
+  position: relative;
+}
+
+.contextMenuTrigger {
+  z-index: 1!important;
+  position: relative;
 }
 
 .kpiList {
