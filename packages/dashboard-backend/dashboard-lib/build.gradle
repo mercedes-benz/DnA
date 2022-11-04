@@ -133,7 +133,22 @@ swaggerSources {
             rawOptions = ['--ignore-file-override', ignoreFile]
             components = ['models', 'apis']
         }
-    }    
+    }
+    
+    dataSource {
+        def dataSourceyaml = "${rootDir}/dashboard-lib/src/main/resources/api/DataSource.yaml"
+        def dataSourceJson = "${rootDir}/dashboard-lib/src/main/resources/api/DataSource.json"
+        inputFile = file(dataSourceyaml)
+
+        def ignoreFile = "${rootDir}/dashboard-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(dataSourceJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }         
         
 }
 
@@ -151,7 +166,9 @@ compileJava {
     dependsOn swaggerSources.userwidgetpreference.code
     source "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.division.code
-    source "${swaggerSources.division.code.outputDir}/src/main/java"            
+    source "${swaggerSources.division.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.dataSource.code
+    source "${swaggerSources.dataSource.code.outputDir}/src/main/java"             
 }
 
 sourceSets {
@@ -167,6 +184,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.userwidgetpreference.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.dataSource.code.outputDir}/src/main/java" }
     }
 }
 
