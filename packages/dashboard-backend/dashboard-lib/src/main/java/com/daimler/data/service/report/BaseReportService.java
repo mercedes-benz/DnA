@@ -54,6 +54,7 @@ import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ReportNsql;
+import com.daimler.data.db.jsonb.report.DataSource;
 import com.daimler.data.db.jsonb.report.DataWarehouse;
 import com.daimler.data.db.jsonb.report.Division;
 import com.daimler.data.db.jsonb.report.InternalCustomer;
@@ -209,7 +210,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 								break;
 							}
 						}
-
 					}
 				} else if (category.equals(CATEGORY.ART)) {
 					String art = reportNsql.getData().getDescription().getAgileReleaseTrain();
@@ -272,12 +272,19 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
 						for (SingleDataSource singleDataSource : singleDataSources) {
-//							if (StringUtils.hasText(singleDataSource.getDataSource())
-//									&& singleDataSource.getDataSource().equals(name)) {
-//								singleDataSource.setDataSource(null);
-//							}
+							List<DataSource> dataSources = singleDataSource.getDataSources();
+							if (!ObjectUtils.isEmpty(dataSources)) {
+								Iterator<DataSource> itr = dataSources.iterator();
+								while (itr.hasNext()) {
+									DataSource dataSource = itr.next();
+									if (dataSource.getDataSource().equals(name)) {
+										itr.remove();
+									}
+								}
+							}
 						}
 					}
+
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
@@ -463,12 +470,17 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				} else if (category.equals(CATEGORY.DATASOURCE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
-//						for (SingleDataSource singleDataSource : singleDataSources) {
-//							if (StringUtils.hasText(singleDataSource.getDataSource())
-//									&& singleDataSource.getDataSource().equals(oldValue)) {
-//								singleDataSource.setDataSource(newValue);
-//							}
-//						}
+						for (SingleDataSource singleDataSource : singleDataSources) {
+							List<DataSource> dataSources = singleDataSource.getDataSources();
+							if (!ObjectUtils.isEmpty(dataSources)) {
+								for (DataSource dataSource : dataSources) {
+									if (StringUtils.hasText(dataSource.getDataSource())
+											&& dataSource.getDataSource().equals(oldValue)) {
+										dataSource.setDataSource(newValue);
+									}
+								}
+							}
+						}
 					}
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
