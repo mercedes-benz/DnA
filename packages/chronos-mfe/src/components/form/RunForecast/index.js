@@ -53,21 +53,21 @@ const configFiles = [
     name: 'Default Configuration',
     path: '/defualt-configuration'
   },
-  {
-    id: 2,
-    name: 'Custom Configuration',
-    path: '/defualt-configuration'
-  },
-  {
-    id: 3,
-    name: 'Forecast Configuration',
-    path: '/defualt-configuration'
-  },
-  {
-    id: 4,
-    name: 'Three Configuration',
-    path: '/defualt-configuration'
-  },
+  // {
+  //   id: 2,
+  //   name: 'Custom Configuration',
+  //   path: '/defualt-configuration'
+  // },
+  // {
+  //   id: 3,
+  //   name: 'Forecast Configuration',
+  //   path: '/defualt-configuration'
+  // },
+  // {
+  //   id: 4,
+  //   name: 'Three Configuration',
+  //   path: '/defualt-configuration'
+  // },
 ]
 
 const RunForecast = () => {
