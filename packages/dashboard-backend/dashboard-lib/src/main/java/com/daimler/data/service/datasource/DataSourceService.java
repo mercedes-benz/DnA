@@ -30,11 +30,8 @@ package com.daimler.data.service.datasource;
 import org.springframework.http.ResponseEntity;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.dataSource.DataSourceRequestVO;
 
 public interface DataSourceService {
-
-	ResponseEntity<GenericMessage> updateDataSource(DataSourceRequestVO dataSourceRequestVO);
 
 	ResponseEntity<GenericMessage> deleteDataSource(String name);
 
