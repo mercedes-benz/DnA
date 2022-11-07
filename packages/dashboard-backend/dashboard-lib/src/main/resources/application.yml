@@ -38,7 +38,11 @@ kafka:
           
 dna:
   uri: ${DNA_URI:xxxx}
-  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}        
+  dnaAuthEnable: ${DNA_AUTH_ENABLE:false}
+  dataSource:
+     bulkCreate:
+        api:
+           accessToken: ${DATASOURCE_BULKCREATE_API_ACCESS_TOKEN:XXXXX}          
       
 jwt:
   secret:

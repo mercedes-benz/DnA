@@ -42,6 +42,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.dto.dataSource.DataSourceBulkRequestVO;
 import com.daimler.data.dto.solution.UserInfoVO;
 
 @Component
@@ -54,10 +55,14 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
 	private static final String GET_USERINFO = "/api/users/";
+	private static final String CREATE_DATASOURCES = "/datasources/bulk";
+
+	@Value("${dna.dataSource.bulkCreate.api.accessToken}")
+	private String accessToken;
 
 	@Autowired
 	RestTemplate restTemplate;
-	
+
 	@Autowired
 	HttpServletRequest httpRequest;
 
@@ -110,6 +115,22 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 		}
 
 		return userInfoVO;
+	}
+
+	@Override
+	public String createDataSources(DataSourceBulkRequestVO vo) {
+		String status = "";
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
+		headers.set("accessToken", accessToken);
+		String dnaUri = dnaBaseUri + CREATE_DATASOURCES;
+		HttpEntity entity = new HttpEntity<>(vo, headers);
+		ResponseEntity<String> response = restTemplate.exchange(dnaUri, HttpMethod.POST, entity, String.class);
+		if (response != null && response.hasBody()) {
+			status = response.getStatusCode().toString();
+		}
+		return status;
 	}
 
 }
