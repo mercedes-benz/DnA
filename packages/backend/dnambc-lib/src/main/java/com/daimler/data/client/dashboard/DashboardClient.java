@@ -32,6 +32,8 @@ import com.daimler.data.dto.divisions.DivisionVO;
 public interface DashboardClient {
 
 	public String deleteDivisionFromEachReport(String id);
+	
+	public String deleteDataSourceFromEachReport(String dataSource);
 
 	public String updateDivisionFromEachReport(DivisionVO vo);
 }

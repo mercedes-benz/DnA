@@ -62,7 +62,7 @@ public class DataSourceController implements DataSourceApi {
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 404, message = "Invalid id, record not found."),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/dataSource/{name}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/datasource/{name}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Name of the dataSource", required = true) @PathVariable("name") String name) {
