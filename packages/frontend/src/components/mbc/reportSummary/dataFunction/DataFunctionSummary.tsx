@@ -70,7 +70,7 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                   <React.Fragment key={`singleDataSource${index}`}>
                     <div className={Styles.dataFunctionListView}>
                       <span className={Styles.dataAndFunction}>{`Single Data Source ${index + 1}`}</span>
-                      <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                      <div className={classNames(Styles.flexLayout, Styles.threeColumn, Styles.breakWords)}>
                         <div id="dataSource">
                           <label className="input-label summary">Data Sources</label>
                           <br />
