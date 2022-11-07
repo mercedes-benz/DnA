@@ -757,6 +757,11 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                                 <i className="icon mbc-icon plus" />
                                 <span>Add Customer</span>
                               </button>
+                              {(!this.state.customer.internalCustomers?.length && !this.state.customer.externalCustomers?.length) && (
+                                <div className={classNames(this.state.customerTabError ? '' : 'hide')}>
+                                  <span className="error-message">{this.state.customerTabError}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -769,11 +774,6 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                             <i className="icon mbc-icon plus" />
                             <span>Add Customer</span>
                           </button>
-                          {(!this.state.customer.internalCustomers?.length && !this.state.customer.externalCustomers?.length) && (
-                            <div className={classNames(this.state.customerTabError ? '' : 'hide')}>
-                              <span className="error-message">{this.state.customerTabError}</span>
-                            </div>
-                          )}
                         </div>                     
                       )}
                       {internalCustomersList.length ? internalCustomersList : ''}
