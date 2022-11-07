@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Document, Font, Page, StyleSheet, Text, View, Image, Link } from '@react-pdf/renderer';
 import * as React from 'react';
 import { PropsWithChildren } from 'react';
@@ -409,18 +408,18 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Customer Relation</Text>
-                <Text>{data.customerRelation}</Text>
+                <Text>{data.customerRelation || 'NA'}</Text>
               </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Customer Division</Text>
-                <Text>{data.division?.name}</Text>
+                <Text>{data.division?.name || 'NA'}</Text>
               </View>
               
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Comment</Text>
-                <Text>{data.comment}</Text>
+                <Text>{data.comment || 'NA'}</Text>
               </View>
             </View>
             {customer.internalCustomers?.length > 0 ? (
@@ -449,14 +448,14 @@ const Customer = ({ customer, showCustomer }: ICustomerProps) => {
               </View>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Customer Relation</Text>
-                <Text>{data.customerRelation}</Text>
+                <Text>{data.customerRelation || 'NA'}</Text>
               </View>
               
             </View>
             <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
               <View style={styles.flexCol2}>
                 <Text style={styles.sectionTitle}>Comment</Text>
-                <Text>{data.comment}</Text>
+                <Text>{data.comment || 'NA'}</Text>
               </View>
             </View>
             {customer.internalCustomers?.length > 0 ? (
@@ -511,7 +510,7 @@ const KPI = ({ kpis, showKPI }: IKPIProps) => {
               <View style={[styles.flexLayout, { marginVertical: 15 }]} wrap={false}>
                 <View style={styles.firstCol}>
                   <Text style={styles.sectionTitle}>KPI Description</Text>
-                  <Text>{kpi.comment}</Text>
+                  <Text>{kpi.comment || 'NA'}</Text>
                 </View>
               </View>
               <View style={styles.seperatorLine} />
