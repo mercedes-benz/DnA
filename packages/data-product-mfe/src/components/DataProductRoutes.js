@@ -6,17 +6,21 @@ import Progress from 'dna-container/Progress';
 import NotFoundPage from 'dna-container/NotFound';
 import UnAuthorised from 'dna-container/UnAuthorised';
 
-import ProviderForm from './ProviderForm';
-import ConsumerForm from './ConsumerForm';
+import ProviderForm from './dataTransfer/ProviderForm';
+import ConsumerForm from './dataTransfer/ConsumerForm';
 
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../store';
 
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import SessionExpired from './SessionExpired';
-import DataProducts from './DataProducts';
-import Summary from './Summary';
+import DataProducts from './dataTransfer/DataProducts';
+import Summary from './dataTransfer/Summary';
 import DataComplianceNetworkList from './DataComplianceNetworkList';
+
+import DataList from './data/dataList';
+import CreateData from './data/createData';
+import DataSummary from './data/summary';
 
 export const protectedRoutes = [
   {
@@ -48,6 +52,26 @@ export const protectedRoutes = [
     component: DataComplianceNetworkList,
     exact: true,
     path: '/datacompliancenetworklist',
+  },
+  {
+    component: DataList,
+    exact: true,
+    path: '/dataProductList',
+  },
+  {
+    component: CreateData,
+    exact: true,
+    path: '/createData',
+  },
+  {
+    component: CreateData,
+    exact: true,
+    path: '/editData/:id',
+  },
+  {
+    component: DataSummary,
+    exact: true,
+    path: '/dataSummary/:id',
   },
 ];
 
