@@ -45,12 +45,12 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                             <div id="name">
                               <label className="input-label summary">Name</label>
                               <br />
-                              <div>{customerName}</div>
+                              <div className={Styles.breakWords}>{customerName}</div>
                             </div>
                             <div id="processOwner">
                               <label className="input-label summary">Process Owner</label>
                               <br />
-                              <div>{processOwner}</div>
+                              <div className={Styles.breakWords}>{processOwner}</div>
                             </div>
                           </div>
                           <div className={Styles.flexLayout}>  
@@ -117,12 +117,12 @@ export default class CustomerSummary extends React.Component<ICustomerSummaryPro
                             <div id="nameExternal">
                               <label className="input-label summary">Name</label>
                               <br />
-                              <div>{customer.name?.firstName || customer.name?.lastName ? customer.name?.firstName+' '+customer.name?.lastName : 'NA'}</div>
+                              <div className = {Styles.breakWords}>{customer.name?.firstName || customer.name?.lastName ? customer.name?.firstName+' '+customer.name?.lastName : 'NA'}</div>
                             </div>
                             <div id="companyName">
                               <label className="input-label summary">Company Name</label>
                               <br />
-                              <div>{customer.companyName ? customer.companyName : 'NA'}</div>
+                              <div className = {Styles.breakWords}>{customer.companyName ? customer.companyName : 'NA'}</div>
                             </div>
                             <div id="customerRelationExternal">
                               <label className="input-label summary">Customer Relation</label>
