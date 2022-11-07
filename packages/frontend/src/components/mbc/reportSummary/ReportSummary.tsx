@@ -127,9 +127,9 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
     const userInfo = this.props.user;
     const isSuperAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.ADMIN);
     const isReportAdmin = userInfo.roles.find((role: IRole) => role.id === USER_ROLE.REPORTADMIN);
-    const isProductOwner = this.state.report.members.reportOwners?.find(
-      (teamMember: ITeams) => teamMember.shortId === userInfo.id,
-    )?.shortId;
+    // const isProductOwner = this.state.report.members.reportOwners?.find(
+    //   (teamMember: ITeams) => teamMember.shortId === userInfo.id,
+    // )?.shortId;
     const reportName = this.state.report.productName;
     const reportId = this.state.report.reportId;
     // const logoDetails = this.state.report.description.logoDetails;
@@ -216,7 +216,7 @@ export default class ReportSummary extends React.Component<{ user: IUserInfo }, 
                       canEdit={
                         isReportAdmin !== undefined ||
                         isSuperAdmin !== undefined ||
-                        isProductOwner !== undefined ||
+                        // isProductOwner !== undefined ||
                         userInfo.id === this.checkUserCanEditReport(userInfo)
                       }
                       reportId={this.state.response.data ? this.state.response.data.reportId : ''}
