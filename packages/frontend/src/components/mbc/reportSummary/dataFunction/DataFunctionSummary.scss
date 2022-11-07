@@ -90,6 +90,10 @@ hr {
   padding: 25px 38px;
 }
 
+.breakWords{
+  word-break: break-all;
+}
+
 :global {
   label.input-label.summary {
     color: #99A5B3;
