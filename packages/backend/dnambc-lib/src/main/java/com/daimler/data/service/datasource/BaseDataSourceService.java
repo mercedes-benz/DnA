@@ -27,6 +27,7 @@
 
 package com.daimler.data.service.datasource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,6 +44,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.assembler.DataSourceAssembler;
+import com.daimler.data.client.dashboard.DashboardClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataSourceNsql;
@@ -50,8 +52,12 @@ import com.daimler.data.db.repo.datasource.DataSourceCustomRepository;
 import com.daimler.data.db.repo.datasource.DataSourceRepository;
 import com.daimler.data.dto.datasource.DataSourceCreateVO;
 import com.daimler.data.dto.datasource.DataSourceVO;
+import com.daimler.data.dto.divisions.DivisionVO;
+import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
+import com.daimler.data.util.ConstantsUtility;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,6 +77,9 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 
 	@Autowired
 	private SolutionService solutionService;
+	
+	@Autowired
+	private DashboardClient dashboardClient;
 
 	@Value("${dna.dataSource.bulkCreate.api.accessToken}")
 	private String accessToken;
@@ -81,12 +90,14 @@ public class BaseDataSourceService extends BaseCommonService<DataSourceVO, DataS
 
 	@Transactional
 	@Override
-	public boolean deleteDataSource(final String id) {
+	public void deleteDataSource(final String id) {
 		DataSourceNsql dsEntity = jpaRepo.getOne(id);
 		String dsName = dsEntity.getData().getName();
 		log.debug("Calling solutionService deleteTagForEachSolution to delete cascading refences to datasource {}", id);
 		solutionService.deleteTagForEachSolution(dsName, null, SolutionService.TAG_CATEGORY.DS);
-		return deleteById(id);
+		deleteById(id);
+		log.debug("Calling dashboardService to delete cascading refences to datasource {}", id);
+		dashboardClient.deleteDataSourceFromEachReport(dsName);
 	}
 
 	@Transactional
