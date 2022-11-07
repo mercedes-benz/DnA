@@ -30,6 +30,8 @@ package com.daimler.data.db.json;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,25 +39,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CodeServerWorkspace implements Serializable{
 
 	private static final long serialVersionUID = -1767843944100072529L;
 	
-	private String owner;
-	private String name;
-	//private String projectName;
+	private UserInfo workspaceOwner;
+	private String workspaceId;
+	private CodeServerProjectDetails projectDetails;
+	private String gitUserName;
 	private String description;
-	private String recipeId;
 	private String password;
 	private Date intiatedOn;
-	private Date lastDeployedOn;
-	private String ramSize;
-	private String cpuCapacity;
-	private String operatingSystem;
-	private String environment;
-	private String cloudServiceProvider;
 	private String status;
-	private String deploymentUrl;
 	private String workspaceUrl;
 	
 }
