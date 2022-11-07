@@ -34,6 +34,7 @@
 .tagColumn {
   display: inline-flex;
   flex-wrap: wrap;
+  word-break: break-all;
   > div {
     margin: 5px 5px 5px 0;
   }
@@ -108,9 +109,17 @@ hr {
   float: left;
 }
 
+.reportName{
+  word-break: break-all;
+}
+
 .reportPre{
   white-space: pre-wrap;
   font-family: "Roboto-Medium";  
+  word-break: break-all;
+}
+
+.reportLinkColumn{
   word-break: break-all;
 }
 

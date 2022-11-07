@@ -150,4 +150,9 @@ hr {
 .commentPre{
   white-space: pre-wrap;
   font-family: "Roboto-Medium";  
+  word-break: break-all;
+}
+
+.breakWords{
+  word-break: break-all;
 }
