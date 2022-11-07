@@ -63,6 +63,8 @@ public class DashboardClientImpl implements DashboardClient {
 
 	private static final String DELETE_DIVISION = "/api/divisions/";
 
+	private static final String DELETE_DATASOURCE = "/api/datasource/";
+
 	private static final String UPDATE_DIVISION = "/api/divisions";
 
 	@Autowired
@@ -77,6 +79,23 @@ public class DashboardClientImpl implements DashboardClient {
 		headers.set("Content-Type", "application/json");
 		headers.set("Authorization", jwt);
 		String dashboardUri = dashboardBaseUri + DELETE_DIVISION + id;
+		HttpEntity entity = new HttpEntity<>(headers);
+		ResponseEntity<String> response = restTemplate.exchange(dashboardUri, HttpMethod.DELETE, entity, String.class);
+		if (response != null && response.hasBody()) {
+			status = response.getStatusCode().toString();
+		}
+		return status;
+	}
+
+	@Override
+	public String deleteDataSourceFromEachReport(String dataSource) {
+		String status = "";
+		String jwt = httpRequest.getHeader("Authorization");
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
+		headers.set("Authorization", jwt);
+		String dashboardUri = dashboardBaseUri + DELETE_DATASOURCE + dataSource;
 		HttpEntity entity = new HttpEntity<>(headers);
 		ResponseEntity<String> response = restTemplate.exchange(dashboardUri, HttpMethod.DELETE, entity, String.class);
 		if (response != null && response.hasBody()) {
