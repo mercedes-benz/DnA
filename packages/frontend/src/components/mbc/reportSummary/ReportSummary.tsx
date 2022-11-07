@@ -10,7 +10,7 @@ import { getParams } from '../../../router/RouterUtils';
 
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { USER_ROLE } from 'globals/constants';
-import { ICreateNewReportResult, IRole, IUserInfo, ILogoDetails, ICreateNewReport, ITeams } from 'globals/types';
+import { ICreateNewReportResult, IRole, IUserInfo, ILogoDetails, ICreateNewReport } from 'globals/types';
 import { history } from '../../../router/History';
 import { ReportPdfDoc } from './pdfdoc/ReportPdfDoc';
 import Styles from './ReportSummary.scss';
