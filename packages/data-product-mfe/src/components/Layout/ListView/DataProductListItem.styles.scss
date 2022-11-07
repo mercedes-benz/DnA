@@ -44,8 +44,14 @@
 .arrowBtn {
     color: #c0c8d0 !important;
     font-size: var(--font-size-headline);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     &:hover {
         color: #00adef !important;
+        &::before {
+            transform: translateX(3px) !important;
+        }
     }
     &::before {
         font-size: var(--font-size-icon) !important;
