@@ -44,8 +44,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.dataSource.DataSourceBulkRequestVO;
 import com.daimler.data.dto.solution.UserInfoVO;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
 @Component
 public class DnaAuthClientImpl implements DnaAuthClient {
@@ -121,7 +119,6 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 
 	@Override
 	public String createDataSources(DataSourceBulkRequestVO vo) {
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 		String status = "";
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/json");
