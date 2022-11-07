@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import * as React from 'react';
 // @ts-ignore
