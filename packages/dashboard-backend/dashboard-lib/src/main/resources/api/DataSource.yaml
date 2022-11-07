@@ -70,9 +70,9 @@ paths:
 # supported http method DELETE
 #
 # path examples----
-# DELETE    .../dataSource/xxx
+# DELETE    .../datasource/xxx
 
- /dataSource/{name}:
+ /datasource/{name}:
   delete:
     tags:
     - "dataSource"
