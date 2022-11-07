@@ -63,15 +63,19 @@ import com.daimler.data.db.jsonb.report.SingleDataSource;
 import com.daimler.data.db.jsonb.report.Subdivision;
 import com.daimler.data.db.repo.report.ReportCustomRepository;
 import com.daimler.data.db.repo.report.ReportRepository;
+import com.daimler.data.dto.dataSource.DataSourceBulkRequestVO;
+import com.daimler.data.dto.dataSource.DataSourceCreateVO;
 import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.dto.divisions.DivisionReportVO;
 import com.daimler.data.dto.report.CreatedByVO;
 import com.daimler.data.dto.report.CustomerVO;
+import com.daimler.data.dto.report.DataSourceVO;
 import com.daimler.data.dto.report.InternalCustomerVO;
 import com.daimler.data.dto.report.MemberVO;
 import com.daimler.data.dto.report.ProcessOwnerCollection;
 import com.daimler.data.dto.report.ReportResponseVO;
 import com.daimler.data.dto.report.ReportVO;
+import com.daimler.data.dto.report.SingleDataSourceVO;
 import com.daimler.data.dto.report.SubdivisionVO;
 import com.daimler.data.dto.report.TeamMemberVO;
 import com.daimler.data.dto.solution.UserInfoVO;
@@ -129,6 +133,7 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 	public ReportVO create(ReportVO vo) {
 		updateTags(vo);
 		updateDepartments(vo);
+		updateDataSources(vo);
 		return super.create(vo);
 	}
 
@@ -467,21 +472,6 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 							}
 						}
 					}
-				} else if (category.equals(CATEGORY.DATASOURCE)) {
-					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
-					if (!ObjectUtils.isEmpty(singleDataSources)) {
-						for (SingleDataSource singleDataSource : singleDataSources) {
-							List<DataSource> dataSources = singleDataSource.getDataSources();
-							if (!ObjectUtils.isEmpty(dataSources)) {
-								for (DataSource dataSource : dataSources) {
-									if (StringUtils.hasText(dataSource.getDataSource())
-											&& dataSource.getDataSource().equals(oldValue)) {
-										dataSource.setDataSource(newValue);
-									}
-								}
-							}
-						}
-					}
 				} else if (category.equals(CATEGORY.CONNECTION_TYPE)) {
 					List<SingleDataSource> singleDataSources = reportNsql.getData().getSingleDataSources();
 					if (!ObjectUtils.isEmpty(singleDataSources)) {
@@ -613,6 +603,24 @@ public class BaseReportService extends BaseCommonService<ReportVO, ReportNsql, S
 				departmentService.create(newDepartmentVO);
 			}
 
+		}
+	}
+
+	private void updateDataSources(ReportVO vo) {
+		List<DataSourceCreateVO> dataSourcesCreateVO = new ArrayList<>();
+		if (vo.getDataAndFunctions() != null && !ObjectUtils.isEmpty(vo.getDataAndFunctions().getSingleDataSources())) {
+			List<SingleDataSourceVO> singleDataSources = vo.getDataAndFunctions().getSingleDataSources();
+			for (SingleDataSourceVO singleDataSource : singleDataSources) {
+				List<DataSourceVO> dataSources = singleDataSource.getDataSources();
+				for (DataSourceVO dataSource : dataSources) {
+					DataSourceCreateVO newDataSourceVO = new DataSourceCreateVO();
+					newDataSourceVO.setName(dataSource.getDataSource());
+					dataSourcesCreateVO.add(newDataSourceVO);
+				}
+			}
+			DataSourceBulkRequestVO requestVO = new DataSourceBulkRequestVO();
+			requestVO.setData(dataSourcesCreateVO);
+			dnaAuthClient.createDataSources(requestVO);
 		}
 	}
 

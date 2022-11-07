@@ -39,9 +39,7 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.dataSource.DataSourceRequestVO;
 import com.daimler.data.dto.report.CreatedByVO;
-import com.daimler.data.dto.report.DataSourceVO;
 import com.daimler.data.service.report.ReportService;
 
 @Service
@@ -57,38 +55,6 @@ public class BaseDataSourceService implements DataSourceService {
 
 	public BaseDataSourceService() {
 		super();
-	}
-
-	@Override
-	@Transactional
-	public ResponseEntity<GenericMessage> updateDataSource(DataSourceRequestVO dataSourceRequestVO) {
-		DataSourceVO vo = dataSourceRequestVO.getData();
-		String name = vo.getDataSource();
-		try {
-			if (!isSuperAdmin()) {
-				MessageDescription notAuthorizedMsg = new MessageDescription();
-				notAuthorizedMsg.setMessage(
-						"Not authorized to update dataSource for existing reports. User does not have admin privileges.");
-				LOGGER.debug("DataSource {} cannot be updated for existing reports. User not authorized", name);
-				GenericMessage errorMessage = new GenericMessage();
-				errorMessage.addErrors(notAuthorizedMsg);
-				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-			}
-			LOGGER.debug("Calling reportService updateForEachReport to update cascading refences to dataSource {}",
-					name);
-			reportService.updateForEachReport(name, "", ReportService.CATEGORY.DATASOURCE, vo);
-			GenericMessage successMsg = new GenericMessage();
-			successMsg.setSuccess("success");
-			LOGGER.info("DataSource {} updated successfully for existing reports", name);
-			return new ResponseEntity<>(successMsg, HttpStatus.OK);
-		} catch (Exception e) {
-			LOGGER.error("Failed while updating dataSource {} from existing reports with exception {}", name,
-					e.getMessage());
-			MessageDescription exceptionMsg = new MessageDescription("Failed to update due to internal error.");
-			GenericMessage errorMessage = new GenericMessage();
-			errorMessage.addErrors(exceptionMsg);
-			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
 	}
 
 	@Override
