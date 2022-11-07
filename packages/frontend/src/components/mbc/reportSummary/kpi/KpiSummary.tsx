@@ -52,7 +52,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                         <div id="kpiLink">
                           <label className="input-label summary">Link KPI-Wiki</label>
                           <br />
-                          <div>
+                          <div className = {Styles.breakWords}>
                             {kpi.kpiLink ? (
                               <span>
                                 <a href={kpi.kpiLink} target="_blank" rel="noopener noreferrer">
