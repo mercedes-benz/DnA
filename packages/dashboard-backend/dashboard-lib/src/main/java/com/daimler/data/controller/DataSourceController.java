@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.daimler.data.api.dataSource.DataSourceApi;
+import com.daimler.data.api.dataSource.DatasourceApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.service.datasource.DataSourceService;
 
@@ -47,7 +47,7 @@ import io.swagger.annotations.ApiResponses;
 @RestController
 @Api(value = "DataSource API", tags = { "dataSource" })
 @RequestMapping("/api")
-public class DataSourceController implements DataSourceApi {
+public class DataSourceController implements DatasourceApi {
 
 	@Autowired
 	private DataSourceService dataSourceService;
