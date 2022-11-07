@@ -39,7 +39,7 @@ import com.daimler.data.service.common.CommonService;
 
 public interface DataSourceService extends CommonService<DataSourceVO, DataSourceNsql, String> {
 
-	boolean deleteDataSource(final String id);
+	void deleteDataSource(final String id);
 	
 	/**
 	 * To create bulk Data-sources
