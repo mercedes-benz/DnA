@@ -186,7 +186,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                 </ul>
               </div>
             </div>
-            <h3 id="reportName">{reportName}</h3>
+            <h3 id="reportName" className={Styles.reportName}>{reportName}</h3>
             <span className={Styles.description}>Report Summary</span>
             <div className={Styles.firstPanel}>
               <div className={Styles.formWrapper}>
