@@ -25,25 +25,24 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.lov;
+package com.daimler.data.db.json;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.io.Serializable;
 
-import com.daimler.data.db.entities.lov.DataSourceSql;
-import com.daimler.data.db.repo.lov.DataSourceRepository;
-import com.daimler.data.dto.lov.LovVO;
-import com.daimler.data.service.common.BaseCommonService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Service
-public class BaseDataSourceService extends BaseCommonService<LovVO, DataSourceSql, Long> implements DataSourceService {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserInfo implements Serializable{
 
-	public BaseDataSourceService() {
-		super();
-	}
-
-	@Autowired
-	public BaseDataSourceService(DataSourceRepository jpaRepo) {
-		super(jpaRepo);
-	}
+	private String id;
+	private String firstName;
+	private String lastName;
+	private String department;
+	private String email;
+	private String mobileNumber;
+	private String gitUserName;
 }

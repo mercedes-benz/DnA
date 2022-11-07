@@ -4,7 +4,7 @@ import Styles from './DataProductCardItem.styles.scss';
 import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
-import { regionalDateFormat } from '../../../Utility/utils';
+import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../Utility/utils';
 import { dataProductsApi } from '../../../apis/dataproducts.api';
 import { GetDataProducts } from '../../redux/dataProduct.services';
 
@@ -23,6 +23,11 @@ const DataProductCardItem = ({ product, history, user }) => {
 
   const name = product?.providerInformation?.contactInformation?.name;
   const productOwnerName = `${name?.firstName} ${name?.lastName}`;
+
+  useEffect(() => {
+    const dataProductList = document.querySelectorAll('[class*="cardHeadTitle"]');
+    setTooltipIfEllipsisShown(dataProductList);
+  }, []);
 
   useEffect(() => {
     Tooltip.defaultSetup();

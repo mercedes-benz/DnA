@@ -17,10 +17,10 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.db.json.CodeServerWorkspace;
-import com.daimler.data.dto.WorkBenchActionRequestDto;
-import com.daimler.data.dto.WorkBenchBaseInputDto;
-import com.daimler.data.dto.WorkBenchInputDto;
+import com.daimler.data.dto.DeploymentManageDto;
+import com.daimler.data.dto.DeploymentManageInputDto;
+import com.daimler.data.dto.WorkbenchManageDto;
+import com.daimler.data.util.ConstantsUtility;
 
 @Component
 public class CodeServerClient {
@@ -33,7 +33,7 @@ public class CodeServerClient {
 	@Value("${codeServer.gitjob.manageuri}")
 	private String codeServerGitJobManageUri;
 	
-	@Value("${codeServer.git.pat}")
+	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
 	
 	@Value("${codeServer.base.uri}")
@@ -64,96 +64,97 @@ public class CodeServerClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	private String toDeployType(String recipeId) {
+	public String toDeployType(String recipeId) {
 		String recipeType = "";
 		String deployType = "";
 		if(recipeId!=null)
 			recipeType = recipeId.toLowerCase();
 		switch(recipeType) {
-			case "springboot":  deployType = "springboot"; break;
-			case "py-fastapi" : deployType = "py-fastapi"; break;
-			default: deployType = "gradle"; break;
+			case "springboot":  deployType = ConstantsUtility.SPRINGBOOT; break;
+			case "py-fastapi" : deployType = ConstantsUtility.PYFASTAPI; break;
+			default: deployType = ConstantsUtility.GRADLE; break;
 		}
 		return deployType;
 	}
 	
-	public GenericMessage performWorkBenchActions(String action,CodeServerWorkspace workspaceDetails) {
-		GenericMessage respone = new GenericMessage();
+	public GenericMessage manageWorkBench(WorkbenchManageDto manageDto) {
+		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
-		String userId = "";
-		String password = "";
-		String type = "";
-		String environment = "";
-		String wsid = "";
-		String codeServerGitJobUri = codeServerGitJobDeployUri;
-		if(workspaceDetails!=null) {
-			userId = workspaceDetails.getOwner().toLowerCase();
-			password = workspaceDetails.getPassword();
-			if(password==null)
-				password = "";
-			type = workspaceDetails.getRecipeId();
-			environment = workspaceDetails.getEnvironment();
-			wsid = workspaceDetails.getName();
-		}
-		
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-
-			WorkBenchActionRequestDto requestDto = null;
-			if(!action.equalsIgnoreCase("deploy") && !action.equalsIgnoreCase("undeploy")) {
-				codeServerGitJobUri = codeServerGitJobManageUri;
-				requestDto = new WorkBenchActionRequestDto<WorkBenchInputDto>();
-				WorkBenchInputDto inputDto = new WorkBenchInputDto();
-				inputDto.setAction(action);
-				inputDto.setShortid(userId);
-				inputDto.setEnvironment(environment);
-				inputDto.setWsid(wsid);
-				inputDto.setPassword(password);
-				inputDto.setType(type);
-				requestDto.setInputs(inputDto);
-			}else {
-				requestDto = new WorkBenchActionRequestDto<WorkBenchBaseInputDto>();
-				WorkBenchBaseInputDto baseInputDto = new WorkBenchBaseInputDto();
-				baseInputDto.setAction(action);
-				baseInputDto.setShortid(userId);
-				baseInputDto.setEnvironment(environment);
-				baseInputDto.setWsid(wsid);
-				baseInputDto.setType(this.toDeployType(type));
-				requestDto.setInputs(baseInputDto);
-			}
-			requestDto.setRef(codeServerEnvRef);
-			HttpEntity<WorkBenchActionRequestDto> entity = new HttpEntity<WorkBenchActionRequestDto>(requestDto,headers);
-			ResponseEntity<String> response = restTemplate.exchange(codeServerGitJobUri, HttpMethod.POST, entity, String.class);
-			if (response != null && response.getStatusCode()!=null) {
-				if(response.getStatusCode().is2xxSuccessful()) {
+			HttpEntity<WorkbenchManageDto> entity = new HttpEntity<WorkbenchManageDto>(manageDto,headers);
+			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(codeServerGitJobManageUri, HttpMethod.POST, entity, String.class);
+			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
+				if(manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
 					status = "SUCCESS";
-					LOGGER.info("Success while performing {} action for codeServer workbench for user {} ", action, userId);
+					LOGGER.info("Success while performing {} action for codeServer workbench for user {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
 				}
 				else {
-					LOGGER.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", action, userId,response.getStatusCodeValue());
+					LOGGER.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), manageWorkbenchResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
-					warning.setMessage("Response from codeServer Initialize : " + response.getBody() + " Response Code is : " + response.getStatusCodeValue());
+					warning.setMessage("Response from codeServer Initialize : " + manageWorkbenchResponse.getBody() + " Response Code is : " + manageWorkbenchResponse.getStatusCodeValue());
 					warnings.add(warning);
 				}
 			}
 			
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", userId, action, e.getMessage());
+			LOGGER.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
+			e.printStackTrace();
 		}
-		respone.setSuccess(status);
-		respone.setWarnings(warnings);
-		respone.setErrors(errors);
-		
-		return respone;
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
+	
+	public GenericMessage manageDeployment(DeploymentManageDto deployDto) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		DeploymentManageDto requestDto = new DeploymentManageDto();
+		DeploymentManageInputDto inputDto = new DeploymentManageInputDto();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
+			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(codeServerGitJobDeployUri, HttpMethod.POST, entity, String.class);
+			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
+				if(manageDeploymentResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
+				}
+				else {
+					LOGGER.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from codeServer Initialize : " + manageDeploymentResponse.getBody() + " Response Code is : " + manageDeploymentResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+			
+		} catch (Exception e) {
+			LOGGER.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
+			errors.add(error);
+			e.printStackTrace();
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	}
+	
 	
 	
 }

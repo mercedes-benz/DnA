@@ -27,3 +27,13 @@ export const regionalDateFormat = (dateString) => {
     year: 'numeric',
   });
 };
+
+const isEllipsisActive = (ele) => ele.offsetWidth < ele.scrollWidth;
+
+export const setTooltipIfEllipsisShown = (list) => {
+  list.forEach((ele) => {
+    if (isEllipsisActive(ele)) {
+      ele.setAttribute('tooltip-data', ele.textContent);
+    }
+  });
+};

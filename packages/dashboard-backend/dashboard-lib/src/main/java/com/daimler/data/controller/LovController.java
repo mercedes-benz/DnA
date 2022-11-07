@@ -45,7 +45,6 @@ import com.daimler.data.db.entities.lov.CommonFunctionSql;
 import com.daimler.data.db.entities.lov.ConnectionTypeSql;
 import com.daimler.data.db.entities.lov.CustomerDepartmentSql;
 import com.daimler.data.db.entities.lov.DataClassificationSql;
-import com.daimler.data.db.entities.lov.DataSourceSql;
 import com.daimler.data.db.entities.lov.DataWarehouseSql;
 import com.daimler.data.db.entities.lov.FrontendTechnologySql;
 import com.daimler.data.db.entities.lov.IntegratedPortalSql;
@@ -63,7 +62,6 @@ import com.daimler.data.service.lov.CommonFunctionService;
 import com.daimler.data.service.lov.ConnectionTypeService;
 import com.daimler.data.service.lov.CustomerDepartmentService;
 import com.daimler.data.service.lov.DataClassificationService;
-import com.daimler.data.service.lov.DataSourceService;
 import com.daimler.data.service.lov.DataWarehouseService;
 import com.daimler.data.service.lov.FrontendTechnologyService;
 import com.daimler.data.service.lov.IntegratedPortalService;
@@ -84,9 +82,6 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "Lov API", tags = { "lov" })
 @RequestMapping("/api/lov")
 public class LovController implements LovApi {
-
-	@Autowired
-	private DataSourceService dataSourceService;
 
 	@Autowired
 	private CustomerDepartmentService customerDepartmentService;
@@ -144,26 +139,6 @@ public class LovController implements LovApi {
 		AgileReleaseTrainSql entity = new AgileReleaseTrainSql();
 		entity.setName(lovRequestVO.getData().getName());
 		return agileReleaseTrainService.createLov(lovRequestVO, entity);
-
-	}
-
-	@Override
-	@ApiOperation(value = "Add a new data source.", nickname = "createDataSourceLov", notes = "Add a new non existing data source.", response = LovResponseVO.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of succes or failure ", response = LovResponseVO.class),
-			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/datasources", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<LovResponseVO> createDataSourceLov(
-			@ApiParam(value = "Request Body that contains data required for creating a new data source.", required = true) @Valid @RequestBody LovRequestVO lovRequestVO) {
-		DataSourceSql entity = new DataSourceSql();
-		entity.setName(lovRequestVO.getData().getName());
-		return dataSourceService.createLov(lovRequestVO, entity);
 
 	}
 
@@ -415,24 +390,6 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Delete the data source identified by given ID.", nickname = "deleteDataSourceLov", notes = "Delete the data source identified by given ID", response = GenericMessage.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully deleted.", response = GenericMessage.class),
-			@ApiResponse(code = 400, message = "Bad request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 404, message = "Invalid id, record not found."),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/datasources/{id}", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteDataSourceLov(
-			@ApiParam(value = "Id of the data source", required = true) @PathVariable("id") Long id) {
-		DataSourceSql entity = new DataSourceSql();
-		return dataSourceService.deleteLov(id, ReportService.CATEGORY.DATASOURCE, entity);
-	}
-
-	@Override
 	@ApiOperation(value = "Delete the customer department identified by given ID.", nickname = "deleteCustomerDepartmentLov", notes = "Delete the customer department identified by given ID", response = GenericMessage.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
@@ -665,22 +622,6 @@ public class LovController implements LovApi {
 	}
 
 	@Override
-	@ApiOperation(value = "Get all data source.", nickname = "getAllDataSourceLov", notes = "Get all data source. This endpoints will be used to Get all valid available data source.", response = LovVOCollection.class, tags = {
-			"lov", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Returns message of succes or failure", response = LovVOCollection.class),
-			@ApiResponse(code = 204, message = "No content found."), @ApiResponse(code = 400, message = "Bad request."),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/datasources", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllDataSourceLov() {
-		return dataSourceService.getAllLov();
-	}
-
-	@Override
 	@ApiOperation(value = "Get all customer department.", nickname = "getAllCustomerDepartmentLov", notes = "Get all customer department. This endpoints will be used to get all valid available customer department.", response = LovVOCollection.class, tags = {
 			"lov", })
 	@ApiResponses(value = {
@@ -888,24 +829,6 @@ public class LovController implements LovApi {
 		AgileReleaseTrainSql entity = new AgileReleaseTrainSql();
 		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
 		return agileReleaseTrainService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.ART);
-	}
-
-	@Override
-	@ApiOperation(value = "Update the data source identified by given ID.", nickname = "updateDataSourceLov", notes = "Update the data source identified by given ID", response = LovResponseVO.class, tags = {
-			"lov", })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully updated.", response = LovResponseVO.class),
-			@ApiResponse(code = 400, message = "Bad request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 404, message = "Invalid id, record not found."),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/datasources", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<LovResponseVO> updateDataSourceLov(
-			@ApiParam(value = "Request Body that contains data required for updating data source.", required = true) @Valid @RequestBody LovUpdateRequestVO lovUpdateRequestVO) {
-		DataSourceSql entity = new DataSourceSql();
-		BeanUtils.copyProperties(lovUpdateRequestVO.getData(), entity);
-		return dataSourceService.updateLov(lovUpdateRequestVO, entity, ReportService.CATEGORY.DATASOURCE);
 	}
 
 	@Override
