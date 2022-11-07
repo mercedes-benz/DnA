@@ -27,19 +27,15 @@
 
 package com.daimler.data.controller;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.dataSource.DataSourceApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.dataSource.DataSourceRequestVO;
 import com.daimler.data.service.datasource.DataSourceService;
 
 import io.swagger.annotations.Api;
@@ -71,23 +67,6 @@ public class DataSourceController implements DataSourceApi {
 	public ResponseEntity<GenericMessage> delete(
 			@ApiParam(value = "Name of the dataSource", required = true) @PathVariable("name") String name) {
 		return dataSourceService.deleteDataSource(name);
-	}
-
-	@Override
-	@ApiOperation(value = "Update dataSource in existing reports.", nickname = "update", notes = "Update dataSource in existing reports", response = GenericMessage.class, tags = {
-			"dataSource", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successfully updated.", response = GenericMessage.class),
-			@ApiResponse(code = 400, message = "Bad Request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/dataSource", produces = { "application/json" }, consumes = {
-			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<GenericMessage> update(
-			@ApiParam(value = "Request Body that contains data required for updating dataSource in existing reports.", required = true) @Valid @RequestBody DataSourceRequestVO dataSourceRequestVO) {
-		return dataSourceService.updateDataSource(dataSourceRequestVO);
 	}
 
 }
