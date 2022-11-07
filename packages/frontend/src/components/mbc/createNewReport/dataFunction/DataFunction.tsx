@@ -968,6 +968,11 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
                         <i className="icon mbc-icon plus" />
                         <span>Add Data Source</span>
                       </button>
+                      {(!this.state.dataAndFunctions.dataWarehouseInUse?.length && !this.state.dataAndFunctions.singleDataSources?.length) && (
+                        <div className={classNames(this.state.dataAndFunctionTabError ? '' : 'hide')}>
+                          <span className="error-message">{this.state.dataAndFunctionTabError}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
