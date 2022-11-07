@@ -63,43 +63,7 @@ tags:
 schemes:
 - "https"
 
-paths:
-
-# update dataSource in existing reports
-#
-# supported http method PUT
-#
-# path example ../dataSource
-
- /dataSource:     
-  put:
-    tags:
-    - "dataSource"
-    summary: "Update dataSource in existing reports."
-    description:  "Update dataSource in existing reports"
-    operationId: "update"
-    parameters:
-      - name: "dataSourceRequestVO"
-        in: "body" 
-        description: "Request Body that contains data required for updating dataSource in existing reports." 
-        required: true
-        schema:
-         $ref: "#/definitions/DataSourceRequestVO"    
-    responses:
-      200:
-       description: "Successfully updated."
-       schema:
-         $ref: "#/definitions/GenericMessage"
-      400:
-       description: "Bad Request"
-      401:
-       description: "Request does not have sufficient credentials."
-      403:
-       description: "Request is not authorized."
-      405:
-       description: "Method not allowed"
-      500:
-       description: "Internal error"       
+paths:     
      
 # path to delete dataSource in existing reports
 #
@@ -138,10 +102,38 @@ paths:
        description: "Internal error" 
 
 
-definitions:           
- DataSourceRequestVO:
+definitions:              
+ DataSourceCreateVO:
+  type: object
+  properties: 
+    name:
+     type: string
+     description: "Name of the datasource"
+     minLength: 1
+    externalRefId:
+     type: string
+     description: "External reference ID of the datasource" 
+    dataType:
+     type: string
+     description: "Data type for example:'Asset','Source'"
+    source:
+     type: string
+     description: "Source of the request, example:DnA,External_Source..."
+    lastModifiedDate:
+     type: string
+     format: date
+    modifiedBy:
+     type: string
+     description: "Modified by user."    
+  required:
+     - name
+     
+ DataSourceBulkRequestVO:
   type: object
   properties:
     data:
-      $ref: "#/definitions/DataSourceVO"     
+      description: "Request data containing datasources details to be created"
+      type: array
+      items:
+        $ref: "#/definitions/DataSourceCreateVO"               
  
