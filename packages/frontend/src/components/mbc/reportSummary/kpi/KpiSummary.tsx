@@ -42,12 +42,12 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                         <div id="kpiName">
                           <label className="input-label summary">KPI Name</label>
                           <br />
-                          <div>{kpi.name}</div>
+                          <div>{kpi.name ? kpi.name : 'NA'}</div>
                         </div>
                         <div id="reportingCase">
                           <label className="input-label summary">Reporting Cause</label>
                           <br />
-                          <div>{kpi.reportingCause}</div>
+                          <div>{kpi.reportingCause ? kpi.reportingCause : 'NA'}</div>
                         </div>
                         <div id="kpiLink">
                           <label className="input-label summary">Link KPI-Wiki</label>
@@ -65,7 +65,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                                 />
                               </span>
                             ) : (
-                              '-'
+                              'NA'
                             )}
                           </div>
                         </div>
@@ -73,7 +73,7 @@ export default class KpiSummary extends React.Component<IKpiProps> {
                       <div className={Styles.commentSection}>
                         <label className="input-label summary">KPI Description</label>
                         <p>
-                          <pre className={Styles.commentPre}>{kpi.description}</pre>
+                          <pre className={Styles.commentPre}>{kpi.description ? kpi.description : 'NA'}</pre>
                         </p>
                       </div>
                       {this.props.kpis?.length > 1 && <hr className="divider1" />}
