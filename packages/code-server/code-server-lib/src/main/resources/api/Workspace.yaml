@@ -175,7 +175,43 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+    
+    put:
+      tags:
+        - "code-server"
+      summary: "Initialize Workbench for user."
+      description: "Initialize workbench for collab user"
+      operationId: "InitializeWorkspace"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "initializeCollabWSRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/InitializeCollabWorkspaceRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/InitializeWorkspaceResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+                
     delete:
       tags:
         - "code-server"
@@ -329,45 +365,103 @@ definitions:
         enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED"]
         description: "Status of workspace job action create/delete/deploy request"
       required:
-        -status
-              
+          -status
+       
   CodeServerWorkspaceVO:
     type: object
     properties:
       id: 
         type: string
         description: "Unique technical ID of workspace"
-      name:
+      workspaceId:
         type: string
         description: "Name of the workspace"
-        pattern: "^[a-z0-9_-]*$"
-#      projectName:
-#        type: string
-#        description: "Name of the project in workspace"
+      projectDetails:
+       $ref: "#/definitions/CodeServerProjectDetailsVO"
       description:
         type: string
         description: "description of the workspace"
-      owner:
+      workspaceOwner:
+        $ref: "#/definitions/UserInfoVO"
+      gitUserName:
         type: string
-        description: "User ID of the workspace owner"
-      recipeId:
-        type: string
-        enum: [default,springboot,py-fastapi]
-        description: "RecipeId of the workspace. Ex: Springboot Microservice"
+        description: git username
       intiatedOn:
         type: string
         format: date
         description: "Date on which workspace is created" 
+      workspaceUrl:
+        type: string
+        description: "Workspace url"
+      status:
+        type: string
+        description: "Status of workspace - COLLABORATION_REQUESTED,CREATE_REQUESTED,CREATED,CREATE_FAILED,DELETE_REQUESTED,DELETED,DELETE_FAILED,DEPLOY_REQUESTED,
+        DEPLOYED,DEPLOYMENT_FAILED,UNDEPLOY_REQUESTED,UNDEPLOYED,UNDEPLOY_FAILED"
+      required:
+        -projectDetails
+        -workspaceOwner
+
+  CodeServerProjectDetailsVO:
+    type: object
+    properties:
+      projectName:
+        type: string
+      projectOwner:
+        $ref: "#/definitions/UserInfoVO"
+      projectCollaborators:
+        type: array
+        items:
+         $ref: "#/definitions/UserInfoVO" 
+      prodDeploymentDetails:
+        $ref: "#/definitions/CodeServerDeploymentDetailsVO"
+      intDeploymentDetails:
+        $ref: "#/definitions/CodeServerDeploymentDetailsVO"
+      recipeDetails:
+        $ref: "#/definitions/CodeServerRecipeDetailsVO"
+      gitRepoName:
+        type: string
+      projectCreatedOn:
+        type: string
+        format: date
+      required:
+        -projectName
+        -recipeDetails
+        
+  ManageDeployRequestDto:
+    type: object
+    properties:
+      targerEnvironment:
+        type: string
+        enum: [int,prod]
+      branch:
+        type: string
+           
+  CodeServerDeploymentDetailsVO:
+    type: object
+    properties:
       lastDeployedOn:
         type: string
         format: date
         description: "Date of last deployment"
       deploymentUrl:
         type: string
-        description: "URL of the project deployed"
-      workspaceUrl:
+        description: "URL of the project deployed"  
+      lastDeployedBy:
+        $ref: "#/definitions/UserInfoVO" 
+      lastDeployedBranch:
         type: string
-        description: "Workspace url"
+        description: Branch used for last deployment
+      lastDeploymentStatus:
+        type: string
+        description: Status of last deployement
+         
+  CodeServerRecipeDetailsVO:
+    type: object
+    properties:
+      recipeId:
+        type: string
+        enum: [default,springboot,py-fastapi]
+        description: "RecipeId of the workspace. Ex: Springboot Microservice"    
       environment:
         type: string
         enum: [Development, Testing, Production]    
@@ -379,10 +473,6 @@ definitions:
         type: string
         enum: [1,2]
         description: "RAM size needed"
-      ramMetrics:
-        type: string
-        enum: [GB]
-        description: "Metrics of RAM"
       cpuCapacity:
         type: string
         enum: [1]
@@ -391,15 +481,37 @@ definitions:
         type: string
         enum: [Debian-OS-11]
         description: "Operating system required"
-      status:
-        type: string
-        description: "Status of workspace - CREATE_REQUESTED,CREATED,CREATE_FAILED,DELETE_REQUESTED,DELETED,DELETE_FAILED,DEPLOY_REQUESTED,
-        DEPLOYED,DEPLOYMENT_FAILED,UNDEPLOY_REQUESTED,UNDEPLOYED,UNDEPLOY_FAILED"
-      
       required:
-        -name
         -recipeId
-          
+
+  UserInfoVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user" 
+      gitUserName:
+        type: string
+        description: git Username
+      required:
+        -id
+        -gitUserName
+                     
   BindingResult:
     type: object
 
@@ -424,6 +536,19 @@ definitions:
         type: string
         description: "message"
   
+  InitializeCollabWorkspaceRequestVO:
+    type: object
+    properties:
+      password:
+        type: string
+        description: "Create Password, required to login to workbench of codeserver"
+      pat:
+        type: string
+        description: "Provide PAT to manage git repositories"
+      required:
+       - pat
+       - password     
+        
   InitializeWorkspaceRequestVO:
     type: object
     properties:
@@ -432,7 +557,11 @@ definitions:
       password:
         type: string
         description: "Create Password, required to login to workbench of codeserver"
+      pat:
+        type: string
+        description: "Provide PAT to manage git repositories"
       required:
+       - pat
        - password     
        - data
         
@@ -451,7 +580,7 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"  
-          
+  
   CreatedByVO:
     type: object
     properties:
@@ -473,5 +602,3 @@ definitions:
       mobileNumber:
         type: string
         description: "Mobile number of the user" 
- 
- 

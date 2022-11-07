@@ -25,14 +25,14 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.lov;
+package com.daimler.data.service.datasource;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.http.ResponseEntity;
 
-import com.daimler.data.db.entities.lov.DataSourceSql;
+import com.daimler.data.controller.exceptions.GenericMessage;
 
-@Repository
-public interface DataSourceRepository extends JpaRepository<DataSourceSql, Long> {
+public interface DataSourceService {
+
+	ResponseEntity<GenericMessage> deleteDataSource(String name);
 
 }
