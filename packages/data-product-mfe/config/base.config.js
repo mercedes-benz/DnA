@@ -129,8 +129,8 @@ module.exports = {
       filename: 'remoteEntry.js',
       exposes: {
         './DataProduct': './src/App',
-        './ProviderForm': './src/components/ProviderForm',
-        './ConsumerForm': './src/components/ConsumerForm',
+        './ProviderForm': './src/components/dataTransfer/ProviderForm',
+        './ConsumerForm': './src/components/dataTransfer/ConsumerForm',
         './DataComplianceNetworkList': './src/components/DataComplianceNetworkList',
       },
       remotes: {

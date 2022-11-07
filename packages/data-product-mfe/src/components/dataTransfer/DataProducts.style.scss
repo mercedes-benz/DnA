@@ -1,0 +1,187 @@
+.mainPanel {
+    padding: 72px 184px 30px 114px;
+
+    .wrapper {
+        width: 100%;
+        .caption {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0px;
+            margin-bottom: 10px;
+            h3 {
+                color: #dee3e8;
+            }
+        }
+    }
+    .content {
+        background-color: #252a33;
+        padding: 0 0 0px 0px;
+        min-width: 518px;
+        .listContent {
+            min-height: 435px;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            padding: 25px 31px 25px 38px;
+            align-items: flex-start;
+        }
+        .emptyProducts {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .subscriptionListEmpty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            justify-content: center;
+            height: 300px;
+            position: relative;
+            border: 1px solid #383f49;
+            width: 100%;
+        }
+    }
+
+    .listHeader {
+        height: 29px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        .iconactive {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .dividerLine {
+            height: 25px;
+            display: inline-block;
+            background-color: #252a33;
+            height: 25px;
+            margin: 0 10px 0 5px;
+            padding: 0;
+            width: 1px;
+        }
+        .iconInActive {
+            &:hover {
+                color: #00adef;
+            }
+        }
+    }
+}
+.allDataproductContent {
+    margin-bottom: 15px;
+    flex: 1 auto;
+    position: relative;
+
+    .allDataproductCardviewContent {
+        flex-wrap: wrap;
+        display: flex;
+        justify-content: left;
+        margin-right: -30px;
+    }
+}
+.cardViewContainer {
+    width: calc(33% - 15px);
+    margin: 0 15px 15px 0;
+    min-width: 250px;
+    position: relative;
+    border: 1px solid #383f49;
+    cursor: pointer;
+    min-height: 250px;
+    .addicon {
+        top: calc(50% - 31px);
+        width: 63px;
+        height: 63px;
+        border: 1px solid #fff;
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin: 0 auto;
+        &:after {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            transform: rotate(90deg);
+        }
+        &:before {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            margin: 0 auto;
+            transform: rotate(180deg);
+            top: 49%;
+        }
+    }
+    .addlabel {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        position: absolute;
+        word-break: break-word;
+        display: block;
+        width: 100%;
+        text-align: center;
+        bottom: 20px;
+    }
+    &:hover .addlabel {
+        color: #00adef;
+    }
+}
+.listViewContainer {
+    display: flex;
+    justify-content: center;
+    border: 1px solid #697582;
+    padding: 20px;
+    cursor: pointer;
+    .addicon {
+        width: 40px;
+        height: 40px;
+        margin: 0px;
+        border: 1px solid #fff;
+        border-radius: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        &:after {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            transform: rotate(90deg);
+        }
+        &:before {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 1px;
+            background-color: #00adef;
+            left: 25%;
+            margin: 0 auto;
+            transform: rotate(180deg);
+            top: 49%;
+        }
+    }
+    .addlabel {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        margin: auto 20px;
+        position: relative;
+        width: auto;
+        cursor: pointer;
+        word-break: break-word;
+    }
+    &:hover .addlabel {
+        color: #00adef;
+    }
+}
