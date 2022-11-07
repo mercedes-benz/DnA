@@ -459,11 +459,9 @@ definitions:
         minLength: 1
       connectionType:
         type: string
-        minLength: 1
     required:
       - dataWarehouse
       - dataClassification
-      - connectionType 
           
   SingleDataSourceVO:
     type: object
@@ -477,11 +475,9 @@ definitions:
         minLength: 1
       connectionType:
         type: string
-        minLength: 1
     required:
       - dataSources
       - dataClassification
-      - connectionType
       
   DataSourceVO:
     type: object

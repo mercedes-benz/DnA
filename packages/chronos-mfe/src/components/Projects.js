@@ -254,9 +254,9 @@ const ForeCastingProjects = ({ user, history }) => {
                     id="projectName"
                     placeholder="Type here"
                     autoComplete="off"
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-]+$/ })}
+                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
                   />
-                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Only lowercase letters without spaces are allowed'}</span>
+                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
                 </div>
               </div>
             </div>
@@ -282,7 +282,7 @@ const ForeCastingProjects = ({ user, history }) => {
                 }
               </div>
             </div>
-            <div className={Styles.apiKeySection}>
+            <div className={Styles.apiKeySection + ' ' + Styles.hide}>
               <h3 className={Styles.modalSubTitle}>Generate API Key</h3>
               {
                 generateApiKey &&
