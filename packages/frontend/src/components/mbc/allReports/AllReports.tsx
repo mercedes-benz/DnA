@@ -210,9 +210,9 @@ export default class AllReports extends React.Component<
     const { openFilterPanel } = this.state;
 
     const reportData = this.state.reports?.map((report) => {
-      const isProductOwner = report.members.reportOwners?.find(
-        (teamMember: ITeams) => teamMember.shortId === userInfo.id,
-      )?.shortId;
+      // const isProductOwner = report.members.reportOwners?.find(
+      //   (teamMember: ITeams) => teamMember.shortId === userInfo.id,
+      // )?.shortId;
 
       return (
         <ReportListRowItem
@@ -223,7 +223,7 @@ export default class AllReports extends React.Component<
           canEdit={
             isReportAdmin !== undefined ||
             isSuperAdmin !== undefined ||
-            isProductOwner !== undefined ||
+            // isProductOwner !== undefined ||
             userInfo.id === this.checkUserCanEditReport(userInfo, report)
           }
           onEdit={()=>this.onEditReport(report?.reportId)}

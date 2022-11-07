@@ -55,7 +55,7 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 
 	private static final String VERIFY_LOGIN = "/api/verifyLogin";
 	private static final String GET_USERINFO = "/api/users/";
-	private static final String CREATE_DATASOURCES = "/datasources/bulk";
+	private static final String CREATE_DATASOURCES = "/api/datasources/bulk";
 
 	@Value("${dna.dataSource.bulkCreate.api.accessToken}")
 	private String accessToken;

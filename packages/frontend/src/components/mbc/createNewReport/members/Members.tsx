@@ -156,7 +156,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.firstPanel)}>
             <h3>Please add report members</h3>
-            <div className={classNames(Styles.teamListWrapper, POError ? 'error' : '')}>
+            <div className={classNames(Styles.teamListWrapper, productOwnerTeamMembersList.length < 1 ? 'error' : '')}>
               {/* <h5>
                 {' '}
                 Product / Report Owner <sup>*</sup> (can edit/delete){' '}
@@ -167,39 +167,18 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
                   <i className="icon mbc-icon plus" />
                   <span>Add Report Member</span>
                 </button>
-                <div className={classNames(POError ? '' : 'hide')}>
+                <div className={classNames(productOwnerTeamMembersList.length < 1 ? '' : 'hide')}>
                   <span className="error-message">{POError}</span>
                 </div>
               </div>
               {productOwnerTeamMembersList.length ? productOwnerTeamMembersList : ''}
             </div>
           </div>
-          {/* <div className={classNames(Styles.firstPanel)}>
-            <div className={classNames(Styles.teamListWrapper, devsError ? 'error' : '')}>
-              <h5>
-                {' '}
-                Developer <sup>*</sup>{' '}
-              </h5>
-              {developerTeamMembersList.length ? developerTeamMembersList : ''}
-              <div className={Styles.addTeamMemberWrapper}>
-                {this.state.members.developers.length < 1 && <IconAvatarNew className={Styles.avatarIcon} />}
-                <button id="AddTeamMemberBtn" onClick={this.addDeveloperMember}>
-                  <i className="icon mbc-icon plus" />
-                  <span>Add Developer</span>
-                </button>
-                {!this.state.members.developers.length && (
-                  <div className={classNames(devsError ? '' : 'hide')}>
-                    <span className="error-message">{devsError}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div> */}
         </div>
         <div className={classNames(Styles.adminWrapper)}>
           <div className={classNames(Styles.firstPanel)}>
             <h3>Please add report administrators</h3>
-            <div className={classNames(Styles.teamListWrapper, adminError ? 'error' : '')}>
+            <div className={classNames(Styles.teamListWrapper, adminTeamMembersList.length < 1 ? 'error' : '')}>
               {/* <h5>
                 {' '}
                 Report Admin <sup>*</sup> (can edit/delete){' '}
@@ -211,7 +190,7 @@ export default class Members extends React.Component<IMembersProps, IMembersStat
                   <span>Add Report Administrator</span>
                 </button>
                 {!this.state.members.reportAdmins.length && (
-                  <div className={classNames(adminError ? '' : 'hide')}>
+                  <div className={classNames(adminTeamMembersList.length < 1  ? '' : 'hide')}>
                     <span className="error-message">{adminError}</span>
                   </div>
                 )}
