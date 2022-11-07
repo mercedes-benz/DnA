@@ -36,24 +36,24 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                         <div id='datawarehouse'>
                           <label className="input-label summary">Data Warehouse</label>
                           <br />
-                          <span>{data.dataWarehouse}</span>
+                          <span>{data.dataWarehouse ? data.dataWarehouse : 'NA'}</span>
                         </div>
                         <div id="commonFunctions">
                           <label className="input-label summary">Common Functions</label>
                           <br />
-                          {data.commonFunctions?.join(', ')}
+                          {data.commonFunctions ? data.commonFunctions?.join(', ') : 'NA'}
                         </div>
                         <div id="connectionType">
                           <label className="input-label summary">Connection Type</label>
                           <br />
-                          {data.connectionType}
+                          {data.connectionType ? data.connectionType : 'NA'}
                         </div>
                       </div>
                       <div className={classNames(Styles.flexLayout)}>
                         <div id="dataClassification">
                           <label className="input-label summary">Data Classification</label>
                           <br />
-                          {data.dataClassification}
+                          {data.dataClassification ? data.dataClassification : 'NA'}
                         </div>
                       </div>
                       
@@ -74,17 +74,17 @@ export default class DataFunctionSummary extends React.Component<IDataAndFunctio
                         <div id="dataSource">
                           <label className="input-label summary">Data Sources</label>
                           <br />
-                          {data.dataSources?.map((item:any) => item.dataSource).join(' / ')}
+                          { data.dataSources ? data.dataSources?.map((item:any) => item.dataSource).join(' / ') : 'NA'}
                         </div>
                         <div id="commonFunctions">
                           <label className="input-label summary">Data Classification</label>
                           <br />
-                          {data.dataClassification}
+                          {data.dataClassification ? data.dataClassification : 'NA'}
                         </div>
                         <div id="specificFunctions">
                           <label className="input-label summary">Connection Type</label>
                           <br />
-                          {data.connectionType}
+                          {data.connectionType ? data.connectionType : 'NA'}
                         </div>
                       </div>
                     </div>

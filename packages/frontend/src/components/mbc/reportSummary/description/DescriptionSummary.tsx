@@ -195,7 +195,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <label className="input-label summary">Description</label>
                     <br />
                     <div>
-                      <pre className={Styles.reportPre}>{description.productDescription}</pre>
+                      <pre className={Styles.reportPre}>{description.productDescription ? description.productDescription : 'NA'}</pre>
                     </div>
                   </div>
                   <div id="tags">
@@ -208,7 +208,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <br />
                     <div className={Styles.reportLinkColumn}>
                       <a href={reportLink} target="_blank" rel="noreferrer">
-                        {reportLink}
+                        {reportLink ? reportLink : 'NA'}
                       </a>
                     </div>
                   </div>
@@ -230,7 +230,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="department">
                     <label className="input-label summary">E2-Department</label>
                     <br />
-                    {description.department}
+                    {description.department ? description.department : 'NA'}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -242,7 +242,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                   <div id="status">
                     <label className="input-label summary">Status </label>
                     <br />
-                    {description.status}
+                    {description.status ? description.status : 'NA'}
                   </div>
                   <div id="integratedinportal">
                     <label className="input-label summary">Integrated In Portal</label>
@@ -256,11 +256,6 @@ export default class DescriptionSummary extends React.Component<IDescriptionRepo
                     <br />
                     {description.agileReleaseTrain && description?.agileReleaseTrain != '0' ? description.agileReleaseTrain : 'NA'}
                   </div>
-                  {/* <div id="designguideimplemented">
-                    <label className="input-label summary">Design Guide Implemented</label>
-                    <br />
-                    {description.designGuideImplemented ? description.designGuideImplemented : 'N/A'}
-                  </div> */}
                   <div id="frmonEndTech">
                     <label className="input-label summary">Frontend Technologies</label>
                     <br />
