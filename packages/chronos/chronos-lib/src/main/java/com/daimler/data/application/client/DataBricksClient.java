@@ -74,10 +74,9 @@ public class DataBricksClient {
 				if(notebookParams.getConfig()==null || "".equalsIgnoreCase(notebookParams.getConfig()))
 					notebookParams.setConfig(dataBricksJobDefaultConfigYml);
 				if(runOnPowerfulMachines) {
-					requestWrapper.setJob_id(dataBricksPowerfulMachinesJobId);
-				} else {
-					requestWrapper.setJob_id(dataBricksJobId);
+					dataBricksJobId = dataBricksPowerfulMachinesJobId;
 				}
+				requestWrapper.setJob_id(dataBricksJobId);
 				requestWrapper.setNotebook_params(notebookParams);
 				try {
 				ObjectMapper mapper = new ObjectMapper();
@@ -152,12 +151,10 @@ public class DataBricksClient {
 				headers.set("Accept", "application/json");
 				headers.set("Authorization", "Bearer "+dataBricksPAT);
 				headers.setContentType(MediaType.APPLICATION_JSON);
-			    String getJobRunsUrl = "";
 				if (runOnPowerfulMachines) {
-					getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksPowerfulMachinesJobId;
-				} else {
-					getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobId;
+					dataBricksJobId = dataBricksPowerfulMachinesJobId;
 				}
+				String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobId;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
 				ResponseEntity<JobRunsListVO> response = proxyRestTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
 						requestEntity, JobRunsListVO.class);
