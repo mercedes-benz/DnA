@@ -339,6 +339,7 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
           
 definitions:
 
@@ -364,6 +365,10 @@ definitions:
         type: string
         enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED"]
         description: "Status of workspace job action create/delete/deploy request"
+      targetEnvironment:
+        type: string
+      branch:
+        type: string
       required:
           -status
        
@@ -430,7 +435,7 @@ definitions:
   ManageDeployRequestDto:
     type: object
     properties:
-      targerEnvironment:
+      targetEnvironment:
         type: string
         enum: [int,prod]
       branch:
