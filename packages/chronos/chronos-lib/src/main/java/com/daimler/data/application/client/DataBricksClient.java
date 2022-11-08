@@ -46,7 +46,7 @@ public class DataBricksClient {
 	private String dataBricksJobId;
 
 	@Value("${databricks.powerfulMachinesJobId}")
-	private boolean dataBricksPowerfulMachinesJobId;
+	private String dataBricksPowerfulMachinesJobId;
 	
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
@@ -153,9 +153,6 @@ public class DataBricksClient {
 				headers.set("Accept", "application/json");
 				headers.set("Authorization", "Bearer "+dataBricksPAT);
 				headers.setContentType(MediaType.APPLICATION_JSON);
-				if (runOnPowerfulMachines) {
-					dataBricksJobidForRun = dataBricksPowerfulMachinesJobId;
-				}
 				String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobidForRun;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
 				ResponseEntity<JobRunsListVO> response = proxyRestTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
