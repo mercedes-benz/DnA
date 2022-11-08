@@ -895,7 +895,7 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                   </button>
                   <button className={Styles.changeLog} onClick={this.handleChangeLogModal}>
                     <i className="icon mbc-icon link" />
-                    <span>Division change logs</span>
+                    <span>Division Change Logs</span>
                   </button>
                 </div>
               </div>
@@ -977,10 +977,10 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             onCancel={this.onAddItemModalCancel}
           />
           <InfoModal
-            title={'Change Log'}
+            title={'Change Logs'}
             show={this.state.showDivisionChangeLogModal}
             content={this.state.divisionChangeLogs ? divisionChangeLog : ''}
-            onCancel={() => this.setState({ showDivisionChangeLogModal: false })}
+            onCancel={this.onDivisionChangeLogModalCancel}
           />
         </div>
       </div>
@@ -1118,4 +1118,6 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       this.getResults('pagination');
     });
   };
+
+  protected onDivisionChangeLogModalCancel = () => this.setState({ showDivisionChangeLogModal: false });
 }
