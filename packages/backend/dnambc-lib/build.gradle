@@ -167,6 +167,23 @@ swaggerSources {
             //dependsOn validation
         }
     }
+	
+	divisionAudit {
+        def divisionAudityaml = "${rootDir}/dnambc-lib/src/main/resources/api/DivisionAudit.yaml"
+        def divisionAuditJson = "${rootDir}/dnambc-lib/src/main/resources/api/DivisionAudit.json"
+        inputFile = file(divisionAudityaml)
+
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(divisionAuditJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
 
     platform {
         def platformyaml = "${rootDir}/dnambc-lib/src/main/resources/api/Platform.yaml"
@@ -549,6 +566,8 @@ compileJava {
     source "${swaggerSources.datavolume.code.outputDir}/src/main/java"
     dependsOn swaggerSources.division.code
     source "${swaggerSources.division.code.outputDir}/src/main/java"
+	dependsOn swaggerSources.divisionAudit.code
+    source "${swaggerSources.divisionAudit.code.outputDir}/src/main/java"
     dependsOn swaggerSources.platform.code
     source "${swaggerSources.platform.code.outputDir}/src/main/java"
     dependsOn swaggerSources.result.code
