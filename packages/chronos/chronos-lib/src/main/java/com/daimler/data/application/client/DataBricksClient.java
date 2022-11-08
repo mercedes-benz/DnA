@@ -45,7 +45,7 @@ public class DataBricksClient {
 	@Value("${databricks.jobId}")
 	private String dataBricksJobId;
 
-	@Value("${databricks.powerfulMachinesJobId}")
+	@Value("${databricks.jobId}")
 	private boolean dataBricksPowerfulMachinesJobId;
 	
 	@Value("${databricks.defaultConfigYml}")
@@ -64,6 +64,7 @@ public class DataBricksClient {
 	public RunNowResponseVO runNow(String runCorrelationUUID, RunNowNotebookParamsDto notebookParams, boolean runOnPowerfulMachines) {
 		RunNowResponseVO runNowResponse = null;
 		try {
+				String dataBricksJobidForRun = dataBricksJobId;
 				HttpHeaders headers = new HttpHeaders();
 				headers.set("Accept", "application/json");
 				headers.set("Authorization", "Bearer "+dataBricksPAT);
@@ -74,9 +75,9 @@ public class DataBricksClient {
 				if(notebookParams.getConfig()==null || "".equalsIgnoreCase(notebookParams.getConfig()))
 					notebookParams.setConfig(dataBricksJobDefaultConfigYml);
 				if(runOnPowerfulMachines) {
-					dataBricksJobId = dataBricksPowerfulMachinesJobId;
+					dataBricksJobidForRun = dataBricksPowerfulMachinesJobId;
 				}
-				requestWrapper.setJob_id(dataBricksJobId);
+				requestWrapper.setJob_id(dataBricksJobidForRun);
 				requestWrapper.setNotebook_params(notebookParams);
 				try {
 				ObjectMapper mapper = new ObjectMapper();
@@ -147,14 +148,15 @@ public class DataBricksClient {
 	public JobRunsListVO getJobRuns() {
 		JobRunsListVO getJobRunsResponse = null;
 		try {
+				String dataBricksJobidForRun = dataBricksJobId;
 				HttpHeaders headers = new HttpHeaders();
 				headers.set("Accept", "application/json");
 				headers.set("Authorization", "Bearer "+dataBricksPAT);
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				if (runOnPowerfulMachines) {
-					dataBricksJobId = dataBricksPowerfulMachinesJobId;
+					dataBricksJobidForRun = dataBricksPowerfulMachinesJobId;
 				}
-				String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobId;
+				String getJobRunsUrl = dataBricksBaseUri + dataBricksJobRunList + "?active_only=true&expand_tasks=false&run_type=JOB_RUN&job_id="+dataBricksJobidForRun;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
 				ResponseEntity<JobRunsListVO> response = proxyRestTemplate.exchange(getJobRunsUrl, HttpMethod.POST,
 						requestEntity, JobRunsListVO.class);

@@ -16,7 +16,6 @@ public class RunDetails {
 
 	 private String id;
 	 private String jobId;
-	 private String powerfulMachinesJobId;
 	 private String runId;
 	 private String numberInJob;
 	 
