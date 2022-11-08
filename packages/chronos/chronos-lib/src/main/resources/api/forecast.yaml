@@ -343,12 +343,22 @@ paths:
           type: number
           minimum: 1
           description: "Any number greater than 1"
-          required: true 
+          required: true
+        - in: formData
+          name: hierarchy
+          type: String
+          description: "Levels Of Hierarchy number between 2 to 20 Or null"
+          required: false
         - in: formData
           name: comment
           type: string
           description: "Comments for the run"
-          required: false 
+          required: false
+        - in: formData
+          name: runOnPowerfulMachines
+          type: boolean
+          description: "If true, then run on Powerful Machines"
+          required: false
       responses:
         201:
           description: "Returns message of success or failure "
@@ -627,13 +637,21 @@ definitions:
             type: number
             minimum: 1
             description: "Any number greater than 1"
+        hierarchy:
+            type: string
+            description: "Levels Of Hierarchy number between 2 to 20 Or null"
+            required: false
         comment:
             type: string
             description: "Comments for the run"
-            
+        runOnPowerfulMachines:
+            type: boolean,
+            description: "If true, then run on Powerful Machines"
+            required: false
+            default: false
+
         required: 
             -inputfile
-            -runName
             -configurationFile
             -frequency
             -forecastHorizon
@@ -760,9 +778,18 @@ definitions:
             type: string
             minimum: 1
             description: "Any number greater than 1"
+        hierarchy:
+            type: string
+            description: "Levels Of Hierarchy number between 2 to 20 Or null"
+            required: false
         comment:
             type: string
             description: "Comments for the run"
+        runOnPowerfulMachines:
+          type: boolean,
+          description: "If true, then run on Powerful Machines"
+          required: false
+          default: false
         state:
           $ref: "#/definitions/RunStateVO"
         triggeredBy:
@@ -864,6 +891,8 @@ definitions:
       frequency:
         type: string
       forecastHorizon:
+        type: string
+      hierarchy:
         type: string
       y:
         type: string
