@@ -580,7 +580,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					if (runName == null || runName.trim().isEmpty()) {
 						SimpleDateFormat runNameDate = new SimpleDateFormat("yyyy.MM.dd-HH.mm.ss");
 						Date date = new Date();
-						runName = "run-" + runNameDate.format(date).toString();
+						runName = "run-" + runNameDate.format(date);
 					}
 
 					ForecastRunResponseVO createRunResponse = service.createJobRun(savedInputPath, saveRequestPart, runName, configurationFile,
