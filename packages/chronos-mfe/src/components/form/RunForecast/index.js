@@ -70,7 +70,7 @@ const configFiles = [
   // },
 ]
 
-const RunForecast = () => {
+const RunForecast = ({ onRunClick }) => {
   const { id: projectId } = useParams();
 
   const { register, handleSubmit, isSubmitting, reset, formState: { errors } } = useForm();
@@ -251,6 +251,21 @@ const RunForecast = () => {
     }
   };
 
+  const resetFormData = () => {
+    reset({
+      runName: '',
+      configurationFile: 0,
+      frequency: 0,
+      forecastHorizon: 1,
+      comment: '',
+    });
+    SelectBox.defaultSetup();
+    setIsSelectedFile(false);
+    setSelectedInputFile();
+    setDropped(false);
+    setDroppedFile();
+  }
+
   const onSubmit = (data) => {
     const formData = new FormData();
     if(selectedInputFile?.path !== undefined) {
@@ -274,21 +289,17 @@ const RunForecast = () => {
       formData.append("savedInputPath", null);
     }
 
+    console.log('run');
+    onRunClick();
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
         Notification.show('Run created successfully');
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
-        reset({
-          runName: '',
-          configurationFile: 0,
-          frequency: 0,
-          forecastHorizon: 1,
-          comment: '',
-        });
-        SelectBox.defaultSetup();
-        setIsSelectedFile(false);
+        resetFormData();
         ProgressIndicator.hide();
       }).catch(error => {
         ProgressIndicator.hide();
