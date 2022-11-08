@@ -346,9 +346,7 @@ paths:
           required: true
         - in: formData
           name: hierarchy
-          type: integer
-          minimum: 2
-          maximum: 20
+          type: String
           description: "Levels Of Hierarchy number between 2 to 20 Or null"
           required: false
         - in: formData
@@ -640,9 +638,7 @@ definitions:
             minimum: 1
             description: "Any number greater than 1"
         hierarchy:
-            type: integer
-            minimum: 2
-            maximum: 20
+            type: string
             description: "Levels Of Hierarchy number between 2 to 20 Or null"
             required: false
         comment:
@@ -786,9 +782,7 @@ definitions:
             minimum: 1
             description: "Any number greater than 1"
         hierarchy:
-            type: integer
-            minimum: 2
-            maximum: 20
+            type: string
             description: "Levels Of Hierarchy number between 2 to 20 Or null"
             required: false
         comment:
@@ -902,7 +896,7 @@ definitions:
       forecastHorizon:
         type: string
       hierarchy:
-        type: integer
+        type: string
       y:
         type: string
       yPred:

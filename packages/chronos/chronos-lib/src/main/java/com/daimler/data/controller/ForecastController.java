@@ -477,7 +477,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
     		@ApiParam(value = "Chronos default config yml", required=true, allowableValues="Default-Settings") @RequestParam(value="configurationFile", required=true)  String configurationFile,
     		@ApiParam(value = "frequency parameter.", required=true, allowableValues="Daily, Weekly, Monthly, Yearly, No_Frequency") @RequestParam(value="frequency", required=true)  String frequency,
     		@ApiParam(value = "Any number greater than 1", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
-			@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null", required=false) @RequestParam(value="hierarchy", required=false)  int hierarchy,
+			@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null", required=false) @RequestParam(value="hierarchy", required=false)  String hierarchy,
     		@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
     		@ApiParam(value = "path of file in minio system, if not giving file in request part") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
     		@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
@@ -578,9 +578,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 				}
 
 					if (runName == null || runName.trim().isEmpty()) {
-						SimpleDateFormat runNameDate = new SimpleDateFormat("yyyyMMdd");
+						SimpleDateFormat runNameDate = new SimpleDateFormat("yyyy.MM.dd-HH.mm.ss");
 						Date date = new Date();
-						runName = runNameDate.format(date).toString();
+						runName = "run-" + runNameDate.format(date).toString();
 					}
 
 					ForecastRunResponseVO createRunResponse = service.createJobRun(savedInputPath, saveRequestPart, runName, configurationFile,

@@ -50,7 +50,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Value("${databricks.jobId}")
 	private String dataBricksJobId;
 
-	@Value("${databricks.powerfulMachinesJobId}")
+	@Value("${databricks.jobId}")
 	private boolean dataBricksPowerfulMachinesJobId;
 	
 	@Value("${databricks.defaultConfigYml}")
@@ -102,9 +102,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Override
 	@Transactional
 	public ForecastRunResponseVO createJobRun(String savedInputPath, Boolean saveRequestPart, String runName,
-			String configurationFile, String frequency, BigDecimal forecastHorizon, int hierarchy, String comment, Boolean runOnPowerfulMachines,
+			String configurationFile, String frequency, BigDecimal forecastHorizon, String hierarchy, String comment, Boolean runOnPowerfulMachines,
 			ForecastVO existingForecast,String triggeredBy, Date triggeredOn) {
 		
+		String dataBricksJobidForRun = dataBricksJobId;
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
 		RunNowResponseVO runNowResponseVO = new RunNowResponseVO();
 		GenericMessage responseMessage = new GenericMessage();
@@ -150,9 +151,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setInputFile(savedInputPath);
 				currentRun.setIsDelete(false);
 				if (runOnPowerfulMachines) {
-					dataBricksJobId = dataBricksPowerfulMachinesJobId;
+					dataBricksJobidForRun = dataBricksPowerfulMachinesJobId;
 				} 
-				currentRun.setJobId(dataBricksJobId);
+				currentRun.setJobId(dataBricksJobidForRun);
 				currentRun.setNumberInJob(runNowResponse.getNumberInJob());
 				currentRun.setRunId(runNowResponse.getRunId());
 				currentRun.setRunName(runName);
