@@ -53,6 +53,7 @@ enum ConfigurationFileEnum{
 type RunVO{
         id: String,
         jobId: Long,
+        powerfulMachinesJobId: Long,
         runId: Long,
         inputFile: String,
         runName: String,
