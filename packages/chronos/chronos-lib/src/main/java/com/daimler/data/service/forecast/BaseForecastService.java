@@ -126,7 +126,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 		}
 		noteboookParams.setFh(forecastHorizon.toString());
-		noteboookParams.setLevelsOfHeirarchy(hierarchy.toString());
+		noteboookParams.setLevelsOfHeirarchy(hierarchy);
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
 		noteboookParams.setResults_folder(bucketName+"/results/"+correlationId + "-" + runName);
 		noteboookParams.setX("");

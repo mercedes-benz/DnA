@@ -757,9 +757,6 @@ definitions:
         jobId:
             type: string
             description:
-        powerfulMachinesJobId:
-            type: string
-            description:
         runId:
             type: string
             description:
