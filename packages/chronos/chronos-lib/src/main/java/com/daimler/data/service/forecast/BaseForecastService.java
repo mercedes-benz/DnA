@@ -49,6 +49,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	@Value("${databricks.jobId}")
 	private String dataBricksJobId;
+
+	@Value("${databricks.powerfulMachinesJobId}")
+	private boolean dataBricksPowerfulMachinesJobId;
 	
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
@@ -99,7 +102,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Override
 	@Transactional
 	public ForecastRunResponseVO createJobRun(String savedInputPath, Boolean saveRequestPart, String runName,
-			String configurationFile, String frequency, BigDecimal forecastHorizon, String comment,
+			String configurationFile, String frequency, BigDecimal forecastHorizon, int hierarchy, String comment, Boolean runOnPowerfulMachines,
 			ForecastVO existingForecast,String triggeredBy, Date triggeredOn) {
 		
 		ForecastRunResponseVO responseWrapper = new ForecastRunResponseVO();
@@ -122,11 +125,12 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 		}
 		noteboookParams.setFh(forecastHorizon.toString());
+		noteboookParams.setLevelsOfHeirarchy(hierarchy.toString());
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
 		noteboookParams.setResults_folder(bucketName+"/results/"+correlationId + "-" + runName);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
-		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams);
+		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
 		if(runNowResponse!=null) {
 			if(runNowResponse.getErrorCode()!=null || runNowResponse.getRunId()==null) 
 				responseMessage.setSuccess("FAILED");
@@ -140,11 +144,16 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setComment(comment);
 				currentRun.setConfigurationFile(dataBricksJobDefaultConfigYml);
 				currentRun.setForecastHorizon(forecastHorizon.toString());
+				currentRun.setLevelsOfHeirarchy(hierarchy.toString());
 				currentRun.setFrequency(frequency);
 				currentRun.setId(correlationId);
 				currentRun.setInputFile(savedInputPath);
 				currentRun.setIsDelete(false);
-				currentRun.setJobId(dataBricksJobId);
+				if (runOnPowerfulMachines) {
+					currentRun.setJobId(dataBricksPowerfulMachinesJobId);
+				} else {
+					currentRun.setJobId(dataBricksJobId);
+				}
 				currentRun.setNumberInJob(runNowResponse.getNumberInJob());
 				currentRun.setRunId(runNowResponse.getRunId());
 				currentRun.setRunName(runName);
@@ -273,6 +282,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		Optional<RunDetails>  requestedRun = entity.getData().getRuns().stream().filter(x -> rid.equalsIgnoreCase(x.getId())).findFirst();
 		RunDetails run = requestedRun.get();
 		visualizationVO.setForecastHorizon(run.getForecastHorizon());
+		visualizationVO.setLevelsOfHeirarchy(run.getLevelsOfHeirarchy());
 		visualizationVO.setFrequency(run.getFrequency());
 		visualizationVO.setId(run.getId());
 		visualizationVO.setRunId(run.getRunId());
