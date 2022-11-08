@@ -344,10 +344,6 @@ const Description = (description: IDescriptionRequest) => (
           <Text>NA</Text>
         )}
       </View>
-      {/* <View style={styles.flexCol2}>
-        <Text style={styles.sectionTitle}>Design Guide Implemented</Text>
-        <Text>{description.designGuideImplemented || 'NA'}</Text>
-      </View> */}
       <View style={styles.flexCol2}>
         <Text style={styles.sectionTitle}>Frontend Technologies</Text>
         {description.frontendTechnologies?.length ? (
@@ -355,6 +351,9 @@ const Description = (description: IDescriptionRequest) => (
         ) : (
           <Text>NA</Text>
         )}
+      </View>
+      <View style={styles.flexCol2}>
+        <Text>{' '}</Text>
       </View>
     </View>
     <View style={styles.seperatorLine} />
