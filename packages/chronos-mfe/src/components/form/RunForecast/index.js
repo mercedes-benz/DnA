@@ -289,16 +289,13 @@ const RunForecast = ({ onRunClick }) => {
       formData.append("savedInputPath", null);
     }
 
-    console.log('run');
-    onRunClick();
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
     ProgressIndicator.show();
     chronosApi.createForecastRun(formData, projectId).then((res) => {
         console.log(res);
         Notification.show('Run created successfully');
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
+        onRunClick();
         resetFormData();
         ProgressIndicator.hide();
       }).catch(error => {
