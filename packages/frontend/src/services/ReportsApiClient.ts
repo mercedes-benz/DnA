@@ -39,7 +39,7 @@ export class ReportsApiClient {
 
   public static getCreateNewReportData(): Promise<any[]> {
     return Promise.all([
-      this.get('lov/customer/departments'),
+      this.get('departments'),
       this.get('lov/frontendtechnologies'),
       this.get('lov/levels'),
       this.get('lov/integratedportals'),
@@ -271,7 +271,7 @@ export class ReportsApiClient {
     return this.get('lov/legalentities');
   }
   public static getDepartments(): Promise<IReportListItems[]> {
-    return this.get('lov/customer/departments');
+    return this.get('departments');
   }
   public static getSubsystem(): Promise<IReportListItems[]> {
     return this.get('lov/subsystems');
@@ -300,9 +300,9 @@ export class ReportsApiClient {
   public static getQueries(): Promise<IReportListItems[]> {
     return this.get('lov/queries');
   }
-  public static getDataSource(): Promise<IReportListItems[]> {
-    return this.get('lov/datasources');
-  }
+  // public static getDataSource(): Promise<IReportListItems[]> {
+  //   return this.get('lov/datasources');
+  // }
   public static getReportingCause(): Promise<IReportListItems[]> {
     return this.get('lov/reportingcauses');
   }
@@ -319,7 +319,7 @@ export class ReportsApiClient {
   // Lov Add Calls //
   public static addCategoryItem(categoryType: string, data: IAddNewCategoriesItem): Promise<IReportListItems[]> {
     if (categoryType === 'departments') {
-      return this.post(`lov/customer/${categoryType}/`, data);
+      return this.post(`departments/`, data);
     }
     // if (categoryType === 'descriptiondepartement') {
     //   return this.post(`departments`, data);
@@ -335,7 +335,7 @@ export class ReportsApiClient {
   // lov update calls
   public static updateCategoryItem(categoryType: string, data: IAddNewCategoriesItem): Promise<IReportListItems[]> {
     if (categoryType === 'departments') {
-      return this.put(`lov/customer/${categoryType}/`, data);
+      return this.put(`departments/`, data);
     }
     if (categoryType === 'descriptiondepartement') {
       return this.put(`departments`, data);
@@ -354,7 +354,7 @@ export class ReportsApiClient {
   // Lov Delete Calls //
   public static deleteCategoryItem(categoryType: string, id: string): Promise<IReportListItems[]> {
     if (categoryType === 'departments') {
-      return this.delete(`lov/customer/${categoryType}/${id}`);
+      return this.delete(`departments/${id}`);
     }
     if (categoryType === 'tags') {
       return this.delete(`tags/${id}`);
