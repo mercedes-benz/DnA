@@ -550,26 +550,26 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         );
       });
   };
-  public getDataSource = (results: ITagResult[]) => {
-    return ReportsApiClient.getDataSource()
-      .then((res: any) => {
-        if (res) {
-          res.data?.forEach((ds: IFitlerCategory) => {
-            results.push({ category: this.state.dataSource, id: ds.id + '', name: ds.name });
-          });
-        }
-      })
-      .catch((error) => {
-        this.setState(
-          {
-            results: [],
-          },
-          () => {
-            this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-          },
-        );
-      });
-  };
+  // public getDataSource = (results: ITagResult[]) => {
+  //   return ReportsApiClient.getDataSource()
+  //     .then((res: any) => {
+  //       if (res) {
+  //         res.data?.forEach((ds: IFitlerCategory) => {
+  //           results.push({ category: this.state.dataSource, id: ds.id + '', name: ds.name });
+  //         });
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       this.setState(
+  //         {
+  //           results: [],
+  //         },
+  //         () => {
+  //           this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+  //         },
+  //       );
+  //     });
+  // };
 
   public getReportingCause = (results: ITagResult[]) => {
     return ReportsApiClient.getReportingCause()
@@ -816,7 +816,7 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
         await this.getLegalEntities(results);
         await this.getDepartments(results);
         await this.getDatawareHouses(results);
-        await this.getDataSource(results);
+        // await this.getDataSource(results);
         await this.getConnectionType(results);
         await this.getAgileReleaseTrain(results);
         await this.getLevels(results);
