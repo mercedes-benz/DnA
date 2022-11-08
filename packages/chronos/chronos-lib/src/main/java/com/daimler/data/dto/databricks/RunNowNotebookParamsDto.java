@@ -21,7 +21,7 @@ public class RunNowNotebookParamsDto  implements Serializable{
 	private String X_pred;
 	private String Config;
 	private String fh;
-	private String LevelsOfHeirarchy;
+	private String hierarchy;
 	private String freq;
 	private String results_folder;
 	private String excel;
