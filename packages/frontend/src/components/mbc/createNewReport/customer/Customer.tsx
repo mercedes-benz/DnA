@@ -748,7 +748,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
                   <div className={Styles.customerGrpList}>
                     <div className={Styles.customerGrpListItem}>
 
-                      {(this.state.customer.internalCustomers?.length < 1 || this.state.customer.externalCustomers?.length < 1) && (
+                      {(this.state.customer.internalCustomers?.length < 1 && this.state.customer.externalCustomers?.length < 1) && (
                         <div className={Styles.customerWrapper}>
                           <div className={Styles.customerWrapperNoList}>
                             <div className={Styles.addTeamMemberWrapper}>
