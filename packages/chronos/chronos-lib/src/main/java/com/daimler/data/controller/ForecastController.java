@@ -473,14 +473,16 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         consumes = { "multipart/form-data" },
         method = RequestMethod.POST)
     public ResponseEntity<ForecastRunResponseVO> createForecastRun(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,
-    		@ApiParam(value = "name of the run sample. Example YYYY-MM-DD_run_topic", required=true) @RequestParam(value="runName", required=true)  String runName,
+    		@ApiParam(value = "name of the run sample. Example YYYY-MM-DD_run_topic", required=false) @RequestParam(value="runName", required=false)  String runName,
     		@ApiParam(value = "Chronos default config yml", required=true, allowableValues="Default-Settings") @RequestParam(value="configurationFile", required=true)  String configurationFile,
     		@ApiParam(value = "frequency parameter.", required=true, allowableValues="Daily, Weekly, Monthly, Yearly, No_Frequency") @RequestParam(value="frequency", required=true)  String frequency,
     		@ApiParam(value = "Any number greater than 1", required=true) @RequestParam(value="forecastHorizon", required=true)  BigDecimal forecastHorizon,
+			@ApiParam(value = "Levels Of Hierarchy number between 2 to 20 Or null", required=false) @RequestParam(value="hierarchy", required=false)  int hierarchy,
     		@ApiParam(value = "The file to upload.") @Valid @RequestPart(value="file", required=false) MultipartFile file,
     		@ApiParam(value = "path of file in minio system, if not giving file in request part") @RequestParam(value="savedInputPath", required=false)  String savedInputPath,
     		@ApiParam(value = "flag whether to save file in request part to storage bucket for further runs") @RequestParam(value="saveRequestPart", required=false)  Boolean saveRequestPart,
-    		@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment){
+			@ApiParam(value = "Comments for the run") @RequestParam(value="comment", required=false)  String comment,
+    		@ApiParam(value = "If true, then run on Powerful Machines") @RequestParam(value="runOnPowerfulMachines", required=false)  Boolean runOnPowerfulMachines){
 		
 			ForecastRunResponseVO responseVO = new ForecastRunResponseVO();
 			GenericMessage responseMessage = new GenericMessage();
@@ -574,8 +576,15 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 							}
 						}
 				}
+
+					if (runName == null || runName.trim().isEmpty()) {
+						SimpleDateFormat runNameDate = new SimpleDateFormat("yyyyMMdd");
+						Date date = new Date();
+						runName = runNameDate.format(date).toString();
+					}
+
 					ForecastRunResponseVO createRunResponse = service.createJobRun(savedInputPath, saveRequestPart, runName, configurationFile,
-							frequency, forecastHorizon, comment,existingForecast,requestUser.getId(),createdOn);
+							frequency, forecastHorizon, hierarchy, comment, runOnPowerfulMachines, existingForecast,requestUser.getId(),createdOn);
 					if(createRunResponse!= null && "SUCCESS".equalsIgnoreCase(createRunResponse.getResponse().getSuccess())
 								&& createRunResponse.getData().getRunId()!=null) {
 						return new ResponseEntity<>(createRunResponse, HttpStatus.CREATED);
