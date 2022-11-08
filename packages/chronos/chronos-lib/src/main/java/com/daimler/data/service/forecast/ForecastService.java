@@ -27,7 +27,7 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	ForecastRunResponseVO createJobRun(String savedInputPath, Boolean saveRequestPart, String runName,
 			String configurationFile, String frequency, BigDecimal forecastHorizon, int hierarchy, String comment,
-			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn, String );
+			Boolean runOnPowerfulMachines, ForecastVO existingForecast, String triggeredBy, Date triggeredOn);
 
 	Long getRunsCount(String id);
 
