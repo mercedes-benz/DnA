@@ -50,7 +50,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Value("${databricks.jobId}")
 	private String dataBricksJobId;
 
-	@Value("${databricks.jobId}")
+	@Value("${databricks.powerfulMachinesJobId}")
 	private boolean dataBricksPowerfulMachinesJobId;
 	
 	@Value("${databricks.defaultConfigYml}")
