@@ -959,7 +959,7 @@ export default class DataFunction extends React.Component<IDataFunctionProps, ID
           <div className={classNames(Styles.firstPanel)}>
             <h3>Please add data source & functions </h3>            
             <div className={Styles.listWrapper}>
-            {(this.state.dataAndFunctions.dataWarehouseInUse?.length < 1 || this.state.dataAndFunctions.singleDataSources?.length < 1) && (
+            {(this.state.dataAndFunctions.dataWarehouseInUse?.length < 1 && this.state.dataAndFunctions.singleDataSources?.length < 1) && (
                 <div className={Styles.dataSourceWrapper}>
                   <div className={Styles.dataSourceWrapperNoList}>
                     <div className={Styles.addDataSourceWrapper}>
