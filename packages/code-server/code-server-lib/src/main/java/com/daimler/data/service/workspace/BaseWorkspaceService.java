@@ -29,6 +29,7 @@ package com.daimler.data.service.workspace;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,6 +54,7 @@ import com.daimler.data.dto.DeploymentManageDto;
 import com.daimler.data.dto.DeploymentManageInputDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.dto.WorkbenchManageInputDto;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
@@ -76,8 +78,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Autowired
 	private WorkspaceAssembler workspaceAssembler;
-	@Autowired
-	private WorkspaceRepository workspaceRepository;
 	@Autowired
 	private WorkspaceCustomRepository workspaceCustomRepository;
 	@Autowired
@@ -598,6 +598,46 @@ public class BaseWorkspaceService implements WorkspaceService {
 	public CodeServerWorkspaceVO getByProjectName(String userId,String projectName) {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyProjectName(userId, projectName);
 		return workspaceAssembler.toVo(entity);
+	}
+
+	@Override
+	public GenericMessage update(String userId, String name, String projectName, String existingStatus,
+			String latestStatus) {
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			String[] createDeleteStatuses = {"CREATED","CREATE_FAILED","DELETED","DELETE_REQUESTED"};
+			boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
+			if(isCreateDeleteStatuses) {
+				CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+				entity.getData().setStatus(latestStatus);
+				if("CREATED".equalsIgnoreCase(latestStatus)) {
+					String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
+					String workspaceName = entity.getData().getWorkspaceId();
+					String defaultRecipeId = RecipeIdEnum.DEFAULT.name();
+					String projectrecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					String workspaceUrl = codeServerBaseUri+"/"+workspaceOwner+"/"+workspaceName+"/?folder=/home/coder";
+					if(!defaultRecipeId.equalsIgnoreCase(projectrecipe))
+						workspaceUrl += "/app";
+					entity.getData().setWorkspaceUrl(workspaceUrl);
+				}
+				workspaceCustomRepository.update(entity);
+				log.info("updated status for user {} , workspace name {}, existingStatus {}, latestStatus {}",
+						userId,name,existingStatus,latestStatus);
+				status = "SUCCESS";
+				responseMessage.setSuccess(status);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				return responseMessage;
+			}else {
+				
+			}
+		}catch(Exception e) {
+			log.debug("caught exception while updating status {}",e.getMessage());
+		}
+		return null;
 	}
 
 	
