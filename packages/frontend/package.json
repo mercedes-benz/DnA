@@ -94,12 +94,7 @@
     "@babel/core": "7.19.6",
     "@babel/polyfill": "^7.12.1",
     "@babel/preset-env": "7.14.5",
-    "@babel/runtime": "7.14.4",
-    "@babel/generator": "7.19.6",
-    "@babel/compat-data": "7.19.4",
-    "@babel/helper-compilation-targets": "7.19.3",
-    "@babel/helper-create-class-features-plugin":"7.19.0",
-    "@babel/helper-module-transforms":"7.19.6",
+    "@babel/runtime": "^7.14.6",
     "@types/classnames": "^2.2.11",
     "@types/enzyme": "^3.1.15",
     "@types/jest": "^26.0.22",
@@ -190,14 +185,7 @@
     "whatwg-fetch": "^3.0.0"
   },
   "resolutions": {
-    "@babel/core": "7.19.6",
-    "@babel/generator": "7.19.6",
-    "@babel/compat-data": "7.19.4",
-    "@babel/helper-compilation-targets": "7.19.3",
-    "@babel/helper-create-class-features-plugin": "7.19.0",
-    "@babel/helper-module-transforms": "7.19.6",
     "@types/react": "17.0.11",
-    "@types/react-dom": "17.0.7",
-    "pako": "2.1.0"
+    "@types/react-dom": "17.0.7"
   }
 }
