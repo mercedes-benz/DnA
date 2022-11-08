@@ -33,7 +33,6 @@ import com.daimler.data.dto.forecast.RunDetailsVO;
 import com.daimler.data.dto.forecast.RunNowResponseVO;
 import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunVO;
-
 import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.FileDownloadResponseDto;
@@ -51,7 +50,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	private String dataBricksJobId;
 
 	@Value("${databricks.powerfulMachinesJobId}")
-	private boolean dataBricksPowerfulMachinesJobId;
+	private String dataBricksPowerfulMachinesJobId;
 	
 	@Value("${databricks.defaultConfigYml}")
 	private String dataBricksJobDefaultConfigYml;
@@ -126,7 +125,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 		}
 		noteboookParams.setFh(forecastHorizon.toString());
-		noteboookParams.setLevelsOfHeirarchy(hierarchy);
+		noteboookParams.setHierarchy(hierarchy);
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
 		noteboookParams.setResults_folder(bucketName+"/results/"+correlationId + "-" + runName);
 		noteboookParams.setX("");
@@ -145,7 +144,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setComment(comment);
 				currentRun.setConfigurationFile(dataBricksJobDefaultConfigYml);
 				currentRun.setForecastHorizon(forecastHorizon.toString());
-				currentRun.setLevelsOfHeirarchy(hierarchy.toString());
+				currentRun.setHierarchy(hierarchy.toString());
 				currentRun.setFrequency(frequency);
 				currentRun.setId(correlationId);
 				currentRun.setInputFile(savedInputPath);
@@ -282,7 +281,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		Optional<RunDetails>  requestedRun = entity.getData().getRuns().stream().filter(x -> rid.equalsIgnoreCase(x.getId())).findFirst();
 		RunDetails run = requestedRun.get();
 		visualizationVO.setForecastHorizon(run.getForecastHorizon());
-		visualizationVO.setLevelsOfHeirarchy(run.getLevelsOfHeirarchy());
+		visualizationVO.setHierarchy(run.getHierarchy());
 		visualizationVO.setFrequency(run.getFrequency());
 		visualizationVO.setId(run.getId());
 		visualizationVO.setRunId(run.getRunId());
