@@ -150,10 +150,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setInputFile(savedInputPath);
 				currentRun.setIsDelete(false);
 				if (runOnPowerfulMachines) {
-					currentRun.setJobId(dataBricksPowerfulMachinesJobId);
-				} else {
-					currentRun.setJobId(dataBricksJobId);
-				}
+					dataBricksJobId = dataBricksPowerfulMachinesJobId;
+				} 
+				currentRun.setJobId(dataBricksJobId);
 				currentRun.setNumberInJob(runNowResponse.getNumberInJob());
 				currentRun.setRunId(runNowResponse.getRunId());
 				currentRun.setRunName(runName);
