@@ -1,0 +1,9 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"modelPackage": "com.daimler.data.dto.divisionAudit",
+	"apiPackage": "com.daimler.data.api.divisionAudit",
+	"invokerPackage": "com.daimler.data.service.divisionAudit"
+	
+}
