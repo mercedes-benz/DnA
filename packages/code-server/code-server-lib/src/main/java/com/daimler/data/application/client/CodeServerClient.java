@@ -18,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.DeploymentManageDto;
-import com.daimler.data.dto.DeploymentManageInputDto;
 import com.daimler.data.dto.WorkbenchManageDto;
 import com.daimler.data.util.ConstantsUtility;
 
@@ -120,8 +119,6 @@ public class CodeServerClient {
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
-		DeploymentManageDto requestDto = new DeploymentManageDto();
-		DeploymentManageInputDto inputDto = new DeploymentManageInputDto();
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
