@@ -40,7 +40,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [projectName, setProjectName] = useState('');
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
-  const [recipeValues, setRecipeValues] = useState([]);
+  const [recipeValue, setRecipeValue] = useState('0');
   const recipes = [
     { id: 'default', name: 'Plain or Empty (Debian 11 OS, 1GB RAM, 1CPU)' },
     { id: 'springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 1GB RAM, 1CPU)' },
@@ -73,7 +73,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // let livelinessInterval: any = undefined;
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    SelectBox.defaultSetup(true);
   }, []);
 
   useEffect(() => {
@@ -103,6 +103,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onGithubTokenOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
     const githubTokenVal = evnt.currentTarget.value.trim();
     setGithubToken(githubTokenVal);
+    setGithubTokenError(githubTokenVal.length ? '' : githubTokenVal);
   };
 
   const onEnvironmentChange = (evnt: React.FormEvent<HTMLInputElement>) => {
@@ -110,15 +111,9 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const onRecipeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = e.currentTarget.selectedOptions;
-    const selectedValues: string[] = [];
-    // this.props.onStateChange();
-    if (selectedOptions.length) {
-      Array.from(selectedOptions).forEach((option) => {
-        selectedValues.push(option.value);
-      });
-    }
-    setRecipeValues(selectedValues);
+    const selectedOption = e.currentTarget.value;
+    setRecipeValue(selectedOption);
+    setRecipeError(selectedOption !== '0' ? '' : requiredError);
   };
 
   const handlePasswordChange = (evnt: React.FormEvent<HTMLInputElement>) => {
@@ -191,11 +186,12 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       department: collaborator.department,
       email: collaborator.email,
       mobileNumber: collaborator.mobileNumber,
+      gitUserName: collaborator.shortId,
       // permission: { read: true, write: false },
     };
 
     let duplicateMember = false;
-    duplicateMember = codeSpaceCollaborators.filter((member: IUserDetails) => member.shortId === collaborator.shortId)?.length
+    duplicateMember = codeSpaceCollaborators.filter((member: ICodeCollaborator) => member.id === collaborator.shortId)?.length
       ? true
       : false;
     const isCreator = props.user.id === collaborator.shortId;
@@ -215,7 +211,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
 
   const onCollaboratorPermission = (e: React.ChangeEvent<HTMLInputElement>, userName: string) => {
     const codeSpaceCollaborator = codeSpaceCollaborators.find((item: ICodeCollaborator) => {
-      return item.shortId == userName;
+      return item.id == userName;
     });
 
     if (e.target.checked) {
@@ -241,7 +237,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       setProjectNameError(requiredError);
       formValid = false;
     }
-    if (recipeValues[0] === '0') {
+    if (recipeValue === '0') {
       setRecipeError(requiredError);
       formValid = false;
     }
@@ -267,16 +263,14 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
-        .then((res: any) => {
+        .then((res: ICodeSpaceData) => {
           try {
             if (res.status === 'CREATED') {
               props.toggleProgressMessage(false);
               ProgressIndicator.hide();
               clearInterval(livelinessInterval);
               props.isCodeSpaceCreationSuccess(true, {
-                id: res.id,
-                name: res.name,
-                url: res.workspaceUrl,
+                ...res,
                 running: true,
               });
               Notification.show('Code space succesfully created.');
@@ -322,14 +316,35 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   // };
 
   const createCodeSpace = () => {
+
     const createCodeSpaceRequest = {
       data: {
-        cloudServiceProvider: environment,
-        name: projectName,
-        recipeId: recipeValues.join(''),
+        gitUserName: props.user.id,
+        projectDetails: {
+          projectCollaborators: codeSpaceCollaborators,
+          projectName: projectName,
+          recipeDetails: {
+            cloudServiceProvider: environment,
+            cpuCapacity: '1',
+            environment: 'Development', // Need to handled in backend
+            operatingSystem: 'Debian-OS-11',
+            ramSize: '1',
+            recipeId: recipeValue
+          }
+        }
       },
       password: passwordInput.password,
+      pat: githubToken
     };
+
+    // const createCodeSpaceRequest = {
+    //   data: {
+    //     cloudServiceProvider: environment,
+    //     name: projectName,
+    //     recipeId: recipeValue,
+    //   },
+    //   password: passwordInput.password,
+    // };
 
     if (validateNewCodeSpaceForm()) {
       ProgressIndicator.show();
@@ -339,7 +354,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           if (res.data.status === 'CREATE_REQUESTED') {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
-            enableLivelinessCheck(res.data.name);
+            enableLivelinessCheck(res.data.id);
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();
@@ -389,12 +404,13 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     // }
   };
   console.log(props.onBoardingCodeSpace);
+  const projectDetails = props.onBoardingCodeSpace?.projectDetails;
   return (
     <React.Fragment>
       {onBoadingMode ? (
         <div className={Styles.newCodeSpacePanel}>
           <div className={Styles.addicon}> &nbsp; </div>
-          <h3>Hello {namePrefix}, On-board to Code Space - {props.onBoardingCodeSpace.name}</h3>
+          <h3>Hello {namePrefix}, On-board to Code Space - {projectDetails.projectName}</h3>
           <p>Protect your code space with the password of your own.</p>
           <div className={Styles.codeSpaceDetails}>
             <div className={Styles.flexLayout}>
@@ -402,7 +418,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 <label>Name</label>
               </div>
               <div>
-                {props.onBoardingCodeSpace.name}
+                {projectDetails.projectName}
               </div>
             </div>
             <div className={Styles.flexLayout}>
@@ -410,7 +426,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 <label>Recipe</label>
               </div>
               <div>
-                {props.onBoardingCodeSpace.recipe}
+                {projectDetails.recipeDetails.recipeId}
               </div>
             </div>
             <div className={Styles.flexLayout}>
@@ -418,7 +434,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 <label>Environment</label>
               </div>
               <div>
-                {props.onBoardingCodeSpace.environment}
+                {projectDetails.recipeDetails.cloudServiceProvider}
               </div>
             </div>
           </div>
@@ -459,7 +475,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           <div>
             <div>
               <TextBox
-                type="text"
+                type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
                 label={'Your Github Accesstoken'}
@@ -498,7 +514,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 required={true}
                 required-error={requiredError}
                 onChange={onRecipeChange}
-                value={recipeValues.join('')}
+                value={recipeValue}
               >
                 <option id="defaultStatus" value={0}>
                   Select Code Recipe
@@ -601,7 +617,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
           <div>
             <div>
               <TextBox
-                type="text"
+                type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
                 label={'Your Github Accesstoken'}

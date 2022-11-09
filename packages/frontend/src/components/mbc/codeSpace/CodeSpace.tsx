@@ -30,23 +30,69 @@ export interface ICodeSpaceProps {
   user: IUserInfo;
 }
 
+export interface IRecipeDetails {
+  recipeId?: string;
+  environment?: string;
+  cloudServiceProvider?: string;
+  ramSize?: string;
+  cpuCapacity?: string;
+  operatingSystem?: string;
+}
+
+export interface IProjectDetails {
+  projectName?: string;
+  projectOwner?: ICodeCollaborator;
+  gitRepoName?: string,
+  projectCreatedOn?: null,
+  recipeDetails?: IRecipeDetails;
+  projectCollaborators?: ICodeCollaborator[];
+  intDeploymentDetails?: IDeploymentDetails;
+  prodDeploymentDetails?: IDeploymentDetails;
+}
+
+export interface IDeploymentDetails {
+  lastDeployedOn?: string;
+  deploymentUrl?: string;
+  lastDeployedBranch?: string;
+  lastDeploymentStatus?: string;
+  lastDeployedBy?: ICodeCollaborator;
+}
+
 export interface ICodeSpaceData {
   id?: string;
-  name?: string;
-  recipe?: string;
-  environment?: string;
-  deployed?: boolean;
-  deployedUrl?: string;
-  deployedBranch?: string;
-  prodDeployed?: boolean;
-  prodDeployedUrl?: string;
-  prodDeployedBranch?: string;
-  createdDate?: string;
-  lastDeployedDate?: string;
-  url: string;
-  running: boolean;
+  workspaceId?: string;
+  description?: string,
+  gitUserName?: string,
+  intiatedOn?: string,
+  workspaceUrl?: string,
   status?: string;
-  collaborators?: ICodeCollaborator[];
+  workspaceOwner?: ICodeCollaborator,
+  projectDetails? : IProjectDetails;
+
+  // name?: string;
+  // recipe?: string;
+  // environment?: string;
+  // deployed?: boolean;
+  // deployedUrl?: string;
+  // deployedBranch?: string;
+  // prodDeployed?: boolean;
+  // prodDeployedUrl?: string;
+  // prodDeployedBranch?: string;
+  // createdDate?: string;
+  // lastDeployedDate?: string;
+  // url: string;
+  running?: boolean;
+  // status?: string;
+  // collaborators?: ICodeCollaborator[];
+}
+
+export interface IBranch {
+  name: string;
+}
+
+export interface IDeployRequest {
+  targetEnvironment: string; // int or prod
+  branch: string;
 }
 
 const CodeSpace = (props: ICodeSpaceProps) => {
@@ -56,7 +102,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   // });
   const { id } = getParams();
   const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-    url: undefined,
+    workspaceUrl: undefined,
     running: false,
   });
   const [fullScreenMode, setFullScreenMode] = useState<boolean>(false);
@@ -73,17 +119,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
   const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
+  const [branches, setBranches] = useState<IBranch[]>([]);
 
   const livelinessIntervalRef = React.useRef<NodeJS.Timer>();
 
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
-  const branches = [
-    { id: 'main', name: 'main' },
-    { id: 'dev', name: 'dev' },
-    { id: 'test', name: 'test' },
-    { id: 'feature/code-space', name: 'feature/code-space' },
-  ];
+  // const branches = [
+  //   { id: 'main', name: 'main' },
+  //   { id: 'dev', name: 'dev' },
+  //   { id: 'test', name: 'test' },
+  //   { id: 'feature/code-space', name: 'feature/code-space' },
+  // ];
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -91,7 +138,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   useEffect(() => {
     CodeSpaceApiClient.getCodeSpaceStatus(id)
-      .then((res: any) => {
+      .then((res: ICodeSpaceData) => {
         setLoading(false);
         const status = res.status;
         if (
@@ -101,34 +148,24 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           status !== 'DELETED' &&
           status !== 'DELETE_FAILED'
         ) {
-          const deployedUrl = res.deploymentUrl;
-          const deployed = res.status === 'DEPLOYED' || deployedUrl;
+          const intDeployedUrl = res.projectDetails.intDeploymentDetails?.deploymentUrl;
+          const prodDeployedUrl = res.projectDetails.prodDeploymentDetails?.deploymentUrl;
+          const deployed = res.status === 'DEPLOYED' || (intDeployedUrl !== null  || prodDeployedUrl !== null);
+          
           setCodeSpaceData({
-            id: res.id,
-            name: res.name,
-            recipe:
-              res.recipeId !== 'default'
-                ? `Microservice using Spring Boot (${res.operatingSystem}, ${res.ramSize}${res.ramMetrics} RAM, ${res.cpuCapacity}CPU)`
-                : 'Default',
-            environment: res.cloudServiceProvider,
-            deployed: deployed,
-            deployedUrl: deployedUrl,
-            createdDate: res.intiatedOn,
-            lastDeployedDate: res.lastDeployedOn,
-            url: res.workspaceUrl,
+            ...res,
             running: !!res.intiatedOn,
-            status: res.status,
           });
           setCodeDeployed(deployed);
-          setCodeDeployedUrl(deployedUrl);
+          setCodeDeployedUrl(intDeployedUrl);
           setCodeDeployedBranch(branchValue);
           Tooltip.defaultSetup();
           if (res.status === 'DEPLOY_REQUESTED') {
             setCodeDeploying(true);
-            enableDeployLivelinessCheck(res.name);
+            enableDeployLivelinessCheck(res.id);
           }
         } else {
-          Notification.show(`Code space ${res.name} is getting created. Please try again later.`, 'warning');
+          Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
         }
       })
       .catch((err: Error) => {
@@ -164,7 +201,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const openInNewtab = () => {
-    window.open(codeSpaceData.url, '_blank');
+    window.open(codeSpaceData.workspaceUrl, '_blank');
     trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
   };
 
@@ -186,7 +223,18 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const onShowCodeDeployModal = () => {
-    setShowCodeDeployModal(true);
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(codeSpaceData.projectDetails?.gitRepoName)
+      .then((res: any) => {
+        ProgressIndicator.hide();
+        setShowCodeDeployModal(true);
+        setBranches(res);
+        SelectBox.defaultSetup();
+      })
+      .catch((err: Error) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
+      });
   };
 
   const onCodeDeployModalCancel = () => {
@@ -197,7 +245,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
       CodeSpaceApiClient.getCodeSpaceStatus(name)
-        .then((res: any) => {
+        .then((res: ICodeSpaceData) => {
           try {
             if (res.status === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
@@ -212,23 +260,24 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setCodeDeploying(false);
               if (deployEnvironment === 'staging') {
                 setCodeDeployed(true);
-                setCodeDeployedUrl(res.deploymentUrl);
+                setCodeDeployedUrl(res.projectDetails?.intDeploymentDetails?.deploymentUrl);
                 setCodeDeployedBranch(branchValue);
               } else if (deployEnvironment === 'production') {
                 setProdCodeDeployed(true);
-                setProdCodeDeployedUrl(res.deploymentUrl);
+                setProdCodeDeployedUrl(res.projectDetails?.prodDeploymentDetails?.deploymentUrl);
                 setProdCodeDeployedBranch(branchValue);
               }
               
               Tooltip.defaultSetup();
               setShowCodeDeployModal(false);
-              Notification.show(`Code from code space ${res.name} succesfully deployed.`);
+              Notification.show(`Code from code space ${res.projectDetails?.projectName} succesfully deployed.`);
             }
             if (res.status === 'DEPLOYMENT_FAILED') {
               clearInterval(livelinessIntervalRef.current);
               setCodeDeploying(false);
               setShowCodeDeployModal(false);
-              Notification.show(`Deployment faild for code space ${res.name}. Please try again.`, 'alert');
+              setIsApiCallTakeTime(false);
+              Notification.show(`Deployment faild for code space ${res.projectDetails?.projectName}. Please try again.`, 'alert');
             }
           } catch (err: any) {
             console.log(err);
@@ -253,8 +302,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   };
 
   const onAcceptCodeDeploy = () => {
+    const deployRequest: IDeployRequest = {
+      targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
+      branch: branchValue
+    };
     ProgressIndicator.show();
-    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id)
+    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id, deployRequest)
       .then((res: any) => {
         trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
         if (res.success === 'SUCCESS') {
@@ -263,13 +316,13 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           if (acceptContinueCodingOnDeployment) {
             ProgressIndicator.hide();
             Notification.show(
-              `Code space '${codeSpaceData.name}' deployment successfully started. Please check the status later.`,
+              `Code space '${codeSpaceData.projectDetails.projectName}' deployment successfully started. Please check the status later.`,
             );
             setShowCodeDeployModal(false);
           } else {
             setIsApiCallTakeTime(true);
           }
-          enableDeployLivelinessCheck(codeSpaceData.name);
+          enableDeployLivelinessCheck(codeSpaceData.projectDetails.projectName);
         } else {
           setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
@@ -305,7 +358,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
                 <h2>
-                  {props.user.firstName}&apos;s Code Space - {codeSpaceData.name}
+                  {props.user.firstName}&apos;s Code Space - {codeSpaceData.projectDetails.projectName}
                 </h2>
               </div>
             </div>
@@ -359,7 +412,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                     <div className={Styles.codespaceframe}>
                       <iframe
                         className={fullScreenMode ? Styles.fullscreen : ''}
-                        src={codeSpaceData.url}
+                        src={codeSpaceData.workspaceUrl}
                         title="Code Space"
                       />
                     </div>
@@ -416,7 +469,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                     <div id="branch" className="custom-select">
                       <select id="branchSelect" onChange={onBranchChange} value={branchValue}>
                         {branches.map((obj: any) => (
-                          <option key={obj.id} id={obj.name + obj.id} value={obj.id}>
+                          <option key={obj.name} id={obj.name + '-branch'} value={obj.name}>
                             {obj.name}
                           </option>
                         ))}
