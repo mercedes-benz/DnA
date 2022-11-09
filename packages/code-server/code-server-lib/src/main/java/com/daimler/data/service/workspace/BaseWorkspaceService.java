@@ -46,6 +46,7 @@ import com.daimler.data.assembler.WorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
@@ -493,34 +494,122 @@ public class BaseWorkspaceService implements WorkspaceService {
 	
 	@Override
 	@Transactional
-	public GenericMessage deployWorspace(String userId,String id) {
-//		GenericMessage responseMessage = new GenericMessage();
-//		String status = "FAILED";
-//		List<MessageDescription> warnings = new ArrayList<>();
-//		List<MessageDescription> errors = new ArrayList<>();
-//		try {
-//			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-//			if(entity!=null) {
-//				GenericMessage jobResponse = client.performWorkBenchActions("deploy", entity.getData());
-//				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-//					entity.getData().setStatus("DEPLOY_REQUESTED");
-//					jpaRepo.save(entity);
-//					status = "SUCCESS";
-//				}else {
-//					status = "FAILED";
-//					errors.addAll(jobResponse.getErrors());
-//				}
-//			}
-//		}catch(Exception e) {
-//				MessageDescription error = new MessageDescription();
-//				error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
-//				errors.add(error);
-//		}
-//		responseMessage.setErrors(errors);
-//		responseMessage.setWarnings(warnings);
-//		responseMessage.setSuccess(status);
-//		return responseMessage;
-		return null;
+	public GenericMessage deployWorkspace(String userId,String id,String environment, String branch) {
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
+			if(entity!=null) {
+				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
+				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
+				deployJobInputDto.setAction("deploy");
+				deployJobInputDto.setBranch(branch);
+				deployJobInputDto.setEnvironment(environment);
+				deployJobInputDto.setRepo(entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setShortid(userId);
+				deployJobInputDto.setTarget_env(environment);
+				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				CodeServerWorkspaceNsql ownerEntity =  workspaceCustomRepository.findbyProjectName(projectOwner, projectName);
+				if(ownerEntity==null || ownerEntity.getData()==null || ownerEntity.getData().getWorkspaceId()==null) {
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				deployJobInputDto.setWsid(projectOwnerWsId);
+				deploymentJobDto.setInputs(deployJobInputDto);
+				deploymentJobDto.setRef(codeServerEnvRef);
+				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
+					String environmentJsonbName = "intDeploymentDetails";
+					CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					if(!"int".equalsIgnoreCase(environment)) {
+						environmentJsonbName = "prodDeploymentDetails";
+						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					}
+					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");;
+					workspaceCustomRepository.updateDeploymentDetails(status, environmentJsonbName, deploymentDetails);
+					status = "SUCCESS";
+				}else {
+					status = "FAILED";
+					errors.addAll(jobResponse.getErrors());
+				}
+			}
+		}catch(Exception e) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
+				errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+	
+	@Override
+	@Transactional
+	public GenericMessage undeployWorkspace(String userId,String id,String environment, String branch) {
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
+			if(entity!=null) {
+				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
+				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
+				deployJobInputDto.setAction("undeploy");
+				deployJobInputDto.setBranch(branch);
+				deployJobInputDto.setEnvironment(environment);
+				deployJobInputDto.setRepo(entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setShortid(userId);
+				deployJobInputDto.setTarget_env(environment);
+				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				CodeServerWorkspaceNsql ownerEntity =  workspaceCustomRepository.findbyProjectName(projectOwner, projectName);
+				if(ownerEntity==null || ownerEntity.getData()==null || ownerEntity.getData().getWorkspaceId()==null) {
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				deployJobInputDto.setWsid(projectOwnerWsId);
+				deploymentJobDto.setInputs(deployJobInputDto);
+				deploymentJobDto.setRef(codeServerEnvRef);
+				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
+					String environmentJsonbName = "intDeploymentDetails";
+					CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					if(!"int".equalsIgnoreCase(environment)) {
+						environmentJsonbName = "prodDeploymentDetails";
+						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					}
+					deploymentDetails.setLastDeploymentStatus("UNDEPLOY_REQUESTED");
+					workspaceCustomRepository.updateDeploymentDetails(status, environmentJsonbName, deploymentDetails);
+					status = "SUCCESS";
+				}else {
+					status = "FAILED";
+					errors.addAll(jobResponse.getErrors());
+				}
+			}
+		}catch(Exception e) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
+				errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
 	}
 	
 	@Override
@@ -617,9 +706,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 					String workspaceName = entity.getData().getWorkspaceId();
 					String defaultRecipeId = RecipeIdEnum.DEFAULT.name();
-					String projectrecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 					String workspaceUrl = codeServerBaseUri+"/"+workspaceOwner+"/"+workspaceName+"/?folder=/home/coder";
-					if(!defaultRecipeId.equalsIgnoreCase(projectrecipe))
+					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
 					entity.getData().setWorkspaceUrl(workspaceUrl);
 				}
@@ -632,6 +721,9 @@ public class BaseWorkspaceService implements WorkspaceService {
 				responseMessage.setWarnings(warnings);
 				return responseMessage;
 			}else {
+//				 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+//				 Date now = isoFormat.parse(isoFormat.format(new Date()));
+//				 String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/api/swagger-ui.html";
 				
 			}
 		}catch(Exception e) {
