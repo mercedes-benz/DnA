@@ -196,7 +196,6 @@ export const ConnectionModal = (props) => {
     //     NotificationMsg(false);
     //     ProgressIndicator.hide();
     //   });
-    console.log('handle notebook connection');
   };
 
   /**
@@ -221,7 +220,7 @@ export const ConnectionModal = (props) => {
       </code>
       <div className={Styles.dataikuConnectionBtn}>
         {' '}
-        <button className="btn btn-tertiary" onClick={handleNotebookMakeConnection} disabled={bucketInfo.creator?.id !== props.user.id}>
+        <button className="btn btn-tertiary hide" onClick={handleNotebookMakeConnection} disabled={bucketInfo.creator?.id !== props.user.id}>
           Make Connection
         </button>
       </div>
