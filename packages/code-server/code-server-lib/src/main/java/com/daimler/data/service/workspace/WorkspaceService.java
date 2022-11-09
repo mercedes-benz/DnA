@@ -45,8 +45,6 @@ public interface WorkspaceService {
 	
 	CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value);
 
-	GenericMessage deployWorspace(String userId,String id);
-
 	GenericMessage update(CodeServerWorkspaceVO existingVO);
 
 	Integer getCount(String userId);
@@ -60,5 +58,9 @@ public interface WorkspaceService {
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus);
+
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch);
+
+	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
 }
