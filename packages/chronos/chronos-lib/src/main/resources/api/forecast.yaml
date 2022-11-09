@@ -325,7 +325,7 @@ paths:
           name: runName
           type: string
           description: name of the run sample. Example YYYY-MM-DD_run_topic
-          required: true
+          required: false
         - in: formData
           name: configurationFile
           type: string
@@ -346,7 +346,7 @@ paths:
           required: true
         - in: formData
           name: hierarchy
-          type: String
+          type: string
           description: "Levels Of Hierarchy number between 2 to 20 Or null"
           required: false
         - in: formData
@@ -640,16 +640,13 @@ definitions:
         hierarchy:
             type: string
             description: "Levels Of Hierarchy number between 2 to 20 Or null"
-            required: false
         comment:
             type: string
             description: "Comments for the run"
         runOnPowerfulMachines:
-            type: boolean,
+            type: boolean
             description: "If true, then run on Powerful Machines"
-            required: false
             default: false
-
         required: 
             -inputfile
             -configurationFile
@@ -781,14 +778,12 @@ definitions:
         hierarchy:
             type: string
             description: "Levels Of Hierarchy number between 2 to 20 Or null"
-            required: false
         comment:
             type: string
             description: "Comments for the run"
         runOnPowerfulMachines:
-          type: boolean,
+          type: boolean
           description: "If true, then run on Powerful Machines"
-          required: false
           default: false
         state:
           $ref: "#/definitions/RunStateVO"
