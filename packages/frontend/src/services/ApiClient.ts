@@ -303,9 +303,9 @@ export class ApiClient {
 
   public static getDescriptionLovData(): Promise<any[]> {
     return Promise.all([
-      this.get(`lov/businessgoals`), 
+      this.get(`lov/businessgoals`),
       this.get('lov/strategydomains'),
-      this.get('lov/additionalresources')
+      this.get('lov/additionalresources'),
     ]);
   }
 
@@ -424,8 +424,8 @@ export class ApiClient {
     return this.get(`userinfo/${adId}`);
   }
 
-  public static getUsersBySearchTerm(searchTerm: string): Promise<any> {	
-    return this.get(`users?searchTerm=${searchTerm}&offset=0&limit=0`);	
+  public static getUsersBySearchTerm(searchTerm: string): Promise<any> {
+    return this.get(`users?searchTerm=${searchTerm}&offset=0&limit=0`);
   }
 
   public static getAllSolutions(queryUrl?: string): Promise<ICreateNewSolution[]> {
@@ -439,6 +439,9 @@ export class ApiClient {
   }
   public static getChangeLogs(id: string): Promise<any> {
     return this.get(`changelogs/${id}`);
+  }
+  public static getDivisionChangeLogs(): Promise<any> {
+    return this.get('division/audit');
   }
   public static getUsers(
     offset?: number,
@@ -482,7 +485,7 @@ export class ApiClient {
     sortOrder: string,
     published?: boolean,
     digitalvaluecontribution?: boolean,
-    notebookavailable?: boolean
+    notebookavailable?: boolean,
   ): Promise<any> {
     let reqQuery = `location:"${locations}",phase:"${phases}",division:"${divisions}",projectStatus:"${status}",useCaseType:"${useCaseType}",dataVolume:"${dataVolumes}",tags:"${tags}",offset:${offset},limit:${limit},sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
     if (published) {
@@ -763,8 +766,8 @@ export class ApiClient {
     sortOrder: string,
     published: boolean,
     searchKey: string,
-    digitalvaluecontribution=false,
-    notebookavailable=false
+    digitalvaluecontribution = false,
+    notebookavailable = false,
   ): Promise<any> {
     let reqQuery = `location:"${locations}",phase:"${phases}",division:"${divisions}",projectStatus:"${status}",useCaseType:"${useCaseType}",dataVolume:"${dataVolumes}",tags:"${tags}",offset:0,limit:0,sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
     if (published) {

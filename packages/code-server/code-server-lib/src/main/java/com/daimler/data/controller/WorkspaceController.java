@@ -466,7 +466,7 @@ public class WorkspaceController  implements CodeServerApi{
     public ResponseEntity<CodeServerWorkspaceVO> getByName(@ApiParam(value = "Workspace name to be fetched",required=true) @PathVariable("name") String name){
     	CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
-		CodeServerWorkspaceVO vo = service.getByUniqueliteral(userId,"name",name);
+		CodeServerWorkspaceVO vo = service.getByUniqueliteral(userId,"workspaceId",name);
 		if (vo != null && vo.getWorkspaceId()!=null) {
 			if(!(vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();

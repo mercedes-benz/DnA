@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.dto.GitBranchesCollectionDto;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -105,4 +107,25 @@ public class GitClient {
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
+	
+	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repoName) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token "+ personalAccessToken);
+			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/branches";
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
+			if (response != null && response.getStatusCode()!=null) {
+				log.info("Success while fetching branches from git repo {} by user {} ",repoName, username);
+				return response.getBody();
+			}
+		} catch (Exception e) {
+			log.error("Error occured while fetching branches from git repo {} with exception {}", username, gitOrgName, e.getMessage());
+		}
+		return new GitBranchesCollectionDto();
+	}
+	
+	
 }

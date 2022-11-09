@@ -59,4 +59,6 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
+	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus);
+
 }
