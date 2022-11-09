@@ -1,5 +1,4 @@
 /* tslint:disable:no-console */
-import { ICreateCodeSpaceData } from '../components/mbc/codeSpace/newCodeSpace/NewCodeSpace';
 import 'whatwg-fetch';
 import { HTTP_METHOD, SESSION_STORAGE_KEYS } from '../globals/constants';
 import { Envs } from '../globals/Envs';
@@ -374,15 +373,6 @@ export class ApiClient {
       });
       return Promise.all(tempSubDivisions);
     });
-  }
-
-  // Create New Code Space
-  public static getCodeSpace() {
-    return this.get('users/code-server');
-  }
-
-  public static createCodeSpace(data: ICreateCodeSpaceData) {
-    return this.post('users/code-server', data);
   }
 
   // Create New Sandbox
