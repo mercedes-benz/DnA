@@ -23,6 +23,7 @@ export class Pkce {
     sessionStorage.removeItem(SESSION_STORAGE_KEYS.USER_ID);
     sessionStorage.removeItem(SESSION_STORAGE_KEYS.ACCESS_TOKEN);
     sessionStorage.removeItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES);
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES);
     sessionStorage.removeItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE);
   }
 
