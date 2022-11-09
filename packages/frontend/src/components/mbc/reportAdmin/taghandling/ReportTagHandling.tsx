@@ -1710,6 +1710,23 @@ export class ReportTagHandling extends React.Component<any, ITagHandlingState> {
       addNewItem: false,
       newItemNameError: null,
       newItemNameCategoryError: null,
+      itemToAdd: '',
+      tagToBeUpdated: {
+        id: '',
+        name: '',
+        category: {
+          id: -1,
+          name: '',
+        },
+      },
+      tagToBeUpdatedLocal: {
+        id: '',
+        name: '',
+        category: {
+          id: -1,
+          name: '',
+        },
+      }
     });
   };
 }
