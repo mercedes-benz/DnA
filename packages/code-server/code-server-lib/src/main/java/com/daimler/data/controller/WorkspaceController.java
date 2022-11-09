@@ -29,6 +29,7 @@ package com.daimler.data.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
@@ -60,6 +61,7 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.ManageDeployRequestDto;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.service.workspace.WorkspaceService;
@@ -83,7 +85,6 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@Autowired
 	private UserStore userStore;
-	
 
 	@Override
 	@ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
@@ -267,11 +268,11 @@ public class WorkspaceController  implements CodeServerApi{
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/deploy/{id}",
+    @RequestMapping(value = "/workspaces/{id}/deploy",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> deployWorkspaceProject(@ApiParam(value = "Workspace ID for the project to be deployed",required=true) @PathVariable("id") String id){
+    public ResponseEntity<GenericMessage> deployWorkspaceProject(@ApiParam(value = "Workspace ID for the project to be deployed",required=true) @PathVariable("id") String id,@ApiParam(value = "Workspace ID for the project to be deployed" ,required=true )  @Valid @RequestBody ManageDeployRequestDto deployRequestDto){
     	try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
@@ -285,7 +286,16 @@ public class WorkspaceController  implements CodeServerApi{
 				warnings.add(msg);
 				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			}
-			if(!(vo!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			List<String> authorizedUsers = new ArrayList<>();
+			if(vo.getProjectDetails()!=null && vo.getProjectDetails().getProjectOwner()!=null ) {
+				String owner = vo.getProjectDetails().getProjectOwner().getId();
+				authorizedUsers.add(owner);
+			}
+			if(vo.getProjectDetails().getProjectCollaborators()!= null && !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
+				List<String> collabUsers= vo.getProjectDetails().getProjectCollaborators().stream().map(n->n.getId()).collect(Collectors.toList());
+				authorizedUsers.addAll(collabUsers);
+			}
+			if(!authorizedUsers.contains(userId)) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage(
 						"Not authorized to deploy project for workspace. User does not have privileges.");
@@ -294,7 +304,7 @@ public class WorkspaceController  implements CodeServerApi{
 				log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
-			if(vo!=null && "default".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name())) {
+			if("default".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name())) {
 				MessageDescription invalidTypeMsg = new MessageDescription();
 				invalidTypeMsg.setMessage(
 						"Invalid type, cannot deploy this type of recipe");
@@ -303,7 +313,15 @@ public class WorkspaceController  implements CodeServerApi{
 				log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId, vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
-			GenericMessage responseMsg = service.deployWorspace(userId,id);
+			String environment = "int";
+			String branch = "main";
+			if(deployRequestDto!=null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())){
+				environment = "prod";
+			}
+			if(deployRequestDto!=null && deployRequestDto.getBranch()!=null) {
+				branch = deployRequestDto.getBranch();
+			}
+			GenericMessage responseMsg = service.deployWorkspace(userId, id, environment, branch);
 			log.info("User {} deployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
@@ -331,11 +349,50 @@ public class WorkspaceController  implements CodeServerApi{
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/deploy/{id}",
+    @RequestMapping(value = "/workspaces/{id}/deploy",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
-    public ResponseEntity<GenericMessage> undeployWorkspaceProject(@ApiParam(value = "Workspace ID for the project to be undeployed",required=true) @PathVariable("id") String id){
+    public ResponseEntity<GenericMessage> undeployWorkspaceProject(@ApiParam(value = "Workspace ID for the project to be undeployed",required=true) @PathVariable("id") String id,@ApiParam(value = "Workspace ID for the project to be deployed" ,required=true )  @Valid @RequestBody ManageDeployRequestDto deployRequestDto){
+//    	try {
+//			CreatedByVO currentUser = this.userStore.getVO();
+//			String userId = currentUser != null ? currentUser.getId() : "";
+//			CodeServerWorkspaceVO vo = service.getById(userId,id);
+//			if(vo==null || vo.getWorkspaceId()==null) {
+//				log.debug("No workspace found, returning empty");
+//				GenericMessage emptyResponse = new GenericMessage();
+//				List<MessageDescription> warnings = new ArrayList<>();
+//				MessageDescription msg = new MessageDescription();
+//				msg.setMessage("No workspace found for given id and the user");
+//				warnings.add(msg);
+//				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+//			}
+//			if(!(vo!=null && vo.getWorkspaceId()!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+//				MessageDescription notAuthorizedMsg = new MessageDescription();
+//				notAuthorizedMsg.setMessage(
+//						"Not authorized to undeploy project for workspace. User does not have privileges.");
+//				GenericMessage errorMessage = new GenericMessage();
+//				errorMessage.addErrors(notAuthorizedMsg);
+//				log.info("User {} cannot undeploy project for workspace {}, insufficient privileges.", userId,vo.getWorkspaceId());
+//				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+//			}
+//			GenericMessage responseMsg = service.undeployWorspace(userId,id);
+//			log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+//			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+//		} catch (EntityNotFoundException e) {
+//			log.error(e.getLocalizedMessage());
+//			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
+//			GenericMessage errorMessage = new GenericMessage();
+//			errorMessage.addErrors(invalidMsg);
+//			log.error("No workspace found with id {}, failed to undeploy", id);
+//			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+//		} catch (Exception e) {
+//			log.error("Failed to undeploy workspace {}, with exception {}", id, e.getLocalizedMessage());
+//			MessageDescription exceptionMsg = new MessageDescription("Failed to undeploy due to internal error.");
+//			GenericMessage errorMessage = new GenericMessage();
+//			errorMessage.addErrors(exceptionMsg);
+//			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
     	try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
@@ -349,7 +406,16 @@ public class WorkspaceController  implements CodeServerApi{
 				warnings.add(msg);
 				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
 			}
-			if(!(vo!=null && vo.getWorkspaceId()!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+			List<String> authorizedUsers = new ArrayList<>();
+			if(vo.getProjectDetails()!=null && vo.getProjectDetails().getProjectOwner()!=null ) {
+				String owner = vo.getProjectDetails().getProjectOwner().getId();
+				authorizedUsers.add(owner);
+			}
+			if(vo.getProjectDetails().getProjectCollaborators()!= null && !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
+				List<String> collabUsers= vo.getProjectDetails().getProjectCollaborators().stream().map(n->n.getId()).collect(Collectors.toList());
+				authorizedUsers.addAll(collabUsers);
+			}
+			if(!authorizedUsers.contains(userId)) {
 				MessageDescription notAuthorizedMsg = new MessageDescription();
 				notAuthorizedMsg.setMessage(
 						"Not authorized to undeploy project for workspace. User does not have privileges.");
@@ -358,7 +424,24 @@ public class WorkspaceController  implements CodeServerApi{
 				log.info("User {} cannot undeploy project for workspace {}, insufficient privileges.", userId,vo.getWorkspaceId());
 				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			}
-			GenericMessage responseMsg = service.undeployWorspace(userId,id);
+			if("default".equalsIgnoreCase(vo.getProjectDetails().getRecipeDetails().getRecipeId().name())) {
+				MessageDescription invalidTypeMsg = new MessageDescription();
+				invalidTypeMsg.setMessage(
+						"Invalid type, cannot undeploy this type of recipe");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.addErrors(invalidTypeMsg);
+				log.info("User {} cannot undeploy project of recipe {} for workspace {}, invalid type.", userId, vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+			}
+			String environment = "int";
+			String branch = "main";
+			if(deployRequestDto!=null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())){
+				environment = "prod";
+			}
+			if(deployRequestDto!=null && deployRequestDto.getBranch()!=null) {
+				branch = deployRequestDto.getBranch();
+			}
+			GenericMessage responseMsg = service.undeployWorkspace(userId, id, environment, branch);
 			log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
@@ -366,7 +449,7 @@ public class WorkspaceController  implements CodeServerApi{
 			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(invalidMsg);
-			log.error("No workspace found with id {}, failed to undeploy", id);
+			log.error("No workspace found with id {}, failed to deploy", id);
 			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			log.error("Failed to undeploy workspace {}, with exception {}", id, e.getLocalizedMessage());
