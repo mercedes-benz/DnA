@@ -178,24 +178,25 @@ export const ConnectionModal = (props) => {
   };
 
   const handleNotebookMakeConnection = () => {
-    ProgressIndicator.show();
-    const data = {
-      data: {
-        bucketName: bucketInfo.bucketName,
-        dataikuProjects: connect.dataikuProjects?.map((item) => item.match(/\((.*?)\)/)[1]), // pick projectKey within paranthesis
-      },
-    };
-    bucketsApi
-      .connectToDataikuProjects(data)
-      .then(() => {
-        setSelectedDataikuProjects(connect?.dataikuProjects);
-        NotificationMsg();
-        ProgressIndicator.hide();
-      })
-      .catch(() => {
-        NotificationMsg(false);
-        ProgressIndicator.hide();
-      });
+    // ProgressIndicator.show();
+    // const data = {
+    //   data: {
+    //     bucketName: bucketInfo.bucketName,
+    //     dataikuProjects: connect.dataikuProjects?.map((item) => item.match(/\((.*?)\)/)[1]), // pick projectKey within paranthesis
+    //   },
+    // };
+    // bucketsApi
+    //   .connectToDataikuProjects(data)
+    //   .then(() => {
+    //     setSelectedDataikuProjects(connect?.dataikuProjects);
+    //     NotificationMsg();
+    //     ProgressIndicator.hide();
+    //   })
+    //   .catch(() => {
+    //     NotificationMsg(false);
+    //     ProgressIndicator.hide();
+    //   });
+    console.log('handle notebook connection');
   };
 
   /**
