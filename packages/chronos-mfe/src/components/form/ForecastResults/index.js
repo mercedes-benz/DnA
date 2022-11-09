@@ -247,7 +247,6 @@ const ForecastResults = () => {
   };
   const onAcceptDelete = () => {
     if(selectedRuns.length > 0) {
-      console.log('hehe');
       removeSelected();
     } else {
       if(runToBeDeleted.id !== '' || runToBeDeleted.id !== null) {
@@ -300,6 +299,12 @@ const ForecastResults = () => {
               {!loading && forecastRuns?.length > 0 &&
                 <React.Fragment>
                   <div className={Styles.forecastResultList}>
+                    <div className={Styles.refreshContainer}>
+                      <button className='btn btn-primary' onClick={() => getResults('pagination')}>
+                        <i className="icon mbc-icon refresh" />
+                        <span>Refresh</span>   
+                      </button>
+                    </div>
                     <table className={'ul-table'}>
                       <thead>
                         <tr className="header-row">
