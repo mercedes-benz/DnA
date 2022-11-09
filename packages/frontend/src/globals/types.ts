@@ -1091,8 +1091,7 @@ export interface IFilterPreferences {
   tags: ITag[];
 }
 
-
-export interface INoticationModules {  
+export interface INoticationModules {
   solutionNotificationPref: INotificationEnableDisable;
   notebookNotificationPref: INotificationEnableDisable;
   dashboardNotificationPref: INotificationEnableDisable;
@@ -1277,6 +1276,14 @@ export interface IChangeLogData {
   oldValue: null | string;
   newValue: string;
   changeDescription: string;
+}
+
+export interface IDivisionChangeLog {
+  action: string;
+  createdBy: ITeams;
+  createdOn: string;
+  divisionId: string | number;
+  message: string;
 }
 
 export interface IPortfolio {
