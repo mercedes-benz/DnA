@@ -308,7 +308,7 @@ const RunForecast = ({ onRunClick }) => {
       }).catch(error => {
         ProgressIndicator.hide();
         Notification.show(
-          error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating run',
+          error?.response?.data?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while creating run',
           'alert',
         );
       });
