@@ -27,6 +27,8 @@
 
 package com.daimler.data.db.jsonb.solution;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,8 +36,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatedBy {
+public class CreatedBy implements Serializable{
 
+	
+	private static final long serialVersionUID = 6541774260240488762L;
 	private String id;
 	private String firstName;
 	private String lastName;

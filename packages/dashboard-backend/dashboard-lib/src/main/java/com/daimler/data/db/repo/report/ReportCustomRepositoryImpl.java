@@ -30,9 +30,9 @@ package com.daimler.data.db.repo.report;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
 import com.daimler.data.db.entities.ReportNsql;
 import com.daimler.data.db.jsonb.report.Report;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.report.InternalCustomerVO;
 import com.daimler.data.dto.report.TeamMemberVO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -265,7 +266,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			String delimiterSeparatedProcessOwners = processOwners.stream().map(String::toLowerCase)
 					.collect(Collectors.joining("%|%", "%", "%"));
 			delimiterSeparatedProcessOwners = "'" + delimiterSeparatedProcessOwners + "'";
-			return "  and (lower(jsonb_extract_path_text(data,'customer','internalCustomers','processOwner')) similar to "
+			return "  and (lower(jsonb_extract_path_text(data,'customer','internalCustomers')) similar to "
 					+ delimiterSeparatedProcessOwners + " ) ";
 		}
 		return "";
@@ -284,12 +285,13 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		List<Object> results = q.getResultList();
-		List<TeamMemberVO> convertedResults = new ArrayList<>();
+		List<InternalCustomerVO> convertedResults = new ArrayList<>();
 		for (Object data : results) {
 			try {
 				String jsonData = data != null ? data.toString() : "";
-				List<TeamMemberVO> list = mapper.readValue(jsonData, new TypeReference<List<TeamMemberVO>>() {
-				});
+				List<InternalCustomerVO> list = mapper.readValue(jsonData,
+						new TypeReference<List<InternalCustomerVO>>() {
+						});
 				convertedResults.addAll(list);
 			} catch (Exception e) {
 				LOGGER.error("Failed to fetch report owners with exception {} ", e.getMessage());
@@ -297,8 +299,12 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 			}
 		}
 
-		Map<String, TeamMemberVO> shortIdMap = convertedResults.stream().collect(
-				Collectors.toMap(TeamMemberVO::getShortId, Function.identity(), (existing, replacement) -> existing));
+		Map<String, TeamMemberVO> shortIdMap = new HashMap<>();
+		for (InternalCustomerVO item : convertedResults) {
+			if (item.getProcessOwner() != null) {
+				shortIdMap.put(item.getProcessOwner().getShortId(), item.getProcessOwner());
+			}
+		}
 		return shortIdMap.values().stream().collect(Collectors.toList());
 	}
 

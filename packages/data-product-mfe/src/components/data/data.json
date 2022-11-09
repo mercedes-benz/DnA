@@ -1,0 +1,23 @@
+{
+    "dataProductId": "0059",
+    "dataProductName": "Data Product 1",
+    "confidentiality": "Public",
+    "createdBy": {
+        "id": "DEMOUSER",
+        "department": "",
+        "email": "demouser@test.com",
+        "firstName": "Demo",
+        "lastName": "User",
+        "mobileNumber": "null"
+    },
+    "division":{
+        "id": 8,
+        "name": "TEST123",
+        "subdivision":{
+            "id": "8-1",
+            "name": "IT"
+        }
+    },
+    "department":"ITP",
+    "createdDate": "2022-11-04T04:18:21.794+00:00"
+}

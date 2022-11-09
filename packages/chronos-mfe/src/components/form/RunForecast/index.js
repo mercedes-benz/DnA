@@ -70,7 +70,7 @@ const configFiles = [
   // },
 ]
 
-const RunForecast = () => {
+const RunForecast = ({ onRunClick }) => {
   const { id: projectId } = useParams();
 
   const { register, handleSubmit, isSubmitting, reset, formState: { errors } } = useForm();
@@ -251,6 +251,21 @@ const RunForecast = () => {
     }
   };
 
+  const resetFormData = () => {
+    reset({
+      runName: '',
+      configurationFile: 0,
+      frequency: 0,
+      forecastHorizon: 1,
+      comment: '',
+    });
+    SelectBox.defaultSetup();
+    setIsSelectedFile(false);
+    setSelectedInputFile();
+    setDropped(false);
+    setDroppedFile();
+  }
+
   const onSubmit = (data) => {
     const formData = new FormData();
     if(selectedInputFile?.path !== undefined) {
@@ -266,6 +281,13 @@ const RunForecast = () => {
     formData.append("configurationFile", data.configurationFile);
     formData.append("frequency", data.frequency);
     formData.append("forecastHorizon", data.forecastHorizon);
+    if(expertView) {
+      formData.append("hierarchy", data.hierarchy);
+      formData.append("runOnPowerfulMachines", data.runOnPowerfulMachines);
+    } else {
+      formData.append("hierarchy", '');
+      formData.append("runOnPowerfulMachines", false);
+    }
     formData.append("comment", data.comment);
     formData.append("saveRequestPart", keepExistingFiles.toString());
     if(selectedInputFile?.path !== undefined) {
@@ -280,15 +302,8 @@ const RunForecast = () => {
         Notification.show('Run created successfully');
         document.body.scrollTop = 0;
         document.documentElement.scrollTop = 0;
-        reset({
-          runName: '',
-          configurationFile: 0,
-          frequency: 0,
-          forecastHorizon: 1,
-          comment: '',
-        });
-        SelectBox.defaultSetup();
-        setIsSelectedFile(false);
+        onRunClick();
+        resetFormData();
         ProgressIndicator.hide();
       }).catch(error => {
         ProgressIndicator.hide();
@@ -574,6 +589,29 @@ const RunForecast = () => {
                           <option value={'18'}>18</option>
                           <option value={'19'}>19</option>
                           <option value={'20'}>20</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={Styles.runOnPowerfulMachinesContainer}>
+                  <div
+                    className={classNames(
+                      `input-field-group`,
+                      expertView ? '' : Styles.hide,
+                    )}
+                    >
+                      <label id="runOnPowerfulMachinesLabel" htmlFor="runOnPowerfulMachinesField" className="input-label">
+                        Backend
+                      </label>
+                      <div className="custom-select" 
+                        // onBlur={() => trigger('frequency')}
+                        >
+                        <select
+                          id="runOnPowerfulMachinesField"
+                          {...register('runOnPowerfulMachines')}
+                        >
+                          <option value={false}>Normal Mode</option>
+                          <option value={true}>Cluster Mode</option>
                         </select>
                       </div>
                     </div>
