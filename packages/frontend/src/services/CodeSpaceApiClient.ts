@@ -35,19 +35,19 @@ export class CodeSpaceApiClient {
   public static createCodeSpace(data: any) {
     return this.post('workspaces', data);
   }
-  public static getCodeSpaceById(id: string) {
-    return this.get(`workspaces/${id}`);
-  }
-  public static getCodeSpaceStatus(name: string) {
-    return this.get(`workspaces/status/${name}`);
+  public static getCodeSpaceStatus(id: string) {
+    return this.get(`workspaces/status/${id}`);
   }
   public static deleteCodeSpace(id: string) {
     return this.delete(`workspaces/${id}`);
   }
-  public static deployCodeSpace(id: string) {
-    return this.post(`workspaces/deploy/${id}`);
+  public static getCodeSpacesGitBranchList(repoName: string) {
+    return this.get(`workspaces/${repoName}/branches`);
   }
-  public static unDeployCodeSpace(id: string) {
-    return this.delete(`workspaces/deploy/${id}`);
+  public static deployCodeSpace(id: string, data: any) {
+    return this.post(`workspaces/${id}/deploy`, data);
+  }
+  public static unDeployCodeSpace(id: string, data: any) {
+    return this.delete(`workspaces/${id}/deploy`, data);
   }
 }
