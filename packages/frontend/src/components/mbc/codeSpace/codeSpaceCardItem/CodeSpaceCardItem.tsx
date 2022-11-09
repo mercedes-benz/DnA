@@ -23,7 +23,7 @@ interface CodeSpaceCardItemProps {
 
 const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const codeSpace = props.codeSpace;
-  const collaborationCodeSpace = codeSpace.collaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
+  const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = collaborationCodeSpace ? collaborationCodeSpace.status === 'REQUESTED' : false;
   const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
@@ -33,7 +33,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const deleteCodeSpaceContent = (
     <div>
       <h3>
-        Are you sure you want to delete {codeSpace.name} Code Space?
+        Are you sure you want to delete {codeSpace.projectDetails.projectName} Code Space?
         <br />
         You will be loosing your code as well as the deployed code instance.
       </h3>
@@ -76,9 +76,15 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     if (enableOnboard) {
       props.onShowCodeSpaceOnBoard(codeSpace);
     } else {
-      history.push(`codespace/${codeSpace.name}`);
+      history.push(`codespace/${codeSpace.id}`);
     }
   };
+
+  const projectDetails = codeSpace?.projectDetails;
+  const intDeployedUrl = projectDetails.intDeploymentDetails?.deploymentUrl;
+  const intLastDeployedOn = projectDetails.intDeploymentDetails?.lastDeployedOn;
+  const prodDeployedUrl = projectDetails.prodDeploymentDetails?.deploymentUrl;
+  const deployed = codeSpace?.status === 'DEPLOYED' || (intDeployedUrl !== null  || prodDeployedUrl !== null);
 
   return (
     <>
@@ -88,7 +94,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             className={classNames(Styles.cardHeadInfo, deleteInProgress || createInProgress ? Styles.disable : null)}
           >
             <div className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)} onClick={onCardNameClick}>
-              {codeSpace?.name}
+              {projectDetails.projectName}
             </div>
           </div>
         </div>
@@ -97,20 +103,20 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{codeSpace.recipe}</div>
+              <div>{projectDetails.recipeDetails.recipeId}</div>
             </div>
             <div>
               <div>Environment</div>
-              <div>{codeSpace.environment}</div>
+              <div>{projectDetails.recipeDetails.cloudServiceProvider}</div>
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(codeSpace?.createdDate)}</div>
+              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
             </div>
-            {codeSpace.deployed && (
+            {deployed && (
               <div>
                 <div>Last Deployed on</div>
-                <div>{regionalDateAndTimeConversionSolution(codeSpace?.lastDeployedDate)}</div>
+                <div>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</div>
               </div>
             )}
             {/* <div>
@@ -130,10 +136,10 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 {codeDeploying && (
                   <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
                 )}
-                {codeSpace.deployed && (
+                {deployed && (
                   <>
                     <span className={Styles.statusIndicator}>Deployed</span>
-                    <a href={codeSpace.deployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                    <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
                       <i className="icon mbc-icon link" />
                     </a>
                   </>
