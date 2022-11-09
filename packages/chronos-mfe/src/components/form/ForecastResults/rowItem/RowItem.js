@@ -89,7 +89,8 @@ const RowItem = (props) => {
         </td>
         <td>
           {/* { item.new && <span className={Styles.badge}>New</span> }  */}
-          {item.runName}
+          { item.comment === '' && <span>{item.runName}</span> }
+          { item.comment !== '' && <span tooltip-data={item.comment}>{item.runName}</span> }
         </td>
         <td>
           {item.state.result_state === 'SUCCESS' && <i className={classNames('icon mbc-icon check circle', Styles.checkCircle)} tooltip-data={item.state.result_state} />}
@@ -114,6 +115,9 @@ const RowItem = (props) => {
         </td>
         <td>
           No
+        </td>
+        <td>
+          {item.hierarchy === '' || item.hierarchy === undefined ? 'No Hierarchy' : item.hierarchy}
         </td>
         <td>
           <ContextMenu id={item.id} items={contextMenuItems} isMenuOpen={handleShowContextMenu} />
