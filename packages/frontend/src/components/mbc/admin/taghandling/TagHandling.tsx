@@ -10,7 +10,7 @@ import Styles from './TagHandling.scss';
 const classNames = cn.bind(Styles);
 import Tags from 'components/formElements/tags/Tags';
 
-import { IFitlerCategory, ITagResult, ITag, ISubDivision } from 'globals/types';
+import { IFitlerCategory, ITagResult, ITag, ISubDivision, IDivisionChangeLog } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
 import { ISortField } from 'components/mbc/allSolutions/AllSolutions';
 import { TagRowItem } from './tagrowitem/TagRowItem';
@@ -20,6 +20,7 @@ import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModa
 import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import InputFieldsUtils from 'components/formElements/InputFields/InputFieldsUtils';
 import { debounce } from 'lodash';
+import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 
 export interface ITagHandlingState {
   algoCategory: IFitlerCategory;
@@ -56,6 +57,8 @@ export interface ITagHandlingState {
   chips: string[];
   showTagsMissingError: boolean;
   isResultLoading: boolean;
+  showDivisionChangeLogModal: boolean;
+  divisionChangeLogs: IDivisionChangeLog[];
 }
 
 export class TagHandling extends React.Component<any, ITagHandlingState> {
@@ -124,6 +127,8 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
         subdivisions: [],
       },
       isResultLoading: false,
+      showDivisionChangeLogModal: false,
+      divisionChangeLogs: [],
     };
     ApiClient.getDropdownList('categories').then((dropdownList: any) => {
       dropdownList.data.push({ id: 8, name: 'Division' });
@@ -636,6 +641,17 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       });
   };
 
+  protected handleChangeLogModal = () => {
+    ProgressIndicator.show();
+    ApiClient.getDivisionChangeLogs().then((res: any) => {
+      this.setState({
+        divisionChangeLogs: res.records,
+        showDivisionChangeLogModal: true,
+      });
+      ProgressIndicator.hide();
+    });
+  };
+
   public render() {
     const requiredError = '*Missing entry';
     const newItemNameCategoryError = this.state.newItemNameCategoryError || '';
@@ -783,6 +799,46 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       </div>
     );
 
+    const divisionChangeLog = (
+      <table className="ul-table solutions">
+        <tbody>
+          <tr className="header-row">
+            <th colSpan={8}>
+              <span className="hidden">`</span>
+            </th>
+          </tr>
+          {this.state.divisionChangeLogs
+            ? this.state.divisionChangeLogs?.map((data: IDivisionChangeLog, index: number) => {
+                return (
+                  <tr key={index} className="data-row">
+                    <td className="wrap-text">{regionalDateAndTimeConversionSolution(data.createdOn)}</td>
+                    <td className="wrap-text">
+                      {data.createdBy.firstName}&nbsp;{data.createdBy.lastName}
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td>
+                      <span className="hidden">`</span>
+                    </td>
+                    <td className="wrap-text">{data.message}</td>
+                  </tr>
+                );
+              })
+            : ''}
+        </tbody>
+      </table>
+    );
+
     return (
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
@@ -836,6 +892,10 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                   <button onClick={this.onAddItemModalOpen}>
                     <i className="icon mbc-icon plus" />
                     <span>Add New Division</span>
+                  </button>
+                  <button className={Styles.changeLog} onClick={this.handleChangeLogModal}>
+                    <i className="icon mbc-icon link" />
+                    <span>Division Change Logs</span>
                   </button>
                 </div>
               </div>
@@ -915,6 +975,12 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
             show={this.state.addNewItem}
             content={contentForAddNewItem}
             onCancel={this.onAddItemModalCancel}
+          />
+          <InfoModal
+            title={'Change Logs'}
+            show={this.state.showDivisionChangeLogModal}
+            content={this.state.divisionChangeLogs ? divisionChangeLog : ''}
+            onCancel={this.onDivisionChangeLogModalCancel}
           />
         </div>
       </div>
@@ -1052,4 +1118,6 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
       this.getResults('pagination');
     });
   };
+
+  protected onDivisionChangeLogModalCancel = () => this.setState({ showDivisionChangeLogModal: false });
 }

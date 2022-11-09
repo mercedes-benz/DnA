@@ -28,6 +28,8 @@ public class RunDetails {
 	 private String comment;
 	 private String runName;
 	 private String forecastHorizon;
+	 private String hierarchy;
+	 private Boolean runOnPowerfulMachines;
 	 private String frequency;
 	 private String inputFile;
 	 private String configurationFile;

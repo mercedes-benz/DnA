@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
 
-import provideDataProducts from './components/redux/dataProductSlice';
-import dropdownsSlice from './components/redux/getDropdownsSlice';
-
 import logger from 'redux-logger';
+
+import provideDataProducts from './components/dataTransfer/redux/dataProductSlice';
+import dropdownsSlice from './components/dataTransfer/redux/getDropdownsSlice';
+
+import dataSlice from './components/data/redux/dataSlice';
 
 export const history = createHashHistory({
   basename: '/dataproduct',
@@ -16,6 +18,7 @@ export default configureStore({
   reducer: {
     provideDataProducts: provideDataProducts,
     dropdowns: dropdownsSlice,
+    data: dataSlice,
   },
   middleware: (getDefaultMiddleware) =>
     isDev

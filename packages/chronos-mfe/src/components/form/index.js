@@ -28,6 +28,7 @@ const ForecastForm = ({ user }) => {
   const { id: projectId } = useParams();
 
   const [currentTab, setCurrentTab] = useState('runForecast');
+  const [savedTabs, setSavedTabs] = useState([]);
 
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
 
@@ -63,7 +64,17 @@ const ForecastForm = ({ user }) => {
   };
 
   const setTab = (e) => {
-    setCurrentTab(e.target.id);
+    const id = e.target.id;
+    if (currentTab !== id) {
+      setCurrentTab(id);
+    }
+  };
+
+  const switchTabs = (currentTab) => {
+    const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
+    setSavedTabs([...new Set([...savedTabs, currentTab])]);
+    setCurrentTab(Object.keys(tabs)[tabIndex]);
+    elementRef.current[tabIndex].click();
   };
 
   return (
@@ -124,7 +135,7 @@ const ForecastForm = ({ user }) => {
           </div>
           <div className="tabs-content-wrapper">
             <div id="tab-content-1" className="tab-content">
-              <RunForecast />
+              <RunForecast onRunClick={() => switchTabs(currentTab)} />
             </div>
             <div id="tab-content-2" className="tab-content">
               {currentTab === 'forecastResults' && (
