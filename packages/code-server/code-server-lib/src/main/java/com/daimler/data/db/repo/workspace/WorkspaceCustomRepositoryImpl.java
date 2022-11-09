@@ -27,9 +27,11 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -38,10 +40,16 @@ import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Repository
+@Slf4j
 public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<CodeServerWorkspaceNsql, String>
 		implements WorkspaceCustomRepository {
 
@@ -161,5 +169,40 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			return null;
 	}
 
+	@Override
+	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		String updateQuery = "update workspace_nsql\r\n"
+				+ "set data = jsonb_set(data,'{projectDetails,"+ environment  +"}', \r\n"
+						+ "'{\"deploymentUrl\": \""+ deploymentDetails.getDeploymentUrl() +"\","
+						+ " \"lastDeployedBy\": {\"id\": \""+ deploymentDetails.getLastDeployedBy().getId()  + "\","
+								+ " \"email\": \""+ deploymentDetails.getLastDeployedBy().getEmail()  + "\","
+								+ " \"lastName\": \""+ deploymentDetails.getLastDeployedBy().getLastName() + "\","
+								+ " \"firstName\": \""+ deploymentDetails.getLastDeployedBy().getFirstName()  + "\","
+								+ " \"department\": \""+ deploymentDetails.getLastDeployedBy().getDepartment()  + "\","
+								+ " \"gitUserName\": \""+ deploymentDetails.getLastDeployedBy().getGitUserName()  + "\","
+								+ " \"mobileNumber\": \""+ deploymentDetails.getLastDeployedBy().getMobileNumber()  + "\"},"
+						+ " \"lastDeployedOn\": " + deploymentDetails.getLastDeployedOn() + ","
+						+ " \"lastDeployedBranch\": \""+ deploymentDetails.getLastDeployedBranch() +"\","
+						+ " \"lastDeploymentStatus\": \""+ deploymentDetails.getLastDeploymentStatus() +"\"}')\r\n"
+				+ "where data->'projectDetails'->>'projectName' = '"+projectName+"'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("deployment details updated successfully for project {} and ", projectName);
+		}catch(Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
+			errors.add(errMsg);
+			log.info("deployment details updated successfully for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+		}
+		return updateResponse;
+	}
+	
 	
 }
