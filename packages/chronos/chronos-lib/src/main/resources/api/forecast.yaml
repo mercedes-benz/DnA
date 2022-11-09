@@ -325,7 +325,7 @@ paths:
           name: runName
           type: string
           description: name of the run sample. Example YYYY-MM-DD_run_topic
-          required: true
+          required: false
         - in: formData
           name: configurationFile
           type: string
