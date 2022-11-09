@@ -73,10 +73,8 @@ const ForecastForm = ({ user }) => {
   const switchTabs = (currentTab) => {
     const tabIndex = Object.keys(tabs).indexOf(currentTab) + 1;
     setSavedTabs([...new Set([...savedTabs, currentTab])]);
-    if (currentTab !== 'deletion-requirements') {
-      setCurrentTab(Object.keys(tabs)[tabIndex]);
-      elementRef.current[tabIndex].click();
-    }
+    setCurrentTab(Object.keys(tabs)[tabIndex]);
+    elementRef.current[tabIndex].click();
   };
 
   return (
