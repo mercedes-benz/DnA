@@ -109,12 +109,12 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 	private CodeServerRecipeDetailsVO toRecipeDetailsVO(CodeServerRecipeDetails recipe) {
 		CodeServerRecipeDetailsVO recipeDetailsVO = new CodeServerRecipeDetailsVO();
 		if(recipe!=null) {
-			recipeDetailsVO.setCloudServiceProvider(CloudServiceProviderEnum.fromValue(recipe.getCloudServiceProvider()));
-			recipeDetailsVO.setCpuCapacity(CpuCapacityEnum.fromValue(recipe.getCpuCapacity()));
-			recipeDetailsVO.setEnvironment(EnvironmentEnum.fromValue(recipe.getEnvironment()));
-			recipeDetailsVO.setOperatingSystem(OperatingSystemEnum.fromValue(recipe.getOperatingSystem()));
-			recipeDetailsVO.setRamSize(RamSizeEnum.fromValue(recipe.getRamSize()));
-			recipeDetailsVO.setRecipeId(RecipeIdEnum.fromValue(recipe.getRecipeId()));
+			recipeDetailsVO.setCloudServiceProvider(CloudServiceProviderEnum.valueOf(recipe.getCloudServiceProvider()));
+			recipeDetailsVO.setCpuCapacity(CpuCapacityEnum.valueOf(recipe.getCpuCapacity()));
+			recipeDetailsVO.setEnvironment(EnvironmentEnum.valueOf(recipe.getEnvironment()));
+			recipeDetailsVO.setOperatingSystem(OperatingSystemEnum.valueOf(recipe.getOperatingSystem()));
+			recipeDetailsVO.setRamSize(RamSizeEnum.valueOf(recipe.getRamSize()));
+			recipeDetailsVO.setRecipeId(RecipeIdEnum.valueOf(recipe.getRecipeId()));
 		}
 		return recipeDetailsVO;
 	}
@@ -154,8 +154,12 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 						CodeServerRecipeDetails recipeDetails = projectDetails.getRecipeDetails();
 						CodeServerRecipeDetailsVO recipeVO = this.toRecipeDetailsVO(recipeDetails);
 						projectDetailsVO.setRecipeDetails(recipeVO);
+						projectDetailsVO.setProjectName(projectDetails.getProjectName());
+						projectDetailsVO.setGitRepoName(projectDetails.getGitRepoName());
+						projectDetailsVO.setProjectCreatedOn(projectDetails.getProjectCreatedOn());
 					}
 					vo.setProjectDetails(projectDetailsVO);
+					
 			}
 		}
 		return vo;
