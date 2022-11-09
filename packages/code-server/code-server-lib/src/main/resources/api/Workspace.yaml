@@ -242,7 +242,7 @@ paths:
         500:
           description: "Internal error"
     
-  /workspaces/deploy/{id}:        
+  /workspaces/{id}/deploy:        
     post:
       tags:
         - "code-server"
@@ -255,6 +255,12 @@ paths:
           description: "Workspace ID for the project to be deployed"
           required: true
           type: "string"
+        - name: "deployRequestDto"
+          in: "body"
+          description: "Workspace ID for the project to be deployed"
+          required: true
+          schema:
+            $ref: "#/definitions/ManageDeployRequestDto"
       responses:
         201:
           description: "Returns message of success or failure"
@@ -285,6 +291,12 @@ paths:
           description: "Workspace ID for the project to be undeployed"
           required: true
           type: "string"
+        - name: "deployRequestDto"
+          in: "body"
+          description: "Workspace ID for the project to be deployed"
+          required: true
+          schema:
+            $ref: "#/definitions/ManageDeployRequestDto"
       responses:
         201:
           description: "Returns message of success or failure"

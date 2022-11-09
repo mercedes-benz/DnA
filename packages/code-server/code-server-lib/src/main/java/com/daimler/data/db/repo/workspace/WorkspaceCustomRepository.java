@@ -29,7 +29,9 @@ package com.daimler.data.db.repo.workspace;
 
 import java.util.List;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServerWorkspaceNsql, String> {
@@ -43,5 +45,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceNsql findById(String userId, String id);
 
 	CodeServerWorkspaceNsql findbyProjectName(String userId, String projectName);
+
+	GenericMessage updateDeploymentDetails(String projectName, String environment,
+			CodeServerDeploymentDetails deploymentDetails);
 
 }
