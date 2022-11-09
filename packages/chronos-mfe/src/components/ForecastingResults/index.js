@@ -60,9 +60,19 @@ const ForecastingResults = () => {
         setForecastRun([]);
       } else {
         setForecastRun(res.data);
-        const y = 'date' + res.data.y;
+        let y = '';
+        if(res.data.y.charAt(0) === ',') {
+          y = 'date' + res.data.y;
+        } else {
+          y = res.data.y;
+        }
         const yObj = csvToJSON(y);
-        const yPred = 'date' + res.data.yPred;
+        let yPred = '';
+        if(res.data.yPred.charAt(0) === ',') {
+          yPred = 'date' + res.data.yPred;
+        } else {
+          yPred = res.data.yPred;
+        }
         const yPredObj = csvToJSON(yPred);
         const forecastObj = [...yObj, ...yPredObj].filter(obj => obj.date !== '');
         setForecastData(forecastObj);
@@ -84,7 +94,7 @@ const ForecastingResults = () => {
     const canvas = await html2canvas(element);
     const data = canvas.toDataURL('image/png');
 
-    const pdf = new jsPDF();
+    const pdf = new jsPDF('l');
     const imgProperties = pdf.getImageProperties(data);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight =

@@ -413,6 +413,19 @@ const ForecastResults = () => {
                               Exogenous Data
                             </label>
                           </th>
+                          <th 
+                            onClick={() => sortResults('hierarchy', sortBy.nextSortType)}
+                            >
+                            <label
+                              className={
+                                'sortable-column-header ' +
+                                (sortBy.name === 'hierarchy' ? sortBy.currentSortType : '')
+                              }
+                            >
+                              <i className="icon sort" />
+                              Levels of Hierarchy
+                            </label>
+                          </th>
                           <th>
                             &nbsp;
                           </th>
