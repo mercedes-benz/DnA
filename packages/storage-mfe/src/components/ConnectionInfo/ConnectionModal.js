@@ -178,24 +178,24 @@ export const ConnectionModal = (props) => {
   };
 
   const handleNotebookMakeConnection = () => {
-    ProgressIndicator.show();
-    const data = {
-      data: {
-        bucketName: bucketInfo.bucketName,
-        dataikuProjects: connect.dataikuProjects?.map((item) => item.match(/\((.*?)\)/)[1]), // pick projectKey within paranthesis
-      },
-    };
-    bucketsApi
-      .connectToDataikuProjects(data)
-      .then(() => {
-        setSelectedDataikuProjects(connect?.dataikuProjects);
-        NotificationMsg();
-        ProgressIndicator.hide();
-      })
-      .catch(() => {
-        NotificationMsg(false);
-        ProgressIndicator.hide();
-      });
+    // ProgressIndicator.show();
+    // const data = {
+    //   data: {
+    //     bucketName: bucketInfo.bucketName,
+    //     dataikuProjects: connect.dataikuProjects?.map((item) => item.match(/\((.*?)\)/)[1]), // pick projectKey within paranthesis
+    //   },
+    // };
+    // bucketsApi
+    //   .connectToDataikuProjects(data)
+    //   .then(() => {
+    //     setSelectedDataikuProjects(connect?.dataikuProjects);
+    //     NotificationMsg();
+    //     ProgressIndicator.hide();
+    //   })
+    //   .catch(() => {
+    //     NotificationMsg(false);
+    //     ProgressIndicator.hide();
+    //   });
   };
 
   /**
@@ -220,7 +220,7 @@ export const ConnectionModal = (props) => {
       </code>
       <div className={Styles.dataikuConnectionBtn}>
         {' '}
-        <button className="btn btn-tertiary" onClick={handleNotebookMakeConnection} disabled={bucketInfo.creator?.id !== props.user.id}>
+        <button className="btn btn-tertiary hide" onClick={handleNotebookMakeConnection} disabled={bucketInfo.creator?.id !== props.user.id}>
           Make Connection
         </button>
       </div>
