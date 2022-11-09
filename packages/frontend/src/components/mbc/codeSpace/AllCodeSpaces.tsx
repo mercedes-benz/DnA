@@ -38,89 +38,89 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>();
 
 
-  const formatCodeSpaceData = (records: any[]) => {
-    records.push(
-      {
-        id: '***REMOVED***',
-        name: 'code-collab-sample',
-        description: null,
-        owner: '***REMOVED***',
-        recipeId: 'springboot',
-        intiatedOn: '2022-08-25T10:18:39.460+00:00',
-        lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
-        deploymentUrl: 'https://code-spaces.***REMOVED***/***REMOVED***/wsx1/demo',
-        workspaceUrl: 'https://code-spaces.***REMOVED***/***REMOVED***/wsx1/?folder=/home/coder/projects/demo',
-        environment: 'Development',
-        cloudServiceProvider: 'DHC-CaaS',
-        ramSize: '1',
-        ramMetrics: 'GB',
-        cpuCapacity: '1',
-        operatingSystem: 'Debian-OS-11',
-        status: 'CREATED',
-        collaborators: [
-          {
-            department: "ITT/QIG",
-            email: "kameshwara.rao@daimler.com",
-            firstName: "Kameswara",
-            lastName: "Rao",
-            shortId: "***REMOVED***",
-            id: "***REMOVED***",
-            mobileNumber: "",
-            status: "REQUESTED",
-            canDeploy: true,
-          },
-          {
-            department: "ITT/QIG",
-            email: "benson_boon.aluri@mercedes-benz.com",
-            firstName: "Benson Boon",
-            lastName: "Aluri",
-            shortId: "***REMOVED***",
-            id: "***REMOVED***",
-            mobileNumber: "",
-            status: "REQUESTED",
-            canDeploy: true,
-          },
-          {
-            department: "ITT/QIG",
-            email: "anna_agnel.maria_rathinam@mercedes-benz.com",
-            firstName: "Anna Agnel Praveen",
-            lastName: "Maria Rathinam",
-            shortId: "***REMOVED***",
-            id: "***REMOVED***",
-            mobileNumber: "",
-            status: "REQUESTED",
-            canDeploy: true,
-          }
-        ],
-      }
-    );
-    return records.map((record: any) => {
-      return {
-        id: record.id,
-        name: record.name,
-        recipe:
-          record.recipeId !== 'default'
-            ? `Microservice using Spring Boot (${record.operatingSystem}, ${record.ramSize}${record.ramMetrics} RAM, ${record.cpuCapacity}CPU)`
-            : 'Default',
-        environment: record.cloudServiceProvider,
-        deployed: record.status === 'DEPLOYED',
-        deployedUrl: record.deploymentUrl,
-        createdDate: record.intiatedOn,
-        lastDeployedDate: record.lastDeployedOn,
-        url: record.workspaceUrl,
-        running: !!record.intiatedOn,
-        status: record.status,
-        collaborators: record.collaborators,
-      } as ICodeSpaceData;
-    });
-  };
+  // const formatCodeSpaceData = (records: any[]) => {
+  //   records.push(
+  //     {
+  //       id: '***REMOVED***',
+  //       name: 'code-collab-sample',
+  //       description: null,
+  //       owner: '***REMOVED***',
+  //       recipeId: 'springboot',
+  //       intiatedOn: '2022-08-25T10:18:39.460+00:00',
+  //       lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
+  //       deploymentUrl: 'https://code-spaces.***REMOVED***/***REMOVED***/wsx1/demo',
+  //       workspaceUrl: 'https://code-spaces.***REMOVED***/***REMOVED***/wsx1/?folder=/home/coder/projects/demo',
+  //       environment: 'Development',
+  //       cloudServiceProvider: 'DHC-CaaS',
+  //       ramSize: '1',
+  //       ramMetrics: 'GB',
+  //       cpuCapacity: '1',
+  //       operatingSystem: 'Debian-OS-11',
+  //       status: 'CREATED',
+  //       collaborators: [
+  //         {
+  //           department: "ITT/QIG",
+  //           email: "kameshwara.rao@daimler.com",
+  //           firstName: "Kameswara",
+  //           lastName: "Rao",
+  //           shortId: "***REMOVED***",
+  //           id: "***REMOVED***",
+  //           mobileNumber: "",
+  //           status: "REQUESTED",
+  //           canDeploy: true,
+  //         },
+  //         {
+  //           department: "ITT/QIG",
+  //           email: "benson_boon.aluri@mercedes-benz.com",
+  //           firstName: "Benson Boon",
+  //           lastName: "Aluri",
+  //           shortId: "***REMOVED***",
+  //           id: "***REMOVED***",
+  //           mobileNumber: "",
+  //           status: "REQUESTED",
+  //           canDeploy: true,
+  //         },
+  //         {
+  //           department: "ITT/QIG",
+  //           email: "anna_agnel.maria_rathinam@mercedes-benz.com",
+  //           firstName: "Anna Agnel Praveen",
+  //           lastName: "Maria Rathinam",
+  //           shortId: "***REMOVED***",
+  //           id: "***REMOVED***",
+  //           mobileNumber: "",
+  //           status: "REQUESTED",
+  //           canDeploy: true,
+  //         }
+  //       ],
+  //     }
+  //   );
+  //   return records.map((record: any) => {
+  //     return {
+  //       id: record.id,
+  //       name: record.name,
+  //       recipe:
+  //         record.recipeId !== 'default'
+  //           ? `Microservice using Spring Boot (${record.operatingSystem}, ${record.ramSize}${record.ramMetrics} RAM, ${record.cpuCapacity}CPU)`
+  //           : 'Default',
+  //       environment: record.cloudServiceProvider,
+  //       deployed: record.status === 'DEPLOYED',
+  //       deployedUrl: record.deploymentUrl,
+  //       createdDate: record.intiatedOn,
+  //       lastDeployedDate: record.lastDeployedOn,
+  //       url: record.workspaceUrl,
+  //       running: !!record.intiatedOn,
+  //       status: record.status,
+  //       collaborators: record.collaborators,
+  //     } as ICodeSpaceData;
+  //   });
+  // };
 
   const getCodeSpacesData = () => {
     setLoading(true);
     CodeSpaceApiClient.getCodeSpacesList()
       .then((res: any) => {
         setLoading(false);
-        setCodeSpaces(Array.isArray(res) ? res : (formatCodeSpaceData(res.records) as ICodeSpaceData[]));
+        setCodeSpaces(Array.isArray(res) ? res : res.records as ICodeSpaceData[]);
         // setLastCreatedId(Array.isArray(res) ? 0 : res.totalCount);
       })
       .catch((err: Error) => {
@@ -198,7 +198,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
     if (showNewCodeSpaceModal) {
       setShowNewCodeSpaceModal(!status);
-      history.push(`codespace/${codeSpaceData.name}`);
+      history.push(`codespace/${codeSpaceData.projectDetails.projectName}`);
     } else {
       getCodeSpacesData();
     }
