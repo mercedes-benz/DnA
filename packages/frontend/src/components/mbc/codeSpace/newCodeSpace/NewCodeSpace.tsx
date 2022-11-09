@@ -186,6 +186,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       department: collaborator.department,
       email: collaborator.email,
       mobileNumber: collaborator.mobileNumber,
+      gitUserName: collaborator.shortId,
       // permission: { read: true, write: false },
     };
 
