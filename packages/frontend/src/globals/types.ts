@@ -524,14 +524,14 @@ export interface IUserDetails {
 }
 export interface ICodeCollaborator {
   firstName: string;
-  shortId: string;
   department: string;
   email: string;
   id?: string;
   lastName: string;
   mobileNumber?: string;
   status?: string;
-  canDeploy: boolean;
+  canDeploy?: boolean;
+  gitUserName: string;
 }
 export interface IError {
   message: string;
