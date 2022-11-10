@@ -627,6 +627,7 @@ sourceSets {
         java { srcDirs += "${swaggerSources.datasource.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.datavolume.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.division.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.divisionAudit.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.platform.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.result.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.visualization.code.outputDir}/src/main/java" }
