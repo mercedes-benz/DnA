@@ -207,10 +207,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
             </div>
           </div>
           <div className={Styles.formWrapper}>
-            {/* <div className={Styles.flexLayout}> */}
             <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>
               <label id="productNameLabel" htmlFor="productNameInput" className="input-label">
-                Data Product Name <sup>*</sup>
+                Data Product Name / Short description of the data transfer <sup>*</sup>
               </label>
               <input
                 {...register('productName', { required: '*Missing entry' })}
@@ -389,11 +388,10 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                   )}
                 />
               </div>
-              <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
+              <div className={classNames('input-field-group')}>
                 <Controller
                   control={control}
                   name="planningIT"
-                  rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <TypeAheadBox
                       label={'planningIT App-ID'}
@@ -405,8 +403,8 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
                         field.onChange(selectedTags.id);
                       }}
                       onInputChange={handlePlanningITSearch}
-                      required={true}
-                      showError={errors.planningIT?.message}
+                      required={false}
+                      showError={false}
                       render={(item) => (
                         <div className={Styles.optionContainer}>
                           <div>

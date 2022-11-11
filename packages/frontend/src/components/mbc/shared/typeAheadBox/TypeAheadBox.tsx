@@ -44,9 +44,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
   const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
-    if (props.defaultValue.length > 0) {
-      setSelectedItem(props.defaultValue);
-    }
+    setSelectedItem(props.defaultValue || '');
   }, [props.defaultValue]);
 
   useEffect(() => {
@@ -168,10 +166,10 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
 
   return (
     <div className={classNames(Styles.searchWrapper)}>
-      <div className={classNames('input-field-group include-error', errorText && 'error')}>
+      <div className={classNames('input-field-group include-error', props.showError && errorText ? 'error' : '')}>
         <label htmlFor={props.controlId} className="input-label">
           {props.label}
-          {props.required && <span>*</span>}
+          {props.required && <span> *</span>}
         </label>
 
         <div id="searchPanel" className={Styles.searchPanel}>
@@ -181,16 +179,16 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
             className={'input-field'}
             ref={searchInput}
             id={props.controlId}
-            required={true}
+            required={props.required}
             value={searchTerm}
-            placeholder={selectedItem.length > 0 ? undefined : props.placeholder}
+            placeholder={selectedItem?.length > 0 ? undefined : props.placeholder}
             onChange={onSearchInputChange}
             onKeyDown={onSearchInputKeyDown}
             maxLength={200}
             autoComplete="off"
           />
           {showSpinner && <div className={classNames('progress infinite', Styles.spinner)} />}
-          {selectedItem.length > 0 ? (
+          {selectedItem?.length > 0 ? (
             <button
               onClick={() => {
                 setSelectedItem('');
@@ -208,7 +206,7 @@ const TypeAheadBox: React.FC<IRowItemProps> = (props: IRowItemProps) => {
             </ul>
           )}
         </div>
-        {errorText && <span className="error-message">{errorText}</span>}
+        {props.showError && errorText && <span className="error-message">{errorText}</span>}
       </div>
     </div>
   );

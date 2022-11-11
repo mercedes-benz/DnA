@@ -209,14 +209,12 @@ const OtherRelevantInfo = ({ onSave, history, user }) => {
               <label className="input-label" htmlFor="otherRelevantInfo">
                 Please provide any other relevant & app specific restrictions that might apply to the corresponding
                 data, examples being individual deletion requirements, antitrust regulations, contractual restrictions
-                etc. <sup>*</sup>
+                etc.
               </label>
               <textarea
                 className="input-field-area"
                 type="text"
-                {...register('otherRelevantInfo', {
-                  required: '*Missing entry',
-                })}
+                {...register('otherRelevantInfo')}
                 rows={50}
                 id="otherRelevantInfo"
               />
