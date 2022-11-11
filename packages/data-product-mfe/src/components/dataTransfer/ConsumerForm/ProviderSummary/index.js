@@ -66,10 +66,10 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">PlanningIT App-ID</label>
                 <br />
-                {data.planningIT}
+                {data.planningIT || '-'}
               </div>
               <div>
-                <label className="input-label summary">Complaince Officer / Responsible (LCO/LCR) </label>
+                <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
                 <br />
                 {data.complianceOfficer}
               </div>
@@ -213,7 +213,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Other relevant information </label>
                 <br />
-                {data.otherRelevantInfo}
+                {data.otherRelevantInfo || '-'}
               </div>
             </div>
           </div>
