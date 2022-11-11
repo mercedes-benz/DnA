@@ -171,9 +171,9 @@ const ForecastResults = () => {
 
   /* Sort */
   const [sortBy, setSortBy] = useState({
-    name: 'runName',
-    currentSortType: 'desc',
-    nextSortType: 'asc',
+    name: 'triggeredOn',
+    currentSortType: 'asc',
+    nextSortType: 'desc',
   });
   const sortResults = (propName, sortOrder) => {
     const tempSortBy = {
