@@ -313,14 +313,12 @@ definitions:
         minLength: 1
       appId:
         type: string
-        description: "planning IT App-ID "
-        minLength: 1          
+        description: "planning IT App-ID "         
     required:
       - name
       - division
       - department
       - localComplianceOfficer
-      - appId  
       
   ProviderClassificationConfidentialityVO:
     type: object
@@ -408,11 +406,9 @@ definitions:
       localComplianceOfficer:
         type: string
         description: "Local compliance officer"
-        minLength: 1
       appId:
         type: string
         description: "planning IT App-ID "
-        minLength: 1 
       agreementDate:
         type: string
         format: date                 
@@ -421,8 +417,6 @@ definitions:
       - ownerName
       - division
       - department
-      - localComplianceOfficer
-      - appId 
       
   ConsumerPersonalRelatedDataVO:
     type: object
