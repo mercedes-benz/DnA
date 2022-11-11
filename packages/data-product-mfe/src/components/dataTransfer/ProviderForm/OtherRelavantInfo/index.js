@@ -202,10 +202,7 @@ const OtherRelevantInfo = ({ onSave, history, user }) => {
             </div>
           </div>
           <div className={Styles.formWrapper}>
-            <div
-              id="personalRelatedDataDescription"
-              className={classNames('input-field-group include-error area', errors.otherRelevantInfo ? 'error' : '')}
-            >
+            <div id="otherRelevantInfoDescription" className={classNames('input-field-group area')}>
               <label className="input-label" htmlFor="otherRelevantInfo">
                 Please provide any other relevant & app specific restrictions that might apply to the corresponding
                 data, examples being individual deletion requirements, antitrust regulations, contractual restrictions
@@ -218,7 +215,6 @@ const OtherRelevantInfo = ({ onSave, history, user }) => {
                 rows={50}
                 id="otherRelevantInfo"
               />
-              <span className={classNames('error-message')}>{errors?.otherRelevantInfo?.message}</span>
             </div>
           </div>
         </div>
