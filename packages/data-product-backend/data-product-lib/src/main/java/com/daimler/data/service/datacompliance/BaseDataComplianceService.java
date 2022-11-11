@@ -53,7 +53,9 @@ import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.datacompliance.DataComplianceResponseVO;
 import com.daimler.data.dto.datacompliance.DataComplianceVO;
 import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.entityid.EntityIdVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.service.entityid.EntityIdService;
 
 @Service
 public class BaseDataComplianceService extends BaseCommonService<DataComplianceVO, DataComplianceNsql, String>
@@ -66,6 +68,9 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 
 	@Autowired
 	private DataComplianceAssembler dataComplianceAssembler;
+
+	@Autowired
+	private EntityIdService entityIdService;
 
 	@Autowired
 	private DataProductAssembler dataProductAssembler;
@@ -83,6 +88,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 	@Override
 	@Transactional
 	public DataComplianceVO create(DataComplianceVO vo) {
+		updateEntity(vo);
 		return super.create(vo);
 	}
 
@@ -177,6 +183,21 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 		}
 	}
 
+	private void updateEntity(DataComplianceVO vo) {
+		String entityId = vo.getEntityId();
+		String entityName = vo.getEntityName();
+		EntityIdVO existingVO = entityIdService.getByUniqueliteral("entityId", entityId);
+		if (existingVO != null && existingVO.getEntityId().equalsIgnoreCase(entityId))
+			return;
+		else {
+			EntityIdVO newVO = new EntityIdVO();
+			newVO.setId(null);
+			newVO.setEntityId(entityId);
+			newVO.setEntityName(entityName);
+			entityIdService.create(newVO);
+		}
+	}
+
 	@Override
 	@Transactional
 	public ResponseEntity<DataComplianceResponseVO> updateDataCompliance(DataComplianceVO requestDataComplianceVO) {
@@ -202,17 +223,17 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 					}
 					requestDataComplianceVO.setLastModifiedDate(new Date());
 					requestDataComplianceVO.setModifiedBy(this.userStore.getVO());
-					mergedDataComplianceVO = super.create(requestDataComplianceVO);
+					mergedDataComplianceVO = this.create(requestDataComplianceVO);
 					if (mergedDataComplianceVO != null && mergedDataComplianceVO.getId() != null) {
 						String eventType = "DataCompliance_update";
 						List<ChangeLogVO> changeLogs = new ArrayList<>();
 						CreatedByVO currentUser = this.userStore.getVO();
 						String userId = currentUser.getId();
 						String userName = super.currentUserName(currentUser);
-						changeLogs = dataProductAssembler.jsonObjectCompare(mergedDataComplianceVO, existingEntityIdVO,
+						changeLogs = dataProductAssembler.jsonObjectCompare(mergedDataComplianceVO, existingVO,
 								currentUser);
-						String eventMessage = "DataCompliance with entityID " + existingEntityIdVO.getEntityId()
-								+ " and entityName " + existingEntityIdVO.getEntityName()
+						String eventMessage = "DataCompliance with entityID " + existingVO.getEntityId()
+								+ " and entityName " + existingVO.getEntityName()
 								+ " has been updated by Admin " + userName;
 						super.notifyAllAdminUsers(eventType, id, eventMessage, userId, changeLogs);
 						response.setData(mergedDataComplianceVO);
