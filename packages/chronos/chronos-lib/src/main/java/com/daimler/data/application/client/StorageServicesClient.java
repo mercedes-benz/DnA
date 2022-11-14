@@ -234,7 +234,6 @@ public class StorageServicesClient {
 			String jwt = httpRequest.getHeader("Authorization");
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", jwt);
-			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName+"/objects?prefix=" + prefix;
