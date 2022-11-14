@@ -111,7 +111,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		RunNowNotebookParamsDto noteboookParams = new RunNowNotebookParamsDto();
 		String correlationId = UUID.randomUUID().toString();
 		String bucketName = existingForecast.getBucketName();
-		noteboookParams.setConfig(dataBricksJobDefaultConfigYml);
+		noteboookParams.setConfig(configurationFile);
 		noteboookParams.setCorrelationId(correlationId);
 		if(savedInputPath!=null) {
 			if(savedInputPath.toLowerCase().contains(".xlsx")){
@@ -142,7 +142,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					existingRuns = new ArrayList<>();
 				RunDetails currentRun = new RunDetails();
 				currentRun.setComment(comment);
-				currentRun.setConfigurationFile(dataBricksJobDefaultConfigYml);
+				currentRun.setConfigurationFile(configurationFile);
 				currentRun.setForecastHorizon(forecastHorizon.toString());
 				currentRun.setHierarchy(hierarchy.toString());
 				currentRun.setFrequency(frequency);
