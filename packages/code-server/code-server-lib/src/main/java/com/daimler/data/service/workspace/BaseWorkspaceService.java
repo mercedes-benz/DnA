@@ -381,28 +381,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			return null;
 	}
 
-
-	@Transactional
-	public GenericMessage deploy(UserInfoVO triggeredBy, String projectName, String targerEnv, String branch) {
-		//find codeserverentity with userid and projectname
-		String userid = triggeredBy.getId();
-		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyProjectName(userid, projectName);
-		DeploymentManageDto deployDto = new DeploymentManageDto();
-		deployDto.setRef(codeServerEnvRef);
-		DeploymentManageInputDto deployManageInputDto = new DeploymentManageInputDto();
-		deployManageInputDto.setAction(ConstantsUtility.DEPLOYACTION);
-		deployManageInputDto.setBranch(branch);
-		deployManageInputDto.setEnvironment(branch);
-		deployManageInputDto.setRepo(branch);
-		deployManageInputDto.setShortid(triggeredBy.getId());
-		deployManageInputDto.setTarget_env(targerEnv.toLowerCase());
-		deployManageInputDto.setType(ConstantsUtility.SPRINGBOOT);
-//		deployManageInputDto.setWsid();
-		deployDto.setInputs(null);
-		client.manageDeployment(null);
-		return null;
-	}
-	
 	
 	@Override
 	@Transactional
@@ -420,11 +398,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(environment);
 				deployJobInputDto.setRepo(entity.getData().getProjectDetails().getGitRepoName());
-				deployJobInputDto.setShortid(userId);
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
-				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				CodeServerWorkspaceNsql ownerEntity =  workspaceCustomRepository.findbyProjectName(projectOwner, projectName);
 				if(ownerEntity==null || ownerEntity.getData()==null || ownerEntity.getData().getWorkspaceId()==null) {
 					MessageDescription error = new MessageDescription();
@@ -480,11 +458,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(environment);
 				deployJobInputDto.setRepo(entity.getData().getProjectDetails().getGitRepoName());
-				deployJobInputDto.setShortid(userId);
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
 				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
 				String projectName = entity.getData().getProjectDetails().getProjectName();
-				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				CodeServerWorkspaceNsql ownerEntity =  workspaceCustomRepository.findbyProjectName(projectOwner, projectName);
 				if(ownerEntity==null || ownerEntity.getData()==null || ownerEntity.getData().getWorkspaceId()==null) {
 					MessageDescription error = new MessageDescription();
@@ -533,7 +511,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage update(String userId, String name, String projectName, String existingStatus,
-			String latestStatus) {
+			String latestStatus, String targetEnv, String branch) {
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -541,14 +519,15 @@ public class BaseWorkspaceService implements WorkspaceService {
 		try {
 			String[] createDeleteStatuses = {"CREATED","CREATE_FAILED","DELETED","DELETE_REQUESTED"};
 			boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
+			entity.getData().setStatus(latestStatus);
+			String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
+			String workspaceName = entity.getData().getWorkspaceId();
+			String defaultRecipeId = RecipeIdEnum.DEFAULT.name();
+			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			if(isCreateDeleteStatuses) {
-				CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
-				entity.getData().setStatus(latestStatus);
 				if("CREATED".equalsIgnoreCase(latestStatus)) {
-					String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
-					String workspaceName = entity.getData().getWorkspaceId();
-					String defaultRecipeId = RecipeIdEnum.DEFAULT.name();
-					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 					String workspaceUrl = codeServerBaseUri+"/"+workspaceName+"/?folder=/home/coder";
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
@@ -563,13 +542,59 @@ public class BaseWorkspaceService implements WorkspaceService {
 				responseMessage.setWarnings(warnings);
 				return responseMessage;
 			}else {
-//				 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-//				 Date now = isoFormat.parse(isoFormat.format(new Date()));
-//				 String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/api/swagger-ui.html";
-				
+				 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+				 Date now = isoFormat.parse(isoFormat.format(new Date()));
+				 CodeServerWorkspaceNsql ownerEntity =  workspaceCustomRepository.findbyProjectName(projectOwner, projectName);
+				 if(ownerEntity==null || ownerEntity.getData()==null || ownerEntity.getData().getWorkspaceId()==null) {
+						MessageDescription error = new MessageDescription();
+						error.setMessage("Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+						errors.add(error);
+						responseMessage.setErrors(errors);
+						return responseMessage;
+				  }
+				 String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				 String deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/api/swagger-ui.html";
+				 String environmentJsonbName = "intDeploymentDetails";
+				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
+				 if("int".equalsIgnoreCase(targetEnv)) {
+				 	deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+				 }else {
+				 	environmentJsonbName = "prodDeploymentDetails";
+					deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+				 }
+				if("DEPLOYED".equalsIgnoreCase(latestStatus)) {
+					String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
+					if(existingDeploymentUrl==null || "".equalsIgnoreCase(existingDeploymentUrl) || "null".equalsIgnoreCase(existingDeploymentUrl)) {
+						deploymentDetails.setDeploymentUrl(deploymentUrl);
+					}
+					deploymentDetails.setLastDeployedBranch(branch);
+					deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+					deploymentDetails.setLastDeployedOn(now);
+					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
+					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
+							projectName,branch,targetEnv,latestStatus);
+				}
+				else if("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
+					deploymentDetails.setDeploymentUrl("");
+					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
+					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
+							projectName,branch,targetEnv,latestStatus);
+				} else {
+					deploymentDetails.setLastDeploymentStatus(latestStatus);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
+					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
+							projectName,branch,targetEnv,latestStatus);
+				}
 			}
 		}catch(Exception e) {
-			log.debug("caught exception while updating status {}",e.getMessage());
+			log.error("caught exception while updating status {}",e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+			errors.add(error);
+			responseMessage.setErrors(errors);
+			return responseMessage;
 		}
 		return null;
 	}
