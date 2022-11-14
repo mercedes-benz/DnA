@@ -1680,7 +1680,7 @@ export default class Customer extends React.Component<ICustomerProps, ICustomerS
           comment,
           name,
           customerRelation,
-          division: division ? division.id : null,
+          division: division.id ? division : null,
           accessToSensibleData,
           processOwner,
         }; // modify copied array
