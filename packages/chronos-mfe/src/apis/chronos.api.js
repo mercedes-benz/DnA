@@ -52,7 +52,7 @@ const deleteForecastRuns = (rids, id) => {
 };
 
 const getConfigurationFiles = () => {
-  return server.get(`/api/forecasts/default-config/files`, {
+  return server.get(`/forecasts/default-config/files`, {
     data: {},
   });
 };
