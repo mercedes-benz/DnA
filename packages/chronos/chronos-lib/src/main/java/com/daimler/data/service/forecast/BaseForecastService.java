@@ -217,6 +217,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			if(entity!=null && entity.getData()!=null && 
 					entity.getData().getRuns()!=null && !entity.getData().getRuns().isEmpty()) {
 				List<RunDetails> existingRuns = entity.getData().getRuns();
+				String bucketName = entity.getData().getBucketName();
+				String resultsPrefix = "results/";
 				for(RunDetails run: existingRuns) {
 					RunState state = run.getRunState();
 					String runId = run.getRunId();
@@ -246,10 +248,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 									newState.setResult_state(updatedState.getResultState().name());
 									if("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
 										//check if .SUCCESS file exists
-//										FAILED
-										String bucketName = "";
-										String resultsPrefix = "";
-										newState.setResult_state(ResultStateEnum.FAILED.name());
+										resultsPrefix += updatedRunDetail.getId()+"-"+updatedRunDetail.getRunName()+"/";
+										Boolean successFileFlag = storageClient.isSuccessFilePresent(bucketName, resultsPrefix);
+										log.info("Run state is success from databricks and isSuccessFilePresent value is {}, for bucket {} and prefix {} ", successFileFlag, bucketName, resultsPrefix);
+										if(!successFileFlag)
+											newState.setResult_state(ResultStateEnum.FAILED.name());
 									}
 								}
 								String updatedStateMsg = "";
