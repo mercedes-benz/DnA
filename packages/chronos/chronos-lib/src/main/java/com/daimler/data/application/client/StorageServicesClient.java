@@ -224,7 +224,7 @@ public class StorageServicesClient {
 	}
 	
 	
-	public Boolean getBucketObjects(String bucketName,String prefix) {
+	public Boolean isSuccessFilePresent(String bucketName,String prefix) {
 		Boolean flag = false;
 		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
 		ByteArrayResource data = null;
