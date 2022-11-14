@@ -197,9 +197,11 @@ const OtherRelevantInfo = ({ onSave, history, user }) => {
         <div className={Styles.firstPanel}>
           <div>
             <h3>Specifying other relevant information</h3>
-            <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => {}} />
-            </div>
+            {showInfoModal && (
+              <div className={Styles.infoIcon}>
+                <i className={'icon mbc-icon info'} onClick={() => {}} />
+              </div>
+            )}
           </div>
           <div className={Styles.formWrapper}>
             <div id="otherRelevantInfoDescription" className={classNames('input-field-group area')}>

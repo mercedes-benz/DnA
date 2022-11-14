@@ -189,7 +189,7 @@ const ConsumerForm = ({ user, history }) => {
           appId: values.planningIT,
           department: values.department?.toString(),
           division,
-          lcoNeeded: values.lcoNeeded ? true : false,
+          lcoNeeded: values.lcoNeeded === 'Yes' ? true : false,
           localComplianceOfficer: values.complianceOfficer?.toString(),
           ownerName: values.businessOwnerName,
           agreementDate: new Date(values.dateOfAgreement),
