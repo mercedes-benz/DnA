@@ -241,12 +241,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 if(!addGitUser.is2xxSuccessful()) {
 					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
 					 	if(!deleteRepoStatus.is2xxSuccessful()) {
-					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " + owner.getGitUserName()  + "as collaborator. Deleted repository successfully, please retry");
+					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " + gitUser  + " as collaborator with status " + addGitUser.name() + ". Deleted repository successfully, please retry");
 							errors.add(errMsg);
 							responseVO.setErrors(errors);
 							return responseVO;
 					 	}else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " + owner.getGitUserName()  + "as collaborator. Unable to delete repository, please delete repository manually and retry");
+							MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " +  gitUser + " as collaborator with status " + addGitUser.name() + ". Unable to delete repository because of " + deleteRepoStatus.name() + ", please delete repository manually and retry");
 							errors.add(errMsg);
 							responseVO.setErrors(errors);
 							return responseVO;
@@ -348,95 +348,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			return responseVO;
 		}
 	}
-	
-//	@Transactional
-//	public InitializeWorkspaceResponseVO initializeWorkbench(WorkbenchManageDto manageDto) {
-//		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(wsid, password);
-//		entity.getData().setStatus("CREATE_REQUESTED");
-//		entity.getData().setIntiatedOn(new Date());
-//		try {
-//			WorkbenchManageDto manageDto = new WorkbenchManageDto();
-//			manageDto.setRef(password);
-//			
-//			GenericMessage jobResponse = client.manageWorkBench(null);
-//			
-//			if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-//				CodeServerWorkspaceNsql savedEntity = jpaRepo.save(entity);
-//				CodeServerWorkspaceVO savedVO = workspaceAssembler.toVo(savedEntity);
-//				responseVO.setData(savedVO);
-//				responseVO.setSuccess("SUCCESS");
-//				return responseVO;
-//			}else {
-//				responseVO.setErrors(jobResponse.getErrors());
-//				responseVO.setWarnings(jobResponse.getWarnings());
-//				return responseVO;
-//			}
-//		}catch(Exception e) {
-//			List<MessageDescription> errors = new ArrayList<>();
-//			MessageDescription error = new MessageDescription();
-//			error.setMessage("Failed while creating codeserver workspace with exception " + e.getMessage());
-//			errors.add(error);
-//			responseVO.setErrors(errors);
-//			return responseVO;
-//		}
-//	}
-	
-//	@Override
-//	@Transactional
-//	public InitializeWorkspaceResponseVO create(CodeServerWorkspaceVO vo, String password) {
-//		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
-//		responseVO.setData(vo);
-//		responseVO.setSuccess("FAILED");
-//		try {
-//			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
-//			CodeServerProjectDetails projectDetails = entity.getData().getProjectDetails();
-//			String repoName = projectDetails.getProjectName() + "-codespaces";
-//			HttpStatus gitRepoCreateStatus = gitClient.createRepo(repoName);
-//			if(gitRepoCreateStatus.is2xxSuccessful()) {
-//				List<String> gitCollabs = new ArrayList<>();
-//				String projectOwner = projectDetails.getProjectOwner().getGitUserName() !=null ? projectDetails.getProjectOwner().getGitUserName() : projectDetails.getProjectOwner().getId();
-//				HttpStatus addProjectOwnerAsGitCollabStatus = gitClient.addUserToRepo(projectOwner,repoName);
-//				if(!addProjectOwnerAsGitCollabStatus.is2xxSuccessful()) {
-//					// return failed while adding owner as git collab to repo 
-//				}
-//				List<UserInfo> projectMembers = projectDetails.getProjectCollaborators();
-//				for(UserInfo projectMember: projectMembers) {
-//					String projectMemberGitUsername = projectMember.getGitUserName() !=null ? projectMember.getGitUserName() : projectMember.getId();
-//					HttpStatus addProjectMemberAsGitCollabStatus = gitClient.addUserToRepo(projectMemberGitUsername,repoName);
-//					if(!addProjectMemberAsGitCollabStatus.is2xxSuccessful()) {
-//						// return failed while adding owner as git collab to repo 
-//					}
-//				}
-//			}else {
-//				//return failed in repo creation for codespace
-//			}
-//			entity.getData().setPassword(password);
-//			//SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-//			entity.getData().setIntiatedOn(new Date());
-//			entity.getData().setStatus("CREATE_REQUESTED");
-//			GenericMessage jobResponse = client.performWorkBenchActions("create", entity.getData());
-//			if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-//				CodeServerWorkspaceNsql savedEntity = jpaRepo.save(entity);
-//				CodeServerWorkspaceVO savedVO = workspaceAssembler.toVo(savedEntity);
-//				responseVO.setData(savedVO);
-//				responseVO.setSuccess("SUCCESS");
-//				return responseVO;
-//			}else {
-//				responseVO.setErrors(jobResponse.getErrors());
-//				responseVO.setWarnings(jobResponse.getWarnings());
-//				return responseVO;
-//			}
-//		}catch(Exception e) {
-//			List<MessageDescription> errors = new ArrayList<>();
-//			MessageDescription error = new MessageDescription();
-//			error.setMessage("Failed while creating codeserver workspace with exception " + e.getMessage());
-//			errors.add(error);
-//			responseVO.setErrors(errors);
-//			return responseVO;
-//		}
-//		return null;
-//	}
-	
+
 	
 	
 
@@ -613,77 +525,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 	
 	@Override
-	@Transactional
-	public GenericMessage undeployWorspace(String userId, String id) {
-//		GenericMessage responseMessage = new GenericMessage();
-//		String status = "FAILED";
-//		List<MessageDescription> warnings = new ArrayList<>();
-//		List<MessageDescription> errors = new ArrayList<>();
-//		try {
-//			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-//			if(entity.getData().getLastDeployedOn()!=null) {
-//				GenericMessage jobResponse = client.performWorkBenchActions("undeploy", entity.getData());
-//				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-//					entity.getData().setStatus("UNDEPLOY_REQUESTED");
-//					jpaRepo.save(entity);
-//					status = "SUCCESS";
-//				}else {
-//					errors.addAll(jobResponse.getErrors());
-//				}
-//			}else {
-//				MessageDescription warning = new MessageDescription();
-//				warning.setMessage("Project is not in deployed state. Cannot undeploy");
-//				warnings.add(warning);
-//			}
-//		}catch(Exception e) {
-//				MessageDescription error = new MessageDescription();
-//				error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
-//				errors.add(error);
-//		}
-//		responseMessage.setErrors(errors);
-//		responseMessage.setWarnings(warnings);
-//		responseMessage.setSuccess(status);
-//		return responseMessage;
-		return null;
-	}
-
-
-	@Override
-	@Transactional
-	public GenericMessage update(CodeServerWorkspaceVO existingVO) {
-//		GenericMessage responseMessage = new GenericMessage();
-//		String status = "FAILED";
-//		List<MessageDescription> warnings = new ArrayList<>();
-//		List<MessageDescription> errors = new ArrayList<>();
-//		try {
-//		CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(existingVO);
-//		if("CREATED".equalsIgnoreCase(existingVO.getStatus())){
-//			String workspaceUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/?folder=/home/coder";
-//			if(!"default".equalsIgnoreCase(existingVO.getRecipeId().toString()))
-//				workspaceUrl += "/app";
-//			entity.getData().setWorkspaceUrl(workspaceUrl);
-//		}
-//		if("DEPLOYED".equalsIgnoreCase(existingVO.getStatus())){
-//			String deploymentUrl = codeServerBaseUri+"/"+existingVO.getOwner().toLowerCase()+"/"+existingVO.getName()+"/api/swagger-ui.html";
-//			entity.getData().setDeploymentUrl(deploymentUrl);
-//		}
-//		CodeServerWorkspaceNsql updatedEntity = jpaRepo.save(entity);
-//		status = "SUCCESS";
-//		log.info("Updated workspace status successfully");
-//		}catch(Exception e) {
-//			log.error("Error occured while updating workspace {} in database with exception {} ", existingVO.getName(), e.getMessage());
-//			MessageDescription error = new MessageDescription();
-//			error.setMessage("Failed while updating workspace status in database with exception " + e.getMessage());
-//			errors.add(error);
-//		}
-//		responseMessage.setSuccess(status);
-//		responseMessage.setWarnings(warnings);
-//		responseMessage.setErrors(errors);
-//		return responseMessage;
-		return null;
-	}
-	
-	@Override
 	public CodeServerWorkspaceVO getByProjectName(String userId,String projectName) {
 		CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyProjectName(userId, projectName);
 		return workspaceAssembler.toVo(entity);
@@ -731,6 +572,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}
 		return null;
 	}
+
 
 	
 }
