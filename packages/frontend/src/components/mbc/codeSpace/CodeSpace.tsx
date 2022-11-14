@@ -148,8 +148,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           status !== 'DELETED' &&
           status !== 'DELETE_FAILED'
         ) {
-          const intDeployedUrl = res.projectDetails.intDeploymentDetails?.deploymentUrl;
-          const prodDeployedUrl = res.projectDetails.prodDeploymentDetails?.deploymentUrl;
+          const intDeploymentDetails = res.projectDetails.intDeploymentDetails;
+          const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
+          const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+          const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
           const deployed = res.status === 'DEPLOYED' || (intDeployedUrl !== null  || prodDeployedUrl !== null);
           
           setCodeSpaceData({
@@ -158,7 +160,12 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           });
           setCodeDeployed(deployed);
           setCodeDeployedUrl(intDeployedUrl);
-          setCodeDeployedBranch(branchValue);
+          setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
+
+          setProdCodeDeployed(prodDeployedUrl !== null);
+          setProdCodeDeployedUrl(prodDeployedUrl);
+          setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
+
           Tooltip.defaultSetup();
           if (res.status === 'DEPLOY_REQUESTED') {
             setCodeDeploying(true);
@@ -368,7 +375,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   {codeDeployed && (
                     <div className={Styles.urlLink} tooltip-data="API BASE URL - Staging">
                       <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                        <i className="icon mbc-icon link" /> Staging ({codeDeployedBranch})
+                        <i className="icon mbc-icon link" /> Staging <br />({codeDeployedBranch})
                       </a>
                       &nbsp;
                     </div>
@@ -376,7 +383,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
                   {prodCodeDeployed && (
                     <div className={Styles.urlLink} tooltip-data="API BASE URL - Production">
                       <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                        <i className="icon mbc-icon link" /> Production ({prodCodeDeployedBranch})
+                        <i className="icon mbc-icon link" /> Production <br />({prodCodeDeployedBranch})
                       </a>
                       &nbsp;
                     </div>
