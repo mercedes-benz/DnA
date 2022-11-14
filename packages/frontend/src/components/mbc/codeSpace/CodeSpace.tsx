@@ -9,7 +9,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { trackEvent } from '../../../services/utils';
+import { recipesMaster, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
@@ -125,6 +125,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
+  const recipes = recipesMaster;
   // const branches = [
   //   { id: 'main', name: 'main' },
   //   { id: 'dev', name: 'dev' },
@@ -364,7 +365,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2>
+                <h2 tooltip-data={recipes.find((item: any) => item.id === codeSpaceData.projectDetails.recipeDetails.recipeId).name}>
                   {props.user.firstName}&apos;s Code Space - {codeSpaceData.projectDetails.projectName}
                 </h2>
               </div>
