@@ -180,7 +180,7 @@ paths:
         200:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/BucketObjectsCollectionDto"
+            $ref: "#/definitions/BucketObjectsCollectionWrapperDto"
         204:
           description: "Fetch complete, no content found."
         400:

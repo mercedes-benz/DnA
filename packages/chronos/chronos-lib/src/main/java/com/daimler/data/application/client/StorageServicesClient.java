@@ -23,7 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.forecast.CollaboratorVO;
 import com.daimler.data.dto.forecast.CreatedByVO;
-import com.daimler.data.dto.storage.BucketObjectsCollectionDto;
+import com.daimler.data.dto.storage.BucketObjectDetailsDto;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.CollaboratorsDto;
 import com.daimler.data.dto.storage.CreateBucketRequestDto;
 import com.daimler.data.dto.storage.CreateBucketRequestWrapperDto;
@@ -193,8 +194,8 @@ public class StorageServicesClient {
 	}
 	
 	
-	public BucketObjectsCollectionDto getBucketObjects() {
-		BucketObjectsCollectionDto filesList = new BucketObjectsCollectionDto();
+	public BucketObjectsCollectionWrapperDto getBucketObjects() {
+		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
 		ByteArrayResource data = null;
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
@@ -206,16 +207,51 @@ public class StorageServicesClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +defaultConfigFolderPath;
-			ResponseEntity<BucketObjectsCollectionDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketObjectsCollectionDto.class);
+			ResponseEntity<BucketObjectsCollectionWrapperDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketObjectsCollectionWrapperDto.class);
 			if (response.hasBody() && response.getBody()!=null) {
-				if(response.getBody()!=null && response.getBody().getData()!=null && !response.getBody().getData().isEmpty()) {
-					filesList.getData().stream().filter(str -> str.getObjectName().endsWith(".yml") || str.getObjectName().endsWith(".yaml"));
+				if(response.getBody()!=null && response.getBody().getData()!=null && response.getBody().getData().getBucketObjects()!=null
+						&& !response.getBody().getData().getBucketObjects().isEmpty()) {
+					filesList = response.getBody();
+					List<BucketObjectDetailsDto> filteredBucketObjects = filesList.getData().getBucketObjects().stream().
+						filter(str -> str.getObjectName().endsWith(".yml") || str.getObjectName().endsWith(".yaml")).collect(Collectors.toList());
+					filesList.getData().setBucketObjects(filteredBucketObjects);
 				}
 			}
 			}catch(Exception e) {
 				log.error("Failed while getting default config yamls and ymls from chronos-core/config path with exception {}", e.getMessage());
 			}
 		return filesList;
+	}
+	
+	
+	public Boolean getBucketObjects(String bucketName,String prefix) {
+		Boolean flag = false;
+		BucketObjectsCollectionWrapperDto filesList = new BucketObjectsCollectionWrapperDto();
+		ByteArrayResource data = null;
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName+"/objects?prefix=" + prefix;
+			ResponseEntity<BucketObjectsCollectionWrapperDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketObjectsCollectionWrapperDto.class);
+			if (response.hasBody() && response.getBody()!=null) {
+				if(response.getBody()!=null && response.getBody().getData()!=null && response.getBody().getData().getBucketObjects()!=null
+						&& !response.getBody().getData().getBucketObjects().isEmpty()) {
+					filesList = response.getBody();
+					List<BucketObjectDetailsDto> filteredBucketObjects = filesList.getData().getBucketObjects().stream().
+						filter(str -> "SUCCESS".equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
+					if(filteredBucketObjects!=null && !filteredBucketObjects.isEmpty() && filteredBucketObjects.size()>0)
+						flag = true;
+				}
+			}
+			}catch(Exception e) {
+				log.error("Failed while getting SUCCESS file from results path {}  with exception {}", bucketName+"/"+prefix, e.getMessage());
+			}
+		return flag;
 	}
 	
 	

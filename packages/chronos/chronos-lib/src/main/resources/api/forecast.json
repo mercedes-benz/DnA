@@ -13,6 +13,7 @@
 		"ByteArrayResource" : "org.springframework.core.io.ByteArrayResource",
 		"MultipartFile" : "org.springframework.web.multipart.MultipartFile",
 		"BucketObjectDetailsDto":"com.daimler.data.dto.storage.BucketObjectDetailsDto",
-		"BucketObjectsCollectionDto":"com.daimler.data.dto.storage.BucketObjectsCollectionDto"
+		"BucketObjectsCollectionDto":"com.daimler.data.dto.storage.BucketObjectsCollectionDto",
+		"BucketObjectsCollectionWrapperDto" : "com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto"
 	}
 }
