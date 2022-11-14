@@ -440,6 +440,14 @@ public class BaseStorageService implements StorageService {
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
 		HttpStatus httpStatus;
+		
+			String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
+			if(chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+				currentUser = dataBricksUser;
+			}
+			LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
+			
 		BucketObjectResponseWrapperVO objectResponseWrapperVO = new BucketObjectResponseWrapperVO();
 
 		LOGGER.debug("list bucket objects through minio client");
