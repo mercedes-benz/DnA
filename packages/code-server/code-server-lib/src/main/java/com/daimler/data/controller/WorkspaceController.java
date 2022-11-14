@@ -85,6 +85,45 @@ public class WorkspaceController  implements CodeServerApi{
 
 	@Autowired
 	private UserStore userStore;
+	
+	@Override
+	@ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/collaborator",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<CodeServerWorkspaceVO> removeCollab(@ApiParam(value = "Workspace ID for the project",required=true) @PathVariable("id") String id,@ApiParam(value = "User info to remove collaborator from project" ,required=true )  @Valid @RequestBody UserInfoVO userRequestDto){
+		
+		return null;
+	}
+
+	
+	@Override
+	@ApiOperation(value = "Add collaborator to existing workspace Project for a given Id.", nickname = "addCollab", notes = "Add collaborator to existing workspace Project ", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{id}/collaborator",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<CodeServerWorkspaceVO> addCollab(@ApiParam(value = "Workspace ID for the project",required=true) @PathVariable("id") String id,@ApiParam(value = "Userinfo to add collaborator to project" ,required=true )  @Valid @RequestBody UserInfoVO userRequestDto){
+		
+		return null;
+	}
 
 	@Override
 	@ApiOperation(value = "Initialize Workbench for user.", nickname = "initializeWorkspace", notes = "Initialize workbench for collab user", response = InitializeWorkspaceResponseVO.class, tags={ "code-server", })
@@ -354,45 +393,6 @@ public class WorkspaceController  implements CodeServerApi{
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
     public ResponseEntity<GenericMessage> undeployWorkspaceProject(@ApiParam(value = "Workspace ID for the project to be undeployed",required=true) @PathVariable("id") String id,@ApiParam(value = "Workspace ID for the project to be deployed" ,required=true )  @Valid @RequestBody ManageDeployRequestDto deployRequestDto){
-//    	try {
-//			CreatedByVO currentUser = this.userStore.getVO();
-//			String userId = currentUser != null ? currentUser.getId() : "";
-//			CodeServerWorkspaceVO vo = service.getById(userId,id);
-//			if(vo==null || vo.getWorkspaceId()==null) {
-//				log.debug("No workspace found, returning empty");
-//				GenericMessage emptyResponse = new GenericMessage();
-//				List<MessageDescription> warnings = new ArrayList<>();
-//				MessageDescription msg = new MessageDescription();
-//				msg.setMessage("No workspace found for given id and the user");
-//				warnings.add(msg);
-//				return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
-//			}
-//			if(!(vo!=null && vo.getWorkspaceId()!=null && vo.getWorkspaceOwner()!=null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
-//				MessageDescription notAuthorizedMsg = new MessageDescription();
-//				notAuthorizedMsg.setMessage(
-//						"Not authorized to undeploy project for workspace. User does not have privileges.");
-//				GenericMessage errorMessage = new GenericMessage();
-//				errorMessage.addErrors(notAuthorizedMsg);
-//				log.info("User {} cannot undeploy project for workspace {}, insufficient privileges.", userId,vo.getWorkspaceId());
-//				return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-//			}
-//			GenericMessage responseMsg = service.undeployWorspace(userId,id);
-//			log.info("User {} undeployed workspace {} project {}", userId,vo.getWorkspaceId(),vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-//			return new ResponseEntity<>(responseMsg, HttpStatus.OK);
-//		} catch (EntityNotFoundException e) {
-//			log.error(e.getLocalizedMessage());
-//			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
-//			GenericMessage errorMessage = new GenericMessage();
-//			errorMessage.addErrors(invalidMsg);
-//			log.error("No workspace found with id {}, failed to undeploy", id);
-//			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-//		} catch (Exception e) {
-//			log.error("Failed to undeploy workspace {}, with exception {}", id, e.getLocalizedMessage());
-//			MessageDescription exceptionMsg = new MessageDescription("Failed to undeploy due to internal error.");
-//			GenericMessage errorMessage = new GenericMessage();
-//			errorMessage.addErrors(exceptionMsg);
-//			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
     	try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
