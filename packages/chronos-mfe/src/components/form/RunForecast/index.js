@@ -47,29 +47,6 @@ const SelectedFile = ({ selectedFile, setSelected }) => {
   );
 };
 
-const configFiles = [
-  {
-    id: 1,
-    name: 'Default Configuration',
-    path: '/defualt-configuration'
-  },
-  // {
-  //   id: 2,
-  //   name: 'Custom Configuration',
-  //   path: '/defualt-configuration'
-  // },
-  // {
-  //   id: 3,
-  //   name: 'Forecast Configuration',
-  //   path: '/defualt-configuration'
-  // },
-  // {
-  //   id: 4,
-  //   name: 'Three Configuration',
-  //   path: '/defualt-configuration'
-  // },
-]
-
 const RunForecast = ({ onRunClick }) => {
   const { id: projectId } = useParams();
 
@@ -136,20 +113,18 @@ const RunForecast = ({ onRunClick }) => {
   }, []);
 
   const getConfigurationFiles = () => {
-    setConfigurationFiles(configFiles);
-    SelectBox.defaultSetup();
-    // chronosApi.getAllInputFiles(projectId).then((res) => {
-    //   if(res.data !== '') {
-    //     setSavedFiles(res.data.files);
-    //   }
-    //   SelectBox.defaultSetup();
-    // }).catch(error => {
-    //   if(error?.response?.data?.errors[0]?.message) {
-    //     Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
-    //   } else {
-    //     Notification.show(error.message, 'alert');
-    //   }
-    // });
+    chronosApi.getConfigurationFiles().then((res) => {
+      console.log('config files res');
+      console.log(res);
+      setConfigurationFiles(res.data.bucketObjects);
+      SelectBox.defaultSetup();
+    }).catch(error => {
+      if(error?.response?.data?.errors[0]?.message) {
+        Notification.show(error?.response?.data?.errors[0]?.message, 'alert');
+      } else {
+        Notification.show(error.message, 'alert');
+      }
+    });
   }
   
   const existingFilesContent = (
@@ -481,8 +456,8 @@ const RunForecast = ({ onRunClick }) => {
                                   Choose
                                 </option>
                                 {configurationFiles.map((file) => (
-                                  <option id={file.name} key={file.id} value={file.path}>
-                                    {file.name}
+                                  <option key={file.objectName} value={'chronos-core/' + file.objectName}>
+                                    {file.objectName.split("/")[2]}
                                   </option>
                                 ))}
                               </>
