@@ -114,9 +114,7 @@ const RunForecast = ({ onRunClick }) => {
 
   const getConfigurationFiles = () => {
     chronosApi.getConfigurationFiles().then((res) => {
-      console.log('config files res');
-      console.log(res);
-      setConfigurationFiles(res.data.bucketObjects);
+      setConfigurationFiles(res.data.data.bucketObjects);
       SelectBox.defaultSetup();
     }).catch(error => {
       if(error?.response?.data?.errors[0]?.message) {
