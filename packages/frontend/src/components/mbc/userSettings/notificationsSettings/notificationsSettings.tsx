@@ -55,13 +55,13 @@ const NotificationsSettings = (props: INotificationSettings) => {
             temp.title = 'Configure Notifications for Storage';
             break;
           case 'dashboardNotificationPref':
-            temp.title = 'Configure Notifications for Dashboard';
+            temp.title = 'Configure Notifications for Reports';
             break;
           case 'dataProductNotificationPref':
-            temp.title = 'Configure Notification Data Product';
+            temp.title = 'Configure Notification for Data Transfer';
             break;
           case 'dataComplianceNotificationPref':
-            temp.title = 'Configure Notification Data Compliance';
+            temp.title = 'Configure Notification for Data Compliance';
             break;
         }
         tempArr.push(temp);
