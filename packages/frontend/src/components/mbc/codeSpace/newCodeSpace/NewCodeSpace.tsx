@@ -176,7 +176,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     const collabarationData = {
       firstName: collaborator.firstName,
       lastName: collaborator.lastName,
-      shortId: collaborator.shortId,
+      id: collaborator.shortId,
       department: collaborator.department,
       email: collaborator.email,
       mobileNumber: collaborator.mobileNumber,
@@ -219,7 +219,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onCollabaratorDelete = (userName: string) => {
     return () => {
       const currentCollList = codeSpaceCollaborators.filter((item) => {
-        return item.shortId !== userName;
+        return item.id !== userName;
       });
       setCodeSpaceCollaborators(currentCollList);
     };
@@ -647,7 +647,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                         {codeSpaceCollaborators?.map((item, collIndex) => {
                           return (
                             <div key={collIndex} className={Styles.collaboratorContentRow}>
-                              <div className={Styles.collaboratorTitleCol}>{item.shortId}</div>
+                              <div className={Styles.collaboratorTitleCol}>{item.id}</div>
                               <div className={Styles.collaboratorTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                               <div className={Styles.collaboratorTitleCol}>
                               <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
@@ -669,7 +669,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                       checked={true}
                                       readOnly
                                       // checked={item?.permission !== null ? item?.canDeploy : false}
-                                      onChange={(e) => onCollaboratorPermission(e, item.shortId)}
+                                      onChange={(e) => onCollaboratorPermission(e, item.id)}
                                     />
                                   </span>
                                   <span className="label">Deploy</span>
@@ -677,7 +677,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                               </div>
                             </div>
                               <div className={Styles.collaboratorTitleCol}>
-                                <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.shortId)}>
+                                <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.id)}>
                                   <i className="icon mbc-icon trash-outline" />
                                   Delete Entry
                                 </div>
