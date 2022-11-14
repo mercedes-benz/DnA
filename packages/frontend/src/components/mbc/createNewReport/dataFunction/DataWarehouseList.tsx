@@ -155,11 +155,11 @@ export const DataWarehouseList = ({
               >
                 <ul className="contextList">                  
                   <li className="contextListItem">
-                    <span onClick={() => onEdit(datawarehouse, index)}>Edit KPI</span>
+                    <span onClick={() => onEdit(datawarehouse, index)}>Edit Data Warehouse</span>
                   </li>
                 
                   <li className="contextListItem">
-                    <span onClick={() => onDelete(true, index)}>Delete KPI</span>
+                    <span onClick={() => onDelete(true, index)}>Delete Data Warehouse</span>
                   </li>
                 </ul>
               </div>
