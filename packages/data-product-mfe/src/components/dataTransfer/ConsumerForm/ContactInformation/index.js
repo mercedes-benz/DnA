@@ -30,10 +30,18 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     control,
     setValue,
     getValues,
+    clearErrors,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  const { division, department, complianceOfficer: selectedcomplianceOfficer, businessOwnerName, planningIT } = watch();
+  const {
+    division,
+    department,
+    complianceOfficer: selectedcomplianceOfficer,
+    businessOwnerName,
+    planningIT,
+    lcoNeeded,
+  } = watch();
 
   const [complianceOfficerList, setComplianceOfficerList] = useState({
     records: [],
@@ -52,6 +60,14 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   const minDate = dayjs().format();
 
   const provideDataProducts = useSelector((state) => state.provideDataProducts);
+
+  useEffect(() => {
+    if (lcoNeeded === 'No') {
+      setComplianceOfficer([]);
+      setValue('complianceOfficer', null);
+      clearErrors('complianceOfficer');
+    }
+  }, [lcoNeeded, setValue, clearErrors]);
 
   useEffect(() => {
     const id = watch('division');
@@ -109,9 +125,13 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
 
   useEffect(() => {
     if (selectedcomplianceOfficer?.length) {
-      setComplianceOfficer(selectedcomplianceOfficer);
+      if (lcoNeeded === 'No') {
+        setComplianceOfficer([]);
+      } else {
+        setComplianceOfficer(selectedcomplianceOfficer);
+      }
     }
-  }, [selectedcomplianceOfficer]);
+  }, [selectedcomplianceOfficer, lcoNeeded]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -174,6 +194,9 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
       return value !== '' || '*Missing entry';
     }
   };
+
+  const isLCORequired = (value) =>
+    watch('lcoNeeded') === 'No' || (watch('lcoNeeded') === 'Yes' && value?.length > 0) || '*Missing entry';
 
   const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
     if (searchTerm.length > 3) {
@@ -385,7 +408,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                 <Controller
                   control={control}
                   name="complianceOfficer"
-                  rules={{ required: '*Missing entry' }}
+                  rules={{ validate: isLCORequired }}
                   render={({ field }) => (
                     <TypeAheadBox
                       label={'Corresponding Compliance Officer / Responsible (LCO/LCR)'}
@@ -396,7 +419,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                         setComplianceOfficer(selectedTags.localComplianceOfficer || []);
                         field.onChange(selectedTags.localComplianceOfficer);
                       }}
-                      required={true}
+                      required={watch('lcoNeeded') === 'Yes'}
                       showError={errors.complianceOfficer?.message}
                       render={(item) => (
                         <div className={Styles.optionContainer}>
@@ -409,11 +432,10 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   )}
                 />
               </div>
-              <div className={classNames('input-field-group include-error', errors.planningIT ? 'error' : '')}>
+              <div className={classNames('input-field-group')}>
                 <Controller
                   control={control}
                   name="planningIT"
-                  rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <TypeAheadBox
                       label={'planningIT App-ID'}
@@ -425,7 +447,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                         field.onChange(selectedTags.id);
                       }}
                       onInputChange={handlePlanningITSearch}
-                      required={true}
+                      required={false}
                       showError={errors.planningIT?.message}
                       render={(item) => (
                         <div className={Styles.optionContainer}>
