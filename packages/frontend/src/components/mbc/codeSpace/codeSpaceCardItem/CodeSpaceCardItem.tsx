@@ -76,7 +76,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
     if (enableOnboard) {
       props.onShowCodeSpaceOnBoard(codeSpace);
     } else {
-      history.push(`codespace/${codeSpace.id}`);
+      history.push(`codespace/${codeSpace.workspaceId}`);
     }
   };
 
@@ -152,7 +152,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 )}
               </div>
               <div className={Styles.btnGrp}>
-                <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.id}`)}>
+                <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.workspaceId}`)}>
                   <i className="icon mbc-icon edit"></i>
                 </button>
                 {!deleteInProgress && !createInProgress && (
