@@ -243,7 +243,7 @@ public class StorageServicesClient {
 						&& !response.getBody().getData().getBucketObjects().isEmpty()) {
 					filesList = response.getBody();
 					List<BucketObjectDetailsDto> filteredBucketObjects = filesList.getData().getBucketObjects().stream().
-						filter(str -> "SUCCESS".equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
+						filter(str -> (prefix+"SUCCESS").equalsIgnoreCase(str.getObjectName())).collect(Collectors.toList());
 					if(filteredBucketObjects!=null && !filteredBucketObjects.isEmpty() && filteredBucketObjects.size()>0)
 						flag = true;
 				}
