@@ -17,6 +17,7 @@ import { ICodeCollaborator, IUserDetails, IUserInfo } from 'globals/types';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import AddUser from '../../addUser/AddUser';
 import { Envs } from 'globals/Envs';
+import { recipesMaster } from '../../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -42,15 +43,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
   const [recipeValue, setRecipeValue] = useState('0');
-  const recipes = [
-    { id: 'default', name: 'Plain or Empty (Debian 11 OS, 1GB RAM, 1CPU)' },
-    { id: 'springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 1GB RAM, 1CPU)' },
-    { id: 'py-fastapi', name: 'Microservice using Python FastAPI (Debian 11 OS, 1GB RAM, 1CPU)' },
-    { id: 'dna', name: 'DnA Workspace (Coming Soon)' },
-    { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
-    { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
-    { id: 'mern', name: 'MERN Stack (Coming Soon)' },
-  ];
+  const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
   const [passwordError, setPasswordErr] = useState('');
@@ -426,7 +419,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 <label>Recipe</label>
               </div>
               <div>
-                {projectDetails.recipeDetails.recipeId}
+                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}
               </div>
             </div>
             <div className={Styles.flexLayout}>
