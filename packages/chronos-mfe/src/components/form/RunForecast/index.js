@@ -455,7 +455,7 @@ const RunForecast = ({ onRunClick }) => {
                                 </option>
                                 {configurationFiles.map((file) => (
                                   <option key={file.objectName} value={'chronos-core/' + file.objectName}>
-                                    {file.objectName.split("/")[2]}
+                                    {file.objectName.split("/")[1]}
                                   </option>
                                 ))}
                               </>
