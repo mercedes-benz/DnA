@@ -469,18 +469,22 @@ const FileExplorer = () => {
     } else if (data.id === ChonkyActions.OpenFiles.id) {
       const { targetFile, files: sFiles } = data.payload;
       const fileToOpen = targetFile ?? sFiles[0];
-      if (fileToOpen && FileHelper.isDirectory(fileToOpen)) {
-        if (files.fileMap[currentFolderId].isDir && files.fileMap[currentFolderId].childrenCount === 0) {
-          setIsEmptyFolder({ modal: true, fileToOpen });
-        } else if (files.fileMap[newlyCreatedFolder] && !files.fileMap?.[newlyCreatedFolder]?.childrenIds?.length) {
-          setIsEmptyFolder({ modal: true, fileToOpen });
-        } else {
-          // on opening directory
-          onOpenFolder(fileToOpen);
+      if (data.state.selectedFiles.length > 1) {
+        Notification.show('Open selection is for one file/folder at a time.', 'alert');
+      } else {
+        if (fileToOpen && FileHelper.isDirectory(fileToOpen)) {
+          if (files.fileMap[currentFolderId].isDir && files.fileMap[currentFolderId].childrenCount === 0) {
+            setIsEmptyFolder({ modal: true, fileToOpen });
+          } else if (files.fileMap[newlyCreatedFolder] && !files.fileMap?.[newlyCreatedFolder]?.childrenIds?.length) {
+            setIsEmptyFolder({ modal: true, fileToOpen });
+          } else {
+            // on opening directory
+            onOpenFolder(fileToOpen);
+          }
+        } else if (fileToOpen) {
+          // on opening files
+          onOpenFile(data, fileToOpen);
         }
-      } else if (fileToOpen) {
-        // on opening files
-        onOpenFile(data, fileToOpen);
       }
     } else if (data.id === CustomActions.PublishFolder.id) {
       setPublishModal({
