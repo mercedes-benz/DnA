@@ -255,7 +255,8 @@ export const BucketList = (props) => {
                                 return (
                                   <div key={bucketIndex} className={Styles.bucketTile}>
                                     <div className={classNames(Styles.bucketTitleCol, Styles.expansionpanelFirstCol)}>
-                                      {bucketItem.accesskey}
+                                      {bucketItem.accesskey}{' '}
+                                      {item.createdBy?.id === bucketItem.accesskey ? '(Owner)' : ''}
                                     </div>
                                     <div
                                       className={Styles.bucketTitleCol}
@@ -277,7 +278,7 @@ export const BucketList = (props) => {
 
                           <div className={Styles.projectListAction}>
                             <div className={Styles.actionBtnGrp}>
-                              {item?.permission?.write && (
+                              {props.user?.id === item.createdBy?.id && (
                                 <>
                                   <button
                                     className={'btn btn-primary'}
@@ -336,18 +337,16 @@ export const BucketList = (props) => {
         onCancel={deleteBucketClose}
         onAccept={deleteBucketAccept}
       />
-      {
-        connect?.modal &&
-          <InfoModal
-            title="Connect"
-            modalCSS={Styles.header}
-            show={connect?.modal}
-            content={<ConnectionModal user={props.user} />}
-            hiddenTitle={true}
-            onCancel={onConnectionModalClose}
-          />
-      }
-      
+      {connect?.modal && (
+        <InfoModal
+          title="Connect"
+          modalCSS={Styles.header}
+          show={connect?.modal}
+          content={<ConnectionModal user={props.user} />}
+          hiddenTitle={true}
+          onCancel={onConnectionModalClose}
+        />
+      )}
     </>
   );
 };
