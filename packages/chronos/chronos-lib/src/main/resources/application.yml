@@ -54,7 +54,7 @@ databricks:
   pat: ${DATABRICKS_PAT:XXXXX}
   jobId: ${DATABRICKS_JOBID:XXXXX}
   powerfulMachinesJobId: ${DATABRICKS_POWERFULMACHINESJOBID:XXXXX}
-  defaultConfigYml: ${DATABRICKS_DEFAULTCONFIGYML_PATH:XXXXX}
+  defaultConfigYml: ${DATABRICKS_DEFAULTCONFIGYML_PATH:chronos-core/objects?prefix=configs}
   uri:
     base: ${DATABRICKS_BASE_URI:XXXXX}
     runnow: ${DATABRICKS_RUNNOW_URI:/api/2.1/jobs/run-now}
