@@ -301,7 +301,7 @@ public class ReportCustomRepositoryImpl extends CommonDataRepositoryImpl<ReportN
 
 		Map<String, TeamMemberVO> shortIdMap = new HashMap<>();
 		for (InternalCustomerVO item : convertedResults) {
-			if (item.getProcessOwner() != null) {
+			if (item.getProcessOwner() != null && StringUtils.hasText(item.getProcessOwner().getShortId())) {
 				shortIdMap.put(item.getProcessOwner().getShortId(), item.getProcessOwner());
 			}
 		}
