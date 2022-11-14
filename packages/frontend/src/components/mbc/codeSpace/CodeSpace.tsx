@@ -248,10 +248,10 @@ const CodeSpace = (props: ICodeSpaceProps) => {
     setShowCodeDeployModal(false);
   };
 
-  const enableDeployLivelinessCheck = (name: string) => {
+  const enableDeployLivelinessCheck = (id: string) => {
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
-      CodeSpaceApiClient.getCodeSpaceStatus(name)
+      CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {
             if (res.status === 'DEPLOYED') {
@@ -329,7 +329,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           } else {
             setIsApiCallTakeTime(true);
           }
-          enableDeployLivelinessCheck(codeSpaceData.projectDetails.projectName);
+          enableDeployLivelinessCheck(codeSpaceData.workspaceId);
         } else {
           setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
