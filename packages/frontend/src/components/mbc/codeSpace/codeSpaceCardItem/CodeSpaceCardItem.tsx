@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
-import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
+import { recipesMaster, regionalDateAndTimeConversionSolution } from '../../../../services/utils';
 import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 import { history } from '../../../../router/History';
 // @ts-ignore
@@ -29,6 +29,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const recipes = recipesMaster;
 
   const deleteCodeSpaceContent = (
     <div>
@@ -103,7 +104,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
           <div>
             <div>
               <div>Code Recipe</div>
-              <div>{projectDetails.recipeDetails.recipeId}</div>
+              <div>{recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}</div>
             </div>
             <div>
               <div>Environment</div>
