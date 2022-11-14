@@ -16,6 +16,7 @@ import { useEffect } from 'react';
 import { ICodeCollaborator, IUserDetails, IUserInfo } from 'globals/types';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import AddUser from '../../addUser/AddUser';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -403,7 +404,6 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     //     });
     // }
   };
-  console.log(props.onBoardingCodeSpace);
   const projectDetails = props.onBoardingCodeSpace?.projectDetails;
   return (
     <React.Fragment>
@@ -478,7 +478,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
-                label={'Your Github Accesstoken'}
+                label={`Your Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
+                infoTip="Not stored only used for Repo Creation"
                 placeholder={'Type here'}
                 value={githubToken}
                 errorText={githubTokenError}
@@ -620,7 +621,8 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 type="password"
                 controlId={'githubTokenInput'}
                 labelId={'githubTokenLabel'}
-                label={'Your Github Accesstoken'}
+                label={`Your Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
+                infoTip="Not stored only used for Repo Creation"
                 placeholder={'Type here'}
                 value={githubToken}
                 errorText={githubTokenError}
