@@ -742,12 +742,14 @@ const DataComplianceNetworkList = (props) => {
                   <span>Add New Entity</span>
                 </button>
               </div>
-              <div className={Styles.addItemButton}>
-                <button onClick={() => setShowChangeLog((prev) => !prev)}>
-                  <i className="icon mbc-icon link" />
-                  <span>{showChangeLog ? 'Hide Change Log' : 'See Change Log'}</span>
-                </button>
-              </div>
+              {showChangeLog && (
+                <div className={Styles.addItemButton}>
+                  <button onClick={() => setShowChangeLog((prev) => !prev)}>
+                    <i className="icon mbc-icon link" />
+                    <span>{showChangeLog ? 'Hide Change Log' : 'See Change Log'}</span>
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -763,7 +765,9 @@ const DataComplianceNetworkList = (props) => {
                   <tr className="header-row">
                     <th onClick={() => sortEntities('entityId', sortBy.nextSortType)}>
                       <label
-                        className={'sortable-column-header ' + (sortBy.name === 'entityId' ? sortBy.currentSortType : '')}
+                        className={
+                          'sortable-column-header ' + (sortBy.name === 'entityId' ? sortBy.currentSortType : '')
+                        }
                       >
                         <i className="icon sort" />
                         Entity ID

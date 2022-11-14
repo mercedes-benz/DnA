@@ -31,9 +31,11 @@ const Classification = ({ onSave }) => {
         <div className={Styles.firstPanel}>
           <div>
             <h3>Data Description & Classification</h3>
-            <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => {}} />
-            </div>
+            {showInfoModal && (
+              <div className={Styles.infoIcon}>
+                <i className={'icon mbc-icon info'} onClick={() => {}} />
+              </div>
+            )}
           </div>
           <div className={Styles.formWrapper}>
             <div
