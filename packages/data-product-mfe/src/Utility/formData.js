@@ -104,12 +104,8 @@ export const deserializeFormData = (item, type = 'provider') => {
         division: item.consumerInformation?.contactInformation?.division.id,
         subDivision: item.consumerInformation?.contactInformation.division.subdivision.id || '0',
         dateOfAgreement: item.consumerInformation?.contactInformation.agreementDate || '',
-        lcoNeeded: item.consumerInformation?.contactInformation.lcoNeeded
-          ? item.consumerInformation?.contactInformation.lcoNeeded
-            ? 'Yes'
-            : 'No'
-          : 'Yes',
-        complianceOfficer: item.consumerInformation?.contactInformation.localComplianceOfficer?.split(),
+        lcoNeeded: item.consumerInformation?.contactInformation.lcoNeeded ? 'Yes' : 'No',
+        complianceOfficer: item.consumerInformation?.contactInformation.localComplianceOfficer?.split().filter(Boolean),
         businessOwnerName: item.consumerInformation?.contactInformation.ownerName,
         openSegments: item.consumerInformation?.openSegments,
         LCOComments: item.consumerInformation?.personalRelatedData.comment,
