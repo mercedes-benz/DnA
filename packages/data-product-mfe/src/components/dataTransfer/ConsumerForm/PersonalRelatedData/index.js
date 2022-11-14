@@ -41,9 +41,11 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
         <div className={Styles.firstPanel}>
           <div>
             <h3>Identifying personal related data</h3>
-            <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
-            </div>
+            {showInfoModal && (
+              <div className={Styles.infoIcon}>
+                <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              </div>
+            )}
           </div>
           <div className={Styles.formWrapper}>
             <div
