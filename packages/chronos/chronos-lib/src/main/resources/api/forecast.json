@@ -11,6 +11,8 @@
 		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
 		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
 		"ByteArrayResource" : "org.springframework.core.io.ByteArrayResource",
-		"MultipartFile" : "org.springframework.web.multipart.MultipartFile"
+		"MultipartFile" : "org.springframework.web.multipart.MultipartFile",
+		"BucketObjectDetailsDto":"com.daimler.data.dto.storage.BucketObjectDetailsDto",
+		"BucketObjectsCollectionDto":"com.daimler.data.dto.storage.BucketObjectsCollectionDto"
 	}
 }
