@@ -195,6 +195,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             onKeyDown={this.onKeyDown}
             onChange={this.onTextInputChange}
             autoComplete="off"
+            maxLength={100}
             value={this.state.userInput}
             onFocus={this.onTagFieldFocus}
             onBlur={this.onTagFieldBlur}
