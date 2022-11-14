@@ -241,7 +241,81 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-    
+ 
+ 
+  /workspaces/{id}/collaborator:        
+    post:
+      tags:
+        - "code-server"
+      summary: "Add collaborator to existing workspace Project for a given Id."
+      description: "Add collaborator to existing workspace Project "
+      operationId: "addCollab"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID for the project"
+          required: true
+          type: "string"
+        - name: "userRequestDto"
+          in: "body"
+          description: "Userinfo to add collaborator to project"
+          required: true
+          schema:
+            $ref: "#/definitions/UserInfoVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerWorkspaceVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+    delete:
+      tags:
+        - "code-server"
+      summary: "remove collaborator from workspace project for a given Id."
+      description: "remove collaborator from workspace project for a given identifier."
+      operationId: "removeCollab"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID for the project"
+          required: true
+          type: "string"
+        - name: "userRequestDto"
+          in: "body"
+          description: "User info to remove collaborator from project"
+          required: true
+          schema:
+            $ref: "#/definitions/UserInfoVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerWorkspaceVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
   /workspaces/{id}/deploy:        
     post:
       tags:
