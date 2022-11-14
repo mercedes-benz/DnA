@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.forecast.CollaboratorVO;
 import com.daimler.data.dto.forecast.CreatedByVO;
+import com.daimler.data.dto.storage.BucketObjectsCollectionDto;
 import com.daimler.data.dto.storage.CollaboratorsDto;
 import com.daimler.data.dto.storage.CreateBucketRequestDto;
 import com.daimler.data.dto.storage.CreateBucketRequestWrapperDto;
@@ -45,6 +46,9 @@ public class StorageServicesClient {
 	
 	@Value("${databricks.userauth}")
 	private String dataBricksAuth;
+	
+	@Value("${databricks.defaultConfigYml}")
+	private String defaultConfigFolderPath;
 
 	private static final String BUCKETS_PATH = "/api/buckets";
 	private static final String UPLOADFILE_PATH = "/upload";
@@ -186,6 +190,32 @@ public class StorageServicesClient {
 				downloadResponse.setData(data);
 			}
 		return downloadResponse;
+	}
+	
+	
+	public BucketObjectsCollectionDto getBucketObjects() {
+		BucketObjectsCollectionDto filesList = new BucketObjectsCollectionDto();
+		ByteArrayResource data = null;
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.set("chronos-api-key",dataBricksAuth);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +defaultConfigFolderPath;
+			ResponseEntity<BucketObjectsCollectionDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketObjectsCollectionDto.class);
+			if (response.hasBody() && response.getBody()!=null) {
+				if(response.getBody()!=null && response.getBody().getData()!=null && !response.getBody().getData().isEmpty()) {
+					filesList.getData().stream().filter(str -> str.getObjectName().endsWith(".yml") || str.getObjectName().endsWith(".yaml"));
+				}
+			}
+			}catch(Exception e) {
+				log.error("Failed while getting default config yamls and ymls from chronos-core/config path with exception {}", e.getMessage());
+			}
+		return filesList;
 	}
 	
 	
