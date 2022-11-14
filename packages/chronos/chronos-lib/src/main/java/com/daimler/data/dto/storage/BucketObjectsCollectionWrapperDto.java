@@ -1,7 +1,6 @@
 package com.daimler.data.dto.storage;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -13,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BucketObjectsCollectionDto implements Serializable{
+public class BucketObjectsCollectionWrapperDto implements Serializable{
 
-	private List<BucketObjectDetailsDto> bucketObjects;
+	private BucketObjectsCollectionDto data;
 	
 }

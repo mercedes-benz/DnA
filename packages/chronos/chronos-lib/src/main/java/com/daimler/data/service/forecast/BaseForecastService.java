@@ -32,6 +32,7 @@ import com.daimler.data.dto.forecast.ForecastVO;
 import com.daimler.data.dto.forecast.RunDetailsVO;
 import com.daimler.data.dto.forecast.RunNowResponseVO;
 import com.daimler.data.dto.forecast.RunStateVO;
+import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
 import com.daimler.data.dto.forecast.RunVO;
 import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
@@ -241,8 +242,16 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								RunState newState = new RunState();
 								if(updatedState.getLifeCycleState()!=null)
 									newState.setLife_cycle_state(updatedState.getLifeCycleState().name());
-								if(updatedState.getResultState()!=null)
+								if(updatedState.getResultState()!=null) {
 									newState.setResult_state(updatedState.getResultState().name());
+									if("SUCCESS".equalsIgnoreCase(updatedState.getResultState().name())) {
+										//check if .SUCCESS file exists
+//										FAILED
+										String bucketName = "";
+										String resultsPrefix = "";
+										newState.setResult_state(ResultStateEnum.FAILED.name());
+									}
+								}
 								String updatedStateMsg = "";
 								if(updatedRunResponse.getState().getStateMessage()!=null) {
 									updatedStateMsg = updatedRunResponse.getState().getStateMessage() + ". " + updatedState.getStateMessage();
