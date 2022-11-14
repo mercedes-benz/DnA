@@ -893,10 +893,12 @@ export class TagHandling extends React.Component<any, ITagHandlingState> {
                     <i className="icon mbc-icon plus" />
                     <span>Add New Division</span>
                   </button>
-                  <button className={Styles.changeLog} onClick={this.handleChangeLogModal}>
-                    <i className="icon mbc-icon link" />
-                    <span>Division Change Logs</span>
-                  </button>
+                  {this.state.showDivisionChangeLogModal && (
+                    <button className={Styles.changeLog} onClick={this.handleChangeLogModal}>
+                      <i className="icon mbc-icon link" />
+                      <span>Division Change Logs</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
