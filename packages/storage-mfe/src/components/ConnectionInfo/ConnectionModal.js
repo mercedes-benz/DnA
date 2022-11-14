@@ -215,12 +215,14 @@ export const ConnectionModal = (props) => {
           minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True)
           y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
           y = pd.read_csv(y_file_obj)`}
-          {console.log('creatorInfo: ', bucketInfo)}
-          {console.log('currentUser: ', props.user)}
       </code>
       <div className={Styles.dataikuConnectionBtn}>
         {' '}
-        <button className="btn btn-tertiary hide" onClick={handleNotebookMakeConnection} disabled={bucketInfo.creator?.id !== props.user.id}>
+        <button
+          className="btn btn-tertiary hide"
+          onClick={handleNotebookMakeConnection}
+          disabled={bucketInfo.creator?.id !== props.user.id}
+        >
           Make Connection
         </button>
       </div>

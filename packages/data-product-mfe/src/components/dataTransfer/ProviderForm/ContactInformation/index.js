@@ -202,9 +202,11 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions }
         <div className={classNames(Styles.firstPanel, 'descriptionSection')}>
           <div>
             <h3>Contact Information</h3>
-            <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => {}} />
-            </div>
+            {showInfoModal && (
+              <div className={Styles.infoIcon}>
+                <i className={'icon mbc-icon info'} onClick={() => {}} />
+              </div>
+            )}
           </div>
           <div className={Styles.formWrapper}>
             <div className={classNames('input-field-group include-error', errors.productName ? 'error' : '')}>
