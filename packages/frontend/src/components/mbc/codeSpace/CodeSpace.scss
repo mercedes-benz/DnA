@@ -97,6 +97,15 @@
         align-items: center;
         justify-content: flex-end;
 
+        .urlLink {
+          padding-right: 15px;
+          text-align: right;
+          i {
+            font-size: var(--font-size-icon-medium);
+            vertical-align: middle;
+          }
+        }
+
         div > a:hover {
           text-decoration: none;
         }
@@ -212,7 +221,7 @@
       margin: 0;
       display: flex;
       margin-bottom: 0 !important;
-      padding: 0 15px;
+      padding: 0 20px;
       background-color: #000000;
       justify-content: space-between;
   
@@ -221,11 +230,16 @@
         top: 11px !important;
         right: 15px !important;
         display: flex;
+        min-width: 500px;
+        justify-content: flex-end;
 
         .urlLink {
-          width: 30px;
-          margin-top: 5px;
-          font-size: var(--font-size-icon-medium);
+          padding-right: 15px;
+          text-align: right;
+          i {
+            font-size: var(--font-size-icon-medium);
+            vertical-align: middle;
+          }
           > a:hover {
             text-decoration: none;
           }
@@ -246,8 +260,8 @@
         height: 40px;
       }
       .nbtitle {
-        width: 100%;
         text-align: center;
+        padding-left: 47px;
         h2 {
           color: #acb8c4;
           font-size: var(--font-size-headline);
