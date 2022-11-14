@@ -146,6 +146,7 @@ export const Envs = {
       ? getInjectedEnv('ENABLE_CODE_SPACE')
       : EnvParser.parseBool(process.env.ENABLE_CODE_SPACE, false),
   CODE_SPACE_API_BASEURL: getInjectedEnv('CODE_SPACE_API_BASEURL') || process.env.CODE_SPACE_API_BASEURL,
+  CODE_SPACE_GIT_PAT_APP_URL: getInjectedEnv('CODE_SPACE_GIT_PAT_APP_URL') || process.env.CODE_SPACE_GIT_PAT_APP_URL,
   ENABLE_CHRONOS_FORECASTING_SERVICE:
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
