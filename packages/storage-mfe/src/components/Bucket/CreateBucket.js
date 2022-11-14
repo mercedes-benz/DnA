@@ -475,51 +475,53 @@ const CreateBucket = ({ user }) => {
                           <div className={Styles.collUserTitleCol}></div>
                         </div>
                         <div className={classNames('mbc-scroll', Styles.collUserContent)}>
-                          {bucketCollaborators?.map((item, collIndex) => {
-                            return (
-                              <div key={collIndex} className={Styles.collUserContentRow}>
-                                <div className={Styles.collUserTitleCol}>{item.accesskey}</div>
-                                <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
-                                <div className={Styles.collUserTitleCol}>
-                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                    <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                                      <span className="wrapper">
-                                        <input
-                                          type="checkbox"
-                                          className="ff-only"
-                                          value="read"
-                                          checked={true}
-                                          readOnly
-                                        />
-                                      </span>
-                                      <span className="label">Read</span>
-                                    </label>
+                          {bucketCollaborators
+                            ?.filter((item) => item.accesskey !== user.id)
+                            ?.map((item, collIndex) => {
+                              return (
+                                <div key={collIndex} className={Styles.collUserContentRow}>
+                                  <div className={Styles.collUserTitleCol}>{item.accesskey}</div>
+                                  <div className={Styles.collUserTitleCol}>{item.firstName + ' ' + item.lastName}</div>
+                                  <div className={Styles.collUserTitleCol}>
+                                    <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="checkbox"
+                                            className="ff-only"
+                                            value="read"
+                                            checked={true}
+                                            readOnly
+                                          />
+                                        </span>
+                                        <span className="label">Read</span>
+                                      </label>
+                                    </div>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                      <label className={'checkbox'}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="checkbox"
+                                            className="ff-only"
+                                            value="write"
+                                            checked={item?.permission !== null ? item?.permission?.write : false}
+                                            onChange={(e) => onCollaboratorPermission(e, item.accesskey)}
+                                          />
+                                        </span>
+                                        <span className="label">Write</span>
+                                      </label>
+                                    </div>
                                   </div>
-                                  &nbsp;&nbsp;&nbsp;
-                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
-                                    <label className={'checkbox'}>
-                                      <span className="wrapper">
-                                        <input
-                                          type="checkbox"
-                                          className="ff-only"
-                                          value="write"
-                                          checked={item?.permission !== null ? item?.permission?.write : false}
-                                          onChange={(e) => onCollaboratorPermission(e, item.accesskey)}
-                                        />
-                                      </span>
-                                      <span className="label">Write</span>
-                                    </label>
+                                  <div className={Styles.collUserTitleCol}>
+                                    <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.accesskey)}>
+                                      <i className="icon mbc-icon trash-outline" />
+                                      Delete Entry
+                                    </div>
                                   </div>
                                 </div>
-                                <div className={Styles.collUserTitleCol}>
-                                  <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.accesskey)}>
-                                    <i className="icon mbc-icon trash-outline" />
-                                    Delete Entry
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
                         </div>
                       </React.Fragment>
                     ) : (
