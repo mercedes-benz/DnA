@@ -531,6 +531,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 	}
 
 	@Override
+	@Transactional
 	public GenericMessage update(String userId, String name, String projectName, String existingStatus,
 			String latestStatus) {
 		GenericMessage responseMessage = new GenericMessage();
@@ -548,7 +549,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					String workspaceName = entity.getData().getWorkspaceId();
 					String defaultRecipeId = RecipeIdEnum.DEFAULT.name();
 					String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
-					String workspaceUrl = codeServerBaseUri+"/"+workspaceOwner+"/"+workspaceName+"/?folder=/home/coder";
+					String workspaceUrl = codeServerBaseUri+"/"+workspaceName+"/?folder=/home/coder";
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
 					entity.getData().setWorkspaceUrl(workspaceUrl);
