@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import classNames from 'classnames';
+import Styles from './TextBox.scss';
+// @ts-ignore
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 
 export interface ITextBoxProps {
   type: string;
@@ -15,9 +18,14 @@ export interface ITextBoxProps {
   onKeyUp?: (e: React.FormEvent<HTMLInputElement>) => void;
   value: string;
   errorText?: string;
+  infoTip?: string;
 }
 
 const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, [props.infoTip]);
+
   return (
     <div
       className={classNames(
@@ -31,6 +39,7 @@ const TextBox:React.FC<ITextBoxProps> = (props: ITextBoxProps) => {
         className="input-label"
       >
         {props.label}{ props.required && <sup>*</sup> }
+        {props.infoTip && <i className={classNames('icon mbc-icon info', Styles.infoTip)} tooltip-data={props.infoTip} />}
       </label>
       <input
         className="input-field"
