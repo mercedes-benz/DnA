@@ -198,11 +198,11 @@ export const SingleDataSourceList = ({
                         >
                           <ul className="contextList">                  
                             <li className="contextListItem">
-                              <span onClick={() => onEdit(data, index)}>Edit KPI</span>
+                              <span onClick={() => onEdit(data, index)}>Edit Single Data Source</span>
                             </li>
                           
                             <li className="contextListItem">
-                              <span onClick={() => onDelete(true, index)}>Delete KPI</span>
+                              <span onClick={() => onDelete(true, index)}>Delete Single Data Source</span>
                             </li>
                           </ul>
                         </div>
