@@ -223,9 +223,11 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
         <div className={classNames(Styles.firstPanel, 'descriptionSection')}>
           <div>
             <h3>Contact Information</h3>
-            <div className={Styles.infoIcon}>
-              <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
-            </div>
+            {showInfoModal && (
+              <div className={Styles.infoIcon}>
+                <i className={'icon mbc-icon info'} onClick={() => setShowInfoModal(true)} />
+              </div>
+            )}
           </div>
           <div className={Styles.formWrapper}>
             <div className={Styles.flexLayout}>
