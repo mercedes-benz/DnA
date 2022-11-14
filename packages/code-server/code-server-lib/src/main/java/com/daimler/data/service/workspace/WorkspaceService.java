@@ -45,11 +45,7 @@ public interface WorkspaceService {
 	
 	CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value);
 
-	GenericMessage update(CodeServerWorkspaceVO existingVO);
-
 	Integer getCount(String userId);
-
-	GenericMessage undeployWorspace(String userId,String id);
 
 	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat, String password);
 

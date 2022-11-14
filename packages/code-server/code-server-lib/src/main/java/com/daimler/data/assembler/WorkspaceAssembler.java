@@ -111,7 +111,7 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		if(recipe!=null) {
 			recipeDetailsVO.setCloudServiceProvider(CloudServiceProviderEnum.valueOf(recipe.getCloudServiceProvider()));
 			recipeDetailsVO.setCpuCapacity(CpuCapacityEnum.valueOf(recipe.getCpuCapacity()));
-			recipeDetailsVO.setEnvironment(EnvironmentEnum.valueOf(recipe.getEnvironment()));
+			recipeDetailsVO.setEnvironment(EnvironmentEnum.valueOf(recipe.getEnvironment().toUpperCase()));
 			recipeDetailsVO.setOperatingSystem(OperatingSystemEnum.valueOf(recipe.getOperatingSystem()));
 			recipeDetailsVO.setRamSize(RamSizeEnum.valueOf(recipe.getRamSize()));
 			recipeDetailsVO.setRecipeId(RecipeIdEnum.valueOf(recipe.getRecipeId()));
