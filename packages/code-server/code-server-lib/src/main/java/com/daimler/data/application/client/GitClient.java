@@ -30,7 +30,6 @@ public class GitClient {
 	@Autowired
 	private RestTemplate restTemplate;
 	
-	
 	public HttpStatus createRepo(String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -42,7 +41,7 @@ public class GitClient {
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString,headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("Success while creating git repo {} initated by user", gitOrgName);
+				log.info("Completed creating git repo {} initated by user with status {}", gitOrgName,response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
@@ -61,7 +60,7 @@ public class GitClient {
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("Success while deleting git repo {} initated by user", gitOrgName);
+				log.info("completed deleting git repo {} initated by user with status {}", gitOrgName,response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
@@ -80,7 +79,7 @@ public class GitClient {
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("Success while adding user {} as collaborator to git repo {} initated by user", username, gitOrgName);
+				log.info("completed adding user {}  as collaborator to git repo {} initated by user , with status {} ", username, gitOrgName,response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
@@ -99,7 +98,7 @@ public class GitClient {
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("Success while removing user {} as collaborator from git repo {} initated by user", username, gitOrgName);
+				log.info("completed removing user {} as collaborator from git repo {} initated by user, with status ", username, gitOrgName,response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
@@ -118,7 +117,7 @@ public class GitClient {
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("Success while fetching branches from git repo {} by user {} ",repoName, username);
+				log.info("completed fetching branches from git repo {} by user {} ",repoName, username);
 				return response.getBody();
 			}
 		} catch (Exception e) {
