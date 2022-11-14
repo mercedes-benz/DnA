@@ -44,7 +44,7 @@ import com.daimler.data.dto.forecast.InputFileVO;
 import com.daimler.data.dto.forecast.InputFilesCollectionVO;
 import com.daimler.data.dto.forecast.RunVO;
 import com.daimler.data.dto.forecast.RunVisualizationVO;
-import com.daimler.data.dto.storage.BucketObjectsCollectionDto;
+import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.forecast.ForecastService;
 
@@ -84,9 +84,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	}
 	
 	@Override
-	@ApiOperation(value = "Get forecasts config files", nickname = "getConfigFiles", notes = "Get forecasts config files", response = BucketObjectsCollectionDto.class, tags={ "forecast-projects", })
+	@ApiOperation(value = "Get forecasts config files", nickname = "getConfigFiles", notes = "Get forecasts config files", response = BucketObjectsCollectionWrapperDto.class, tags={ "forecast-projects", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = BucketObjectsCollectionDto.class),
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = BucketObjectsCollectionWrapperDto.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -97,8 +97,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<BucketObjectsCollectionDto> getConfigFiles(){
-		BucketObjectsCollectionDto collection = new BucketObjectsCollectionDto();
+    public ResponseEntity<BucketObjectsCollectionWrapperDto> getConfigFiles(){
+		BucketObjectsCollectionWrapperDto collection = new BucketObjectsCollectionWrapperDto();
 		collection = storageClient.getBucketObjects();
 		return new ResponseEntity<>(collection, HttpStatus.OK);
 	}
