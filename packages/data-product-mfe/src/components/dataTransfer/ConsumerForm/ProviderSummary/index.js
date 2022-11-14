@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { serializeDivisionSubDivision } from '../../../../Utility/formData';
 import { regionalDateFormat } from '../../../../Utility/utils';
@@ -8,15 +8,27 @@ import Styles from './styles.scss';
 const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
   const { selectedDataProduct: data, divisionList } = useSelector((state) => state.provideDataProducts);
 
+  const isMounted = useRef(false);
+  const [providerInformation, setProviderInformation] = useState({});
+
   const division = serializeDivisionSubDivision(divisionList, {
-    division: data.division,
-    subDivision: data.subDivision,
+    division: providerInformation.division,
+    subDivision: providerInformation.subDivision,
   });
 
-  const showDataDescription = data?.openSegments?.includes('ClassificationAndConfidentiality');
-  const showPersonalData = data?.openSegments?.includes('IdentifyingPersonalRelatedData');
-  const showTransNationalData = data?.openSegments?.includes('IdentifiyingTransnationalDataTransfer');
-  const showDeletionRequirements = data?.openSegments?.includes('SpecifyDeletionRequirements');
+  const showDataDescription = providerInformation?.openSegments?.includes('ClassificationAndConfidentiality');
+  const showPersonalData = providerInformation?.openSegments?.includes('IdentifyingPersonalRelatedData');
+  const showTransNationalData = providerInformation?.openSegments?.includes('IdentifiyingTransnationalDataTransfer');
+  const showDeletionRequirements = providerInformation?.openSegments?.includes('SpecifyDeletionRequirements');
+
+  useEffect(() => {
+    if (data.id && !isMounted.current) {
+      isMounted.current = true;
+      let copyData = { ...data };
+      delete copyData['consumer'];
+      setProviderInformation(copyData);
+    }
+  }, [data]);
 
   return (
     <>
@@ -34,17 +46,17 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Data Product Name</label>
                 <br />
-                {data.productName}
+                {providerInformation.productName}
               </div>
               <div>
                 <label className="input-label summary">Date of Data Transfer</label>
                 <br />
-                {regionalDateFormat(data.dateOfDataTransfer)}
+                {regionalDateFormat(providerInformation.dateOfDataTransfer)}
               </div>
               <div>
                 <label className="input-label summary">Name</label>
                 <br />
-                {data.name?.firstName} {data.name?.lastName}
+                {providerInformation.name?.firstName} {providerInformation.name?.lastName}
               </div>
               <div>
                 <label className="input-label summary">Division</label>
@@ -61,17 +73,17 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Department</label>
                 <br />
-                {data.department}
+                {providerInformation.department}
               </div>
               <div>
                 <label className="input-label summary">PlanningIT App-ID</label>
                 <br />
-                {data.planningIT || '-'}
+                {providerInformation.planningIT || '-'}
               </div>
               <div>
                 <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
                 <br />
-                {data.complianceOfficer}
+                {providerInformation.complianceOfficer}
               </div>
             </div>
           </div>
@@ -89,12 +101,12 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Description & Classification of transfered data</label>
                 <br />
-                {data.classificationOfTransferedData}
+                {providerInformation.classificationOfTransferedData}
               </div>
               <div>
                 <label className="input-label summary">Confidentiality</label>
                 <br />
-                {data.confidentiality}
+                {providerInformation.confidentiality}
               </div>
             </div>
           </div>
@@ -112,29 +124,29 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Is data personal related</label>
                 <br />
-                {data.personalRelatedData}
+                {providerInformation.personalRelatedData}
               </div>
             </div>
-            {data.personalRelatedData === 'Yes' ? (
+            {providerInformation.personalRelatedData === 'Yes' ? (
               <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                 <div>
                   <label className="input-label summary">Description</label>
                   <br />
-                  {data.personalRelatedDataDescription}
+                  {providerInformation.personalRelatedDataDescription}
                 </div>
                 <div>
                   <label className="input-label summary">
                     Original (business) purpose of processing this personal related data
                   </label>
                   <br />
-                  {data.personalRelatedDataPurpose}
+                  {providerInformation.personalRelatedDataPurpose}
                 </div>
                 <div>
                   <label className="input-label summary">
                     Original legal basis for processing this personal related data
                   </label>
                   <br />
-                  {data.personalRelatedDataLegalBasis}
+                  {providerInformation.personalRelatedDataLegalBasis}
                 </div>
                 <div></div>
               </div>
@@ -154,33 +166,34 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Is data being transferred from one country to another?</label>
                 <br />
-                {data.transnationalDataTransfer}
+                {providerInformation.transnationalDataTransfer}
               </div>
-              {data.transnationalDataTransfer === 'Yes' ? (
+              {providerInformation.transnationalDataTransfer === 'Yes' ? (
                 <div>
                   <label className="input-label summary">Is one of these countries not within the EU?</label>
                   <br />
-                  {data.transnationalDataTransferNotWithinEU || 'No'}
+                  {providerInformation.transnationalDataTransferNotWithinEU || 'No'}
                 </div>
               ) : null}
-              {data.transnationalDataTransfer === 'Yes' && data.transnationalDataTransferNotWithinEU === 'Yes' ? (
+              {providerInformation.transnationalDataTransfer === 'Yes' &&
+              providerInformation.transnationalDataTransferNotWithinEU === 'Yes' ? (
                 <div>
                   <label className="input-label summary">Has LCO/LCR approved this data transfer?</label>
                   <br />
-                  {data.LCOApprovedDataTransfer}
+                  {providerInformation.LCOApprovedDataTransfer}
                 </div>
               ) : null}
               <div>
                 <label className="input-label summary">Does product contain insider information?</label>
                 <br />
-                {data.insiderInformation}
+                {providerInformation.insiderInformation}
               </div>
             </div>
             <div className={Styles.flexLayout}>
               <div>
                 <label className="input-label summary">Is data from China included?</label>
                 <br />
-                {data.dataOriginatedFromChina}
+                {providerInformation.dataOriginatedFromChina}
               </div>
             </div>
           </div>
@@ -198,13 +211,13 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Are there specific deletion requirements for this data?</label>
                 <br />
-                {data.deletionRequirement}
+                {providerInformation.deletionRequirement}
               </div>
-              {data.deletionRequirement === 'Yes' ? (
+              {providerInformation.deletionRequirement === 'Yes' ? (
                 <div>
                   <label className="input-label summary">Describe deletion requirements</label>
                   <br />
-                  {data.deletionRequirementDescription}
+                  {providerInformation.deletionRequirementDescription}
                 </div>
               ) : null}
               <div></div>
@@ -213,7 +226,7 @@ const ProviderSummary = ({ onSave, providerFormIsDraft }) => {
               <div>
                 <label className="input-label summary">Other relevant information </label>
                 <br />
-                {data.otherRelevantInfo || '-'}
+                {providerInformation.otherRelevantInfo || '-'}
               </div>
             </div>
           </div>
