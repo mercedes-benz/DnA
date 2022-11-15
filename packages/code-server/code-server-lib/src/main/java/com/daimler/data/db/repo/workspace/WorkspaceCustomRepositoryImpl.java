@@ -27,6 +27,7 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -175,6 +176,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
+		Date deployedOn = deploymentDetails.getLastDeployedOn();
+		String longdate = "";
+		if(deployedOn!=null)
+			longdate = String.valueOf(deployedOn.getTime());
 		String updateQuery = "update workspace_nsql\r\n"
 				+ "set data = jsonb_set(data,'{projectDetails,"+ environment  +"}', \r\n"
 						+ "'{\"deploymentUrl\": \""+ deploymentDetails.getDeploymentUrl() +"\","
@@ -185,7 +190,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 								+ " \"department\": \""+ deploymentDetails.getLastDeployedBy().getDepartment()  + "\","
 								+ " \"gitUserName\": \""+ deploymentDetails.getLastDeployedBy().getGitUserName()  + "\","
 								+ " \"mobileNumber\": \""+ deploymentDetails.getLastDeployedBy().getMobileNumber()  + "\"},"
-						+ " \"lastDeployedOn\": " + deploymentDetails.getLastDeployedOn() + ","
+						+ " \"lastDeployedOn\":" +   longdate + ","
 						+ " \"lastDeployedBranch\": \""+ deploymentDetails.getLastDeployedBranch() +"\","
 						+ " \"lastDeploymentStatus\": \""+ deploymentDetails.getLastDeploymentStatus() +"\"}')\r\n"
 				+ "where data->'projectDetails'->>'projectName' = '"+projectName+"'";
@@ -195,7 +200,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
 			updateResponse.setWarnings(new ArrayList<>());
-			log.info("deployment details updated successfully for project {} and ", projectName);
+			log.info("deployment details updated successfully for project {} ", projectName);
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
