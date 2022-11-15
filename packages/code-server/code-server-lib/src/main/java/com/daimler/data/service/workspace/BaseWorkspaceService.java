@@ -240,13 +240,14 @@ public class BaseWorkspaceService implements WorkspaceService {
 				 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 				 if(!addGitUser.is2xxSuccessful()) {
 					 	HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
-					 	if(!deleteRepoStatus.is2xxSuccessful()) {
-					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " + gitUser  + " as collaborator with status " + addGitUser.name() + ". Deleted repository successfully, please retry");
+					 	log.info("Created git repository {} successfully. Failed while adding {} as collaborator with status {} and delete repo status as {} ",repoName,gitUser,addGitUser.name(),deleteRepoStatus.name());
+					 	if(deleteRepoStatus.is2xxSuccessful()) {
+					 		MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " + gitUser  + " as collaborator . Please make " + gitUser + " is valid git user. Deleted repository successfully, please retry");
 							errors.add(errMsg);
 							responseVO.setErrors(errors);
 							return responseVO;
 					 	}else {
-							MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " +  gitUser + " as collaborator with status " + addGitUser.name() + ". Unable to delete repository because of " + deleteRepoStatus.name() + ", please delete repository manually and retry");
+							MessageDescription errMsg = new MessageDescription("Created git repository " +repoName + " successfully. Failed while adding " +  gitUser + " as collaborator . Please make " + gitUser + " is valid git user. Unable to delete repository because of " + deleteRepoStatus.name() + ", please delete repository manually and retry");
 							errors.add(errMsg);
 							responseVO.setErrors(errors);
 							return responseVO;
