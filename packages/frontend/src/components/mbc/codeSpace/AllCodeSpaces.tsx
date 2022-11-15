@@ -9,7 +9,6 @@ import NewCodeSpace from './newCodeSpace/NewCodeSpace';
 import { IUserInfo } from 'globals/types';
 import ProgressWithMessage from 'components/progressWithMessage/ProgressWithMessage';
 import { history } from '../../../router/History';
-// import { ApiClient } from '../../../services/ApiClient';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../../services/CodeSpaceApiClient';
 // @ts-ignore
@@ -21,11 +20,6 @@ export interface IAllCodeSpacesProps {
 
 const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const [loading, setLoading] = useState<boolean>(true);
-  // const [lastCreatedId, setLastCreatedId] = useState<number>(0);
-  // const [codeSpaceData, setCodeSpaceData] = useState<ICodeSpaceData>({
-  //   url: `https://code-spaces.***REMOVED***/${props.user.id.toLocaleLowerCase()}/default/?folder=/home/coder/projects/default/demo`,
-  //   running: false
-  // });
   const [codeSpaces, setCodeSpaces] = useState<ICodeSpaceData[]>([]),
     [codeSpacesListResponse, setCodeSpacesListResponse] = useState<ICodeSpaceData[]>([]),
     [pagination, setPagination] = useState({
@@ -37,83 +31,6 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
     [isApiCallTakeTime, setIsApiCallTakeTime] = useState<boolean>(false),
     [onBoardCodeSpace, setOnBoardCodeSpace] = useState<ICodeSpaceData>();
 
-
-  // const formatCodeSpaceData = (records: any[]) => {
-  //   records.push(
-  //     {
-  //       id: '***REMOVED***',
-  //       name: 'code-collab-sample',
-  //       description: null,
-  //       owner: 'BEALURI',
-  //       recipeId: 'springboot',
-  //       intiatedOn: '2022-08-25T10:18:39.460+00:00',
-  //       lastDeployedOn: '2022-08-25T10:29:18.389+00:00',
-  //       deploymentUrl: 'https://code-spaces.***REMOVED***/bealuri/wsx1/demo',
-  //       workspaceUrl: 'https://code-spaces.***REMOVED***/bealuri/wsx1/?folder=/home/coder/projects/demo',
-  //       environment: 'Development',
-  //       cloudServiceProvider: 'DHC-CaaS',
-  //       ramSize: '1',
-  //       ramMetrics: 'GB',
-  //       cpuCapacity: '1',
-  //       operatingSystem: 'Debian-OS-11',
-  //       status: 'CREATED',
-  //       collaborators: [
-  //         {
-  //           department: "ITT/QIG",
-  //           email: "kameshwara.rao@daimler.com",
-  //           firstName: "Kameswara",
-  //           lastName: "Rao",
-  //           shortId: "KAMERAO",
-  //           id: "KAMERAO",
-  //           mobileNumber: "",
-  //           status: "REQUESTED",
-  //           canDeploy: true,
-  //         },
-  //         {
-  //           department: "ITT/QIG",
-  //           email: "benson_boon.aluri@mercedes-benz.com",
-  //           firstName: "Benson Boon",
-  //           lastName: "Aluri",
-  //           shortId: "BEALURI",
-  //           id: "BEALURI",
-  //           mobileNumber: "",
-  //           status: "REQUESTED",
-  //           canDeploy: true,
-  //         },
-  //         {
-  //           department: "ITT/QIG",
-  //           email: "anna_agnel.maria_rathinam@mercedes-benz.com",
-  //           firstName: "Anna Agnel Praveen",
-  //           lastName: "Maria Rathinam",
-  //           shortId: "AMARIAR",
-  //           id: "AMARIAR",
-  //           mobileNumber: "",
-  //           status: "REQUESTED",
-  //           canDeploy: true,
-  //         }
-  //       ],
-  //     }
-  //   );
-  //   return records.map((record: any) => {
-  //     return {
-  //       id: record.id,
-  //       name: record.name,
-  //       recipe:
-  //         record.recipeId !== 'default'
-  //           ? `Microservice using Spring Boot (${record.operatingSystem}, ${record.ramSize}${record.ramMetrics} RAM, ${record.cpuCapacity}CPU)`
-  //           : 'Default',
-  //       environment: record.cloudServiceProvider,
-  //       deployed: record.status === 'DEPLOYED',
-  //       deployedUrl: record.deploymentUrl,
-  //       createdDate: record.intiatedOn,
-  //       lastDeployedDate: record.lastDeployedOn,
-  //       url: record.workspaceUrl,
-  //       running: !!record.intiatedOn,
-  //       status: record.status,
-  //       collaborators: record.collaborators,
-  //     } as ICodeSpaceData;
-  //   });
-  // };
 
   const getCodeSpacesData = () => {
     setLoading(true);
@@ -131,31 +48,6 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   };
 
   useEffect(() => {
-    // ApiClient.getCodeSpace().then((res: any) => {
-    //   setLoading(false);
-    //   const codeSpaceRunning = (res.success === 'true');
-    //   setCodeSpaceData({
-    //     ...codeSpaceData,
-    //     running: codeSpaceRunning
-    //   });
-    //   // setShowNewCodeSpaceModal(!codeSpaceRunning);
-    //   codeSpaceRunning && setCodeSpaces([
-    //     {
-    //       id: 'ws001',
-    //       name: 'DemoSpringBootMS',
-    //       recipe: 'Microservice using Spring Boot (Debian 11 OS, 2GB RAM, 1CPU)',
-    //       environment: 'DHC CaaS',
-    //       deployed: true,
-    //       createdDate: '2022-05-17T12:15:36.606+00:00',
-    //       lastDeployedDate: '2022-05-20T12:15:36.606+00:00',
-    //       url: 'sample',
-    //       running: true,
-    //     }
-    //   ]);
-    // }).catch((err: Error) => {
-    //   Notification.show("Error in validating code space - " + err.message, 'alert');
-    // });
-
     getCodeSpacesData();
   }, []);
 
