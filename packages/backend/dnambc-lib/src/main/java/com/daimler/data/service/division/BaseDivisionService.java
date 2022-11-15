@@ -28,6 +28,7 @@
 package com.daimler.data.service.division;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -47,9 +48,13 @@ import com.daimler.data.assembler.SolutionAssembler;
 import com.daimler.data.client.dashboard.DashboardClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.DivisionAuditNsql;
 import com.daimler.data.db.entities.DivisionNsql;
+import com.daimler.data.db.jsonb.DivisionAudit;
+import com.daimler.data.db.jsonb.solution.CreatedBy;
 import com.daimler.data.db.repo.division.DivisionCustomRepository;
 import com.daimler.data.db.repo.division.DivisionRepository;
+import com.daimler.data.db.repo.divisionAudit.DivisionAuditRepository;
 import com.daimler.data.dto.divisions.DivisionRequestVO;
 import com.daimler.data.dto.divisions.DivisionResponseVO;
 import com.daimler.data.dto.divisions.DivisionVO;
@@ -89,6 +94,9 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 
 	@Autowired
 	private SolutionAssembler solutionAssembler;
+	
+	@Autowired 
+	private DivisionAuditRepository auditJpaRepository;
 
 	public BaseDivisionService() {
 		super();
@@ -143,6 +151,42 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 				changeLogs = solutionAssembler.jsonObjectCompare(divisionVO, null, currentUser);
 				String userName = super.currentUserName(currentUser);
 				String eventMessage = "Division " + divisionVO.getName() + " has been added by Admin " + userName;
+				DivisionAuditNsql auditNsql = new DivisionAuditNsql();
+				DivisionAudit audit = new DivisionAudit();
+				List<DivisionAuditNsql> auditNsqls = new ArrayList<>();
+				String subDivisionAuditMessage = "";
+				if (divisionVO.getSubdivisions() != null) {
+					for (SubdivisionVO subdivisionVO : divisionVO.getSubdivisions()) {
+						subDivisionAuditMessage = subDivisionAuditMessage + subdivisionVO.getName() + ",";
+					}
+				}
+				if (divisionVO.getSubdivisions().size() == Integer.parseInt("0")) {
+					subDivisionAuditMessage = "No sub-divisions";
+					String auditMessage = "Division " + divisionVO.getName() + " has been added with " + subDivisionAuditMessage.replaceAll(",$", "") 
+							 + " by Admin "+ userName;
+					audit.setMessage(auditMessage);
+				}
+
+				else {
+					String auditMessage = "Sub-Division " + subDivisionAuditMessage.replaceAll(",$", "") + " has been added to the Division "
+							+ divisionVO.getName() + " by Admin " + userName;
+					audit.setMessage(auditMessage);
+				}
+				audit.setAction("Create");
+				audit.setDivisionId(divisionVO.getId());
+				audit.setCreatedOn(new Date());
+				CreatedBy createdBy = new CreatedBy();
+				createdBy.setId(userId);
+				createdBy.setFirstName(currentUser.getFirstName());
+				createdBy.setLastName(currentUser.getLastName());
+				createdBy.setEmail(currentUser.getEmail());
+				createdBy.setDepartment(currentUser.getDepartment());
+				createdBy.setMobileNumber(currentUser.getMobileNumber());
+				audit.setCreatedBy(createdBy);
+				auditNsql.setData(audit);
+				auditNsqls.add(auditNsql);
+				auditJpaRepository.saveAll(auditNsqls);
+				LOGGER.info("Audit logs of division {} sent successfully",vo.getName());
 				userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, divisionVO.getId(), eventMessage,
 						userId, changeLogs);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
@@ -187,6 +231,42 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 		String eventMessage = "Division " + divisionName + " has been deleted by Admin " + userName;
 		List<ChangeLogVO> changeLogs = new ArrayList<>();
 		changeLogs = solutionAssembler.jsonObjectCompare(null, existingVO, currentUser);
+		DivisionAuditNsql auditNsql = new DivisionAuditNsql();
+		DivisionAudit audit = new DivisionAudit();
+		List<DivisionAuditNsql> auditNsqls = new ArrayList<>();
+		String subDivisionAuditMessage = "";
+		if (existingVO.getSubdivisions() != null) {
+			for (SubdivisionVO subdivisionVO : existingVO.getSubdivisions()) {
+				subDivisionAuditMessage = subDivisionAuditMessage + subdivisionVO.getName() + ",";
+			}
+		}
+		if (existingVO.getSubdivisions().size() == Integer.parseInt("0")) {
+			subDivisionAuditMessage = "No sub-divisions";
+			String auditMessage = "Division " + existingVO.getName() + " has been deleted with " + subDivisionAuditMessage.replaceAll(",$", "") 
+					 + " by Admin "+ userName;
+			audit.setMessage(auditMessage);
+		}
+
+		else {
+			String auditMessage = "Sub-Division " + subDivisionAuditMessage.replaceAll(",$", "") + " has been deleted from the Division "
+					+ existingVO.getName() + " by Admin " + userName;
+			audit.setMessage(auditMessage);
+		}
+		audit.setAction("Delete");
+		audit.setDivisionId(existingVO.getId());
+		audit.setCreatedOn(new Date());
+		CreatedBy createdBy = new CreatedBy();
+		createdBy.setId(userId);
+		createdBy.setFirstName(currentUser.getFirstName());
+		createdBy.setLastName(currentUser.getLastName());
+		createdBy.setEmail(currentUser.getEmail());
+		createdBy.setDepartment(currentUser.getDepartment());
+		createdBy.setMobileNumber(currentUser.getMobileNumber());
+		audit.setCreatedBy(createdBy);
+		auditNsql.setData(audit);
+		auditNsqls.add(auditNsql);
+		auditJpaRepository.saveAll(auditNsqls);
+		LOGGER.info("Audit logs of division {} sent successfully",divisionName);
 		userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId, changeLogs);
 		GenericMessage successMsg = new GenericMessage();
 		successMsg.setSuccess("success");
@@ -220,12 +300,7 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 					return new ResponseEntity<>(response, HttpStatus.CONFLICT);
 				}
 				LOGGER.debug("Calling solutionService to update cascading refences to division {}", id);
-				solutionService.updateForEachSolution(id, "", SolutionService.TAG_CATEGORY.DIVISION, vo);
-				List<ChangeLogVO> changeLogsVO = solutionAssembler.jsonObjectCompare(vo, existingDivisionVO, currentUser);
-				if (null != existingDivisionVO.getChangeLogs() && changeLogsVO!=null) {
-					changeLogsVO.addAll(existingDivisionVO.getChangeLogs());
-				}
-				vo.setChangeLogs(changeLogsVO);
+				solutionService.updateForEachSolution(id, "", SolutionService.TAG_CATEGORY.DIVISION, vo);			
 				mergedDivisionVO = super.create(vo);
 				if (mergedDivisionVO != null && mergedDivisionVO.getId() != null) {
 					LOGGER.debug("Calling dashboardService to update cascading refences to division {}", id);
@@ -238,6 +313,45 @@ public class BaseDivisionService extends BaseCommonService<DivisionVO, DivisionN
 					changeLogs = solutionAssembler.jsonObjectCompare(mergedDivisionVO, existingVO, currentUser);
 					String userName = super.currentUserName(currentUser);
 					String eventMessage = "Division " + existingVO.getName() + " has been updated by Admin " + userName;
+					DivisionAuditNsql auditNsql = new DivisionAuditNsql();
+					DivisionAudit audit = new DivisionAudit();
+					List<DivisionAuditNsql> auditNsqls = new ArrayList<>();
+					String subDivisionAuditMessage = "";
+					if (mergedDivisionVO.getSubdivisions() != null) {						
+						for (SubdivisionVO subdivisionVO : mergedDivisionVO.getSubdivisions()) {
+							if(mergedDivisionVO.getSubdivisions().size()>0) {
+								subDivisionAuditMessage = subDivisionAuditMessage + subdivisionVO.getName() + ",";
+							}
+														
+						}
+					}
+					if (mergedDivisionVO.getSubdivisions().size() == Integer.parseInt("0")) {
+						subDivisionAuditMessage = "No sub-divisions";
+						String auditMessage = "Division " + mergedDivisionVO.getName() + " has been updated with " + subDivisionAuditMessage.replaceAll(",$", "") 
+								 + " by Admin "+ userName;
+						audit.setMessage(auditMessage);
+					}
+					else {
+						String auditMessage = "Division " + mergedDivisionVO.getName()
+								+ " has been updated with the Sub-Division  " + subDivisionAuditMessage.replaceAll(",$", "") + " by Admin "
+								+ userName;
+						audit.setMessage(auditMessage);
+					}
+					audit.setAction("Update");
+					audit.setDivisionId(mergedDivisionVO.getId());
+					audit.setCreatedOn(new Date());
+					CreatedBy createdBy = new CreatedBy();
+					createdBy.setId(userId);
+					createdBy.setFirstName(currentUser.getFirstName());
+					createdBy.setLastName(currentUser.getLastName());
+					createdBy.setEmail(currentUser.getEmail());
+					createdBy.setDepartment(currentUser.getDepartment());
+					createdBy.setMobileNumber(currentUser.getMobileNumber());
+					audit.setCreatedBy(createdBy);
+					auditNsql.setData(audit);
+					auditNsqls.add(auditNsql);
+					auditJpaRepository.saveAll(auditNsqls);
+					LOGGER.info("Audit logs of division {} sent successfully", id);
 					userInfoService.notifyAllAdminUsers(ConstantsUtility.SOLUTION_MDM, id, eventMessage, userId,
 							changeLogs);
 					LOGGER.debug("Division with id {} updated successfully", id);
