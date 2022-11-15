@@ -340,6 +340,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 	
 	@Override
+	@Transactional
 	public GenericMessage deletRunByUUID(String id, String rid) {
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
