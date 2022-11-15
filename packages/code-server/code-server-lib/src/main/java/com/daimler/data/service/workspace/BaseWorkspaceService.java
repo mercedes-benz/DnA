@@ -396,8 +396,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				deployJobInputDto.setAction("deploy");
 				deployJobInputDto.setBranch(branch);
-				deployJobInputDto.setEnvironment(environment);
-				deployJobInputDto.setRepo(entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
@@ -424,7 +424,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");;
-					workspaceCustomRepository.updateDeploymentDetails(status, environmentJsonbName, deploymentDetails);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					status = "SUCCESS";
 				}else {
 					status = "FAILED";
@@ -456,8 +456,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
-				deployJobInputDto.setEnvironment(environment);
-				deployJobInputDto.setRepo(entity.getData().getProjectDetails().getGitRepoName());
+				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(environment);
@@ -553,7 +553,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						return responseMessage;
 				  }
 				 String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 String deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/api/swagger-ui.html";
+				 String deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/swagger-ui.html";
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if("int".equalsIgnoreCase(targetEnv)) {
