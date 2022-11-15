@@ -9,7 +9,7 @@ import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { Envs } from 'globals/Envs';
 import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import { trackEvent } from '../../../services/utils';
+import { recipesMaster, trackEvent } from '../../../services/utils';
 // import { ApiClient } from '../../../services/ApiClient';
 import Modal from 'components/formElements/modal/Modal';
 import Styles from './CodeSpace.scss';
@@ -125,6 +125,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
 
   const [branchValue, setBranchValue] = useState('main');
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
+  const recipes = recipesMaster;
   // const branches = [
   //   { id: 'main', name: 'main' },
   //   { id: 'dev', name: 'dev' },
@@ -254,24 +255,22 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {
-            if (res.status === 'DEPLOYED') {
+            const intDeploymentDetails = res.projectDetails?.intDeploymentDetails;
+            const prodDeploymentDetails = res.projectDetails?.prodDeploymentDetails;
+
+            const deployStatus = deployEnvironment === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
+            if (deployStatus === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
               clearInterval(livelinessIntervalRef.current);
-              // setCodeSpaceData({
-              //   ...codeSpaceData,
-              //   deployed: true,
-              //   deployedUrl: res.deployedUrl,
-              //   lastDeployedDate: res.lastDeployedOn
-              // });
               setCodeDeploying(false);
               if (deployEnvironment === 'staging') {
                 setCodeDeployed(true);
-                setCodeDeployedUrl(res.projectDetails?.intDeploymentDetails?.deploymentUrl);
+                setCodeDeployedUrl(intDeploymentDetails?.deploymentUrl);
                 setCodeDeployedBranch(branchValue);
               } else if (deployEnvironment === 'production') {
                 setProdCodeDeployed(true);
-                setProdCodeDeployedUrl(res.projectDetails?.prodDeploymentDetails?.deploymentUrl);
+                setProdCodeDeployedUrl(prodDeploymentDetails?.deploymentUrl);
                 setProdCodeDeployedBranch(branchValue);
               }
               
@@ -364,7 +363,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               <img src={Envs.DNA_BRAND_LOGO_URL} className={Styles.Logo} />
               <div className={Styles.nbtitle}>
                 <button tooltip-data="Go Back" className="btn btn-text back arrow" onClick={goBack}></button>
-                <h2>
+                <h2 tooltip-data={recipes.find((item: any) => item.id === codeSpaceData.projectDetails.recipeDetails.recipeId).name}>
                   {props.user.firstName}&apos;s Code Space - {codeSpaceData.projectDetails.projectName}
                 </h2>
               </div>
