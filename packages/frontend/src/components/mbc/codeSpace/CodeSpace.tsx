@@ -255,24 +255,22 @@ const CodeSpace = (props: ICodeSpaceProps) => {
       CodeSpaceApiClient.getCodeSpaceStatus(id)
         .then((res: ICodeSpaceData) => {
           try {
-            if (res.status === 'DEPLOYED') {
+            const intDeploymentDetails = res.projectDetails?.intDeploymentDetails;
+            const prodDeploymentDetails = res.projectDetails?.prodDeploymentDetails;
+
+            const deployStatus = deployEnvironment === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
+            if (deployStatus === 'DEPLOYED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
               clearInterval(livelinessIntervalRef.current);
-              // setCodeSpaceData({
-              //   ...codeSpaceData,
-              //   deployed: true,
-              //   deployedUrl: res.deployedUrl,
-              //   lastDeployedDate: res.lastDeployedOn
-              // });
               setCodeDeploying(false);
               if (deployEnvironment === 'staging') {
                 setCodeDeployed(true);
-                setCodeDeployedUrl(res.projectDetails?.intDeploymentDetails?.deploymentUrl);
+                setCodeDeployedUrl(intDeploymentDetails?.deploymentUrl);
                 setCodeDeployedBranch(branchValue);
               } else if (deployEnvironment === 'production') {
                 setProdCodeDeployed(true);
-                setProdCodeDeployedUrl(res.projectDetails?.prodDeploymentDetails?.deploymentUrl);
+                setProdCodeDeployedUrl(prodDeploymentDetails?.deploymentUrl);
                 setProdCodeDeployedBranch(branchValue);
               }
               
