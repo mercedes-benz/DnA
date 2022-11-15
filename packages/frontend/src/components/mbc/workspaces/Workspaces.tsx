@@ -45,7 +45,7 @@ const Workspaces = () => {
             isEnabled={enableSapAnalyticsCloud}
           />
         )}
-        <Tile title={'My Code Space'} route={'/codespaces'} isEnabled={enableCodeSpace} />
+        <Tile title={'My Code Space (Beta)'} route={'/codespaces'} isEnabled={enableCodeSpace} />
       </div>
     </MainPanel>
   );
