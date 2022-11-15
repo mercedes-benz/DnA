@@ -253,6 +253,26 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     return formValid;
   };
 
+  const validateOnBoardCodeSpaceForm = () => {
+    let formValid = true;
+    if (passwordInput.password === '') {
+      setPasswordErr(requiredError);
+      formValid = false;
+    }
+    if (passwordInput.confirmPassword === '') {
+      setConfirmPasswordError(requiredError);
+      formValid = false;
+    }
+    if (githubToken === '') {
+      setGithubTokenError(requiredError);
+      formValid = false;
+    }
+    if (passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
+      formValid = false;
+    }
+    return formValid;
+  };
+
   const enableLivelinessCheck = (id: string) => {
     clearInterval(livelinessInterval);
     const intervalId = setInterval(() => {
@@ -397,6 +417,47 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     //     });
     // }
   };
+
+  const onBoardToCodeSpace = () => {
+
+    const onBoardCodeSpaceRequest = {
+      password: passwordInput.password,
+      pat: githubToken
+    };
+
+    if (validateOnBoardCodeSpaceForm()) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.onBoardCollaborator(props.onBoardingCodeSpace.id, onBoardCodeSpaceRequest)
+        .then((res) => {
+          trackEvent('DnA Code Space', 'Create', 'New code space');
+          if (res.data.status === 'CREATE_REQUESTED') {
+            // setCreatedCodeSpaceName(res.data.name);
+            props.toggleProgressMessage(true);
+            enableLivelinessCheck(res.data.workspaceId);
+          } else {
+            props.toggleProgressMessage(false);
+            ProgressIndicator.hide();
+            Notification.show(
+              'Error in creating new code space. Please try again later.\n' + res.errors[0].message,
+              'alert',
+            );
+          }
+        })
+        .catch((err: Error) => {
+          props.toggleProgressMessage(false);
+          ProgressIndicator.hide();
+          if (err.message === 'Value or Item already exist!') {
+            Notification.show(
+              `Given Code Space Name '${projectName}' already in use. Please use another name.`,
+              'alert',
+            );
+          } else {
+            Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+          }
+        });
+    }
+  };
+
   const projectDetails = props.onBoardingCodeSpace?.projectDetails;
   return (
     <React.Fragment>
@@ -483,7 +544,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             </div>
           </div>
           <div className={Styles.newCodeSpaceBtn}>
-            <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
+            <button className={' btn btn-tertiary '} onClick={onBoardToCodeSpace}>
               On-board to Code Space
             </button>
           </div>
