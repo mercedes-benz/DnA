@@ -10,9 +10,9 @@
         th {
           padding-left: 15px;
 
-          &:first-child {
-            padding-left: 38px;
-          }
+          // &:first-child {
+          //   padding-left: 38px;
+          // }
 
           .thCheckbox {
             margin-left: -10px;
@@ -126,6 +126,7 @@
 }
 .refreshContainer {
   margin-right: 28px;
+  margin-bottom: 12px;
   i {
     color: #00adef;
     margin-right: 10px;
