@@ -62,9 +62,13 @@ const Summary = ({ history }) => {
 
   const getDataProductById = () => {
     dataProductsApi.getDataProductById(dataProductId).then((res) => {
-      const data = deserializeFormData(res.data);
-      dispatch(setDataProduct(data));
-      Tabs.defaultSetup();
+      if (res.status === 204) {
+        return history.push('/NotFound');
+      } else {
+        const data = deserializeFormData(res.data);
+        dispatch(setDataProduct(data));
+        Tabs.defaultSetup();
+      }
     });
   };
 
