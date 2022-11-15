@@ -138,7 +138,9 @@ public class WorkspaceJobStatusUpdateController  {
 				errorMessage.addErrors(invalidMsg);
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
-			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus);
+			String targetEnv = updateRequestVO.getTargetEnvironment();
+			String branch = updateRequestVO.getBranch();
+			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {
 			log.info("workspace {} doesnt exists for User {} ",existingVO.getWorkspaceId(), userId);
