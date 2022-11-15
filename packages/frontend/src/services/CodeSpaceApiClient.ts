@@ -50,4 +50,7 @@ export class CodeSpaceApiClient {
   public static unDeployCodeSpace(id: string, data: any) {
     return this.delete(`workspaces/${id}/deploy`, data);
   }
+  public static onBoardCollaborator(id: string, data: any) {
+    return this.put(`workspaces/${id}`, data);
+  }
 }
