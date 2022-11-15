@@ -250,7 +250,7 @@
     .MuiPaper-root.MuiPopover-paper {
       .chonky-dropdownList {
         // show hidden files options
-        li.MuiListItem-gutters:nth-child(4) {
+        li.chonky-baseButton.MuiListItem-gutters:nth-child(4) {
           display: none;
         }
       }
