@@ -198,7 +198,7 @@ const AllCodeSpaces = (props: IAllCodeSpacesProps) => {
   const isCodeSpaceCreationSuccess = (status: boolean, codeSpaceData: ICodeSpaceData) => {
     if (showNewCodeSpaceModal) {
       setShowNewCodeSpaceModal(!status);
-      history.push(`codespace/${codeSpaceData.projectDetails.projectName}`);
+      history.push(`codespace/${codeSpaceData.workspaceId}`);
     } else {
       getCodeSpacesData();
     }
