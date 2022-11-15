@@ -24,7 +24,7 @@ interface CodeSpaceCardItemProps {
 const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const codeSpace = props.codeSpace;
   const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
-  const enableOnboard = collaborationCodeSpace ? collaborationCodeSpace.status === 'REQUESTED' : false;
+  const enableOnboard = collaborationCodeSpace ? collaborationCodeSpace.status === 'COLLABORATION_REQUESTED' : false;
   const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
