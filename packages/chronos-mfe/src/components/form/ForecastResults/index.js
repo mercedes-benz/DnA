@@ -194,17 +194,17 @@ const ForecastResults = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [runToBeDeleted, setRunToBeDeleted] = useState();
 
-  const onChangeSelectAll = (event) => {
-    if (event.currentTarget.checked) {
-      setSelectedRuns(
-        forecastRuns.filter((item) => item.state.result_state !== null).map((item) => item.id),
-      );
-      setCheckAll(!checkAll);
-    } else {
-      setSelectedRuns([]);
-      setCheckAll(!checkAll);
-    }
-  };
+  // const onChangeSelectAll = (event) => {
+  //   if (event.currentTarget.checked) {
+  //     setSelectedRuns(
+  //       forecastRuns.filter((item) => item.state.result_state !== null).map((item) => item.id),
+  //     );
+  //     setCheckAll(!checkAll);
+  //   } else {
+  //     setSelectedRuns([]);
+  //     setCheckAll(!checkAll);
+  //   }
+  // };
   
   const removeSelected = () => {
     ProgressIndicator.show();
@@ -308,7 +308,7 @@ const ForecastResults = () => {
                     <table className={'ul-table'}>
                       <thead>
                         <tr className="header-row">
-                          <th>
+                          {/* <th>
                             <div>
                               <label className={classNames('checkbox', Styles.checkboxItem)}>
                                 <span className={classNames('wrapper', Styles.thCheckbox)}>
@@ -321,7 +321,7 @@ const ForecastResults = () => {
                                 </span>
                               </label>
                             </div>
-                          </th>
+                          </th> */}
                           <th 
                             onClick={() => sortResults('runName', sortBy.nextSortType)}
                             >
