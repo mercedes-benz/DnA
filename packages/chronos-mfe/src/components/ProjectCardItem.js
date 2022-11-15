@@ -5,17 +5,17 @@ import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 
 const ProjectCardItem = ({project, history}) => {
 
-  const displayPermission = (item) => {
-    return Object.entries(item)
-      ?.map(([key, value]) => {
-        if (value === true) {
-          return key;
-        }
-      })
-      ?.filter((x) => x) // remove falsy values
-      ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
-      ?.join(' / ');
-  };
+  // const displayPermission = (item) => {
+  //   return Object.entries(item)
+  //     ?.map(([key, value]) => {
+  //       if (value === true) {
+  //         return key;
+  //       }
+  //     })
+  //     ?.filter((x) => x) // remove falsy values
+  //     ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
+  //     ?.join(' / ');
+  // };
 
   return (
     <>
@@ -36,10 +36,10 @@ const ProjectCardItem = ({project, history}) => {
         <hr />
         <div className={Styles.cardBodySection}>
           <div>
-            <div>
+            {/* <div>
               <div>Permission</div>
               <div>{project?.permission === null ? 'N/A' : displayPermission(project?.permission)}</div>
-            </div>
+            </div> */}
             <div>
               <div>Created on</div>
               <div>{project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}</div>
@@ -56,12 +56,12 @@ const ProjectCardItem = ({project, history}) => {
             <button className="btn btn-primary" disabled={true}>
               <i className="icon mbc-icon edit fill"></i>
             </button>
-            <button className="btn btn-primary" disabled={true}>
+            {/* <button className="btn btn-primary" disabled={true}>
               <i className="icon mbc-icon share"></i>
             </button>
             <button className="btn btn-primary" disabled={true}>
               <i className="icon mbc-icon data-sharing"></i>
-            </button>
+            </button> */}
             <button className="btn btn-primary" disabled={true}>
               <i className="icon delete"></i>
             </button>
