@@ -45,6 +45,6 @@ public class Division implements Serializable {
 
 	private String name;
 	private List<SubDivision> subdivisions;
-	private List<ChangeLogs> changeLogs;
+
 
 }

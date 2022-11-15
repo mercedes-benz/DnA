@@ -44,24 +44,7 @@ public class CodeServerClient {
 	@Autowired
 	RestTemplate restTemplate;
 	
-	public HttpStatus pollWorkBenchStatus(String userId, String wsid) {
-		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			
-			HttpEntity entity = new HttpEntity<>(headers);
-			String url = codeServerBaseUri+"/"+userId+"/"+wsid+"/default/login";
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-			if (response != null && response.getStatusCode()!=null) {
-				LOGGER.info("Success while polling codeServer workbench status for user {} ", userId);
-				return response.getStatusCode();
-			}
-		} catch (Exception e) {
-			LOGGER.error("Error occured while polling codeServer workbench status for user {} with exception {} ", userId, e.getMessage());
-		}
-		return HttpStatus.INTERNAL_SERVER_ERROR;
-	}
+
 	
 	public String toDeployType(String recipeId) {
 		String recipeType = "";

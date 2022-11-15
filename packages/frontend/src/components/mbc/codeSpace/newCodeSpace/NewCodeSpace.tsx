@@ -17,6 +17,7 @@ import { ICodeCollaborator, IUserDetails, IUserInfo } from 'globals/types';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import AddUser from '../../addUser/AddUser';
 import { Envs } from 'globals/Envs';
+import { recipesMaster } from '../../../../services/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -42,15 +43,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS');
   const [recipeValue, setRecipeValue] = useState('0');
-  const recipes = [
-    { id: 'default', name: 'Plain or Empty (Debian 11 OS, 1GB RAM, 1CPU)' },
-    { id: 'springboot', name: 'Microservice using Spring Boot (Debian 11 OS, 1GB RAM, 1CPU)' },
-    { id: 'py-fastapi', name: 'Microservice using Python FastAPI (Debian 11 OS, 1GB RAM, 1CPU)' },
-    { id: 'dna', name: 'DnA Workspace (Coming Soon)' },
-    { id: 'chronos', name: 'CHRONOS Workspace (Coming Soon)' },
-    { id: 'mean', name: 'MEAN Stack (Coming Soon)' },
-    { id: 'mern', name: 'MERN Stack (Coming Soon)' },
-  ];
+  const recipes = recipesMaster;
 
   const [recipeError, setRecipeError] = useState('');
   const [passwordError, setPasswordErr] = useState('');
@@ -183,7 +176,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     const collabarationData = {
       firstName: collaborator.firstName,
       lastName: collaborator.lastName,
-      shortId: collaborator.shortId,
+      id: collaborator.shortId,
       department: collaborator.department,
       email: collaborator.email,
       mobileNumber: collaborator.mobileNumber,
@@ -226,7 +219,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
   const onCollabaratorDelete = (userName: string) => {
     return () => {
       const currentCollList = codeSpaceCollaborators.filter((item) => {
-        return item.shortId !== userName;
+        return item.id !== userName;
       });
       setCodeSpaceCollaborators(currentCollList);
     };
@@ -255,6 +248,26 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
       formValid = false;
     }
     if (projectNameError !== '' || recipeError !== '' || passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
+      formValid = false;
+    }
+    return formValid;
+  };
+
+  const validateOnBoardCodeSpaceForm = () => {
+    let formValid = true;
+    if (passwordInput.password === '') {
+      setPasswordErr(requiredError);
+      formValid = false;
+    }
+    if (passwordInput.confirmPassword === '') {
+      setConfirmPasswordError(requiredError);
+      formValid = false;
+    }
+    if (githubToken === '') {
+      setGithubTokenError(requiredError);
+      formValid = false;
+    }
+    if (passwordError !== '' || confirmPasswordError !== '' || githubTokenError !== '') {
       formValid = false;
     }
     return formValid;
@@ -404,6 +417,47 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
     //     });
     // }
   };
+
+  const onBoardToCodeSpace = () => {
+
+    const onBoardCodeSpaceRequest = {
+      password: passwordInput.password,
+      pat: githubToken
+    };
+
+    if (validateOnBoardCodeSpaceForm()) {
+      ProgressIndicator.show();
+      CodeSpaceApiClient.onBoardCollaborator(props.onBoardingCodeSpace.id, onBoardCodeSpaceRequest)
+        .then((res) => {
+          trackEvent('DnA Code Space', 'Create', 'New code space');
+          if (res.data.status === 'CREATE_REQUESTED') {
+            // setCreatedCodeSpaceName(res.data.name);
+            props.toggleProgressMessage(true);
+            enableLivelinessCheck(res.data.workspaceId);
+          } else {
+            props.toggleProgressMessage(false);
+            ProgressIndicator.hide();
+            Notification.show(
+              'Error in creating new code space. Please try again later.\n' + res.errors[0].message,
+              'alert',
+            );
+          }
+        })
+        .catch((err: Error) => {
+          props.toggleProgressMessage(false);
+          ProgressIndicator.hide();
+          if (err.message === 'Value or Item already exist!') {
+            Notification.show(
+              `Given Code Space Name '${projectName}' already in use. Please use another name.`,
+              'alert',
+            );
+          } else {
+            Notification.show('Error in creating new code space. Please try again later.\n' + err, 'alert');
+          }
+        });
+    }
+  };
+
   const projectDetails = props.onBoardingCodeSpace?.projectDetails;
   return (
     <React.Fragment>
@@ -426,7 +480,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                 <label>Recipe</label>
               </div>
               <div>
-                {projectDetails.recipeDetails.recipeId}
+                {recipes.find((item: any) => item.id === projectDetails.recipeDetails.recipeId).name}
               </div>
             </div>
             <div className={Styles.flexLayout}>
@@ -490,7 +544,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
             </div>
           </div>
           <div className={Styles.newCodeSpaceBtn}>
-            <button className={' btn btn-tertiary '} onClick={createCodeSpace}>
+            <button className={' btn btn-tertiary '} onClick={onBoardToCodeSpace}>
               On-board to Code Space
             </button>
           </div>
@@ -654,7 +708,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                         {codeSpaceCollaborators?.map((item, collIndex) => {
                           return (
                             <div key={collIndex} className={Styles.collaboratorContentRow}>
-                              <div className={Styles.collaboratorTitleCol}>{item.shortId}</div>
+                              <div className={Styles.collaboratorTitleCol}>{item.id}</div>
                               <div className={Styles.collaboratorTitleCol}>{item.firstName + ' ' + item.lastName}</div>
                               <div className={Styles.collaboratorTitleCol}>
                               <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
@@ -676,7 +730,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                                       checked={true}
                                       readOnly
                                       // checked={item?.permission !== null ? item?.canDeploy : false}
-                                      onChange={(e) => onCollaboratorPermission(e, item.shortId)}
+                                      onChange={(e) => onCollaboratorPermission(e, item.id)}
                                     />
                                   </span>
                                   <span className="label">Deploy</span>
@@ -684,7 +738,7 @@ const NewCodeSpace = (props: ICodeSpaceProps) => {
                               </div>
                             </div>
                               <div className={Styles.collaboratorTitleCol}>
-                                <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.shortId)}>
+                                <div className={Styles.deleteEntry} onClick={onCollabaratorDelete(item.id)}>
                                   <i className="icon mbc-icon trash-outline" />
                                   Delete Entry
                                 </div>
