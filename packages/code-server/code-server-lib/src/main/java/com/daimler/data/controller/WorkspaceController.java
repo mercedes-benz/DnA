@@ -298,7 +298,7 @@ public class WorkspaceController  implements CodeServerApi{
     }
 
 
-    @ApiOperation(value = "Deploy workspace Project for a given Id.", nickname = "deployWorkspaceProject", notes = "Delete workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiOperation(value = "Deploy workspace Project for a given Id.", nickname = "deployWorkspaceProject", notes = "deploy workspace Project for a given identifier.", response = GenericMessage.class, tags={ "code-server", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
