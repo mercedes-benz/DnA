@@ -207,9 +207,7 @@ export const BucketList = (props) => {
                 </div>
               </div>
               {bucketList?.map((item, index) => {
-                const creatorHasWriteAccess = item.collaborators?.find(
-                  (collab) => collab.accesskey === item.createdBy?.id,
-                )?.permission?.write;
+                const creatorHasWriteAccess = item?.permission?.write;
                 return (
                   <div
                     key={index}
