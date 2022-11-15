@@ -592,7 +592,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}catch(Exception e) {
 			log.error("caught exception while updating status {}",e.getMessage());
 			MessageDescription error = new MessageDescription();
-			error.setMessage("Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+			error.setMessage("Failed while deploying codeserver workspace project, couldn't fetch project owner details");
 			errors.add(error);
 			responseMessage.setErrors(errors);
 			return responseMessage;
