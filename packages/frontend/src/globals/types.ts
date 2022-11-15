@@ -610,7 +610,7 @@ export interface IInternalCustomerDetails {
   legalEntity: string;
   division: any;
   accessToSensibleData: boolean | string;
-  processOwner: ITeams | string;
+  processOwner: ITeams;
 }
 
 export interface IExternalCustomerDetails {
