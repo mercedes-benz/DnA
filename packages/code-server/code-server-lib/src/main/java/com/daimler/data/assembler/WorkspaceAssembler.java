@@ -27,6 +27,8 @@
 
 package com.daimler.data.assembler;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +54,9 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceVO, CodeServerWorkspaceNsql> {
 
@@ -84,11 +89,14 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 		return deploymentDetails;
 	}
 	
-	private CodeServerDeploymentDetailsVO toDeploymentDetailsVO(CodeServerDeploymentDetails deploymentDetails) {
+	private CodeServerDeploymentDetailsVO toDeploymentDetailsVO(CodeServerDeploymentDetails deploymentDetails) throws ParseException {
 		CodeServerDeploymentDetailsVO deploymentDetailsVO = new CodeServerDeploymentDetailsVO();
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		if(deploymentDetails!=null) {
 			BeanUtils.copyProperties(deploymentDetails, deploymentDetailsVO);
 			deploymentDetailsVO.setLastDeployedBy(toUserInfoVO(deploymentDetails.getLastDeployedBy()));
+			if(deploymentDetails.getLastDeployedOn()!=null)
+				deploymentDetailsVO.setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
 		}
 		return deploymentDetailsVO;
 	}
@@ -121,13 +129,16 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 	
 	@Override
 	public CodeServerWorkspaceVO toVo(CodeServerWorkspaceNsql entity) {
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		CodeServerWorkspaceVO vo = new CodeServerWorkspaceVO();
+		try {
 		if(entity!=null) {
 			vo.setId(entity.getId());
 			CodeServerWorkspace data = entity.getData();
 			if(data!=null) {
 				BeanUtils.copyProperties(data, vo);
-				
+				if(data.getIntiatedOn()!=null)
+					vo.setIntiatedOn(isoFormat.parse(isoFormat.format(data.getIntiatedOn())));
 				UserInfo codespaceUserDetails = data.getWorkspaceOwner();
 				if(codespaceUserDetails!=null) {
 					UserInfoVO codespaceUser = this.toUserInfoVO(codespaceUserDetails);
@@ -156,11 +167,15 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 						projectDetailsVO.setRecipeDetails(recipeVO);
 						projectDetailsVO.setProjectName(projectDetails.getProjectName());
 						projectDetailsVO.setGitRepoName(projectDetails.getGitRepoName());
-						projectDetailsVO.setProjectCreatedOn(projectDetails.getProjectCreatedOn());
+						if(projectDetails.getProjectCreatedOn()!=null)
+							projectDetailsVO.setProjectCreatedOn(isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
 					}
 					vo.setProjectDetails(projectDetailsVO);
 					
 			}
+		}
+		}catch(Exception e) {
+			log.error("Failed in assembler while parsing date into iso format with exception {}", e.getMessage());
 		}
 		return vo;
 	}
