@@ -27,7 +27,6 @@
 
 package com.daimler.data.db.repo.workspace;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -177,7 +176,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Date deployedOn = deploymentDetails.getLastDeployedOn();
-		String longdate = "";
+		String longdate = "\"\"";
 		if(deployedOn!=null)
 			longdate = String.valueOf(deployedOn.getTime());
 		String updateQuery = "update workspace_nsql\r\n"
