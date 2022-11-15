@@ -9,7 +9,6 @@
 "BindingResult":"org.springframework.validation.BindingResult",
 "GenericMessage":"com.daimler.data.controller.exceptions.GenericMessage",
 "MessageDescription":"com.daimler.data.controller.exceptions.MessageDescription",
-"ChangeLogVO":"com.daimler.data.dto.solution.ChangeLogVO",
 "TeamMemberVO":"com.daimler.data.dto.solution.TeamMemberVO"
 }
 }
