@@ -104,12 +104,12 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 	private CodeServerRecipeDetails toRecipeDetails(CodeServerRecipeDetailsVO vo) {
 		CodeServerRecipeDetails recipeDetails = new CodeServerRecipeDetails();
 		if(vo!=null) {
-			recipeDetails.setCpuCapacity(vo.getCpuCapacity().name());
-			recipeDetails.setCloudServiceProvider(vo.getCloudServiceProvider().name());
+			recipeDetails.setCpuCapacity(vo.getCpuCapacity().toString());
+			recipeDetails.setCloudServiceProvider(vo.getCloudServiceProvider().toString());
 			recipeDetails.setEnvironment(codeServerEnvValue);
-			recipeDetails.setOperatingSystem(vo.getOperatingSystem().name());
-			recipeDetails.setRamSize(vo.getRamSize().name());
-			recipeDetails.setRecipeId(vo.getRecipeId().name());
+			recipeDetails.setOperatingSystem(vo.getOperatingSystem().toString());
+			recipeDetails.setRamSize(vo.getRamSize().toString());
+			recipeDetails.setRecipeId(vo.getRecipeId().toString());
 		}
 		return recipeDetails;
 	}
@@ -117,12 +117,12 @@ public class WorkspaceAssembler implements GenericAssembler<CodeServerWorkspaceV
 	private CodeServerRecipeDetailsVO toRecipeDetailsVO(CodeServerRecipeDetails recipe) {
 		CodeServerRecipeDetailsVO recipeDetailsVO = new CodeServerRecipeDetailsVO();
 		if(recipe!=null) {
-			recipeDetailsVO.setCloudServiceProvider(CloudServiceProviderEnum.valueOf(recipe.getCloudServiceProvider()));
-			recipeDetailsVO.setCpuCapacity(CpuCapacityEnum.valueOf(recipe.getCpuCapacity()));
-			recipeDetailsVO.setEnvironment(EnvironmentEnum.valueOf(recipe.getEnvironment().toUpperCase()));
-			recipeDetailsVO.setOperatingSystem(OperatingSystemEnum.valueOf(recipe.getOperatingSystem()));
-			recipeDetailsVO.setRamSize(RamSizeEnum.valueOf(recipe.getRamSize()));
-			recipeDetailsVO.setRecipeId(RecipeIdEnum.valueOf(recipe.getRecipeId()));
+			recipeDetailsVO.setCloudServiceProvider(CloudServiceProviderEnum.fromValue(recipe.getCloudServiceProvider()));
+			recipeDetailsVO.setCpuCapacity(CpuCapacityEnum.fromValue(recipe.getCpuCapacity()));
+			recipeDetailsVO.setEnvironment(EnvironmentEnum.fromValue(recipe.getEnvironment().toUpperCase()));
+			recipeDetailsVO.setOperatingSystem(OperatingSystemEnum.fromValue(recipe.getOperatingSystem()));
+			recipeDetailsVO.setRamSize(RamSizeEnum.fromValue(recipe.getRamSize()));
+			recipeDetailsVO.setRecipeId(RecipeIdEnum.fromValue(recipe.getRecipeId()));
 		}
 		return recipeDetailsVO;
 	}
