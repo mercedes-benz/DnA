@@ -12,26 +12,26 @@ const RowItem = (props) => {
   const item = props.item;
 
   const [isChecked, setIsChecked] = useState(false);
-  const [isAvaialableInWithExceptionArray, setIsAvaialableInWithExceptionArray] = useState(false);
+  // const [isAvaialableInWithExceptionArray, setIsAvaialableInWithExceptionArray] = useState(false);
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    setIsAvaialableInWithExceptionArray(props.checkAllWithException);
+    // setIsAvaialableInWithExceptionArray(props.checkAllWithException);
     if (props.checkedAllCount > 0 && !props.checkedAll) {
       setIsChecked(false);
     }
   }, [props, isChecked]);
 
-  const onChangeCheck = (event) => {
-    if (!event.currentTarget.checked) {
-      props.unCheckAll();
-      props.deselectRun(event.currentTarget.id);
-    } else {
-      props.selectRun(event.currentTarget.id);
-    }
-    setIsChecked(event.currentTarget.checked);
-    event.nativeEvent.stopImmediatePropagation();
-  };
+  // const onChangeCheck = (event) => {
+  //   if (!event.currentTarget.checked) {
+  //     props.unCheckAll();
+  //     props.deselectRun(event.currentTarget.id);
+  //   } else {
+  //     props.selectRun(event.currentTarget.id);
+  //   }
+  //   setIsChecked(event.currentTarget.checked);
+  //   event.nativeEvent.stopImmediatePropagation();
+  // };
 
   const [showContextMenu, setShowContextMenu] = useState(false);
 
@@ -43,9 +43,9 @@ const RowItem = (props) => {
     props.openDetails(item);
   };
 
-  const stopPropagation = (event) => {
-    event.stopPropagation();
-  };
+  // const stopPropagation = (event) => {
+  //   event.stopPropagation();
+  // };
 
   const onItemDelete = () => {
     props.showDeleteConfirmModal(props.item);
@@ -65,7 +65,7 @@ const RowItem = (props) => {
         onClick={showContextMenu ? undefined : onRowClick}
         className={classNames('data-row', Styles.dataRow)}
       >
-        <td>
+        {/* <td>
           <label
             className={classNames('checkbox')}
             onClick={(event) => stopPropagation(event)}
@@ -86,7 +86,7 @@ const RowItem = (props) => {
               />
             </span>{' '}
           </label>
-        </td>
+        </td> */}
         <td>
           {/* { item.new && <span className={Styles.badge}>New</span> }  */}
           { item.comment === '' && <span>{item.runName}</span> }
@@ -120,7 +120,7 @@ const RowItem = (props) => {
           {item.hierarchy === '' || item.hierarchy === undefined ? 'No Hierarchy' : item.hierarchy}
         </td>
         <td>
-          <ContextMenu id={item.id} items={contextMenuItems} isMenuOpen={handleShowContextMenu} />
+          {item.state.result_state !== null && <ContextMenu id={item.id} items={contextMenuItems} isMenuOpen={handleShowContextMenu} />}
         </td>
       </tr>
     </React.Fragment>
