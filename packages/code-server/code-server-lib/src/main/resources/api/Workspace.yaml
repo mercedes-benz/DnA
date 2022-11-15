@@ -253,7 +253,7 @@ paths:
       parameters:
         - name: "id"
           in: "path"
-          description: "Workspace ID for the project"
+          description: "Workspace ID to be fetched"
           required: true
           type: "string"
         - name: "userRequestDto"
@@ -289,7 +289,7 @@ paths:
       parameters:
         - name: "id"
           in: "path"
-          description: "Workspace ID for the project"
+          description: "Workspace ID to be fetched"
           required: true
           type: "string"
         - name: "userRequestDto"
@@ -321,17 +321,17 @@ paths:
       tags:
         - "code-server"
       summary: "Deploy workspace Project for a given Id."
-      description: "Delete workspace Project for a given identifier."
+      description: "deploy workspace Project for a given identifier."
       operationId: "deployWorkspaceProject"
       parameters:
         - name: "id"
           in: "path"
-          description: "Workspace ID for the project to be deployed"
+          description: "Workspace ID to be fetched"
           required: true
           type: "string"
         - name: "deployRequestDto"
           in: "body"
-          description: "Workspace ID for the project to be deployed"
+          description: "request body for the project to be deployed"
           required: true
           schema:
             $ref: "#/definitions/ManageDeployRequestDto"
@@ -362,7 +362,7 @@ paths:
       parameters:
         - name: "id"
           in: "path"
-          description: "Workspace ID for the project to be undeployed"
+          description: "Workspace ID to be fetched"
           required: true
           type: "string"
         - name: "deployRequestDto"
