@@ -157,7 +157,7 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                   <i className="icon mbc-icon edit"></i>
                 </button>
                 {!deleteInProgress && !createInProgress && (
-                  <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+                  <button className="btn btn-primary hide" onClick={() => setShowDeleteModal(true)}>
                     <i className="icon delete"></i>
                   </button>
                 )}
