@@ -11,7 +11,7 @@ import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { trackEvent } from '../../../../services/utils';
 // @ts-ignore
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
-import { ICodeCollaborator, IUserInfo } from 'globals/types';
+import { IUserInfo } from 'globals/types';
 
 interface CodeSpaceCardItemProps {
   userInfo: IUserInfo;
@@ -23,8 +23,8 @@ interface CodeSpaceCardItemProps {
 
 const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const codeSpace = props.codeSpace;
-  const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
-  const enableOnboard = collaborationCodeSpace ? collaborationCodeSpace.status === 'COLLABORATION_REQUESTED' : false;
+  // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
+  const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
