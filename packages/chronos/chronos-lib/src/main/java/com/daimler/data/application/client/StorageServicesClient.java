@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.daimler.data.dto.storage.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,15 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.forecast.CollaboratorVO;
 import com.daimler.data.dto.forecast.CreatedByVO;
-import com.daimler.data.dto.storage.BucketObjectDetailsDto;
-import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
-import com.daimler.data.dto.storage.CollaboratorsDto;
-import com.daimler.data.dto.storage.CreateBucketRequestDto;
-import com.daimler.data.dto.storage.CreateBucketRequestWrapperDto;
-import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
-import com.daimler.data.dto.storage.FileDownloadResponseDto;
-import com.daimler.data.dto.storage.FileUploadResponseDto;
-import com.daimler.data.dto.storage.PermissionsDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,6 +44,7 @@ public class StorageServicesClient {
 	private String defaultConfigFolderPath;
 
 	private static final String BUCKETS_PATH = "/api/buckets";
+	private static final String ONLY_BUCKET_PATH = "/buckets";
 	private static final String UPLOADFILE_PATH = "/upload";
 	private static final String INPUTS_PREFIX_PATH = "/inputs/";
 	private static final String BUCKET_CLASSIFICATION = "Internal";
@@ -253,6 +246,34 @@ public class StorageServicesClient {
 			}
 		return flag;
 	}
+ 
 	
+	public DeleteBucketResponseWrapperDto deleteBucket(String bucketName) {
+		DeleteBucketResponseWrapperDto deleteBucketResponse = new DeleteBucketResponseWrapperDto();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			DeleteBucketResponseDataDto data = new DeleteBucketResponseDataDto();
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.set("chronos-api-key",dataBricksAuth);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String apiUrl = storageBaseUri + ONLY_BUCKET_PATH + "/" + bucketName;
+			ResponseEntity<DeleteBucketResponseWrapperDto> response = restTemplate.exchange(apiUrl, HttpMethod.DELETE, requestEntity, DeleteBucketResponseWrapperDto.class);
+			if (response.hasBody()) {
+				deleteBucketResponse = response.getBody();
+			}
+		} catch(Exception e) {
+			log.error("Failed to  bucket in minio storage" + e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed while downloading file with exception " + e.getMessage());
+			errors.add(errMsg);
+			deleteBucketResponse.setErrors(errors);
+			deleteBucketResponse.setStatus("FAILED");
+		}
+
+		return deleteBucketResponse;
+	}
 	
 }
