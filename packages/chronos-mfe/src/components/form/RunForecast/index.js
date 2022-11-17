@@ -514,7 +514,7 @@ const RunForecast = ({ onRunClick }) => {
                       type="number"
                       className="input-field"
                       id="forecastHorizonField"
-                      defaultValue={1}
+                      defaultValue={12}
                       placeholder="eg. 1"
                       autoComplete="off"
                     />
