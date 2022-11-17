@@ -6,11 +6,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.daimler.data.dto.forecast.*;
+import com.daimler.data.application.client.DataBricksClient;
+import com.daimler.data.db.entities.ForecastNsql;
+import com.daimler.data.db.repo.forecast.ForecastRepository;
+import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,19 +37,6 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.StorageServicesClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.forecast.CollaboratorVO;
-import com.daimler.data.dto.forecast.CreatedByVO;
-import com.daimler.data.dto.forecast.ForecastCollectionVO;
-import com.daimler.data.dto.forecast.ForecastProjectCreateRequestVO;
-import com.daimler.data.dto.forecast.ForecastProjectCreateRequestWrapperVO;
-import com.daimler.data.dto.forecast.ForecastProjectResponseVO;
-import com.daimler.data.dto.forecast.ForecastRunCollectionVO;
-import com.daimler.data.dto.forecast.ForecastRunResponseVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.InputFileVO;
-import com.daimler.data.dto.forecast.InputFilesCollectionVO;
-import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.forecast.ForecastService;
@@ -69,6 +62,12 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	
 	@Autowired
 	private StorageServicesClient storageClient;
+
+	@Autowired
+	private DataBricksClient dataBricksClient;
+
+	@Autowired
+	private ForecastRepository jpaRepo;
 	
 	private static final String BUCKETS_PREFIX = "chronos-";
 	
@@ -102,7 +101,7 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		collection = storageClient.getBucketObjects();
 		return new ResponseEntity<>(collection, HttpStatus.OK);
 	}
-	
+
 	@Override
 	@ApiOperation(value = "Get list of saved input files", nickname = "getInputFiles", notes = "Get list of saved input files", response = InputFilesCollectionVO.class, tags={ "forecast-inputs", })
     @ApiResponses(value = { 
@@ -232,6 +231,88 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			log.error("Exception occurred:{} while creating forecast project {} ", e.getMessage(), name);
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "update forecasts details for a given Id.", nickname = "updateById", notes = "update forecasts details for a given Id.", response = ForecastVO.class, tags = {
+			"forecast-projects", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = ForecastVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<ForecastVO> updateById(
+			@ApiParam(value = "forecast project ID to be updated", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "Request Body that contains data required for updating of collab details", required = true) @Valid @RequestBody ForecastProjectUpdateRequestVO forecastUpdateRequestVO) {
+		ForecastVO existingForecast = service.getById(id);
+		// ForecastProjectCreateRequestVO forecastUpdateRequestVO =
+		// forecastUpdateRequestVO.getData();
+		return null;
+	}
+
+	@Override
+	@ApiOperation(value = "delete forecasts details for a given Id.", nickname = "deleteById", notes = "delete forecasts details for a given Id.", response = ForecastCollectionVO.class, tags = {
+			"forecast-projects", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = ForecastCollectionVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteById(@ApiParam(value = "forecast project ID to be delete", required = true) @PathVariable("id") String id) {
+		ForecastVO existingForecast = service.getById(id);
+		CreatedByVO requestUser = this.userStore.getVO();
+		String user = requestUser.getId();
+		String bucketName = existingForecast.getName();
+		log.info("test--->", user);
+		log.info("bucketName--->", bucketName);
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		if (entityOptional != null) {
+			ForecastNsql entity = entityOptional.get();
+
+			// To delete all the runs which are associated to the entity.
+			List<RunVO> runVOList = existingForecast.getRuns();
+			if (runVOList != null && !runVOList.isEmpty()) {
+				for (RunVO run : runVOList) {
+					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
+					if (errResponse != null && (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
+						String msg = "Failed to delete Run.";
+						if (errResponse.getErrorCode() != null) {
+							msg += errResponse.getErrorCode();
+						}
+						if (errResponse.getMessage() != null) {
+							msg += errResponse.getMessage();
+						}
+						MessageDescription errMsg = new MessageDescription(msg);
+						errors.add(errMsg);
+						responseMessage.setSuccess("FAILED");
+						responseMessage.setErrors(errors);
+						return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+					} else {
+//						run.setIsDelete(true);
+					}
+				}
+			}
+		}
+		// To delete bucket in mino storage.
+
+		// TO delete Entity.
+		storageClient.deleteBucket(bucketName);
+
+		responseMessage.setSuccess("SUCCESS");
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 	@Override
