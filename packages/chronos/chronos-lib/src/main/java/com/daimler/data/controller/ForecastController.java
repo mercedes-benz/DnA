@@ -249,10 +249,20 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastVO> updateById(
 			@ApiParam(value = "forecast project ID to be updated", required = true) @PathVariable("id") String id,
 			@ApiParam(value = "Request Body that contains data required for updating of collab details", required = true) @Valid @RequestBody ForecastProjectUpdateRequestVO forecastUpdateRequestVO) {
-		ForecastVO existingForecast = service.getById(id);
-		// ForecastProjectCreateRequestVO forecastUpdateRequestVO =
-		// forecastUpdateRequestVO.getData();
-		return null;
+		 ForecastVO existingForecast = service.getById(id);
+		log.info("existingForecast--->" + existingForecast);
+		List<String> forecastProjectUsers = new ArrayList<>();
+		CollaboratorVO forecastRequestCollaboratorVO = forecastUpdateRequestVO.getData();
+//		List<CollaboratorVO> forecastRequestVO = (List<CollaboratorVO>) forecastRequestVO.getData();
+		log.info("forecastRequestVO--->" + forecastRequestCollaboratorVO);
+
+		ForecastVO forecastVO = new ForecastVO();
+		if (forecastRequestCollaboratorVO!=null) {
+			List<CollaboratorVO> forecastRequestVO = (List<CollaboratorVO>) forecastUpdateRequestVO.getData();
+			forecastVO.setCollaborators(forecastRequestVO);
+			return new ResponseEntity<>(forecastVO, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}
 
 	@Override
@@ -305,14 +315,19 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 					}
 				}
 			}
+
+			// To delete bucket in mino storage.
+			storageClient.deleteBucket(bucketName);
+
+			// TO delete Entity.
+			this.jpaRepo.delete(entity);
+
+			responseMessage.setSuccess("SUCCESS");
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}
-		// To delete bucket in mino storage.
 
-		// TO delete Entity.
-		storageClient.deleteBucket(bucketName);
-
-		responseMessage.setSuccess("SUCCESS");
-		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		responseMessage.setSuccess("FAILURE");
+		return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
 	}
 
 	@Override

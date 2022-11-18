@@ -44,7 +44,6 @@ public class StorageServicesClient {
 	private String defaultConfigFolderPath;
 
 	private static final String BUCKETS_PATH = "/api/buckets";
-	private static final String ONLY_BUCKET_PATH = "/buckets";
 	private static final String UPLOADFILE_PATH = "/upload";
 	private static final String INPUTS_PREFIX_PATH = "/inputs/";
 	private static final String BUCKET_CLASSIFICATION = "Internal";
@@ -260,7 +259,7 @@ public class StorageServicesClient {
 			headers.set("chronos-api-key",dataBricksAuth);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			String apiUrl = storageBaseUri + ONLY_BUCKET_PATH + "/" + bucketName;
+			String apiUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName;
 			ResponseEntity<DeleteBucketResponseWrapperDto> response = restTemplate.exchange(apiUrl, HttpMethod.DELETE, requestEntity, DeleteBucketResponseWrapperDto.class);
 			if (response.hasBody()) {
 				deleteBucketResponse = response.getBody();
