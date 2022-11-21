@@ -1,155 +1,87 @@
 .dataProductCard {
-  background: #252a33;
-  width: calc(33% - 15px);
+  background-color: #252a33;
+  width: calc(25% - 15px);
   margin: 0 15px 15px 0;
   min-width: 250px;
   position: relative;
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  background-image: url("../../../../assets/dataproduct.png");
+  background-repeat: no-repeat;
+  background-size: 50% auto;
+  background-position: top center;
+  background-position-y: 40px;
+  cursor: pointer;
 
-  .cardHead {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    height: 75px;
-
-    .cardHeadInfo {
-      width: 100%;
-      padding: 15px 20px;
-      cursor: pointer;
-      margin-top: 35px;
-
-      > div {
-        display: flex;
-        justify-content: space-between;
-      }
-      .cardHeadTitle {
-        font-size: var(--font-size-headline);
-        line-height: 23px;
-        position: relative;
-        word-break: break-word;
-        padding-right: 10px;
-        padding-bottom: 5px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      a {
-        text-decoration: none;
-      }
-    }
-
-    &:hover .cardHeadTitle {
-      color: #00adef;
-    }
-  }
-  hr {
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-  }
   .cardBodySection {
     padding: 15px 20px 20px 20px;
-    > div {
-      display: flex;
-      justify-content: space-between;
-      flex-grow: 1;
+    .description {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
       color: #99a5b3;
-      flex-direction: column;
-      > div {
-        display: flex;
-        justify-content: space-between;
-        &:not(:last-child) {
-          margin-bottom: 10px;
-        }
-        > div:first-child {
-          flex: 2;
-        }
-        > div:last-child {
-          flex: 1;
-        }
-      }
-      ul {
-        list-style-type: none;
-        padding: 0;
-        li:not(:last-child) {
-          padding-bottom: 10px;
-        }
-      }
     }
-    .stagesInfo {
-      flex-direction: row;
-      div {
-        flex-direction: column;
-        margin-bottom: 0 !important;
-        .draft {
-          color: #00adef;
-        }
-      }
-      .icon {
-        font-size: 20px;
-        transform: scale(-1, -1) translate(0px, 10px);
-        color: #00adef;
-      }
-      .customIcon {
-        div {
-          position: relative;
-          font-size: 30px;
-          transform: scale(1);
-          &::after {
-            content: "\21C0";
-            position: absolute;
-            transform: rotate(180deg) translate(27px, -5px);
-            color: #697582;
-          }
-          &::before {
-            content: "\21C0";
-            color: #00adef;
-          }
-        }
-      }
-      .disabled {
-        color: #697582;
-      }
+    .title {
+      font-size: var(--font-size-headline);
+      margin-bottom: 5px;
+      color: #99a5b3;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .tags {
+      display: none;
     }
   }
-  .draftIndicator {
-    padding: 2px 8px;
-    border: 1px solid #697582;
-    color: #697582;
-    font-size: var(--font-size-icon-small);
-    letter-spacing: 1px;
-    border-radius: 2px;
-    margin-left: 20px;
+  .tagItem {
+    border: 1px solid #00adef;
+    margin: auto;
+    background: #697582;
+    opacity: 0.8;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-weight: bold;
+  }
+  &:hover {
+    background-position: 50% 0%;
+    &::before {
+      position: absolute;
+      content: " ";
+      width: 100%;
+      height: 100%;
+      background-color: #00adef;
+      opacity: 0.9;
+      top: 0;
+    }
+    .description {
+      overflow: visible;
+      color: white;
+      display: block;
+    }
+    .title {
+      color: white;
+      font-weight: bold;
+    }
+    .cardBodySection {
+      position: absolute;
+      top: 20%;
+    }
+    .tags {
+      color: white;
+      padding: 0px 0px 0px 20px;
+    }
+    .cardFooter {
+      display: block;
+    }
   }
 }
 .cardFooter {
-  display: flex;
+  display: none;
   justify-content: flex-end;
-  margin-bottom: 10px;
-  div:first-child {
-    margin: 7px 0px;
-  }
-  .disabled {
-    background: transparent !important;
-    cursor: not-allowed;
-    color: #697582;
-  }
-}
-.btnGrp {
-  display: flex;
-  justify-content: flex-end;
-  button {
-    background-color: transparent;
-    border: 0;
-    color: #99a5b3;
-    float: right;
-    margin-right: 20px;
-    outline: 0;
-    padding: 0;
-    &:hover {
-      background-color: transparent;
-    }
-  }
+  margin: 10px 0;
 }

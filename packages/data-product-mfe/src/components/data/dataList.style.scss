@@ -84,13 +84,14 @@
     }
 }
 .cardViewContainer {
-    width: calc(33% - 15px);
+    width: calc(25% - 15px);
     margin: 0 15px 15px 0;
     min-width: 250px;
     position: relative;
     border: 1px solid #383f49;
     cursor: pointer;
-    min-height: 250px;
+    max-height: 300px;
+
     .addicon {
         top: calc(50% - 31px);
         width: 63px;
