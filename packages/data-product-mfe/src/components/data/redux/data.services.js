@@ -15,7 +15,7 @@ export const GetData = createAsyncThunk('data/GetData', async (arg, { getState }
       data: { pagination },
     } = getState(); // redux store method
     return {
-      data: [dummyData],
+      data: dummyData,
       pagination,
     };
   } catch (e) {
