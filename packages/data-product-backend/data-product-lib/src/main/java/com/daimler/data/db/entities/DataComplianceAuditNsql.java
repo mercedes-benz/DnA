@@ -25,28 +25,21 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.db.entities;
 
+import com.daimler.data.db.jsonb.DataComplianceAudit;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serializable;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreatedBy implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5738422653465193729L;
-	private String id;
-	private String firstName;
-	private String lastName;
-	private String department;
-	private String email;
-	private String mobileNumber;
+@Entity
+@Table(name = "datacompliance_audit_nsql")
+public class DataComplianceAuditNsql extends BaseEntity<DataComplianceAudit> implements Serializable {
+	
+	private static final long serialVersionUID = 5651980419360678461L;
+	
+	public DataComplianceAuditNsql() {
+		super();
+	}
 
 }
