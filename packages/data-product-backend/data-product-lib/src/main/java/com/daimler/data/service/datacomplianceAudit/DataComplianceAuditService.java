@@ -25,28 +25,21 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.service.datacomplianceAudit;
 
-import java.io.Serializable;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.List;
+import com.daimler.data.db.entities.DataComplianceAuditNsql;
+import com.daimler.data.dto.datacomplianceAudit.DataComplianceAuditVO;
+import com.daimler.data.service.common.CommonService;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreatedBy implements Serializable {
+public interface DataComplianceAuditService extends CommonService<DataComplianceAuditVO, DataComplianceAuditNsql, String> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5738422653465193729L;
-	private String id;
-	private String firstName;
-	private String lastName;
-	private String department;
-	private String email;
-	private String mobileNumber;
+	Long getAuditCount(String entityId);
+
+	List<DataComplianceAuditVO> getDataComplianceAudits(int offset, int limit);
+
+	List<DataComplianceAuditVO> getAuditsByEntityId(String entityId, int offset, int limit);
+
 
 }
