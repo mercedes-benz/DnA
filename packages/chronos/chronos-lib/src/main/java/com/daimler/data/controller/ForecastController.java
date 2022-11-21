@@ -367,17 +367,14 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		String user = requestUser.getId();
 		String bucketName = existingForecast.getName();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
-		log.info("entityOptional--->" + entityOptional);
 		if (entityOptional != null) {
 			ForecastNsql entity = entityOptional.get();
 
 			// To delete all the runs which are associated to the entity.
 			List<RunDetails> runVOList = entity.getData().getRuns();
-			log.info("runVOList--->" + runVOList);
 			if (runVOList != null && !runVOList.isEmpty()) {
 				for (RunDetails run : runVOList) {
 					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
-					log.info("errResponse--->" + errResponse);
 					if (errResponse != null
 							&& (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
 						String msg = "Failed to delete Run.";
