@@ -607,12 +607,16 @@ definitions:
   ForecastProjectUpdateRequestVO:
     type: object
     properties:
-      id:
-        type: string
-        description: id of forecast project
-      properties:
-      data:
-        $ref: "#/definitions/CollaboratorVO"
+      addCollaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+          description: "To add collaborators"
+      removeCollaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+          description: "To remove collaborators"
 
   ForecastPermissionVO:
     type: object
