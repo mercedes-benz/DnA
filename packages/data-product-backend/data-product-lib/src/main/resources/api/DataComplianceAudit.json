@@ -1,0 +1,9 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"modelPackage": "com.daimler.data.dto.datacomplianceAudit",
+	"apiPackage": "com.daimler.data.api.datacomplianceAudit",
+	"invokerPackage": "com.daimler.data.service.datacomplianceAudit"
+	
+}

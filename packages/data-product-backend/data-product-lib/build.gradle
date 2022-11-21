@@ -75,6 +75,21 @@ swaggerSources {
         }
     }
     
+    datacomplianceAudit {
+        def datacomplianceAudityaml = "${rootDir}/data-product-lib/src/main/resources/api/DataComplianceAudit.yaml"
+        def datacomplianceAuditJson = "${rootDir}/data-product-lib/src/main/resources/api/DataComplianceAudit.json"
+        inputFile = file(datacomplianceAudityaml)
+
+        def ignoreFile = "${rootDir}/data-product-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(datacomplianceAuditJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
+    
     entityid {
         def entityidyaml = "${rootDir}/data-product-lib/src/main/resources/api/EntityId.yaml"
         def entityidJson = "${rootDir}/data-product-lib/src/main/resources/api/EntityId.json"
@@ -165,6 +180,8 @@ compileJava {
     dependsOn processResources
     dependsOn swaggerSources.datacompliance.code
     source "${swaggerSources.datacompliance.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.datacomplianceAudit.code
+    source "${swaggerSources.datacomplianceAudit.code.outputDir}/src/main/java"
     dependsOn swaggerSources.entityid.code
     source "${swaggerSources.entityid.code.outputDir}/src/main/java"  
     dependsOn swaggerSources.dataproduct.code
@@ -187,6 +204,7 @@ sourceSets {
     }
     main {
     	  java { srcDirs += "${swaggerSources.datacompliance.code.outputDir}/src/main/java" }
+    	  java { srcDirs += "${swaggerSources.datacomplianceAudit.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.entityid.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.dataproduct.code.outputDir}/src/main/java" }
     	  java { srcDirs += "${swaggerSources.department.code.outputDir}/src/main/java" }

@@ -25,28 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb;
+package com.daimler.data.db.repo.datacomplianceAudit;
 
-import java.io.Serializable;
+import com.daimler.data.db.entities.DataComplianceAuditNsql;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreatedBy implements Serializable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5738422653465193729L;
-	private String id;
-	private String firstName;
-	private String lastName;
-	private String department;
-	private String email;
-	private String mobileNumber;
+public interface DataComplianceAuditRepository extends JpaRepository<DataComplianceAuditNsql, String> {
 
 }
