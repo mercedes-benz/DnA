@@ -12,12 +12,15 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.daimler.data.db.json.RunDetails;
+import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.application.client.DataBricksClient;
 import com.daimler.data.db.entities.ForecastNsql;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -249,20 +252,86 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	public ResponseEntity<ForecastVO> updateById(
 			@ApiParam(value = "forecast project ID to be updated", required = true) @PathVariable("id") String id,
 			@ApiParam(value = "Request Body that contains data required for updating of collab details", required = true) @Valid @RequestBody ForecastProjectUpdateRequestVO forecastUpdateRequestVO) {
-		 ForecastVO existingForecast = service.getById(id);
-		log.info("existingForecast--->" + existingForecast);
-		List<String> forecastProjectUsers = new ArrayList<>();
-		CollaboratorVO forecastRequestCollaboratorVO = forecastUpdateRequestVO.getData();
-//		List<CollaboratorVO> forecastRequestVO = (List<CollaboratorVO>) forecastRequestVO.getData();
-		log.info("forecastRequestVO--->" + forecastRequestCollaboratorVO);
+		ForecastVO existingForecast = service.getById(id);
+		List<MessageDescription> errors = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
 
-		ForecastVO forecastVO = new ForecastVO();
-		if (forecastRequestCollaboratorVO!=null) {
-			List<CollaboratorVO> forecastRequestVO = (List<CollaboratorVO>) forecastUpdateRequestVO.getData();
-			forecastVO.setCollaborators(forecastRequestVO);
-			return new ResponseEntity<>(forecastVO, HttpStatus.OK);
+		// if existingForecast is null return not found.
+		if (existingForecast == null) {
+			responseMessage.setSuccess("FAILED");
+			MessageDescription errMsg = new MessageDescription("forecast ID Not found!");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			log.error("forecast ID Not found!");
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		ForecastNsql entity = entityOptional.get();
+		ForecastVO forecastVO = new ForecastVO();
+
+		// if both AddCollaborators and RemoveCollaborators are empty
+		// then return as Bad Request.
+		if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
+				&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
+			responseMessage.setSuccess("FAILED");
+			MessageDescription errMsg = new MessageDescription("forecast ID Not found!");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			log.error("forecast ID Not found!");
+			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		}
+
+		try {
+			List<UserDetails> exstingcollaborators = entity.getData().getCollaborators();
+
+			List<UserDetails> addCollabrators = forecastUpdateRequestVO.getAddCollaborators().stream().map(n -> {
+				UserDetails collaborator = new UserDetails();
+				BeanUtils.copyProperties(n, collaborator);
+				return collaborator;
+			}).collect(Collectors.toList());
+
+			List<UserDetails> removeCollabrators = forecastUpdateRequestVO.getRemoveCollaborators().stream().map(n -> {
+				UserDetails collaborator = new UserDetails();
+				BeanUtils.copyProperties(n, collaborator);
+				return collaborator;
+			}).collect(Collectors.toList());
+
+			exstingcollaborators.addAll(addCollabrators);
+
+			// To remove collaborators from existing collaborators.
+			for (UserDetails user : removeCollabrators) {
+				UserDetails userToRemove = null;
+				for (UserDetails usr : exstingcollaborators) {
+					if (usr.getId().equals(user.getId())) {
+						userToRemove = usr;
+						break;
+					}
+				}
+
+				if (userToRemove != null) {
+					exstingcollaborators.remove(userToRemove);
+				} else {
+					String msg = "User ID not found for deleting.";
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					log.error("User ID not found for deleting" + user.getId());
+					return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+				}
+			}
+
+			entity.getData().setCollaborators(exstingcollaborators);
+			this.jpaRepo.save(entity);
+		} catch (Exception e) {
+			log.error("Failed while saving details of collaborator" + existingForecast.getName());
+			MessageDescription msg = new MessageDescription("Failed to save collaborator details.");
+			errors.add(msg);
+			responseMessage.setErrors(errors);
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		// To get updated forecast after adding collaborator.
+		ForecastVO updatedForecast = service.getById(id);
+		return new ResponseEntity<>(updatedForecast, HttpStatus.OK);
 	}
 
 	@Override
@@ -278,26 +347,39 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/forecasts/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
-	public ResponseEntity<GenericMessage> deleteById(@ApiParam(value = "forecast project ID to be delete", required = true) @PathVariable("id") String id) {
+	public ResponseEntity<GenericMessage> deleteById(
+			@ApiParam(value = "forecast project ID to be delete", required = true) @PathVariable("id") String id) {
 		ForecastVO existingForecast = service.getById(id);
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+
+		// if existingForecast is null return not found.
+		if (existingForecast == null) {
+			responseMessage.setSuccess("FAILED");
+			MessageDescription errMsg = new MessageDescription("forecast ID Not found!");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			log.error("forecast ID Not found!");
+			return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+		}
+
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
 		String bucketName = existingForecast.getName();
-		log.info("test--->", user);
-		log.info("bucketName--->", bucketName);
-		GenericMessage responseMessage = new GenericMessage();
-		List<MessageDescription> errors = new ArrayList<>();
-		List<MessageDescription> warnings = new ArrayList<>();
 		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		log.info("entityOptional--->" + entityOptional);
 		if (entityOptional != null) {
 			ForecastNsql entity = entityOptional.get();
 
 			// To delete all the runs which are associated to the entity.
-			List<RunVO> runVOList = existingForecast.getRuns();
+			List<RunDetails> runVOList = entity.getData().getRuns();
+			log.info("runVOList--->" + runVOList);
 			if (runVOList != null && !runVOList.isEmpty()) {
-				for (RunVO run : runVOList) {
+				for (RunDetails run : runVOList) {
 					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
-					if (errResponse != null && (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
+					log.info("errResponse--->" + errResponse);
+					if (errResponse != null
+							&& (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
 						String msg = "Failed to delete Run.";
 						if (errResponse.getErrorCode() != null) {
 							msg += errResponse.getErrorCode();
@@ -309,9 +391,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 						errors.add(errMsg);
 						responseMessage.setSuccess("FAILED");
 						responseMessage.setErrors(errors);
+						log.error("Failed to delete Run.");
 						return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
 					} else {
-//						run.setIsDelete(true);
+						run.setIsDelete(true);
 					}
 				}
 			}
