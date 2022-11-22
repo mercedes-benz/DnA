@@ -15,7 +15,6 @@ import javax.validation.Valid;
 import com.daimler.data.db.json.RunDetails;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.forecast.*;
-import com.daimler.data.application.client.DataBricksClient;
 import com.daimler.data.db.entities.ForecastNsql;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.service.forecast.ForecastService;
@@ -65,12 +64,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	
 	@Autowired
 	private StorageServicesClient storageClient;
-
-	@Autowired
-	private DataBricksClient dataBricksClient;
-
-	@Autowired
-	private ForecastRepository jpaRepo;
 	
 	private static final String BUCKETS_PREFIX = "chronos-";
 	
@@ -266,8 +259,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
 
-		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
-		ForecastNsql entity = entityOptional.get();
 		ForecastVO forecastVO = new ForecastVO();
 
 		// if both AddCollaborators and RemoveCollaborators are empty
@@ -275,60 +266,24 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
 				&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
 			responseMessage.setSuccess("FAILED");
-			MessageDescription errMsg = new MessageDescription("forecast ID Not found!");
+			MessageDescription errMsg = new MessageDescription("Add and Remove Collabarators are list is empty!");
 			errors.add(errMsg);
 			responseMessage.setErrors(errors);
-			log.error("forecast ID Not found!");
+			log.error("Add and Remove Collabarators are list is empty!");
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
 
-		try {
-			List<UserDetails> exstingcollaborators = entity.getData().getCollaborators();
+		 responseMessage = service.updateForecastByID(id, forecastUpdateRequestVO, existingForecast);
 
-			List<UserDetails> addCollabrators = forecastUpdateRequestVO.getAddCollaborators().stream().map(n -> {
-				UserDetails collaborator = new UserDetails();
-				BeanUtils.copyProperties(n, collaborator);
-				return collaborator;
-			}).collect(Collectors.toList());
-
-			List<UserDetails> removeCollabrators = forecastUpdateRequestVO.getRemoveCollaborators().stream().map(n -> {
-				UserDetails collaborator = new UserDetails();
-				BeanUtils.copyProperties(n, collaborator);
-				return collaborator;
-			}).collect(Collectors.toList());
-
-			exstingcollaborators.addAll(addCollabrators);
-
-			// To remove collaborators from existing collaborators.
-			for (UserDetails user : removeCollabrators) {
-				UserDetails userToRemove = null;
-				for (UserDetails usr : exstingcollaborators) {
-					if (usr.getId().equals(user.getId())) {
-						userToRemove = usr;
-						break;
-					}
-				}
-
-				if (userToRemove != null) {
-					exstingcollaborators.remove(userToRemove);
-				} else {
-					String msg = "User ID not found for deleting.";
-					responseMessage.setSuccess("FAILED");
-					responseMessage.setErrors(errors);
-					log.error("User ID not found for deleting" + user.getId());
+		if (responseMessage != null && "FAILED".equalsIgnoreCase(responseMessage.getSuccess())) {
+			if (responseMessage.getErrors()!=null) {
+				if ( responseMessage.getErrors().get(0).getMessage().contains("User ID not found for deleting")) {
 					return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 				}
 			}
-
-			entity.getData().setCollaborators(exstingcollaborators);
-			this.jpaRepo.save(entity);
-		} catch (Exception e) {
-			log.error("Failed while saving details of collaborator" + existingForecast.getName());
-			MessageDescription msg = new MessageDescription("Failed to save collaborator details.");
-			errors.add(msg);
-			responseMessage.setErrors(errors);
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+
 		// To get updated forecast after adding collaborator.
 		ForecastVO updatedForecast = service.getById(id);
 		return new ResponseEntity<>(updatedForecast, HttpStatus.OK);
@@ -365,49 +320,13 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
-		String bucketName = existingForecast.getName();
-		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
-		if (entityOptional != null) {
-			ForecastNsql entity = entityOptional.get();
+		responseMessage = service.deleteForecastByID(id);
 
-			// To delete all the runs which are associated to the entity.
-			List<RunDetails> runVOList = entity.getData().getRuns();
-			if (runVOList != null && !runVOList.isEmpty()) {
-				for (RunDetails run : runVOList) {
-					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
-					if (errResponse != null
-							&& (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
-						String msg = "Failed to delete Run.";
-						if (errResponse.getErrorCode() != null) {
-							msg += errResponse.getErrorCode();
-						}
-						if (errResponse.getMessage() != null) {
-							msg += errResponse.getMessage();
-						}
-						MessageDescription errMsg = new MessageDescription(msg);
-						errors.add(errMsg);
-						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors);
-						log.error("Failed to delete Run.");
-						return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
-					} else {
-						run.setIsDelete(true);
-					}
-				}
-			}
-
-			// To delete bucket in mino storage.
-			storageClient.deleteBucket(bucketName);
-
-			// TO delete Entity.
-			this.jpaRepo.delete(entity);
-
-			responseMessage.setSuccess("SUCCESS");
+		if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}
 
-		responseMessage.setSuccess("FAILURE");
-		return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+		return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	@Override
