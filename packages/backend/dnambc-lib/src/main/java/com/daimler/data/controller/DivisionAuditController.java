@@ -38,7 +38,7 @@ public class DivisionAuditController implements DivisionApi{
 
 	
 	@Override
-	@ApiOperation(value = "Get all available auditLogs.", nickname = "getAll", notes = "Get all auditLogs. This endpoints will be used to Get all valid available auditLogs maintenance records.", response = DivisionAuditCollectionVO.class, tags={ "DivisionAudit", })
+	@ApiOperation(value = "Get all available auditLogs.", nickname = "getAll", notes = "Get all auditLogs. This endpoints will be used to Get all valid available auditLogs maintenance records.", response = DivisionAuditCollectionVO.class, tags={ "divisionAudit", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of succes or failure", response = DivisionAuditCollectionVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -81,7 +81,7 @@ public class DivisionAuditController implements DivisionApi{
 	}
 
 	@Override
-	@ApiOperation(value = "Get all available DivisionAudit Logs for a selected division ID.", nickname = "getByDivisionId", notes = "Get all DivisionAudit Logs. This endpoints will be used to Get all valid available auditLogs for a given divisionId maintenance records.", response = DivisionAuditCollectionVO.class, tags={ "DivisionAudit", })
+	@ApiOperation(value = "Get all available DivisionAudit Logs for a selected division ID.", nickname = "getByDivisionId", notes = "Get all DivisionAudit Logs. This endpoints will be used to Get all valid available auditLogs for a given divisionId maintenance records.", response = DivisionAuditCollectionVO.class, tags={ "divisionAudit", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of succes or failure", response = DivisionAuditCollectionVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),

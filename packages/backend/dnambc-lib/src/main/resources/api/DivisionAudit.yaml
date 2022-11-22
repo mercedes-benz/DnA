@@ -57,7 +57,7 @@ consumes:
 produces:
  - "application/json"
 tags:
- - name: "DivisionAudit"
+ - name: "divisionAudit"
    description: "This service is used to maintain auditLogs used in divisions."
 
 schemes:
@@ -74,7 +74,7 @@ paths:
  /division/audit:
   get:
    tags:
-    - "DivisionAudit"
+    - "divisionAudit"
    summary: "Get all available auditLogs."
    description:  "Get all auditLogs. This endpoints will be used to Get all valid available auditLogs maintenance records."
    operationId: "getAll"
@@ -114,7 +114,7 @@ paths:
  /division/audit/{divisionId}:
   get:
    tags:
-    - "DivisionAudit"
+    - "divisionAudit"
    summary: "Get all available DivisionAudit Logs for a selected division ID."
    description:  "Get all DivisionAudit Logs. This endpoints will be used to Get all valid available auditLogs for a given divisionId maintenance records."
    operationId: "getByDivisionId"  
