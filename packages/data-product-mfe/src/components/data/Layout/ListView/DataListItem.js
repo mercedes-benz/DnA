@@ -2,24 +2,16 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 
-import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../../Utility/utils';
 import Styles from './DataListItem.styles.scss';
 import ConfirmModal from 'dna-container/ConfirmModal';
 
-import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
+import dataProductImg from '../../../../assets/dataproduct.png';
 
 const DataListItem = ({ product, history }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetRight, setContextMenuOffsetRight] = useState(0);
-
-  const name = product?.createdBy;
-  const productOwnerName = `${name?.firstName} ${name?.lastName}`;
-
-  useEffect(() => {
-    Tooltip.defaultSetup();
-  }, []);
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
@@ -51,11 +43,6 @@ const DataListItem = ({ product, history }) => {
   };
 
   useEffect(() => {
-    const dataProductList = document.querySelectorAll('[class*="arrowBtn"]');
-    setTooltipIfEllipsisShown(dataProductList);
-  }, []);
-
-  useEffect(() => {
     document.addEventListener('click', handleContextMenuOutside, true);
     return () => document.removeEventListener('click', handleContextMenuOutside, true);
   }, []);
@@ -66,15 +53,9 @@ const DataListItem = ({ product, history }) => {
         id={product?.id}
         key={product?.id}
         className={classNames('data-row', Styles.listContainer, showContextMenu ? Styles.contextOpened : null)}
+        onClick={() => history.push(`/dataSummary/${product?.dataProductId}`)}
       >
         <div className={Styles.titleSection}>
-          <button
-            className={classNames('btn btn-text arrow', Styles.arrowBtn)}
-            type="submit"
-            onClick={() => history.push(`/dataSummary/${product?.dataProductId}`)}
-          >
-            {product?.dataProductName}
-          </button>
           <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
             <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
               <i className="icon mbc-icon listItem context" />
@@ -89,10 +70,24 @@ const DataListItem = ({ product, history }) => {
               <ul className="contextList">
                 <>
                   <li className="contextListItem">
-                    <span onClick={() => history.push(`/editData/${product?.dataProductId}`)}>Edit</span>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        history.push(`/editData/${product?.dataProductId}`);
+                      }}
+                    >
+                      Edit
+                    </span>
                   </li>
                   <li className="contextListItem">
-                    <span onClick={() => setShowDeleteModal(true)}>Delete</span>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      Delete
+                    </span>
                   </li>
                 </>
               </ul>
@@ -100,31 +95,21 @@ const DataListItem = ({ product, history }) => {
           </div>
         </div>
         <div className={Styles.dataProductContent}>
-          <div>
-            <hr />
-            <div>
-              <div>
-                <div>
-                  <label className={Styles.label}>Data Product ID</label>
-                  <span>{product?.dataProductId}</span>
-                </div>
-                <div>
-                  <label className={Styles.label}>Data Classification</label>
-                  <span>{product?.confidentiality || '-'}</span>
-                </div>
-              </div>
-              <div>
-                <div>
-                  <label className={Styles.label}>Created by</label>
-                  <span>{productOwnerName}</span>
-                </div>
-
-                <div>
-                  <label className={Styles.label}>Created on</label>
-                  <span>{regionalDateFormat(product?.createdDate)}</span>
-                </div>
-              </div>
-            </div>
+          <div className={Styles.imgContainer}>
+            <img src={dataProductImg} />
+          </div>
+          <div className={Styles.flexItem}>
+            <div className={Styles.heading}>{product?.dataProductName}</div>
+            <div>{product?.description}</div>
+          </div>
+          <div className={classNames(Styles.tags, Styles.flexItem)}>
+            {product?.tags?.map((item) => {
+              return (
+                <span className={Styles.tagItem} key={item}>
+                  {item}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
