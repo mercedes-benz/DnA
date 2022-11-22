@@ -1,0 +1,84 @@
+.cardWrapper{
+    padding: 40px;
+    background: #252a33;
+    width: calc(33% - 15px);
+    margin: 0 15px 15px 0;
+    min-width: 250px;
+    position: relative;
+    .cardIconSection{
+        text-align: center;
+        margin-top: 30px;
+    }
+    .cardDescriptonSection{
+        margin-top: 40px;
+        max-width: 180px;
+        .titleSection{
+            font-size: var(--font-size-headline);
+        }
+        .descriptionSection{
+            color: #99a5b3;
+            margin-top: 15px;
+        }
+    }
+
+    .avatarIcon{
+        height: 110px;
+        width: 110px;
+    }
+
+    &:hover {
+        cursor: pointer;
+        background-color: #00adef;
+        color: #fff;
+        .cardDescriptonSection{
+            .descriptionSection{
+                color: #fff;
+            }
+        }
+        .avatarIcon svg g g{
+            // fill: #99A5B3!important;
+            fill: #fff!important;
+        }
+        .avatarIcon svg g circle{
+            stroke: #fff!important;
+        }
+    }
+}
+
+.disabled {
+    opacity: .8;
+    cursor: not-allowed;
+    pointer-events: none;
+    color: #697582;
+    .avatarIcon svg g g{
+        fill: #697582!important;
+    }
+    .avatarIcon svg g circle{
+        stroke: #697582!important;
+    }
+    .cardDescriptonSection{
+        .descriptionSection{
+            color: #697582;
+        }
+    }
+}
+
+.textCenter{
+    text-align: center;
+    max-width: 165px;
+    margin: auto;
+}
+
+.comingSoonBtn{
+    background: #00adef;
+    padding: 0 15px;
+    font-size: var(--font-size-small);
+    height: 27px;
+    border-radius: 4px;
+    position: absolute;
+    top: 24px;
+    right: 20px;
+}
+
+
+
