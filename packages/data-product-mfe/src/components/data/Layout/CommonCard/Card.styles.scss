@@ -14,10 +14,20 @@
         max-width: 180px;
         .titleSection{
             font-size: var(--font-size-headline);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
         }
         .descriptionSection{
             color: #99a5b3;
             margin-top: 15px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
         }
     }
 
