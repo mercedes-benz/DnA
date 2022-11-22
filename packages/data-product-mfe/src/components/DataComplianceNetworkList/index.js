@@ -20,34 +20,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { SESSION_STORAGE_KEYS, USER_ROLE } from '../../Utility/constants';
 
 import { dataComplianceNetworkListApi } from '../../apis/datacompliancenetworklist.api';
-import { validateEmail } from '../../Utility/utils';
-
-const MOCK = [
-  {
-    changeDate: '02/02/2022',
-    modifiedBy: {
-      firstName: 'DEMO',
-      lastName: 'USER',
-      userType: 'admin',
-    },
-    fieldChanged: 'something',
-    oldValue: 'lorem ipsum',
-    newValue: 'lorem ipsum',
-    changeDescription: 'lorem ipsum',
-  },
-  {
-    changeDate: '04/04/2022',
-    modifiedBy: {
-      firstName: 'DEMO',
-      lastName: 'USER',
-      userType: 'admin',
-    },
-    fieldChanged: 'something',
-    oldValue: 'lorem ipsum',
-    newValue: 'lorem ipsum',
-    changeDescription: 'lorem ipsum',
-  },
-];
+import { regionalDateAndTimeConversionSolution, validateEmail } from '../../Utility/utils';
 
 const classNames = cn.bind(Styles);
 
@@ -190,8 +163,6 @@ const DataComplianceNetworkList = (props) => {
       .catch((err) => {
         console.log(err);
       });
-
-    setChangeLogs(MOCK);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setData = async () => {
@@ -711,6 +682,62 @@ const DataComplianceNetworkList = (props) => {
     </div>
   );
 
+  const changeLogContent = (
+    <table className="ul-table solutions">
+      <tbody>
+        {changeLogs?.length
+          ? changeLogs.map((data, index) => {
+              return (
+                <tr key={index} className="data-row">
+                  <td className="wrap-text">{regionalDateAndTimeConversionSolution(data.createdOn)}</td>
+                  <td className="wrap-text">
+                    {data.createdBy.firstName}&nbsp;{data.createdBy.lastName}
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td>
+                    <span className="hidden">`</span>
+                  </td>
+                  <td className="wrap-text">{data.message}</td>
+                </tr>
+              );
+            })
+          : null}
+      </tbody>
+    </table>
+  );
+
+  const handleChangeLogModal = () => {
+    ProgressIndicator.show();
+    dataComplianceNetworkListApi
+      .getDataComplianceChangeLogs()
+      .then((res) => {
+        console.log(res);
+        setShowChangeLog(true);
+        setChangeLogs(res.data.records);
+        ProgressIndicator.hide();
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Erorr while fetching data compliance network list change logs', 'error');
+      });
+  };
+
+  const handleChangeLogModalClose = () => {
+    setChangeLogs([]);
+    setShowChangeLog(false);
+  };
+
   return (
     <div className={Styles.mainPanel}>
       <div className={Styles.caption}>
@@ -742,14 +769,12 @@ const DataComplianceNetworkList = (props) => {
                   <span>Add New Entity</span>
                 </button>
               </div>
-              {showChangeLog && (
-                <div className={Styles.addItemButton}>
-                  <button onClick={() => setShowChangeLog((prev) => !prev)}>
-                    <i className="icon mbc-icon link" />
-                    <span>{showChangeLog ? 'Hide Change Log' : 'See Change Log'}</span>
-                  </button>
-                </div>
-              )}
+              <div className={Styles.addItemButton}>
+                <button onClick={handleChangeLogModal}>
+                  <i className="icon mbc-icon link" />
+                  <span>{showChangeLog ? 'Hide Change Log' : 'See Change Log'}</span>
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -757,7 +782,7 @@ const DataComplianceNetworkList = (props) => {
         {!loading && dataComplianceNetworkList.length === 0 && (
           <div className={Styles.tagIsEmpty}>There is no list available</div>
         )}
-        {!loading && !showChangeLog && dataComplianceNetworkList.length > 0 && (
+        {!loading && dataComplianceNetworkList.length > 0 && (
           <div className={Styles.tablePanel}>
             <div className={Styles.tableResponsive}>
               <table className="ul-table">
@@ -857,45 +882,6 @@ const DataComplianceNetworkList = (props) => {
             )}
           </div>
         )}
-        {!loading && showChangeLog && (
-          <div className={Styles.changeLogContainer}>
-            <div className={Styles.tablePanel}>
-              <table className="ul-table solutions">
-                <thead>
-                  <tr className="header-row">
-                    <th>
-                      <label>Change Date</label>
-                    </th>
-                    <th>
-                      <label>Modified By</label>
-                    </th>
-                    <th>
-                      <label>Change Description</label>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {changeLogs
-                    ? changeLogs.map((data, index) => {
-                        return (
-                          <tr key={index} className="data-row">
-                            <td className="wrap-text">
-                              {/* {regionalDateAndTimeConversionSolution(data.changeDate)} */}
-                              {data.changeDate}
-                            </td>
-                            <td className="wrap-text">
-                              {data.modifiedBy.firstName}&nbsp;{data.modifiedBy.lastName}
-                            </td>
-                            <td className="wrap-text">{data.changeDescription}</td>
-                          </tr>
-                        );
-                      })
-                    : ''}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
         <ConfirmModal
           title="Delete Entity"
           acceptButtonTitle="Delete"
@@ -916,6 +902,12 @@ const DataComplianceNetworkList = (props) => {
             onCancel={onShowEntityFormModalCancel}
           />
         )}
+        <InfoModal
+          title={'Change Logs'}
+          show={showChangeLog}
+          content={changeLogs?.length ? changeLogContent : ''}
+          onCancel={handleChangeLogModalClose}
+        />
       </div>
     </div>
   );
