@@ -727,9 +727,12 @@ const DataComplianceNetworkList = (props) => {
         setChangeLogs(res.data.records);
         ProgressIndicator.hide();
       })
-      .catch(() => {
+      .catch((e) => {
         ProgressIndicator.hide();
-        Notification.show('Erorr while fetching data compliance network list change logs', 'error');
+        Notification.show(
+          e?.response?.data?.errors[0]?.message || 'Erorr while fetching data compliance network list change logs',
+          'error',
+        );
       });
   };
 
