@@ -264,7 +264,7 @@ public class StorageServicesClient {
 			if (response.hasBody()) {
 				deleteBucketResponse = response.getBody();
 			}
-		} catch(Exception e) {
+		} catch (Exception e) {
 			log.error("Failed to  bucket in minio storage" + e.getMessage());
 			MessageDescription errMsg = new MessageDescription("Failed while downloading file with exception " + e.getMessage());
 			errors.add(errMsg);
