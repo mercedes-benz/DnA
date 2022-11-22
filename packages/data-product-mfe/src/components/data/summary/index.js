@@ -47,7 +47,7 @@ const Summary = ({ history }) => {
   const getDataProductById = () => {
     dataProductsApi.getDataProductById(dataProductId).then(() => {
       // const data = deserializeFormData(res.data);
-      dispatch(setSelectedData(dummyData));
+      dispatch(setSelectedData(dummyData[0]));
       Tabs.defaultSetup();
     });
   };
