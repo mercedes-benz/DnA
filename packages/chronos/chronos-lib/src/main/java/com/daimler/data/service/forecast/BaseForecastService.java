@@ -377,7 +377,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					if (userToRemove != null) {
 						exstingcollaborators.remove(userToRemove);
 					} else {
-						MessageDescription msg = new MessageDescription("User ID not found for deleting.");
+						MessageDescription msg = new MessageDescription("User ID not found for deleting " + user.getId());
 						responseMessage.setSuccess("FAILED");
 						errors.add(msg);
 						responseMessage.setErrors(errors);
@@ -422,7 +422,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
 					if (errResponse != null
 							&& (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
-						String msg = "Failed to delete Run.";
+						String msg = "Failed to delete Run. Please delete them manually" + run.getRunId();
 						if (errResponse.getErrorCode() != null) {
 							msg += errResponse.getErrorCode();
 						}
@@ -430,11 +430,9 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 							msg += errResponse.getMessage();
 						}
 						MessageDescription errMsg = new MessageDescription(msg);
-						errors.add(errMsg);
-						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors);
-						log.error("Failed to delete Run.");
-						return responseMessage;
+						warnings.add(errMsg);
+						responseMessage.setWarnings(errors);
+						log.error(msg);
 					} else {
 						run.setIsDelete(true);
 					}
@@ -451,7 +449,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					errors.add(errMsg);
 					responseMessage.setSuccess("FAILED");
 					responseMessage.setErrors(errors);
-					log.error("Failed to delete Bucket.");
+					log.error("Failed to delete Bucket Please try again.");
 					return responseMessage;
 				}
 			}
@@ -459,6 +457,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			// To delete an Entity.
 			this.jpaRepo.delete(entity);
 
+			responseMessage.setErrors(null);
 			responseMessage.setSuccess("SUCCESS");
 		}
 		return responseMessage;

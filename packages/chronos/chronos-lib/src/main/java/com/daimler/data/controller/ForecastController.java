@@ -6,20 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import com.daimler.data.db.json.RunDetails;
-import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.forecast.*;
-import com.daimler.data.db.entities.ForecastNsql;
-import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +35,6 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
-import com.daimler.data.service.forecast.ForecastService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -242,12 +235,13 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/forecasts/{id}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.PUT)
-	public ResponseEntity<ForecastVO> updateById(
+	public ResponseEntity<ForecastProjectResponseVO> updateById(
 			@ApiParam(value = "forecast project ID to be updated", required = true) @PathVariable("id") String id,
 			@ApiParam(value = "Request Body that contains data required for updating of collab details", required = true) @Valid @RequestBody ForecastProjectUpdateRequestVO forecastUpdateRequestVO) {
 		ForecastVO existingForecast = service.getById(id);
 		List<MessageDescription> errors = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
+		ForecastProjectResponseVO responseVO = new ForecastProjectResponseVO();
 
 		// if existingForecast is null return not found.
 		if (existingForecast == null) {
@@ -266,27 +260,29 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		if (forecastUpdateRequestVO.getAddCollaborators().size() == 0
 				&& forecastUpdateRequestVO.getRemoveCollaborators().size() == 0) {
 			responseMessage.setSuccess("FAILED");
-			MessageDescription errMsg = new MessageDescription("Add and Remove Collabarators are list is empty!");
+			MessageDescription errMsg = new MessageDescription("Add and Remove Collaborators are list is empty!");
 			errors.add(errMsg);
 			responseMessage.setErrors(errors);
-			log.error("Add and Remove Collabarators are list is empty!");
+			log.error("Add and Remove Collaborators are list is empty!");
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
 
 		 responseMessage = service.updateForecastByID(id, forecastUpdateRequestVO, existingForecast);
+		 responseVO.setResponse(responseMessage);
 
 		if (responseMessage != null && "FAILED".equalsIgnoreCase(responseMessage.getSuccess())) {
 			if (responseMessage.getErrors()!=null) {
 				if ( responseMessage.getErrors().get(0).getMessage().contains("User ID not found for deleting")) {
-					return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+					return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 				}
 			}
-			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		// To get updated forecast after adding collaborator.
 		ForecastVO updatedForecast = service.getById(id);
-		return new ResponseEntity<>(updatedForecast, HttpStatus.OK);
+		responseVO.setData(updatedForecast);
+		return new ResponseEntity<>(responseVO, HttpStatus.OK);
 	}
 
 	@Override
