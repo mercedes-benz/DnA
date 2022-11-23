@@ -8,6 +8,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.db.json.UserDetails;
+import com.daimler.data.dto.forecast.*;
+import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,15 +29,7 @@ import com.daimler.data.db.json.RunState;
 import com.daimler.data.db.repo.forecast.ForecastCustomRepository;
 import com.daimler.data.db.repo.forecast.ForecastRepository;
 import com.daimler.data.dto.databricks.RunNowNotebookParamsDto;
-import com.daimler.data.dto.forecast.DataBricksErrorResponseVO;
-import com.daimler.data.dto.forecast.ForecastRunResponseVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.RunDetailsVO;
-import com.daimler.data.dto.forecast.RunNowResponseVO;
-import com.daimler.data.dto.forecast.RunStateVO;
 import com.daimler.data.dto.forecast.RunStateVO.ResultStateEnum;
-import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.CreateBucketResponseWrapperDto;
 import com.daimler.data.dto.storage.FileDownloadResponseDto;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
@@ -336,9 +331,138 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		}
 		return visualizationVO;
 	}
-			
 
-	
+	@Override
+	public GenericMessage updateForecastByID(String id, ForecastProjectUpdateRequestVO forecastUpdateRequestVO,
+			ForecastVO existingForecast) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+
+		if (entityOptional != null) {
+			try {
+				ForecastNsql entity = entityOptional.get();
+				List<UserDetails> exstingcollaborators = entity.getData().getCollaborators();
+
+				List<UserDetails> addCollabrators = forecastUpdateRequestVO.getAddCollaborators().stream().map(n -> {
+					UserDetails collaborator = new UserDetails();
+					BeanUtils.copyProperties(n, collaborator);
+					return collaborator;
+				}).collect(Collectors.toList());
+
+				List<UserDetails> removeCollabrators = forecastUpdateRequestVO.getRemoveCollaborators().stream()
+						.map(n -> {
+							UserDetails collaborator = new UserDetails();
+							BeanUtils.copyProperties(n, collaborator);
+							return collaborator;
+						}).collect(Collectors.toList());
+
+				if (exstingcollaborators != null) {
+					exstingcollaborators.addAll(addCollabrators);
+				} else {
+					exstingcollaborators = addCollabrators;
+				}
+
+				// To remove collaborators from existing collaborators.
+				for (UserDetails user : removeCollabrators) {
+					UserDetails userToRemove = null;
+					for (UserDetails usr : exstingcollaborators) {
+						if (usr.getId().equals(user.getId())) {
+							userToRemove = usr;
+							break;
+						}
+					}
+
+					if (userToRemove != null) {
+						exstingcollaborators.remove(userToRemove);
+					} else {
+						MessageDescription msg = new MessageDescription("User ID not found for deleting " + user.getId());
+						responseMessage.setSuccess("FAILED");
+						errors.add(msg);
+						responseMessage.setErrors(errors);
+						log.error("User ID not found for deleting" + user.getId());
+						return responseMessage;
+					}
+				}
+
+				entity.getData().setCollaborators(exstingcollaborators);
+				this.jpaRepo.save(entity);
+				responseMessage.setSuccess("SUCCESS");
+			} catch (Exception e) {
+				log.error("Failed while saving details of collaborator " + existingForecast.getName());
+				MessageDescription msg = new MessageDescription("Failed to save collaborator details.");
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+
+		}
+
+		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage deleteForecastByID(String id) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+
+		if (entityOptional != null) {
+			ForecastNsql entity = entityOptional.get();
+			List<RunDetails> existingRuns = entity.getData().getRuns();
+			String bucketName = entity.getData().getBucketName();
+
+			// To delete all the runs which are associated to the entity.
+			if (existingRuns != null && !existingRuns.isEmpty()) {
+				for (RunDetails run : existingRuns) {
+					DataBricksErrorResponseVO errResponse = this.dataBricksClient.deleteRun(run.getRunId());
+					if (errResponse != null
+							&& (errResponse.getErrorCode() != null || errResponse.getMessage() != null)) {
+						String msg = "Failed to delete Run. Please delete them manually" + run.getRunId();
+						if (errResponse.getErrorCode() != null) {
+							msg += errResponse.getErrorCode();
+						}
+						if (errResponse.getMessage() != null) {
+							msg += errResponse.getMessage();
+						}
+						MessageDescription errMsg = new MessageDescription(msg);
+						warnings.add(errMsg);
+						responseMessage.setWarnings(errors);
+						log.error(msg);
+					} else {
+						run.setIsDelete(true);
+					}
+				}
+			}
+
+			// To delete bucket in minio storage.
+			if (bucketName != null) {
+				DeleteBucketResponseWrapperDto response = storageClient.deleteBucket(bucketName);
+
+				if (response != null && "FAILED".equalsIgnoreCase(response.getStatus())) {
+					String msg = "Failed to delete Bucket.";
+					MessageDescription errMsg = new MessageDescription(msg);
+					errors.add(errMsg);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					log.error("Failed to delete Bucket Please try again.");
+					return responseMessage;
+				}
+			}
+
+			// To delete an Entity.
+			this.jpaRepo.delete(entity);
+
+			responseMessage.setErrors(null);
+			responseMessage.setSuccess("SUCCESS");
+		}
+		return responseMessage;
+	}
+
 	@Override
 	@Transactional
 	public GenericMessage deletRunByUUID(String id, String rid) {
