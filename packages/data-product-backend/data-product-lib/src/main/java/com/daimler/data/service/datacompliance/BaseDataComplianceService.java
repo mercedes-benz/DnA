@@ -46,9 +46,13 @@ import com.daimler.data.assembler.DataComplianceAssembler;
 import com.daimler.data.assembler.DataProductAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.DataComplianceAuditNsql;
 import com.daimler.data.db.entities.DataComplianceNsql;
+import com.daimler.data.db.jsonb.CreatedBy;
+import com.daimler.data.db.jsonb.DataComplianceAudit;
 import com.daimler.data.db.repo.datacompliance.DataComplianceCustomRepository;
 import com.daimler.data.db.repo.datacompliance.DataComplianceRepository;
+import com.daimler.data.db.repo.datacomplianceAudit.DataComplianceAuditRepository;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.datacompliance.DataComplianceResponseVO;
 import com.daimler.data.dto.datacompliance.DataComplianceVO;
@@ -80,6 +84,9 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 
 	@Autowired
 	private DataComplianceRepository dataComplianceRepository;
+	
+	@Autowired
+	private DataComplianceAuditRepository complianceAuditRepository;
 
 	public BaseDataComplianceService() {
 		super();
@@ -147,6 +154,29 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 					String eventMessage = "DataCompliance with entityID " + dataComplianceVO.getEntityId()
 							+ " and entityName " + dataComplianceVO.getEntityName() + " has been added by Admin "
 							+ userName;
+					String auditMessage =  "Data Compliance with entity ID " + dataComplianceVO.getEntityId()
+					+ " and entity Name " + dataComplianceVO.getEntityName() + " has been added by Admin "
+					+ userName;
+					DataComplianceAuditNsql auditNsql = new DataComplianceAuditNsql();
+					DataComplianceAudit audit = new DataComplianceAudit();
+					List<DataComplianceAuditNsql> auditNsqls = new ArrayList<>();
+					audit.setAction("Create");
+					audit.setEntityId(dataComplianceVO.getEntityId());
+					audit.setMessage(auditMessage);
+					audit.setCreatedOn(new Date());
+					CreatedBy createdBy = new CreatedBy();
+					createdBy.setId(userId);
+					createdBy.setFirstName(currentUser.getFirstName());
+					createdBy.setLastName(currentUser.getLastName());
+					createdBy.setEmail(currentUser.getEmail());
+					createdBy.setDepartment(currentUser.getDepartment());
+					createdBy.setMobileNumber(currentUser.getMobileNumber());
+					audit.setCreatedBy(createdBy);
+					auditNsql.setData(audit);
+					auditNsqls.add(auditNsql);
+					complianceAuditRepository.saveAll(auditNsqls);
+					LOGGER.info("Audit logs of Data Compliance entry {} sent successfully",dataComplianceVO.getEntityName());
+
 					super.notifyAllAdminUsers(eventType, dataComplianceVO.getId(), eventMessage, userId, changeLogs);
 					dataComplianceResponseVO.setData(dataComplianceVO);
 					LOGGER.info("DataCompliance entry {} created successfully", uniqueEntityId);
@@ -235,6 +265,28 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 						String eventMessage = "DataCompliance with entityID " + existingVO.getEntityId()
 								+ " and entityName " + existingVO.getEntityName()
 								+ " has been updated by Admin " + userName;
+						String auditMessage =  "Data Compliance with entity ID " + mergedDataComplianceVO.getEntityId()
+						+ " and entity Name " + mergedDataComplianceVO.getEntityName() + " has been updated by Admin "
+						+ userName;
+						DataComplianceAuditNsql auditNsql = new DataComplianceAuditNsql();
+						DataComplianceAudit audit = new DataComplianceAudit();
+						List<DataComplianceAuditNsql> auditNsqls = new ArrayList<>();
+						audit.setAction("Update");
+						audit.setEntityId(mergedDataComplianceVO.getEntityId());
+						audit.setMessage(auditMessage);
+						audit.setCreatedOn(new Date());
+						CreatedBy createdBy = new CreatedBy();
+						createdBy.setId(userId);
+						createdBy.setFirstName(currentUser.getFirstName());
+						createdBy.setLastName(currentUser.getLastName());
+						createdBy.setEmail(currentUser.getEmail());
+						createdBy.setDepartment(currentUser.getDepartment());
+						createdBy.setMobileNumber(currentUser.getMobileNumber());
+						audit.setCreatedBy(createdBy);
+						auditNsql.setData(audit);
+						auditNsqls.add(auditNsql);
+						complianceAuditRepository.saveAll(auditNsqls);
+						LOGGER.info("Audit logs of Data Compliance entry {} sent successfully",mergedDataComplianceVO.getEntityName());
 						super.notifyAllAdminUsers(eventType, id, eventMessage, userId, changeLogs);
 						response.setData(mergedDataComplianceVO);
 						response.setErrors(null);
@@ -296,6 +348,28 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 					String eventMessage = "DataCompliance with entityID " + existingVO.getEntityId()
 							+ " and entityName " + existingVO.getEntityName() + " has been deleted by Admin "
 							+ userName;
+					String auditMessage =  "Data Compliance with entity ID " + existingVO.getEntityId()
+					+ " and entity Name " + existingVO.getEntityName() + " has been deleted by Admin "
+					+ userName;
+					DataComplianceAuditNsql auditNsql = new DataComplianceAuditNsql();
+					DataComplianceAudit audit = new DataComplianceAudit();
+					List<DataComplianceAuditNsql> auditNsqls = new ArrayList<>();
+					audit.setAction("Delete");
+					audit.setEntityId(existingVO.getEntityId());
+					audit.setMessage(auditMessage);
+					audit.setCreatedOn(new Date());
+					CreatedBy createdBy = new CreatedBy();
+					createdBy.setId(userId);
+					createdBy.setFirstName(currentUser.getFirstName());
+					createdBy.setLastName(currentUser.getLastName());
+					createdBy.setEmail(currentUser.getEmail());
+					createdBy.setDepartment(currentUser.getDepartment());
+					createdBy.setMobileNumber(currentUser.getMobileNumber());
+					audit.setCreatedBy(createdBy);
+					auditNsql.setData(audit);
+					auditNsqls.add(auditNsql);
+					complianceAuditRepository.saveAll(auditNsqls);
+					LOGGER.info("Audit logs of Data Compliance entry {} sent successfully",existingVO.getEntityName());
 					this.deleteById(id);
 					super.notifyAllAdminUsers("DataCompliance_delete", id, eventMessage, userId, null);
 					GenericMessage successMsg = new GenericMessage();
