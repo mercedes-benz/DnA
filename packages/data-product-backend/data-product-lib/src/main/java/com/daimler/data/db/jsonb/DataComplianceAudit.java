@@ -28,7 +28,7 @@
 package com.daimler.data.db.jsonb;
 
 import java.io.Serializable;
-
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,17 +36,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatedBy implements Serializable {
+public class DataComplianceAudit implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5738422653465193729L;
-	private String id;
-	private String firstName;
-	private String lastName;
-	private String department;
-	private String email;
-	private String mobileNumber;
-
+	
+	private static final long serialVersionUID = 7187618677900332926L;
+	private String entityId;
+	private String action;
+	private String message;
+	private CreatedBy createdBy;
+	private Date createdOn;
+	
+	
 }
