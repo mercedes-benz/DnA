@@ -26,7 +26,7 @@
 #  
 #-----------------------------------------------------------------------------------------------------
 #  **
-#  ** File Name  : DivisionAudit.yaml
+#  ** File Name  : DataComplianceAudit.yaml
 #  **
 #  ** Module     : core
 #  ** 
@@ -49,7 +49,7 @@
 swagger: "2.0"
 info:
  version: "1.0.0"
- title: "core DivisionAudit Service"
+ title: "core DataComplianceAudit Service"
 host: "localhost:7171"
 basePath: "/api/1.0"
 consumes:
@@ -57,8 +57,8 @@ consumes:
 produces:
  - "application/json"
 tags:
- - name: "divisionAudit"
-   description: "This service is used to maintain auditLogs used in divisions."
+ - name: "datacomplianceAudit"
+   description: "This service is used to maintain Data Compliance network list audit logs."
 
 schemes:
 - "https"
@@ -71,12 +71,12 @@ paths:
 #
 # path example ../auditLogs
 
- /division/audit:
+ /datacompliance/audit:
   get:
    tags:
-    - "divisionAudit"
+    - "datacomplianceAudit"
    summary: "Get all available auditLogs."
-   description:  "Get all auditLogs. This endpoints will be used to Get all valid available auditLogs maintenance records."
+   description:  "Get all auditLogs. This endpoints will be used to Get all valid available Data Compliance network list audit logs maintenance records."
    operationId: "getAll"
    parameters:          
           - name: offset
@@ -93,7 +93,7 @@ paths:
     201:
      description: "Returns message of succes or failure"
      schema:
-       $ref: "#/definitions/DivisionAuditCollectionVO"
+       $ref: "#/definitions/DataComplianceAuditCollectionVO"
     204:
       description: "Fetch complete, no content found."
     401:
@@ -111,17 +111,17 @@ paths:
 #
 # path example ../auditLogs
 
- /division/audit/{divisionId}:
+ /datacompliance/audit/{entityId}:
   get:
    tags:
-    - "divisionAudit"
-   summary: "Get all available DivisionAudit Logs for a selected division ID."
-   description:  "Get all DivisionAudit Logs. This endpoints will be used to Get all valid available auditLogs for a given divisionId maintenance records."
-   operationId: "getByDivisionId"  
+    - "datacomplianceAudit"
+   summary: "Get all available data compliance network list audit logs for a selected entity ID."
+   description:  "Get all Audit Logs. This endpoints will be used to Get all valid available data compliance network list audit logs for a given entity ID maintenance records."
+   operationId: "getByEntityId"  
    parameters:
-        - name: "divisionId"
+        - name: "entityId"
           in: "path"
-          description: "Audit logs of DivisionID to be fetched"
+          description: "Audit logs of entityID to be fetched"
           required: true
           type: "string"
         - name: offset
@@ -138,7 +138,7 @@ paths:
     201:
      description: "Returns message of succes or failure"
      schema:
-       $ref: "#/definitions/DivisionAuditCollectionVO"
+       $ref: "#/definitions/DataComplianceAuditCollectionVO"
     204:
       description: "Fetch complete, no content found."
     401:
@@ -175,24 +175,24 @@ definitions:
         type: string
         description: "Mobile number of the user"
         
- DivisionAuditCollectionVO: 
+ DataComplianceAuditCollectionVO: 
   description: "Collection of AuditLogs."
   type: object
   properties:
     records:
         type: array
         items:
-          $ref: "#/definitions/DivisionAuditVO"
+          $ref: "#/definitions/DataComplianceAuditVO"
     totalCount:
      type: integer
      description: "Total records from the database"      
   
- DivisionAuditVO:
+ DataComplianceAuditVO:
   type: object
   properties: 
-    divisionId:
+    entityId:
      type: string
-     description: "ID of the Division."
+     description: "ID of the entity."
     action:
      type: string
      enum: [Create,Update,Delete]
@@ -206,5 +206,5 @@ definitions:
     createdOn:
      type: string
      format: date
-     description: "Time when division is modified." 
+     description: "Time when entity is modified." 
    
