@@ -514,7 +514,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 					LOGGER.debug("Deleting Division:{} from solutions.", tagName);
 					SolutionDivision soldivision = solutionNsql.getData().getDivision();
 					if (Objects.nonNull(soldivision) && StringUtils.hasText(soldivision.getId())
-							&& soldivision.getId().equals(tagName)) {
+							&& soldivision.getName().equals(tagName)) {
 						soldivision.setName(null);
 						soldivision.setId(null);
 						soldivision.setSubdivision(null);
