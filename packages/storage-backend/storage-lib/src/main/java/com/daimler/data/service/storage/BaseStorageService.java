@@ -713,7 +713,7 @@ public class BaseStorageService implements StorageService {
 		
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
-		
+
 		MinioGenericResponse minioResponse = dnaMinioClient.removeObjects(currentUser, bucketName, prefix);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.info("Success from minio remove objects.");
@@ -737,6 +737,12 @@ public class BaseStorageService implements StorageService {
 
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
+		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+		boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
+		if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+			currentUser = dataBricksUser;
+		}
+		LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
 
 		LOGGER.info("Removing bucket:{}", bucketName);
 		MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
