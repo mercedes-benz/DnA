@@ -11,7 +11,7 @@
     }
     .cardDescriptonSection{
         margin-top: 40px;
-        max-width: 180px;
+        max-width: 200px;
         .titleSection{
             font-size: var(--font-size-headline);
             text-overflow: ellipsis;
@@ -57,6 +57,9 @@
 
 .smallCard{
     width: calc(25% - 15px);
+    padding: 40px 20px;
+    height: 300px;
+    // display: flex;
     .cardIconSection{
         margin-top: 24px;
     }
@@ -67,9 +70,54 @@
             -webkit-line-clamp: 2;
         }
     }
+    .tagSection {
+        display: none;
+    }
     .avatarIcon{
         height: 80px;
         width: 80px;
+    }
+    .tagItem {
+        border: 1px solid #00adef;
+        margin: auto;
+        background: #697582;
+        opacity: 0.8;
+        border-radius: 4px;
+        padding: 2px 4px;
+        font-weight: bold;
+    }
+    &:hover {
+        background-position: 50% 0%;
+        &::before {
+        position: absolute;
+        content: " ";
+        // width: 100%;
+        height: 100%;
+        background-color: #00adef;
+        opacity: 0.7;
+        top: 0;
+        }
+        .cardIconSection{
+            margin-top: 0px;
+        }
+        .cardDescriptonSection{
+            color: white;
+            display: block;
+            position: absolute;
+            top: 25%;
+            box-shadow: 0px -17px 30px 0px #00adef;
+            background-color: #00adef;
+            .descriptionSection{
+                -webkit-line-clamp: 6;
+                min-height: 100px;
+            }
+        }
+        .tagSection {
+            display: block;
+            color: white;
+            position: absolute;
+            bottom: 20px;
+        }
     }
 }
 
