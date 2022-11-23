@@ -1,16 +1,19 @@
+import cn from 'classnames';
 import React, { useEffect } from 'react';
 import Styles from './Card.styles.scss';
 import { withRouter } from 'react-router-dom';
 import AddKPIIcon from 'dna-container/AddKPIIcon'
 import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
+const classNames = cn.bind(Styles);
 
-const Card = ({ 
+const DataProductCard = ({ 
     isDisabled,
     title,
     description,
     url,
     history,
-    isTextAlignLeft
+    isTextAlignLeft,
+    isSmallCard=false
 }) => {
  
   useEffect(() => {
@@ -19,7 +22,7 @@ const Card = ({
 
   return (
     <>
-      <div className={isDisabled ? Styles.cardWrapper +' '+Styles.disabled : Styles.cardWrapper}
+      <div className={classNames(Styles.cardWrapper, isSmallCard ? Styles.smallCard : '', isDisabled ?Styles.disabled : '')}
         onClick={() => {
             history.push(url);
         }}
@@ -44,4 +47,4 @@ const Card = ({
     </>
   );
 };
-export default withRouter(Card);
+export default withRouter(DataProductCard);
