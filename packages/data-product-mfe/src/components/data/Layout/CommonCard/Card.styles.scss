@@ -55,6 +55,23 @@
     }
 }
 
+.smallCard{
+    width: calc(25% - 15px);
+    .cardIconSection{
+        margin-top: 24px;
+    }
+    .cardDescriptonSection{
+        margin-top: 20px;
+        .descriptionSection{
+            margin-top: 10px;
+        }
+    }
+    .avatarIcon{
+        height: 80px;
+        width: 80px;
+    }
+}
+
 .disabled {
     opacity: .8;
     cursor: not-allowed;
