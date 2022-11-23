@@ -74,6 +74,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_REPORTS') !== undefined
       ? getInjectedEnv('ENABLE_REPORTS')
       : EnvParser.parseBool(process.env.ENABLE_REPORTS, false),
+  ENABLE_TRAININGS:
+    getInjectedEnv('ENABLE_TRAININGS') !== undefined
+      ? getInjectedEnv('ENABLE_TRAININGS')
+      : EnvParser.parseBool(process.env.ENABLE_TRAININGS, false),
   ENABLE_JUPYTER_WORKSPACE:
     getInjectedEnv('ENABLE_JUPYTER_WORKSPACE') !== undefined
       ? getInjectedEnv('ENABLE_JUPYTER_WORKSPACE')
