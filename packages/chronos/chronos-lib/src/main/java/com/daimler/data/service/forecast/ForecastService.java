@@ -4,14 +4,11 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import com.daimler.data.dto.forecast.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.ForecastNsql;
-import com.daimler.data.dto.forecast.ForecastRunResponseVO;
-import com.daimler.data.dto.forecast.ForecastVO;
-import com.daimler.data.dto.forecast.RunVO;
-import com.daimler.data.dto.forecast.RunVisualizationVO;
 import com.daimler.data.dto.storage.FileUploadResponseDto;
 import com.daimler.data.service.common.CommonService;
 
@@ -37,5 +34,8 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	RunVisualizationVO getRunVisualizationsByUUID(String id, String rid);
 
+	GenericMessage updateForecastByID(String id, ForecastProjectUpdateRequestVO forecastUpdateRequestVO, ForecastVO existingForecast );
+
+	GenericMessage deleteForecastByID(String id);
 
 }
