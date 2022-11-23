@@ -15,12 +15,15 @@ export interface IDNACardProps {
     url: string;
     isTextAlignLeft: boolean;
     isSmallCard: boolean;
+    tags?: string[];
 }
 const DNACard = (props: IDNACardProps) => {
  
   useEffect(() => {
     // Tooltip.defaultSetup();
   }, []);
+
+  const maxTagItem = 4;
 
   return (
     <>
@@ -44,6 +47,16 @@ const DNACard = (props: IDNACardProps) => {
           <div className={Styles.descriptionSection}>
             {props.description}
           </div>
+        </div>
+        <div className={Styles.tagSection}>
+            {props.tags?.slice(0, maxTagItem)?.map((item: any) => {
+                return (
+                <span className={Styles.tagItem} key={item}>
+                    {item}
+                </span>
+                );
+            })}
+            {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
         </div>
       </div>
     </>
