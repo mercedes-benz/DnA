@@ -1,6 +1,6 @@
 import cn from 'classnames';
 // import { debounce } from 'lodash';
-import * as React from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 // @ts-ignore
 import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { history } from '../../../router/History';
@@ -25,23 +25,13 @@ export interface IHeaderSearchBoxProps {
   onClose?: () => void;
 }
 
-export interface IHeaderSearchBoxState {
-  show: boolean;
-  hideSuggestion: boolean;
-  searchTerm: string;
-  results: ISearchSolutionResultItem[];
-  maxItemsPerPage: number;
-  totalNumberOfPages: number;
-  currentPageNumber: number;
-  currentPageOffset: number;
-  cursor: number;
-}
+const HeaderSearchBox:React.FC<IHeaderSearchBoxProps> = (props) => {
+  // const searchInput: HTMLInputElement = useRef();
+  // const suggestionContainer: HTMLUListElement = useRef();
+  const searchInput:any = useRef(null);
+  const suggestionContainer:any = useRef(null);
 
-export class HeaderSearchBox extends React.Component<IHeaderSearchBoxProps, IHeaderSearchBoxState> {
-  protected searchInput: HTMLInputElement;
-  protected suggestionContainer: HTMLUListElement;
-
-  protected KEY_CODE = {
+  const KEY_CODE = {
     backspace: 8,
     tab: 9,
     enter: 13,
@@ -49,177 +39,112 @@ export class HeaderSearchBox extends React.Component<IHeaderSearchBoxProps, IHea
     downArrow: 40,
   };
 
-  public constructor(props: IHeaderSearchBoxProps, context?: any) {
-    super(props, context);
+  const [show, setShow] = useState<boolean>(false);
+  const [hideSuggestion, setHideSuggestion] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [results, setResults] = useState<ISearchSolutionResultItem[]>([]);
+  const [maxItemsPerPage] = useState<number>(10);
+  const [totalNumberOfPages, setTotalNumberOfPages] = useState<number>(0);
+  // const [currentPageNumber, setCurrentPageNumber] = useState<number>(1);
+  const [currentPageOffset] = useState<number>(0);
+  const [cursor, setCursor] = useState<number>(-1);
 
-    this.state = {
-      show: false,
-      hideSuggestion: false,
-      searchTerm: '',
-      results: [],
-      maxItemsPerPage: 10,
-      totalNumberOfPages: 0,
-      currentPageNumber: 1,
-      currentPageOffset: 0,
-      cursor: -1,
-    };
-  }
-
-  public componentDidMount() {
+  useEffect(() => {
     const params = getParams();
     let query = params ? params.query : null;
     if (query) {
       query = query.split('?page=')[0]; // For getting only search query from param without page info
-      this.setState({ searchTerm: decodeURI(query), show: true });
+      setSearchTerm(decodeURI(query));
+      setShow(true);
     }
-  }
+  }, []);
 
-  public render() {
-    const suggestions = this.state.results.map((item: ISearchSolutionResultItem, index: number) => {
-      const cursor = this.state.cursor;
-      return (
-        <li
-          key={item.id}
-          // tslint:disable-next-line: jsx-no-lambda
-          onClick={() => this.onSuggestionItemClick(item.id)}
-          className={cursor === index ? Styles.active + ' active' : null}
-        >
-          {item.productName}
-        </li>
-      );
-    });
-
-    const canShow = this.state.show;
-    const hideSuggestion = this.state.hideSuggestion;
-
+  const suggestions = results.map((item: ISearchSolutionResultItem, index: number) => {
+    const cursorTemp = cursor;
     return (
-      <div id='searchPanel' className={Styles.searchPanel}>
-        <input
-          type="text"
-          className={classNames(Styles.searchInputField, canShow ? '' : Styles.hide)}
-          ref={(searchInput) => {
-            this.searchInput = searchInput;
-          }}
-          placeholder="Solution title / tag"
-          onChange={this.onSearchInputChange}
-          onKeyDown={this.onSearchInputKeyDown}
-          maxLength={200}
-          value={this.state.searchTerm}
-        />
-        <button onClick={this.onSearchIconButtonClick}>
-          <i className={classNames('icon mbc-icon search', canShow ? Styles.active : '')} />
-        </button>
-        {canShow && !hideSuggestion ? (
-          <ul
-            ref={(suggestionContainer) => {
-              this.suggestionContainer = suggestionContainer;
-            }}
-            className={Styles.suggestionList}
-          >
-            {suggestions}
-          </ul>
-        ) : (
-          ''
-        )}
-      </div>
+      <li
+        key={item.id}
+        // tslint:disable-next-line: jsx-no-lambda
+        onClick={() => onSuggestionItemClick(item.id)}
+        className={cursorTemp === index ? Styles.active + ' active' : null}
+      >
+        {item.productName}
+      </li>
     );
-  }
+  });
 
-  protected onSearchIconButtonClick = () => {
-    const query = this.searchInput.value;
-    const initiateSearch = this.state.show && query.length;
+  const onSearchIconButtonClick = () => {
+    const query = searchTerm;
+    const initiateSearch = show && query.length;
     if (initiateSearch) {
-      this.setState(
-        {
-          hideSuggestion: true,
-        },
-        () => {
-          history.push('/search/' + encodeURI(query));
-        },
-      );
+      setHideSuggestion(true);
+      history.push('/search/' + encodeURI(query));
+
     } else {
-      this.setState(
-        {
-          show: !this.state.show,
-        },
-        () => {
-          this.searchInput.focus();
-        },
-      );
+      setShow(!show);
+      // searchInput.focus();
     }
   };
 
-  protected onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState(
-      {
-        searchTerm: event.currentTarget.value,
-      },
-      () => {
-        const searchTerm = this.state.searchTerm;
-        if (searchTerm && searchTerm.length > 1) {
-          this.getSolutionsInfoBySearchTerm();
-        } else {
-          this.setState({ results: [] });
-        }
-      },
-    );
+  const onSearchInputChange = (event: React.FormEvent<HTMLInputElement>) => {
+    setSearchTerm(event.currentTarget.value);
   };
 
-  protected onSearchInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (searchTerm && searchTerm.length > 1) {
+      getSolutionsInfoBySearchTerm();
+    } else {
+      setResults([]);
+    }
+  }, [searchTerm]);
+
+  const onSearchInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const keyPressed = event.which;
-    const query = this.searchInput.value;
-    const { cursor, results, hideSuggestion } = this.state;
-    if (keyPressed === this.KEY_CODE.enter && query.length) {
-      this.setState({ hideSuggestion: true }, () => {
-        if (cursor !== -1 && results.length && !hideSuggestion) {
-          this.gotoSolution(results[cursor].id);
-        } else {
-          history.push('/search/' + query);
-        }
-      });
-    } else if (keyPressed === this.KEY_CODE.upArrow && cursor > 0) {
-      this.setState((prevState) => ({
-        cursor: prevState.cursor - 1,
-      }));
-    } else if (keyPressed === this.KEY_CODE.downArrow && cursor < results.length - 1) {
-      this.setState((prevState) => ({
-        cursor: prevState.cursor + 1,
-      }));
+    const query = searchTerm;
+    if (keyPressed === KEY_CODE.enter && query.length) {
+      setHideSuggestion(true);
+      if (cursor !== -1 && results.length && !hideSuggestion) {
+        gotoSolution(results[cursor].id);
+      } else {
+        history.push('/search/' + query);
+      }
+    } else if (keyPressed === KEY_CODE.upArrow && cursor > 0) {
+      setCursor(cursor - 1);
+    } else if (keyPressed === KEY_CODE.downArrow && cursor < results.length - 1) {
+      setCursor(cursor + 1);
     }
 
-    if (!hideSuggestion && (keyPressed === this.KEY_CODE.upArrow || keyPressed === this.KEY_CODE.downArrow)) {
-      const containerHeight = this.suggestionContainer.getBoundingClientRect().height;
-      const containerScrollTop = this.suggestionContainer.scrollTop;
-      const activeElem = this.suggestionContainer.querySelector('li.active') as HTMLLIElement;
+    if (!hideSuggestion && (keyPressed === KEY_CODE.upArrow || keyPressed === KEY_CODE.downArrow)) {
+      const containerHeight = suggestionContainer.getBoundingClientRect().height;
+      const containerScrollTop = suggestionContainer.scrollTop;
+      const activeElem = suggestionContainer.querySelector('li.active') as HTMLLIElement;
       if (activeElem) {
         const activeElemHeight = activeElem.getBoundingClientRect().height;
 
         if (containerHeight < activeElem.offsetTop) {
-          this.suggestionContainer.scrollTop = containerScrollTop + activeElemHeight * 2;
+          suggestionContainer.scrollTop = containerScrollTop + activeElemHeight * 2;
         } else if (containerScrollTop) {
-          this.suggestionContainer.scrollTop = containerScrollTop - activeElemHeight * 2;
+          suggestionContainer.scrollTop = containerScrollTop - activeElemHeight * 2;
         }
       }
     }
   };
 
-  protected onSuggestionItemClick = (solutionId: string) => {
-    this.setState({ hideSuggestion: true }, () => {
-      this.gotoSolution(solutionId);
-    });
+  const onSuggestionItemClick = (solutionId: string) => {
+    setHideSuggestion(true);
+    gotoSolution(solutionId);
   };
-
-  protected getSolutionsInfoBySearchTerm = () => {
-    ApiClient.getSolutionsBySearchTerm(this.state.searchTerm, 10, this.state.currentPageOffset)
+  
+  const getSolutionsInfoBySearchTerm = () => {
+    ApiClient.getSolutionsBySearchTerm(searchTerm, 10, currentPageOffset)
       .then((response) => {
         if (response) {
           const searchSolutionResponse = response.data.solutions as ISearchSolutionResponse;
-          this.setState({
-            results: searchSolutionResponse.totalCount ? searchSolutionResponse.records : [],
-            hideSuggestion: searchSolutionResponse.totalCount === 0,
-            cursor: -1,
-            totalNumberOfPages: Math.ceil(searchSolutionResponse.totalCount / this.state.maxItemsPerPage),
-          });
+          setResults(searchSolutionResponse.totalCount ? searchSolutionResponse.records : []);
+          setHideSuggestion(searchSolutionResponse.totalCount === 0);
+          setCursor(-1);
+          setTotalNumberOfPages(Math.ceil(searchSolutionResponse.totalCount / maxItemsPerPage));
+          console.log(totalNumberOfPages);
         }
       })
       .catch((err: Error) => {
@@ -227,7 +152,38 @@ export class HeaderSearchBox extends React.Component<IHeaderSearchBoxProps, IHea
       });
   };
 
-  protected gotoSolution = (solutionId: string) => {
+  const gotoSolution = (solutionId: string) => {
     history.push('/summary/' + solutionId);
   };
+
+  return (
+    <div id='searchPanel' className={Styles.searchPanel}>
+      <input
+        type="text"
+        className={classNames(Styles.searchInputField)}
+        ref={searchInput}
+        // placeholder="Solution title / tag"
+        placeholder="What are you looking for today?"
+        onChange={onSearchInputChange}
+        onKeyDown={onSearchInputKeyDown}
+        maxLength={200}
+        value={searchTerm}
+      />
+      <button onClick={onSearchIconButtonClick}>
+        <i className={classNames('icon mbc-icon search', show ? Styles.active : '')} />
+      </button>
+      {!hideSuggestion && searchTerm.length > 0 ? (
+        <ul
+          ref={suggestionContainer}
+          className={Styles.suggestionList}
+        >
+          {suggestions}
+        </ul>
+      ) : (
+        ''
+      )}
+    </div>
+  );
 }
+
+export default HeaderSearchBox;
