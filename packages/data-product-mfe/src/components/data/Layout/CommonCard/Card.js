@@ -11,9 +11,9 @@ const DataProductCard = ({
     title,
     description,
     url,
-    history,
     isTextAlignLeft,
-    isSmallCard=false
+    isSmallCard=false,
+    history
 }) => {
  
   useEffect(() => {
