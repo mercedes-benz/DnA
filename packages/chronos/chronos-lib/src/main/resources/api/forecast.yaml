@@ -230,6 +230,68 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+    put:
+       tags:
+        - "forecast-projects"
+       summary: "update forecasts details for a given Id."
+       description: "update forecasts details for a given Id."
+       operationId: "updateById"
+       parameters:
+        - name: "id"
+          in: "path"
+          description: "forecast project ID to be updated"
+          required: true
+          type: "string"
+        - name: "forecastUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for updating of collab details"
+          required: true
+          schema:
+            $ref: "#/definitions/ForecastProjectUpdateRequestVO"
+       responses:
+          200:
+           description: "Returns message of success or failure"
+           schema:
+            $ref: "#/definitions/ForecastProjectResponseVO"
+          204:
+           description: "Fetch complete, no content found."
+          400:
+           description: "Bad request."
+          401:
+           description: "Request does not have sufficient credentials."
+          403:
+           description: "Request is not authorized."
+          405:
+           description: "Method not allowed"
+          500:
+           description: "Internal error"
+    delete:
+        tags:
+          - "forecast-projects"
+        summary: "delete forecasts details for a given Id."
+        description: "delete forecasts details for a given Id."
+        operationId: "deleteById"
+        parameters:
+          - name: "id"
+            in: "path"
+            description: "forecast project ID to be delete"
+            required: true
+            type: "string"
+        responses:
+          200:
+            description: "Returns message of success"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
   
 
   #
@@ -542,14 +604,20 @@ definitions:
         required:
             - name
         
-#  ForecastProjectUpdateRequestVO:
-#    type: object
-#    properties:
-#        id:
-#            type: string
-#            description: id of forecast project
-#        manageconnections 
-            
+  ForecastProjectUpdateRequestVO:
+    type: object
+    properties:
+      addCollaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+          description: "To add collaborators"
+      removeCollaborators:
+        type: array
+        items:
+          $ref: "#/definitions/CollaboratorVO"
+          description: "To remove collaborators"
+
   ForecastPermissionVO:
     type: object
     properties:
