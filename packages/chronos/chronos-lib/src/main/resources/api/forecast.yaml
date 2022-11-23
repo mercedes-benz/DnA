@@ -252,7 +252,7 @@ paths:
           200:
            description: "Returns message of success or failure"
            schema:
-            $ref: "#/definitions/ForecastVO"
+            $ref: "#/definitions/ForecastProjectResponseVO"
           204:
            description: "Fetch complete, no content found."
           400:
