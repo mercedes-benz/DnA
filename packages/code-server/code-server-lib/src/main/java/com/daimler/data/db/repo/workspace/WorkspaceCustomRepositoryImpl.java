@@ -176,22 +176,22 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Date deployedOn = deploymentDetails.getLastDeployedOn();
-		String longdate = "\"\"";
+		String longdate = null;
 		if(deployedOn!=null)
-			longdate = String.valueOf(deployedOn.getTime());
+			longdate = String.valueOf(deployedOn.getTime()) ;
 		String updateQuery = "update workspace_nsql\r\n"
 				+ "set data = jsonb_set(data,'{projectDetails,"+ environment  +"}', \r\n"
-						+ "'{\"deploymentUrl\": \""+ deploymentDetails.getDeploymentUrl() +"\","
-						+ " \"lastDeployedBy\": {\"id\": \""+ deploymentDetails.getLastDeployedBy().getId()  + "\","
-								+ " \"email\": \""+ deploymentDetails.getLastDeployedBy().getEmail()  + "\","
-								+ " \"lastName\": \""+ deploymentDetails.getLastDeployedBy().getLastName() + "\","
-								+ " \"firstName\": \""+ deploymentDetails.getLastDeployedBy().getFirstName()  + "\","
-								+ " \"department\": \""+ deploymentDetails.getLastDeployedBy().getDepartment()  + "\","
-								+ " \"gitUserName\": \""+ deploymentDetails.getLastDeployedBy().getGitUserName()  + "\","
-								+ " \"mobileNumber\": \""+ deploymentDetails.getLastDeployedBy().getMobileNumber()  + "\"},"
+						+ "'{\"deploymentUrl\": "+ addQuotes(deploymentDetails.getDeploymentUrl()) +","
+						+ " \"lastDeployedBy\": {\"id\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getId())  + ","
+								+ " \"email\": " + addQuotes(deploymentDetails.getLastDeployedBy().getEmail())  + ","
+								+ " \"lastName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getLastName()) + ","
+								+ " \"firstName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getFirstName())  + ","
+								+ " \"department\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getDepartment())  + ","
+								+ " \"gitUserName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getGitUserName())  + ","
+								+ " \"mobileNumber\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber())  + "},"
 						+ " \"lastDeployedOn\":" +   longdate + ","
-						+ " \"lastDeployedBranch\": \""+ deploymentDetails.getLastDeployedBranch() +"\","
-						+ " \"lastDeploymentStatus\": \""+ deploymentDetails.getLastDeploymentStatus() +"\"}')\r\n"
+						+ " \"lastDeployedBranch\": "+ addQuotes(deploymentDetails.getLastDeployedBranch()) +","
+						+ " \"lastDeploymentStatus\": "+ addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}')\r\n"
 				+ "where data->'projectDetails'->>'projectName' = '"+projectName+"'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
@@ -208,5 +208,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return updateResponse;
 	}
 	
+	private String addQuotes(String value) {
+		if(value!=null && !"null".equalsIgnoreCase(value))
+			return "\"" + value + "\"";
+		else
+			return null;
+	}
 	
 }
