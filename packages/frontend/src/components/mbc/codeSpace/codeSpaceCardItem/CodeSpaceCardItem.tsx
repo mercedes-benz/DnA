@@ -25,18 +25,34 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   const codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
-  const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
+  // const codeDeploying = codeSpace.status === 'DEPLOY_REQUESTED';
   const deleteInProgress = codeSpace.status === 'DELETE_REQUESTED';
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const recipes = recipesMaster;
+  const isOwner = codeSpace.workspaceOwner.id === props.userInfo.id;
+  const hasCollaborators = codeSpace.projectDetails?.projectCollaborators?.length;
 
   const deleteCodeSpaceContent = (
     <div>
       <h3>
-        Are you sure you want to delete {codeSpace.projectDetails.projectName} Code Space?
-        <br />
-        You will be loosing your code as well as the deployed code instance.
+        {/* Are you sure to delete {codeSpace.projectDetails.projectName} Code Space?
+        <br /> */}
+        {isOwner ? (
+          <>
+            Deleting a CodeSpace would delete the code associated with it
+            {hasCollaborators && <><br />and the CodeSpaces of the collaborators you have added</>},
+            <br /> Do you want to proceed?
+          </>
+        ) : (
+          <>
+            You were asked to collaborate on this CodeSpace by your colleague.
+            <br />
+            Deleting this CodeSpace will revoke your access to collaborate.
+            <br />
+            Do you wish to proceed?
+          </>
+        )}
       </h3>
     </div>
   );
@@ -82,10 +98,23 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
   };
 
   const projectDetails = codeSpace?.projectDetails;
-  const intDeployedUrl = projectDetails.intDeploymentDetails?.deploymentUrl;
-  const intLastDeployedOn = projectDetails.intDeploymentDetails?.lastDeployedOn;
-  const prodDeployedUrl = projectDetails.prodDeploymentDetails?.deploymentUrl;
-  const deployed = codeSpace?.status === 'DEPLOYED' || (intDeployedUrl !== null  || prodDeployedUrl !== null);
+  const intDeploymentDetails = projectDetails.intDeploymentDetails;
+  const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
+  const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+  const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
+  const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+  const prodLastDeployedOn = prodDeploymentDetails?.lastDeployedOn;
+  const deployingInProgress =
+    intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+  const intDeployed =
+    intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+    (intDeployedUrl !== null && intDeployedUrl !== 'null');
+  const prodDeployed =
+    prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+    (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+
+  const deployed = intDeployed || prodDeployed;
 
   return (
     <>
@@ -117,7 +146,11 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
             {deployed && (
               <div>
                 <div>Last Deployed on</div>
-                <div>{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</div>
+                <div>
+                  {intDeployed && <>Staging({intDeploymentDetails.lastDeployedBranch}):<br />{regionalDateAndTimeConversionSolution(intLastDeployedOn)}</>}
+                  <br />
+                  {prodDeployed && <>Production({prodDeploymentDetails.lastDeployedBranch}):<br />{regionalDateAndTimeConversionSolution(prodLastDeployedOn)}</>}
+                </div>
               </div>
             )}
             {/* <div>
@@ -129,20 +162,29 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
         <div className={Styles.cardFooter}>
           {enableOnboard ? (
             <div>
-              <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>Collaboration Requested...</span>
+              <span className={classNames(Styles.statusIndicator, Styles.colloboration)}>
+                Collaboration Requested...
+              </span>
             </div>
           ) : (
             <>
               <div>
-                {codeDeploying && (
+                {deployingInProgress && (
                   <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
                 )}
                 {deployed && (
                   <>
-                    <span className={Styles.statusIndicator}>Deployed</span>
-                    <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
-                      <i className="icon mbc-icon link" />
-                    </a>
+                    {!deployingInProgress && <span className={Styles.statusIndicator}>Deployed</span>}
+                    {intDeployed && (
+                      <a href={intDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                        <i className="icon mbc-icon link" /> Staging
+                      </a>
+                    )}
+                    {prodDeployed && (
+                      <a href={prodDeployedUrl} target="_blank" rel="noreferrer" className={Styles.deployedLink}>
+                        <i className="icon mbc-icon link" /> Production
+                      </a>
+                    )}
                   </>
                 )}
                 {deleteInProgress && (
@@ -156,8 +198,8 @@ const CodeSpaceCardItem = (props: CodeSpaceCardItemProps) => {
                 <button className="btn btn-primary hide" onClick={() => history.push(`/edit/${codeSpace.workspaceId}`)}>
                   <i className="icon mbc-icon edit"></i>
                 </button>
-                {!deleteInProgress && !createInProgress && (
-                  <button className="btn btn-primary hide" onClick={() => setShowDeleteModal(true)}>
+                {!deleteInProgress && !createInProgress && !deployingInProgress && (
+                  <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
                     <i className="icon delete"></i>
                   </button>
                 )}
