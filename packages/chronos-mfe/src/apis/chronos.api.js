@@ -19,10 +19,20 @@ const createForecastProject = (data) => {
   });
 };
 
+const deleteForecastProject = (id) => {
+  return server.delete(`/forecasts/${id}`, {
+    data: {},
+  });
+};
+
 const getAllInputFiles = (id) => {
   return server.get(`/forecasts/${id}/inputs`, {
     data: {},
   });
+};
+
+const updateForecastProjectCollaborators = (data, id) => {
+  return server.put(`/forecasts/${id}`, data);
 };
 
 const createForecastRun = (data, id) => {
@@ -61,6 +71,8 @@ export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
     createForecastProject,
+    deleteForecastProject,
+    updateForecastProjectCollaborators,
     getAllInputFiles,
     createForecastRun,
     getForecastRun,
