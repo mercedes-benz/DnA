@@ -35,8 +35,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 public interface WorkspaceService {
 
-//	InitializeWorkspaceResponseVO create(CodeServerWorkspaceVO vo, String password);
-
 	GenericMessage deleteById(String userId,String id);
 
 	CodeServerWorkspaceVO getById(String userId, String id);
