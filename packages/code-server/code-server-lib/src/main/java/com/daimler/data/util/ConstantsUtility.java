@@ -40,4 +40,5 @@ public class ConstantsUtility {
 	public static final String CREATEFAILEDSTATE = "CREATED_FAILED";
 	public static final String WORKSPACEPREFIX = "ws";
 	public static final String DEPLOYACTION = "deploy";
+	public static final String DELETEACTION = "delete";
 }
