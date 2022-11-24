@@ -218,6 +218,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
+			List<String> gitUsers = new ArrayList<>();
+			UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
+			 
+			//validate user pat 
+			HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(),pat);
+			if(!validateUserPatstatus.is2xxSuccessful()) {
+				MessageDescription errMsg = new MessageDescription("Invalid git PAT provided. Please verify and retry.");
+				errors.add(errMsg);
+				responseVO.setErrors(errors);
+				return responseVO;
+			}
+			
 			//initialize repo
 			String repoName = vo.getProjectDetails().getGitRepoName();
 			HttpStatus createRepoStatus = gitClient.createRepo(repoName);
@@ -228,8 +240,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				return responseVO;
 			}
 			// create repo success, adding collabs
-			 List<String> gitUsers = new ArrayList<>();
-			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
+			 
 			 gitUsers.add(owner.getGitUserName());
 			 List<UserInfoVO> collabs = vo.getProjectDetails().getProjectCollaborators();
 			 if(collabs!=null && !collabs.isEmpty()) {
@@ -485,7 +496,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("UNDEPLOY_REQUESTED");
-					workspaceCustomRepository.updateDeploymentDetails(status, environmentJsonbName, deploymentDetails);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					status = "SUCCESS";
 				}else {
 					status = "FAILED";
@@ -521,10 +532,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String[] createDeleteStatuses = {"CREATED","CREATE_FAILED","DELETED","DELETE_REQUESTED"};
 			boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
-			entity.getData().setStatus(latestStatus);
 			String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			String workspaceName = entity.getData().getWorkspaceId();
-			String defaultRecipeId = RecipeIdEnum.DEFAULT.name();
+			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
+			String pythonRecipeId =  RecipeIdEnum.PY_FASTAPI.toString();
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			if(isCreateDeleteStatuses) {
@@ -533,6 +544,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
 					entity.getData().setWorkspaceUrl(workspaceUrl);
+					entity.getData().setStatus(latestStatus);
 				}
 				workspaceCustomRepository.update(entity);
 				log.info("updated status for user {} , workspace name {}, existingStatus {}, latestStatus {}",
@@ -554,7 +566,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 						return responseMessage;
 				  }
 				 String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 String deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/swagger-ui.html";
+				 String deploymentUrl = "";
+				 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/swagger-ui.html";
+				 if(pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/docs";
+				 }
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if("int".equalsIgnoreCase(targetEnv)) {
@@ -577,7 +593,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							projectName,branch,targetEnv,latestStatus);
 				}
 				else if("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
-					deploymentDetails.setDeploymentUrl("");
+					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
@@ -592,7 +608,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}catch(Exception e) {
 			log.error("caught exception while updating status {}",e.getMessage());
 			MessageDescription error = new MessageDescription();
-			error.setMessage("Failed while deploying codeserver workspace project, couldn't fetch project owner details");
+			error.setMessage("Failed while deploying codeserver workspace project, couldnt fetch project owner details");
 			errors.add(error);
 			responseMessage.setErrors(errors);
 			return responseMessage;
