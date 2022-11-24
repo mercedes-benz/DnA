@@ -260,7 +260,12 @@ public class StorageController implements StorageApi {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteBucket(
 			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName,
-			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue="true") Boolean live) {
+			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue = "true") Boolean live,
+	        @ApiParam(value = "If delete Cascade is true then delete objects in a bucket", defaultValue = "false") @Valid @RequestParam(value = "deleteCascade", required = false, defaultValue="false") Boolean deleteCascade) {
+
+		if (deleteCascade) {
+			return storageService.deleteBucketCascade(bucketName, live);
+		}
 		return storageService.deleteBucket(bucketName, live);
 	}
 

@@ -37,10 +37,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.daimler.data.dto.storage.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -80,18 +80,6 @@ import com.daimler.data.dto.MinioGenericResponse;
 import com.daimler.data.dto.Permission;
 import com.daimler.data.dto.UserInfoVO;
 import com.daimler.data.dto.solution.ChangeLogVO;
-import com.daimler.data.dto.storage.BucketCollectionVO;
-import com.daimler.data.dto.storage.BucketObjectResponseVO;
-import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
-import com.daimler.data.dto.storage.BucketResponseWrapperVO;
-import com.daimler.data.dto.storage.BucketVo;
-import com.daimler.data.dto.storage.ConnectionResponseVO;
-import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
-import com.daimler.data.dto.storage.ConnectionVO;
-import com.daimler.data.dto.storage.CreatedByVO;
-import com.daimler.data.dto.storage.PermissionVO;
-import com.daimler.data.dto.storage.UserRefreshWrapperVO;
-import com.daimler.data.dto.storage.UserVO;
 import com.daimler.data.minio.client.DnaMinioClient;
 import com.daimler.data.util.CacheUtil;
 import com.daimler.data.util.ConstantsUtility;
@@ -713,6 +701,12 @@ public class BaseStorageService implements StorageService {
 		
 		LOGGER.debug("Fetching Current user.");
 		String currentUser = userStore.getUserInfo().getId();
+		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+		boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
+		if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+			currentUser = dataBricksUser;
+		}
+		LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
 
 		MinioGenericResponse minioResponse = dnaMinioClient.removeObjects(currentUser, bucketName, prefix);
 		if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
@@ -770,6 +764,57 @@ public class BaseStorageService implements StorageService {
 		}
 		return new ResponseEntity<>(genericMessage, httpStatus);
 	}
+
+	 @Override
+	 @Transactional
+	 public ResponseEntity<GenericMessage> deleteBucketCascade(String bucketName, Boolean live) {
+	 	GenericMessage genericMessage = new GenericMessage();
+	 	HttpStatus httpStatus;
+
+	 	LOGGER.debug("Fetching Current user.");
+	 	String currentUser = userStore.getUserInfo().getId();
+	 	String chronosUserToken = httpRequest.getHeader("chronos-api-key");
+	 	boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
+	 	if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+	 		currentUser = dataBricksUser;
+	 	}
+	 	LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
+
+	 	// To get all minio bucket objects.
+	 	MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjectsRecursive(currentUser, bucketName);
+	 	if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+	 		for (BucketObjectVO object : minioObjectResponse.getObjects()) {
+	 			// To delete minio bucket objects.
+	 			dnaMinioClient.removeObjects(currentUser, bucketName, object.getObjectName());
+	 		}
+	 	}
+
+	 	LOGGER.info("Removing bucket:{}", bucketName);
+	 	MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
+	 	if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+	 		LOGGER.info("Success from minio remove bucket.");
+	 		// Fetching bucket info from database
+	 		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+	 		if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
+	 			// To delete dataiku connection if exists
+	 			Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(project -> {
+	 				LOGGER.info("Removing connection for project:{}", project);
+	 				dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, bucketName),
+	 						live);
+	 			}));
+	 			LOGGER.info("Deleting bucket:{} info from database", bucketName);
+	 			jpaRepo.deleteById(entity.getId());
+	 		}
+	 		genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+	 		httpStatus = HttpStatus.OK;
+	 	} else {
+	 		LOGGER.info("Failure from minio remove bucket.");
+	 		genericMessage.setSuccess(ConstantsUtility.FAILURE);
+	 		genericMessage.setErrors(getMessages(minioResponse != null ? minioResponse.getErrors() : null));
+	 		httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+	 	}
+	 	return new ResponseEntity<>(genericMessage, httpStatus);
+	 }
 	
 	/*
 	 * To convert List<Error> errors to List<MessageDescription> 

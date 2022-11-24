@@ -250,7 +250,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			errors.add(errMsg);
 			responseMessage.setErrors(errors);
 			log.error("forecast ID Not found!");
-			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 		}
 
 		ForecastVO forecastVO = new ForecastVO();
@@ -264,7 +265,8 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			errors.add(errMsg);
 			responseMessage.setErrors(errors);
 			log.error("Add and Remove Collaborators are list is empty!");
-			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}
 
 		 responseMessage = service.updateForecastByID(id, forecastUpdateRequestVO, existingForecast);
