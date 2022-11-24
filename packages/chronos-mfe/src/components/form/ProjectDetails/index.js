@@ -15,7 +15,6 @@ import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../../apis/chronos.api';
 import Spinner from '../../shared/spinner/Spinner';
-import { Envs } from '../../../Utility/envs';
 
 const ProjectDetails = () => {
   const {id: projectId} = useParams();
@@ -23,20 +22,19 @@ const ProjectDetails = () => {
 
   const methods = useForm();
   const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
+    handleSubmit
   } = methods;
   
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
   const [teamMembers, setTeamMembers] = useState([]);
   const [showApiKey, setShowApiKey] = useState(false);
-  const [generateApiKey, setGenerateApiKey] = useState(true);
+  // const [generateApiKey, setGenerateApiKey] = useState(true);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
+  const [addedCollaborators, setAddedCollaborators] = useState([]);
+  const [removedCollaborators, setRemovedCollaborators] = useState([]);
 
   useEffect(() => {
     getProjectById();
@@ -78,13 +76,20 @@ const ProjectDetails = () => {
     onAddTeamMemberModalCancel();
     const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
     delete teamMemberTemp.teamMemberPosition;
-    let teamMembersTemp = [...teamMembers];
+    let teamMembersTemp = teamMembers !== null ? [...teamMembers] : [];
+    const addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
+    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
     if(editTeamMember) {
-      teamMembersTemp.splice(editTeamMemberIndex, 1);
+      const deletedMember = teamMembersTemp.splice(editTeamMemberIndex, 1);
+      removedCollaboratorsTemp.push(deletedMember[0]);
       teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
+      addedCollaboratorsTemp.push(teamMember);
     } else {
       teamMembersTemp.push(teamMemberTemp);
+      addedCollaboratorsTemp.push(teamMember);
     }
+    setAddedCollaborators(addedCollaboratorsTemp);
+    setRemovedCollaborators(removedCollaboratorsTemp);
     setTeamMembers(teamMembersTemp);
   }
   const validateMembersList = (teamMemberObj) => {
@@ -102,7 +107,10 @@ const ProjectDetails = () => {
 
   const onTeamMemberDelete = (index) => {
     const teamMembersTemp = [...teamMembers];
-    teamMembersTemp.splice(index, 1);
+    const deletedMember = teamMembersTemp.splice(index, 1);
+    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
+    removedCollaboratorsTemp.push(deletedMember[0]);
+    setRemovedCollaborators(removedCollaboratorsTemp);
     setTeamMembers(teamMembersTemp);
   };
 
@@ -127,7 +135,7 @@ const ProjectDetails = () => {
         itemIndex={index}
         teamMember={member}
         hidePosition={true}
-        hideContextMenu={true}
+        hideContextMenu={!editProject}
         showInfoStacked={true}
         showMoveUp={index !== 0}
         showMoveDown={index + 1 !== teamMembers?.length}
@@ -143,24 +151,22 @@ const ProjectDetails = () => {
     <FormProvider {...methods}>
       <div className={Styles.modalContent}>
         <div className={Styles.formGroup}>
-          <div className={Styles.flexLayout}>
-            <div>
-              <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Name of Project <sup>*</sup>
-                </label>
-                <div>
-                  <input
-                    type="text"
-                    className={classNames('input-field', Styles.projectNameField)}
-                    id="projectName"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    defaultValue={project?.name}
-                    {...register('name', { required: '*Missing entry' })}
-                  />
-                  <span className={classNames('error-message')}>{errors?.name?.message}</span>
-                </div>
+          <div className={Styles.projectWrapper}>
+            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+              <div id="productDescription">
+                <label className="input-label summary">Project Name</label>
+                <br />                    
+                {project?.name}
+              </div>
+              <div id="tags">
+                <label className="input-label summary">Created on</label>
+                <br />
+                {project?.createdOn !== undefined && regionalDateAndTimeConversionSolution(project?.createdOn)}
+              </div>
+              <div id="isExistingSolution">
+                <label className="input-label summary">Created by</label>
+                <br />
+                {project?.createdBy?.firstName} {project?.createdBy?.lastName}
               </div>
             </div>
           </div>
@@ -185,63 +191,6 @@ const ProjectDetails = () => {
                 }
               </div>
             </div>
-            <div className={Styles.apiKeySection}>
-              <h3 className={Styles.modalSubTitle}>Generate API Key</h3>
-              {
-                generateApiKey &&
-                <div className={Styles.apiKey}>
-                  <p className={Styles.label}>API Key</p>
-                  <button className={Styles.generateApiKeyBtn} onClick={() => setGenerateApiKey(false)}>
-                    Generate API Key
-                  </button>
-                  {
-                    Envs.ENABLE_CHRONOS_ONEAPI &&
-                      <p className={Styles.oneApiLink}>or go to <a href={Envs.CHRONOS_ONEAPI_URL}>oneAPI</a></p>
-                  }
-                </div>
-              }
-              {
-                !generateApiKey &&
-                  <div className={Styles.apiKey}>
-                    <p className={Styles.label}>API Key</p>
-                    <div className={Styles.appIdParentDiv}>
-                      <div className={Styles.refreshedKey}>
-                        { showApiKey ? (
-                          <p>{project?.apiKey}</p>
-                        ) : (
-                          <React.Fragment>
-                            &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
-                          </React.Fragment>
-                        )}
-                      </div>
-                      <div className={Styles.refreshedKeyIcon}>
-                        {showApiKey ? (
-                          <React.Fragment>
-                            <i
-                              className={Styles.showAppId + ' icon mbc-icon visibility-hide'}
-                              onClick={() => { setShowApiKey(!showApiKey) }}
-                              tooltip-data="Hide"
-                            />
-                          </React.Fragment>
-                        ) : (
-                          <React.Fragment>
-                            <i
-                              className={Styles.showAppId + ' icon mbc-icon visibility-show ' + Styles.visiblityshow}
-                              onClick={() => { setShowApiKey(!showApiKey) }}
-                              tooltip-data="Show"
-                            />
-                          </React.Fragment>
-                        )}
-                        <i
-                          className={Styles.cpyStyle + ' icon mbc-icon copy'}
-                          onClick={copyApiKey}
-                          tooltip-data="Copy"
-                        />
-                      </div>
-                    </div>
-                  </div>
-              }
-            </div>
           </div>
           <div className={Styles.btnContainer}>
             <button
@@ -260,50 +209,39 @@ const ProjectDetails = () => {
   );
 
   const handleEditProject = (values) => {
-    ProgressIndicator.show();
+    console.log(values);
     const data = {
-        "apiKey": "123823",
-        // "collaborators": teamMembers.map(teamMember => {delete teamMember.userType; delete teamMember.shortId; return teamMember}),
-        "collaborators": teamMembers,
-        "name": values.name,
-        "permission": {
-          "read": true,
-          "write": true
-        }
-    };
-    console.log('data');
-    console.log(data);
-    chronosApi.createForecastProject(data).then((res) => {
-      console.log(res);
-      // dispatch(GetProjects());
+      addCollaborators: addedCollaborators,
+      removeCollaborators: removedCollaborators
+    }
+    ProgressIndicator.show();
+    chronosApi.updateForecastProjectCollaborators(data, project?.id).then(() => {
       ProgressIndicator.hide();
-      setEditProject(false);
-      reset({ name: '' });
       setTeamMembers([]);
-      Notification.show('Forecasting Project successfully created');
+      setAddedCollaborators([]);
+      setRemovedCollaborators([]);
+      setEditProject(false);
+      Notification.show('Forecasting Project successfully updated');
+      getProjectById();
     }).catch(error => {
       ProgressIndicator.hide();
-      console.log(error);
-      Notification.show(error.message, 'alert');
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating forecast project',
+        'alert',
+      );
+      setTeamMembers([]);
+      setAddedCollaborators([]);
+      setRemovedCollaborators([]);
+      setEditProject(false);
+      getProjectById();
     });
-
-    values.permission = values.permission.reduce((acc, curr) => {
-      acc[curr] = true;
-      return acc;
-    }, {});
-    // const copyProjects = [...projects];
-    // const findIndex = copyProjects.findIndex((item) => item.id === values.id);
-    // copyProjects[findIndex] = values;
-    // dispatch(setProjects(copyProjects));
-    // setEditProject(false);
-    reset({ name: '' });
   };
 
   return (
     <React.Fragment>
       <div className={Styles.content}>
         <div className={classNames(Styles.contextMenu)}>
-          <span className={classNames('trigger', Styles.contextMenuTrigger)}>
+          <span className={classNames('trigger', Styles.contextMenuTrigger)} onClick={() => setEditProject(true)}>
             <i className="icon mbc-icon edit context" />
           </span>
         </div>
