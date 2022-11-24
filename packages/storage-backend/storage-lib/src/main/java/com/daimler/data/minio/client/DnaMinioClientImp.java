@@ -44,6 +44,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.minio.*;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,15 +70,6 @@ import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.PolicyUtility;
 import com.daimler.data.util.StorageUtility;
 
-import io.minio.BucketExistsArgs;
-import io.minio.GetObjectArgs;
-import io.minio.ListObjectsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveBucketArgs;
-import io.minio.RemoveObjectsArgs;
-import io.minio.Result;
 import io.minio.admin.MinioAdminClient;
 import io.minio.admin.UserInfo;
 import io.minio.admin.UserInfo.Status;
@@ -328,6 +320,70 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		}
 
 		return minioObjectContentResponse;
+	}
+
+	@Override
+	public MinioGenericResponse getBucketObjectsRecursive(String userId, String bucketName) {
+		MinioGenericResponse minioObjectResponse = new MinioGenericResponse();
+
+		try {
+			LOGGER.info("Fetching secrets from vault for user:{}", userId);
+			String userSecretKey =  vaultConfig.validateUserInVault(userId);
+			if(StringUtils.hasText(userSecretKey)) {
+				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
+				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
+						.build();
+
+				// Lists objects information.
+				LOGGER.info("Listing Objects information from minio for user:{}", userId);
+				Iterable<Result<Item>> results = minioClient.listObjects(
+							ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
+
+				List<BucketObjectVO> objects = new ArrayList<>();
+				BucketObjectVO bucketObjectVO = null;
+				for (Result<Item> result : results) {
+					bucketObjectVO = new BucketObjectVO();
+					Item item = result.get();
+					LOGGER.debug("Got details for object:{}",item.objectName()!=null?item.objectName():null);
+					bucketObjectVO.setEtag(item.etag());
+					bucketObjectVO.setIsLatest(item.isLatest());
+					bucketObjectVO.setObjectName(item.objectName());
+					bucketObjectVO.setOwner(item.owner() != null ? item.owner().displayName() : null);
+					bucketObjectVO.setStorageClass(item.storageClass());
+					bucketObjectVO.setVersionId(item.versionId());
+
+					if (item.isDir()) {
+						bucketObjectVO.setIsDir(item.isDir());
+					} else {
+						bucketObjectVO.setLastModified(item.lastModified().toString());
+						bucketObjectVO.setSize(item.size());
+						bucketObjectVO.setIsDir(false);
+					}
+
+					objects.add(bucketObjectVO);
+
+				}
+
+				minioObjectResponse.setObjects(objects);
+				minioObjectResponse.setStatus(ConstantsUtility.SUCCESS);
+				minioObjectResponse.setHttpStatus(HttpStatus.OK);
+			} else {
+				LOGGER.debug("Fetch secret from vault failed for user:{}",userId);
+				minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:"+userId)));
+				minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
+				minioObjectResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
+			}
+		} catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException
+				| InternalException | InvalidResponseException | NoSuchAlgorithmException | ServerException
+				| XmlParserException | IOException e) {
+			LOGGER.error("Error occured while listing bucket's Recursive object from minio: {}",
+					e.getMessage());
+			minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, e.getMessage())));
+			minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
+			minioObjectResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		return minioObjectResponse;
 	}
 
 	@Override
