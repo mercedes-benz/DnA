@@ -153,25 +153,38 @@ const CodeSpace = (props: ICodeSpaceProps) => {
           const prodDeploymentDetails = res.projectDetails.prodDeploymentDetails;
           const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
           const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
-          const deployed = res.status === 'DEPLOYED' || (intDeployedUrl !== null  || prodDeployedUrl !== null);
+          const intDeployed =
+            intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+            (intDeployedUrl !== null && intDeployedUrl !== 'null');
+          const prodDeployed =
+            prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+            (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+          // const deployingInProgress =
+          //   (intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED');
+          // const deployed =
+          //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
+          //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
           
           setCodeSpaceData({
             ...res,
             running: !!res.intiatedOn,
           });
-          setCodeDeployed(deployed);
+          setCodeDeployed(intDeployed);
           setCodeDeployedUrl(intDeployedUrl);
           setCodeDeployedBranch(intDeploymentDetails.lastDeployedBranch);
 
-          setProdCodeDeployed(prodDeployedUrl !== null);
+          setProdCodeDeployed(prodDeployed);
           setProdCodeDeployedUrl(prodDeployedUrl);
           setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
 
           Tooltip.defaultSetup();
-          if (res.status === 'DEPLOY_REQUESTED') {
-            setCodeDeploying(true);
-            enableDeployLivelinessCheck(res.id);
-          }
+          // if (deployingInProgress) {
+          //   setCodeDeploying(true);
+          //   enableDeployLivelinessCheck(res.workspaceId);
+          // }
         } else {
           Notification.show(`Code space ${res.projectDetails.projectName} is getting created. Please try again later.`, 'warning');
         }
@@ -278,7 +291,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
               setShowCodeDeployModal(false);
               Notification.show(`Code from code space ${res.projectDetails?.projectName} succesfully deployed.`);
             }
-            if (res.status === 'DEPLOYMENT_FAILED') {
+            if (deployStatus === 'DEPLOYMENT_FAILED') {
               clearInterval(livelinessIntervalRef.current);
               setCodeDeploying(false);
               setShowCodeDeployModal(false);
