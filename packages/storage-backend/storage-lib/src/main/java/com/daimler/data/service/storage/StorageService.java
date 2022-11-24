@@ -29,6 +29,7 @@ package com.daimler.data.service.storage;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -127,7 +128,16 @@ public interface StorageService {
 	 * @return ResponseEntity<GenericMessage>
 	 */
 	public ResponseEntity<GenericMessage> deleteBucket(String bucketName, Boolean live);
-	
+
+	/**
+	 * To delete an non empty bucket
+	 *
+	 * @param bucketName
+	 * @return ResponseEntity<GenericMessage>
+	 */
+	@Transactional
+	ResponseEntity<GenericMessage> deleteBucketCascade(String bucketName, Boolean live);
+
 	/**
 	 * To update bucket along with collaborator
 	 * 

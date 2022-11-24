@@ -78,6 +78,15 @@ public interface DnaMinioClient {
 	public MinioGenericResponse getBucketObjects(String userId, String bucketName, String prefix);
 
 	/**
+	 * To list all the objects inside buckets
+	 * 
+	 * @param userId
+	 * @param bucketName
+	 * @return ResponseEntity<BucketObjectResponseWrapperVO>
+	 */
+	public MinioGenericResponse getBucketObjectsRecursive(String userId, String bucketName);
+
+	/**
 	 * To get object contents for given path
 	 * 
 	 * @param userId

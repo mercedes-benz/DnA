@@ -211,7 +211,13 @@ paths:
        description: "If requested data from live(Production) or training dataiku environment" 
        required: false
        type: boolean
-       default: true       
+       default: true
+     - name: deleteCascade
+       in: query
+       description: "If delete Cascade is true then delete objects in a bucket" 
+       required: false
+       type: boolean
+       default: true     
     responses:
      200:
       description: "Returns message of succes or failure"

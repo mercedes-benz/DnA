@@ -265,8 +265,8 @@ public class StorageServicesClient {
 				deleteBucketResponse = response.getBody();
 			}
 		} catch (Exception e) {
-			log.error("Failed to  bucket in minio storage" + e.getMessage());
-			MessageDescription errMsg = new MessageDescription("Failed while downloading file with exception " + e.getMessage());
+			MessageDescription errMsg = new MessageDescription("Failed to Delete bucket in minio storage " + e.getMessage());
+			log.error(errMsg.getMessage());
 			errors.add(errMsg);
 			deleteBucketResponse.setErrors(errors);
 			deleteBucketResponse.setStatus("FAILED");
@@ -275,4 +275,31 @@ public class StorageServicesClient {
 		return deleteBucketResponse;
 	}
 	
+	public DeleteBucketResponseWrapperDto deleteBucketCascade(String bucketName) {
+		DeleteBucketResponseWrapperDto deleteBucketResponse = new DeleteBucketResponseWrapperDto();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			DeleteBucketResponseDataDto data = new DeleteBucketResponseDataDto();
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.set("chronos-api-key",dataBricksAuth);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String apiUrl = storageBaseUri + BUCKETS_PATH + "/" + bucketName + "/?deleteCascade=true";
+			ResponseEntity<DeleteBucketResponseWrapperDto> response = restTemplate.exchange(apiUrl, HttpMethod.DELETE, requestEntity, DeleteBucketResponseWrapperDto.class);
+			if (response.hasBody()) {
+				deleteBucketResponse = response.getBody();
+			}
+		} catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed to delete Bucket Cascade in minio storage " + e.getMessage());
+			log.error(errMsg.getMessage());
+			errors.add(errMsg);
+			deleteBucketResponse.setErrors(errors);
+			deleteBucketResponse.setStatus("FAILED");
+		}
+
+		return deleteBucketResponse;
+	}
 }
