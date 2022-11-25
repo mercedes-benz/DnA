@@ -169,6 +169,27 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			return null;
 	}
 
+	
+	@Override
+	public List<Object[]> getWorkspaceIdsForProjectMembers(String projectName){
+		List<Object[]> records = new ArrayList<>();
+		
+		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as wsid,"
+				+ "jsonb_extract_path_text(data,'workspaceOwner','id') as userid from workspace_nsql "
+				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
+				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			records = q.getResultList();
+			if(records!=null && !records.isEmpty()) {
+				log.info("Found {} workspaces in project {} which are not in deleted state", records.size(), projectName);
+			}
+		}catch(Exception e) {
+			log.error("Failed to query workspaces under project {} , which are not in deleted state", projectName);
+		}
+		return records;
+	}
+	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
 		GenericMessage updateResponse = new GenericMessage();
@@ -176,22 +197,22 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		Date deployedOn = deploymentDetails.getLastDeployedOn();
-		String longdate = "\"\"";
+		String longdate = null;
 		if(deployedOn!=null)
-			longdate = String.valueOf(deployedOn.getTime());
+			longdate = String.valueOf(deployedOn.getTime()) ;
 		String updateQuery = "update workspace_nsql\r\n"
 				+ "set data = jsonb_set(data,'{projectDetails,"+ environment  +"}', \r\n"
-						+ "'{\"deploymentUrl\": \""+ deploymentDetails.getDeploymentUrl() +"\","
-						+ " \"lastDeployedBy\": {\"id\": \""+ deploymentDetails.getLastDeployedBy().getId()  + "\","
-								+ " \"email\": \""+ deploymentDetails.getLastDeployedBy().getEmail()  + "\","
-								+ " \"lastName\": \""+ deploymentDetails.getLastDeployedBy().getLastName() + "\","
-								+ " \"firstName\": \""+ deploymentDetails.getLastDeployedBy().getFirstName()  + "\","
-								+ " \"department\": \""+ deploymentDetails.getLastDeployedBy().getDepartment()  + "\","
-								+ " \"gitUserName\": \""+ deploymentDetails.getLastDeployedBy().getGitUserName()  + "\","
-								+ " \"mobileNumber\": \""+ deploymentDetails.getLastDeployedBy().getMobileNumber()  + "\"},"
+						+ "'{\"deploymentUrl\": "+ addQuotes(deploymentDetails.getDeploymentUrl()) +","
+						+ " \"lastDeployedBy\": {\"id\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getId())  + ","
+								+ " \"email\": " + addQuotes(deploymentDetails.getLastDeployedBy().getEmail())  + ","
+								+ " \"lastName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getLastName()) + ","
+								+ " \"firstName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getFirstName())  + ","
+								+ " \"department\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getDepartment())  + ","
+								+ " \"gitUserName\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getGitUserName())  + ","
+								+ " \"mobileNumber\": "+ addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber())  + "},"
 						+ " \"lastDeployedOn\":" +   longdate + ","
-						+ " \"lastDeployedBranch\": \""+ deploymentDetails.getLastDeployedBranch() +"\","
-						+ " \"lastDeploymentStatus\": \""+ deploymentDetails.getLastDeploymentStatus() +"\"}')\r\n"
+						+ " \"lastDeployedBranch\": "+ addQuotes(deploymentDetails.getLastDeployedBranch()) +","
+						+ " \"lastDeploymentStatus\": "+ addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}')\r\n"
 				+ "where data->'projectDetails'->>'projectName' = '"+projectName+"'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
@@ -203,10 +224,30 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
-			log.info("deployment details updated successfully for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+			log.error("deployment details updated successfully for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
 		}
 		return updateResponse;
 	}
 	
+	private String addQuotes(String value) {
+		if(value!=null && !"null".equalsIgnoreCase(value))
+			return "\"" + value + "\"";
+		else
+			return null;
+	}
+
+	@Override
+	public void updateDeletedStatusForProject(String projectName) {
+		String updateQuery = "UPDATE workspace_nsql SET data = jsonb_set(data, '{status}', '\"DELETED\"') "
+				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName')) "
+				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			log.info("updated all workspaces under project {} to DELETED state", projectName);
+		}catch(Exception e) {
+			log.error("Failed to update workspaces under project {} to DELETED state with exception {}", projectName, e.getMessage());
+		}
+	}
 	
 }
