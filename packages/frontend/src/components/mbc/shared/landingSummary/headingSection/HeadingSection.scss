@@ -1,0 +1,33 @@
+.wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    .headingSection {
+        width: calc(30% - 7px);
+    }
+    .imageSection {
+        width: calc(60% - 7px);
+        margin: 0 15px;
+        img {
+            width: 100%;
+            height: 340px;
+            border-radius: 10px;
+        }
+    }
+    .caption {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0px;
+        margin-top: 40px;
+        margin-bottom: 10px;
+        h3 {
+            color: #dee3e8;
+        }
+    }
+    .subTitle{
+        color: #99a5b3;
+        margin-bottom: 20px;
+        max-width: 250px;
+    }
+}
