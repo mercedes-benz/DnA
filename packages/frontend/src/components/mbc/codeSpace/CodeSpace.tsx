@@ -117,7 +117,7 @@ const CodeSpace = (props: ICodeSpaceProps) => {
   const [prodCodeDeployed, setProdCodeDeployed] = useState<boolean>(false);
   const [prodCodeDeployedUrl, setProdCodeDeployedUrl] = useState<string>();
   const [prodCodeDeployedBranch, setProdCodeDeployedBranch] = useState<string>('main');
-  const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>();
+  const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState<boolean>(true);
   const [livelinessInterval, setLivelinessInterval] = useState<NodeJS.Timer>();
   const [branches, setBranches] = useState<IBranch[]>([]);
 
