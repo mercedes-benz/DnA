@@ -143,7 +143,7 @@ public class WorkspaceJobStatusUpdateController  {
 			GenericMessage responseMessage = service.update(userId,name,projectName,existingStatus,latestStatus,targetEnv,branch);
 			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 		}else {
-			log.info("workspace {} doesnt exists for User {} ",existingVO.getWorkspaceId(), userId);
+			log.info("workspace {} doesnt exists for User {} , or workspace already deleted and hence update not required",existingVO.getWorkspaceId(), userId);
 			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(invalidMsg);
