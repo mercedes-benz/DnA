@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Styles from './DataLayer.scss';
 import { Envs } from 'globals/Envs';
-import MainPanel from '../../shared/mainPanel/MainPanel';
+// import MainPanel from '../../shared/mainPanel/MainPanel';
 import DNACard from 'components/card/Card';
+import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
 
 const DataLayer = () => {
   const [enableJupiyterNoteWorkspace, setEnableJupiyterNoteWorkspace] = useState(true);
@@ -17,7 +18,9 @@ const DataLayer = () => {
   });
 
   return (
-    <MainPanel title={'Data Layer'} subTitle={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}>
+    <LandingSummary title={'Data Layer'} 
+    subTitle={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
+    tags={['Lorem Ipsum', 'ABC', 'XYZ']}>
       <div className={Styles.Workspaces}>
         <DNACard
             title={'Data Model'}
@@ -68,7 +71,7 @@ const DataLayer = () => {
             isSmallCard={false}
             isMediumCard={true} />     
       </div>
-    </MainPanel>
+    </LandingSummary>
   );
 };
 
