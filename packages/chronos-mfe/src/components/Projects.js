@@ -11,7 +11,6 @@ import AddTeamMemberModal from 'dna-container/AddTeamMemberModal';
 import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 
 import { chronosApi } from '../apis/chronos.api';
-import { setProjects } from './redux/projectsSlice';
 import { GetProjects } from './redux/projects.services';
 import ProjectsCardItem from './ProjectCardItem';
 import { IconAvatarNew } from './shared/icons/iconAvatarNew/IconAvatarNew';
@@ -20,6 +19,7 @@ import Notification from '../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../common/modules/uilab/js/src/progress-indicator';
 import Breadcrumb from './shared/breadcrumb/Breadcrumb';
 import { Envs } from '../Utility/envs';
+import { regionalDateAndTimeConversionSolution } from '../Utility/utils';
 
 const ForeCastingProjects = ({ user, history }) => {
   const [createProject, setCreateProject] = useState(false);
@@ -31,6 +31,9 @@ const ForeCastingProjects = ({ user, history }) => {
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
+  const [projectDetails, setProjectDetails] = useState();
+  const [addedCollaborators, setAddedCollaborators] = useState([]);
+  const [removedCollaborators, setRemovedCollaborators] = useState([]);
 
   const methods = useForm();
   const {
@@ -48,7 +51,6 @@ const ForeCastingProjects = ({ user, history }) => {
   useEffect(() => {
     dispatch(GetProjects());
   }, [dispatch]);
-
   
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -146,17 +148,32 @@ const ForeCastingProjects = ({ user, history }) => {
       );
     });
   };
-  const handleEditProject = (values) => {
-    values.permission = values.permission.reduce((acc, curr) => {
-      acc[curr] = true;
-      return acc;
-    }, {});
-    const copyProjects = [...projects];
-    const findIndex = copyProjects.findIndex((item) => item.id === values.id);
-    copyProjects[findIndex] = values;
-    dispatch(setProjects(copyProjects));
-    setEditProject(false);
-    reset({ name: '' });
+  const handleEditProject = () => {
+    const data = {
+      addCollaborators: addedCollaborators,
+      removeCollaborators: removedCollaborators
+    }
+    ProgressIndicator.show();
+    chronosApi.updateForecastProjectCollaborators(data, projectDetails.id).then(() => {
+      ProgressIndicator.hide();
+      setTeamMembers([]);
+      setAddedCollaborators([]);
+      setRemovedCollaborators([]);
+      setEditProject(false);
+      Notification.show('Forecasting Project successfully updated');
+      getResults('pagination');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating forecast project',
+        'alert',
+      );
+      setTeamMembers([]);
+      setAddedCollaborators([]);
+      setRemovedCollaborators([]);
+      setEditProject(false);
+      getResults('pagination');
+    });
   };
 
   const copyApiKey = () => {
@@ -177,13 +194,20 @@ const ForeCastingProjects = ({ user, history }) => {
     onAddTeamMemberModalCancel();
     const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
     delete teamMemberTemp.teamMemberPosition;
-    let teamMembersTemp = [...teamMembers];
+    let teamMembersTemp = teamMembers !== null ? [...teamMembers] : [];
+    const addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
+    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
     if(editTeamMember) {
-      teamMembersTemp.splice(editTeamMemberIndex, 1);
+      const deletedMember = teamMembersTemp.splice(editTeamMemberIndex, 1);
+      removedCollaboratorsTemp.push(deletedMember[0]);
       teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
+      addedCollaboratorsTemp.push(teamMember);
     } else {
       teamMembersTemp.push(teamMemberTemp);
+      addedCollaboratorsTemp.push(teamMember);
     }
+    setAddedCollaborators(addedCollaboratorsTemp);
+    setRemovedCollaborators(removedCollaboratorsTemp);
     setTeamMembers(teamMembersTemp);
   }
   const validateMembersList = (teamMemberObj) => {
@@ -201,7 +225,10 @@ const ForeCastingProjects = ({ user, history }) => {
 
   const onTeamMemberDelete = (index) => {
     const teamMembersTemp = [...teamMembers];
-    teamMembersTemp.splice(index, 1);
+    const deletedMember = teamMembersTemp.splice(index, 1);
+    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
+    removedCollaboratorsTemp.push(deletedMember[0]);
+    setRemovedCollaborators(removedCollaboratorsTemp);
     setTeamMembers(teamMembersTemp);
   };
 
@@ -241,26 +268,51 @@ const ForeCastingProjects = ({ user, history }) => {
     <FormProvider {...methods}>
       <div className={Styles.content}>
         <div className={Styles.formGroup}>
-          <div className={Styles.flexLayout}>
-            <div>
-              <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Name of Project <sup>*</sup>
-                </label>
-                <div>
-                  <input
-                    type="text"
-                    className={classNames('input-field', Styles.projectNameField)}
-                    id="projectName"
-                    placeholder="Type here"
-                    autoComplete="off"
-                    {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
-                  />
-                  <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+          {
+            !editProject && createProject &&
+            <div className={Styles.flexLayout}>
+              <div>
+                <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    Name of Project <sup>*</sup>
+                  </label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="projectName"
+                      placeholder="Type here"
+                      autoComplete="off"
+                      {...register('name', { required: '*Missing entry', pattern: /^[a-z0-9-.]+$/ })}
+                    />
+                    <span className={classNames('error-message')}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Project names can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).'}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          }
+          {
+            !createProject && editProject &&
+            <div className={Styles.projectWrapper}>
+              <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                <div id="productDescription">
+                  <label className="input-label summary">Project Name</label>
+                  <br />                    
+                  {projectDetails?.name}
+                </div>
+                <div id="tags">
+                  <label className="input-label summary">Created on</label>
+                  <br />
+                  {projectDetails?.createdOn !== undefined && regionalDateAndTimeConversionSolution(projectDetails?.createdOn)}
+                </div>
+                <div id="isExistingSolution">
+                  <label className="input-label summary">Created by</label>
+                  <br />
+                  {projectDetails?.createdBy?.firstName} {projectDetails?.createdBy?.lastName}
+                </div>
+              </div>
+            </div>
+          }
           <div className={Styles.collabContainer}>
             <h3 className={Styles.modalSubTitle}>Add Collaborators</h3>
             <div className={Styles.collabAvatar}>
@@ -345,7 +397,7 @@ const ForeCastingProjects = ({ user, history }) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                createProject ? handleCreateProject(values) : handleEditProject(values);
+                createProject ? handleCreateProject(values) : handleEditProject();
               })}
             >
               {createProject ? 'Create Project' : editProject && 'Save Project'}
@@ -396,9 +448,11 @@ const ForeCastingProjects = ({ user, history }) => {
                     <ProjectsCardItem
                       key={index}
                       project={project}
+                      onRefresh={() => getResults('pagination')}
                       onEdit={(val) => {
                         setEditProject(true);
-                        reset(val);
+                        setProjectDetails(val)
+                        setTeamMembers(val.collaborators);
                       }}
                     />
                   );
