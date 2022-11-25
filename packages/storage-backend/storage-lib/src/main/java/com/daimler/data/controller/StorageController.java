@@ -30,6 +30,7 @@ package com.daimler.data.controller;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.daimler.data.dto.storage.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +50,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.daimler.data.api.storage.StorageApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.dto.storage.BucketCollectionVO;
-import com.daimler.data.dto.storage.BucketObjectResponseWrapperVO;
-import com.daimler.data.dto.storage.BucketRequestVO;
-import com.daimler.data.dto.storage.BucketResponseVO;
-import com.daimler.data.dto.storage.BucketResponseWrapperVO;
-import com.daimler.data.dto.storage.BucketVo;
-import com.daimler.data.dto.storage.ConnectionRequestVO;
-import com.daimler.data.dto.storage.ConnectionResponseWrapperVO;
-import com.daimler.data.dto.storage.UserRefreshWrapperVO;
 import com.daimler.data.service.storage.StorageService;
 
 import io.swagger.annotations.Api;
@@ -249,7 +241,7 @@ public class StorageController implements StorageApi {
 	@ApiOperation(value = "Delete bucket.", nickname = "deleteBucket", notes = "Delete bucket identified by bucketName.", response = GenericMessage.class, tags = {
 			"storage", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Returns message of succes or failure", response = GenericMessage.class),
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
 			@ApiResponse(code = 400, message = "Bad request."),
 			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -260,8 +252,30 @@ public class StorageController implements StorageApi {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteBucket(
 			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName,
-			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue="true") Boolean live) {
+			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue = "true") Boolean live) {
+
 		return storageService.deleteBucket(bucketName, live);
+	}
+
+
+	@Override
+	@ApiOperation(value = "Delete bucket.", nickname = "deleteBucketCascade", notes = "Delete bucket identified by bucketName.", response = GenericMessage.class, tags = {
+			"storage", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/v1/buckets/{bucketName}", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<GenericMessage> deleteBucketCascade(
+			@ApiParam(value = "Bucket name which need to be deleted.", required = true) @PathVariable("bucketName") String bucketName,
+			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue = "true") Boolean live) {
+
+		return storageService.deleteBucketCascade(bucketName, live);
 	}
 
 	@Override

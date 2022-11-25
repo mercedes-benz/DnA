@@ -441,7 +441,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 
 			// To delete bucket in minio storage.
 			if (bucketName != null) {
-				DeleteBucketResponseWrapperDto response = storageClient.deleteBucket(bucketName);
+				DeleteBucketResponseWrapperDto response = storageClient.deleteBucketCascade(bucketName);
 
 				if (response != null && "FAILED".equalsIgnoreCase(response.getStatus())) {
 					String msg = "Failed to delete Bucket.";
