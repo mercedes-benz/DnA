@@ -25,6 +25,9 @@ const ModelRegistry = React.lazy(() => import('components/mbc/modelRegistry/Mode
 const Notifications = React.lazy(() => import('components/mbc/notification/Notifications'));
 const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
 const Workspaces = React.lazy(() => import('components/mbc/workspaces/Workspaces'));
+const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
+const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
+const DataLayer = React.lazy(() => import('components/mbc/workspaces/dataLayer/DataLayer'));
 const Services = React.lazy(() => import('components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
@@ -207,8 +210,29 @@ const protectedRoutes = [
     allowedRoles: UserAndAdminRole,
     component: Workspaces,
     exact: false,
-    path: '/workspaces',
-    title: 'Workspaces',
+    path: '/data',
+    title: 'Data',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: Transparency,
+    exact: false,
+    path: '/transparency',
+    title: 'Transparency',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: Tools,
+    exact: false,
+    path: '/tools',
+    title: 'Tools',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataLayer,
+    exact: false,
+    path: '/datalayer',
+    title: 'Data Layer',
   },
   {
     allowedRoles: UserAndAdminRole,
