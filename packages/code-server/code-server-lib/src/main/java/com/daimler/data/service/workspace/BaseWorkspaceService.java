@@ -116,11 +116,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 			log.info("Delete requested by project owner {} " , userId);
 			//undeploy int if present
 			if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()!=null 
-					&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch()!=null ) {
+					&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch()!=null
+					|| entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus()!=null){
 				String branch = entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch();
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
-				deployJobInputDto.setAction("deploy");
+				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
@@ -147,11 +148,12 @@ public class BaseWorkspaceService implements WorkspaceService {
 			}
 			//undeploy prod if present
 			if(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl()!=null 
-					&& entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch()!=null ) {
+					|| entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch()!=null 
+					|| entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus()!=null){
 				String branch = entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch();
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
-				deployJobInputDto.setAction("deploy");
+				deployJobInputDto.setAction("undeploy");
 				deployJobInputDto.setBranch(branch);
 				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
 				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
@@ -235,7 +237,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 			}else {
 				entity.getData().setStatus("DELETED");
-				jpaRepo.save(entity);)
+				jpaRepo.save(entity);
 			}
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
@@ -252,7 +254,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);			
+			
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			
+			//validate user pat 
+			HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(),pat);
+			if(!validateUserPatstatus.is2xxSuccessful()) {
+				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
+				errors.add(errMsg);
+				responseVO.setErrors(errors);
+				return responseVO;
+			}
+			
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -330,7 +343,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 			//validate user pat 
 			HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(),pat);
 			if(!validateUserPatstatus.is2xxSuccessful()) {
-				MessageDescription errMsg = new MessageDescription("Invalid git PAT provided. Please verify and retry.");
+				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
 				errors.add(errMsg);
 				responseVO.setErrors(errors);
 				return responseVO;
