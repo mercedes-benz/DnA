@@ -148,7 +148,7 @@ public class WorkspaceJobStatusUpdateController  {
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(invalidMsg);
 			log.error("No workspace found with id {}, failed to update", existingVO.getWorkspaceId());
-			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 		}
     }
 }
