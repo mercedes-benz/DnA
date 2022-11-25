@@ -49,4 +49,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails);
 
+	List<Object[]> getWorkspaceIdsForProjectMembers(String projectName);
+
+	void updateDeletedStatusForProject(String projectName);
+
 }
