@@ -30,6 +30,8 @@ package com.daimler.data.minio.client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -323,67 +325,101 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	}
 
 	@Override
-	public MinioGenericResponse getBucketObjectsRecursive(String userId, String bucketName) {
-		MinioGenericResponse minioObjectResponse = new MinioGenericResponse();
-
+	public List<String> listObjectsInBucket(String userId, String bucketName) {
+		List<String> objectNames = new ArrayList<>();
 		try {
 			LOGGER.info("Fetching secrets from vault for user:{}", userId);
-			String userSecretKey =  vaultConfig.validateUserInVault(userId);
-			if(StringUtils.hasText(userSecretKey)) {
-				LOGGER.debug("Fetch secret from vault successfull for user:{}",userId);
-				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey)
-						.build();
+			String userSecretKey = vaultConfig.validateUserInVault(userId);
+			if (StringUtils.hasText(userSecretKey)) {
+				LOGGER.debug("Fetch secret from vault successful for user:{}", userId);
+				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey).build();
 
 				// Lists objects information.
 				LOGGER.info("Listing Objects information from minio for user:{}", userId);
-				Iterable<Result<Item>> results = minioClient.listObjects(
-							ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
+				Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucketName).recursive(true).build());
 
-				List<BucketObjectVO> objects = new ArrayList<>();
-				BucketObjectVO bucketObjectVO = null;
 				for (Result<Item> result : results) {
-					bucketObjectVO = new BucketObjectVO();
 					Item item = result.get();
-					LOGGER.debug("Got details for object:{}",item.objectName()!=null?item.objectName():null);
-					bucketObjectVO.setEtag(item.etag());
-					bucketObjectVO.setIsLatest(item.isLatest());
-					bucketObjectVO.setObjectName(item.objectName());
-					bucketObjectVO.setOwner(item.owner() != null ? item.owner().displayName() : null);
-					bucketObjectVO.setStorageClass(item.storageClass());
-					bucketObjectVO.setVersionId(item.versionId());
-
-					if (item.isDir()) {
-						bucketObjectVO.setIsDir(item.isDir());
-					} else {
-						bucketObjectVO.setLastModified(item.lastModified().toString());
-						bucketObjectVO.setSize(item.size());
-						bucketObjectVO.setIsDir(false);
+					LOGGER.debug("Got details for object:{}", item.objectName() != null ? item.objectName() : null);
+					if (item.objectName() != null) {
+						objectNames.add(item.objectName());
 					}
-
-					objects.add(bucketObjectVO);
-
 				}
-
-				minioObjectResponse.setObjects(objects);
-				minioObjectResponse.setStatus(ConstantsUtility.SUCCESS);
-				minioObjectResponse.setHttpStatus(HttpStatus.OK);
 			} else {
-				LOGGER.debug("Fetch secret from vault failed for user:{}",userId);
-				minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:"+userId)));
-				minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
-				minioObjectResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
+				LOGGER.error("Fetch secret from vault failed for user:{}", userId);
 			}
-		} catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException
-				| InternalException | InvalidResponseException | NoSuchAlgorithmException | ServerException
-				| XmlParserException | IOException e) {
-			LOGGER.error("Error occured while listing bucket's Recursive object from minio: {}",
-					e.getMessage());
-			minioObjectResponse.setErrors(Arrays.asList(new ErrorDTO(null, e.getMessage())));
-			minioObjectResponse.setStatus(ConstantsUtility.FAILURE);
-			minioObjectResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (InvalidKeyException | ErrorResponseException | IllegalArgumentException | InsufficientDataException |
+				 InternalException | InvalidResponseException | NoSuchAlgorithmException | ServerException |
+				 XmlParserException | IOException e) {
+			LOGGER.error("Error occurred while listing bucket's Recursive object from minio: {}", e.getMessage());
 		}
 
-		return minioObjectResponse;
+		return objectNames;
+	}
+
+	@Override
+	public MinioGenericResponse deleteBucketCascade(String userId, String bucketName) {
+		MinioGenericResponse minioGenericResponse = new MinioGenericResponse();
+
+		try {
+			LOGGER.info("Fetching secrets from vault for user:{}", userId);
+			String userSecretKey = vaultConfig.validateUserInVault(userId);
+			if (StringUtils.hasText(userSecretKey)) {
+				LOGGER.debug("Fetch secret from vault successful for user:{}", userId);
+				MinioClient minioClient = MinioClient.builder().endpoint(minioBaseUri).credentials(userId, userSecretKey).build();
+
+				boolean isBucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+
+				if (isBucketExists) {
+					// To get list of Objects In Bucket.
+					List<String> objectNames = listObjectsInBucket(userId, bucketName);
+					List<DeleteObject> objects = new LinkedList<>();
+					if (objectNames != null) {
+						for (String objectName : objectNames) {
+							objects.add(new DeleteObject(objectName));
+						}
+					}
+
+					// To Remove objects from the bucket.
+					Iterable<Result<DeleteError>> results = minioClient.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
+
+					List<ErrorDTO> errors = new ArrayList<>();
+					for (Result<DeleteError> result : results) {
+						DeleteError deleteError = result.get();
+						ErrorDTO error = new ErrorDTO(null, "Error in deleting object " + deleteError.objectName() + ": " + deleteError.message());
+						errors.add(error);
+						LOGGER.info("Error in deleting object {}: {}", deleteError.objectName() != null ? deleteError.objectName() : null, deleteError.message() != null ? deleteError.message() : null);
+					}
+					minioGenericResponse.setErrors(errors);
+
+					if (ObjectUtils.isEmpty(minioGenericResponse.getErrors())) {
+						LOGGER.info("Success from Remove objects from Minio bucket:{}", bucketName);
+						minioGenericResponse.setStatus(ConstantsUtility.SUCCESS);
+						minioGenericResponse.setHttpStatus(HttpStatus.OK);
+					} else {
+						LOGGER.error("Failure from Remove objects from Minio bucket:{}", bucketName);
+						minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+						minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
+						return minioGenericResponse;
+					}
+
+					// To remove bucket.
+					LOGGER.info("Removing bucket:{}", bucketName);
+					minioGenericResponse = removeBucket(userId, bucketName);
+				} else {
+					LOGGER.error("Bucket is not found" + bucketName);
+					minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+					minioGenericResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
+					return minioGenericResponse;
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occurred while delete Bucket Cascade from minio: {}", e.getMessage());
+			minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, e.getMessage())));
+			minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
+			minioGenericResponse.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return minioGenericResponse;
 	}
 
 	@Override
@@ -697,14 +733,23 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						.build();
 				LOGGER.debug("Setting object list to be deleted");
 				List<DeleteObject> objects = new LinkedList<>();
-				if (StringUtils.hasText(prefix)) {
-					String[] objectsPath = prefix.trim().split("\\s*,\\s*");
-					for (String objectPath : objectsPath) {
-						objects.add(new DeleteObject(objectPath));
-					}
-				}
 
-				LOGGER.info("Removing objects from Minio bucket:{}", bucketName);
+				// To get list of Objects In Bucket.
+				List<String> objectNames = listObjectsInBucket(userId, bucketName);
+
+                if (StringUtils.hasText(prefix)) {
+                    String decodePrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.toString());
+                     String[] prefixValue = decodePrefix.split(",", 0);
+					for (String path: prefixValue) {
+					    for (String objectName: objectNames) {
+							 if (objectName.contains(path)) {
+								objects.add(new DeleteObject(objectName));
+							 }
+					    }
+                    }
+                }
+
+                LOGGER.info("Removing objects from Minio bucket:{}", bucketName);
 				Iterable<Result<DeleteError>> results = minioClient
 						.removeObjects(RemoveObjectsArgs.builder().bucket(bucketName).objects(objects).build());
 
@@ -768,7 +813,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				minioGenericResponse.setStatus(ConstantsUtility.SUCCESS);
 				minioGenericResponse.setHttpStatus(HttpStatus.OK);
 				
-			}else {
+			} else {
 				LOGGER.debug("Fetch secret from vault failed for user:{}",userId);
 				minioGenericResponse.setErrors(Arrays.asList(new ErrorDTO(null, "Fetch secret from vault failed for user:"+userId)));
 				minioGenericResponse.setStatus(ConstantsUtility.FAILURE);
