@@ -25,6 +25,7 @@ const ModelRegistry = React.lazy(() => import('components/mbc/modelRegistry/Mode
 const Notifications = React.lazy(() => import('components/mbc/notification/Notifications'));
 const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
 const Workspaces = React.lazy(() => import('components/mbc/workspaces/Workspaces'));
+const DataLayer = React.lazy(() => import('components/mbc/workspaces/dataLayer/DataLayer'));
 const Services = React.lazy(() => import('components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
@@ -207,8 +208,15 @@ const protectedRoutes = [
     allowedRoles: UserAndAdminRole,
     component: Workspaces,
     exact: false,
-    path: '/workspaces',
-    title: 'Workspaces',
+    path: '/data',
+    title: 'Data',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataLayer,
+    exact: false,
+    path: '/datalayer',
+    title: 'Data Layer',
   },
   {
     allowedRoles: UserAndAdminRole,

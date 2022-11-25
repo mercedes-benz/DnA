@@ -14,7 +14,8 @@ export interface IDNACardProps {
     description: string;
     url: string;
     isTextAlignLeft: boolean;
-    isSmallCard: boolean;
+    isSmallCard?: boolean;
+    isMediumCard?: boolean;
     tags?: string[];
 }
 const DNACard = (props: IDNACardProps) => {
@@ -27,7 +28,7 @@ const DNACard = (props: IDNACardProps) => {
 
   return (
     <>
-      <div className={classNames(Styles.cardWrapper, props.isSmallCard ? Styles.smallCard : '', props.isDisabled ?Styles.disabled : '')}
+      <div className={classNames(Styles.cardWrapper, props.isMediumCard ? Styles.mediumCard : '', props.isSmallCard ? Styles.smallCard : '', props.isDisabled ?Styles.disabled : '')}
         onClick={() => {
             history.push(props.url);
         }}
@@ -59,6 +60,7 @@ const DNACard = (props: IDNACardProps) => {
             {props?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
         </div>
       </div>
+      
     </>
   );
 };
