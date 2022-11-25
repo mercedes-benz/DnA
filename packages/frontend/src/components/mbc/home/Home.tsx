@@ -130,7 +130,7 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                 <div className={Styles.quicklinkCardNav}>
                   <ul className={Styles.qcardTwoli}>
                     <li>
-                      <Link to="workspaces">
+                      <Link to="data">
                         <span>
                           My Workspaces <i className="icon mbc-icon arrow small right" />
                         </span>
