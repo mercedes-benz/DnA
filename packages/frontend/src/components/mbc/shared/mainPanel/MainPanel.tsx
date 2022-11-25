@@ -3,6 +3,7 @@ import Styles from './MainPanel.scss';
 
 export interface IMainPanelProps {
   title: string;
+  subTitle?: string;
   children: any;
 }
 
@@ -12,7 +13,10 @@ const MainPanel = (props: IMainPanelProps) => {
     <div className={Styles.mainPanel}>
       <div className={Styles.wrapper}>
         <div className={Styles.caption}>
-          <h3>{props.title}</h3>
+          <h2>{props.title}</h2>
+        </div>
+        <div className={Styles.subTitle}>
+          <p>{props.subTitle}</p>
         </div>
       </div>
       <div className={Styles.content}>
