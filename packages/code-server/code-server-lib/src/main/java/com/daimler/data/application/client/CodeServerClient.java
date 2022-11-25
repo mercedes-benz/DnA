@@ -89,7 +89,6 @@ public class CodeServerClient {
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
-			e.printStackTrace();
 		}
 		response.setSuccess(status);
 		response.setWarnings(warnings);
