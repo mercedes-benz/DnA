@@ -97,46 +97,152 @@ public class BaseWorkspaceService implements WorkspaceService {
 	@Override
 	@Transactional
 	public GenericMessage deleteById(String userId,String id) {
-//		GenericMessage responseMessage = new GenericMessage();
-//		String status = "FAILED";
-//		List<MessageDescription> warnings = new ArrayList<>();
-//		List<MessageDescription> errors = new ArrayList<>();
-//		try {
-//			CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
-//			if(entity!=null && entity.getData()!=null && !"DELETED".equalsIgnoreCase(entity.getData().getStatus())) {
-//				boolean undeployCheck = true;
-//				GenericMessage undeployJobResponse = new GenericMessage();
-//				if(entity.getData().getLastDeployedOn()!=null) {
-//					undeployJobResponse = client.performWorkBenchActions("undeploy", entity.getData());
-//					if(undeployJobResponse!=null && "SUCCESS".equalsIgnoreCase(undeployJobResponse.getSuccess()))
-//						undeployCheck = true;
-//					else
-//						undeployCheck = false;
-//				}
-//					if(undeployCheck) {
-//					GenericMessage deleteJobResponse = client.performWorkBenchActions("delete", entity.getData());
-//					if(deleteJobResponse!=null && "SUCCESS".equalsIgnoreCase(deleteJobResponse.getSuccess())) {
-//						entity.getData().setStatus("DELETE_REQUESTED");
-//						jpaRepo.save(entity);
-//						status = "SUCCESS";
-//					}else {
-//						errors.addAll(deleteJobResponse.getErrors());
-//					}
-//				}else {
-//					errors.addAll(undeployJobResponse.getErrors());
-//				}
-//			}
-//		}catch(Exception e) {
-//			log.error("Error occured while deleting workspace {} in database with exception {} ", id, e.getMessage());
-//			MessageDescription error = new MessageDescription();
-//			error.setMessage("Failed while deleting workspace with exception " + e.getMessage());
-//			errors.add(error);
-//		}
-//		responseMessage.setSuccess(status);
-//		responseMessage.setWarnings(warnings);
-//		responseMessage.setErrors(errors);
-//		return responseMessage;
-		return null;
+		//1. undeploy if deployed and id is project owner id
+		//2. delete repo 
+		//3. for all workspaces under this project, trigger delete job
+		//4. update all workspaces under this project, mark as deleted
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		CodeServerWorkspaceNsql entity =  workspaceCustomRepository.findById(userId,id);
+		
+		boolean isProjectOwner = false;
+		String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
+		if(projectOwnerId.equalsIgnoreCase(userId)) {
+			isProjectOwner = true;
+		}
+		
+		if(isProjectOwner) {
+			log.info("Delete requested by project owner {} " , userId);
+			//undeploy int if present
+			if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()!=null 
+					&& entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch()!=null
+					|| entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus()!=null){
+				String branch = entity.getData().getProjectDetails().getIntDeploymentDetails().getLastDeployedBranch();
+				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
+				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
+				deployJobInputDto.setAction("undeploy");
+				deployJobInputDto.setBranch(branch);
+				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				deployJobInputDto.setShortid(projectOwner);
+				deployJobInputDto.setTarget_env("int");
+				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+				String projectOwnerWsId = entity.getData().getWorkspaceId();
+				deployJobInputDto.setWsid(projectOwnerWsId);
+				deploymentJobDto.setInputs(deployJobInputDto);
+				deploymentJobDto.setRef(codeServerEnvRef);
+				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
+					log.info("Found deployment of branch {} on Staging environment, undeploy triggered successfully by user {}", branch, userId);
+				}else {
+					log.warn("Found deployment of branch {} on Staging environment, undeploy trigger failed by user {}", branch, userId);
+					MessageDescription intUndeployTriggerFailed = new MessageDescription("Undeploy of branch "+branch+ " on Staging environment failed. Please retry deleting Project.");
+					errors.add(intUndeployTriggerFailed);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+			}
+			//undeploy prod if present
+			if(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl()!=null 
+					|| entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch()!=null 
+					|| entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus()!=null){
+				String branch = entity.getData().getProjectDetails().getProdDeploymentDetails().getLastDeployedBranch();
+				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
+				DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
+				deployJobInputDto.setAction("undeploy");
+				deployJobInputDto.setBranch(branch);
+				deployJobInputDto.setEnvironment(entity.getData().getProjectDetails().getRecipeDetails().getEnvironment());
+				deployJobInputDto.setRepo(gitOrgName+"/"+entity.getData().getProjectDetails().getGitRepoName());
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				deployJobInputDto.setShortid(projectOwner);
+				deployJobInputDto.setTarget_env("prod");
+				deployJobInputDto.setType(client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()));
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+				String projectOwnerWsId = entity.getData().getWorkspaceId();
+				deployJobInputDto.setWsid(projectOwnerWsId);
+				deploymentJobDto.setInputs(deployJobInputDto);
+				deploymentJobDto.setRef(codeServerEnvRef);
+				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				if(jobResponse!=null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
+					log.info("Found deployment of branch {} on Production environment, undeploy triggered successfully by user {}", branch, userId);
+				}else {
+					log.warn("Found deployment of branch {} on Production environment, undeploy trigger failed by user {}", branch, userId);
+					MessageDescription prodUndeployTriggerFailed = new MessageDescription("Undeploy of branch "+branch+ " on Production environment failed. Please retry deleting Project.");
+					errors.add(prodUndeployTriggerFailed);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors);
+					return responseMessage;
+				}
+			}
+		}
+			
+		String repoName = entity.getData().getProjectDetails().getGitRepoName();
+		if(isProjectOwner) {
+			//deleting repo
+			HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
+			if(!deleteRepoStatus.is2xxSuccessful()) {
+				MessageDescription gitRepoDeleteWarning = new MessageDescription("Failed while deleting git repository " +repoName + " for project. Please delete manually.");
+				warnings.add(gitRepoDeleteWarning);
+			}else {
+			 log.info("Repository {} deleted for the project by owner {} ", repoName, userId);
+			}
+		}else {
+			//removing collab user from repo
+			HttpStatus deleteUserFromRepoStatus = gitClient.deleteUserFromRepo(userId, repoName);
+			if(!deleteUserFromRepoStatus.is2xxSuccessful()) {
+				MessageDescription gitRepoDeleteWarning = new MessageDescription("Failed to remove user from git repository " +repoName + " for project. Please remove manually.");
+				warnings.add(gitRepoDeleteWarning);
+			}else {
+			 log.info("User {} removed for the project repo {} successfully",userId, repoName);
+			}
+			
+		}
+			//trigger delete of all project members workspaces if user is owner otherwise trigger just for user individual workspace
+			String projectName = entity.getData().getProjectDetails().getProjectName();
+			String recipeType = client.toDeployType(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+			String environment = entity.getData().getProjectDetails().getRecipeDetails().getEnvironment();
+			List<Object[]> records = new ArrayList<>();
+			if(isProjectOwner) {
+			records = workspaceCustomRepository.getWorkspaceIdsForProjectMembers(projectName);
+			}else {
+				Object[] collabRecord = {entity.getData().getWorkspaceId(),entity.getData().getWorkspaceOwner().getId()};
+				records.add(collabRecord);
+			}
+			for(Object[] record: records) {
+				 WorkbenchManageDto ownerWorkbenchDeleteDto = new WorkbenchManageDto();
+				 ownerWorkbenchDeleteDto.setRef(codeServerEnvRef);
+				 WorkbenchManageInputDto ownerWorkbenchDeleteInputsDto = new WorkbenchManageInputDto();
+				 ownerWorkbenchDeleteInputsDto.setAction(ConstantsUtility.DELETEACTION);
+				 ownerWorkbenchDeleteInputsDto.setEnvironment(environment);
+				 ownerWorkbenchDeleteInputsDto.setIsCollaborator("false");
+				 ownerWorkbenchDeleteInputsDto.setPassword("");
+				 ownerWorkbenchDeleteInputsDto.setPat("");
+				 String repoNameWithOrg =  gitOrgName + "/" + repoName;
+				 ownerWorkbenchDeleteInputsDto.setRepo(repoNameWithOrg);
+				 String workspaceUserId = record[1].toString();
+				 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
+				 ownerWorkbenchDeleteInputsDto.setType(recipeType);
+				 ownerWorkbenchDeleteInputsDto.setWsid(record[0].toString());
+				 ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
+				 GenericMessage deleteOwnerWSResponse = client.manageWorkBench(ownerWorkbenchDeleteDto);
+				 warnings.addAll(deleteOwnerWSResponse.getErrors());
+				 warnings.addAll(deleteOwnerWSResponse.getWarnings());
+			}
+			//update all workspaces for the project to deleted state in db if user is projectOwner otherwise change state to deleted only for individual workspace
+			if(isProjectOwner) {
+				workspaceCustomRepository.updateDeletedStatusForProject(projectName);
+			}else {
+				entity.getData().setStatus("DELETED");
+				jpaRepo.save(entity);
+			}
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseMessage.setWarnings(warnings);
+			return responseMessage;
 	}
 	
 	@Override
@@ -148,7 +254,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);			
+			
+			CodeServerWorkspaceNsql entity = workspaceAssembler.toEntity(vo);
+			
+			//validate user pat 
+			HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(),pat);
+			if(!validateUserPatstatus.is2xxSuccessful()) {
+				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
+				errors.add(errMsg);
+				responseVO.setErrors(errors);
+				return responseVO;
+			}
+			
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -208,6 +325,8 @@ public class BaseWorkspaceService implements WorkspaceService {
 			return responseVO;
 		}
 	}
+	
+	
 
 	@Override
 	@Transactional
@@ -218,6 +337,18 @@ public class BaseWorkspaceService implements WorkspaceService {
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
+			List<String> gitUsers = new ArrayList<>();
+			UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
+			 
+			//validate user pat 
+			HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(),pat);
+			if(!validateUserPatstatus.is2xxSuccessful()) {
+				MessageDescription errMsg = new MessageDescription("Invalid GitHub Personal Access Token provided. Please verify and retry.");
+				errors.add(errMsg);
+				responseVO.setErrors(errors);
+				return responseVO;
+			}
+			
 			//initialize repo
 			String repoName = vo.getProjectDetails().getGitRepoName();
 			HttpStatus createRepoStatus = gitClient.createRepo(repoName);
@@ -228,8 +359,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 				return responseVO;
 			}
 			// create repo success, adding collabs
-			 List<String> gitUsers = new ArrayList<>();
-			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
+			 
 			 gitUsers.add(owner.getGitUserName());
 			 List<UserInfoVO> collabs = vo.getProjectDetails().getProjectCollaborators();
 			 if(collabs!=null && !collabs.isEmpty()) {
@@ -349,9 +479,6 @@ public class BaseWorkspaceService implements WorkspaceService {
 			return responseVO;
 		}
 	}
-
-	
-	
 
 
 	@Override
@@ -485,7 +612,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					}
 					deploymentDetails.setLastDeploymentStatus("UNDEPLOY_REQUESTED");
-					workspaceCustomRepository.updateDeploymentDetails(status, environmentJsonbName, deploymentDetails);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					status = "SUCCESS";
 				}else {
 					status = "FAILED";
@@ -521,10 +648,10 @@ public class BaseWorkspaceService implements WorkspaceService {
 			String[] createDeleteStatuses = {"CREATED","CREATE_FAILED","DELETED","DELETE_REQUESTED"};
 			boolean isCreateDeleteStatuses = Arrays.stream(createDeleteStatuses).anyMatch(latestStatus::equals);
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findbyUniqueLiteral(userId, "workspaceId", name);
-			entity.getData().setStatus(latestStatus);
 			String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 			String workspaceName = entity.getData().getWorkspaceId();
-			String defaultRecipeId = RecipeIdEnum.DEFAULT.name();
+			String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
+			String pythonRecipeId =  RecipeIdEnum.PY_FASTAPI.toString();
 			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
 			String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 			if(isCreateDeleteStatuses) {
@@ -533,6 +660,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 					if(!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						workspaceUrl += "/app";
 					entity.getData().setWorkspaceUrl(workspaceUrl);
+					entity.getData().setStatus(latestStatus);
 				}
 				workspaceCustomRepository.update(entity);
 				log.info("updated status for user {} , workspace name {}, existingStatus {}, latestStatus {}",
@@ -554,7 +682,11 @@ public class BaseWorkspaceService implements WorkspaceService {
 						return responseMessage;
 				  }
 				 String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 String deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/swagger-ui.html";
+				 String deploymentUrl = "";
+				 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/swagger-ui.html";
+				 if(pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+					 deploymentUrl = codeServerBaseUri+"/"+projectOwnerWsId+"/"+ targetEnv +"/api/docs";
+				 }
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if("int".equalsIgnoreCase(targetEnv)) {
@@ -577,7 +709,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 							projectName,branch,targetEnv,latestStatus);
 				}
 				else if("UNDEPLOYED".equalsIgnoreCase(latestStatus)) {
-					deploymentDetails.setDeploymentUrl("");
+					deploymentDetails.setDeploymentUrl(null);
 					deploymentDetails.setLastDeploymentStatus(latestStatus);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName, deploymentDetails);
 					log.info("updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
@@ -592,7 +724,7 @@ public class BaseWorkspaceService implements WorkspaceService {
 		}catch(Exception e) {
 			log.error("caught exception while updating status {}",e.getMessage());
 			MessageDescription error = new MessageDescription();
-			error.setMessage("Failed while deploying codeserver workspace project, couldn't fetch project owner details");
+			error.setMessage("Failed while deploying codeserver workspace project, couldnt fetch project owner details");
 			errors.add(error);
 			responseMessage.setErrors(errors);
 			return responseMessage;

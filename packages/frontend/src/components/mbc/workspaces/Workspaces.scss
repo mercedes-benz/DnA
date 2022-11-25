@@ -1,7 +1,8 @@
-.Workspaces {
+.workspacesWrapper {
   display: flex;
   flex-wrap: wrap;
-  margin: -8px -8px 50px -8px;
+  margin-top: 50px;
+  // margin: -8px -8px 50px -8px;
 }
 .infoPopup {
   width: 500px;
