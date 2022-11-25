@@ -78,6 +78,24 @@ public interface DnaMinioClient {
 	public MinioGenericResponse getBucketObjects(String userId, String bucketName, String prefix);
 
 	/**
+	 * To list all the objects inside buckets
+	 * 
+	 * @param userId
+	 * @param bucketName
+	 * @return ResponseEntity<BucketObjectResponseWrapperVO>
+	 */
+	public List<String> listObjectsInBucket(String userId, String bucketName);
+
+	/**
+	 * To list all the objects inside buckets
+	 * 
+	 * @param userId
+	 * @param bucketName
+	 * @return ResponseEntity<BucketObjectResponseWrapperVO>
+	 */
+	public MinioGenericResponse deleteBucketCascade(String userId, String bucketName);
+
+	/**
 	 * To get object contents for given path
 	 * 
 	 * @param userId
