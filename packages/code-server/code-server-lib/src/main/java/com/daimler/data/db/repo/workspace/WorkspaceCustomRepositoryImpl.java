@@ -169,6 +169,27 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			return null;
 	}
 
+	
+	@Override
+	public List<Object[]> getWorkspaceIdsForProjectMembers(String projectName){
+		List<Object[]> records = new ArrayList<>();
+		
+		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as wsid,"
+				+ "jsonb_extract_path_text(data,'workspaceOwner','id') as userid from workspace_nsql "
+				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
+				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(getQuery);
+			records = q.getResultList();
+			if(records!=null && !records.isEmpty()) {
+				log.info("Found {} workspaces in project {} which are not in deleted state", records.size(), projectName);
+			}
+		}catch(Exception e) {
+			log.error("Failed to query workspaces under project {} , which are not in deleted state", projectName);
+		}
+		return records;
+	}
+	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
 		GenericMessage updateResponse = new GenericMessage();
@@ -203,7 +224,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
-			log.info("deployment details updated successfully for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+			log.error("deployment details updated successfully for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
 		}
 		return updateResponse;
 	}
@@ -213,6 +234,20 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			return "\"" + value + "\"";
 		else
 			return null;
+	}
+
+	@Override
+	public void updateDeletedStatusForProject(String projectName) {
+		String updateQuery = "UPDATE workspace_nsql SET data = jsonb_set(data, '{status}', '\"DELETED\"') "
+				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName')) "
+				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			log.info("updated all workspaces under project {} to DELETED state", projectName);
+		}catch(Exception e) {
+			log.error("Failed to update workspaces under project {} to DELETED state with exception {}", projectName, e.getMessage());
+		}
 	}
 	
 }
