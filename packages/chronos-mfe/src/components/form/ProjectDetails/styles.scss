@@ -21,11 +21,9 @@
       padding: 12px 10px;
       cursor: pointer;
 
-      // &:hover {
-      //   color: #00adef;
-      // }
-      color: #99a5b3;
-      cursor: not-allowed;
+      &:hover {
+        color: #00adef;
+      }
     }
   }
 }
@@ -280,7 +278,25 @@
     }
   }
 }
+.membersList {
+  padding: 0 15px 0 0;
+  max-height: 225px;
+  min-height: 225px;
+  overflow-y: auto;
+  overflow-x: hidden;
 
+  &::-webkit-scrollbar-thumb {
+    background: #00adef;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #293f55;
+  }
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+}
 .modalContent {
   padding-top: 8px;
   .flexLayout {
@@ -341,4 +357,14 @@
 
 .hide {
   display: none;
+}
+.projectWrapper {
+  padding: 10px 0;
+}
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+      width: calc(50% - 30px);
+  }
 }
