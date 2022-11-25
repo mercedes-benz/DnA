@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Home from 'components/mbc/home/Home';
+// import Home from 'components/mbc/home/Home';
 import MainNavigation from 'components/mainNavigation/MainNavigation';
 import Footer from 'components/mbc/footer/Footer';
 import { LOCAL_STORAGE_KEYS } from 'globals/constants';
@@ -79,9 +79,9 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
             isHome={this.state.isHome}
           />
           <SessionAlert />
-          {this.state.isHome ? (
+          {/* {this.state.isHome ? (
             <Home user={this.props.user} />
-          ) : (
+          ) : ( */}
             <main id="mainContainer" className="mainContainer">
               <aside>
                 <MainNavigation
@@ -94,7 +94,7 @@ export class Layout extends React.Component<ILayoutProps, ILayoutState> {
               <section>{this.props.children}</section>
               <Footer isHome={this.state.isHome} isNotebook={this.state.isNotebook} />
             </main>
-          )}
+          {/* )} */}
         </div>
       </React.Fragment>
     );
