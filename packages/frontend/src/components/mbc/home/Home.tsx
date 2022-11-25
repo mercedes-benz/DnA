@@ -46,7 +46,7 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                 <div className={Styles.quicklinkCardNav}>
                   <ul>
                     <li>
-                      <Link to="allsolutions">
+                      <Link to="transparency">
                         <span>
                           All Solutions <i className="icon mbc-icon arrow small right" />
                         </span>
