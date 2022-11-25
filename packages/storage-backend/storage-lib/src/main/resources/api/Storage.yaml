@@ -211,13 +211,7 @@ paths:
        description: "If requested data from live(Production) or training dataiku environment" 
        required: false
        type: boolean
-       default: true
-     - name: deleteCascade
-       in: query
-       description: "If delete Cascade is true then delete objects in a bucket" 
-       required: false
-       type: boolean
-       default: true     
+       default: true    
     responses:
      200:
       description: "Returns message of succes or failure"
@@ -592,7 +586,44 @@ paths:
     405:
      description: "Method not allowed"
     500:
-     description: "Internal error"        
+     description: "Internal error"
+
+ /v1/buckets/{bucketName}:
+  delete:
+    tags:
+      - "storage"
+    summary: "Delete bucket."
+    description:  "Delete bucket identified by bucketName."
+    operationId: "deleteBucketCascade"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name which need to be deleted."
+       required: true
+       type: string
+     - name: live
+       in: query
+       description: "If requested data from live(Production) or training dataiku environment"
+       required: false
+       type: boolean
+       default: true 
+    responses:
+      200:
+        description: "Returns message of succes or failure "
+        schema:
+          $ref: "#/definitions/GenericMessage"
+      204:
+        description: "Fetch complete, no content found."
+      400:
+        description: "Bad Request"
+      401:
+        description: "Request does not have sufficient credentials."
+      403:
+        description: "Request is not authorized."
+      405:
+        description: "Method not allowed"
+      500:
+        description: "Internal error"
      
 definitions:
      
