@@ -780,39 +780,31 @@ public class BaseStorageService implements StorageService {
 	 	}
 	 	LOGGER.info("authflag {} currentUser {}",authFlag,currentUser);
 
-	 	// To get all minio bucket objects.
-	 	MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjectsRecursive(currentUser, bucketName);
-	 	if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-	 		for (BucketObjectVO object : minioObjectResponse.getObjects()) {
-	 			// To delete minio bucket objects.
-	 			dnaMinioClient.removeObjects(currentUser, bucketName, object.getObjectName());
-	 		}
-	 	}
+		 // To delete bucket cascade.
+		 MinioGenericResponse minioObjectResponse = dnaMinioClient.deleteBucketCascade(currentUser, bucketName);
 
-	 	LOGGER.info("Removing bucket:{}", bucketName);
-	 	MinioGenericResponse minioResponse = dnaMinioClient.removeBucket(currentUser, bucketName);
-	 	if (minioResponse != null && minioResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
-	 		LOGGER.info("Success from minio remove bucket.");
-	 		// Fetching bucket info from database
-	 		StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
-	 		if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
-	 			// To delete dataiku connection if exists
-	 			Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(project -> {
-	 				LOGGER.info("Removing connection for project:{}", project);
-	 				dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, bucketName),
-	 						live);
-	 			}));
-	 			LOGGER.info("Deleting bucket:{} info from database", bucketName);
-	 			jpaRepo.deleteById(entity.getId());
-	 		}
-	 		genericMessage.setSuccess(ConstantsUtility.SUCCESS);
-	 		httpStatus = HttpStatus.OK;
-	 	} else {
-	 		LOGGER.info("Failure from minio remove bucket.");
-	 		genericMessage.setSuccess(ConstantsUtility.FAILURE);
-	 		genericMessage.setErrors(getMessages(minioResponse != null ? minioResponse.getErrors() : null));
-	 		httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-	 	}
+	 	 if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
+	 	 	LOGGER.info("Success from minio remove bucket.");
+	 	 	// Fetching bucket info from database
+	 	 	StorageNsql entity = customRepo.findbyUniqueLiteral(ConstantsUtility.BUCKET_NAME, bucketName);
+	 	 	if (Objects.nonNull(entity) && StringUtils.hasText(entity.getId())) {
+	 	 		// To delete dataiku connection if exists
+	 	 		Optional.ofNullable(entity.getData().getDataikuProjects()).ifPresent(l -> l.forEach(project -> {
+	 	 			LOGGER.info("Removing connection for project:{}", project);
+	 	 			dataikuClient.deleteDataikuConnection(StorageUtility.getDataikuConnectionName(project, bucketName),
+	 	 					live);
+	 	 		}));
+	 	 		LOGGER.info("Deleting bucket:{} info from database", bucketName);
+	 	 		jpaRepo.deleteById(entity.getId());
+	 	 	}
+	 	 	genericMessage.setSuccess(ConstantsUtility.SUCCESS);
+	 	 	httpStatus = HttpStatus.OK;
+	 	 } else {
+	 	 	LOGGER.info("Failure from minio remove bucket.");
+	 	 	genericMessage.setSuccess(ConstantsUtility.FAILURE);
+	 	 	genericMessage.setErrors(getMessages(minioObjectResponse != null ? minioObjectResponse.getErrors() : null));
+	 	 	httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+	 	 }
 	 	return new ResponseEntity<>(genericMessage, httpStatus);
 	 }
 	
