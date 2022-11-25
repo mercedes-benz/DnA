@@ -137,7 +137,7 @@ export default class Home extends React.Component<ILandingpageProps, ILandingpag
                       </Link>
                     </li>
                     <li>
-                      <Link to="services">
+                      <Link to="tools">
                         <span>
                           My Services <i className="icon mbc-icon arrow small right" />
                         </span>
