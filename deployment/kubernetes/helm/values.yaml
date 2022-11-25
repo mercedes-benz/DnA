@@ -56,6 +56,7 @@ frontend:
         ENABLE_STORAGE_SERVICE: true,
         STORAGE_MFE_APP_URL: "http://localhost:7175",
         ENABLE_REPORTS: true,
+        ENABLE_TRAININGS: false,
         ENABLE_ML_PIPELINE_SERVICE: false,
         ENABLE_NOTIFICATION: true,
         DATA_PIPELINES_APP_BASEURL: "http://localhost:9010",
