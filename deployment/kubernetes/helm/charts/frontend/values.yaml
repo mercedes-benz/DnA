@@ -56,6 +56,7 @@ configJs: |
       CONTAINER_APP_URL: 'http://localhost:9090',
       STORAGE_MFE_APP_URL: "http://localhost:8083",
       ENABLE_REPORTS: "true",
+      ENABLE_TRAININGS: "false",
       ENABLE_ML_PIPELINE_SERVICE: "true",
       ENABLE_NOTIFICATION: "true",
       ML_PIPELINE_URL: "YOUR_ML_PIPELINE_URL",

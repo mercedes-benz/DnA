@@ -1,15 +1,18 @@
 .searchPanel {
   position: relative;
   flex: 1 auto;
-  margin: -1px 25px 0 calc(24% - 100px);
+  position: absolute;
+  top: -20px;
+  left: 0;
+  width: 445px;
   input::placeholder {
     color: #c0c8d0;
   }
   .searchInputField {
     background: none;
     border: none;
-    border-bottom: 1px solid #697582;
-    font-size: var(--font-size-icon-medium);
+    border-bottom: 1px solid #242a33;
+    font-size: var(--font-size-medium);
     padding-right: 40px;
     margin-right: -20px;
     height: 40px;
@@ -19,6 +22,10 @@
     opacity: 1;
     transition: opacity 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
     visibility: visible;
+
+    &::placeholder {
+      color: #697582;
+    }
 
     &.hide {
       opacity: 0;
@@ -61,14 +68,28 @@
     overflow: auto;
     > li {
       padding: 10px 20px;
-      background-color: #383f49;
+      background-color: #242a33;
+      font-size: var(--font-size-medium);
       &:hover {
         cursor: pointer;
-        background-color: #252a33;
+        background-color: #1b2026;
       }
       &.active {
-        background-color: #252a33;
+        background-color: #1b2026;
       }
+    }
+
+    &::-webkit-scrollbar {
+      display: block;
+      width: 5px;
+      height: 5px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #293f55;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #00adef;
+      border-radius: 10px;
     }
   }
 }
