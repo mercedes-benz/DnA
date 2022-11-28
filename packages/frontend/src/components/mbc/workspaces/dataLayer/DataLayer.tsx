@@ -1,20 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Styles from './DataLayer.scss';
-import { Envs } from 'globals/Envs';
-// import MainPanel from '../../shared/mainPanel/MainPanel';
+// import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
 
 const DataLayer = () => {
-  const [enableJupiyterNoteWorkspace, setEnableJupiyterNoteWorkspace] = useState(true);
-  const [enableDataikuWorkspace, setEnableDataikuWorkspace] = useState(true);
-  const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
-  const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
-  const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
+  
 
   useEffect(() => {
-    setEnableJupiyterNoteWorkspace(Envs.ENABLE_JUPYTER_WORKSPACE);
-    setEnableDataikuWorkspace(Envs.ENABLE_DATAIKU_WORKSPACE);
   });
 
   return (
@@ -27,7 +20,7 @@ const DataLayer = () => {
             description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
             url={'/notebook'}
             isTextAlignLeft={false}
-            isDisabled={!enableJupiyterNoteWorkspace}
+            isDisabled={true}
             isSmallCard={false}
             isMediumCard={true} />
         <DNACard
@@ -35,15 +28,15 @@ const DataLayer = () => {
             description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
             url={'/notebook'}
             isTextAlignLeft={false}
-            isDisabled={!enableDataikuWorkspace}
+            isDisabled={false}
             isSmallCard={false}
             isMediumCard={true} /> 
         <DNACard
             title={'CarLA Economic Model'}
             description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
-            url={sapAnalyticsUrl}
+            url={''}
             isTextAlignLeft={false}
-            isDisabled={!enableSapAnalyticsCloud}
+            isDisabled={true}
             isSmallCard={false}
             isMediumCard={true} />
         <DNACard
@@ -51,15 +44,15 @@ const DataLayer = () => {
             description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
             url={'/codespaces'}
             isTextAlignLeft={false}
-            isDisabled={!enableCodeSpace}
+            isDisabled={true}
             isSmallCard={false}
             isMediumCard={true} /> 
         <DNACard
             title={'SAP Connection Book'}
             description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
-            url={sapAnalyticsUrl}
+            url={''}
             isTextAlignLeft={false}
-            isDisabled={!enableSapAnalyticsCloud}
+            isDisabled={true}
             isSmallCard={false}
             isMediumCard={true} />
         <DNACard
@@ -67,7 +60,7 @@ const DataLayer = () => {
             description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
             url={'/codespaces'}
             isTextAlignLeft={false}
-            isDisabled={!enableCodeSpace}
+            isDisabled={true}
             isSmallCard={false}
             isMediumCard={true} />     
       </div>
