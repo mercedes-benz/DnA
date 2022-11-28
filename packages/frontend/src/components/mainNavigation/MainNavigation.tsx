@@ -182,7 +182,7 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 3,
-          route: `/data-governance`,
+          route: `/datagovernance`,
           title: 'DataGovernance',
           enabled: true,
         },
