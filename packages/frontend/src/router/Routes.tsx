@@ -28,6 +28,7 @@ const Workspaces = React.lazy(() => import('components/mbc/workspaces/Workspaces
 const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
 const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
 const DataLayer = React.lazy(() => import('components/mbc/workspaces/dataLayer/DataLayer'));
+const DataGovernance = React.lazy(() => import('components/mbc/workspaces/dataGovernance/DataGovernance'));
 const Services = React.lazy(() => import('components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
@@ -233,6 +234,13 @@ const protectedRoutes = [
     exact: false,
     path: '/datalayer',
     title: 'Data Layer',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataGovernance,
+    exact: false,
+    path: '/datagovernance',
+    title: 'Data Governance',
   },
   {
     allowedRoles: UserAndAdminRole,
