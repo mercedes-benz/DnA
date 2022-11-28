@@ -17,6 +17,7 @@ export interface IDNACardProps {
     isSmallCard?: boolean;
     isMediumCard?: boolean;
     tags?: string[];
+    isExternalLink?: boolean;
 }
 const DNACard = (props: IDNACardProps) => {
  
@@ -30,13 +31,17 @@ const DNACard = (props: IDNACardProps) => {
     <>
       <div className={classNames(Styles.cardWrapper, props.isMediumCard ? Styles.mediumCard : '', props.isSmallCard ? Styles.smallCard : '', props.isDisabled ?Styles.disabled : '')}
         onClick={() => {
-            history.push(props.url);
+            props.isExternalLink ? window.open(props.url) : history.push(props.url);
         }}
       >
         <div className={Styles.cardHeaderSection}>
             {props.isDisabled ? (
                 <button className={'btn btn-primary '+Styles.comingSoonBtn}>Coming Soon</button>
-                ) : ''}
+                ) : 
+                props.isExternalLink ? <i
+                  className={classNames('icon mbc-icon new-tab', Styles.OpenNewTabIcon)}
+                />  : ''   
+            }    
         </div>
         <div className={Styles.cardIconSection}>
             <IconAddKPI className={Styles.avatarIcon} />
