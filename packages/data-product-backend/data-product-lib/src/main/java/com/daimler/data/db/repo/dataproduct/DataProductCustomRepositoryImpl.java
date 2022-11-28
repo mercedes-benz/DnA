@@ -28,6 +28,7 @@
 package com.daimler.data.db.repo.dataproduct;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -202,5 +203,49 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 			return consolidatedQuery.toString();
 		}
 		return "";
+	}
+	
+	public Query getNativeQueryWithFilters(String selectFieldsString, String uniqueProductName,String status) {
+
+		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
+				: "select cast(id as text), cast(data as text) from";
+		prefix = prefix + " dataproduct_nsql";
+		String basicpredicate = " where (id is not null)";
+		String consolidatedPredicate = buildPredicateString(uniqueProductName,status);
+		String query = prefix + basicpredicate + consolidatedPredicate;		
+		Query q = em.createNativeQuery(query);
+		return q;
+	}
+	
+	private String buildPredicateString(String uniqueProductName, String status) {;
+		if ((uniqueProductName != null && !uniqueProductName.isEmpty()) && (!status.isEmpty())) {			
+			return " and ((jsonb_extract_path_text(data,'dataProductName')) in (" +"'"+ uniqueProductName +"'"+ "))" +  
+					" and ((jsonb_extract_path_text(data,'recordStatus')) in (" +"'"+ status +"'"+ "))";
+		}
+		return "";
+	}
+
+	@Override
+	public List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status) {
+
+		Query q = getNativeQueryWithFilters("select cast (data as text) from ", uniqueProductName,status);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();				
+		DataProductNsql entity = new DataProductNsql();
+		List<DataProductNsql> dataProductNsqls = new ArrayList<>();
+		if(results != null && !results.isEmpty()) {
+			for(Object result : results) {
+				try {
+					String jsonData = result.toString() != null ? result.toString() : "";					
+					DataProduct dataProduct = mapper.readValue(jsonData, DataProduct.class);
+					entity.setData(dataProduct);
+					dataProductNsqls.add(entity);
+				}
+				catch(Exception e) {
+					LOGGER.error("Exception Occured: {}", e.getMessage());
+				}
+			}
+		}
+		return dataProductNsqls;				
 	}
 }
