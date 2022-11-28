@@ -39,4 +39,6 @@ public interface DataProductCustomRepository extends CommonDataRepository<DataPr
 
 	Long getCountUsingNativeQuery(Boolean published, String recordStatus);
 
+	List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status);
+
 }
