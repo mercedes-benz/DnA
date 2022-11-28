@@ -14,15 +14,17 @@ export interface ITagsProps {
 
 const TagSection = (props: ITagsProps) => {
 
-    useEffect(() => {
-        // selectTagToFilter();
-    },[]);
+    // const [selectedTag, setSelectedTag] = useState('');
 
-    const selectTagToFilter = (tag: string) => {
+    useEffect(() => {        
+    },[props.selectedTags]);
+    
+
+    const selectDeselectTagsFilter = (tag: string) => {
         const indexOfTag = props.selectedTags.indexOf(tag);
-        let newArray = props.selectedTags;
+        const newArray = JSON.parse(JSON.stringify(props.selectedTags));
         if (indexOfTag > -1) { 
-            newArray = props.selectedTags.splice(indexOfTag, 1); 
+            newArray.splice(indexOfTag, 1); 
             props.setSeletedTags(newArray);
         } else {
             newArray.push(tag); 
@@ -30,26 +32,30 @@ const TagSection = (props: ITagsProps) => {
         }        
     }
 
-    const selectAllTags = (tag: string) => {
-        props.setSeletedTags([tag]);
+    const selectDeselectAllTags = (tag: string) => {
+        const allTags = props?.tags;
+        const shallowCloneAllTags = [ ...allTags ]; //Shallow cloning so that refernces will not be copied
+        props.setSeletedTags(shallowCloneAllTags);
     }
 
     const selectAll = props?.tags?.length > 0 
-    ? (props?.tags?.length === props?.selectedTags?.length) || (props?.selectedTags[0] === 'all')
+    ? (props?.tags?.length === props?.selectedTags?.length) || 
+    props?.selectedTags?.length === 0 ||
+    (props?.selectedTags[0] === 'all')
         ? true 
         : false 
     : false;
     
     return (
         <div className={Styles.filterWrapper}>
-            <span className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectAllTags('all')}>
+            <span className={classNames(Styles.tagItem, selectAll ? Styles.selectedItem : '')} onClick={()=>selectDeselectAllTags('all')}>
                 All ({props?.tags?.length})
             </span>
             {props?.tags?.map((tag, index: number) => {
-                const shouldHighlightItem = props?.selectedTags.includes(tag);
+                const shouldHighlightItem = (props?.selectedTags.includes(tag));
                 return (
                     <span key={index} className={classNames(Styles.tagItem, shouldHighlightItem ? Styles.selectedItem : '')}
-                    onClick={()=>selectTagToFilter(tag)}>
+                    onClick={()=>selectDeselectTagsFilter(tag)}>
                         {tag}
                     </span>)
             })}
