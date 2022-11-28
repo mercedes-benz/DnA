@@ -6,7 +6,7 @@ const Breadcrumb = (props) => {
     <div className={Styles.breadcrumb}>
       <ol>
           <li><a href='#/'>Start</a></li>
-          <li><a href='#/services'>My Services</a></li>
+          <li><a href='#/tools'>Tools</a></li>
           { props.children }
       </ol>
     </div>
