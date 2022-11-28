@@ -175,7 +175,7 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 2,
-          route: `/data-layer`,
+          route: `/datalayer`,
           title: 'DataLayer',
           enabled: true,
         },
@@ -197,7 +197,7 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
-          route: `/explore-tools`,
+          route: `/tools`,
           title: 'ExploreTools',
           enabled: true,
         },
