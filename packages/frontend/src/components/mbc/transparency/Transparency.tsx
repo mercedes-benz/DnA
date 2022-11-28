@@ -39,9 +39,9 @@ const Transparency = () => {
         <DNACard
           title={'Data Sharing'}
           description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
-          url={'/'}
+          url={'/dataproduct'}
           isTextAlignLeft={false}
-          isDisabled={true}
+          isDisabled={false}
           isSmallCard={false}
           isMediumCard={true} />    
 
