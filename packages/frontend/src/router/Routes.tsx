@@ -210,9 +210,23 @@ const protectedRoutes = [
   {
     allowedRoles: UserAndAdminRole,
     component: Workspaces,
-    exact: false,
+    exact: true,
     path: '/data',
     title: 'Data',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataLayer,
+    exact: true,
+    path: '/data/datalayer',
+    title: 'Data Layer',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: DataGovernance,
+    exact: true,
+    path: '/data/datagovernance',
+    title: 'Data Governance',
   },
   {
     allowedRoles: UserAndAdminRole,
@@ -227,20 +241,6 @@ const protectedRoutes = [
     exact: false,
     path: '/tools',
     title: 'Tools',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: DataLayer,
-    exact: false,
-    path: '/datalayer',
-    title: 'Data Layer',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: DataGovernance,
-    exact: false,
-    path: '/datagovernance',
-    title: 'Data Governance',
   },
   {
     allowedRoles: UserAndAdminRole,
