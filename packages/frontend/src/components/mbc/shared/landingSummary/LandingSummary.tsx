@@ -18,7 +18,6 @@ const LandingSummary = (props: ILandingSummaryProps) => {
     useEffect(() => {
     },[])
     const setSelectedFilter = (values: string[]) => {
-        console.log(values,'====================');
         setSelectedTags(values);
     }
 
