@@ -60,7 +60,7 @@ const getPlanningIT = (searchTerm = '') => {
   return server.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
 };
 
-export const dataProductsApi = {
+export const dataTransferApi = {
   getAllDataProducts,
   createDataProduct,
   getDepartments,
