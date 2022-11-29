@@ -172,8 +172,9 @@ const CreateDataProduct = ({ user, history }) => {
       { id: '2', name: 'carLA 2' },
     ]);
     setDataCatalogList([
-      { id: '1', name: 'Data Catalog 1' },
-      { id: '2', name: 'Data Catalog 2' },
+      { id: '1', name: 'oneAPI' },
+      { id: '2', name: 'DDX' },
+      { id: '3', name: 'eXtollo' },
     ]);
   }, []);
 
