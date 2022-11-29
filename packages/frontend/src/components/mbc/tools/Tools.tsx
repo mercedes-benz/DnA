@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Styles from './Tools.scss';
 import { Envs } from 'globals/Envs';
-import MainPanel from '../shared/mainPanel/MainPanel';
+// import MainPanel from '../shared/mainPanel/MainPanel';
 import DNACard from 'components/card/Card';
+import LandingSummary from '../shared/landingSummary/LandingSummary';
+import headerImageURL from '../../../assets/images/Tools-Landing.png';
 
 const Tools = () => {
   
@@ -25,7 +27,15 @@ const Tools = () => {
   });
 
   return (
-    <MainPanel title={'Tools'} subTitle={'Lorem ipsum dolor sit amet'}>
+    <LandingSummary
+    title={'Tools'}
+    subTitle={
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+    }
+    tags={['SAP', 'Self Service', 'No/Low Code', 'FOSS', 'Automation']}
+    headerImage={headerImageURL}
+    isBackButton={false}
+    >
       <div className={Styles.toolsWrapper}>
         <DNACard
           title={'Malware Scan'}
@@ -115,7 +125,7 @@ const Tools = () => {
           isMediumCard={true} />                
 
       </div>
-    </MainPanel>
+    </LandingSummary>
   );
 };
 
