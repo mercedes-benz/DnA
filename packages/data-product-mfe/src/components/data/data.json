@@ -82,7 +82,8 @@
                 "classificationConfidentiality":{
                     "confidentiality": "Public"
                 }
-            }
+            },
+            "isCarlaCertified": true
         },
         {
             "dataProductId": "0060",
