@@ -3,10 +3,17 @@
         {
             "dataProductId": "0059",
             "id":"0059",
-            "productName": "Universal Journey Entries Sample test asdiuabsd adiuabd asdbuasidbuaisdubaisdub",
+            "dataProductName":"Universal Journey Entries Sample test",
+            "productName": "Universal Journey Entries Sample test",
             "description":
             "Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis. Database table ACDOCA is the source for Universal Journal Entries.",
             "confidentiality": "Public",
+            "classificationOfTransferedData":"Sample",
+            "productDescription":"Sample data product",
+            "ART":"ART-1",
+            "carLA":"carLA-1",
+            "dataCatalog":"Data Catalog 1",
+            "howToAccess":"1. Login<br/> 2. Raise request",
             "createdBy": {
                 "id": "DEMOUSER",
                 "department": "",
@@ -23,13 +30,64 @@
                     "name": "IT"
                 }
             },
+            "dateOfDataProduct":"2022-11-30T04:18:21.794+00:00",
+            "complianceOfficer": "demo.former@test.com",
+            "lcoNeeded":true,
+            "informationOwner":{
+                "id": "INFOOWNER",
+                "department": "",
+                "email": "info.owner@test.com",
+                "firstName": "Info",
+                "lastName": "Owner",
+                "mobileNumber": "null"
+            },
+            
             "department":"ITP",
-            "createdDate": "2022-11-04T04:18:21.794+00:00",
-            "tags":["Enabling-ART","SBISS","AFO","SAC","CDC", "Enabling-ART2","SBISS2"]
+            "tags":["Enabling-ART","SBISS","AFO","SAC","CDC", "Enabling-ART2","SBISS2"],
+            "openSegments":["ContactInformation","IdentifyingPersonalRelatedData"],
+            "personalRelatedData":"Yes",
+            "personalRelatedDataDescription":"Sample Description",
+            "personalRelatedDataPurpose":"Sample",
+            "personalRelatedDataLegalBasis":"Vital",
+            "classificationDescription": "Sample Classified",
+            "transnationalDataTransfer":"No",
+            "insiderInformation":"N/A",
+            "dataOriginatedFromChina":"No",
+            "deletionRequirement":"No",
+            "otherRelevantInfo": "Sample",
+            "planningIT":"APP-123",
+            
+            "providerInformation":{
+                "createdBy": {
+                    "id": "DEMOUSER",
+                    "department": "",
+                    "email": "demouser@test.com",
+                    "firstName": "Demo",
+                    "lastName": "User",
+                    "mobileNumber": "null"
+                },
+                "providerFormSubmitted": true,
+                "contactInformation":{
+                    "appId":"APP-32",
+                    "name":{
+                        "id": "NAME",
+                        "department": "",
+                        "email": "firstname.lastname@test.com",
+                        "firstName": "First",
+                        "lastName": "Name",
+                        "mobileNumber": "null"
+                    }
+                },
+                "createdDate": "2022-11-04T04:18:21.794+00:00",
+                "classificationConfidentiality":{
+                    "confidentiality": "Public"
+                }
+            }
         },
         {
             "dataProductId": "0060",
             "id":"0060",
+            "dataProductName":"Data Product 1",
             "productName": "Data Product 1",
             "description":"Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis.",
             "confidentiality": "Public",
@@ -50,8 +108,39 @@
                 }
             },
             "department":"ITP",
-            "createdDate": "2022-11-04T04:18:21.794+00:00",
-            "tags":["Enabling-ART","SBISS","AFO","SAC","CDC"]
+            "tags":["Enabling-ART","SBISS","AFO","SAC","CDC"],
+            "providerInformation":{
+                "createdBy": {
+                    "id": "DEMOUSER",
+                    "department": "",
+                    "email": "demouser@test.com",
+                    "firstName": "Demo",
+                    "lastName": "User",
+                    "mobileNumber": "null"
+                },
+                "providerFormSubmitted": true,
+                "contactInformation":{
+                    "appId":"APP-123",
+                    "name":{
+                        "id": "NAME",
+                        "department": "",
+                        "email": "firstname.lastname@test.com",
+                        "firstName": "John",
+                        "lastName": "Doe",
+                        "mobileNumber": "null"
+                    }
+                },
+                "createdDate": "2022-11-29T04:18:21.794+00:00",
+                "classificationConfidentiality":{
+                    "confidentiality": "Secret"
+                }
+            },
+            "publish":true,
+            "consumerInformation":{
+                "contactInformation":{
+                    "appId":"APP-123"
+                }
+            }
         }
     ]
 }
