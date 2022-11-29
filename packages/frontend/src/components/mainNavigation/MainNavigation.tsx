@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // @ts-ignore
 import Navigation from './../../assets/modules/uilab/js/src/navigation';
@@ -18,7 +18,7 @@ export interface IMainNavigationProps {
 
 const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN];
 
-const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
+const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
   let isTouch = false;
   let mainNavContainer: HTMLDivElement;
 
@@ -28,13 +28,12 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
   useEffect(() => {
     document.addEventListener('touchend', handleMainMenuClickOutside, true);
     document.addEventListener('click', handleMainMenuClickOutside, true);
-  
+
     return () => {
       document.removeEventListener('touchend', handleMainMenuClickOutside, true);
       document.removeEventListener('click', handleMainMenuClickOutside, true);
-    }
+    };
   }, []);
-  
 
   useEffect(() => {
     const navElement = document.getElementById('main-nav');
@@ -153,7 +152,7 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 6,
-          route: `/createnewreport`,
+          route: `/data/datasharing`,
           title: 'DataSharingMI',
           enabled: true,
         },
@@ -168,7 +167,7 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 1,
-          route: `/data-products`,
+          route: `/data/dataproductlist`,
           title: 'DataProducts',
           enabled: true,
         },
@@ -385,7 +384,10 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
                         active: getPath().includes(subNavItem.route),
                       })}
                     >
-                      <Link className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)} to={subNavItem.route}>
+                      <Link
+                        className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
+                        to={subNavItem.route}
+                      >
                         {getTranslatedLabel(subNavItem.title)}
                       </Link>
                     </li>
@@ -414,6 +416,6 @@ const MainNavigation:React.FC<IMainNavigationProps> = (props) => {
       </ul>
     </nav>
   );
-}
+};
 
 export default MainNavigation;
