@@ -9,8 +9,7 @@ export interface ILandingpageProps {
   user: IUserInfo;
 }
 
-const Home:React.FC<ILandingpageProps> = () => {
-
+const Home: React.FC<ILandingpageProps> = () => {
   // const [showInfoModal, setShowInfoModal] = useState<boolean>(false);
 
   return (
@@ -19,8 +18,11 @@ const Home:React.FC<ILandingpageProps> = () => {
         <div className={Styles.datmdcBanner}>
           <div className={Styles.bannerDesc}>
             <h2 className={Styles.appName}>{Envs.DNA_APPNAME_HOME}</h2>
-            <h5 className={Styles.appDesc}>Self services, data insight and<br />
-                analytics - all in one place.</h5>
+            <h5 className={Styles.appDesc}>
+              Self services, data insight and
+              <br />
+              analytics - all in one place.
+            </h5>
           </div>
           <div className={Styles.dnaContainer}>
             <div className={Styles.dnaRow}>
@@ -33,7 +35,8 @@ const Home:React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   isSmallCard={false}
-                  isMediumCard={true} />
+                  isMediumCard={true}
+                />
               </div>
               <div className={Styles.selfServiceCol}>
                 <h2 className={Styles.headline}>FC Self-Service Zone for Data Insights</h2>
@@ -45,7 +48,8 @@ const Home:React.FC<ILandingpageProps> = () => {
                     isTextAlignLeft={false}
                     isDisabled={false}
                     isSmallCard={false}
-                    isMediumCard={true} />
+                    isMediumCard={true}
+                  />
                   <DNACard
                     title={'Tools'}
                     description={'Both FC users and Pro Developers find our standard Data & Analytics tools here'}
@@ -53,7 +57,8 @@ const Home:React.FC<ILandingpageProps> = () => {
                     isTextAlignLeft={false}
                     isDisabled={false}
                     isSmallCard={false}
-                    isMediumCard={true} />
+                    isMediumCard={true}
+                  />
                   <DNACard
                     title={'Trainings'}
                     description={'Data and Tools are not enough - here we enable you to become even more productive'}
@@ -61,8 +66,9 @@ const Home:React.FC<ILandingpageProps> = () => {
                     isTextAlignLeft={false}
                     isDisabled={!Envs.ENABLE_TRAININGS}
                     isSmallCard={false}
-                    isMediumCard={true} />
-                  </div>
+                    isMediumCard={true}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -185,6 +191,6 @@ const Home:React.FC<ILandingpageProps> = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Home;
