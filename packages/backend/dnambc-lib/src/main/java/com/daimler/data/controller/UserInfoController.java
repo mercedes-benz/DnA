@@ -212,6 +212,20 @@ public class UserInfoController implements UsersApi {
 				UserInfoVO currentUserData = userInfoService.getById(userInfoVO.getId());
 				//To set key existing data if missing in request
 				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
+				Boolean isAdmin = false;
+				CreatedByVO currentUser = this.userStore.getVO();
+				String userId = currentUser != null ? currentUser.getId() : null;
+				if (userId != null && !"".equalsIgnoreCase(userId)) {
+					if (currentUserData != null) {
+						List<UserRoleVO> userRoles = currentUserData.getRoles();
+						if (userRoles != null && !userRoles.isEmpty())
+							isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
+					}
+				}
+				if (!isAdmin) {
+					logger.info("Only user with Admin role can change roles");
+					return new ResponseEntity<>(userInfoVO, HttpStatus.UNAUTHORIZED);
+				}
 				if (!rolesUpdated(userRequestVO, currentUserData)) {
 					userInfoVO.setToken(currentUserData.getToken());
 				} else {
