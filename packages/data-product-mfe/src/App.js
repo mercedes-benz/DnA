@@ -7,10 +7,10 @@ import Routes, { protectedRoutes } from './components/DataProductRoutes';
 
 const App = ({ user, ...rest }) => {
   useEffect(() => {
-    const pathName = rest.history?.location?.pathname?.replace('/dataproduct', '') || '/';
+    const pathName = rest.history?.location?.pathname?.replace('/data', '') || '/';
     const isValidRoute = protectedRoutes.find((route) => pathName === route.path)?.path;
 
-    if (user?.roles?.length > 0 && rest.history?.location?.pathname.includes('/dataproduct')) {
+    if (user?.roles?.length > 0 && rest.history?.location?.pathname.includes('/data')) {
       if (isValidRoute) {
         history.replace(isValidRoute);
       }

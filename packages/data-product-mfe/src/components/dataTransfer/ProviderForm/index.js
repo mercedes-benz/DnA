@@ -11,7 +11,7 @@ import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-ind
 import Notification from '../../../common/modules/uilab/js/src/notification';
 
 import { hostServer } from '../../../server/api';
-import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/dataproducts.api';
 
 import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 import { SetDataProducts, UpdateDataProducts } from '../redux/dataProduct.services';
@@ -29,7 +29,7 @@ import DeletionRequirements from './DeletionRequirements';
 
 import TourGuide from '../TourGuide';
 
-const tabs = {
+export const tabs = {
   'contact-info': {
     productName: '',
     dateOfDataTransfer: '',
@@ -96,7 +96,7 @@ const ProviderForm = ({ user, history }) => {
   const getDataProductById = () => {
     const id = createCopyId || dataProductId || provideDataProducts?.selectedDataProduct?.id;
     ProgressIndicator.show();
-    dataProductsApi
+    dataTransferApi
       .getDataProductById(id)
       .then((res) => {
         if (createCopyId) {

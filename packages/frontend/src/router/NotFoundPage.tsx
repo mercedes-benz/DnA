@@ -5,7 +5,7 @@ import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 const NotFoundPage = () => {
   const currentPath = window.location?.hash?.split('/')?.length > 2 && window.location?.hash?.split('/')?.[1];
   const mfePaths = {
-    dataproduct: 'Go to data transfer page',
+    data: 'Go to data page',
     storage: 'Go to my storage page',
   };
   return (
