@@ -5,7 +5,8 @@ import ConfirmModal from 'dna-container/ConfirmModal';
 
 const DataCardItem = ({ product, history }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+  const tags =
+    product?.tags || [product?.ART, product?.carLAFunction, product?.corportateDataCatalog].filter((x) => !!x);
   const maxTagItem = 4;
 
   const deleteDataProductContent = (
@@ -30,19 +31,19 @@ const DataCardItem = ({ product, history }) => {
         }}
       >
         <div className={Styles.cardBodySection}>
-          <div className={Styles.title}>{product?.dataProductName}</div>
+          <div className={Styles.title}>{product?.productName}</div>
           <div className={Styles.description}>{product?.description}</div>
         </div>
         <div className={Styles.cardFooter}>
           <div className={Styles.tags}>
-            {product?.tags?.slice(0, maxTagItem)?.map((item) => {
+            {tags?.slice(0, maxTagItem)?.map((item) => {
               return (
                 <span className={Styles.tagItem} key={item}>
                   {item}
                 </span>
               );
             })}
-            {product?.tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
+            {tags?.length > maxTagItem ? <span className={Styles.tagItem}>...</span> : null}
           </div>
         </div>
       </div>
