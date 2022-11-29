@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, withRouter } from 'react-router-dom';
-import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { dataProductApi } from '../../../apis/data.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
@@ -10,13 +10,12 @@ import { hostServer } from '../../../server/api';
 import { setSelectedData, setDivisionList } from '../redux/dataSlice';
 
 import Styles from './styles.scss';
-import dummyData from '../data.json';
 
 import { regionalDateFormat } from '../../../Utility/utils';
 
 const Summary = ({ history }) => {
   const { id: dataProductId } = useParams();
-  const { selectedData: data } = useSelector((state) => state.data);
+  const { selectedData: data, data: dataList } = useSelector((state) => state.data);
 
   // const division = serializeDivisionSubDivision(divisionList, {
   //   division: data.division,
@@ -42,12 +41,16 @@ const Summary = ({ history }) => {
       dispatch(setSelectedData({}));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dataList]);
 
   const getDataProductById = () => {
-    dataProductsApi.getDataProductById(dataProductId).then(() => {
+    dataProductApi.getDataById(dataList, dataProductId).then((res) => {
       // const data = deserializeFormData(res.data);
-      dispatch(setSelectedData(dummyData[0]));
+      if (res) {
+        dispatch(setSelectedData(res));
+      } else {
+        return history.push('/NotFound');
+      }
       Tabs.defaultSetup();
     });
   };
@@ -65,7 +68,7 @@ const Summary = ({ history }) => {
             Back
           </button>
           <div className={Styles.summaryBannerTitle}>
-            <h2>{data.productName}</h2>
+            <h2>{data?.productName}</h2>
           </div>
           <div id="data-product-summary-tabs" className="tabs-panel">
             <div className="tabs-wrapper">
