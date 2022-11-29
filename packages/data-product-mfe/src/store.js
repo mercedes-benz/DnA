@@ -9,7 +9,7 @@ import dropdownsSlice from './components/dataTransfer/redux/getDropdownsSlice';
 import dataSlice from './components/data/redux/dataSlice';
 
 export const history = createHashHistory({
-  basename: '/dataproduct',
+  basename: '/data',
 });
 
 const isDev = process.env.NODE_ENV === 'development';

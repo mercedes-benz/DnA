@@ -1,99 +1,57 @@
-[{
-    "dataProductId": "0059",
-    "dataProductName": "Universal Journey Entries Sample test asdiuabsd adiuabd asdbuasidbuaisdubaisdub",
-    "description":
-    "Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis. Database table ACDOCA is the source for Universal Journal Entries.",
-    "confidentiality": "Public",
-    "createdBy": {
-        "id": "DEMOUSER",
-        "department": "",
-        "email": "demouser@test.com",
-        "firstName": "Demo",
-        "lastName": "User",
-        "mobileNumber": "null"
-    },
-    "division":{
-        "id": 8,
-        "name": "TEST123",
-        "subdivision":{
-            "id": "8-1",
-            "name": "IT"
-        }
-    },
-    "department":"ITP",
-    "createdDate": "2022-11-04T04:18:21.794+00:00",
-    "tags":["Enabling-ART","SBISS","AFO","SAC","CDC", "Enabling-ART2","SBISS2"]
-},
 {
-    "dataProductId": "0059",
-    "dataProductName": "Data Product 1",
-    "description":"Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis.",
-    "confidentiality": "Public",
-    "createdBy": {
-        "id": "DEMOUSER",
-        "department": "",
-        "email": "demouser@test.com",
-        "firstName": "Demo",
-        "lastName": "User",
-        "mobileNumber": "null"
-    },
-    "division":{
-        "id": 8,
-        "name": "TEST123",
-        "subdivision":{
-            "id": "8-1",
-            "name": "IT"
+    "result":[
+        {
+            "dataProductId": "0059",
+            "id":"0059",
+            "productName": "Universal Journey Entries Sample test asdiuabsd adiuabd asdbuasidbuaisdubaisdub",
+            "description":
+            "Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis. Database table ACDOCA is the source for Universal Journal Entries.",
+            "confidentiality": "Public",
+            "createdBy": {
+                "id": "DEMOUSER",
+                "department": "",
+                "email": "demouser@test.com",
+                "firstName": "Demo",
+                "lastName": "User",
+                "mobileNumber": "null"
+            },
+            "division":{
+                "id": 8,
+                "name": "TEST123",
+                "subdivision":{
+                    "id": "8-1",
+                    "name": "IT"
+                }
+            },
+            "department":"ITP",
+            "createdDate": "2022-11-04T04:18:21.794+00:00",
+            "tags":["Enabling-ART","SBISS","AFO","SAC","CDC", "Enabling-ART2","SBISS2"]
+        },
+        {
+            "dataProductId": "0060",
+            "id":"0060",
+            "productName": "Data Product 1",
+            "description":"Exploration Self Service: Contains all OneERP Universal Journal Entry documents reflecting Balance Sheet, P&L and Profitability Analysis.",
+            "confidentiality": "Public",
+            "createdBy": {
+                "id": "DEMOUSER",
+                "department": "",
+                "email": "demouser@test.com",
+                "firstName": "Demo",
+                "lastName": "User",
+                "mobileNumber": "null"
+            },
+            "division":{
+                "id": 8,
+                "name": "TEST123",
+                "subdivision":{
+                    "id": "8-1",
+                    "name": "IT"
+                }
+            },
+            "department":"ITP",
+            "createdDate": "2022-11-04T04:18:21.794+00:00",
+            "tags":["Enabling-ART","SBISS","AFO","SAC","CDC"]
         }
-    },
-    "department":"ITP",
-    "createdDate": "2022-11-04T04:18:21.794+00:00",
-    "tags":["Enabling-ART","SBISS","AFO","SAC","CDC"]
-},
-{
-    "dataProductId": "0059",
-    "dataProductName": "Data Product 2",
-    "confidentiality": "Public",
-    "createdBy": {
-        "id": "DEMOUSER",
-        "department": "",
-        "email": "demouser@test.com",
-        "firstName": "Demo",
-        "lastName": "User",
-        "mobileNumber": "null"
-    },
-    "division":{
-        "id": 8,
-        "name": "TEST123",
-        "subdivision":{
-            "id": "8-1",
-            "name": "IT"
-        }
-    },
-    "department":"ITP",
-    "createdDate": "2022-11-04T04:18:21.794+00:00",
-    "tags":["Enabling-ART","SBISS","AFO","SAC"]
-},
-{
-    "dataProductId": "0059",
-    "dataProductName": "Data Product 3",
-    "confidentiality": "Public",
-    "createdBy": {
-        "id": "DEMOUSER",
-        "department": "",
-        "email": "demouser@test.com",
-        "firstName": "Demo",
-        "lastName": "User",
-        "mobileNumber": "null"
-    },
-    "division":{
-        "id": 8,
-        "name": "TEST123",
-        "subdivision":{
-            "id": "8-1",
-            "name": "IT"
-        }
-    },
-    "department":"ITP",
-    "createdDate": "2022-11-04T04:18:21.794+00:00"
+    ]
 }
-]

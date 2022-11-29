@@ -62,6 +62,14 @@ export const serializeFormData = (values, division, type = 'provider') => {
       dataProductName: values.productName,
       id: values.id,
       publish: values.publish || false,
+
+      description: values.description,
+      ART: values?.ART,
+      carLAFunction: values?.carLAFunction,
+      corportateDataCatalog: values?.corportateDataCatalog,
+      dateOfDataProduct: values?.dateOfDataProduct,
+      informationOwner: values?.informationOwner,
+      dataProductId: values.dataProductId,
     };
   }
 };
@@ -72,13 +80,13 @@ export const deserializeFormData = (item, type = 'provider') => {
     id: item.id,
     productName: item.dataProductName,
     publish: item.publish,
-    name: item.providerInformation?.contactInformation.name,
-    planningIT: item.providerInformation?.contactInformation.appId,
-    dateOfDataTransfer: item.providerInformation?.contactInformation.dataTransferDate,
-    department: item.providerInformation?.contactInformation.department?.split(),
-    division: item.providerInformation?.contactInformation.division.id,
-    subDivision: item.providerInformation?.contactInformation.division.subdivision.id || '0',
-    complianceOfficer: item.providerInformation?.contactInformation.localComplianceOfficer?.split(),
+    name: item.providerInformation?.contactInformation?.name,
+    planningIT: item.providerInformation?.contactInformation?.appId,
+    dateOfDataTransfer: item.providerInformation?.contactInformation?.dataTransferDate,
+    department: item.providerInformation?.contactInformation?.department?.split(),
+    division: item.providerInformation?.contactInformation?.division?.id,
+    subDivision: item.providerInformation?.contactInformation?.division?.subdivision?.id || '0',
+    complianceOfficer: item.providerInformation?.contactInformation?.localComplianceOfficer?.split(),
     confidentiality: item.providerInformation?.classificationConfidentiality?.confidentiality || 'Public',
     classificationOfTransferedData: item.providerInformation?.classificationConfidentiality?.description,
     dataOriginatedFromChina: item.providerInformation?.transnationalDataTransfer?.dataFromChina ? 'Yes' : 'No',
@@ -97,6 +105,14 @@ export const deserializeFormData = (item, type = 'provider') => {
     notifyUsers: item?.notifyUsers,
     users: item.providerInformation?.users,
     providerFormSubmitted: item.providerInformation?.providerFormSubmitted,
+
+    description: item.description,
+    ART: item?.ART,
+    carLAFunction: item?.carLAFunction,
+    corportateDataCatalog: item?.corportateDataCatalog,
+    dateOfDataProduct: item?.dateOfDataProduct,
+    informationOwner: item?.informationOwner,
+    dataProductId: item?.dataProductId,
     ...((!isProvider || item.consumerInformation) && {
       consumer: {
         planningIT: item.consumerInformation?.contactInformation?.appId,
