@@ -77,6 +77,35 @@ hr {
     margin-right: 40px;
 }
 
+.line {
+    margin: 0;
+}
+
+.dataTransferSection {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px;
+    div {
+        align-self: center;
+    }
+    a {
+        color: #c0c8d0;
+        &:hover {
+            color: #00adef;
+        }
+        i {
+            margin-left: 5px;
+            font-size: 10px;
+        }
+    }
+}
+.allDataproductCardviewContent {
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: left;
+    margin-right: -30px;
+}
+
 :global {
     #data-summary-tabs {
         min-width: 540px;

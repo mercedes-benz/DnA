@@ -14,7 +14,7 @@ import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../../../common/modules/uilab/js/src/notification';
 
-const DataProductCardItem = ({ product, history, user }) => {
+const DataProductCardItem = ({ product, history, user, isDataProduct = false }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dispatch = useDispatch();
 
@@ -62,7 +62,7 @@ const DataProductCardItem = ({ product, history, user }) => {
         <div
           className={Styles.cardHead}
           onClick={() => {
-            history.push(`/summary/${product?.dataProductId}`);
+            !isDataProduct && history.push(`/summary/${product?.dataProductId}`);
           }}
         >
           <div className={Styles.cardHeadInfo}>
@@ -128,33 +128,35 @@ const DataProductCardItem = ({ product, history, user }) => {
             </div>
           </div>
         </div>
-        <div className={Styles.cardFooter}>
-          <div className={Styles.btnGrp}>
-            {isCreator ? (
-              <>
-                <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
-                  <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>
-                </button>
-                <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.dataProductId}`)}>
-                  <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>
-                </button>
-              </>
-            ) : null}
-            <button
-              className="btn btn-primary"
-              onClick={() => history.push({ pathname: '/create', state: { copyId: product?.dataProductId } })}
-            >
-              <i className="icon mbc-icon copy-new" tooltip-data="Create Copy"></i>
-            </button>
-            <button
-              className={classNames('btn btn-primary', !isProviderFormSubmitted ? Styles.disabled : '')}
-              disabled={!isProviderFormSubmitted}
-              onClick={() => onShare(product?.dataProductId)}
-            >
-              <i className={'icon mbc-icon share'} tooltip-data="Share"></i>
-            </button>
+        {!isDataProduct ? (
+          <div className={Styles.cardFooter}>
+            <div className={Styles.btnGrp}>
+              {isCreator ? (
+                <>
+                  <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
+                    <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>
+                  </button>
+                  <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.dataProductId}`)}>
+                    <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>
+                  </button>
+                </>
+              ) : null}
+              <button
+                className="btn btn-primary"
+                onClick={() => history.push({ pathname: '/create', state: { copyId: product?.dataProductId } })}
+              >
+                <i className="icon mbc-icon copy-new" tooltip-data="Create Copy"></i>
+              </button>
+              <button
+                className={classNames('btn btn-primary', !isProviderFormSubmitted ? Styles.disabled : '')}
+                disabled={!isProviderFormSubmitted}
+                onClick={() => onShare(product?.dataProductId)}
+              >
+                <i className={'icon mbc-icon share'} tooltip-data="Share"></i>
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
       <ConfirmModal
         title={''}
