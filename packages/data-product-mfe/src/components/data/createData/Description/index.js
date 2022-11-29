@@ -134,6 +134,21 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
                 <span className={classNames('error-message')}>{errors?.description?.message}</span>
               </div>
             </div>
+            <div className={Styles.flexLayout}>
+              <div className={classNames('input-field-group include-error area', errors.howToAccess ? 'error' : '')}>
+                <label id="howToAccess" className="input-label" htmlFor="howToAccess">
+                  How to access
+                </label>
+                <textarea
+                  id="description"
+                  className="input-field-area"
+                  type="text"
+                  {...register('howToAccess')}
+                  rows={50}
+                />
+                <span className={classNames('error-message')}>{errors?.howToAccess?.message}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
