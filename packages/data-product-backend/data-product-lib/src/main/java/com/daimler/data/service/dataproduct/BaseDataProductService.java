@@ -166,10 +166,10 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					LOGGER.error("DataProduct {} , failed to create", uniqueProductName);
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				}
-			}
-			DataProductVO existingVO = super.getByUniqueliteral("dataProductName", uniqueProductName);
-			if (existingVO != null && existingVO.getDataProductName() != null) {
-				responseVO.setData(getProviderVOFromDataProductVO(existingVO));
+			}	
+			List<DataProductVO> dataProductVOs = getExistingDataProduct(uniqueProductName, ConstantsUtility.OPEN);
+			if (!ObjectUtils.isEmpty(dataProductVOs) && (dataProductVOs.size()>0)) {
+				responseVO.setData(getProviderVOFromDataProductVO(dataProductVOs.get(0)));
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
 				message.setMessage("DataProduct already exists.");
@@ -613,5 +613,19 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 		return providerVO;
 
 	}
+
+
+	private List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status) {
+		LOGGER.info("Fetching Data product information from table for getExistingDataProduct.");
+		List<DataProductNsql> dataProductNsqls = dataProductCustomRepository.getExistingDataProduct(uniqueProductName, status);
+		LOGGER.info("Success from get information from table.");
+		if (!ObjectUtils.isEmpty(dataProductNsqls)) {
+			return dataProductNsqls.stream().map(n -> dataProductAssembler.toVo(n)).toList();
+		} else {
+			return new ArrayList<>();
+		}	
+	}
+	
+
 
 }

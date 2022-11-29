@@ -99,7 +99,7 @@ const DataListItem = ({ product, history }) => {
             <img src={dataProductImg} />
           </div>
           <div className={Styles.flexItem}>
-            <div className={Styles.heading}>{product?.dataProductName}</div>
+            <div className={Styles.heading}>{product?.productName}</div>
             <div>{product?.description}</div>
           </div>
           <div className={classNames(Styles.tags, Styles.flexItem)}>

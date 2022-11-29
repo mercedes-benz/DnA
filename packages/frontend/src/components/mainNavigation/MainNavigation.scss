@@ -26,6 +26,22 @@
       transition: width 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
       width: 292px !important;
       background-color: #1b2026;
+      height: calc(100vh - 5rem);
+      overflow-y: auto;
+      top: 5rem!important;
+
+      &::-webkit-scrollbar {
+        display: block;
+        width: 5px;
+        height: 5px;
+      }
+      &::-webkit-scrollbar-track {
+          background: #293f55;
+      }
+      &::-webkit-scrollbar-thumb {
+          background: #00adef;
+          border-radius: 10px;
+      }
 
       .nav-list .nav-item.has-sub-nav {
         &.opened {
@@ -46,7 +62,7 @@
     }
 
     .nav-list {
-      height: calc(100vh - var(--header-size)) !important;
+      height: auto;
       margin: 0;
       overflow: hidden;
       .nav-item {
