@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React, { useState } from 'react';
 import Styles from './DataCardItem.styles.scss';
 import { withRouter } from 'react-router-dom';
@@ -30,6 +31,11 @@ const DataCardItem = ({ product, history }) => {
           history.push(`/dataSummary/${product?.dataProductId}`);
         }}
       >
+        {product?.isCarlaCertified ? (
+          <div>
+            <button className={classNames('btn btn-primary', Styles.isCarlaCertified)}>CARLA Certified</button>
+          </div>
+        ) : null}
         <div className={Styles.cardBodySection}>
           <div className={Styles.title}>{product?.productName}</div>
           <div className={Styles.description}>{product?.description}</div>
