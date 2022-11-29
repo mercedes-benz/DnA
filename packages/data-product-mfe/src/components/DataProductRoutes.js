@@ -5,6 +5,7 @@ import { Route, Router, Switch } from 'react-router-dom';
 import Progress from 'dna-container/Progress';
 import NotFoundPage from 'dna-container/NotFound';
 import UnAuthorised from 'dna-container/UnAuthorised';
+import DataWorkspaces from 'dna-container/DataWorkspace';
 
 import ProviderForm from './dataTransfer/ProviderForm';
 import ConsumerForm from './dataTransfer/ConsumerForm';
@@ -24,9 +25,14 @@ import DataSummary from './data/summary';
 
 export const protectedRoutes = [
   {
-    component: DataProducts,
+    component: DataWorkspaces,
     exact: true,
     path: '/',
+  },
+  {
+    component: DataProducts,
+    exact: true,
+    path: '/datasharing',
   },
   {
     component: ProviderForm,
@@ -56,7 +62,7 @@ export const protectedRoutes = [
   {
     component: DataList,
     exact: true,
-    path: '/dataProductList',
+    path: '/dataproductlist',
   },
   {
     component: CreateData,

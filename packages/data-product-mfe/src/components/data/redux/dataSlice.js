@@ -28,7 +28,8 @@ export const dataSlice = createSlice({
       const modifiedData = action.payload.data
         ? action.payload.data?.slice(0, action.payload.pagination.maxItemsPerPage)
         : [];
-      state.data = modifiedData;
+      let objectArr = [...state.data, ...modifiedData];
+      state.data = [...new Set(objectArr.map((o) => JSON.stringify(o)))].map((str) => JSON.parse(str));
       state.isLoading = false;
       state.errors = '';
       state.pagination.dataListResponse = action.payload.data;
@@ -45,6 +46,7 @@ export const dataSlice = createSlice({
     },
     [SetData.fulfilled]: (state, action) => {
       state.isLoading = false;
+      state.data = [...state.data, action.payload.data];
       state.selectedData = action.payload?.data;
       state.errors = '';
     },
@@ -57,6 +59,8 @@ export const dataSlice = createSlice({
     },
     [UpdateData.fulfilled]: (state, action) => {
       state.isLoading = false;
+      let filteredData = state.data.filter((item) => item.id !== action.payload.data.id);
+      state.data = [...filteredData, action.payload.data];
       state.selectedData = action.payload.data;
       state.errors = '';
     },

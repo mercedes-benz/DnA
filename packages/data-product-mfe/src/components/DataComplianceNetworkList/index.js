@@ -731,7 +731,7 @@ const DataComplianceNetworkList = (props) => {
         ProgressIndicator.hide();
         Notification.show(
           e?.response?.data?.errors[0]?.message || 'Erorr while fetching data compliance network list change logs',
-          'error',
+          'alert',
         );
       });
   };
