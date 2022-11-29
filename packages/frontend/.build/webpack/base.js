@@ -172,6 +172,8 @@ const base = {
         './TeamSearch': './src/components/mbc/teamSearch/TeamSearch.tsx',
         './DNACard': './src/components/card/Card.tsx',
         './DataWorkspace': './src/components/mbc/workspaces/Workspaces.tsx',
+        './DataLayer': './src/components/mbc/workspaces/dataLayer/DataLayer.tsx',
+        './DataGovernance': './src/components/mbc/workspaces/dataGovernance/DataGovernance.tsx'
       },
       remotes: {
         // object key is used to import
