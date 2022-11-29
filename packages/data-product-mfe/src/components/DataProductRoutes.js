@@ -6,6 +6,8 @@ import Progress from 'dna-container/Progress';
 import NotFoundPage from 'dna-container/NotFound';
 import UnAuthorised from 'dna-container/UnAuthorised';
 import DataWorkspaces from 'dna-container/DataWorkspace';
+import DataLayer from 'dna-container/DataLayer';
+import DataGovernance from 'dna-container/DataGovernance';
 
 import ProviderForm from './dataTransfer/ProviderForm';
 import ConsumerForm from './dataTransfer/ConsumerForm';
@@ -28,6 +30,18 @@ export const protectedRoutes = [
     component: DataWorkspaces,
     exact: true,
     path: '/',
+  },
+  {
+    component: DataLayer,
+    exact: true,
+    path: '/datalayer',
+    title: 'Data Layer',
+  },
+  {
+    component: DataGovernance,
+    exact: true,
+    path: '/datagovernance',
+    title: 'Data Governance',
   },
   {
     component: DataProducts,
