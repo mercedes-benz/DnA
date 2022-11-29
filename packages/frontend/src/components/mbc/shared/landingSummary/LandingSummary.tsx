@@ -4,11 +4,14 @@ import TagSection from './tagSection/TagSection';
 import HeadingSection from './headingSection/HeadingSection';
 
 
+
 export interface ILandingSummaryProps {
   title: string;
   subTitle?: string;
   children: any;
   tags?: string[];
+  headerImage?: string;
+  isBackButton?: boolean;
 }
 
 const LandingSummary = (props: ILandingSummaryProps) => {
@@ -23,7 +26,7 @@ const LandingSummary = (props: ILandingSummaryProps) => {
 
     return (
         <div className={Styles.landingSummary}>
-            <HeadingSection title={props.title} subTitle={props.subTitle}></HeadingSection>
+            <HeadingSection title={props.title} subTitle={props.subTitle} headerImage={props.headerImage} isBackButton={props.isBackButton}></HeadingSection>
 
             <TagSection tags={props.tags} selectedTags={selectedTags} setSeletedTags={setSelectedFilter}></TagSection>
 
