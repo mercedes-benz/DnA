@@ -174,14 +174,14 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
         {
           allowedRoles: UserAndAdminRole,
           id: 2,
-          route: `/datalayer`,
+          route: `/data/datalayer`,
           title: 'DataLayer',
           enabled: true,
         },
         {
           allowedRoles: UserAndAdminRole,
           id: 3,
-          route: `/datagovernance`,
+          route: `/data/datagovernance`,
           title: 'DataGovernance',
           enabled: true,
         },
