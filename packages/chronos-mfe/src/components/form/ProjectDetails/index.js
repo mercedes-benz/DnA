@@ -47,7 +47,7 @@ const ProjectDetails = () => {
       chronosApi.getForecastProjectById(projectId).then((res) => {
       setProject(res.data);
       if(res.data.collaborators !== null) {
-        const members = res.data.collaborators.map(member => ({...member, userType: 'internal'}));
+        const members = res.data.collaborators.map(member => ({...member, shortId: member.id, userType: 'internal'}));
         setTeamMembers(members);
         setTeamMembersOriginal(members);
       }
