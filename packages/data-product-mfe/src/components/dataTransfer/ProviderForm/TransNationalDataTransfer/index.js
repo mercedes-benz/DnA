@@ -230,6 +230,15 @@ const TransNationalDataTransfer = ({ onSave }) => {
               </div>
               <span className={classNames('error-message')}>{errors?.LCOApprovedDataTransfer?.message}</span>
             </div>
+          </div>
+        </div>
+      </div>
+      <div className={Styles.wrapper}>
+        <div className={Styles.firstPanel}>
+          <div>
+            <h3>Identifiying Insider Information</h3>
+          </div>
+          <div className={Styles.formWrapper}>
             <div
               className={classNames(`input-field-group include-error ${errors?.insiderInformation ? 'error' : ''}`)}
               style={{ minHeight: '50px' }}

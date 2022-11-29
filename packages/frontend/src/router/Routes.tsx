@@ -24,7 +24,7 @@ const MalwareScanService = React.lazy(() => import('components/mbc/malwareScanSe
 const ModelRegistry = React.lazy(() => import('components/mbc/modelRegistry/ModelRegistry'));
 const Notifications = React.lazy(() => import('components/mbc/notification/Notifications'));
 const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
-const Workspaces = React.lazy(() => import('components/mbc/workspaces/Workspaces'));
+// const Workspaces = React.lazy(() => import('components/mbc/workspaces/Workspaces'));
 const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
 const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
 const DataLayer = React.lazy(() => import('components/mbc/workspaces/dataLayer/DataLayer'));
@@ -207,13 +207,13 @@ const protectedRoutes = [
     path: '/pipeline',
     title: 'Pipeline',
   },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: Workspaces,
-    exact: true,
-    path: '/data',
-    title: 'Data',
-  },
+  // {
+  //   allowedRoles: UserAndAdminRole,
+  //   component: Workspaces,
+  //   exact: true,
+  //   path: '/dataworkspace',
+  //   title: 'Data',
+  // },
   {
     allowedRoles: UserAndAdminRole,
     component: DataLayer,
@@ -316,7 +316,7 @@ const protectedRoutes = [
     allowedRoles: UserAndAdminRole,
     component: DataProductComponent,
     exact: false,
-    path: '/dataproduct',
+    path: '/data',
     title: 'Data Product',
   },
   {

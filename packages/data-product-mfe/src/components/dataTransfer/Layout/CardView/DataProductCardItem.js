@@ -5,7 +5,7 @@ import { withRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 import { regionalDateFormat, setTooltipIfEllipsisShown } from '../../../../Utility/utils';
-import { dataProductsApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/dataproducts.api';
 import { GetDataProducts } from '../../redux/dataProduct.services';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
@@ -41,7 +41,7 @@ const DataProductCardItem = ({ product, history, user }) => {
 
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
-    dataProductsApi.deleteDataProduct(product?.id).then(() => {
+    dataTransferApi.deleteDataProduct(product?.id).then(() => {
       dispatch(GetDataProducts());
       setShowDeleteModal(false);
     });

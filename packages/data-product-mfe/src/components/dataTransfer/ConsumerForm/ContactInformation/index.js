@@ -12,7 +12,7 @@ import TypeAheadBox from 'dna-container/TypeAheadBox';
 
 import { useFormContext, Controller } from 'react-hook-form';
 import { hostServer } from '../../../../server/api';
-import { dataProductsApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/dataproducts.api';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
 import { useSelector } from 'react-redux';
@@ -97,7 +97,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   useEffect(() => {
     if (isFormMounted) {
       ProgressIndicator.show();
-      dataProductsApi
+      dataTransferApi
         .getDataComplianceList(0, 0, 'entityId', 'asc')
         .then((res) => {
           res.data?.records?.map((item) => {
@@ -135,7 +135,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
 
   useEffect(() => {
     ProgressIndicator.show();
-    dataProductsApi
+    dataTransferApi
       .getDepartments()
       .then((res) => {
         setDepartments(res?.data?.data);
@@ -201,7 +201,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
   const handlePlanningITSearch = debounce((searchTerm, showSpinner) => {
     if (searchTerm.length > 3) {
       showSpinner(true);
-      dataProductsApi
+      dataTransferApi
         .getPlanningIT(searchTerm)
         .then((res) => {
           setPlanningITList(res.data.data || []);
