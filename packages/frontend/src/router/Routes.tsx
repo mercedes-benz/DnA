@@ -24,11 +24,8 @@ const MalwareScanService = React.lazy(() => import('components/mbc/malwareScanSe
 const ModelRegistry = React.lazy(() => import('components/mbc/modelRegistry/ModelRegistry'));
 const Notifications = React.lazy(() => import('components/mbc/notification/Notifications'));
 const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
-// const Workspaces = React.lazy(() => import('components/mbc/workspaces/Workspaces'));
 const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
 const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
-const DataLayer = React.lazy(() => import('components/mbc/workspaces/dataLayer/DataLayer'));
-const DataGovernance = React.lazy(() => import('components/mbc/workspaces/dataGovernance/DataGovernance'));
 const Services = React.lazy(() => import('components/mbc/services/Services'));
 const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
@@ -206,27 +203,6 @@ const protectedRoutes = [
     exact: false,
     path: '/pipeline',
     title: 'Pipeline',
-  },
-  // {
-  //   allowedRoles: UserAndAdminRole,
-  //   component: Workspaces,
-  //   exact: true,
-  //   path: '/dataworkspace',
-  //   title: 'Data',
-  // },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: DataLayer,
-    exact: true,
-    path: '/data/datalayer',
-    title: 'Data Layer',
-  },
-  {
-    allowedRoles: UserAndAdminRole,
-    component: DataGovernance,
-    exact: true,
-    path: '/data/datagovernance',
-    title: 'Data Governance',
   },
   {
     allowedRoles: UserAndAdminRole,
