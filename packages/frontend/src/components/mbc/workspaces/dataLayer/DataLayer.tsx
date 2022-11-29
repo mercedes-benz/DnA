@@ -3,6 +3,7 @@ import Styles from './DataLayer.scss';
 // import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
+import headerImageURL from '../../../../assets/images/Data-Layer-Landing.png';
 
 const DataLayer = () => {
   
@@ -13,7 +14,9 @@ const DataLayer = () => {
   return (
     <LandingSummary title={'Data Layer'} 
     subTitle={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
-    tags={['Lorem Ipsum', 'ABC', 'XYZ']}>
+    tags={['Lorem Ipsum', 'ABC', 'XYZ']}
+    headerImage={headerImageURL}
+    isBackButton={true}>
       <div className={Styles.Workspaces}>
         <DNACard
             title={'Data Model'}
