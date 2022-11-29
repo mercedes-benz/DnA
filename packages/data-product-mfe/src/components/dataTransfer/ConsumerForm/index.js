@@ -19,7 +19,7 @@ import ContactInformation from './ContactInformation';
 import PersonalRelatedData from './PersonalRelatedData';
 import TourGuide from '../TourGuide';
 import ProviderSummary from './ProviderSummary';
-import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/dataproducts.api';
 import { useParams, withRouter } from 'react-router-dom';
 import { setDataProduct, setDivisionList } from '../redux/dataProductSlice';
 
@@ -112,7 +112,7 @@ const ConsumerForm = ({ user, history }) => {
 
   const getDataProductById = () => {
     ProgressIndicator.show();
-    dataProductsApi
+    dataTransferApi
       .getDataProductById(dataProductId)
       .then((res) => {
         const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;

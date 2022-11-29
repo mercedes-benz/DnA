@@ -1,11 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/dataproducts.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 export const getClassificationTypes = createAsyncThunk('dropdowns/getClassificationTypes', async () => {
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.getAllClassificationTypes();
+    const res = await dataTransferApi.getAllClassificationTypes();
     ProgressIndicator.hide();
     return {
       data: res.data?.data,
@@ -22,7 +22,7 @@ export const getClassificationTypes = createAsyncThunk('dropdowns/getClassificat
 export const getLegalBasis = createAsyncThunk('dropdowns/getLegalBasis', async () => {
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.getAllLegalBasis();
+    const res = await dataTransferApi.getAllLegalBasis();
     ProgressIndicator.hide();
     return {
       data: res.data?.data,
