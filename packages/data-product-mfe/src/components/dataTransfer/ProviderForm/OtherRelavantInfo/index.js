@@ -15,7 +15,7 @@ import IconAvatarNew from 'dna-container/IconAvatarNew';
 import { Envs } from '../../../../Utility/envs';
 import { withRouter } from 'react-router-dom';
 
-const OtherRelevantInfo = ({ onSave, history, user }) => {
+const OtherRelevantInfo = ({ onSave, history, user, isDataProduct }) => {
   const {
     register,
     handleSubmit,
@@ -260,20 +260,39 @@ const OtherRelevantInfo = ({ onSave, history, user }) => {
           >
             Save
           </button>
-          <button
-            className={'btn btn-tertiary'}
-            type="button"
-            onClick={handleSubmit((data) => {
-              setValue('providerFormSubmitted', true);
-              onSave(watch());
-              setShowAddConsumersModal(true);
-              reset(data, {
-                keepDirty: false,
-              });
-            })}
-          >
-            Save and Forward Minimum Information
-          </button>
+          {isDataProduct ? (
+            <button
+              className={'btn btn-tertiary'}
+              type="button"
+              onClick={handleSubmit((data) => {
+                setValue('notifyUsers', true);
+                setValue('publish', true);
+                setValue('providerFormSubmitted', true);
+                onSave(watch());
+                history.push('/dataproductlist');
+                reset(data, {
+                  keepDirty: false,
+                });
+              })}
+            >
+              Publish
+            </button>
+          ) : (
+            <button
+              className={'btn btn-tertiary'}
+              type="button"
+              onClick={handleSubmit((data) => {
+                setValue('providerFormSubmitted', true);
+                onSave(watch());
+                setShowAddConsumersModal(true);
+                reset(data, {
+                  keepDirty: false,
+                });
+              })}
+            >
+              Save and Forward Minimum Information
+            </button>
+          )}
         </div>
       </div>
       {showInfoModal && (

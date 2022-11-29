@@ -1,21 +1,20 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { dataProductApi } from '../../../apis/data.api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } from '../../../Utility/formData';
-
-import dummyData from '../data.json';
+import { v4 as uuidv4 } from 'uuid';
 
 export const GetData = createAsyncThunk('data/GetData', async (arg, { getState }) => {
   ProgressIndicator.show();
   try {
-    // const res = await dataProductsApi.getAllDataProducts('dataProductId', 'desc');
+    const res = await dataProductApi.getAllDataList('dataProductId', 'desc');
     ProgressIndicator.hide();
     const {
       data: { pagination },
     } = getState(); // redux store method
     return {
-      data: dummyData,
+      data: res,
       pagination,
     };
   } catch (e) {
@@ -24,7 +23,7 @@ export const GetData = createAsyncThunk('data/GetData', async (arg, { getState }
   }
 });
 
-export const SetData = createAsyncThunk('data/SetData', async (data, { rejectWithValue }) => {
+export const SetData = createAsyncThunk('data/SetDatas', async (data, { rejectWithValue }) => {
   const {
     values,
     onSave,
@@ -33,12 +32,17 @@ export const SetData = createAsyncThunk('data/SetData', async (data, { rejectWit
 
   const division = serializeDivisionSubDivision(divisionList, values);
 
+  // mock id
+  const id = uuidv4();
+  values['id'] = id;
+  values['dataProductId'] = id;
+
   const requestBody = serializeFormData(values, division);
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.createDataProduct(requestBody);
+    const res = await dataProductApi.createDataProduct(requestBody);
     onSave();
-    const data = deserializeFormData(res?.data?.data);
+    const data = deserializeFormData(res);
     ProgressIndicator.hide();
     Notification.show('Draft saved successfully.');
     return {
@@ -52,7 +56,7 @@ export const SetData = createAsyncThunk('data/SetData', async (data, { rejectWit
   }
 });
 
-export const UpdateData = createAsyncThunk('data/SetData', async (data, { rejectWithValue }) => {
+export const UpdateData = createAsyncThunk('data/UpdateData', async (data, { rejectWithValue }) => {
   const {
     values,
     onSave,
@@ -69,17 +73,20 @@ export const UpdateData = createAsyncThunk('data/SetData', async (data, { reject
   }
   const requestBody = serializeFormData(values, division, type);
   ProgressIndicator.show();
+
   try {
     let res = {};
     if (isProviderForm) {
-      res = await dataProductsApi.updateProvider(requestBody);
+      res = await dataProductApi.updateProvider(requestBody);
     } else {
-      res = await dataProductsApi.updateConsumer(requestBody);
+      res = await dataProductApi.updateConsumer(requestBody);
     }
     ProgressIndicator.hide();
     onSave();
-    const responseData = res?.data?.data;
+    const responseData = res;
+
     const data = deserializeFormData(responseData, type);
+
     // Provider Form
     if (isProviderForm) {
       if (responseData?.providerInformation?.providerFormSubmitted) {
