@@ -155,4 +155,6 @@ export const Envs = {
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_CHRONOS_FORECASTING_SERVICE, false),
+  
+  DATA_GOVERNANCE_INFO_LINK: getInjectedEnv('DATA_GOVERNANCE_INFO_LINK') || process.env.DATA_GOVERNANCE_INFO_LINK,
 };
