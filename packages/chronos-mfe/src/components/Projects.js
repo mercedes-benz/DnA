@@ -28,6 +28,7 @@ const ForeCastingProjects = ({ user, history }) => {
   const [generateApiKey, setGenerateApiKey] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [teamMembersOriginal, setTeamMembersOriginal] = useState([]);
   const [editTeamMember, setEditTeamMember] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState();
   const [editTeamMemberIndex, setEditTeamMemberIndex] = useState(0);
@@ -63,7 +64,6 @@ const ForeCastingProjects = ({ user, history }) => {
   /* getResults */
   const getResults = async (action) => {
     const showProgressIndicator = ['pagination'].includes(action);
-    console.log(action);
 
     showProgressIndicator && ProgressIndicator.show();
 
@@ -139,6 +139,7 @@ const ForeCastingProjects = ({ user, history }) => {
       setCreateProject(false);
       reset({ name: '' });
       setTeamMembers([]);
+      setTeamMembersOriginal([]);
       Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
@@ -149,14 +150,34 @@ const ForeCastingProjects = ({ user, history }) => {
     });
   };
   const handleEditProject = () => {
+    const addedCollaboratorsTemp = addedCollaborators.map((member) => {
+      if(member.id === null) {
+        return {...member, id: member.email}
+      } else {
+        return {...member}
+      }
+    });
+    let removedCollaboratorsTemp = teamMembersOriginal.filter((member) => {
+      return removedCollaborators.some((collab) => {
+        return member.id == collab.id;
+      });
+    });
+    removedCollaboratorsTemp = removedCollaboratorsTemp.map((member) => {
+      if(member.id === null) {
+        return {...member, id: member.email}
+      } else {
+        return {...member}
+      }
+    });
     const data = {
-      addCollaborators: addedCollaborators,
-      removeCollaborators: removedCollaborators
+      addCollaborators: addedCollaboratorsTemp,
+      removeCollaborators: removedCollaboratorsTemp
     }
     ProgressIndicator.show();
     chronosApi.updateForecastProjectCollaborators(data, projectDetails.id).then(() => {
       ProgressIndicator.hide();
       setTeamMembers([]);
+      setTeamMembersOriginal([]);
       setAddedCollaborators([]);
       setRemovedCollaborators([]);
       setEditProject(false);
@@ -169,6 +190,7 @@ const ForeCastingProjects = ({ user, history }) => {
         'alert',
       );
       setTeamMembers([]);
+      setTeamMembersOriginal([]);
       setAddedCollaborators([]);
       setRemovedCollaborators([]);
       setEditProject(false);
@@ -195,20 +217,27 @@ const ForeCastingProjects = ({ user, history }) => {
     const teamMemberTemp = {...teamMember, id: teamMember.shortId, permissions: { 'read': true, 'write': true }};
     delete teamMemberTemp.teamMemberPosition;
     let teamMembersTemp = teamMembers !== null ? [...teamMembers] : [];
-    const addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
-    const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
+    let addedCollaboratorsTemp = addedCollaborators.length > 0 ? [...addedCollaborators] : [];
+    let removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
     if(editTeamMember) {
       const deletedMember = teamMembersTemp.splice(editTeamMemberIndex, 1);
-      removedCollaboratorsTemp.push(deletedMember[0]);
+      addedCollaboratorsTemp = checkMembers(addedCollaborators, deletedMember[0]);
+      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
+      removedCollaboratorsTemp.push({...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true }});
       teamMembersTemp.splice(editTeamMemberIndex, 0, teamMemberTemp);
-      addedCollaboratorsTemp.push(teamMember);
+      addedCollaboratorsTemp.push({...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true }});
     } else {
       teamMembersTemp.push(teamMemberTemp);
-      addedCollaboratorsTemp.push(teamMember);
+      removedCollaboratorsTemp = checkMembers(removedCollaborators, teamMember);
+      addedCollaboratorsTemp.push({...teamMember, id: teamMember.shortId ? teamMember.shortId : teamMember.id, permissions: { 'read': true, 'write': true }});
     }
     setAddedCollaborators(addedCollaboratorsTemp);
     setRemovedCollaborators(removedCollaboratorsTemp);
     setTeamMembers(teamMembersTemp);
+    console.log('addedCollaborators');
+    console.log(addedCollaboratorsTemp);
+    console.log('removedCollaborators');
+    console.log(removedCollaboratorsTemp);
   }
   const validateMembersList = (teamMemberObj) => {
     let duplicateMember = false;
@@ -226,11 +255,42 @@ const ForeCastingProjects = ({ user, history }) => {
   const onTeamMemberDelete = (index) => {
     const teamMembersTemp = [...teamMembers];
     const deletedMember = teamMembersTemp.splice(index, 1);
+
+    const newCollabs = checkMembers(addedCollaborators, deletedMember[0]);
+    setAddedCollaborators(newCollabs);
+
     const removedCollaboratorsTemp = removedCollaborators.length > 0 ? [...removedCollaborators] : [];
-    removedCollaboratorsTemp.push(deletedMember[0]);
+    removedCollaboratorsTemp.push({...deletedMember[0], id: deletedMember[0].shortId ? deletedMember[0].shortId : deletedMember[0].id, permissions: { 'read': true, 'write': true }});
     setRemovedCollaborators(removedCollaboratorsTemp);
+
     setTeamMembers(teamMembersTemp);
+    setTeamMembers(teamMembersTemp);
+    console.log('addedCollaborators');
+    console.log(newCollabs);
+    console.log('removedCollaborators');
+    console.log(removedCollaboratorsTemp);
   };
+
+  const checkMembers = (members, member) => {
+    let membersTemp = members.length > 0 ? [...members] : [];
+    const isCommon = members.filter((mber) => mber.shortId === member.shortId);
+    if(isCommon.length === 1) {
+      membersTemp = members.filter((mber) => mber.shortId !== member.shortId);
+      return membersTemp;
+    } else {
+      return members;
+    }
+  }
+
+  const handleEditProjectCancel = () => {
+    setCreateProject(false);
+    setEditProject(false);
+    reset({ name: '' });
+    setTeamMembers([]);
+    setTeamMembersOriginal([]);
+    setAddedCollaborators([]);
+    setRemovedCollaborators([]);
+  }
 
   const onTeamMemberMoveUp = (index) => {
     const teamMembersTemp = [...teamMembers];
@@ -450,9 +510,16 @@ const ForeCastingProjects = ({ user, history }) => {
                       project={project}
                       onRefresh={() => getResults('pagination')}
                       onEdit={(val) => {
+                        let collabs = [];
+                        if(val.collaborators !== null) {
+                          collabs = val.collaborators.map(collab => {
+                            return {...collab, shortId: collab.id !== null ? collab.id : collab.email}
+                          });
+                        }
+                        setTeamMembers(collabs);
+                        setTeamMembersOriginal(collabs);
                         setEditProject(true);
-                        setProjectDetails(val)
-                        setTeamMembers(val.collaborators);
+                        setProjectDetails(val);
                       }}
                     />
                   );
@@ -484,10 +551,7 @@ const ForeCastingProjects = ({ user, history }) => {
           content={addProjectContent}
           scrollableContent={false}
           onCancel={() => {
-            setCreateProject(false);
-            setEditProject(false);
-            reset({ name: '' });
-            setTeamMembers([]);
+            handleEditProjectCancel();
           }}
           modalStyle={{
             padding: '50px 35px 35px 35px',
