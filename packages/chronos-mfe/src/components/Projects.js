@@ -513,7 +513,7 @@ const ForeCastingProjects = ({ user, history }) => {
                         let collabs = [];
                         if(val.collaborators !== null) {
                           collabs = val.collaborators.map(collab => {
-                            return {...collab, shortId: collab.id !== null ? collab.id : collab.email}
+                            return {...collab, shortId: collab.id !== null ? collab.id : collab.email, userType: 'internal'}
                           });
                         }
                         setTeamMembers(collabs);
