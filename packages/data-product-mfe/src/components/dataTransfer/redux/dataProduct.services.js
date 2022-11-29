@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/dataproducts.api';
 import Notification from '../../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } from '../../../Utility/formData';
@@ -7,7 +7,7 @@ import { deserializeFormData, serializeDivisionSubDivision, serializeFormData } 
 export const GetDataProducts = createAsyncThunk('products/GetDataProducts', async (arg, { getState }) => {
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.getAllDataProducts('dataProductId', 'desc');
+    const res = await dataTransferApi.getAllDataProducts('dataProductId', 'desc');
     ProgressIndicator.hide();
     const {
       provideDataProducts: { pagination },
@@ -34,7 +34,7 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
   const requestBody = serializeFormData(values, division);
   ProgressIndicator.show();
   try {
-    const res = await dataProductsApi.createDataProduct(requestBody);
+    const res = await dataTransferApi.createDataProduct(requestBody);
     onSave();
     const data = deserializeFormData(res?.data?.data);
     ProgressIndicator.hide();
@@ -70,9 +70,9 @@ export const UpdateDataProducts = createAsyncThunk('products/SetDataProducts', a
   try {
     let res = {};
     if (isProviderForm) {
-      res = await dataProductsApi.updateProvider(requestBody);
+      res = await dataTransferApi.updateProvider(requestBody);
     } else {
-      res = await dataProductsApi.updateConsumer(requestBody);
+      res = await dataTransferApi.updateConsumer(requestBody);
     }
     ProgressIndicator.hide();
     onSave();

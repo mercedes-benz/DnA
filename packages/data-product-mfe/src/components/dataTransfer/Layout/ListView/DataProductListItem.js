@@ -7,7 +7,7 @@ import Styles from './DataProductListItem.styles.scss';
 
 import ConfirmModal from 'dna-container/ConfirmModal';
 
-import { dataProductsApi } from '../../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../../apis/dataproducts.api';
 import { GetDataProducts } from '../../redux/dataProduct.services';
 
 import ProgressIndicator from '../../../../common/modules/uilab/js/src/progress-indicator';
@@ -46,7 +46,7 @@ const DataProductListItem = ({ product, history, user }) => {
   );
   const deleteDataProductAccept = () => {
     ProgressIndicator.show();
-    dataProductsApi.deleteDataProduct(product?.id).then(() => {
+    dataTransferApi.deleteDataProduct(product?.id).then(() => {
       dispatch(GetDataProducts());
       setShowContextMenu(false);
       setShowDeleteModal(false);

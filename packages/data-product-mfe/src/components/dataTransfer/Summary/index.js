@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, withRouter } from 'react-router-dom';
-import { dataProductsApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/dataproducts.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
@@ -61,7 +61,7 @@ const Summary = ({ history }) => {
   }, []);
 
   const getDataProductById = () => {
-    dataProductsApi.getDataProductById(dataProductId).then((res) => {
+    dataTransferApi.getDataProductById(dataProductId).then((res) => {
       if (res.status === 204) {
         return history.push('/NotFound');
       } else {
