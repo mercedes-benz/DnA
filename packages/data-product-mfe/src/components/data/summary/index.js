@@ -359,6 +359,21 @@ const Summary = ({ history, user }) => {
               return <DataTranferCardLayout key={index} product={product} user={user} isDataProduct={true} />;
             })}
           </div>
+          <div className={Styles.actionBtns}>
+            <div className="btn-set">
+              <button className="btn btn-primary" type="button">
+                Edit
+              </button>
+              <button className="btn btn-primary" type="button">
+                Delete
+              </button>
+            </div>
+            <div style={{ alignSelf: 'flex-end' }}>
+              <button className="btn btn-tertiary" type="button">
+                How to access
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </>
