@@ -10,7 +10,7 @@ const Transparency = () => {
         <DNACard
           title={'Portfolio'}
           description={
-            'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'
+            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
           }
           url={'/portfolio'}
           isTextAlignLeft={false}
@@ -21,7 +21,7 @@ const Transparency = () => {
         <DNACard
           title={'Solutions'}
           description={
-            'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'
+            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
           }
           url={'/allsolutions'}
           isTextAlignLeft={false}
@@ -32,7 +32,7 @@ const Transparency = () => {
         <DNACard
           title={'Reports'}
           description={
-            'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'
+            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
           }
           url={'/allreports'}
           isTextAlignLeft={false}
@@ -43,7 +43,7 @@ const Transparency = () => {
         <DNACard
           title={'Data Sharing'}
           description={
-            'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'
+            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
           }
           url={'/data/datasharing'}
           isTextAlignLeft={false}
