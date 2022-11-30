@@ -265,6 +265,7 @@
 
   > div {
     width: 100% !important;
+    max-width: unset;
   }
 }
 .selfServiceCol {
@@ -272,6 +273,7 @@
   
   > div > div {
     width: calc(33.33% - 15px) !important;
+    max-width: unset;
   }
 }
 
@@ -287,6 +289,7 @@
       margin-right: -15px;
       > div {
         width: calc(50% - 15px) !important;
+        max-width: unset;
       }
     }
   }
@@ -296,6 +299,7 @@
   .selfServiceCol {
     > div > div {
       width: 100% !important;
+      max-width: unset;
     }
   }
 }
