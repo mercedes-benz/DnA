@@ -38,8 +38,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                   url={'/transparency'}
                   isTextAlignLeft={false}
                   isDisabled={false}
-                  isSmallCard={false}
-                  isMediumCard={true}
                   svgIcon={<IconTransparency />}
                 />
               </div>
@@ -52,8 +50,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                     url={'/data'}
                     isTextAlignLeft={false}
                     isDisabled={false}
-                    isSmallCard={false}
-                    isMediumCard={true}
                     svgIcon={<IconData />}
                   />
                   <DNACard
@@ -62,8 +58,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                     url={'/tools'}
                     isTextAlignLeft={false}
                     isDisabled={false}
-                    isSmallCard={false}
-                    isMediumCard={true}
                     svgIcon={<IconTools />}
                   />
                   <DNACard
@@ -72,8 +66,6 @@ const Home: React.FC<ILandingpageProps> = () => {
                     url={'/trainings'}
                     isTextAlignLeft={false}
                     isDisabled={!Envs.ENABLE_TRAININGS}
-                    isSmallCard={false}
-                    isMediumCard={true}
                     svgIcon={<IconTrainings />}
                   />
                 </div>

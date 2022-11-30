@@ -18,8 +18,6 @@ const Workspaces = () => {
           url={'/data/dataproductlist'}
           isTextAlignLeft={false}
           isDisabled={false}
-          isSmallCard={false}
-          isMediumCard={true}
           svgIcon={<IconDataProducts />}
         />
         <DNACard
@@ -28,8 +26,6 @@ const Workspaces = () => {
           url={'/data/datalayer'}
           isTextAlignLeft={false}
           isDisabled={false}
-          isSmallCard={false}
-          isMediumCard={true}
           svgIcon={<IconDataLayer />}
         />
         <DNACard
@@ -38,8 +34,6 @@ const Workspaces = () => {
           url={'/data/datagovernance'}
           isTextAlignLeft={false}
           isDisabled={false}
-          isSmallCard={false}
-          isMediumCard={true}
           svgIcon={<IconDataGovernance />}
         />
       </div>
