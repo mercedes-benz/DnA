@@ -39,7 +39,7 @@ const Tools = () => {
       <div className={Styles.toolsWrapper}>
         <DNACard
           title={'Malware Scan'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/malwarescanservice'}
           isTextAlignLeft={false}
           isDisabled={!enableMalwareScanService}
@@ -47,7 +47,7 @@ const Tools = () => {
           isMediumCard={true} />
         <DNACard
           title={'Data Pipeline'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/pipeline'}
           isTextAlignLeft={false}
           isDisabled={!enableDataPipelineService}
@@ -55,7 +55,7 @@ const Tools = () => {
           isMediumCard={true} />
         <DNACard
           title={'ML Pipeline'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={mLPipelineUrl}
           isTextAlignLeft={false}
           isDisabled={!enableMLPipelineService}
@@ -63,7 +63,7 @@ const Tools = () => {
           isMediumCard={true} />
         <DNACard
           title={'My Storage'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/storage'}
           isTextAlignLeft={false}
           isDisabled={!enableStorageService}
@@ -71,7 +71,7 @@ const Tools = () => {
           isMediumCard={true} />  
         <DNACard
           title={'My Model Registry'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/modelregistry'}
           isTextAlignLeft={false}
           isDisabled={!enableMyModelRegistryService}
@@ -79,7 +79,7 @@ const Tools = () => {
           isMediumCard={true} />  
         <DNACard
           title={'Chronos Forecasting'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/chronos'}
           isTextAlignLeft={false}
           isDisabled={!enableChronosForecastingService}
@@ -88,7 +88,7 @@ const Tools = () => {
 
         <DNACard
           title={'Jupyter Notebook'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/notebook'}
           isTextAlignLeft={false}
           isDisabled={!enableJupiyterNoteWorkspace}
@@ -97,7 +97,7 @@ const Tools = () => {
 
         <DNACard
           title={'Dataiku'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/mydataiku'}
           isTextAlignLeft={false}
           isDisabled={!enableDataikuWorkspace}
@@ -107,7 +107,7 @@ const Tools = () => {
         {enableSapAnalyticsCloud && (
           <DNACard
             title={'SAP Analytics Cloud'}
-            description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+            description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
             url={sapAnalyticsUrl}
             isTextAlignLeft={false}
             isDisabled={!enableSapAnalyticsCloud}
@@ -117,7 +117,7 @@ const Tools = () => {
 
         <DNACard
           title={'My Code Space (Beta)'}
-          description={'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'}
+          description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
           url={'/codespaces'}
           isTextAlignLeft={false}
           isDisabled={!enableCodeSpace}
