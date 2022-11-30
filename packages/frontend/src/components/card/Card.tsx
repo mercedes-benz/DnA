@@ -4,8 +4,10 @@ import Styles from './Card.scss';
 // import { withRouter } from 'react-router-dom';
 // import AddKPIIcon from 'dna-container/AddKPIIcon';
 // import Tooltip from '../../../../common/modules/uilab/js/src/tooltip';
-import IconAddKPI from 'components/icons/IconAddKPI';
+// import IconAddKPI from 'components/icons/IconAddKPI';
+
 import { history } from '../../router/History';
+import IconWrapper from 'components/icons/IconWrapper';
 const classNames = cn.bind(Styles);
 
 export interface IDNACardProps {
@@ -18,6 +20,7 @@ export interface IDNACardProps {
     isMediumCard?: boolean;
     tags?: string[];
     isExternalLink?: boolean;
+    svgIcon?: JSX.Element;
 }
 const DNACard = (props: IDNACardProps) => {
  
@@ -44,7 +47,7 @@ const DNACard = (props: IDNACardProps) => {
             }    
         </div>
         <div className={Styles.cardIconSection}>
-            <IconAddKPI className={Styles.avatarIcon} />
+          {props.svgIcon ? props.svgIcon : <IconWrapper />}
         </div>
         <div className={props.isTextAlignLeft ? Styles.cardDescriptonSection : (Styles.cardDescriptonSection+' '+Styles.textCenter)}>
           <div className={Styles.titleSection}> 

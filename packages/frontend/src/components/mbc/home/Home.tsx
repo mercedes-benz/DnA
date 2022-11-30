@@ -4,6 +4,10 @@ import { IUserInfo } from 'globals/types';
 import Styles from './Home.scss';
 import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
+import IconTransparency from 'components/icons/IconTransparency';
+import IconData from 'components/icons/IconData';
+import IconTools from 'components/icons/IconTools';
+import IconTrainings from 'components/icons/IconTrainings';
 
 export interface ILandingpageProps {
   user: IUserInfo;
@@ -27,7 +31,7 @@ const Home: React.FC<ILandingpageProps> = () => {
           <div className={Styles.dnaContainer}>
             <div className={Styles.dnaRow}>
               <div className={Styles.transparencyCol}>
-                <h2 className={Styles.headline}>All Data- & AI- Solutions in MB</h2>
+                <h2 className={Styles.headline}>All Data- &amp; AI- Solutions in MB</h2>
                 <DNACard
                   title={'Transparency'}
                   description={'Explore all Data & AI Solutions in MB and view your Portfolio in a single click'}
@@ -36,6 +40,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isDisabled={false}
                   isSmallCard={false}
                   isMediumCard={true}
+                  svgIcon={<IconTransparency />}
                 />
               </div>
               <div className={Styles.selfServiceCol}>
@@ -49,6 +54,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     isDisabled={false}
                     isSmallCard={false}
                     isMediumCard={true}
+                    svgIcon={<IconData />}
                   />
                   <DNACard
                     title={'Tools'}
@@ -58,6 +64,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     isDisabled={false}
                     isSmallCard={false}
                     isMediumCard={true}
+                    svgIcon={<IconTools />}
                   />
                   <DNACard
                     title={'Trainings'}
@@ -67,6 +74,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     isDisabled={!Envs.ENABLE_TRAININGS}
                     isSmallCard={false}
                     isMediumCard={true}
+                    svgIcon={<IconTrainings />}
                   />
                 </div>
               </div>
