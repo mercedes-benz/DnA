@@ -140,6 +140,8 @@ const ForeCastingProjects = ({ user, history }) => {
       reset({ name: '' });
       setTeamMembers([]);
       setTeamMembersOriginal([]);
+      setEditTeamMember(false);
+      setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
@@ -181,6 +183,8 @@ const ForeCastingProjects = ({ user, history }) => {
       setAddedCollaborators([]);
       setRemovedCollaborators([]);
       setEditProject(false);
+      setEditTeamMember(false);
+      setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully updated');
       getResults('pagination');
     }).catch(error => {
@@ -194,6 +198,8 @@ const ForeCastingProjects = ({ user, history }) => {
       setAddedCollaborators([]);
       setRemovedCollaborators([]);
       setEditProject(false);
+      setEditTeamMember(false);
+      setEditTeamMemberIndex(0);
       getResults('pagination');
     });
   };
@@ -208,9 +214,13 @@ const ForeCastingProjects = ({ user, history }) => {
   const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
   const showAddTeamMemberModalView = () => {
     setShowAddTeamMemberModal(true);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
   }
   const onAddTeamMemberModalCancel = () => {
     setShowAddTeamMemberModal(false);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
   }
   const updateTeamMemberList = (teamMember) => {
     onAddTeamMemberModalCancel();
@@ -290,6 +300,8 @@ const ForeCastingProjects = ({ user, history }) => {
     setTeamMembersOriginal([]);
     setAddedCollaborators([]);
     setRemovedCollaborators([]);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
   }
 
   const onTeamMemberMoveUp = (index) => {
