@@ -25,7 +25,7 @@ const DataGovernance = () => {
           url={Envs.DATA_GOVERNANCE_INFO_LINK}
           isExternalLink={true}
           isTextAlignLeft={false}
-          isDisabled={true}
+          isDisabled={false}
           isSmallCard={false}
           isMediumCard={true}
         />
