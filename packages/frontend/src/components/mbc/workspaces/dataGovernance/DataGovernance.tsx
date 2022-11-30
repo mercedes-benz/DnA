@@ -20,7 +20,7 @@ const DataGovernance = () => {
         <DNACard
           title={'DGO Social Intranet'}
           description={
-            'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'
+            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
           }
           url={Envs.DATA_GOVERNANCE_INFO_LINK}
           isExternalLink={true}
@@ -32,7 +32,7 @@ const DataGovernance = () => {
         <DNACard
           title={'Minimum Information'}
           description={
-            'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'
+            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
           }
           url={'/data/create'}
           isTextAlignLeft={false}
@@ -43,7 +43,7 @@ const DataGovernance = () => {
         <DNACard
           title={'LCO/LCR Contacts'}
           description={
-            'Data is one of the most valuable assets in our company,&nbsp;therefore we treat our data as a product!&nbsp;We offer you a&nbsp;growing selection of intuitive to use and well documented&nbsp;data products - check it out!'
+            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
           }
           url={'/data/datacompliancenetworklist'}
           isTextAlignLeft={false}
