@@ -5,9 +5,14 @@
     margin: 0 15px 15px 0;
     min-width: 250px;
     position: relative;
-    .cardIconSection{
+    .cardIconSection {
         text-align: center;
         margin-top: 30px;
+
+      i {
+        height: 125px;
+        width: 125px;
+      }
     }
     .cardDescriptonSection{
         margin-top: 40px;
@@ -31,11 +36,6 @@
         }
     }
 
-    .avatarIcon{
-        height: 110px;
-        width: 110px;
-    }
-
     &:hover {
         cursor: pointer;
         background-color: #00adef;
@@ -45,11 +45,16 @@
                 color: #fff;
             }
         }
-        .avatarIcon svg g g{
-            // fill: #99A5B3!important;
+        .cardIconSection i svg path[fill] {
             fill: #fff!important;
         }
-        .avatarIcon svg g circle{
+        .cardIconSection i svg g g[fill]  {
+            fill: #fff!important;
+        }
+        .cardIconSection i svg g g[stroke]  {
+          stroke: #fff!important;
+        }
+        .cardIconSection i svg g circle[stroke] {
             stroke: #fff!important;
         }
     }
@@ -77,9 +82,9 @@
     .tagSection {
         display: none;
     }
-    .avatarIcon{
-        height: 80px;
-        width: 80px;
+    .cardIconSection i {
+        height: 96px;
+        width: 96px;
     }
     .tagItem {
         border: 1px solid #00adef;
@@ -127,20 +132,18 @@
 }
 
 .disabled {
-    opacity: .8;
+    background-color: rgba(37, 42, 51, 0.5);
     cursor: not-allowed;
     pointer-events: none;
-    color: #697582;
-    .avatarIcon svg g g{
-        fill: #697582!important;
+    .cardIconSection, .cardDescriptonSection, .tagSection {
+      opacity: 0.5;
     }
-    .avatarIcon svg g circle{
-        stroke: #697582!important;
+
+    .cardIconSection svg g g[stroke] {
+      stroke: #979797;
     }
-    .cardDescriptonSection{
-        .descriptionSection{
-            color: #697582;
-        }
+    .cardIconSection svg g g[fill] {
+      fill: #979797;
     }
 }
 
@@ -151,7 +154,7 @@
 }
 
 .comingSoonBtn{
-    background: #00adef;
+    background: #0089BE;
     padding: 0 15px;
     font-size: var(--font-size-small);
     height: 27px;
