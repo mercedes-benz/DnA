@@ -70,9 +70,13 @@ const ProjectDetails = () => {
   const [showAddTeamMemberModal, setShowAddTeamMemberModal] = useState(false);
   const showAddTeamMemberModalView = () => {
     setShowAddTeamMemberModal(true);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
   }
   const onAddTeamMemberModalCancel = () => {
     setShowAddTeamMemberModal(false);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
   }
   const updateTeamMemberList = (teamMember) => {
     onAddTeamMemberModalCancel();
@@ -152,6 +156,8 @@ const ProjectDetails = () => {
       setRemovedCollaborators([]);
     }
     setEditProject(false);
+    setEditTeamMember(false);
+    setEditTeamMemberIndex(0);
   }
 
   const onTeamMemberMoveUp = (index) => {
@@ -280,6 +286,8 @@ const ProjectDetails = () => {
       setAddedCollaborators([]);
       setRemovedCollaborators([]);
       setEditProject(false);
+      setEditTeamMember(false);
+      setEditTeamMemberIndex(0);
       Notification.show('Forecasting Project successfully updated');
       getProjectById();
     }).catch(error => {
@@ -293,6 +301,8 @@ const ProjectDetails = () => {
       setAddedCollaborators([]);
       setRemovedCollaborators([]);
       setEditProject(false);
+      setEditTeamMember(false);
+      setEditTeamMemberIndex(0);
       getProjectById();
     });
   };
