@@ -4,6 +4,7 @@
     width: calc(33% - 15px);
     margin: 0 15px 15px 0;
     min-width: 250px;
+    max-width: 311px;
     position: relative;
     .cardIconSection {
         text-align: center;
@@ -61,7 +62,10 @@
 }
 
 .mediumCard{
-    width: calc(25% - 15px);
+  width: calc(25% - 15px);
+  .cardIconSection i {
+      height: 90px;
+  }
 }
 
 .smallCard{
