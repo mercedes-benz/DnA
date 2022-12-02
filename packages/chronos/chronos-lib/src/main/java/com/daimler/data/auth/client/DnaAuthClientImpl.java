@@ -70,10 +70,10 @@ public class DnaAuthClientImpl implements DnaAuthClient {
 				res = (JSONObject) new JSONObject(response.getBody()).get("data");
 			}
 		} catch (JSONException e) {
-			LOGGER.error("Error occured while parsing jsonObject for DnA verifyLogin:{}", e.getMessage());
+			LOGGER.error("Error occurred while parsing jsonObject for DnA verifyLogin:{}", e.getMessage());
 			throw e;
 		} catch (Exception e) {
-			LOGGER.error("Error occured while calling DnA verifyLogin:{}", e.getMessage());
+			LOGGER.error("Error occurred while calling DnA verifyLogin:{}", e.getMessage());
 			throw e;
 		}
 		return res;
