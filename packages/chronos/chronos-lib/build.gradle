@@ -105,6 +105,7 @@ dependencies {
 	implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.4.2'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.5.0'
 	implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.20'
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.1.1'
 	implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.9.2'
 	
 	implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
