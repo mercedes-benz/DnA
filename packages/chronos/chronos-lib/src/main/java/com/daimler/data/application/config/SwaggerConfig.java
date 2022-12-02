@@ -68,6 +68,12 @@ public class SwaggerConfig {
 	@Value("${swagger.headers.authorization.token}")
 	private String defaultAuthToken;
 
+	@Value("${swagger.headers.authorization.appId}")
+	private String defaultAuthAppKey;
+
+	@Value("${swagger.headers.authorization.apiKey}")
+	private String defaultAuthAppId;
+
 	@Bean
 	public Docket api() {
 		RequestParameter contentTypeParamBuilder = new RequestParameterBuilder().name("Content-Type")
@@ -81,12 +87,12 @@ public class SwaggerConfig {
 				.build();
 
 		RequestParameter appId = new RequestParameterBuilder().name("appId")
-				.description("Authorization header").query(q -> q.defaultValue("appId"))
+				.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppId))
 				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
 				.build();
 
 		RequestParameter apiKey = new RequestParameterBuilder().name("apiKey")
-				.description("Authorization header").query(q -> q.defaultValue("apiKey"))
+				.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppKey))
 				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
 				.build();
 
