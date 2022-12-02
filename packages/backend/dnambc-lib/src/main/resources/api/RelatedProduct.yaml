@@ -107,6 +107,19 @@ paths:
    summary: "Get all realtedProducts."
    description:  "Get all relatedproducts. This endpoints will be used to Get all valid available relatedproducts."
    operationId: "getAll"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort relatedproducts by a given variable like name, phase, division, location or status
+          required: false
+          type: string
+          enum: [relatedproductName]
+        - name: sortOrder
+          in: query
+          description: Sort relatedproducts based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
