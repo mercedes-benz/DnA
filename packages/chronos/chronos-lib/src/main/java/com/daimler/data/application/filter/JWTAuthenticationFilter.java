@@ -41,6 +41,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.daimler.data.auth.vault.VaultAuthClientImpl;
+import com.daimler.data.dto.auth.ApiKeyValidationResponseVO;
+import com.daimler.data.dto.auth.ApiKeyValidationVO;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -72,6 +75,10 @@ public class JWTAuthenticationFilter implements Filter {
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
 
+
+	@Autowired
+	private VaultAuthClientImpl vaultAuthClient;
+
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
@@ -82,6 +89,29 @@ public class JWTAuthenticationFilter implements Filter {
 		log.debug("Intercepting Request to validate JWT:" + requestUri);
 		String jwt = httpRequest.getHeader("Authorization");
 		if (!StringUtils.hasText(jwt)) {
+			String appId = httpRequest.getHeader("appId");
+			String appKey = httpRequest.getHeader("apiKey");
+			if (appId != null && appKey != null) {
+				ApiKeyValidationVO apiKeyValidationVO = new ApiKeyValidationVO();
+				apiKeyValidationVO.setApiKey(appKey);
+				apiKeyValidationVO.setAppId(appId);
+				ApiKeyValidationResponseVO apiKeyValidationResponseVO = vaultAuthClient.validateApiKey(apiKeyValidationVO);
+				if (apiKeyValidationResponseVO.isValidApiKey()) {
+					JSONObject userdetails = vaultAuthClient.getUserDetails(appId);
+
+					if (userdetails != null) {
+						userdetails.put("eMail", userdetails.get("email"));
+						userdetails.put("roles", new JSONArray());
+					}
+					setUserDetailsToStore(userdetails);
+					filterChain.doFilter(servletRequest, servletResponse);
+					return;
+				} else {
+					log.error("Request UnAuthorized, Validated appId and appKey failed");
+					forbidResponse(servletResponse);
+					return;
+				}
+			}
 			log.error("Request UnAuthorized,No JWT available");
 			forbidResponse(servletResponse);
 			return;
