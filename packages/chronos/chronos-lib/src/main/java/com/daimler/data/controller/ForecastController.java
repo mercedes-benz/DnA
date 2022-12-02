@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.daimler.data.auth.vault.VaultAuthClientImpl;
+import com.daimler.data.dto.auth.ApiKeyValidationResponseVO;
+import com.daimler.data.dto.auth.ApiKeyValidationVO;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
@@ -57,6 +60,9 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 	
 	@Autowired
 	private StorageServicesClient storageClient;
+
+	@Autowired
+	private VaultAuthClientImpl vaultAuthClient;
 	
 	private static final String BUCKETS_PREFIX = "chronos-";
 	
@@ -269,7 +275,17 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}
 
-		 responseMessage = service.updateForecastByID(id, forecastUpdateRequestVO, existingForecast);
+		if (forecastUpdateRequestVO.getApiKey() != null) {
+			String apiKey = vaultAuthClient.getApiKeys(id);
+			if (apiKey != null && apiKey != forecastUpdateRequestVO.getApiKey()) {
+				GenericMessage updateApiKeyResponseMessage = vaultAuthClient.updateApiKey(id, forecastUpdateRequestVO.getApiKey());
+				if (updateApiKeyResponseMessage != null && "FAILED".equalsIgnoreCase(updateApiKeyResponseMessage.getSuccess())) {
+				 	responseVO.setResponse(updateApiKeyResponseMessage);
+					return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+		}
+		responseMessage = service.updateForecastByID(id, forecastUpdateRequestVO, existingForecast);
 		 responseVO.setResponse(responseMessage);
 
 		if (responseMessage != null && "FAILED".equalsIgnoreCase(responseMessage.getSuccess())) {
