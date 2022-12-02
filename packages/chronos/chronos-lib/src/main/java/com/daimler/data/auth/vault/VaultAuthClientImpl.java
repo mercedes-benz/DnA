@@ -136,7 +136,7 @@ public class VaultAuthClientImpl implements VaultAuthClient {
             if (response != null) {
                 apiKey = response;
             } else {
-                LOGGER.error("failed to get api key for app for appId {}", appId);
+                LOGGER.error("failed to get api key for appId {}", appId);
             }
         }
         return apiKey;
