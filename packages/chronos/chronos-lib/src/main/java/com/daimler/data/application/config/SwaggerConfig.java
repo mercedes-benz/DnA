@@ -68,6 +68,12 @@ public class SwaggerConfig {
 	@Value("${swagger.headers.authorization.token}")
 	private String defaultAuthToken;
 
+	@Value("${swagger.headers.authorization.appId}")
+	private String defaultAuthAppKey;
+
+	@Value("${swagger.headers.authorization.apiKey}")
+	private String defaultAuthAppId;
+
 	@Bean
 	public Docket api() {
 		RequestParameter contentTypeParamBuilder = new RequestParameterBuilder().name("Content-Type")
@@ -77,12 +83,24 @@ public class SwaggerConfig {
 
 		RequestParameter authParamBuilder = new RequestParameterBuilder().name("Authorization")
 				.description("Authorization header").query(q -> q.defaultValue(defaultAuthToken))
-				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(true)
+				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
+				.build();
+
+		RequestParameter appId = new RequestParameterBuilder().name("appId")
+				.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppId))
+				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
+				.build();
+
+		RequestParameter apiKey = new RequestParameterBuilder().name("apiKey")
+				.description("Authorization header").query(q -> q.defaultValue(defaultAuthAppKey))
+				.query(q -> q.model(m -> m.scalarModel(ScalarType.STRING))).in(ParameterType.HEADER).required(false)
 				.build();
 
 		List<RequestParameter> params = new ArrayList<>();
 		params.add(contentTypeParamBuilder);
 		params.add(authParamBuilder);
+		params.add(appId);
+		params.add(apiKey);
 
 		return new Docket(DocumentationType.SWAGGER_2).select()
 				.apis(RequestHandlerSelectors.basePackage("com.daimler.data.controller")).paths(PathSelectors.any())
