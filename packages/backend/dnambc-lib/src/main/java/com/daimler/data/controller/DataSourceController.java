@@ -28,6 +28,8 @@
 package com.daimler.data.controller;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
@@ -45,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.datasource.DatasourcesApi;
@@ -188,10 +191,20 @@ public class DataSourceController implements DatasourcesApi {
 			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datasources", produces = { "application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<DataSourceCollection> getAll() {
-		final List<DataSourceVO> datasources = datasourceService.getAll();
+	public ResponseEntity<DataSourceCollection> getAll(
+			@ApiParam(value = "Sort datasources by a given variable like datasourceName", allowableValues = "datasourceName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort datasources based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		final List<DataSourceVO> datasources = datasourceService.getAll();		
 		DataSourceCollection datasourceCollection = new DataSourceCollection();
 		if (!ObjectUtils.isEmpty(datasources)) {
+			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+				Comparator<DataSourceVO> comparator = (d1, d2) ->(d1.getName().compareTo(d2.getName()));
+				Collections.sort(datasources, comparator);
+			}
+			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+				Comparator<DataSourceVO> comparator = (d1, d2) ->(d2.getName().compareTo(d1.getName()));
+				Collections.sort(datasources, comparator);
+			}
 			datasourceCollection.addAll(datasources);
 			log.debug("Returning all available datasources");
 			return new ResponseEntity<>(datasourceCollection, HttpStatus.OK);
