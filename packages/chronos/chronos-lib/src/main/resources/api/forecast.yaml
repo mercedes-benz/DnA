@@ -617,6 +617,9 @@ definitions:
         items:
           $ref: "#/definitions/CollaboratorVO"
           description: "To remove collaborators"
+      apiKey:
+        type: string
+        description: apiKey for the project access
 
   ForecastPermissionVO:
     type: object
