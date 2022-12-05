@@ -60,7 +60,8 @@ const Tools = () => {
           isTextAlignLeft={false}
           isDisabled={!enableMLPipelineService}
           isSmallCard={false}
-          isMediumCard={true} />
+          isMediumCard={true}
+          isExternalLink={true}/>
         <DNACard
           title={'My Storage'}
           description={'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'}
