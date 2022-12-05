@@ -84,7 +84,7 @@
     .bucketColContentListAdd {
       margin: 13px auto;
       width: 90%;
-    
+
       .userExistedError {
         color: #e84d47;
         padding: 4px 0;
@@ -204,5 +204,13 @@
   justify-content: space-between;
   > div {
     width: calc(50% - 30px);
+  }
+}
+
+:global {
+  .custom-select.disabled .select-selected {
+    &:not(.multiple) > .label {
+      visibility: visible;
+    }
   }
 }
