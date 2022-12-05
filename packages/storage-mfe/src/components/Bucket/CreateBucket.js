@@ -364,13 +364,13 @@ const CreateBucket = ({ user }) => {
                   className={classNames(
                     'input-field-group include-error',
                     dataClassificationError?.length ? 'error' : '',
-                    !isOwner ? 'disabled' : '',
+                    id && !isOwner ? 'disabled' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
                     Data Classification <sup>*</sup>
                   </label>
-                  <div className={classNames('custom-select', !isOwner ? 'disabled' : '')}>
+                  <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
                     <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
                       {dataClassificationDropdown?.length
                         ? dataClassificationDropdown?.map((item) => (
@@ -432,7 +432,7 @@ const CreateBucket = ({ user }) => {
                     PII (Personally Identifiable Information) <sup>*</sup>
                   </label>
                   <div className={Styles.pIIField}>
-                    <label className={classNames('radio', !isOwner ? Styles.checkBoxDisable : '')}>
+                    <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
                       <span className="wrapper">
                         <input
                           type="radio"
@@ -445,7 +445,7 @@ const CreateBucket = ({ user }) => {
                       </span>
                       <span className="label">Yes</span>
                     </label>
-                    <label className={classNames('radio', !isOwner ? Styles.checkBoxDisable : '')}>
+                    <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
                       <span className="wrapper">
                         <input
                           type="radio"
