@@ -113,7 +113,8 @@ const Tools = () => {
             isTextAlignLeft={false}
             isDisabled={!enableSapAnalyticsCloud}
             isSmallCard={false}
-            isMediumCard={true} /> 
+            isMediumCard={true}
+            isExternalLink={true} /> 
         )}        
 
         <DNACard
