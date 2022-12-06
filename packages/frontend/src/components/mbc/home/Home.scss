@@ -33,7 +33,7 @@
   background-image: url("../../../assets/images/Home.jpg");
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: initial;
+  background-position: 0 -55px;
 }
 .datmdcBanner:before {
   background: linear-gradient(270deg, transparent 20%, #000000 100%);
@@ -256,7 +256,7 @@
   flex-wrap: wrap;
 }
 .headline {
-  font-size: var(--font-size-headline);
+  font-size: var(--font-size-sub-headline);
   margin-bottom: 20px;
 }
 .transparencyCol {
