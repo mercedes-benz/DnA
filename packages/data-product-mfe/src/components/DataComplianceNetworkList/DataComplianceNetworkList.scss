@@ -182,29 +182,6 @@
     }
   }
   
-  thead {
-    tr {
-      vertical-align: top;
-  
-      th:first-child {
-        min-width: 120px;
-      }
-    }
-  }
-  th {
-    > label {
-      display: flex;
-  
-      .infoIcon {
-        font-size: 13px !important;
-        margin-left: 0;
-        margin-right: 6px !important;
-        margin-top: -2px;
-        cursor: pointer;
-      }
-    }
-  }
-  
   .tagError {
     font-size: 12px;
     padding-bottom: 2px;
@@ -235,6 +212,29 @@
   .tableResponsive {
     max-width: 100%;
     overflow-x: auto;
+
+    thead {
+      tr {
+        vertical-align: top;
+    
+        th:first-child {
+          min-width: 120px;
+        }
+      }
+    }
+    th {
+      > label {
+        display: flex;
+    
+        .infoIcon {
+          font-size: 13px !important;
+          margin-left: 0;
+          margin-right: 6px !important;
+          margin-top: -2px;
+          cursor: pointer;
+        }
+      }
+    }
 
     &::-webkit-scrollbar-thumb {
       background: #00adef;
