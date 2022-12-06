@@ -32,6 +32,17 @@
   background: #252a33;
   margin-bottom: 15px;
 
+  .apiId {
+    min-width: 380px;
+    display: inline-block;
+    margin-bottom: 15px;
+  }
+
+  .refreshedAppId {
+    min-width: 349px;
+    display: inline-block;
+  }
+
   .flexLayout {
     display: flex;
     justify-content: space-between;
@@ -129,6 +140,10 @@
   display: flex;
   align-items: center;
   .refreshedKey {
+    min-width: 300px;
+    display: inline-block;
+  }
+  .appKeySpan {
     min-width: 218px;
   }
   i {
