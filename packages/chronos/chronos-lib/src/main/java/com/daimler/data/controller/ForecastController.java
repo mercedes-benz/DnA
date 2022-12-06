@@ -172,7 +172,6 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		ForecastVO forecastVO = new ForecastVO();
-		forecastVO.setApiKey(forecastProjectCreateVO.getApiKey());
 		forecastVO.setBucketName(BUCKETS_PREFIX + name);
 		forecastVO.setCollaborators(forecastProjectCreateVO.getCollaborators());
 		forecastVO.setCreatedBy(requestUser);
@@ -226,6 +225,54 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			log.error("Exception occurred:{} while creating forecast project {} ", e.getMessage(), name);
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "API Key Generation for Forecast project.", nickname = "createForecastProject", notes = "API Key Generation for Forecast project.", response = ForecastProjectResponseVO.class, tags = {
+			"forecast-projects", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastProjectResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/apikey", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<ForecastProjectResponseVO> genrateApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id) {
+		
+		ForecastProjectResponseVO responseVO = new ForecastProjectResponseVO();
+		ForecastVO existingForecast = service.getById(id);
+		List<MessageDescription> errors = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+
+		// if existingForecast is null return not found.
+		if (existingForecast == null) {
+			responseMessage.setSuccess("FAILED");
+			MessageDescription errMsg = new MessageDescription("forecast ID Not found!");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			log.error("forecast ID Not found!");
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+
+		responseMessage = service.generateApiKey(id);
+
+		if (responseMessage != null && "FAILED".equalsIgnoreCase(responseMessage.getSuccess())) {
+			log.error("Failed to generate an api key for " + id);
+			responseMessage.setSuccess("FAILED");
+			MessageDescription errMsg = new MessageDescription("Failed to generate an api key for " + id);
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		// To get updated forecast after adding collaborator.
+		ForecastVO updatedForecast = service.getById(id);
+		responseVO.setData(updatedForecast);
+		return new ResponseEntity<>(responseVO, HttpStatus.OK);
 	}
 
 	@Override

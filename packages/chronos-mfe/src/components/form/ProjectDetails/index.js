@@ -15,10 +15,12 @@ import { regionalDateAndTimeConversionSolution } from '../../../Utility/utils';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import { chronosApi } from '../../../apis/chronos.api';
 import Spinner from '../../shared/spinner/Spinner';
+import { Envs } from '../../../Utility/envs';
 
 const ProjectDetails = () => {
   const {id: projectId} = useParams();
   const [editProject, setEditProject] = useState(false);
+  const [generateNewApiKey, setGenerateNewApiKey] = useState(false);
 
   const methods = useForm();
   const {
@@ -60,8 +62,32 @@ const ProjectDetails = () => {
     });
   };
 
+  const generateApiKey = () => {
+    ProgressIndicator.show();
+    chronosApi.generateApiKey(projectId).then((res) => {
+      if (res?.data?.data?.apiKey) {
+        setProject({
+          ...project,
+          apiKey: res.data.data.apiKey
+        })
+      }
+      setLoading(false);
+      ProgressIndicator.hide();
+    }).catch(error => {
+      Notification.show(error.message, 'alert');
+      setLoading(false);
+      ProgressIndicator.hide();
+    });
+  };
+
   const copyApiKey = () => {
     navigator.clipboard.writeText(project?.apiKey).then(() => {
+      Notification.show('Copied to Clipboard');
+    });
+  };
+
+  const copyApiID = () => {
+    navigator.clipboard.writeText(project?.id).then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -192,6 +218,15 @@ const ProjectDetails = () => {
       />
     );
   });
+
+  const generateNewApiKeyContent = (
+    <div className={Styles.modalContent}>
+       <div className={Styles.projectWrapper}>
+        it will impact existing forecast project.
+       </div>
+
+    </div>
+  )
 
   const editProjectContent = (
     <FormProvider {...methods}>
@@ -355,19 +390,33 @@ const ProjectDetails = () => {
         </div>
         </div>
       </div>
-      <div className={Styles.content + ' ' + Styles.hide}>
-        <h3 id="productName">API Key</h3>
+      <div className={Styles.content + ' '}>
+        <h3 id="productName">Access Details for Chronos Forecasting</h3>
         <div className={Styles.firstPanel}>
           <div className={classNames(Styles.flexLayout)}>
-            <div>
+          { project?.apiKey && <div>
+            <div className={Styles.apiId}>
+                <div className={Styles.appIdParentDiv}>
+                  <div className={Styles.refreshedAppId}>
+                  Api Id: <span className={Styles.refreshedAppId}>{!loading && project?.id}</span>
+                  </div>
+                  <div className={Styles.refreshedKeyIcon}>
+                    <i
+                      className={Styles.cpyStyle + ' icon mbc-icon copy'}
+                      onClick={copyApiID}
+                      tooltip-data="Copy"
+                    />
+                  </div>
+                </div>
+              </div>
               <div className={Styles.apiKey}>
                 <div className={Styles.appIdParentDiv}>
                   <div className={Styles.refreshedKey}>
-                    { showApiKey ? (
-                      <p>{!loading && project?.apiKey}</p>
+                  Api Key: { showApiKey ? (
+                      <span className={Styles.refreshedKey}>{!loading && project?.apiKey}</span>
                     ) : (
                       <React.Fragment>
-                        &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
+                         <span className={Styles.refreshedKey}>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
                       </React.Fragment>
                     )}
                   </div>
@@ -397,18 +446,43 @@ const ProjectDetails = () => {
                   </div>
                 </div>
               </div>
-            </div>
-            {/* <div>
+            </div> }
+            <div>
               <div className={Styles.apiKey}>
-                <button className={Styles.generateApiKeyBtn} onClick={() => console.log('generate api key')}>
-                  Generate API Key
-                </button>
-                <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p>
+                { project?.apiKey ? 
+                <button className={Styles.generateApiKeyBtn} onClick={() => generateApiKey()}>
+                  Generate a API Key
+                </button> : 
+                <button className={Styles.generateApiKeyBtn} onClick={() => generateApiKey()}>
+                  Generate a New API Key
+                </button> }
+                { Envs.ENABLE_CHRONOS_ONEAPI && <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p> }
               </div>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>
+      { generateNewApiKey &&
+        <Modal
+          title={"Are you sure you want to generate an New API Key ?"}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'60%'}
+          buttonAlignment="right"
+          show={generateNewApiKey}
+          content={generateNewApiKeyContent}
+          scrollableContent={false}
+          onCancel={() => {
+            setGenerateNewApiKey(false);
+          }}
+          modalStyle={{
+            padding: '50px 35px 35px 35px',
+            minWidth: 'unset',
+            width: '60%',
+            maxWidth: '50vw'
+          }}
+        />
+      }
       { editProject &&
         <Modal
           title={'Edit Forecasting Project'}

@@ -97,13 +97,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			// To store data on minio once bucket is created.
 			new ForecastVO();
 			ForecastVO forecastVO = super.create(vo);
-			if (forecastVO != null && forecastVO.getId() != null && vo.getApiKey() != null) {
-				GenericMessage createApiKeyResponseMessage = vaultAuthClient.createApiKey(forecastVO.getId(), vo.getApiKey() );
-				if (createApiKeyResponseMessage != null && "FAILED".equalsIgnoreCase(createApiKeyResponseMessage.getSuccess())) {
-					throw new Exception("Failed to create an Api key");
-				}
-			}
-
 			return forecastVO;
 		}else {
 			throw new Exception("Failed while creating bucket for Forecast project artifacts to be stored.");
@@ -349,6 +342,38 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	}
 
 	@Override
+	public GenericMessage generateApiKey(String id) {
+		GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        List<MessageDescription> warnings = new ArrayList<>();
+        Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		if (entityOptional != null) {
+			try {
+				ForecastNsql entity = entityOptional.get();
+			
+				String apiKey = UUID.randomUUID().toString();
+				if (apiKey != null && id != null) {
+					GenericMessage createApiKeyResponseMessage = vaultAuthClient.updateApiKey(id, apiKey);
+						if (createApiKeyResponseMessage != null && "FAILED".equalsIgnoreCase(createApiKeyResponseMessage.getSuccess())) {
+						throw new Exception("Failed to generate an Api key");
+					}
+				}
+				entity.getData().setApiKey(apiKey);
+				this.jpaRepo.save(entity);
+				responseMessage.setSuccess("SUCCESS");
+			} catch(Exception e) {
+				log.error("Failed to generate an API key for " + id);
+				MessageDescription msg = new MessageDescription("Failed to generate an API key for " + id);
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		}
+		return responseMessage;
+	}
+
+	@Override
 	public GenericMessage updateForecastByID(String id, ForecastProjectUpdateRequestVO forecastUpdateRequestVO,
 			ForecastVO existingForecast) {
 		GenericMessage responseMessage = new GenericMessage();
@@ -403,9 +428,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				}
 
 				entity.getData().setCollaborators(exstingcollaborators);
-				if (forecastUpdateRequestVO.getApiKey() != null) {
-					entity.getData().setApiKey(forecastUpdateRequestVO.getApiKey());
-				}
 				this.jpaRepo.save(entity);
 				responseMessage.setSuccess("SUCCESS");
 			} catch (Exception e) {
