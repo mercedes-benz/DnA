@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { createPortal } from 'react-dom';
+// import { createPortal } from 'react-dom';
 import { CSVLink } from 'react-csv';
 import { Data } from 'react-csv/components/CommonPropTypes';
 // @ts-ignore
@@ -257,8 +257,9 @@ export default class AllReports extends React.Component<
           <i tooltip-data="Export to CSV" className="icon download" />
         </span>
       );
-      const container = document?.querySelector('.triggerWrapper');
-      return container ? createPortal(element, container) : null;
+      // const container = document?.querySelector('.triggerWrapper');
+      // return container ? createPortal(element, container) : null;
+      return element;
     };
 
     const getFilterDropdownValues = ({
@@ -309,6 +310,10 @@ export default class AllReports extends React.Component<
                       <i className="icon mbc-icon listview big" />
                     </span>
                   </div> */}
+                  <div className='triggerWrapper'>
+                    {exportCSVIcon()}
+                  </div>
+                  <span className={Styles.dividerLine}> &nbsp; </span>
                   <div tooltip-data="Filters">
                     <span
                       className={this.state.openFilters ? Styles.activeFilters : ''}
@@ -503,7 +508,6 @@ export default class AllReports extends React.Component<
               />
             </>
           )} */}
-          {exportCSVIcon()}
         </div>
       </React.Fragment>
     );
