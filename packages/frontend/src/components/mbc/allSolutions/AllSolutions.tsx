@@ -42,7 +42,8 @@ import SolutionCardItem from './solutionCardItem/SolutionCardItem';
 import { getDivisionsQueryValue, trackEvent, csvSeparator } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
 
-import SolutionsFilter from '../filters/SolutionsFilter';
+// import SolutionsFilter from '../filters/SolutionsFilter';
+import SolutionsFilterNew from '../filters/SolutionsFilterNew';
 import filterStyle from '../filters/Filter.scss';
 import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 // import {getDropDownData} from '../../../services/FetchMasterData';
@@ -98,6 +99,7 @@ export interface IAllSolutionsState {
   cardViewMode: boolean;
   noteBookData: INotebookInfoSolutionId;
   showSolutionsFilter: boolean;
+  openFilters: boolean;
 }
 
 export default class AllSolutions extends React.Component<
@@ -167,6 +169,7 @@ export default class AllSolutions extends React.Component<
       cardViewMode: true,
       noteBookData: null,
       showSolutionsFilter: false,
+      openFilters: false
     };
   }
 
@@ -420,9 +423,35 @@ export default class AllSolutions extends React.Component<
                       <i className="icon mbc-icon listview big" />
                     </span>
                   </div>
+                  <span className={Styles.dividerLine}> &nbsp; </span>
+                  <div tooltip-data="Filters">
+                    <span
+                      className={this.state.openFilters ? Styles.activeFilters : ''}
+                      onClick={this.openCloseFilter}
+                    >
+                      <i className="icon mbc-icon filter big" />
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <SolutionsFilterNew
+            userId={this.props.user.id}
+            getFilterQueryParams={(queryParams: IFilterParams) =>
+              this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
+            }
+            solutionsDataLoaded={this.state.allSolutiosFirstTimeDataLoaded}
+            setSolutionsDataLoaded={(value: boolean) => this.setState({ allSolutiosFirstTimeDataLoaded: value })}
+            showSolutionsFilter={this.state.showSolutionsFilter}
+            openFilters={this.state.openFilters}
+            // getValuesFromFilter={(value: any) => {
+            //   this.setState({ locations: value.locations ? value.locations : [] });
+            //   this.setState({ phases: value.phases ? value.phases : [] });
+            //   this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
+            //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
+            // }}
+            />
 
             <div className={Styles.allsolutioncontent}>
               {this.state.cardViewMode && (
@@ -578,7 +607,7 @@ export default class AllSolutions extends React.Component<
               onAccept={this.onAcceptDeleteChanges}
             />
           </div>
-          <SolutionsFilter
+          {/* <SolutionsFilter
             userId={this.props.user.id}
             getFilterQueryParams={(queryParams: IFilterParams) =>
               this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)
@@ -592,12 +621,27 @@ export default class AllSolutions extends React.Component<
             //   this.setState({ projectStatuses: value.projectStatuses ? value.projectStatuses : [] });
             //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
             // }}
-          />
+          /> */}
           {exportCSVIcon()}
         </div>
       </React.Fragment>
     );
   }
+  protected openCloseFilter = () => {
+    this.setState(
+      {
+        openFilters: !this.state.openFilters,
+      },
+      () => {
+        // trackEvent(
+        //   this.getPageTitle(this.state.enablePortfolioSolutionsView, true),
+        //   'Moved solution list view to',
+        //   'List View',
+        // );
+        // sessionStorage.setItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE, 'true');
+      },
+    );
+  };
   protected solSetListViewMode = () => {
     this.setState(
       {
