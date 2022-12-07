@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import * as React from 'react';
-import { createPortal } from 'react-dom';
+// import { createPortal } from 'react-dom';
 import { CSVLink } from 'react-csv';
 import { Data } from 'react-csv/components/CommonPropTypes';
 // @ts-ignore
@@ -341,11 +341,12 @@ export default class AllSolutions extends React.Component<
           <i tooltip-data="Export to CSV" className="icon download" />
         </span>
       );
-      const container = hideFilterView
-        ? document?.querySelector('.mainPanel')
-        : document?.querySelector('.triggerWrapper');
+      // const container = hideFilterView
+      //   ? document?.querySelector('.mainPanel')
+      //   : document?.querySelector('.triggerWrapper');
       Tooltip.defaultSetup();
-      return container ? createPortal(element, container) : null;
+      // return container ? createPortal(element, container) : null;
+      return element;
     };
 
     return (
@@ -423,6 +424,8 @@ export default class AllSolutions extends React.Component<
                       <i className="icon mbc-icon listview big" />
                     </span>
                   </div>
+                  <span className={Styles.dividerLine}> &nbsp; </span>
+                  {exportCSVIcon()}
                   <span className={Styles.dividerLine}> &nbsp; </span>
                   <div tooltip-data="Filters">
                     <span
@@ -622,7 +625,6 @@ export default class AllSolutions extends React.Component<
             //   this.setState({ projectTypes: value.projectTypes ? value.projectTypes : [] });
             // }}
           /> */}
-          {exportCSVIcon()}
         </div>
       </React.Fragment>
     );
