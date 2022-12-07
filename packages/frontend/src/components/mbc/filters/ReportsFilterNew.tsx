@@ -530,6 +530,16 @@ const ReportsFilterNew = ({
     }
   };
 
+  if(openFilters){
+    if(document.getElementById("filterContainer")){
+      const height = document?.getElementById('filterContainerDiv')?.clientHeight; // taking height of child div
+      document.getElementById("filterContainer").setAttribute("style", "height:"+height+"px"); // assigning height to parent div
+    }
+  }else{
+    if(document.getElementById("filterContainer")){
+      document.getElementById("filterContainer").setAttribute("style", "height:"+0+"px");
+    } 
+  }
 
   return (
     <div id='filterContainer' className={classNames(Styles.filterWrapper, openFilters ? Styles.filterOpen : Styles.filterClose)}>

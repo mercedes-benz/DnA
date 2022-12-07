@@ -670,13 +670,21 @@ const SolutionsFilterNew = ({
     }
   };
 
-//   const height = document?.getElementById('filterContainer')?.clientHeight;
+if(openFilters){
+  if(document.getElementById("filterContainer")){
+    const height = document?.getElementById('filterContainerDiv')?.clientHeight; // taking height of child div
+    document.getElementById("filterContainer").setAttribute("style", "height:"+height+"px"); //assigning height to parent div
+  }
+}else{
+  if(document.getElementById("filterContainer")){
+    document.getElementById("filterContainer").setAttribute("style", "height:"+0+"px");
+  } 
+}
 
-//   openFilters ? document.getElementById('filterContainer').setAttribute("style","height:"+height) : '';
 
   return (
     <div id='filterContainer' className={classNames(Styles.filterWrapper, openFilters ? Styles.filterOpen : Styles.filterClose)}>
-      <div className={classNames(Styles.panelWrapper, openFilters ? 'open' : '')}>
+      <div id='filterContainerDiv' className={classNames(Styles.panelWrapper, openFilters ? 'open' : '')}>
         <div className={Styles.panelContent}>
           {/* <h4>Filter</h4> */}
             <div className={Styles.filterPanel}>
