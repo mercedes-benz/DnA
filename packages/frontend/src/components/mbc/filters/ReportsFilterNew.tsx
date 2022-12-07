@@ -27,7 +27,7 @@ import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { trackEvent } from '../../../services/utils';
 // import { useLocation } from 'react-router-dom';
 
-import Styles from './Filter.scss';
+import Styles from './FilterNew.scss';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
 const classNames = cn.bind(Styles);
 
@@ -42,6 +42,7 @@ type ReportsFilterType = {
   reportsDataLoaded: boolean;
   setReportsDataLoaded: Function;
   getDropdownValues?: Function;
+  openFilters?: boolean;
 };
 
 /**
@@ -54,14 +55,15 @@ type ReportsFilterType = {
  * @returns
  */
 
-const ReportsFilter = ({
+const ReportsFilterNew = ({
   userId,
   getFilterQueryParams,
   reportsDataLoaded,
   setReportsDataLoaded,
   getDropdownValues,
+  openFilters
 }: ReportsFilterType) => {
-  const [openFilterPanel, setFilterPanel] = useState(false);
+//   const [openFilterPanel, setFilterPanel] = useState(false);
 
   // dropdown values
   const [divisions, setDivisions] = useState<IDivision[]>([]);
@@ -236,9 +238,9 @@ const ReportsFilter = ({
       });
   }, [arts, divisions, subDivisions, departments, processOwners, productOwners]);
 
-  const onFilterIconClick = () => {
-    setFilterPanel(!openFilterPanel);
-  };
+//   const onFilterIconClick = () => {
+//     setFilterPanel(!openFilterPanel);
+//   };
 
   const setPortfolioFilterValuesInSession = (queryParams: IReportFilterParams) => {
     sessionStorage.setItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES, JSON.stringify(queryParams));
@@ -528,12 +530,13 @@ const ReportsFilter = ({
     }
   };
 
+
   return (
-    <div className={classNames(Styles.rightPanel, 'overlayRightPanel', openFilterPanel ? 'expand' : '')}>
-      <div className={classNames(Styles.panelWrapper, openFilterPanel ? 'open' : '')}>
+    <div id='filterContainer' className={classNames(Styles.filterWrapper, openFilters ? Styles.filterOpen : Styles.filterClose)}>
+      <div className={classNames(Styles.panelWrapper, openFilters ? 'open' : '')}>
         <div className={Styles.panelContent}>
-          <h4>Filter</h4>
-          <div>
+          {/* <h4>Filter</h4> */}
+          <div className={Styles.filterPanel}>
             <div>
               <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
                 <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
@@ -685,7 +688,7 @@ const ReportsFilter = ({
           </div>
         </div>
       </div>
-      <div className={`${Styles.triggerWrapper} triggerWrapper`}>
+      {/* <div className={`${Styles.triggerWrapper} triggerWrapper`}>
         <span
           className={classNames(Styles.iconTrigger, openFilterPanel ? Styles.active : '')}
           onClick={onFilterIconClick}
@@ -693,9 +696,9 @@ const ReportsFilter = ({
           <i className="icon mbc-icon filter" />
           <span className={classNames(Styles.filterStatus, dataFilterApplied ? '' : 'hide')} />
         </span>
-      </div>
+      </div> */}
     </div>
   );
 };
 
-export default ReportsFilter;
+export default ReportsFilterNew;

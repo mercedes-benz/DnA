@@ -44,9 +44,10 @@ import ReportCardItem from './reportCardItem/ReportCardItem';
 import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/ReportsCSV';
 
-import ReportsFilter from '../filters/ReportsFilter';
+// import ReportsFilter from '../filters/ReportsFilter';
 import filterStyle from '../filters/Filter.scss';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
+import ReportsFilterNew from '../filters/ReportsFilterNew';
 
 const classNames = cn.bind(Styles);
 
@@ -97,6 +98,7 @@ export interface IAllReportsState {
   listViewMode: boolean;
   cardViewMode: boolean;
   showReportsFilter: boolean;
+  openFilters: boolean;
 }
 
 interface IDropdownValues {
@@ -168,6 +170,7 @@ export default class AllReports extends React.Component<
       listViewMode: true,
       cardViewMode: false,
       showReportsFilter: false,
+      openFilters: false
     };
   }
 
@@ -202,6 +205,14 @@ export default class AllReports extends React.Component<
       }
     });
   }
+
+  protected openCloseFilter = () => {
+    this.setState(
+      {
+        openFilters: !this.state.openFilters,
+      }
+    );
+  };
 
   public render() {
     const userInfo = this.props.user;
@@ -280,8 +291,8 @@ export default class AllReports extends React.Component<
                   filename={`Reports.csv`}
                   target="_blank"
                 />
-                {/* <div className={Styles.reportsViewMode}>
-                  <div tooltip-data="Card View">
+                <div className={Styles.reportsViewMode}>
+                  {/* <div tooltip-data="Card View">
                     <span
                       className={this.state.cardViewMode ? Styles.iconactive : ''}
                       onClick={this.setCardViewMode}
@@ -297,8 +308,16 @@ export default class AllReports extends React.Component<
                     >
                       <i className="icon mbc-icon listview big" />
                     </span>
+                  </div> */}
+                  <div tooltip-data="Filters">
+                    <span
+                      className={this.state.openFilters ? Styles.activeFilters : ''}
+                      onClick={this.openCloseFilter}
+                    >
+                      <i className="icon mbc-icon filter big" />
+                    </span>
                   </div>
-                </div> */}
+                </div>
               </div>
             </div>
             {/* <div className={Styles.reportTransparency}>
@@ -315,6 +334,16 @@ export default class AllReports extends React.Component<
                 </div>
               </div>
             </div> */}
+
+              <ReportsFilterNew
+                userId={this.props.user.id}
+                reportsDataLoaded={this.state.allReportsFirstTimeDataLoaded}
+                setReportsDataLoaded={(value: boolean) => this.setState({ allReportsFirstTimeDataLoaded: value })}
+                getFilterQueryParams={(queryParams: IReportFilterParams) => this.getFilteredReports(queryParams)}
+                getDropdownValues={getFilterDropdownValues}
+                openFilters={this.state.openFilters}
+              />
+
             <div className={Styles.allReportContent}>
               {this.state.cardViewMode && (
                 <div className={classNames('cardSolutions', Styles.allReportCardViewContent)}>
@@ -463,7 +492,7 @@ export default class AllReports extends React.Component<
               onAccept={this.onAcceptDeleteChanges}
             />
           </div>
-          {this.state.showReportsFilter && (
+          {/* {this.state.showReportsFilter && (
             <>
               <ReportsFilter
                 userId={this.props.user.id}
@@ -473,7 +502,7 @@ export default class AllReports extends React.Component<
                 getDropdownValues={getFilterDropdownValues}
               />
             </>
-          )}
+          )} */}
           {exportCSVIcon()}
         </div>
       </React.Fragment>
