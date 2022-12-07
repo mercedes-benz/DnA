@@ -25,10 +25,10 @@
 
 .filterOpen {
     height: auto;
-    transition: height 1s ease-in;
-    -webkit-animation: conditionalOpen 1s normal forwards ease-in;
-        -moz-animation: conditionalOpen 1s normal forwards ease-in;
-            animation: conditionalOpen 1s normal forwards ease-in;
+    transition: height .3s ease-in;
+    -webkit-animation: conditionalOpen .5s normal forwards ease-in;
+        -moz-animation: conditionalOpen .5s normal forwards ease-in;
+            animation: conditionalOpen .5s normal forwards ease-in;
     -webkit-transform-origin: 50% 0%;
         -moz-transform-origin: 50% 0%;
             transform-origin: 50% 0%;
@@ -36,11 +36,10 @@
 
 .filterClose {
     height: 0;
-    opacity: 0;
-    transition: height 1s ease-out;
-    -webkit-animation: conditionalClose 1s normal forwards ease-out;
-        -moz-animation: conditionalClose 1s normal forwards ease-out;
-            animation: conditionalClose 1s normal forwards ease-out;
+    transition: height .5s ease-out;
+    -webkit-animation: conditionalClose .3s normal forwards ease-out;
+        -moz-animation: conditionalClose .3s normal forwards ease-out;
+            animation: conditionalClose .3s normal forwards ease-out;
     -webkit-transform-origin: 100% 0%;
         -moz-transform-origin: 100% 0%;
             transform-origin: 100% 0%;
