@@ -29,6 +29,7 @@ package com.daimler.data.application.filter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -72,6 +73,12 @@ public class JWTAuthenticationFilter implements Filter {
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
 
+	@Value("${databricks.userid}")
+	private String dataBricksUser;
+
+	@Value("${databricks.userauth}")
+	private String dataBricksAuth;
+
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
@@ -80,7 +87,33 @@ public class JWTAuthenticationFilter implements Filter {
 		String requestUri = httpRequest.getRequestURI();
 		log.debug("Intercepting Request to validate JWT:{}", requestUri);
 		String jwt = httpRequest.getHeader("Authorization");
+		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		if (!StringUtils.hasText(jwt)) {
+			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
+			log.info("authflag {} currentUser {}",authFlag);
+			if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+				JSONObject userdetails = new JSONObject();
+				userdetails.put("firstName", dataBricksUser);
+				userdetails.put("lastName", dataBricksUser);
+				userdetails.put("mobileNumber", (Collection<?>) null);
+
+				JSONObject role = new JSONObject();
+				role.put("name", "Admin");
+				role.put("ID", "1");
+
+				JSONArray roleArray = new JSONArray();
+				roleArray.put(role);
+
+				userdetails.put("roles", roleArray);
+				userdetails.put("department", (Collection<?>) null);
+				userdetails.put("eMail", (Collection<?>) null);
+				userdetails.put("divisionAdmins", (Collection<?>) null);
+				log.info("x====>"+ dataBricksUser);
+				log.info("userdetails x====>"+ userdetails);
+				setUserDetailsToStore(userdetails);
+				filterChain.doFilter(servletRequest, servletResponse);
+				return;
+			}
 			log.error("Request UnAuthorized,No JWT available");
 			forbidResponse(servletResponse);
 			return;
