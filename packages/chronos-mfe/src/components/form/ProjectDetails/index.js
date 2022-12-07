@@ -29,6 +29,7 @@ const ProjectDetails = () => {
   
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState();
+  const [apiKey, setApiKey] = useState('');
   const [teamMembers, setTeamMembers] = useState([]);
   const [teamMembersOriginal, setTeamMembersOriginal] = useState([]);
   const [showApiKey, setShowApiKey] = useState(false);
@@ -55,6 +56,7 @@ const ProjectDetails = () => {
       }
       setLoading(false);
       ProgressIndicator.hide();
+      getApiKeyById();
     }).catch(error => {
       Notification.show(error.message, 'alert');
       setLoading(false);
@@ -64,12 +66,24 @@ const ProjectDetails = () => {
 
   const generateApiKey = () => {
     ProgressIndicator.show();
-    chronosApi.generateApiKey(projectId).then((res) => {
+    chronosApi.generateApiKeyById(projectId).then((res) => {
       if (res?.data?.data?.apiKey) {
-        setProject({
-          ...project,
-          apiKey: res.data.data.apiKey
-        })
+        setApiKey(res.data.data.apiKey);
+      }
+      setLoading(false);
+      ProgressIndicator.hide();
+    }).catch(error => {
+      Notification.show(error.message, 'alert');
+      setLoading(false);
+      ProgressIndicator.hide();
+    });
+  };
+
+  const getApiKeyById = () => {
+    ProgressIndicator.show();
+    chronosApi.getApiKeyById(projectId).then((res) => {
+      if (res?.data?.data?.apiKey) {
+        setApiKey(res.data.data.apiKey);
       }
       setLoading(false);
       ProgressIndicator.hide();
@@ -81,7 +95,7 @@ const ProjectDetails = () => {
   };
 
   const copyApiKey = () => {
-    navigator.clipboard.writeText(project?.apiKey).then(() => {
+    navigator.clipboard.writeText(apiKey).then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -221,10 +235,24 @@ const ProjectDetails = () => {
 
   const generateNewApiKeyContent = (
     <div className={Styles.modalContent}>
-       <div className={Styles.projectWrapper}>
-        it will impact existing forecast project.
-       </div>
-
+      <div className={Styles.projectWrapper}>
+        <div>
+          Old API Key will be invalidated once you proceed. Do you want to continue?.
+        </div>
+        <br />
+        <div className={Styles.btnContainer}>
+          <button
+            className="btn btn-tertiary"
+            type="button"
+            onClick={(() => {
+              generateApiKey();
+              setGenerateNewApiKey(false);
+            })}
+          >
+            {'Generate a New API Key'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 
@@ -394,7 +422,7 @@ const ProjectDetails = () => {
         <h3 id="productName">Access Details for Chronos Forecasting</h3>
         <div className={Styles.firstPanel}>
           <div className={classNames(Styles.flexLayout)}>
-          { project?.apiKey && <div>
+          { apiKey && <div>
             <div className={Styles.apiId}>
                 <div className={Styles.appIdParentDiv}>
                   <div className={Styles.refreshedAppId}>
@@ -413,7 +441,7 @@ const ProjectDetails = () => {
                 <div className={Styles.appIdParentDiv}>
                   <div className={Styles.refreshedKey}>
                   Api Key: { showApiKey ? (
-                      <span className={Styles.refreshedKey}>{!loading && project?.apiKey}</span>
+                      <span className={Styles.refreshedKey}>{!loading && apiKey}</span>
                     ) : (
                       <React.Fragment>
                          <span className={Styles.refreshedKey}>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span>
@@ -449,12 +477,12 @@ const ProjectDetails = () => {
             </div> }
             <div>
               <div className={Styles.apiKey}>
-                { project?.apiKey ? 
-                <button className={Styles.generateApiKeyBtn} onClick={() => generateApiKey()}>
-                  Generate a API Key
+                { apiKey ? 
+                <button className={Styles.generateApiKeyBtn} onClick={() => setGenerateNewApiKey(true)}>
+                  Generate a New API Key
                 </button> : 
                 <button className={Styles.generateApiKeyBtn} onClick={() => generateApiKey()}>
-                  Generate a New API Key
+                  Generate a API Key
                 </button> }
                 { Envs.ENABLE_CHRONOS_ONEAPI && <p className={Styles.oneApiLink}>or go to <a href="#">oneAPI</a></p> }
               </div>
@@ -464,7 +492,7 @@ const ProjectDetails = () => {
       </div>
       { generateNewApiKey &&
         <Modal
-          title={"Are you sure you want to generate an New API Key ?"}
+          title={"Are you sure you want to generate a New API Key ?"}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'60%'}
