@@ -8,12 +8,14 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.daimler.data.auth.vault.VaultAuthClientImpl;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.dto.storage.DeleteBucketResponseWrapperDto;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -65,6 +67,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	@Autowired
 	private ForecastAssembler assembler;
 
+	@Lazy
+	@Autowired
+	private VaultAuthClientImpl vaultAuthClient;
+
 	public BaseForecastService() {
 		super();
 	}
@@ -88,7 +94,10 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	public ForecastVO createForecast(ForecastVO vo) throws Exception {
 		CreateBucketResponseWrapperDto bucketCreationResponse = storageClient.createBucket(vo.getBucketName(),vo.getCreatedBy(),vo.getCollaborators());
 		if(bucketCreationResponse!= null && "SUCCESS".equalsIgnoreCase(bucketCreationResponse.getStatus())) {
-			return super.create(vo);
+			// To store data on minio once bucket is created.
+			new ForecastVO();
+			ForecastVO forecastVO = super.create(vo);
+			return forecastVO;
 		}else {
 			throw new Exception("Failed while creating bucket for Forecast project artifacts to be stored.");
 		}
@@ -330,6 +339,38 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			log.error("Failed while parsing results data for run rid {} with exception {} ",rid, e.getMessage());
 		}
 		return visualizationVO;
+	}
+
+	@Override
+	public GenericMessage generateApiKey(String id) {
+		GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        List<MessageDescription> warnings = new ArrayList<>();
+        Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		if (entityOptional != null) {
+			try {
+				ForecastNsql entity = entityOptional.get();
+			
+				String apiKey = UUID.randomUUID().toString();
+				if (apiKey != null && id != null) {
+					GenericMessage createApiKeyResponseMessage = vaultAuthClient.updateApiKey(id, apiKey);
+						if (createApiKeyResponseMessage != null && "FAILED".equalsIgnoreCase(createApiKeyResponseMessage.getSuccess())) {
+						throw new Exception("Failed to generate an Api key");
+					}
+				}
+				entity.getData().setApiKey(apiKey);
+				this.jpaRepo.save(entity);
+				responseMessage.setSuccess("SUCCESS");
+			} catch(Exception e) {
+				log.error("Failed to generate an API key for " + id);
+				MessageDescription msg = new MessageDescription("Failed to generate an API key for " + id);
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		}
+		return responseMessage;
 	}
 
 	@Override
