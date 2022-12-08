@@ -29,6 +29,7 @@ import { trackEvent } from '../../../services/utils';
 
 import Styles from './FilterNew.scss';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
+import FilterWrapper from './FilterWrapper';
 const classNames = cn.bind(Styles);
 
 interface IMember {
@@ -542,172 +543,131 @@ const ReportsFilterNew = ({
   }
 
   return (
-    <div id='filterContainer' className={classNames(Styles.filterWrapper, openFilters ? Styles.filterOpen : Styles.filterClose)}>
-      <div className={classNames(Styles.panelWrapper, openFilters ? 'open' : '')}>
-        <div className={Styles.panelContent}>
-          {/* <h4>Filter</h4> */}
-          <div className={Styles.filterPanel}>
-            <div>
-              <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
-                <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
-                  Division
-                </label>
-                <div className=" custom-select">
-                  <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
-                    {divisions?.map((obj: IDivision) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div>
-              <div
-                id="subDivisionContainer"
-                className={`input-field-group ${divisionFilterValues?.length ? '' : 'disabled'}`}
-                onFocus={(e) => onHandleFocus(e, 'subDivision')}
-              >
-                <label id="subDivisionLabel" className="input-label" htmlFor="subDivisionSelect">
-                  Sub Division
-                </label>
-                <div className={`custom-select ${divisionFilterValues?.length ? '' : 'disabled'}`}>
-                  <select
-                    id="subDivisionSelect"
-                    multiple={true}
-                    onChange={onSubDivisionChange}
-                    value={queryParams?.subDivision}
-                  >
-                    {subDivisions?.map((obj: ISubDivisionSolution) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div>
-              <div
-                id="departmentContainer"
-                className={`input-field-group ${departments?.length ? '' : 'disabled'}`}
-                onFocus={(e) => onHandleFocus(e, 'departments')}
-              >
-                <label id="departmentLabel" className="input-label" htmlFor="departmentSelect">
-                  Department
-                </label>
-                <div className={`custom-select ${departments?.length ? '' : 'disabled'}`}>
-                  <select
-                    id="departmentSelect"
-                    multiple={true}
-                    onChange={onDepartmentChange}
-                    value={queryParams?.departments}
-                  >
-                    {departments?.map((obj: IDivision) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            {/* <div>
-              <div
-                id="productOwnerContainer"
-                className={`input-field-group ${productOwners?.length ? '' : 'disabled'}`}
-                onFocus={(e) => onHandleFocus(e, 'productOwners')}
-              >
-                <label id="productOwnerLabel" className="input-label" htmlFor="productOwnerSelect">
-                  Product Owners
-                </label>
-                <div className={`custom-select ${productOwners?.length ? '' : 'disabled'}`}>
-                  <select
-                    id="productOwnerSelect"
-                    multiple={true}
-                    onChange={onProductOwnerChange}
-                    value={queryParams?.productOwners}
-                  >
-                    {productOwners?.map((obj: ITeams, index) => (
-                      <option key={index} value={obj.shortId}>
-                        {`${obj.firstName} ${obj.lastName}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div> */}
-            <div>
-              <div
-                id="artContainer"
-                className={`input-field-group ${arts.length ? '' : 'disabled'}`}
-                onFocus={(e) => onHandleFocus(e, 'art')}
-              >
-                <label id="artLabel" className="input-label" htmlFor="artSelect">
-                  ART
-                </label>
-                <div className={`custom-select ${arts.length ? '' : 'disabled'}`}>
-                  <select id="artSelect" multiple={true} onChange={onArtChange} value={queryParams?.agileReleaseTrains}>
-                    {arts?.map((obj: IART) => (
-                      <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
-                        {obj.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div>
-              <div
-                id="processOwnerContainer"
-                className={`input-field-group ${processOwners?.length ? '' : 'disabled'}`}
-                onFocus={(e) => onHandleFocus(e, 'processOwners')}
-              >
-                <label id="processOwnerLabel" className="input-label" htmlFor="processOwnerSelect">
-                  Process Owner
-                </label>
-                <div className={`custom-select ${processOwners?.length ? '' : 'disabled'}`}>
-                  <select
-                    id="processOwnerSelect"
-                    onChange={onProcessOwnerChange}
-                    value={queryParams?.processOwners?.join('')}
-                  >
-                    <option id="defaultprocessOwner" value={''}>
-                      Choose
+    <FilterWrapper openFilters={openFilters}>
+        <div>
+            <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
+            <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
+                Division
+            </label>
+            <div className=" custom-select">
+                <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
+                {divisions?.map((obj: IDivision) => (
+                    <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                    {obj.name}
                     </option>
-                    {processOwners?.map((obj: ITeams, index) => (
-                      <option key={index} value={obj.shortId}>
-                        {`${obj.firstName} ${obj.lastName}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                ))}
+                </select>
             </div>
-            <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
-              <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
-                Save settings
-              </button>
-              <div className="icon-tile">
-                <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
-                  <i className="icon mbc-icon refresh" />
-                </button>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-      {/* <div className={`${Styles.triggerWrapper} triggerWrapper`}>
-        <span
-          className={classNames(Styles.iconTrigger, openFilterPanel ? Styles.active : '')}
-          onClick={onFilterIconClick}
-        >
-          <i className="icon mbc-icon filter" />
-          <span className={classNames(Styles.filterStatus, dataFilterApplied ? '' : 'hide')} />
-        </span>
-      </div> */}
-    </div>
+        <div>
+            <div
+            id="subDivisionContainer"
+            className={`input-field-group ${divisionFilterValues?.length ? '' : 'disabled'}`}
+            onFocus={(e) => onHandleFocus(e, 'subDivision')}
+            >
+            <label id="subDivisionLabel" className="input-label" htmlFor="subDivisionSelect">
+                Sub Division
+            </label>
+            <div className={`custom-select ${divisionFilterValues?.length ? '' : 'disabled'}`}>
+                <select
+                id="subDivisionSelect"
+                multiple={true}
+                onChange={onSubDivisionChange}
+                value={queryParams?.subDivision}
+                >
+                {subDivisions?.map((obj: ISubDivisionSolution) => (
+                    <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                    {obj.name}
+                    </option>
+                ))}
+                </select>
+            </div>
+            </div>
+        </div>
+        <div>
+            <div
+            id="departmentContainer"
+            className={`input-field-group ${departments?.length ? '' : 'disabled'}`}
+            onFocus={(e) => onHandleFocus(e, 'departments')}
+            >
+            <label id="departmentLabel" className="input-label" htmlFor="departmentSelect">
+                Department
+            </label>
+            <div className={`custom-select ${departments?.length ? '' : 'disabled'}`}>
+                <select
+                id="departmentSelect"
+                multiple={true}
+                onChange={onDepartmentChange}
+                value={queryParams?.departments}
+                >
+                {departments?.map((obj: IDivision) => (
+                    <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                    {obj.name}
+                    </option>
+                ))}
+                </select>
+            </div>
+            </div>
+        </div>
+        <div>
+            <div
+            id="artContainer"
+            className={`input-field-group ${arts.length ? '' : 'disabled'}`}
+            onFocus={(e) => onHandleFocus(e, 'art')}
+            >
+            <label id="artLabel" className="input-label" htmlFor="artSelect">
+                ART
+            </label>
+            <div className={`custom-select ${arts.length ? '' : 'disabled'}`}>
+                <select id="artSelect" multiple={true} onChange={onArtChange} value={queryParams?.agileReleaseTrains}>
+                {arts?.map((obj: IART) => (
+                    <option id={obj.name + obj.id} key={obj.id} value={obj.name}>
+                    {obj.name}
+                    </option>
+                ))}
+                </select>
+            </div>
+            </div>
+        </div>
+        <div>
+            <div
+            id="processOwnerContainer"
+            className={`input-field-group ${processOwners?.length ? '' : 'disabled'}`}
+            onFocus={(e) => onHandleFocus(e, 'processOwners')}
+            >
+            <label id="processOwnerLabel" className="input-label" htmlFor="processOwnerSelect">
+                Process Owner
+            </label>
+            <div className={`custom-select ${processOwners?.length ? '' : 'disabled'}`}>
+                <select
+                id="processOwnerSelect"
+                onChange={onProcessOwnerChange}
+                value={queryParams?.processOwners?.join('')}
+                >
+                <option id="defaultprocessOwner" value={''}>
+                    Choose
+                </option>
+                {processOwners?.map((obj: ITeams, index) => (
+                    <option key={index} value={obj.shortId}>
+                    {`${obj.firstName} ${obj.lastName}`}
+                    </option>
+                ))}
+                </select>
+            </div>
+            </div>
+        </div>
+        <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
+            <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
+            Save settings
+            </button>
+            <div className="icon-tile">
+            <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
+                <i className="icon mbc-icon refresh" />
+            </button>
+            </div>
+        </div>
+    </FilterWrapper>      
   );
 };
 
