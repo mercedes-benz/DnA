@@ -1,16 +1,5 @@
 import React from 'react';
 import cn from 'classnames/bind';
-
-// @ts-ignore
-import Button from '../../../assets/modules/uilab/js/src/button';
-// @ts-ignore
-import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
-// @ts-ignore
-import Notification from '../../../assets/modules/uilab/js/src/notification';
-// @ts-ignore
-import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
-
-
 import Styles from './FilterWrapper.scss';
 const classNames = cn.bind(Styles);
 
