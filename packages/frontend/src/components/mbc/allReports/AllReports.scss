@@ -73,6 +73,9 @@
         font-size: var(--font-size-section-headline);
         padding: 0;
       }
+      .activeFilters {
+        color: #00adef;
+      }
     }
     .reportTransparency {
       color: #99a5b3;
@@ -222,3 +225,5 @@
   top: 75px;
   margin: 0 0 15px 114px;
 }
+
+
