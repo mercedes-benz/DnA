@@ -28,6 +28,8 @@
 package com.daimler.data.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
@@ -40,6 +42,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.relatedProduct.RelatedProductsApi;
@@ -204,11 +207,21 @@ public class RelatedProductController implements RelatedProductsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/relatedproducts", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<RelatedProductVOCollection> getAll() {
+	public ResponseEntity<RelatedProductVOCollection> getAll(
+			@ApiParam(value = "Sort relatedproducts by a given variable like relatedproductName", allowableValues = "relatedproductName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort relatedproducts based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		final List<RelatedProductVO> relatedProducts = relatedProductService.getAll();
-
+		
 		RelatedProductVOCollection relatedProductVOCollection = new RelatedProductVOCollection();
 		if (relatedProducts != null && relatedProducts.size() > 0) {
+			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+				Comparator<RelatedProductVO> comparator = (r1, r2) ->(r1.getName().compareTo(r2.getName()));
+				Collections.sort(relatedProducts, comparator);
+			}
+			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+				Comparator<RelatedProductVO> comparator = (r1, r2) ->(r2.getName().compareTo(r1.getName()));
+				Collections.sort(relatedProducts, comparator);
+			}
 			relatedProductVOCollection.addAll(relatedProducts);
 			log.debug("Returning all available related-products");
 			return new ResponseEntity<>(relatedProductVOCollection, HttpStatus.OK);
