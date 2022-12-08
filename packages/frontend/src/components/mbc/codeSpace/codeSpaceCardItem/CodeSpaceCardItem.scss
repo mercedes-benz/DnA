@@ -49,6 +49,7 @@
   }
   .cardBodySection {
     padding: 15px 20px 20px 20px;
+    margin-bottom: 30px;
     min-height: 200px;
     > div {
       display: flex;
@@ -116,6 +117,9 @@
   }
 }
 .cardFooter {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
