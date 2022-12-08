@@ -41,9 +41,7 @@ import ConfirmModal from '../../formElements/modal/confirmModal/ConfirmModal';
 import SolutionCardItem from './solutionCardItem/SolutionCardItem';
 import { getDivisionsQueryValue, trackEvent, csvSeparator } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/SolutionsCSV';
-
-// import SolutionsFilter from '../filters/SolutionsFilter';
-import SolutionsFilterNew from '../filters/SolutionsFilterNew';
+import SolutionsFilter from '../filters/SolutionsFilter';
 import filterStyle from '../filters/Filter.scss';
 import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 // import {getDropDownData} from '../../../services/FetchMasterData';
@@ -439,7 +437,7 @@ export default class AllSolutions extends React.Component<
               </div>
             </div>
 
-            <SolutionsFilterNew
+            <SolutionsFilter
             userId={this.props.user.id}
             getFilterQueryParams={(queryParams: IFilterParams) =>
               this.getFilteredSolutions(queryParams, this.state.showSolutionsFilter ? false : true)

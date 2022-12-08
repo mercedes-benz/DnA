@@ -73,6 +73,9 @@
         font-size: var(--font-size-section-headline);
         padding: 0;
       }
+      .activeFilters {
+        color: #00adef;
+      }
     }
     .allsolutioncontent {
       margin-bottom: 15px;
@@ -208,6 +211,4 @@
   margin: 0 0 15px 114px;
 }
 
-.activeFilters {
-  color: #00adef;
-}
+
