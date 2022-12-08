@@ -63,6 +63,7 @@ export interface IPortfolioState {
   showMilestoneLoader: boolean;
   showDataSourceLoader: boolean;
   showLocationLoader: boolean;
+  openFilters: boolean;
 }
 
 export interface IPortfolioProps {
@@ -214,6 +215,7 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       showMilestoneLoader: true,
       showDataSourceLoader: true,
       showLocationLoader: true,
+      openFilters: false,
     };
   }
 
@@ -476,6 +478,22 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       });
   }
 
+  protected openCloseFilter = () => {
+    this.setState(
+      {
+        openFilters: !this.state.openFilters,
+      },
+      () => {
+        // trackEvent(
+        //   this.getPageTitle(this.state.enablePortfolioSolutionsView, true),
+        //   'Moved solution list view to',
+        //   'List View',
+        // );
+        // sessionStorage.setItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE, 'true');
+      },
+    );
+  };
+
   public render() {
     const {
       solutionsDataKPI,
@@ -496,7 +514,34 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
     return (
       <div className={Styles.pageWrapper}>
         <div className={classNames(Styles.mainPanel)}>
-          <h3>My Portfolio</h3>
+          <div className={Styles.caption}>
+            <h3>My Portfolio</h3>
+            <div className={Styles.allSolExport}>
+              <div tooltip-data="Filters">
+                <span
+                  className={this.state.openFilters ? Styles.activeFilters : ''}
+                  onClick={this.openCloseFilter}
+                >
+                  <i className="icon mbc-icon filter big" />
+                </span>
+              </div>
+            </div>
+          </div>         
+          <SolutionsFilter
+            userId={this.props.user.id}
+            getSolutions={(
+              locations: string,
+              phases: string,
+              divisions: string,
+              status: string,
+              useCaseType: string,
+              tags: string,
+            ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
+            showSolutionsFilter={true}
+            solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
+            setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
+            openFilters={this.state.openFilters}
+          />
           <div className={classNames(Styles.portContentsection)}>
             <div className={classNames(Styles.portHeader)}>
               <div className={classNames(Styles.portTile)}>
@@ -711,20 +756,6 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             </div>
           </div>
         </div>
-        <SolutionsFilter
-          userId={this.props.user.id}
-          getSolutions={(
-            locations: string,
-            phases: string,
-            divisions: string,
-            status: string,
-            useCaseType: string,
-            tags: string,
-          ) => this.getSolutions(locations, phases, divisions, status, useCaseType, tags)}
-          showSolutionsFilter={true}
-          solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
-          setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
-        />
       </div>
     );
   }
