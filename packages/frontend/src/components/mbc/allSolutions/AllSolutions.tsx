@@ -422,17 +422,23 @@ export default class AllSolutions extends React.Component<
                       <i className="icon mbc-icon listview big" />
                     </span>
                   </div>
+                  {!hideFilterView ?
                   <span className={Styles.dividerLine}> &nbsp; </span>
+                  : ''}
                   {exportCSVIcon()}
-                  <span className={Styles.dividerLine}> &nbsp; </span>
-                  <div tooltip-data="Filters">
-                    <span
-                      className={this.state.openFilters ? Styles.activeFilters : ''}
-                      onClick={this.openCloseFilter}
-                    >
-                      <i className="icon mbc-icon filter big" />
-                    </span>
-                  </div>
+                  {!hideFilterView ? 
+                  <>
+                    <span className={Styles.dividerLine}> &nbsp; </span>
+                    <div tooltip-data="Filters">
+                      <span
+                        className={this.state.openFilters ? Styles.activeFilters : ''}
+                        onClick={this.openCloseFilter}
+                      >
+                        <i className="icon mbc-icon filter big" />
+                      </span>
+                    </div>
+                  </>
+                  : ''}
                 </div>
               </div>
             </div>
