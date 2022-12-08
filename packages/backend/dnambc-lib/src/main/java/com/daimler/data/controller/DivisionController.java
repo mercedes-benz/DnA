@@ -28,6 +28,8 @@
 package com.daimler.data.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -82,12 +84,22 @@ public class DivisionController implements DivisionsApi, SubdivisionsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/divisions", produces = { "application/json" }, method = RequestMethod.GET)
 	public ResponseEntity<DivisionCollection> getAll(
-			@ApiParam(value = "Ids of the division for which sub-divisions are to be fetched") @Valid @RequestParam(value = "ids", required = false) List<String> ids) {
+			@ApiParam(value = "Ids of the division for which sub-divisions are to be fetched") @Valid @RequestParam(value = "ids", required = false) List<String> ids,
+			@ApiParam(value = "Sort divisions by a given variable like divisionName", allowableValues = "divisionName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort divisions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		try {
 			DivisionCollection divisionCollection = new DivisionCollection();
 			LOGGER.debug("Fetching Divisions for given Ids:{}", ids);
 			List<DivisionVO> divisions = divisionService.getDivisionsByIds(ids);
 			if (!ObjectUtils.isEmpty(divisions)) {
+				if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+					Comparator<DivisionVO> comparator = (d1, d2) ->(d1.getName().compareTo(d2.getName()));
+					Collections.sort(divisions, comparator);
+				}
+				if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+					Comparator<DivisionVO> comparator = (d1, d2) ->(d2.getName().compareTo(d1.getName()));
+					Collections.sort(divisions, comparator);
+				}
 				divisionCollection.addAll(divisions);
 				return new ResponseEntity<>(divisionCollection, HttpStatus.OK);
 			} else {
