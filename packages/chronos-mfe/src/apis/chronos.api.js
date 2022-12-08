@@ -67,6 +67,12 @@ const getConfigurationFiles = () => {
   });
 };
 
+const generateApiKey = (id) => {
+  return server.post(`/forecasts/${id}/apikey`, {
+    data: {},
+  });
+};
+
 export const chronosApi = {
     getAllForecastProjects,
     getForecastProjectById,
@@ -79,5 +85,6 @@ export const chronosApi = {
     deleteForecastRun,
     getForecastRuns,
     deleteForecastRuns,
-    getConfigurationFiles
+    getConfigurationFiles,
+    generateApiKey
 };
