@@ -44,10 +44,9 @@ import ReportCardItem from './reportCardItem/ReportCardItem';
 import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { getDataForCSV } from '../../../services/ReportsCSV';
 
-// import ReportsFilter from '../filters/ReportsFilter';
 import filterStyle from '../filters/Filter.scss';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
-import ReportsFilterNew from '../filters/ReportsFilterNew';
+import ReportsFilter from '../filters/ReportsFilter';
 
 const classNames = cn.bind(Styles);
 
@@ -340,7 +339,7 @@ export default class AllReports extends React.Component<
               </div>
             </div> */}
 
-              <ReportsFilterNew
+              <ReportsFilter
                 userId={this.props.user.id}
                 reportsDataLoaded={this.state.allReportsFirstTimeDataLoaded}
                 setReportsDataLoaded={(value: boolean) => this.setState({ allReportsFirstTimeDataLoaded: value })}
