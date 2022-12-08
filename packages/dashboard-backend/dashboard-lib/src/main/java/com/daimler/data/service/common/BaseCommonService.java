@@ -29,6 +29,8 @@ package com.daimler.data.service.common;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -214,7 +216,7 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 	}
 
 	@Override
-	public ResponseEntity<LovVOCollection> getAllLov() {
+	public ResponseEntity<LovVOCollection> getAllLov(String sortBy, String sortOrder) {
 		LovVOCollection lovVOCollection = new LovVOCollection();
 		try {
 			List<T> entities = jpaRepo.findAll();
@@ -225,6 +227,14 @@ public class BaseCommonService<V, T, ID> implements CommonService<V, T, ID> {
 			}).collect(Collectors.toList());
 			LOGGER.debug("Lovs fetched successfully");
 			if (!ObjectUtils.isEmpty(lovs)) {
+				if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+					Comparator<LovVO> comparator = (a1, a2) -> (a1.getName().compareTo(a2.getName()));
+					Collections.sort(lovs, comparator);
+				}
+				if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+					Comparator<LovVO> comparator = (a1, a2) -> (a2.getName().compareTo(a1.getName()));
+					Collections.sort(lovs, comparator);
+				}
 				lovVOCollection.setData(lovs);
 				return new ResponseEntity<>(lovVOCollection, HttpStatus.OK);
 			} else {
