@@ -207,7 +207,8 @@ export const BucketList = (props) => {
                 </div>
               </div>
               {bucketList?.map((item, index) => {
-                const creatorHasWriteAccess = item?.permission?.write;
+                const hasWriteAccess = item?.permission?.write;
+                const isOwner = props.user?.id === item.createdBy?.id;
                 return (
                   <div
                     key={index}
@@ -279,7 +280,7 @@ export const BucketList = (props) => {
 
                           <div className={Styles.projectListAction}>
                             <div className={Styles.actionBtnGrp}>
-                              {props.user?.id === item.createdBy?.id && creatorHasWriteAccess && (
+                              {hasWriteAccess && (
                                 <>
                                   <button
                                     className={'btn btn-primary'}
@@ -292,17 +293,19 @@ export const BucketList = (props) => {
                                     <i className="icon mbc-icon edit"></i>
                                     <span>Edit</span>
                                   </button>
-                                  <button
-                                    className={'btn btn-primary'}
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedItem(item);
-                                      setDeleteModal(true);
-                                    }}
-                                  >
-                                    <i className="icon delete"></i>
-                                    <span>Delete</span>
-                                  </button>
+                                  {isOwner && hasWriteAccess ? (
+                                    <button
+                                      className={'btn btn-primary'}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedItem(item);
+                                        setDeleteModal(true);
+                                      }}
+                                    >
+                                      <i className="icon delete"></i>
+                                      <span>Delete</span>
+                                    </button>
+                                  ) : null}
                                 </>
                               )}
                               <button

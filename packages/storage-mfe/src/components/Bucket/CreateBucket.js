@@ -47,6 +47,8 @@ const CreateBucket = ({ user }) => {
 
   const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
 
+  const isOwner = user.id === createdBy.id;
+
   useEffect(() => {
     ProgressIndicator.show();
     bucketsApi
@@ -362,12 +364,13 @@ const CreateBucket = ({ user }) => {
                   className={classNames(
                     'input-field-group include-error',
                     dataClassificationError?.length ? 'error' : '',
+                    id && !isOwner ? 'disabled' : '',
                   )}
                 >
                   <label className={classNames(Styles.inputLabel, 'input-label')}>
                     Data Classification <sup>*</sup>
                   </label>
-                  <div className="custom-select">
+                  <div className={classNames('custom-select', id && !isOwner ? 'disabled' : '')}>
                     <select id="reportStatusField" onChange={handleDataClassification} value={dataClassification}>
                       {dataClassificationDropdown?.length
                         ? dataClassificationDropdown?.map((item) => (
@@ -429,7 +432,7 @@ const CreateBucket = ({ user }) => {
                     PII (Personally Identifiable Information) <sup>*</sup>
                   </label>
                   <div className={Styles.pIIField}>
-                    <label className={classNames('radio')}>
+                    <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
                       <span className="wrapper">
                         <input
                           type="radio"
@@ -442,7 +445,7 @@ const CreateBucket = ({ user }) => {
                       </span>
                       <span className="label">Yes</span>
                     </label>
-                    <label className={classNames('radio')}>
+                    <label className={classNames('radio', id && !isOwner ? Styles.checkBoxDisable : '')}>
                       <span className="wrapper">
                         <input
                           type="radio"
@@ -476,7 +479,7 @@ const CreateBucket = ({ user }) => {
                         </div>
                         <div className={classNames('mbc-scroll', Styles.collUserContent)}>
                           {bucketCollaborators
-                            ?.filter((item) => item.accesskey !== user.id)
+                            ?.filter((item) => item.accesskey !== user.id && item.accesskey !== createdBy.id)
                             ?.map((item, collIndex) => {
                               return (
                                 <div key={collIndex} className={Styles.collUserContentRow}>
