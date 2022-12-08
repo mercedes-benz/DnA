@@ -761,7 +761,6 @@ const DataComplianceNetworkList = (props) => {
               placeholder="Type here"
               autoComplete="off"
               onChange={onSearchTextChange}
-              disabled={loading}
             />
           </div>
           {isAdmin && (

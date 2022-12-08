@@ -293,6 +293,36 @@ paths:
           500:
             description: "Internal error"
   
+  /forecasts/{id}/apikey:
+    post:
+      tags:
+        - "forecast-projects"
+      summary: "API Key Generation for Forecast project."
+      description: "API Key Generation."
+      operationId: "genrateApikey"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ForecastProjectResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error" 
 
   #
   #  supported http methods GET
@@ -598,9 +628,6 @@ definitions:
             type: array
             items:
               $ref: "#/definitions/CollaboratorVO"
-        apiKey:
-            type: string
-            description: apiKey for the project access
         required:
             - name
         
@@ -617,6 +644,9 @@ definitions:
         items:
           $ref: "#/definitions/CollaboratorVO"
           description: "To remove collaborators"
+      apiKey:
+        type: string
+        description: apiKey for the project access
 
   ForecastPermissionVO:
     type: object
