@@ -28,6 +28,8 @@
 package com.daimler.data.service.tag;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,12 +80,20 @@ public class BaseTagService extends BaseCommonService<TagVO, TagSql, Long> imple
 	}
 
 	@Override
-	public ResponseEntity<TagCollection> getAllTags() {
+	public ResponseEntity<TagCollection> getAllTags(String sortBy,String sortOrder) {
 		TagCollection tagCollection = new TagCollection();
 		try {
 			List<TagVO> tags = super.getAll();
 			LOGGER.debug("Tags fetched successfully");
 			if (!ObjectUtils.isEmpty(tags)) {
+				if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+					Comparator<TagVO> comparator = (a1, a2) -> (a1.getName().compareTo(a2.getName()));
+					Collections.sort(tags, comparator);
+				}
+				if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+					Comparator<TagVO> comparator = (a1, a2) -> (a2.getName().compareTo(a1.getName()));
+					Collections.sort(tags, comparator);
+				}
 				tagCollection.setData(tags);
 				return new ResponseEntity<>(tagCollection, HttpStatus.OK);
 			} else {
