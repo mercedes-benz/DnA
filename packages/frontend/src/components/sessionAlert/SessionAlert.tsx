@@ -22,7 +22,7 @@ const SessionAlert = () => {
       .catch((error: Error) => {
         clearTimeout(sessionTimeout);
         Pkce.clearUserSession();
-        setModalOpen(false);
+        setModalOpen(true);
         eventCleanUp();
         window.location.href = Pkce.getLogoutUrl();
       });

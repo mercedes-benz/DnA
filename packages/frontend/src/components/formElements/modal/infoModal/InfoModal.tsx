@@ -13,6 +13,7 @@ export interface IInfoModalProps {
   show: boolean;
   moreInfoLink?: string;
   onCancel?: () => void;
+  customHeader?: React.ReactNode;
 }
 
 const InfoModal = (props: IInfoModalProps) => {
@@ -40,6 +41,7 @@ const InfoModal = (props: IInfoModalProps) => {
       content={content}
       scrollableContent={true}
       onCancel={props.onCancel}
+      customHeader={props.customHeader}
     />
   );
 };
