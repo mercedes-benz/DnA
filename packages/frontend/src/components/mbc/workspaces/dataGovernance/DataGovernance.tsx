@@ -1,11 +1,13 @@
 import React from 'react';
 import Styles from './DataGovernance.scss';
-import { Envs } from 'globals/Envs';
 import DNACard from 'components/card/Card';
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
 import headerImageURL from '../../../../assets/images/Data-Governance-Landing.png';
 
+import { DataGovernanceElements } from 'globals/landingPageElements';
+
 const DataGovernance = () => {
+  const cards = DataGovernanceElements;
   return (
     <LandingSummary
       title={'Data Governance'}
@@ -17,40 +19,18 @@ const DataGovernance = () => {
       isBackButton={true}
     >
       <div className={Styles.Workspaces}>
-        <DNACard
-          title={'DGO Social Intranet'}
-          description={
-            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
-          }
-          url={Envs.DATA_GOVERNANCE_INFO_LINK}
-          isExternalLink={true}
-          isTextAlignLeft={false}
-          isDisabled={false}
-          isSmallCard={false}
-          isMediumCard={true}
-        />
-        <DNACard
-          title={'Minimum Information'}
-          description={
-            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
-          }
-          url={'/data/create'}
-          isTextAlignLeft={false}
-          isDisabled={false}
-          isSmallCard={false}
-          isMediumCard={true}
-        />
-        <DNACard
-          title={'LCO/LCR Contacts'}
-          description={
-            'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!'
-          }
-          url={'/data/datacompliancenetworklist'}
-          isTextAlignLeft={false}
-          isDisabled={false}
-          isSmallCard={false}
-          isMediumCard={true}
-        />
+        {cards.map((card, index)=> {
+          return <DNACard
+          key={index}
+          title={card.name}
+          description={card.description}
+          url={card.url}
+          isExternalLink={card.isExternalLink}
+          isTextAlignLeft={card.isTextAlignLeft}
+          isDisabled={card.isDisabled}
+          isSmallCard={card.isSmallCard}
+          isMediumCard={card.isMediumCard} />
+        })}
       </div>
     </LandingSummary>
   );
