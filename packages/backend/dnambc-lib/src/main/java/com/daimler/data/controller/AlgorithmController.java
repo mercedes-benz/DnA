@@ -27,6 +27,8 @@
 
 package com.daimler.data.controller;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
@@ -38,6 +40,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.algorithm.AlgorithmsApi;
@@ -178,11 +181,21 @@ public class AlgorithmController implements AlgorithmsApi {
 			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/algorithms", produces = { "application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<AlgorithmCollection> getAll() {
-		final List<AlgorithmVO> algorithms = algorithmService.getAll();
+	public ResponseEntity<AlgorithmCollection> getAll(
+			@ApiParam(value = "Sort algorithms by a given variable like algorithmName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort algorithms based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		final List<AlgorithmVO> algorithms = algorithmService.getAll();		
 		AlgorithmCollection algorithmCollection = new AlgorithmCollection();
 		log.debug("Sending all algorithms");
 		if (algorithms != null && algorithms.size() > 0) {
+			if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+				Comparator<AlgorithmVO> comparator = (a1, a2) -> (a1.getName().compareTo(a2.getName()));
+				Collections.sort(algorithms, comparator);
+			}
+			if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+				Comparator<AlgorithmVO> comparator = (a1, a2) -> (a2.getName().compareTo(a1.getName()));
+				Collections.sort(algorithms, comparator);
+			}
 			algorithmCollection.addAll(algorithms);
 			return new ResponseEntity<>(algorithmCollection, HttpStatus.OK);
 		} else {

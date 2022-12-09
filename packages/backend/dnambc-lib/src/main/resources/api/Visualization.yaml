@@ -110,6 +110,19 @@ paths:
    summary: "Get all available visualizations."
    description:  "Get all visualizations. This endpoints will be used to Get all valid available visualizations maintenance records."
    operationId: "getAll"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort visualizations by a given variable like name, phase, division, location or status
+          required: false
+          type: string
+          enum: [visualizationName]
+        - name: sortOrder
+          in: query
+          description: Sort visualizations based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of success or failure"
