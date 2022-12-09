@@ -171,7 +171,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setRunState(newRunState);
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
-				entity.getData().setFolderPath(resultFolder);
+				entity.getData().setResultFolderPath(resultFolder);
 				try {
 					this.jpaRepo.save(entity);
 				}catch(Exception e) {
@@ -241,6 +241,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRunDetail.setEndTime(updatedRunResponse.getEndTime().longValue());
 							if(updatedRunResponse.getExecutionDuration()!=null) 
 								updatedRunDetail.setExecutionDuration(updatedRunResponse.getExecutionDuration().longValue());
+							if(entity.getData().getResultFolderPath()!=null)
+							 	updatedRunDetail.setResultFolderPath(entity.getData().getResultFolderPath());
 							if(updatedRunResponse.getSetupDuration()!=null) 
 								updatedRunDetail.setSetupDuration(updatedRunResponse.getSetupDuration().longValue());
 							if(updatedRunResponse.getStartTime()!=null)
