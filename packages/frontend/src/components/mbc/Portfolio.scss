@@ -6,11 +6,70 @@
     margin-right: 184px;
     padding: 72px 0 30px 114px;
     width: 100%;
-    h3 {
-      color: #dee3e8;
-      font-size: var(--font-size-section-headline);
-      margin-bottom: 25px;
-      padding: 0;
+    .caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 10px;
+      .allSolExport {
+        display: flex;
+        align-items: center;
+        position: relative;
+        .contextMenu {
+          float: right;
+          margin: 0 20px 0 0;
+          color: #c0c8d0;
+
+          &.open .contextMenuTrigger {
+            z-index: 10;
+            position: relative;
+          }
+
+          .contextMenuTrigger {
+            padding: 12px 28px;
+            cursor: pointer;
+
+            &:hover {
+              color: #00adef;
+            }
+          }
+        }
+        span {
+          cursor: pointer;
+        }
+      }
+      .solutionsViewMode {
+        height: 29px;
+        display: flex;
+        align-items: center;
+        .iconactive {
+          opacity: 0.5;
+          cursor: default;
+        }
+        .dividerLine {
+          height: 25px;
+          display: inline-block;
+          background-color: #252a33;
+          height: 25px;
+          margin: 0 10px 0 5px;
+          padding: 0;
+          width: 1px;
+        }
+        img {
+          width: 27px;
+          cursor: pointer;
+        }
+      }
+      h3 {
+        color: #dee3e8;
+        font-size: var(--font-size-section-headline);
+        margin-bottom: 25px;
+        padding: 0;
+      }
+      .activeFilters {
+        color: #00adef;
+      }
     }
     .portContentsection {
       margin-top: 20px;
