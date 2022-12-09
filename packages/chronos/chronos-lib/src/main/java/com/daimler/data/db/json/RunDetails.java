@@ -33,7 +33,8 @@ public class RunDetails {
 	 private String frequency;
 	 private String inputFile;
 	 private String configurationFile;
-	 
+	 private String resultFolderPath;
+
 	 private String creatorUserName;
 	 private Long setupDuration;
 	 private Long executionDuration;

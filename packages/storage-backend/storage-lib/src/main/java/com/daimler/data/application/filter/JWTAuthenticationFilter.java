@@ -41,6 +41,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.core.JsonParser;
+import io.jsonwebtoken.Jwts;
+import org.apache.tomcat.util.json.JSONParser;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -72,6 +75,12 @@ public class JWTAuthenticationFilter implements Filter {
 	@Autowired
 	private DnaAuthClient dnaAuthClient;
 
+	@Value("${databricks.userid}")
+	private String dataBricksUser;
+
+	@Value("${databricks.userauth}")
+	private String dataBricksAuth;
+
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
@@ -80,7 +89,31 @@ public class JWTAuthenticationFilter implements Filter {
 		String requestUri = httpRequest.getRequestURI();
 		log.debug("Intercepting Request to validate JWT:{}", requestUri);
 		String jwt = httpRequest.getHeader("Authorization");
+		String chronosUserToken = httpRequest.getHeader("chronos-api-key");
 		if (!StringUtils.hasText(jwt)) {
+			boolean authFlag = chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken);
+			log.info("authflag {} currentUser {}",authFlag);
+			if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
+				JSONObject userdetails = new JSONObject();
+				userdetails.put("id", dataBricksUser);
+				userdetails.put("firstName", dataBricksUser);
+				userdetails.put("lastName", dataBricksUser);
+				userdetails.put("mobileNumber", "");
+
+				JSONObject role = new JSONObject();
+				role.put("name", "Admin");
+				role.put("id", "1");
+
+				JSONArray roleArray = new JSONArray();
+				roleArray.put(role);
+
+				userdetails.put("roles", roleArray);
+				userdetails.put("department", "");
+				userdetails.put("eMail", "");
+				setUserDetailsToStore(userdetails);
+				filterChain.doFilter(servletRequest, servletResponse);
+				return;
+			}
 			log.error("Request UnAuthorized,No JWT available");
 			forbidResponse(servletResponse);
 			return;
