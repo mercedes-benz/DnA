@@ -31,7 +31,6 @@ import { getDivisionsQueryValue, trackEvent } from '../../../services/utils';
 import { useLocation } from 'react-router-dom';
 
 import Styles from './Filter.scss';
-import FilterWrapper from './FilterWrapper';
 const classNames = cn.bind(Styles);
 
 type SolutionsFilterType = {
@@ -42,7 +41,6 @@ type SolutionsFilterType = {
   solutionsDataLoaded: boolean;
   setSolutionsDataLoaded: Function;
   showSolutionsFilter?: boolean;
-  openFilters?: boolean;
 };
 
 /**
@@ -64,12 +62,9 @@ const SolutionsFilter = ({
   solutionsDataLoaded,
   setSolutionsDataLoaded,
   showSolutionsFilter,
-  openFilters,
 }: SolutionsFilterType) => {
   const { pathname } = useLocation();
-//   const [openFilterPanel, 
-//     // setFilterPanel
-// ] = useState(false);
+  const [openFilterPanel, setFilterPanel] = useState(false);
 
   // dropdown values
   const [phases, setPhases] = useState<IPhase[]>([]);
@@ -343,9 +338,9 @@ const SolutionsFilter = ({
     }
   }, [divisionFilterValues.length]);
 
-//   const onFilterIconClick = () => {
-//     setFilterPanel(!openFilterPanel);
-//   };
+  const onFilterIconClick = () => {
+    setFilterPanel(!openFilterPanel);
+  };
 
   const setPortfolioFilterValuesInSession = (queryParams: IFilterParams) => {
     sessionStorage.setItem(SESSION_STORAGE_KEYS.PORTFOLIO_FILTER_VALUES, JSON.stringify(queryParams));
@@ -671,156 +666,159 @@ const SolutionsFilter = ({
     }
   };
 
-if(openFilters){
-  if(document.getElementById("filterContainer")){
-    const height = document?.getElementById('filterContainerDiv')?.clientHeight; // taking height of child div
-    document.getElementById("filterContainer").setAttribute("style", "height:"+height+"px"); //assigning height to parent div
-  }
-}else{
-  if(document.getElementById("filterContainer")){
-    document.getElementById("filterContainer").setAttribute("style", "height:"+0+"px");
-  } 
-}
-
-
   return (
-    <FilterWrapper openFilters={openFilters}>
-      <div>
-          <div id="phaseContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'phase')}>
-              <label id="phaseLabel" className="input-label" htmlFor="phaseSelect">
-              Phase
-              </label>
-              <div className=" custom-select">
-              <select id="phaseSelect" multiple={true} onChange={onPhaseChange} value={queryParams?.phase}>
-                  {phases.map((obj: IPhase) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
-          </div>
-      </div>
-      <div>
-          <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
-              <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
-              Division
-              </label>
-              <div className=" custom-select">
-              <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
-                  {divisions.map((obj: IDivision) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
-          </div>
-      </div>
-      <div>
-          <div
-              id="subDivisionContainer"
-              className={`input-field-group ${divisionFilterValues.length ? '' : 'disabled'}`}
-              onFocus={(e) => onHandleFocus(e, 'subDivision')}
-          >
-              <label id="subDivisionLabel" className="input-label" htmlFor="subDivisionSelect">
-              Sub Division
-              </label>
-              <div className={`custom-select ${divisionFilterValues.length ? '' : 'disabled'}`}>
-              <select
-                  id="subDivisionSelect"
-                  multiple={true}
-                  onChange={onSubDivisionChange}
-                  value={queryParams?.subDivision}
-              >
-                  {subDivisions.map((obj: ISubDivisionSolution) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
-          </div>
-      </div>
-      <div>
-          <div id="locationContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'location')}>
-              <label id="locationLabel" className="input-label" htmlFor="locationSelect">
-              Location
-              </label>
-              <div id="location" className=" custom-select">
-              <select id="locationSelect" multiple={true} onChange={onLocationChange} value={queryParams?.location}>
-                  {locations.map((obj: ILocation) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
-          </div>
-      </div>
-      <div>
-          <div id="statusContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'status')}>
-              <label id="statusLabel" className="input-label" htmlFor="statusSelect">
-              Status
-              </label>
-              <div className=" custom-select">
-              <select id="statusSelect" onChange={onStatusChange} value={queryParams?.status.join('')}>
-                  <option id="defaultStatus" value={0}>
-                  Choose
-                  </option>
-                  {projectStatuses.map((obj: IProjectStatus) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
-          </div>
-      </div>
-      <div>
-          <div id="typeContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'useCaseType')}>
-              <label id="typeLabel" className="input-label" htmlFor="typeSelect">
-              Type
-              </label>
-              <div className=" custom-select">
-              <select id="typeSelect" onChange={onTypeChange} value={queryParams?.useCaseType.join('')}>
-                  <option id="defaultType" value={0}>
-                  Choose
-                  </option>
-                  {projectTypes.map((obj: IProjectType) => (
-                  <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
-                      {obj.name}
-                  </option>
-                  ))}
-              </select>
-              </div>
-          </div>
-      </div>
-      <div>
+    <div className={classNames(Styles.rightPanel, 'overlayRightPanel', openFilterPanel ? 'expand' : '')}>
+      <div className={classNames(Styles.panelWrapper, openFilterPanel ? 'open' : '')}>
+        <div className={Styles.panelContent}>
+          <h4>Filter</h4>
           <div>
-              <Tags
-              title={'Tags'}
-              max={100}
-              chips={queryParams?.tag}
-              setTags={onsetTags}
-              tags={tagValues}
-              isMandatory={false}
-              showMissingEntryError={false}
-              />
-          </div>
-      </div>
-      <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
-          <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
-              Save settings
-          </button>
-          <div className="icon-tile">
-              <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
-              <i className="icon mbc-icon refresh" />
+            <div>
+              <div id="phaseContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'phase')}>
+                <label id="phaseLabel" className="input-label" htmlFor="phaseSelect">
+                  Phase
+                </label>
+                <div className=" custom-select">
+                  <select id="phaseSelect" multiple={true} onChange={onPhaseChange} value={queryParams?.phase}>
+                    {phases.map((obj: IPhase) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div id="divisionContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'division')}>
+                <label id="divisionLabel" className="input-label" htmlFor="divisionSelect">
+                  Division
+                </label>
+                <div className=" custom-select">
+                  <select id="divisionSelect" multiple={true} onChange={onDivisionChange} value={queryParams?.division}>
+                    {divisions.map((obj: IDivision) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                id="subDivisionContainer"
+                className={`input-field-group ${divisionFilterValues.length ? '' : 'disabled'}`}
+                onFocus={(e) => onHandleFocus(e, 'subDivision')}
+              >
+                <label id="subDivisionLabel" className="input-label" htmlFor="subDivisionSelect">
+                  Sub Division
+                </label>
+                <div className={`custom-select ${divisionFilterValues.length ? '' : 'disabled'}`}>
+                  <select
+                    id="subDivisionSelect"
+                    multiple={true}
+                    onChange={onSubDivisionChange}
+                    value={queryParams?.subDivision}
+                  >
+                    {subDivisions.map((obj: ISubDivisionSolution) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div id="locationContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'location')}>
+                <label id="locationLabel" className="input-label" htmlFor="locationSelect">
+                  Location
+                </label>
+                <div id="location" className=" custom-select">
+                  <select id="locationSelect" multiple={true} onChange={onLocationChange} value={queryParams?.location}>
+                    {locations.map((obj: ILocation) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div id="statusContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'status')}>
+                <label id="statusLabel" className="input-label" htmlFor="statusSelect">
+                  Status
+                </label>
+                <div className=" custom-select">
+                  <select id="statusSelect" onChange={onStatusChange} value={queryParams?.status.join('')}>
+                    <option id="defaultStatus" value={0}>
+                      Choose
+                    </option>
+                    {projectStatuses.map((obj: IProjectStatus) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div id="typeContainer" className="input-field-group" onFocus={(e) => onHandleFocus(e, 'useCaseType')}>
+                <label id="typeLabel" className="input-label" htmlFor="typeSelect">
+                  Type
+                </label>
+                <div className=" custom-select">
+                  <select id="typeSelect" onChange={onTypeChange} value={queryParams?.useCaseType.join('')}>
+                    <option id="defaultType" value={0}>
+                      Choose
+                    </option>
+                    {projectTypes.map((obj: IProjectType) => (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id}>
+                        {obj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div>
+                <Tags
+                  title={'Tags'}
+                  max={100}
+                  chips={queryParams?.tag}
+                  setTags={onsetTags}
+                  tags={tagValues}
+                  isMandatory={false}
+                  showMissingEntryError={false}
+                />
+              </div>
+            </div>
+            <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>
+              <button className={classNames('btn btn-primary', Styles.saveSettingsBtn)} onClick={saveFilterPreference}>
+                Save settings
               </button>
+              <div className="icon-tile">
+                <button className="btn btn-icon-circle" tooltip-data="Reset Filters" onClick={resetDataFilters}>
+                  <i className="icon mbc-icon refresh" />
+                </button>
+              </div>
+            </div>
           </div>
-      </div> 
-    </FilterWrapper>
-    
+        </div>
+      </div>
+      <div className={classNames(`${Styles.triggerWrapper} triggerWrapper`, showSolutionsFilter ? '' : 'hidden')}>
+        <span
+          className={classNames(Styles.iconTrigger, openFilterPanel ? Styles.active : '')}
+          onClick={onFilterIconClick}
+        >
+          <i className="icon mbc-icon filter" />
+          <span className={classNames(Styles.filterStatus, dataFilterApplied ? '' : 'hide')} />
+        </span>
+      </div>
+    </div>
   );
 };
 

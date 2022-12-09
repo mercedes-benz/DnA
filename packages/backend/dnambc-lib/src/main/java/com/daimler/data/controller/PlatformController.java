@@ -27,6 +27,8 @@
 
 package com.daimler.data.controller;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
@@ -38,6 +40,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.platform.PlatformsApi;
@@ -179,10 +182,20 @@ public class PlatformController implements PlatformsApi {
 			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/platforms", produces = { "application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<PlatformCollection> getAll() {
-		final List<PlatformVO> platforms = platformService.getAll();
+	public ResponseEntity<PlatformCollection> getAll(
+			@ApiParam(value = "Sort platforms by a given variable like platformName", allowableValues = "platformName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort platforms based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		final List<PlatformVO> platforms = platformService.getAll();		
 		PlatformCollection platformCollection = new PlatformCollection();
 		if (platforms != null && platforms.size() > 0) {
+			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+				Comparator<PlatformVO> comparator = (p1, p2) ->(p1.getName().compareTo(p2.getName()));
+				Collections.sort(platforms, comparator);
+			}
+			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+				Comparator<PlatformVO> comparator = (p1, p2) ->(p2.getName().compareTo(p1.getName()));
+				Collections.sort(platforms, comparator);
+			}
 			platformCollection.addAll(platforms);
 			log.debug("Returning all available platforms");
 			return new ResponseEntity<>(platformCollection, HttpStatus.OK);
