@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.department.DepartmentsApi;
@@ -103,8 +104,10 @@ public class DepartmentController implements DepartmentsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/departments", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<DepartmentCollection> getAll() {
-		return departmentService.getAllDepartments();
+	public ResponseEntity<DepartmentCollection> getAll(
+			@ApiParam(value = "Sort departments by a given variable like departmentName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort departments based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return departmentService.getAllDepartments(sortBy,sortOrder);
 	}
 
 	@Override

@@ -1,0 +1,75 @@
+.filterWrapper {
+    background-color: #252a33;
+    margin-bottom: 15px;
+    z-index: 2;
+    position: relative;
+    .panelWrapper{
+        padding: 30px;
+        .filterPanel {
+            display: flex;
+            flex-wrap: wrap;
+            & > div:not(:last-child){
+                width: 150px;
+                margin-right: 25px;
+            }
+            & > div:last-child {
+                display: flex;
+                align-items: flex-end;
+                padding-bottom: 15px;
+            }
+        }
+    }
+    
+}
+
+
+.filterOpen {
+    height: auto;
+    transition: height .3s ease-in;
+    -webkit-animation: conditionalOpen .5s normal forwards ease-in;
+        -moz-animation: conditionalOpen .5s normal forwards ease-in;
+            animation: conditionalOpen .5s normal forwards ease-in;
+    -webkit-transform-origin: 50% 0%;
+        -moz-transform-origin: 50% 0%;
+            transform-origin: 50% 0%;
+}
+
+.filterClose {
+    height: 0;
+    transition: height .5s ease-out;
+    -webkit-animation: conditionalClose .3s normal forwards ease-out;
+        -moz-animation: conditionalClose .3s normal forwards ease-out;
+            animation: conditionalClose .3s normal forwards ease-out;
+    -webkit-transform-origin: 100% 0%;
+        -moz-transform-origin: 100% 0%;
+            transform-origin: 100% 0%;
+  }
+
+
+
+@-webkit-keyframes conditionalOpen {
+    from { transform: scaleY(0) }
+    to { transform: scaleY(1) }
+}
+@-moz-keyframes conditionalOpen {
+    from { transform: scaleY(0) }
+    to { transform: scaleY(1) }
+}
+@keyframes conditionalOpen {
+    from { transform: scaleY(0) }
+    to { transform: scaleY(1) }
+}
+
+
+@-webkit-keyframes conditionalClose {
+    from { transform: scaleY(1) }
+    to { transform: scaleY(0) }
+}
+@-moz-keyframes conditionalClose {
+    from { transform: scaleY(1) }
+    to { transform: scaleY(0) }
+}
+@keyframes conditionalClose {
+    from { transform: scaleY(1) }
+    to { transform: scaleY(0) }
+}
