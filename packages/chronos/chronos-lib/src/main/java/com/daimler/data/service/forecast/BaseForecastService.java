@@ -132,7 +132,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		noteboookParams.setFh(forecastHorizon.toString());
 		noteboookParams.setHierarchy(hierarchy);
 		noteboookParams.setFreq(this.toFrequencyParam(frequency));
-		noteboookParams.setResults_folder(bucketName+"/results/"+correlationId + "-" + runName);
+		String resultFolder = bucketName+"/results/"+correlationId + "-" + runName;
+		noteboookParams.setResults_folder(resultFolder);
 		noteboookParams.setX("");
 		noteboookParams.setX_pred("");
 		RunNowResponseVO runNowResponse = dataBricksClient.runNow(correlationId, noteboookParams, runOnPowerfulMachines);
@@ -170,6 +171,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				currentRun.setRunState(newRunState);
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
+				entity.getData().setResultFolderPath(resultFolder);
 				try {
 					this.jpaRepo.save(entity);
 				}catch(Exception e) {
@@ -239,6 +241,8 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 								updatedRunDetail.setEndTime(updatedRunResponse.getEndTime().longValue());
 							if(updatedRunResponse.getExecutionDuration()!=null) 
 								updatedRunDetail.setExecutionDuration(updatedRunResponse.getExecutionDuration().longValue());
+							if(entity.getData().getResultFolderPath()!=null)
+							 	updatedRunDetail.setResultFolderPath(entity.getData().getResultFolderPath());
 							if(updatedRunResponse.getSetupDuration()!=null) 
 								updatedRunDetail.setSetupDuration(updatedRunResponse.getSetupDuration().longValue());
 							if(updatedRunResponse.getStartTime()!=null)
@@ -345,7 +349,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 	public GenericMessage generateApiKey(String id) {
 		GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
-        List<MessageDescription> warnings = new ArrayList<>();
         Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
 		if (entityOptional != null) {
 			try {
@@ -358,8 +361,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 						throw new Exception("Failed to generate an Api key");
 					}
 				}
-				entity.getData().setApiKey(apiKey);
-				this.jpaRepo.save(entity);
 				responseMessage.setSuccess("SUCCESS");
 			} catch(Exception e) {
 				log.error("Failed to generate an API key for " + id);
@@ -371,6 +372,34 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 			}
 		}
 		return responseMessage;
+	}
+
+	@Override
+	public ApiKeyVO getApiKey(String id) {
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		ApiKeyVO response = new ApiKeyVO();
+		Optional<ForecastNsql> entityOptional = jpaRepo.findById(id);
+		if (entityOptional != null) {
+			try {
+				ForecastNsql entity = entityOptional.get();
+
+				String apiKey = vaultAuthClient.getApiKeys(id);
+				if (apiKey == null) {
+					throw new Exception("Failed to get an Api key for " + id);
+				}
+				response.setApiKey(apiKey);
+				responseMessage.setSuccess("SUCCESS");
+			} catch(Exception e) {
+				log.error("Failed to get an API key for " + id);
+				MessageDescription msg = new MessageDescription("Failed to get an API key for " + id);
+				errors.add(msg);
+				responseMessage.setSuccess("FAILED");
+				responseMessage.setErrors(errors);
+				return response;
+			}
+		}
+		return response;
 	}
 
 	@Override
