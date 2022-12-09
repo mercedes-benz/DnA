@@ -29,7 +29,6 @@ package com.daimler.data.application.filter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -42,6 +41,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.core.JsonParser;
+import io.jsonwebtoken.Jwts;
+import org.apache.tomcat.util.json.JSONParser;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -93,23 +95,21 @@ public class JWTAuthenticationFilter implements Filter {
 			log.info("authflag {} currentUser {}",authFlag);
 			if (chronosUserToken!=null && dataBricksAuth.equals(chronosUserToken)) {
 				JSONObject userdetails = new JSONObject();
+				userdetails.put("id", dataBricksUser);
 				userdetails.put("firstName", dataBricksUser);
 				userdetails.put("lastName", dataBricksUser);
-				userdetails.put("mobileNumber", (Collection<?>) null);
+				userdetails.put("mobileNumber", "");
 
 				JSONObject role = new JSONObject();
 				role.put("name", "Admin");
-				role.put("ID", "1");
+				role.put("id", "1");
 
 				JSONArray roleArray = new JSONArray();
 				roleArray.put(role);
 
 				userdetails.put("roles", roleArray);
-				userdetails.put("department", (Collection<?>) null);
-				userdetails.put("eMail", (Collection<?>) null);
-				userdetails.put("divisionAdmins", (Collection<?>) null);
-				log.info("x====>"+ dataBricksUser);
-				log.info("userdetails x====>"+ userdetails);
+				userdetails.put("department", "");
+				userdetails.put("eMail", "");
 				setUserDetailsToStore(userdetails);
 				filterChain.doFilter(servletRequest, servletResponse);
 				return;
