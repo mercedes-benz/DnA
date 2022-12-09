@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-// import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, ReferenceArea, Brush } from 'recharts';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import ContextMenu from '../shared/contextMenu/ContextMenu';
@@ -10,8 +9,6 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { chronosApi } from '../../apis/chronos.api';
 import Spinner from '../shared/spinner/Spinner';
 import Plot from 'react-plotly.js';
-
-// const COLORS = ['#00ADF0', '#33ADAC', '#E0144C', '#EED180', '#AA8B56', '#A8E890', '#6F38C5', '#9E7676', '#D0B8A8', '#7895B2'];
 
 const ForecastingResults = () => {
   const printRef = React.useRef();
@@ -24,15 +21,13 @@ const ForecastingResults = () => {
 
   const [nerd, setNerd] = useState(false);
 
-  /* chart */
-  // const axisTextStyle = { fill: '#99A5B3', fontSize: 'var(--font-size-smallest)', fontFamily: 'Roboto-Medium' };
-  // const tooltipCursorBackground = { fill: '#1f2124', opacity: 1 };
-
   const [columns, setColumns] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [forecastRun, setForecastRun] = useState([]);
   const [forecastData, setForecastData] = useState([]);
+  const [trendData, setTrendData] = useState([]);
+  const [decompositionData, setDecompositionData] = useState([]);
   useEffect(() => {
     getForecastRun();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,6 +55,7 @@ const ForecastingResults = () => {
         setForecastRun([]);
       } else {
         setForecastRun(res.data);
+
         let y = '';
         if(res.data.y.charAt(0) === ',') {
           y = 'date' + res.data.y;
@@ -79,6 +75,64 @@ const ForecastingResults = () => {
         const cols = Object.keys(forecastObj[0]);
         const newCols = cols.filter(item => item !== 'date');
         setColumns(newCols.slice(0, 10));
+
+        const eda = JSON.parse(res.data.eda);
+        const stlTrend = JSON.parse(eda[newCols[0]].decomposition.stl_decomposition.stl_trend);
+        const movingAverage = JSON.parse(eda[newCols[0]].moving_average.exponentially_weighted_moving_average);
+        const stlSeasonal = JSON.parse(eda[newCols[0]].decomposition.stl_decomposition.stl_seasonal);
+        const stlResid = JSON.parse(eda[newCols[0]].decomposition.stl_decomposition.stl_resid);
+        
+        let trend = {};
+        for (let [key, value] of Object.entries(stlTrend)) {
+          let d = new Date(parseInt(key));
+          let y = d.getFullYear();
+          let m = (d.getMonth() + 1).toString().padStart(2, "0");
+          let keyName = y + '-' + m;
+          trend[keyName] = value;
+        }
+
+        let seasonal = {};
+        for (let [key, value] of Object.entries(stlSeasonal)) {
+          let d = new Date(parseInt(key));
+          let y = d.getFullYear();
+          let m = (d.getMonth() + 1).toString().padStart(2, "0");
+          let keyName = y + '-' + m;
+          seasonal[keyName] = value;
+        }
+
+        let resid = {};
+        for (let [key, value] of Object.entries(stlResid)) {
+          let d = new Date(parseInt(key));
+          let y = d.getFullYear();
+          let m = (d.getMonth() + 1).toString().padStart(2, "0");
+          let keyName = y + '-' + m;
+          resid[keyName] = value;
+        }
+
+        let trendData = [];
+        let count = 0;
+        for (let [key, value] of Object.entries(trend)) {
+          console.log(`${key}: ${value}`);
+          trendData.push({
+            date: key,
+            [newCols[0]]: forecastObj[count][newCols[0]],
+            "Trend": value,
+            "Moving Average": movingAverage[key]
+          });
+          count++;
+        }
+        setTrendData(trendData);
+
+        let decompositionData = [];
+        for (let [key, value] of Object.entries(trend)) {
+          decompositionData.push({
+            date: key,
+            "Trend": value,
+            "Seasonal": seasonal[key],
+            "Residual": resid[key]
+          });
+        }
+        setDecompositionData(decompositionData);
       }
       setLoading(false);
       ProgressIndicator.hide();
@@ -219,6 +273,196 @@ const ForecastingResults = () => {
     return traces;
   }
 
+  const layoutTrend = {  
+    colorway: ['#00ADF0', '#33ADAC', '#979797'],
+    margin: {b: 0, r: 20, t: 25},
+    autosize: true, 
+    title: '', 
+    paper_bgcolor: 'transparent',
+    plot_bgcolor: '#252a33',
+    yaxis: {
+      gridcolor: '#383F49',
+      automargin: true,
+    },
+    xaxis: {
+      gridcolor: '#383F49',
+      automargin: true,
+    },
+    font: {
+      color: '#99A5B3', 
+      family: 'Roboto-Medium', 
+      size: 'var(--font-size-smallest)'
+    },
+    showlegend: true,
+    legend: {
+      orientation: 'h', 
+      font: {
+        color: '#d9dfe4', 
+        family: 'Roboto-Medium', 
+        size: 'var(--font-size-smallest)'
+      }
+    },
+    hoverlabel: {
+      bgcolor: '#252a33',
+      bordercolor: '#99A5B3'
+    },
+    modebar: {
+      bgcolor: 'transparent',
+      remove: ["lasso", "lasso2d"]
+    },
+    hovermode: "x unified",
+    dragmode: "pan",
+  };
+
+  const layoutDecomposition = {  
+    grid: {
+      rows: 3,
+      columns: 1,
+      pattern: 'independent',
+      roworder: 'top to bottom'
+    },
+    colorway: ['#00ADF0', '#33ADAC', '#979797'],
+    margin: {b: 0, r: 20, t: 25},
+    autosize: true, 
+    title: '', 
+    paper_bgcolor: 'transparent',
+    plot_bgcolor: '#252a33',
+    yaxis: {
+      gridcolor: '#383F49',
+      automargin: true,
+    },
+    xaxis: {
+      gridcolor: '#383F49',
+      automargin: true,
+    },
+    font: {
+      color: '#99A5B3', 
+      family: 'Roboto-Medium', 
+      size: 'var(--font-size-smallest)'
+    },
+    showlegend: true,
+    legend: {
+      orientation: 'h', 
+      font: {
+        color: '#d9dfe4', 
+        family: 'Roboto-Medium', 
+        size: 'var(--font-size-smallest)'
+      }
+    },
+    hoverlabel: {
+      bgcolor: '#252a33',
+      bordercolor: '#99A5B3'
+    },
+    modebar: {
+      bgcolor: 'transparent',
+      remove: ["lasso", "lasso2d"]
+    },
+    hovermode: "x unified",
+    dragmode: "pan",
+  };
+
+  const addTracesTrend = (data) => {
+    let traces = [];
+    
+    let dates = [];
+    let lines = {};
+
+    const columnsTemp = [columns[0], 'Trend', 'Moving Average'];
+    columnsTemp.forEach(column => {
+      lines[column] = {'y': []};
+    });
+    
+    data.map(each => {
+      dates.push(each.date);
+      columnsTemp.forEach(column => {
+        lines[column].y.push(each[column]);
+      });
+    });
+    
+    for(const [key, value] of Object.entries(lines)) {
+      if(key === 'Moving Average') {
+        traces.push({
+          type: 'scatter',
+          mode: 'lines',
+          line: {
+            dash: 'dot',
+          },
+          x: dates,
+          y: value.y,
+          name: key
+        });
+      } else {
+        traces.push({
+          type: 'scatter',
+          mode: 'lines',
+          x: dates,
+          y: value.y,
+          name: key
+        });
+      }
+    }
+    
+    return traces;
+  }
+
+  const addTracesDecomposition = (data) => {
+    let traces = [];
+    
+    let dates = [];
+    let lines = {};
+
+    const columns = ['Trend', 'Seasonal', 'Residual'];
+    columns.forEach(column => {
+      lines[column] = {'y': []};
+    });
+    
+    data.map(each => {
+      dates.push(each.date);
+      columns.forEach(column => {
+        lines[column].y.push(each[column]);
+      });
+    });
+    
+    for(const [key, value] of Object.entries(lines)) {
+      if(key === 'Trend') {
+        traces.push({
+          type: 'scatter',
+          mode: 'lines',
+          x: dates,
+          y: value.y,
+          name: key
+        });
+      }
+      if(key === 'Seasonal') {
+        traces.push({
+          type: 'scatter',
+          mode: 'lines',
+          x: dates,
+          y: value.y,
+          xaxis: 'x2',
+          yaxis: 'y2',
+          name: key
+        });
+      }
+      if(key === 'Residual') {
+        traces.push({
+          type: 'scatter',
+          mode: 'lines',
+          line: {
+            dash: 'dot',
+          },
+          x: dates,
+          y: value.y,
+          xaxis: 'x3',
+          yaxis: 'y3',
+          name: key
+        });
+      }
+    }
+
+    return traces;
+  }
+
   return (
     <div className={classNames(Styles.mainPanel)}>
       <div className={Styles.backButtonWapper}>
@@ -249,7 +493,7 @@ const ForecastingResults = () => {
         <div className={Styles.header}>
           <h3>Forecast</h3>
           <div className={Styles.actionMenu}>
-            <ContextMenu id={'trend'} items={contextMenuItems} />
+            <ContextMenu id={'forecast'} items={contextMenuItems} />
           </div>
         </div>
         <div className={Styles.firstPanel} ref={printRef}>
@@ -267,33 +511,55 @@ const ForecastingResults = () => {
                     style={{width: '100%', height: '450px'}}
                   />
                 </div>
-                {/* <ResponsiveContainer width="100%" height={450}>
-                  <LineChart
-                    data={forecastData}
-                    margin={{
-                      top: 20,
-                      right: 5,
-                      left: -20,
-                      bottom: 15,
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {
-                      columns.length > 0 && columns.map((column, index) => {
-                        if(index < 10)
-                          return <Line type="linear" key={column} dataKey={column} stroke={COLORS[index]} strokeWidth={2} dot={false} animationDuration={300} />
-                      })
-                    }
-                    <CartesianGrid stroke="#383F49" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={axisTextStyle} />
-                    <YAxis axisLine={false} tickLine={false} tick={axisTextStyle} />
-                    <ReferenceArea x1={forecastData[forecastData.length - parseInt(forecastRun.forecastHorizon)].name} x2={forecastData[forecastData.length - 1].name} stroke="gray" strokeOpacity={0.3} />
-                    <Tooltip contentStyle={{backgroundColor: '#252a33'}} />
-                    <Legend />
-                    <Brush dataKey="date" height={30} />
-                  </LineChart>
-                </ResponsiveContainer> */}
               </>
+          }
+        </div>
+      </div>
+
+      <div className={Styles.content}>
+        <div className={Styles.header}>
+          <h3>Trend</h3>
+          <div className={Styles.actionMenu}>
+            <ContextMenu id={'trend'} items={contextMenuItems} />
+          </div>
+        </div>
+        <div className={Styles.firstPanel} ref={printRef}>
+          { loading && <Spinner /> }
+          { !loading && trendData.length === 0 && <p>No visualization for the given data.</p> }
+          { !loading && trendData.length > 0 &&
+              <div className={Styles.chartContainer}>
+                <Plot
+                  data={addTracesTrend(trendData)}
+                  layout={layoutTrend}
+                  useResizeHandler
+                  config={{ scrollZoom: true, displaylogo: false }}
+                  style={{width: '100%', height: '450px'}}
+                />
+              </div>
+          }
+        </div>
+      </div>
+
+      <div className={Styles.content}>
+        <div className={Styles.header}>
+          <h3>Decomposition</h3>
+          <div className={Styles.actionMenu}>
+            <ContextMenu id={'decomposition'} items={contextMenuItems} />
+          </div>
+        </div>
+        <div className={Styles.firstPanel} ref={printRef}>
+          { loading && <Spinner /> }
+          { !loading && decompositionData.length === 0 && <p>No visualization for the given data.</p> }
+          { !loading && decompositionData.length > 0 &&
+              <div className={Styles.chartContainer}>
+                <Plot
+                  data={addTracesDecomposition(decompositionData)}
+                  layout={layoutDecomposition}
+                  useResizeHandler
+                  config={{ scrollZoom: true, displaylogo: false }}
+                  style={{width: '100%', height: '450px'}}
+                />
+              </div>
           }
         </div>
       </div>

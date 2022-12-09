@@ -40,4 +40,6 @@ public interface ForecastService extends CommonService<ForecastVO, ForecastNsql,
 
 	GenericMessage generateApiKey(String id);
 
+	ApiKeyVO getApiKey(String id);
+
 }
