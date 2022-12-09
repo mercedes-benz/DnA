@@ -151,7 +151,7 @@ public class VaultAuthClientImpl implements VaultAuthClient {
             if(existingForecast!=null) {
                 res = (JSONObject) new JSONObject(existingForecast.getCreatedBy());
 
-                LOGGER.error("exis tingForecastffff" +res);
+                LOGGER.info("existingForecast" + res);
             }
         } catch (Exception e) {
             LOGGER.error("Error occurred while getting user detailse: {}", e.getMessage());
