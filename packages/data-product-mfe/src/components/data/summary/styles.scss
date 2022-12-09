@@ -111,6 +111,39 @@ hr {
     justify-content: space-between;
 }
 
+.titleContainer {
+    display: flex;
+    color: #c0c8d0;
+}
+
+.modalContent {
+    display: flex;
+    margin: 25px 0px;
+    color: #c0c8d0;
+    .imgGuide {
+        width: 450px;
+        border: 1px solid #99a5b3;
+    }
+}
+
+.bullets {
+    display: flex;
+    justify-content: space-around;
+    width: 100px;
+    margin: 10px auto;
+    span {
+        height: 8px;
+        width: 8px;
+        background: #697582;
+        display: block;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    .activeBullet {
+        background: #00adef;
+    }
+}
+
 :global {
     #data-summary-tabs {
         min-width: 540px;
