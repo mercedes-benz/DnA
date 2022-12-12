@@ -1,20 +1,28 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
+import Styles from './styles.scss';
+
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { withRouter } from 'react-router-dom';
+
+import { Link, withRouter } from 'react-router-dom';
+
 import { dataProductApi } from '../../../apis/data.api';
-import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
-import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
+
 import DataTranferCardLayout from '../../dataTransfer/Layout/CardView/DataProductCardItem';
 
 import { setSelectedData, setDivisionList } from '../redux/dataSlice';
 
-import Styles from './styles.scss';
-
 import { regionalDateFormat } from '../../../Utility/utils';
 import mockData from '../data.json';
+
+import InfoModal from 'dna-container/InfoModal';
+
+import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
+import Tabs from '../../../common/modules/uilab/js/src/tabs';
+
+import lockIcon from '../../../assets/lockIcon.png';
+import selfserviceImg from '../../../assets/selfservice.png';
 
 const Summary = ({ history, user }) => {
   const { selectedData: data, data: dataList } = useSelector((state) => state.data);
@@ -22,6 +30,9 @@ const Summary = ({ history, user }) => {
   const dispatch = useDispatch();
 
   const [currentTab, setCurrentTab] = useState('provider');
+
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -56,6 +67,69 @@ const Summary = ({ history, user }) => {
     // e.preventDefault();
     setCurrentTab(e.target.id);
   };
+
+  const infoModalHeaderContent = (
+    <div className={Styles.titleContainer}>
+      <div>
+        <img src={lockIcon} style={{ width: '50px', marginRight: 20 }} />
+      </div>
+      <div>
+        <h2>How to access the data</h2>
+        <span>Follow the shown steps to gain access and use this product.</span>
+      </div>
+    </div>
+  );
+
+  const infoModalContent = (
+    <>
+      <hr className={Styles.line} />
+      <div className={Styles.modalContent}>
+        <div>
+          {' '}
+          <h5>Step 1 - Role Request</h5>
+          <div>
+            First visit the Role Request Self Service and request the &ldquo;Exploration Self Service ACDOCA Full Scope
+            (OneERP)&rdquo; - role in SBISS/CarLA/Core as shown on the right.{' '}
+          </div>
+        </div>
+        <div>
+          <img src={selfserviceImg} className={Styles.imgGuide} />
+          <div className={Styles.bullets}>
+            {[...Array(4)].map((i, ind) => (
+              <span onClick={() => setStep(ind)} className={ind === step ? Styles.activeBullet : ''} key={ind}></span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <hr className={Styles.line} />
+      <div className={Styles.modalContent}>
+        <div>
+          {' '}
+          <h5>Step 2 - A22 Minimum Information</h5>
+          <div>
+            Fill out the{' '}
+            <Link
+              to={{
+                pathname: '/create',
+              }}
+            >
+              Minimum Information
+            </Link>{' '}
+            to set up a Data Transfer within our Data Sharing Space.
+          </div>
+        </div>
+      </div>
+      <hr className={Styles.line} />
+      <div className={Styles.modalContent}>
+        <div>
+          {' '}
+          <h5>Step 3 - Get started</h5>
+          <div>We will notify you via E-Mail as soon as you can access and use the data product.</div>
+        </div>
+      </div>
+      <hr className={Styles.line} />
+    </>
+  );
 
   return (
     <>
@@ -369,13 +443,22 @@ const Summary = ({ history, user }) => {
               </button>
             </div>
             <div style={{ alignSelf: 'flex-end' }}>
-              <button className="btn btn-tertiary" type="button">
+              <button className="btn btn-tertiary" type="button" onClick={() => setShowInfoModal(true)}>
                 How to access
               </button>
             </div>
           </div>
         </div>
       </div>
+      {showInfoModal && (
+        <InfoModal
+          title="How to access data"
+          show={showInfoModal}
+          customHeader={infoModalHeaderContent}
+          content={infoModalContent}
+          onCancel={() => setShowInfoModal(false)}
+        />
+      )}
     </>
   );
 };
