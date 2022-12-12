@@ -256,8 +256,16 @@
   flex-wrap: wrap;
 }
 .headline {
-  font-size: var(--font-size-sub-headline);
+  font-size: var(--font-size-default);
   margin-bottom: 20px;
+  > span {
+    display: inline-block;
+    border: 1px solid #697582;
+    border-radius: 80px;
+    color: #99a5b3;
+    margin-right: 10px;
+    padding: 10px 22px;
+  }
 }
 .transparencyCol {
   width: calc(25% - 40px);
