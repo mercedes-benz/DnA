@@ -138,8 +138,8 @@ const Header:React.FC<IHeaderProps> = (props) => {
         </a>
 
         <div className={classNames(Styles.appLogo, 'app-info')}>
+          <img className="app-logo" src={Envs.DNA_APP_LOGO_URL} />
           <h6 className="app-name">{Envs.DNA_APPNAME_HEADER}</h6>
-          {/* <img className="app-logo" src={Envs.DNA_APP_LOGO_URL} /> */}
         </div>
       </div>
       <div className={Styles.search}>
