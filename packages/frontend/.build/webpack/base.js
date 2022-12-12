@@ -171,7 +171,7 @@ const base = {
         './DatePicker': './src/components/DatePicker/DatePicker.tsx',
         './TeamSearch': './src/components/mbc/teamSearch/TeamSearch.tsx',
         './DNACard': './src/components/card/Card.tsx',
-        './DataWorkspace': './src/components/mbc/workspaces/Workspaces.tsx',
+        './DataWorkspace': './src/components/mbc/workspaces/Data.tsx',
         './DataLayer': './src/components/mbc/workspaces/dataLayer/DataLayer.tsx',
         './DataGovernance': './src/components/mbc/workspaces/dataGovernance/DataGovernance.tsx'
       },
