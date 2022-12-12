@@ -383,6 +383,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
                       className={classNames('nav-item sub-nav-item', {
                         active: getPath().includes(subNavItem.route),
                       })}
+                      onClick={() => { props.onNavClose(); }}
                     >
                       <Link
                         className={classNames('nav-link', subNavItem.enabled ? '' : Styles.disableSubLink)}
@@ -400,6 +401,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
               key={index}
               className={classNames('nav-item', { active: getPath().includes(navItem.route) })}
               title={navItem.title}
+              onClick={() => { props.onNavClose(); }}
             >
               <Link
                 className={classNames('nav-link', navItem.enabled ? '' : Styles.disableLink)}
