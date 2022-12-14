@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import com.daimler.data.auth.vault.VaultAuthClientImpl;
-import com.daimler.data.dto.auth.ApiKeyValidationResponseVO;
-import com.daimler.data.dto.auth.ApiKeyValidationVO;
 import com.daimler.data.dto.forecast.*;
 import com.daimler.data.service.forecast.ForecastService;
 import org.apache.commons.io.FilenameUtils;
@@ -170,6 +168,18 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 		}
+		if (existingForecast == null) {
+			boolean isBucketExists = service.isBucketExists(BUCKETS_PREFIX + name);
+			if(isBucketExists) {
+				log.error("Forecast project with this name {} already exists , failed to create forecast project", name);
+				MessageDescription invalidMsg = new MessageDescription("Forecast project already exists with given name");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess(HttpStatus.CONFLICT.name());
+				errorMessage.addWarnings(invalidMsg);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
+			}
+		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		ForecastVO forecastVO = new ForecastVO();
 		forecastVO.setBucketName(BUCKETS_PREFIX + name);
@@ -227,6 +237,43 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 		}
 	}
 
+	@ApiOperation(value = "API Key Generation for Forecast project.", nickname = "createForecastProject", notes = "API Key Generation for Forecast project.", response = ForecastProjectResponseVO.class, tags = {
+			"forecast-projects", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = ForecastProjectResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/forecasts/{id}/apikey", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	@Override
+	public ResponseEntity<ApiKeyResponseVO> getApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id) {
+		ApiKeyResponseVO responseVO = new ApiKeyResponseVO();
+		ApiKeyVO response = new ApiKeyVO();
+		ForecastVO existingForecast = service.getById(id);
+		List<MessageDescription> errors = new ArrayList<>();
+		GenericMessage responseMessage = new GenericMessage();
+
+		// if existingForecast is null return not found.
+		if (existingForecast == null) {
+			responseMessage.setSuccess("FAILED");
+			MessageDescription errMsg = new MessageDescription("forecast ID Not found!");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			log.error("forecast ID Not found!");
+			responseVO.setResponse(responseMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+		}
+
+		response = service.getApiKey(id);
+		responseMessage.setSuccess("SUCCESS");
+		responseVO.setResponse(responseMessage);
+		responseVO.setData(response);
+		return new ResponseEntity<>(responseVO, HttpStatus.OK);
+	}
+
 	@Override
 	@ApiOperation(value = "API Key Generation for Forecast project.", nickname = "createForecastProject", notes = "API Key Generation for Forecast project.", response = ForecastProjectResponseVO.class, tags = {
 			"forecast-projects", })
@@ -239,9 +286,10 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/forecasts/{id}/apikey", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.POST)
-	public ResponseEntity<ForecastProjectResponseVO> genrateApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id) {
-		
-		ForecastProjectResponseVO responseVO = new ForecastProjectResponseVO();
+	public ResponseEntity<ApiKeyResponseVO> generateApikey(@ApiParam(value = "forecast project ID", required = true) @PathVariable("id") String id) {
+
+		ApiKeyResponseVO responseVO = new ApiKeyResponseVO();
+		ApiKeyVO response = new ApiKeyVO();
 		ForecastVO existingForecast = service.getById(id);
 		List<MessageDescription> errors = new ArrayList<>();
 		GenericMessage responseMessage = new GenericMessage();
@@ -269,9 +317,12 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		// To get updated forecast after adding collaborator.
-		ForecastVO updatedForecast = service.getById(id);
-		responseVO.setData(updatedForecast);
+		// To get the API key after it's successfully gsenerated.
+		response = service.getApiKey(id);
+		responseMessage.setSuccess("SUCCESS");
+		responseVO.setResponse(responseMessage);
+		responseVO.setData(response);
+
 		return new ResponseEntity<>(responseVO, HttpStatus.OK);
 	}
 

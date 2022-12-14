@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.tag.TagsApi;
@@ -106,8 +107,10 @@ public class TagController implements TagsApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/tags", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<TagCollection> getAll() {
-		return tagService.getAllTags();
+	public ResponseEntity<TagCollection> getAll(
+			@ApiParam(value = "Sort tags by a given variable like tagName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort tags based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return tagService.getAllTags(sortBy,sortOrder);
 	}
 
 	@Override

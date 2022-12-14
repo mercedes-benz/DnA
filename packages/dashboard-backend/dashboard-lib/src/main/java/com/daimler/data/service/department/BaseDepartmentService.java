@@ -28,6 +28,8 @@
 package com.daimler.data.service.department;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,12 +81,20 @@ public class BaseDepartmentService extends BaseCommonService<DepartmentVO, Depar
 	}
 
 	@Override
-	public ResponseEntity<DepartmentCollection> getAllDepartments() {
+	public ResponseEntity<DepartmentCollection> getAllDepartments(String sortBy,String sortOrder) {
 		DepartmentCollection departmentCollection = new DepartmentCollection();
 		try {
 			List<DepartmentVO> departments = super.getAll();
 			LOGGER.debug("Departments fetched successfully");
 			if (!ObjectUtils.isEmpty(departments)) {
+				if (sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
+					Comparator<DepartmentVO> comparator = (d1, d2) -> (d1.getName().compareTo(d2.getName()));
+					Collections.sort(departments, comparator);
+				}
+				if (sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
+					Comparator<DepartmentVO> comparator = (d1, d2) -> (d2.getName().compareTo(d1.getName()));
+					Collections.sort(departments, comparator);
+				}
 				departmentCollection.setData(departments);
 				return new ResponseEntity<>(departmentCollection, HttpStatus.OK);
 			} else {
