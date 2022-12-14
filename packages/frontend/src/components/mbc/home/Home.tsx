@@ -37,7 +37,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                 </h2>
                 <DNACard
                   title={'Transparency'}
-                  description={'Explore all Data & AI Solutions in MB and view your Portfolio in a single click'}
+                  description={'Explore all Data & AI Solutions in MB and view your Portfolio.'}
                   url={'/transparency'}
                   isTextAlignLeft={false}
                   isDisabled={false}
