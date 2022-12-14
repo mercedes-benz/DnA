@@ -807,7 +807,12 @@ public class BaseStorageService implements StorageService {
 	 	 }
 	 	return new ResponseEntity<>(genericMessage, httpStatus);
 	 }
-	
+
+	@Override
+	public Boolean isBucketPresent(String bucketName) {
+		return dnaMinioClient.isBucketExists(bucketName);
+	}
+
 	/*
 	 * To convert List<Error> errors to List<MessageDescription> 
 	 * 
