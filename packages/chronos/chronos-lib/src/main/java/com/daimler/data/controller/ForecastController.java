@@ -168,6 +168,18 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			responseVO.setResponse(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 		}
+		if (existingForecast == null) {
+			boolean isBucketExists = service.isBucketExists(BUCKETS_PREFIX + name);
+			if(isBucketExists) {
+				log.error("Forecast project with this name {} already exists , failed to create forecast project", name);
+				MessageDescription invalidMsg = new MessageDescription("Forecast project already exists with given name");
+				GenericMessage errorMessage = new GenericMessage();
+				errorMessage.setSuccess(HttpStatus.CONFLICT.name());
+				errorMessage.addWarnings(invalidMsg);
+				responseVO.setResponse(errorMessage);
+				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
+			}
+		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		ForecastVO forecastVO = new ForecastVO();
 		forecastVO.setBucketName(BUCKETS_PREFIX + name);
