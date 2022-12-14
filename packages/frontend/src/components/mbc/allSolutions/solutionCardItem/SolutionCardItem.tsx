@@ -1,10 +1,10 @@
 import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
+// import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import Styles from './SolutionCardItem.scss';
 import { IAllSolutionsListItem, ILocation, INotebookInfoSolutionId } from 'globals/types';
 import { history } from '../../../..//router/History';
-import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
+// import LogoImage from '../../createNewSolution/description/logoManager/LogoImage/LogoImage';
 import { attachEllipsis } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
 import { DataFormater } from '../../../../services/utils';
@@ -150,35 +150,14 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
   return (
     <div id={'card-' + solution.id} key={solution.id} className={Styles.solCard}>
       <div className={Styles.solHead} onClick={goToSummary(solution.id)}>
-        <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.TILE} logoDetails={solution.logoDetails} />
-        <div className={Styles.solHeadInfo}>
+        {/* <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.TILE} logoDetails={solution.logoDetails} /> */}
+        {/* <div className={Styles.solHeadInfo}>
           <div className={Styles.solTitle}>{solution.productName}</div>
+        </div> */}
+        <div>
+        <div className={Styles.solTitle}>{solution.productName}</div>
         </div>
-      </div>
-      <div className={Styles.solbodysection}>
-        <div className={Styles.subsolHead}>
-          <div>
-            <span
-              className={
-                solution.projectStatus
-                  ? solution.projectStatus.name === 'Active'
-                    ? classNames(Styles.active)
-                    : solution.projectStatus.name === 'Closed'
-                    ? classNames(Styles.closed)
-                    : ''
-                  : ''
-              }
-            >
-              {solution.projectStatus.name}
-            </span>{' '}
-            {!solution.publish && <span className={Styles.draftIndicator}>DRAFT</span>}{' '}
-            <span className={Styles.digitalValue}>
-              {solution.digitalValue && solution.digitalValue.digitalValue
-                ? `${DataFormater(solution.digitalValue.digitalValue)}`
-                : ''}
-            </span>
-          </div>
-          <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
+        <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
             <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
               <i className="icon mbc-icon listItem context" />
             </span>
@@ -212,6 +191,33 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
               </ul>
             </div>
           </div>
+      </div>
+      <div className={Styles.solbodysection}>
+        <div className={Styles.subsolHead}>
+          <div>
+            <span
+              className={
+                solution.projectStatus
+                  ? solution.projectStatus.name === 'Active'
+                    ? classNames(Styles.active)
+                    : solution.projectStatus.name === 'Closed'
+                    ? classNames(Styles.closed)
+                    : ''
+                  : ''
+              }
+            >
+              {solution.projectStatus.name}
+            </span>{' '}
+            {!solution.publish && <span className={Styles.draftIndicator}>DRAFT</span>}{' '}
+            <span className={Styles.digitalValue}>
+              {solution.digitalValue && solution.digitalValue.digitalValue
+                ? `${DataFormater(solution.digitalValue.digitalValue)}`
+                : ''}
+            </span>
+          </div>
+          
+
+
         </div>
 
         <div className={Styles.solRegin}>
