@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -276,6 +277,28 @@ public class StorageController implements StorageApi {
 			@ApiParam(value = "If requested data from live(Production) or training dataiku environment", defaultValue = "true") @Valid @RequestParam(value = "live", required = false, defaultValue = "true") Boolean live) {
 
 		return storageService.deleteBucketCascade(bucketName, live);
+	}
+
+	@Override
+	@ApiOperation(value = "is BucketPresent.", nickname = "isBucketPresent", notes = "True if the bucket exists.", response = GenericMessage.class, tags = {
+			"storage", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/buckets/{bucketName}/present", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<BucketPresentVO> isBucketPresent(String bucketName, Boolean live) {
+		BucketPresentVO bucketPresentVO = new BucketPresentVO();
+		GenericMessage message = new GenericMessage();
+		bucketPresentVO.isBucketPresent(storageService.isBucketPresent(bucketName));
+		message.setSuccess("SUCCESS");
+		bucketPresentVO.setResponse(message);
+		return new ResponseEntity<>(bucketPresentVO, HttpStatus.OK);
 	}
 
 	@Override

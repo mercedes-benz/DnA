@@ -573,7 +573,11 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 		return responseMessage;
 	}
 
-	
+	@Override
+	@Transactional
+	public Boolean isBucketExists(String bucketName) {
+		return storageClient.isBucketExists(bucketName);
+	}	
 	
 	
 }
