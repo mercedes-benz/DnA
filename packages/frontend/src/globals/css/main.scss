@@ -26,8 +26,7 @@
     background-color: #000;
   }
 
-  body,
-  .nav-header .app-info .app-name {
+  body {
     color: #d9dfe4 !important;
     font-size: var(--font-size-default);
   }
@@ -939,6 +938,108 @@
       font-size: var(--font-size-default);
       > span {
         color: #00adef;
+      }
+    }
+  }
+
+
+  /* CSS for Upload Progress */
+  .upload-progress-wrapper {
+    position: fixed;
+    bottom: 57px;
+    left: 64px;
+    z-index: 3000;
+    min-width: 366px;
+    max-width: 30vw;
+    display: flex;
+    flex-direction: column-reverse;
+    scroll-behavior: smooth;
+    flex-grow: 1;
+    height: auto;
+    max-height: 100%;
+
+    .upload-progress.toast {
+      background-color: #383F49;
+      padding: 0 72px;
+      font-size: 13px;
+      line-height: 18px;
+      height: 0;
+      width: 100%;
+      display: flex;
+      vertical-align: middle;
+      background-size: 17px;
+      color: #C0C8D0;
+      position: relative;
+      transition: height 400ms ease, opacity 400ms ease, padding-top 400ms ease, padding-bottom 400ms ease, margin 400ms ease;
+      opacity: 0;
+      box-shadow: 0 5px 20px 0 rgba(0,0,0,0.08);
+
+      &.show {
+        margin: 7px 0;
+        padding: 15px 72px;
+        min-height: 80px;
+        height: auto;
+        opacity: 1;
+        &.delay {
+          transition-delay: 400ms;
+        }
+      }
+
+      &.hide {
+        height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin: 0;
+      }
+
+      p {
+        margin: auto 0;
+        max-height: 150px;
+        overflow: auto;
+        span {
+          margin-right: 8px;
+          &::after {
+            content: ',';
+          }
+
+          &:last-child {
+            &::after {
+              content: none;
+            } 
+          }
+        }
+      }
+
+      .icon.upload {
+        left: 30px;
+        position: absolute;
+        top: calc(50% - 12px);
+        font-size: var(--font-size-icon-nav);
+      }
+
+      .icon.close {
+        color: #99A5B3;
+        right: 25px;
+        position: absolute;
+        cursor: pointer;
+        display: block;
+        top: calc(50% - 8px);
+      }
+
+      .level-wrapper {
+        width: 100%;
+        height: 5px;
+        background-color: #1C2026;
+        position: absolute;
+        left: 0;
+        top: 0;
+
+        .level {
+          height: 5px;
+          width: 50%;
+          background-color: #00ADEF;
+        }
       }
     }
   }

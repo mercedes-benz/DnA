@@ -115,15 +115,17 @@ const ConsumerForm = ({ user, history }) => {
     dataTransferApi
       .getDataProductById(dataProductId)
       .then((res) => {
-        const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;
-        const isValidUser =
-          res.data.providerInformation?.users?.find((item) => user.id === item.shortId || user.eMail === item.email) ||
-          false;
+        // const isCreator = res.data?.providerInformation?.createdBy?.id === user.id;
+        // const isValidUser =
+        //   res.data.providerInformation?.users?.find((item) => user.id === item.shortId || user.eMail === item.email) ||
+        //   false;
         if (res.status === 204) {
           return history.push('/NotFound');
-        } else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
-          return history.push('/Unauthorized');
-        } else {
+        }
+        // else if (isCreator || (res.data.providerInformation?.users?.length > 0 && !isValidUser)) {
+        //   return history.push('/Unauthorized');
+        // }
+        else {
           const data = deserializeFormData(res.data, 'consumer');
           dispatch(setDataProduct(data));
           setIsEditing(data.publish);
