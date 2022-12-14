@@ -2630,3 +2630,8 @@ vault-auto-unseal:
 vault-backup: 
   enabled: true
 
+dss-mfe:
+  enabled: true
+
+dss-be:
+  enabled: true

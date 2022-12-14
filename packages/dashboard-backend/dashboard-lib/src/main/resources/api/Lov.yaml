@@ -75,6 +75,19 @@ paths:
    summary: "Get all dataWarehouse."
    description:  "Get all dataWarehouse. This endpoints will be used to get all valid available dataWarehouse."
    operationId: "getAllDataWarehouseLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort dataWarehouses by a given variable like dataWarehouseName
+          required: false
+          type: string
+          enum: [dataWarehouseName]
+        - name: sortOrder
+          in: query
+          description: Sort dataWarehouses based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -201,6 +214,19 @@ paths:
    summary: "Get all integrated portal."
    description:  "Get all integrated portal. This endpoints will be used to get all valid available integrated portal."
    operationId: "getAllIntegratedPortalLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort integratedportals by a given variable like integratedportalName
+          required: false
+          type: string
+          enum: [integratedportalName]
+        - name: sortOrder
+          in: query
+          description: Sort integratedportals based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -327,6 +353,19 @@ paths:
    summary: "Get all frontend technology."
    description:  "Get all frontend technology. This endpoints will be used to get all valid available frontend technology."
    operationId: "getAllFrontendTechnologyLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort frontendtechnologies by a given variable like frontendtechnologyName
+          required: false
+          type: string
+          enum: [frontendtechnologyName]
+        - name: sortOrder
+          in: query
+          description: Sort frontendtechnologies based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -453,6 +492,19 @@ paths:
    summary: "Get all status."
    description:  "Get all status. This endpoints will be used to get all valid available status."
    operationId: "getAllStatusLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort statuses by a given variable like statusName
+          required: false
+          type: string
+          enum: [statusName]
+        - name: sortOrder
+          in: query
+          description: Sort statuses based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -578,6 +630,19 @@ paths:
    summary: "Get all level."
    description:  "Get all level. This endpoints will be used to Get all valid available level."
    operationId: "getAllLevelLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort levels by a given variable like levelName
+          required: false
+          type: string
+          enum: [levelName]
+        - name: sortOrder
+          in: query
+          description: Sort levels based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -703,6 +768,19 @@ paths:
    summary: "Get all legal entity."
    description:  "Get all legal entity. This endpoints will be used to Get all valid available legal entity."
    operationId: "getAllLegalEntityLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort legalentities by a given variable like legalentityName
+          required: false
+          type: string
+          enum: [legalentityName]
+        - name: sortOrder
+          in: query
+          description: Sort legalentities based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -828,6 +906,19 @@ paths:
    summary: "Get all customer department."
    description:  "Get all customer department. This endpoints will be used to get all valid available customer department."
    operationId: "getAllCustomerDepartmentLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort departments by a given variable like customerdepartmentName
+          required: false
+          type: string
+          enum: [customerdepartmentName]
+        - name: sortOrder
+          in: query
+          description: Sort departments based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -953,6 +1044,19 @@ paths:
    summary: "Get all kpi name."
    description:  "Get all kpi name. This endpoints will be used to Get all valid available kpi name."
    operationId: "getAllKpiNameLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort kpinames by a given variable like kpiName
+          required: false
+          type: string
+          enum: [kpiName]
+        - name: sortOrder
+          in: query
+          description: Sort kpinames based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -1078,6 +1182,19 @@ paths:
    summary: "Get all reporting cause."
    description:  "Get all reporting cause. This endpoints will be used to Get all valid available reporting cause."
    operationId: "getAllReportingCauseLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort reportingcauses by a given variable like reportingcauseName
+          required: false
+          type: string
+          enum: [reportingcauseName]
+        - name: sortOrder
+          in: query
+          description: Sort reportingcauses based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -1203,6 +1320,19 @@ paths:
    summary: "Get all common function."
    description:  "Get all common function. This endpoints will be used to Get all valid available common function."
    operationId: "getAllCommonFunctionLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort common functions by a given variable like commonFunctionName
+          required: false
+          type: string
+          enum: [commomFunctionName]
+        - name: sortOrder
+          in: query
+          description: Sort common functions based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -1328,6 +1458,19 @@ paths:
    summary: "Get all agile release train."
    description:  "Get all agile release train. This endpoints will be used to get all valid available agile release train."
    operationId: "getAllAgileReleaseTrainLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort agilereleasetrains by a given variable like agilereleasetrainName
+          required: false
+          type: string
+          enum: [agilereleasetrainName]
+        - name: sortOrder
+          in: query
+          description: Sort agilereleasetrains based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -1453,6 +1596,19 @@ paths:
    summary: "Get all data classification."
    description:  "Get all data classification. This endpoints will be used to get all valid available data classification."
    operationId: "getAllDataClassificationLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort dataclassifications by a given variable like dataclassificationName
+          required: false
+          type: string
+          enum: [dataclassificationName]
+        - name: sortOrder
+          in: query
+          description: Sort dataclassifications based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"
@@ -1578,6 +1734,19 @@ paths:
    summary: "Get all connection type."
    description:  "Get all connection type. This endpoints will be used to get all valid available connection type."
    operationId: "getAllConnectionTypeLov"
+   parameters:
+        - name: sortBy
+          in: query
+          description: Sort connectiontypes by a given variable like connectiontypeName
+          required: false
+          type: string
+          enum: [algorithmName]
+        - name: sortOrder
+          in: query
+          description: Sort connectiontypes based on the given order, example asc,desc
+          required: false
+          type: string   
+          enum: [asc,desc]
    responses:
     201:
      description: "Returns message of succes or failure"

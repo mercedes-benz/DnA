@@ -77,9 +77,9 @@
           &.active {
             border-left: none !important;
 
-            > .nav-link {
-              border-left: 4px solid #00adef !important;
-            }
+            // > .nav-link {
+            //   border-left: 4px solid #00adef !important;
+            // }
           }
 
           > .nav-link::before,
@@ -149,6 +149,7 @@
     .nav-list {
       .nav-item:not(.sub-nav-item) {
         height: 43px !important;
+        border-left: 6px solid transparent;
       }
     }
   }
