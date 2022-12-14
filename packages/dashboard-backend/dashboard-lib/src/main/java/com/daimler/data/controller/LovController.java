@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.lov.LovApi;
@@ -617,8 +618,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/agilereleasetrains", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllAgileReleaseTrainLov() {
-		return agileReleaseTrainService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllAgileReleaseTrainLov(
+			@ApiParam(value = "Sort agilereleasetrains by a given variable like agilereleasetrainName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort agilereleasetrains based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return agileReleaseTrainService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -633,8 +636,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/customer/departments", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllCustomerDepartmentLov() {
-		return customerDepartmentService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllCustomerDepartmentLov(
+			@ApiParam(value = "Sort customer departments by a given variable like departmentName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort customer departments based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return customerDepartmentService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -649,8 +654,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/commonfunctions", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllCommonFunctionLov() {
-		return commonFunctionService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllCommonFunctionLov(
+			@ApiParam(value = "Sort commonfunctions by a given variable like commonfunctionName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort commonfunctions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return commonFunctionService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -665,8 +672,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/frontendtechnologies", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllFrontendTechnologyLov() {
-		return frontendTechnologyService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllFrontendTechnologyLov(
+			@ApiParam(value = "Sort frontendtechnologies by a given variable like frontendtechnologyName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort frontendtechnologies based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return frontendTechnologyService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -681,8 +690,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/levels", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllLevelLov() {
-		return levelService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllLevelLov(
+			@ApiParam(value = "Sort levels by a given variable like levelName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort levels based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return levelService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -697,8 +708,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/integratedportals", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllIntegratedPortalLov() {
-		return integratedPortalService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllIntegratedPortalLov(
+			@ApiParam(value = "Sort integratedportals by a given variable like integratedportalName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort integratedportals based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return integratedPortalService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -713,8 +726,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/kpinames", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllKpiNameLov() {
-		return kpiNameService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllKpiNameLov(
+			@ApiParam(value = "Sort kpinames by a given variable like kpiName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort kpinames based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return kpiNameService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -729,8 +744,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/datawarehouses", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllDataWarehouseLov() {
-		return dataWarehouseService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllDataWarehouseLov(
+			@ApiParam(value = "Sort datawarehouses by a given variable like datawarehouseName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort datawarehouses based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return dataWarehouseService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -745,8 +762,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/reportingcauses", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllReportingCauseLov() {
-		return reportingCauseService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllReportingCauseLov(
+			@ApiParam(value = "Sort reportingcauses by a given variable like reportingcauseName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort reportingcauses based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return reportingCauseService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -761,8 +780,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/legalentities", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllLegalEntityLov() {
-		return legalEntityService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllLegalEntityLov(
+			@ApiParam(value = "Sort legalentities by a given variable like legalentityName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort legalentities based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return legalEntityService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -777,8 +798,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/statuses", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllStatusLov() {
-		return statusService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllStatusLov(
+			@ApiParam(value = "Sort statuses by a given variable like statusName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort statuses based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return statusService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -793,8 +816,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/connectiontypes", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllConnectionTypeLov() {
-		return connectionTypeService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllConnectionTypeLov(
+			@ApiParam(value = "Sort connectiontypes by a given variable like connectiontypeName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort connectiontypes based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return connectionTypeService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override
@@ -809,8 +834,10 @@ public class LovController implements LovApi {
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/dataclassifications", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<LovVOCollection> getAllDataClassificationLov() {
-		return dataClassificationService.getAllLov();
+	public ResponseEntity<LovVOCollection> getAllDataClassificationLov(
+			@ApiParam(value = "Sort dataclassifications by a given variable like dataclassificationName") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+			@ApiParam(value = "Sort dataclassifications based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		return dataClassificationService.getAllLov(sortBy,sortOrder);
 	}
 
 	@Override

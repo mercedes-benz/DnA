@@ -122,7 +122,15 @@ dependencies:
   version: 0.1.0
   condition: chronos-be.enabled  
 
+- name: dss-mfe
+  repository: file://charts/dss-mfe
+  version: 0.1.0
+  condition: dss-mfe.enabled  
 
+- name: dss-be
+  repository: file://charts/dss-be
+  version: 0.1.0
+  condition: dss-be.enabled  
  
 # A chart can be either an 'application' or a 'library' chart.
 #

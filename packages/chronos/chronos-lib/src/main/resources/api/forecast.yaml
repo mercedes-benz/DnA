@@ -299,7 +299,7 @@ paths:
         - "forecast-projects"
       summary: "API Key Generation for Forecast project."
       description: "API Key Generation."
-      operationId: "genrateApikey"
+      operationId: "generateApikey"
       parameters:
         - in: "path"
           name: "id"
@@ -310,7 +310,36 @@ paths:
         201:
           description: "Returns message of success or failure "
           schema:
-            $ref: "#/definitions/ForecastProjectResponseVO"
+            $ref: "#/definitions/ApiKeyResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    get:
+      tags:
+        - "forecast-projects"
+      summary: "API Key Generation for Forecast project."
+      description: "API Key Generation."
+      operationId: "getApikey"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "forecast project ID"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/ApiKeyResponseVO"
         400:
           description: "Bad Request"
           schema:
@@ -689,6 +718,21 @@ definitions:
         - department
         - email
 
+  ApiKeyResponseVO:
+    type: object 
+    properties: 
+        data:
+           $ref: "#/definitions/ApiKeyVO"
+        response:
+            $ref: "#/definitions/GenericMessage"
+
+  ApiKeyVO: 
+    type: object
+    properties:
+        apiKey:
+            type: string
+            description: Api key for the forecast project.
+
   ForecastProjectResponseVO:
     type: object 
     properties: 
@@ -715,9 +759,6 @@ definitions:
             type: array
             items:
                     $ref: "#/definitions/CollaboratorVO"
-        apiKey:
-            type: string
-            description: apiKey for the project access
         createdBy:
             $ref: "#/definitions/CreatedByVO"
             description: createdBy user details
@@ -929,6 +970,9 @@ definitions:
         executionDuration:
             type: string
             description: "time taken to execute"
+        resultFolderPath:
+            type: string
+            description: "result folder path"
   
   ForecastRunResponseVO:
     type: object
