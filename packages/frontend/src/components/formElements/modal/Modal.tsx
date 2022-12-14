@@ -19,6 +19,7 @@ export interface IModalProps {
   modalWidth?: string;
   modalStyle?: React.CSSProperties;
   footer?: React.ReactNode;
+  customHeader?: React.ReactNode;
 }
 
 const Modal = (props: IModalProps) => {
@@ -42,10 +43,14 @@ const Modal = (props: IModalProps) => {
     <div className={props.show ? 'mbc-modal-wrapper' : Styles.hide}>
       <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
         <header>
-          <h4 className={classNames(props.hiddenTitle ? 'hidden' : '')}>
-            {props.titleIconImage ? props.titleIconImage : null}
-            {props.title}
-          </h4>
+          {props.customHeader ? (
+            props.customHeader
+          ) : (
+            <h4 className={classNames(props.hiddenTitle ? 'hidden' : '')}>
+              {props.titleIconImage ? props.titleIconImage : null}
+              {props.title}
+            </h4>
+          )}
           <button className="modal-close-button" onClick={props.onCancel}>
             <i className="icon mbc-icon close thin" />
           </button>

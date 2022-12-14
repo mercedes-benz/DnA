@@ -124,7 +124,6 @@ const ForeCastingProjects = ({ user, history }) => {
   const handleCreateProject = (values) => {
     ProgressIndicator.show();
     const data = {
-        "apiKey": "123823",
         // "collaborators": teamMembers.map(teamMember => {delete teamMember.userType; delete teamMember.shortId; return teamMember}),
         "collaborators": teamMembers,
         "name": values.name,

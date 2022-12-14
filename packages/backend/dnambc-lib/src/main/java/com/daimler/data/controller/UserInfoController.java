@@ -213,11 +213,12 @@ public class UserInfoController implements UsersApi {
 				//To set key existing data if missing in request
 				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
 				Boolean isAdmin = false;
-				CreatedByVO currentUser = this.userStore.getVO();
-				String userId = currentUser != null ? currentUser.getId() : null;
+				CreatedByVO loggedInUser = this.userStore.getVO();
+				String userId = loggedInUser != null ? loggedInUser.getId() : null;
 				if (userId != null && !"".equalsIgnoreCase(userId)) {
 					if (currentUserData != null) {
-						List<UserRoleVO> userRoles = currentUserData.getRoles();
+						UserInfoVO loggedInUserData = userInfoService.getById(userId);
+						List<UserRoleVO> userRoles = loggedInUserData.getRoles();
 						if (userRoles != null && !userRoles.isEmpty())
 							isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
 					}

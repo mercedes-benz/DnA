@@ -139,6 +139,15 @@ public interface StorageService {
 	ResponseEntity<GenericMessage> deleteBucketCascade(String bucketName, Boolean live);
 
 	/**
+	 * True if the bucket exists.
+	 *
+	 * @param bucketName
+	 * @return ResponseEntity<GenericMessage>
+	 */
+	@Transactional
+	Boolean isBucketPresent(String bucketName);
+
+	/**
 	 * To update bucket along with collaborator
 	 * 
 	 * @param bucketVo
