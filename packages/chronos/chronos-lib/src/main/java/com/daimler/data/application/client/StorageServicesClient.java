@@ -303,4 +303,26 @@ public class StorageServicesClient {
 
 		return deleteBucketResponse;
 	}
+
+	public Boolean isBucketExists(String bucketName) {
+		Boolean isBucketPresent = false;
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			String jwt = httpRequest.getHeader("Authorization");
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", jwt);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String getFilesListUrl = storageBaseUri + BUCKETS_PATH + "/" +bucketName + "/" + "present" ;
+			ResponseEntity<BucketPresentResponseWrapperDto> response = restTemplate.exchange(getFilesListUrl, HttpMethod.GET,requestEntity, BucketPresentResponseWrapperDto.class);
+			if (response.hasBody() && response.getBody()!=null) {
+				if (response.hasBody()) {
+					isBucketPresent = Boolean.valueOf(response.getBody().getIsBucketPresent());
+				}
+			}
+		} catch(Exception e) {
+			log.error("Failed to check isBucketExists {}  with exception {}", bucketName + e.getMessage());
+		}
+		return isBucketPresent;
+	}
 }

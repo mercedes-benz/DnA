@@ -587,6 +587,43 @@ paths:
      description: "Method not allowed"
     500:
      description: "Internal error"
+    
+ /buckets/{bucketName}/present:
+  get:
+    tags:
+      - "storage"
+    summary: "is BucketPresent."
+    description:  "True if the bucket exists."
+    operationId: "isBucketPresent"
+    parameters:
+     - name: bucketName
+       in: path
+       description: "Bucket name which need to be verified."
+       required: true
+       type: string
+     - name: live
+       in: query
+       description: "If requested data from live(Production) or training dataiku environment"
+       required: false
+       type: boolean
+       default: true 
+    responses:
+      200:
+        description: "Returns message of succes or failure "
+        schema:
+          $ref: "#/definitions/BucketPresentVO"
+      204:
+        description: "Fetch complete, no content found."
+      400:
+        description: "Bad Request"
+      401:
+        description: "Request does not have sufficient credentials."
+      403:
+        description: "Request is not authorized."
+      405:
+        description: "Method not allowed"
+      500:
+        description: "Internal error"
 
  /v1/buckets/{bucketName}:
   delete:
@@ -905,7 +942,16 @@ definitions:
  
  BindingResult:
   type: object
-  
+
+ BucketPresentVO:
+  type: object
+  properties:
+    isBucketPresent: 
+      type: boolean
+      description: "error message"
+    response:
+      $ref: "#/definitions/GenericMessage"
+
  GenericMessage:
   type: object
   properties:
