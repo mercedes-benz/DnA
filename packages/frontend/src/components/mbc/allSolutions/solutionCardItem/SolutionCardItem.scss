@@ -1,9 +1,9 @@
 .solCard {
   background: #252a33;
-  width: calc(33% - 15px);
+  width: calc(25% - 15px);
   margin: 0 15px 15px 0;
   min-width: 250px;
-  position: relative;
+  // position: relative;
   &:hover {
     background: #30343a !important;
   }
@@ -13,8 +13,11 @@
     margin-bottom: 5px;
     align-items: center;
     position: relative;
-    overflow: hidden;
-    height: 110px;
+    // overflow: hidden;
+    // height: 110px;
+    padding: 20px;
+    padding-bottom: 0;
+    // z-index: 2;
     img {
       min-width: 100%;
       align-self: flex-start;
@@ -53,6 +56,7 @@
 
     &:hover .solTitle {
       color: #00adef;
+      cursor: pointer;
     }
   }
   .solbodysection {
