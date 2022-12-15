@@ -11,6 +11,8 @@ import { NotificationPanel } from './notificationpanel/NotificationPanel';
 import { NotificationApiClient } from '../../services/NotificationApiClient';
 import { Envs } from 'globals/Envs';
 import AppContext from '../context/ApplicationContext';
+import { Link } from 'react-router-dom';
+import { getPath } from './../../router/RouterUtils';
 
 export interface IHeaderProps {
   user: IUserInfo;
@@ -115,6 +117,7 @@ const Header:React.FC<IHeaderProps> = (props) => {
   }
 
   return (
+    <>
     <header
       id="header"
       className={classNames(Styles.mainHeader, 'nav-header')}
@@ -198,6 +201,58 @@ const Header:React.FC<IHeaderProps> = (props) => {
         </div>
       </div>
     </header>
+    {
+      !props.isHome &&
+        <div className={Styles.levelTwoNav}>
+          <div className={Styles.navItemContainer}>
+            <div className={Styles.navItem}>
+              <Link to="/home" className={getPath().includes('/home') ? Styles.active : ''}>
+                <i className={classNames('icon mbc-icon home')} />
+                <span>Home</span>
+              </Link>
+              <p>Amet consetetur lorem ipsum dolor sit amet. 
+              34 updates</p>
+            </div>
+          </div>
+          <div className={Styles.navItemContainer}>
+            <div className={Styles.navItem}>
+              <Link to="/transparency" className={getPath().includes('/transparency') ? Styles.active : ''}>
+                <i className={classNames('icon mbc-icon reports')} />
+                <span>Transparency</span>
+              </Link>
+              <p>Explore all Data & AI Solutions in MB and view your Portfolio.</p>
+            </div>
+          </div>
+          <div className={Styles.navItemContainer}>
+            <div className={Styles.navItem}>
+              <Link to="/data" className={getPath().includes('/data') ? Styles.active : ''}>
+                <i className={classNames('icon mbc-icon solutions')} />
+                <span>Data</span>
+              </Link>
+              <p>From Data Products to Data Governance - all you need to work is here</p>
+            </div>
+          </div>
+          <div className={Styles.navItemContainer}>
+            <div className={Styles.navItem}>
+              <Link to="/tools" className={getPath().includes('/tools') ? Styles.active : ''}>
+                <i className={classNames('icon mbc-icon dashboard')} />
+                <span>Tools</span>
+              </Link>
+              <p>Our standard Data & Analytics for both FC Users and Pro Developers</p>
+            </div>
+          </div>
+          <div className={Styles.navItemContainer}>
+            <div className={classNames(Styles.navItem, Styles.disabled)}>
+              <Link to="/trainings" className={getPath().includes('/trainings') ? Styles.active : ''}>
+                <i className={classNames('icon mbc-icon training')} />
+                <span>Trainings <em>coming soon</em></span>
+              </Link>
+              <p>Data and Tools are not enough - here we enable you to become even more productive</p>
+            </div>
+          </div>
+        </div>
+    }
+    </>
   );
 }
 export default Header;
