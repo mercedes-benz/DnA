@@ -50,3 +50,14 @@
   color: #c5c5c5;
   text-decoration: underline;
 }
+.termsBtn {
+  background-color: unset;
+  color: #00adef;
+  border: 0;
+  &:focus {
+    outline: 0;
+  }
+  &:hover {
+    text-decoration: underline;
+  }
+}
