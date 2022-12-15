@@ -43,6 +43,8 @@ type SolutionsFilterType = {
   setSolutionsDataLoaded: Function;
   showSolutionsFilter?: boolean;
   openFilters?: boolean;
+  getAllTags?: Function;
+  setSelectedTags?: string[]; // this prop is used to set selected tags from tags component
 };
 
 /**
@@ -65,6 +67,8 @@ const SolutionsFilter = ({
   setSolutionsDataLoaded,
   showSolutionsFilter,
   openFilters,
+  getAllTags,
+  setSelectedTags
 }: SolutionsFilterType) => {
   const { pathname } = useLocation();
 //   const [openFilterPanel, 
@@ -117,6 +121,10 @@ const SolutionsFilter = ({
   const isPortfolioPage = pathname === '/portfolio';
   const isAllSolutionsPage = pathname === '/allsolutions';
 
+  useEffect(()=>{
+    onsetTags(setSelectedTags);
+  },[setSelectedTags])
+
   useEffect(() => {
     ProgressIndicator.show();
     ApiClient.getFiltersMasterData()
@@ -135,6 +143,7 @@ const SolutionsFilter = ({
             const projectStatuses = response[2];
             const phases: IPhase[] = response[3];
             const tagValues: ITag[] = response[5];
+            getAllTags(response[5]);
             const subDivisions: ISubDivisionSolution[] = [].concat(...subDivisionsList);
             phases.forEach((phase) => {
               switch (phase.id) {
@@ -614,6 +623,13 @@ const SolutionsFilter = ({
   };
 
   const resetDataFilters = () => {
+    setTagFilterValues([]);
+    setDivisionFilterValues([]);
+    setLocationFilterValues([]);
+    setPhaseFilterValues([]);
+    setStatusFilterValue(null);
+    setSubDivisionFilterValues([]);
+    setTypeFilterValue(null);
     const newQueryParams = queryParams;
     newQueryParams.phase = phases.map((phase: IPhase) => {
       return phase.id;
@@ -621,7 +637,6 @@ const SolutionsFilter = ({
     newQueryParams.division = divisions.map((division: IDivision) => {
       return division.id;
     });
-
     ApiClient.getSubDivisionsData(divisions).then((subDivisionsList) => {
       const subDivisionsToReset = [].concat(...subDivisionsList);
       setSubDivisions(subDivisionsToReset);
