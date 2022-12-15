@@ -15,7 +15,6 @@ const getDataById = (dataList, id) => {
 
 const createDataProduct = (data) => {
   return new Promise((resolve) => {
-    console.log(data);
     resolve(data);
   });
 };
