@@ -274,6 +274,7 @@
   > div {
     width: 100% !important;
     max-width: unset;
+    height: calc(100% - 4.6rem);
   }
 }
 .selfServiceCol {
