@@ -18,6 +18,7 @@ import {
   IPhase,
   ISolutionDigitalValue,
   IStackedBarChartDataItem,
+  ITag,
   IUserInfo,
   IWidgetsResponse,
 } from 'globals/types';
@@ -64,6 +65,10 @@ export interface IPortfolioState {
   showDataSourceLoader: boolean;
   showLocationLoader: boolean;
   openFilters: boolean;
+  tagValues: ITag[];
+  tagFilterValues: ITag[];
+  selectedTags: string[];
+  selectedTagsToPass: string[];
 }
 
 export interface IPortfolioProps {
@@ -216,6 +221,10 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
       showDataSourceLoader: true,
       showLocationLoader: true,
       openFilters: false,
+      tagValues: [],
+      tagFilterValues: [],
+      selectedTags: [],
+      selectedTagsToPass: []
     };
   }
 
@@ -541,6 +550,12 @@ export default class Portfolio extends React.Component<IPortfolioProps, IPortfol
             solutionsDataLoaded={this.state.portfolioFirstTimeDataLoaded}
             setSolutionsDataLoaded={(value: boolean) => this.setState({ portfolioFirstTimeDataLoaded: value })}
             openFilters={this.state.openFilters}
+            getAllTags={(tags: any)=>{this.setState({tagValues: tags})}}
+            getValuesFromFilter={(value: any) => {
+              this.setState({ tagFilterValues: value.tagFilterValues ? value.tagFilterValues : [],
+                selectedTags: value.tagFilterValues ? value.tagFilterValues.map((item: any)=>item.name) : []});
+            }}
+            setSelectedTags={this.state.selectedTagsToPass}
           />
           <div className={classNames(Styles.portContentsection)}>
             <div className={classNames(Styles.portHeader)}>

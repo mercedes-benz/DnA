@@ -1,27 +1,29 @@
 .mainPanel {
-  padding: 72px 0 30px 114px;
+  // padding: 72px 0 30px 114px;
   display: flex;
+  width: 100%;
 
-  &.hasRightPanel {
-    margin-right: 184px;
-    transition: margin-right 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+  // &.hasRightPanel {
+  //   margin-right: 184px;
+  //   transition: margin-right 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
 
-    &.righPanelOpened {
-      margin-right: 290px;
-    }
-  }
+  //   &.righPanelOpened {
+  //     margin-right: 290px;
+  //   }
+  // }
   .wrapper {
     width: 100%;
     .caption {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      // align-items: center;
       padding: 10px 0;
       margin-bottom: 10px;
       .allSolExport {
-        display: flex;
-        align-items: center;
+        // display: flex;
+        // align-items: center;
         position: relative;
+        margin-right: 15px;
         .contextMenu {
           float: right;
           margin: 0 20px 0 0;
@@ -49,6 +51,7 @@
         height: 29px;
         display: flex;
         align-items: center;
+        float: right;
         .iconactive {
           opacity: 0.5;
           cursor: default;
@@ -86,7 +89,7 @@
         flex-wrap: wrap;
         display: flex;
         justify-content: left;
-        margin-right: -30px;
+        // margin-right: -30px;
       }
       .allsolutionListviewContent {
         background-color: #252a33;
@@ -172,6 +175,24 @@
         }
       }
     }
+  }
+}
+
+.Workspaces {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 50px;
+  // margin: -8px -8px 50px -8px;
+}
+
+.filterSection {
+  display: flex;
+  justify-content: space-between;
+  > div:first-child {
+    width: calc(70% - 7px);
+  }
+  > div:last-child {
+    width: calc(30% - 7px);
   }
 }
 
