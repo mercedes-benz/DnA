@@ -35,7 +35,7 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
     getValues,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const provideDataProducts = useSelector((state) => (isDataProduct ? state.provideDataProducts : state.data));
+  const provideDataProducts = useSelector((state) => (!isDataProduct ? state.provideDataProducts : state.data));
 
   const {
     division,

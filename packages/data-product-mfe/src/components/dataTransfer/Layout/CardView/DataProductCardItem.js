@@ -51,7 +51,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
   };
 
   const onShare = (id) => {
-    navigator.clipboard.writeText(`${window.location.href}consume/${id}`).then(() => {
+    navigator.clipboard.writeText(`${window.location.href}/consume/${id}`).then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -62,7 +62,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
         <div
           className={Styles.cardHead}
           onClick={() => {
-            !isDataProduct && history.push(`/summary/${product?.dataProductId}`);
+            !isDataProduct && history.push(`/datasharing/summary/${product?.dataProductId}`);
           }}
         >
           <div className={Styles.cardHeadInfo}>
@@ -136,14 +136,19 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false }) 
                   <button className="btn btn-primary" onClick={() => setShowDeleteModal(true)}>
                     <i className="icon mbc-icon delete-new" tooltip-data="Delete"></i>
                   </button>
-                  <button className="btn btn-primary" onClick={() => history.push(`/edit/${product?.dataProductId}`)}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => history.push(`/datasharing/edit/${product?.dataProductId}`)}
+                  >
                     <i className="icon mbc-icon edit fill" tooltip-data="Edit"></i>
                   </button>
                 </>
               ) : null}
               <button
                 className="btn btn-primary"
-                onClick={() => history.push({ pathname: '/create', state: { copyId: product?.dataProductId } })}
+                onClick={() =>
+                  history.push({ pathname: '/datasharing/create', state: { copyId: product?.dataProductId } })
+                }
               >
                 <i className="icon mbc-icon copy-new" tooltip-data="Create Copy"></i>
               </button>
