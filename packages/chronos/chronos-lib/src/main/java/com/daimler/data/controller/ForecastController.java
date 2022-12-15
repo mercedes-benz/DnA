@@ -527,11 +527,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 			@ApiResponse(code = 403, message = "Request is not authorized."),
 			@ApiResponse(code = 405, message = "Method not allowed"),
 			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/forecasts/{id}/runs/{rid}", produces = { "application/json" }, consumes = {
+	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}", produces = { "application/json" }, consumes = {
 			"application/json" }, method = RequestMethod.DELETE)
 	public ResponseEntity<GenericMessage> deleteRun(
 			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-			@ApiParam(value = "run id ", required = true) @PathVariable("rid") String rid) {
+			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String rid) {
 		
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
@@ -576,11 +576,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/forecasts/{id}/runs/{rid}",
+    @RequestMapping(value = "/forecasts/{id}/runs/{correlationid}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<RunVisualizationVO> getRunVisualizationData(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "run id ",required=true) @PathVariable("rid") String rid){
+    public ResponseEntity<RunVisualizationVO> getRunVisualizationData(@ApiParam(value = "forecast project ID ",required=true) @PathVariable("id") String id,@ApiParam(value = "DNA correlation Id for the run",required=true) @PathVariable("correlationid") String rid){
 		CreatedByVO requestUser = this.userStore.getVO();
 		String user = requestUser.getId();
 		ForecastVO existingForecast = service.getById(id);
@@ -683,11 +683,11 @@ public class ForecastController implements ForecastRunsApi, ForecastProjectsApi,
 //			@ApiResponse(code = 403, message = "Request is not authorized."),
 //			@ApiResponse(code = 405, message = "Method not allowed"),
 //			@ApiResponse(code = 500, message = "Internal error") })
-//	@RequestMapping(value = "/forecasts/{id}/runs/{rid}", produces = { "application/json" }, consumes = {
+//	@RequestMapping(value = "/forecasts/{id}/runs/{correlationid}", produces = { "application/json" }, consumes = {
 //			"application/json" }, method = RequestMethod.GET)
 //	public ResponseEntity<RunVisualizationVO> getRunVisualizationData(
 //			@ApiParam(value = "forecast project ID ", required = true) @PathVariable("id") String id,
-//			@ApiParam(value = "run id ", required = true) @PathVariable("rid") String rid) {
+//			@ApiParam(value = "DNA correlation Id for the run", required = true) @PathVariable("correlationid") String rid) {
 //		return null;
 //	}
 
