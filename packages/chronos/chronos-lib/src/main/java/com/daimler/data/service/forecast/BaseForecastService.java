@@ -173,7 +173,6 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
 				entity.getData().setResultFolderPath(resultFolder);
-				entity.setId(correlationId);
 				try {
 					this.jpaRepo.save(entity);
 				}catch(Exception e) {
