@@ -524,9 +524,9 @@ paths:
   #
   #  supported http methods DELETE
   #
-  # path example ../forecasts/{id}/runs/{rid}
+  # path example ../forecasts/{id}/runs/{correlationid}
 
-  /forecasts/{id}/runs/{rid}:
+  /forecasts/{id}/runs/{correlationid}:
     get:
       tags:
         - "forecast-runs"
@@ -540,8 +540,8 @@ paths:
             required: true
             type: "string"
           - in: "path"
-            name: "rid"
-            description: "run id "
+            name: "correlationid"
+            description: "DNA correlation Id for the run"
             required: true
             type: "string"
       responses:
@@ -575,8 +575,8 @@ paths:
             required: true
             type: "string"
           - in: "path"
-            name: "rid"
-            description: "run id "
+            name: "correlationid"
+            description: "DNA correlation Id for the run"
             required: true
             type: "string"
       responses:
@@ -829,9 +829,12 @@ definitions:
   RunNowResponseVO: 
     type: object
     properties:
+        correlation_id:
+            type: string
+            description: correlation id generated at DNA System
         run_id:
             type: string
-            description: generated run id 
+            description: Databricks generated run id 
         number_in_job:
             type: string
             description: number in the job

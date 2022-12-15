@@ -142,6 +142,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				responseMessage.setSuccess("FAILED");
 			else {
 				responseMessage.setSuccess("SUCCESS");
+				runNowResponse.setCorrelationId(correlationId);
 				ForecastNsql entity = this.assembler.toEntity(existingForecast);
 				List<RunDetails> existingRuns = entity.getData().getRuns();
 				if(existingRuns==null || existingRuns.isEmpty())
@@ -172,6 +173,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 				existingRuns.add(currentRun);
 				entity.getData().setRuns(existingRuns);
 				entity.getData().setResultFolderPath(resultFolder);
+				entity.setId(correlationId);
 				try {
 					this.jpaRepo.save(entity);
 				}catch(Exception e) {
