@@ -111,7 +111,7 @@ const DataProducts = ({ user, history }) => {
                   <div className={classNames(Styles.allDataproductCardviewContent)}>
                     {cardViewMode ? (
                       <>
-                        <div className={Styles.cardViewContainer} onClick={() => history.push('/create')}>
+                        <div className={Styles.cardViewContainer} onClick={() => history.push('/datasharing/create')}>
                           <div className={Styles.addicon}> &nbsp; </div>
                           <label className={Styles.addlabel}>Provide new data transfer</label>
                         </div>
@@ -127,7 +127,7 @@ const DataProducts = ({ user, history }) => {
                         <div className={classNames('ul-table dataproducts', dataProducts?.length === 0 ? 'hide' : '')}>
                           <div
                             className={classNames('data-row', Styles.listViewContainer)}
-                            onClick={() => history.push('/create')}
+                            onClick={() => history.push('/datasharing/create')}
                           >
                             <span className={Styles.addicon}> &nbsp; </span>
                             <label className={Styles.addlabel}>Provide new data transfer</label>

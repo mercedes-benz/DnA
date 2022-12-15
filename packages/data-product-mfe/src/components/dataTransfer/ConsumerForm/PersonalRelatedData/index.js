@@ -19,17 +19,28 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
     reset,
     watch,
     setValue,
-    resetField,
   } = useFormContext();
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   const dispatch = useDispatch();
   const { legalBasisList } = useSelector((state) => state.dropdowns);
+  const provideDataProducts = useSelector((state) => state.provideDataProducts);
 
   const isValid = (value) =>
     !watch('personalRelatedData') || watch('personalRelatedData') === 'No' || value?.length > 0 || '*Missing entry';
 
-  const isDisabled = !watch('personalRelatedData') || watch('personalRelatedData') === 'No';
+  const isDisabled = watch('personalRelatedData') === 'No';
+
+  useEffect(() => {
+    setValue('personalRelatedData', provideDataProducts.selectedDataProduct.personalRelatedData);
+    if (provideDataProducts.selectedDataProduct.personalRelatedData === 'No') {
+      setValue('personalRelatedDataPurpose', '');
+      setValue('personalRelatedDataLegalBasis', '');
+      setValue('LCOCheckedLegalBasis', '');
+      setValue('LCOComments', '');
+    }
+    //eslint-disable-next-line
+  }, [provideDataProducts.selectedDataProduct.consumer.personalRelatedData]);
 
   useEffect(() => {
     dispatch(getLegalBasis());
@@ -49,7 +60,10 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
           </div>
           <div className={Styles.formWrapper}>
             <div
-              className={classNames(`input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`)}
+              className={classNames(
+                `input-field-group include-error ${errors?.personalRelatedData ? 'error' : ''}`,
+                'disabled',
+              )}
               style={{ minHeight: '50px' }}
             >
               <label className={classNames(Styles.inputLabel, 'input-label')}>
@@ -59,19 +73,12 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('personalRelatedData', {
-                        required: '*Missing entry',
-                        onChange: () => {
-                          resetField('personalRelatedDataPurpose');
-                          resetField('personalRelatedDataLegalBasis');
-                          resetField('LCOCheckedLegalBasis');
-                          resetField('LCOComments');
-                        },
-                      })}
+                      {...register('personalRelatedData')}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedData"
                       value="No"
+                      disabled={true}
                     />
                   </span>
                   <span className="label">No</span>
@@ -79,11 +86,12 @@ const PersonalRelatedData = ({ onSave, setIsEditing }) => {
                 <label className={'radio'}>
                   <span className="wrapper">
                     <input
-                      {...register('personalRelatedData', { required: '*Missing entry' })}
+                      {...register('personalRelatedData')}
                       type="radio"
                       className="ff-only"
                       name="personalRelatedData"
                       value="Yes"
+                      disabled={true}
                     />
                   </span>
                   <span className="label">Yes</span>

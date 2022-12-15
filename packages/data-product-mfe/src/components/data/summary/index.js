@@ -110,7 +110,7 @@ const Summary = ({ history, user }) => {
             Fill out the{' '}
             <Link
               to={{
-                pathname: '/create',
+                pathname: '/datasharing/create',
               }}
             >
               Minimum Information
