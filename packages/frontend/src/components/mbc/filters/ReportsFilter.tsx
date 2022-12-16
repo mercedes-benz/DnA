@@ -12,6 +12,7 @@ import {
   IDepartment,
   IReportUserPreferenceRequest,
   ITeams,
+  ITag,
 } from 'globals/types';
 // @ts-ignore
 import Button from '../../../assets/modules/uilab/js/src/button';
@@ -30,6 +31,7 @@ import { trackEvent } from '../../../services/utils';
 import Styles from './Filter.scss';
 import { ReportsApiClient } from '../../../services/ReportsApiClient';
 import FilterWrapper from './FilterWrapper';
+import Tags from 'components/formElements/tags/Tags';
 const classNames = cn.bind(Styles);
 
 interface IMember {
@@ -43,7 +45,10 @@ type ReportsFilterType = {
   reportsDataLoaded: boolean;
   setReportsDataLoaded: Function;
   getDropdownValues?: Function;
+  getValuesFromFilter?: Function;
   openFilters?: boolean;
+  getAllTags?: Function;
+  setSelectedTags?: string[]; // this prop is used to set selected tags from tags component
 };
 
 /**
@@ -62,7 +67,10 @@ const ReportsFilter = ({
   reportsDataLoaded,
   setReportsDataLoaded,
   getDropdownValues,
-  openFilters
+  openFilters,
+  getAllTags,
+  getValuesFromFilter,
+  setSelectedTags
 }: ReportsFilterType) => {
 //   const [openFilterPanel, setFilterPanel] = useState(false);
 
@@ -73,6 +81,7 @@ const ReportsFilter = ({
   const [arts, setArts] = useState<IART[]>([]);
   const [processOwners, setProcessOwners] = useState<ITeams[]>([]);
   const [productOwners, setProductOwners] = useState<ITeams[]>([]);
+  const [tagValues, setTagValues] = useState<ITag[]>([]);
   const [queryParams, setQueryParams] = useState<IReportFilterParams>({
     agileReleaseTrains: [],
     division: [],
@@ -80,6 +89,7 @@ const ReportsFilter = ({
     departments: [],
     productOwners: [],
     processOwners: [],
+    tag: [],
   });
 
   // selected filter values
@@ -91,6 +101,7 @@ const ReportsFilter = ({
   const [divisionFilterValues, setDivisionFilterValues] = useState([]);
   const [subDivisionFilterValues, setSubDivisionFilterValues] = useState([]);
   const [departmentFilterValues, setDepartmentFilterValues] = useState([]);
+  const [tagFilterValues, setTagFilterValues] = useState<ITag[]>([]);
 
   const [userPreferenceDataId, setUserPreferenceDataId] = useState<string>(null);
 
@@ -101,6 +112,10 @@ const ReportsFilter = ({
   const [focusedItems, setFocusedItems] = useState({});
 
   const [dataFilterApplied, setFilterApplied] = useState(false);
+
+  useEffect(()=>{
+    onsetTags(setSelectedTags);
+  },[setSelectedTags])
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -118,6 +133,8 @@ const ReportsFilter = ({
             portfolioFilterValues.current && portfolioFilterValues.current.division?.length > 0
               ? divisions?.filter((element: any) => portfolioFilterValues.current.division.includes(element.id))
               : divisions;
+          const allTags = response[4].data; 
+          getAllTags(allTags);
           ApiClient.getSubDivisionsData(divisionsToPass).then((subDivisionsList) => {
             const departments: IDepartment[] = response[2].data;
             const subDivisions: ISubDivisionSolution[] = [].concat(...subDivisionsList);
@@ -148,6 +165,7 @@ const ReportsFilter = ({
             setProcessOwners(processOwners);
             setProductOwners(productOwners);
             setArts(arts);
+            setTagValues(allTags);
             setQueryParams(newQueryParams);
             setRunUserPreference(true);
           });
@@ -238,6 +256,19 @@ const ReportsFilter = ({
         productOwners,
       });
   }, [arts, divisions, subDivisions, departments, processOwners, productOwners]);
+
+  useEffect(() => {
+    typeof getValuesFromFilter === 'function' &&
+      getValuesFromFilter({
+        arts,
+        divisions,
+        subDivisions,
+        departments,
+        processOwners,
+        productOwners,
+        tagFilterValues
+      });
+  }, [arts, divisions, subDivisions, departments, processOwners, productOwners, tagFilterValues]);
 
 //   const onFilterIconClick = () => {
 //     setFilterPanel(!openFilterPanel);
@@ -447,6 +478,7 @@ const ReportsFilter = ({
       departments: departmentFilterValues?.map((department) => department.name),
       productOwners: productOwnerFilterValues?.map((productOwner) => productOwner.id),
       processOwners: processOwnerFilterValues?.map((processOwner) => processOwner.id),
+      tags: tagFilterValues?.map((tag) => tag.name),
     };
 
     const userPreference: IReportUserPreference = {
@@ -478,6 +510,12 @@ const ReportsFilter = ({
   };
 
   const resetDataFilters = () => {
+    setArtFilterValues([]);
+    setProcessOwnerFilterValues([]);
+    setDivisionFilterValues([]);
+    setSubDivisionFilterValues([]);
+    setDepartmentFilterValues([]);
+    setTagFilterValues([]);
     const newQueryParams = queryParams;
     newQueryParams.agileReleaseTrains = arts?.map((phase: IART) => {
       return phase.name;
@@ -498,6 +536,8 @@ const ReportsFilter = ({
       queryParams.departments = departments?.map((department: IDepartment) => {
         return department.name;
       });
+
+      queryParams.tag = [];
 
       setTimeout(() => sessionStorage.removeItem(SESSION_STORAGE_KEYS.REPORT_FILTER_VALUES), 50);
       ProgressIndicator.show();
@@ -529,6 +569,20 @@ const ReportsFilter = ({
       trackEvent(`All Reports`, 'Filter', 'Removed or Resetted filter preferences');
       Notification.show('Filter preference has been removed.');
     }
+  };
+
+  const onsetTags = (arr: string[]) => {
+    const selectedValues: ITag[] = [];
+    arr.forEach((a) => {
+      const tag: ITag = { id: null, name: null };
+      tag.id = a;
+      tag.name = a;
+      selectedValues.push(tag);
+    });
+
+    applyFilter('tag', arr);
+    // setTags(arr);
+    setTagFilterValues(selectedValues);
   };
 
   if(openFilters){
@@ -655,6 +709,19 @@ const ReportsFilter = ({
                 ))}
                 </select>
             </div>
+            </div>
+        </div>
+        <div>
+            <div>
+                <Tags
+                title={'Tags'}
+                max={100}
+                chips={queryParams?.tag}
+                setTags={onsetTags}
+                tags={tagValues}
+                isMandatory={false}
+                showMissingEntryError={false}
+                />
             </div>
         </div>
         <div className={classNames(Styles.actionWrapper, dataFilterApplied ? '' : 'hidden')}>

@@ -1,15 +1,15 @@
 .mainPanel {
-  padding: 72px 0 30px 114px;
+  // padding: 72px 0 30px 114px;
   display: flex;
 
-  &.hasRightPanel {
-    margin-right: 184px;
-    transition: margin-right 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+  // &.hasRightPanel {
+  //   margin-right: 184px;
+  //   transition: margin-right 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
 
-    &.righPanelOpened {
-      margin-right: 290px;
-    }
-  }
+  //   &.righPanelOpened {
+  //     margin-right: 290px;
+  //   }
+  // }
   .wrapper {
     width: 100%;
     .caption {
@@ -19,9 +19,10 @@
       padding: 10px 0;
       margin-bottom: 10px;
       .allSolExport {
-        display: flex;
-        align-items: center;
+        // display: flex;
+        // align-items: center;
         position: relative;
+        margin-right: 15px;
         .contextMenu {
           float: right;
           margin: 0 20px 0 0;
