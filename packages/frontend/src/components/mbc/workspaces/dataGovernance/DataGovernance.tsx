@@ -19,17 +19,21 @@ const DataGovernance = () => {
       isBackButton={true}
     >
       <div className={Styles.Workspaces}>
-        {cards.map((card, index)=> {
-          return <DNACard
-          key={index}
-          title={card.name}
-          description={card.description}
-          url={card.url}
-          isExternalLink={card.isExternalLink}
-          isTextAlignLeft={card.isTextAlignLeft}
-          isDisabled={card.isDisabled}
-          isSmallCard={card.isSmallCard}
-          isMediumCard={card.isMediumCard} />
+        {cards.map((card, index) => {
+          return (
+            <DNACard
+              key={index}
+              title={card.name}
+              description={card.description}
+              url={card.url}
+              isExternalLink={card.isExternalLink}
+              isTextAlignLeft={card.isTextAlignLeft}
+              isDisabled={card.isDisabled}
+              isSmallCard={card.isSmallCard}
+              isMediumCard={card.isMediumCard}
+              className="data"
+            />
+          );
         })}
       </div>
     </LandingSummary>
