@@ -1,8 +1,9 @@
 import cn from 'classnames';
-import * as React from 'react';
+import React, { useContext } from 'react';
 import { Envs } from 'globals/Envs';
 import { history } from '../../../router/History';
 import Styles from './Footer.scss';
+import AppContext from 'components/context/ApplicationContext';
 
 export interface IFooterProps {
   isHome: boolean;
@@ -20,6 +21,9 @@ const Footer = (props: IFooterProps) => {
     history.push('/license');
   };
 
+  const context = useContext(AppContext);
+  const { setShowTermsModal } = context;
+
   return (
     <React.Fragment>
       {props.isHome || props.isNotebook ? null : (
@@ -35,13 +39,16 @@ const Footer = (props: IFooterProps) => {
               <div className={classNames(Styles.footer)}>
                 For copyright and license information see <a onClick={showLicence}>Notice</a>
               </div>
-              {enableAppFeedback && (
-                <div className={classNames(Styles.footer, Styles.feedback)}>
+              <div className={classNames(Styles.footer, Styles.feedback)}>
+                <button className={Styles.termsBtn} onClick={() => setShowTermsModal(true)}>
+                  Terms of Use
+                </button>&nbsp;&nbsp;
+                {enableAppFeedback && (
                   <a target="_blank" rel="noreferrer" href={appFeedbackExternalUrl}>
                     Feedback
                   </a>
-                </div>
-              )}
+                )}
+              </div>
             </>
           ) : (
             <div />
