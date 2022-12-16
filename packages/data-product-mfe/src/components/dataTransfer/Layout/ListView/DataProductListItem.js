@@ -58,7 +58,7 @@ const DataProductListItem = ({ product, history, user }) => {
 
   const onShare = (id) => {
     setShowContextMenu(false);
-    navigator.clipboard.writeText(`${window.location.href}consume/${id}`).then(() => {
+    navigator.clipboard.writeText(`${window.location.href}/consume/${id}`).then(() => {
       Notification.show('Copied to Clipboard');
     });
   };
@@ -110,7 +110,7 @@ const DataProductListItem = ({ product, history, user }) => {
                 {isCreator ? (
                   <>
                     <li className="contextListItem">
-                      <span onClick={() => history.push(`/edit/${product?.dataProductId}`)}>Edit</span>
+                      <span onClick={() => history.push(`/datasharing/edit/${product?.dataProductId}`)}>Edit</span>
                     </li>
                     <li className="contextListItem">
                       <span onClick={() => setShowDeleteModal(true)}>Delete</span>
@@ -119,7 +119,9 @@ const DataProductListItem = ({ product, history, user }) => {
                 ) : null}
                 <li className="contextListItem">
                   <span
-                    onClick={() => history.push({ pathname: '/create', state: { copyId: product?.dataProductId } })}
+                    onClick={() =>
+                      history.push({ pathname: '/datasharing/create', state: { copyId: product?.dataProductId } })
+                    }
                   >
                     Create Copy
                   </span>
