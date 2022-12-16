@@ -13,6 +13,7 @@ import { Envs } from 'globals/Envs';
 import AppContext from '../context/ApplicationContext';
 import { Link } from 'react-router-dom';
 import { getPath } from './../../router/RouterUtils';
+import Modal from 'components/formElements/modal/Modal';
 
 export interface IHeaderProps {
   user: IUserInfo;
@@ -108,13 +109,43 @@ const Header:React.FC<IHeaderProps> = (props) => {
   //   }
   // };
 
-  const { setMessage } = context;
+  const { setMessage, setShowTermsModal } = context;
 
   /******** Following line is using context API to check for change and then setting new value ********/
   if (context.message === 'UPDATE_NOTIFICATIONS') {
     setMessage('COMPLETE_UPDATE_NOTIFICATIONS');
     fetchNotification();
   }
+
+  // const [isDisabled, setIsDisabled] = useState(true);
+
+  const handleTouAccept = () => {
+    setShowTermsModal(false);
+  }
+
+  const infoModalContent = (
+    <div className={Styles.touContainer}>
+      <div className={Styles.touTitle}>
+        <div className={Styles.touIcon}>
+          <i className="icon mbc-icon reports"></i>
+        </div>
+        <h2>
+          Terms of Use
+          <span>Please agree to our terms of use before you start.</span>
+        </h2>
+      </div>
+      <div className={Styles.touContent}>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis hendrerit tincidunt ultricies. Sed rhoncus laoreet vestibulum. Nam ligula tortor, semper vehicula nisi in, faucibus mattis felis. Nullam nec neque cursus, elementum purus commodo, suscipit quam. Curabitur id magna aliquet tellus viverra scelerisque vel vitae ante. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Aliquam vitae ultrices neque, id eleifend nulla. Donec mollis odio vel massa blandit tincidunt. Aliquam et felis lacinia metus tempus convallis eu ut nisl. Etiam posuere augue non efficitur venenatis. Phasellus dictum turpis justo, ac mollis enim egestas eu. Sed molestie ullamcorper dui a congue.</p>
+        <p>Sed finibus ac arcu in laoreet. Praesent vel luctus metus, et congue augue. Nulla faucibus, neque et porttitor condimentum, risus lectus dictum est, a pharetra massa orci quis risus. Nullam tincidunt lorem dolor, sed pulvinar orci consequat nec. Sed suscipit imperdiet lobortis. Phasellus vel laoreet sem. Proin eu consectetur diam. Morbi pulvinar velit at neque pretium, eget volutpat lectus mattis. Aenean lobortis odio nec ipsum facilisis, eget facilisis ligula condimentum. Nulla nec sapien pretium, pellentesque felis vitae, suscipit ex.</p>
+        <p>Praesent scelerisque risus at erat sollicitudin, a rhoncus diam elementum. Vestibulum cursus pretium tellus, sit amet tempus nunc. Suspendisse ornare elit nec mauris pellentesque, eu rhoncus mauris pretium. Maecenas nec bibendum turpis. Phasellus commodo enim eu risus elementum feugiat. Etiam eget dignissim libero. Maecenas at turpis ut lectus scelerisque sagittis quis at quam. Aliquam erat volutpat. Aenean dignissim risus velit, vitae dignissim ligula sollicitudin vitae. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
+        <p>Proin ultricies nisi lacinia ipsum commodo tempor. In eget elit eu massa imperdiet malesuada. Donec et tellus sed nisi fringilla eleifend. Donec sit amet molestie nisi. Nulla pretium nibh vel metus tempor, in pulvinar nisi accumsan. Ut nisl lectus, faucibus sed neque quis, fringilla cursus odio. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;</p>
+        <p>Vestibulum fringilla eget est nec malesuada. Praesent vitae leo a nisi rutrum lacinia. Donec tellus quam, imperdiet luctus nulla ut, efficitur auctor magna. Sed tellus ex, posuere ut ligula et, tempor mattis ipsum. Vestibulum aliquam tincidunt dui, eleifend eleifend est efficitur non. Nulla suscipit enim est, quis euismod ex commodo id. Nunc in tortor et lorem auctor semper. In auctor nisl vitae risus aliquet, ac condimentum ligula pharetra. Cras malesuada tellus eget eros interdum, porttitor suscipit lacus fermentum. Phasellus tempor ut metus in bibendum. Duis lectus nisi, fermentum in ullamcorper eget, maximus tincidunt est.</p>
+      </div>
+      <div className={Styles.touFooter}>
+        <button className={'btn btn-tertiary'} onClick={handleTouAccept}>Accept & Enter</button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -252,6 +283,24 @@ const Header:React.FC<IHeaderProps> = (props) => {
           </div>
         </div>
     }
+    {
+        context.showTermsModal &&
+          <Modal
+            title=""
+            show={context.showTermsModal}
+            showAcceptButton={false}
+            showCancelButton={false}
+            content={infoModalContent}
+            buttonAlignment="center"
+            onCancel={() => setShowTermsModal(false)}
+            modalStyle={{
+              padding: '50px 90px 35px',
+              minWidth: 'unset',
+              width: '65%',
+              maxWidth: '65%'
+            }}
+          />
+      }
     </>
   );
 }
