@@ -77,6 +77,7 @@ const ReportsFilter = ({
     departments: [],
     productOwners: [],
     processOwners: [],
+    tag: []
   });
 
   // selected filter values
@@ -444,6 +445,7 @@ const ReportsFilter = ({
       departments: departmentFilterValues?.map((department) => department.name),
       productOwners: productOwnerFilterValues?.map((productOwner) => productOwner.id),
       processOwners: processOwnerFilterValues?.map((processOwner) => processOwner.id),
+      tags: processOwnerFilterValues?.map((processOwner) => processOwner.id), // later need to change for tags
     };
 
     const userPreference: IReportUserPreference = {
