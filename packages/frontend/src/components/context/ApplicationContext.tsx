@@ -2,7 +2,9 @@ import * as React from 'react';
 
 const contextVar = {
     message: 'COMPLETE_UPDATE_NOTIFICATIONS',
-    setMessage: (event: string)=>{}
+    setMessage: (event: string)=>{},
+    showTermsModal: false,
+    setShowTermsModal: (event: boolean)=>{},
 };
 const AppContext = React.createContext(contextVar);
 
