@@ -3,13 +3,14 @@
     // padding-top: 15px;
     // overflow-wrap: break-word;
     .tagItem{
-        border: 2px solid #697582;
-        border-radius: 25px;
-        padding: 12px 20px;
+        border: 1px solid #383F49;
+        border-radius: 15px;
+        padding: 7px 17px;
         color: #99a5b3;
         margin-right: 10px;
         line-height: 4;
         word-break: break-all;
+        font-size: var(--font-size-small);
         &:hover {
             border-color: #00adef;
             cursor: pointer;
