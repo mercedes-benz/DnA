@@ -47,7 +47,7 @@ import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
 // import {getDropDownData} from '../../../services/FetchMasterData';
 
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
-import headerImageURL from '../../../assets/images/Data-Layer-Landing.png';
+import headerImageURL from '../../../assets/images/Transparency-Landing.png';
 import TagSection from 'components/mbc/shared/landingSummary/tagSection/TagSection';
 
 const classNames = cn.bind(Styles);

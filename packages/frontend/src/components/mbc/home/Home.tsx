@@ -42,6 +42,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                   isTextAlignLeft={false}
                   isDisabled={false}
                   svgIcon={<IconTransparency />}
+                  className="transparency"
                 />
               </div>
               <div className={Styles.selfServiceCol}>
@@ -57,6 +58,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     isTextAlignLeft={false}
                     isDisabled={false}
                     svgIcon={<IconData />}
+                    className="data"
                   />
                   <DNACard
                     title={'Tools'}
@@ -65,6 +67,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     isTextAlignLeft={false}
                     isDisabled={false}
                     svgIcon={<IconTools />}
+                    className="tools"
                   />
                   <DNACard
                     title={'Trainings'}
@@ -73,6 +76,7 @@ const Home: React.FC<ILandingpageProps> = () => {
                     isTextAlignLeft={false}
                     isDisabled={!Envs.ENABLE_TRAININGS}
                     svgIcon={<IconTrainings />}
+                    className="trainings"
                   />
                 </div>
               </div>
