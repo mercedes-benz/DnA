@@ -452,6 +452,10 @@ export default class AllSolutions extends React.Component<
                   <div className={Styles.allsolutioncontent}>
                     {this.state.cardViewMode && (
                       <div className={classNames('cardSolutions', Styles.allsolutionCardviewContent)}>
+                        <div className={Styles.cardViewContainer} onClick={() => history.push('/createnewsolution')}>
+                          <div className={Styles.addicon}> &nbsp; </div>
+                          <label className={Styles.addlabel}>Create new solution</label>
+                        </div>
                         {this.state.solutions.map((solution, index) => {
                           return (
                             <SolutionCardItem
@@ -555,6 +559,15 @@ export default class AllSolutions extends React.Component<
                                 </label>
                               </th>
                               <th className="actionColumn">&nbsp;</th>
+                            </tr>
+                            <tr>
+                              <th colSpan={enablePortfolioSolutionsView ? 8 : 7}
+                                className={classNames(Styles.listViewContainer)}
+                                onClick={() => history.push('/createnewsolution')}
+                              >
+                                <div className={Styles.addicon}> &nbsp; </div>
+                                <label className={Styles.addlabel}>Create new solution</label>
+                              </th>
                             </tr>
                           </thead>
                           <tbody>{solutionData}</tbody>

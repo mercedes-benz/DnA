@@ -1124,6 +1124,7 @@ export interface IReportFilterParams {
   departments: string[];
   productOwners: string[];
   processOwners: string[];
+  tag: string[];
 }
 
 export interface IReportFilterPreferences {
@@ -1133,6 +1134,7 @@ export interface IReportFilterPreferences {
   departments: IDepartment[];
   productOwners: ITeams[];
   processOwners: ITeams[];
+  tags: string[];
 }
 
 export interface IReportUserPreference {

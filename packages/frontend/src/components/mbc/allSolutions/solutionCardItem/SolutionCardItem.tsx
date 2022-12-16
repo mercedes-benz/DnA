@@ -221,7 +221,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
         </div>
 
         <div className={Styles.solRegin}>
-          <span>{solution.division?.name || 'N/A'}</span>
+          <span>{solution.division?.name && solution.division?.name !== 'Choose' ? solution.division?.name : 'N/A'}</span>
           <span className={Styles.locationDataWrapper}>
             {locations[0] ? locations[0] : ''}
             {locations.length > 1 ? (
