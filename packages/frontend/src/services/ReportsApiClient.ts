@@ -80,13 +80,14 @@ export class ReportsApiClient {
     departments: string,
     processOwners: string,
     productOwners: string,
+    tags: string,
     limit: number,
     offset: number,
     sortBy: string,
     sortOrder: string,
     published?: boolean,
   ): Promise<any> {
-    let reqQuery = `division:"${divisions}",art:"${agileReleaseTrains}", department:"${departments}",processOwner:"${processOwners}",offset:${offset},limit:${limit},sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
+    let reqQuery = `division:"${divisions}",art:"${agileReleaseTrains}", department:"${departments}", tags:"${tags}",processOwner:"${processOwners}",offset:${offset},limit:${limit},sortBy:"${sortBy}",sortOrder:"${sortOrder}"`;
     if (published) {
       reqQuery += `,published:${published}`;
     }
@@ -94,7 +95,7 @@ export class ReportsApiClient {
       records {id,
         reportId,
         productName,
-        description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrain, status },
+        description { division { id, name, subdivision { id, name } }, department, productDescription, agileReleaseTrain, status, tags },
         members {
           reportOwners { firstName, lastName, department, shortId },
           reportAdmins { firstName, lastName, department, shortId }
@@ -259,7 +260,7 @@ export class ReportsApiClient {
       ApiClient.get('divisions'),
       this.get('departments'),
       this.get('reports/processowners'),
-      // this.get('reports/productowners'),
+      this.get('tags'),
     ]);
   }
 

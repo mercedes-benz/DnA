@@ -1,10 +1,10 @@
 import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
+// import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import Styles from './ReportCardItem.scss';
 import { IAllReportsListItem } from 'globals/types';
 import { history } from '../../../../router/History';
-import LogoImage from 'components/mbc/createNewSolution/description/logoManager/LogoImage/LogoImage';
+// import LogoImage from 'components/mbc/createNewSolution/description/logoManager/LogoImage/LogoImage';
 // @ts-ignore
 import ImgDataikuIcon from '../../../../assets/images/dataiku-icon.png';
 // @ts-ignore
@@ -143,11 +143,48 @@ const ReportCardItem = (props: IReportCardItemProps) => {
   // };
 
   return (
-    <div id={'card-' + report.id} key={report.id} className={Styles.solCard}>
+    <div id={'card-' + report.id} className={Styles.solCard}>
       <div className={Styles.solHead} onClick={goToSummary(report.id)}>
-        <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.TILE} logoDetails={report.logoDetails} />
-        <div className={Styles.solHeadInfo}>
+        {/* <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.TILE} logoDetails={report.logoDetails} /> */}
+        {/* <div className={Styles.solHeadInfo}>
           <div className={Styles.solTitle}>{report.productName}</div>
+        </div> */}
+        <div>
+          <div className={Styles.solTitle}>{report.productName}</div>
+        </div>
+        <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
+          <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
+            <i className="icon mbc-icon listItem context" />
+          </span>
+          <div
+            style={{
+              top: contextMenuOffsetTop + 'px',
+              left: contextMenuOffsetLeft + 'px',
+            }}
+            className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
+          >
+            <ul className="contextList">
+              {/* {props.bookmarked ? (
+                <li className="contextListItem">
+                  <span onClick={removeFromBookmarks}>Remove from My Bookmarks</span>
+                </li>
+              ) : (
+                <li className="contextListItem">
+                  <span onClick={addToBookmarks}>Add to My Bookmarks</span>
+                </li>
+              )} */}
+              {props.canEdit && (
+                <li className="contextListItem">
+                  <span onClick={onEditReport}>Edit Report</span>
+                </li>
+              )}
+              {props.canEdit && (
+                <li className="contextListItem">
+                  <span onClick={onDeleteReport}>Delete Report</span>
+                </li>
+              )}
+            </ul>
+          </div>
         </div>
       </div>
       <div className={Styles.solbodysection}>
@@ -168,44 +205,13 @@ const ReportCardItem = (props: IReportCardItemProps) => {
             </span>{' '}
             {!report.publish && <span className={Styles.draftIndicator}>DRAFT</span>}
           </div>
-          <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
-            <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
-              <i className="icon mbc-icon listItem context" />
-            </span>
-            <div
-              style={{
-                top: contextMenuOffsetTop + 'px',
-                left: contextMenuOffsetLeft + 'px',
-              }}
-              className={classNames('contextMenuWrapper', showContextMenu ? '' : 'hide')}
-            >
-              <ul className="contextList">
-                {/* {props.bookmarked ? (
-                  <li className="contextListItem">
-                    <span onClick={removeFromBookmarks}>Remove from My Bookmarks</span>
-                  </li>
-                ) : (
-                  <li className="contextListItem">
-                    <span onClick={addToBookmarks}>Add to My Bookmarks</span>
-                  </li>
-                )} */}
-                {props.canEdit && (
-                  <li className="contextListItem">
-                    <span onClick={onEditReport}>Edit Report</span>
-                  </li>
-                )}
-                {props.canEdit && (
-                  <li className="contextListItem">
-                    <span onClick={onDeleteReport}>Delete Report</span>
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
+          
         </div>
 
         <div className={Styles.solRegin}>
-          <span>{report.description.division}</span>
+          <span>{report.description.division.name && 
+          report.description.division.name != 'Choose' ? 
+          report.description.division.name : 'N/A'}</span>
           <span>{report.description.productPhase || ''}</span>
         </div>
         <div className={Styles.solInfo}>{attachEllipsis(report.description.productDescription, 125)}</div>
