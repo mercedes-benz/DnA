@@ -12,6 +12,7 @@
   // }
   .wrapper {
     width: 100%;
+    padding-right: 15px;
     .caption {
       display: flex;
       justify-content: space-between;
@@ -22,7 +23,7 @@
         // display: flex;
         // align-items: center;
         position: relative;
-        margin-right: 15px;
+        // margin-right: 15px;
         .contextMenu {
           float: right;
           margin: 0 20px 0 0;
@@ -102,7 +103,7 @@
         flex-wrap: wrap;
         display: flex;
         justify-content: left;
-        margin-right: -30px;
+        margin-right: -15px;
       }
       .allReportListViewContent {
         background-color: #252a33;
@@ -188,6 +189,109 @@
         }
       }
     }
+  }
+}
+
+.cardViewContainer {
+  width: calc(25% - 15px);
+  margin: 0 15px 15px 0;
+  min-width: 250px;
+  position: relative;
+  border: 1px solid #383f49;
+  cursor: pointer;
+  max-height: 300px;
+
+  .addicon {
+      top: calc(40% - 31px);
+      width: 63px;
+      height: 63px;
+      border: 1px solid #fff;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 0 auto;
+      &:after {
+          content: "";
+          position: absolute;
+          width: 50%;
+          height: 1px;
+          background-color: #00adef;
+          left: 25%;
+          transform: rotate(90deg);
+      }
+      &:before {
+          content: "";
+          position: absolute;
+          width: 50%;
+          height: 1px;
+          background-color: #00adef;
+          left: 25%;
+          margin: 0 auto;
+          transform: rotate(180deg);
+          top: 49%;
+      }
+  }
+  .addlabel {
+      font-size: var(--font-size-headline);
+      line-height: 23px;
+      position: absolute;
+      word-break: break-word;
+      display: block;
+      width: 100%;
+      text-align: center;
+      bottom: 50px;
+  }
+  &:hover .addlabel {
+      color: #00adef;
+  }
+}
+
+.listViewContainer {
+  border-bottom: 1px solid #697582;
+  cursor: pointer;
+  display: table-cell;
+  padding: 10px;
+  text-align: center;
+  vertical-align: middle;
+  .addicon {
+      width: 40px;
+      height: 40px;
+      margin: 0px;
+      border: 1px solid #fff;
+      border-radius: 50%;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      &:after {
+          content: "";
+          position: absolute;
+          width: 50%;
+          height: 1px;
+          background-color: #00adef;
+          left: 25%;
+          transform: rotate(90deg);
+      }
+      &:before {
+          content: "";
+          position: absolute;
+          width: 50%;
+          height: 1px;
+          background-color: #00adef;
+          left: 25%;
+          margin: 0 auto;
+          transform: rotate(180deg);
+          top: 49%;
+      }
+  }
+  .addlabel {
+    cursor: pointer;
+    font-size: var(--font-size-headline);
+    line-height: 23px;
+    margin: auto 20px;
+  }
+  &:hover .addlabel {
+      color: #00adef;
   }
 }
 
