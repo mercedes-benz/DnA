@@ -31,7 +31,7 @@ export const SetDataProducts = createAsyncThunk('products/SetDataProducts', asyn
 
   const division = serializeDivisionSubDivision(divisionList, values);
 
-  const requestBody = serializeFormData(values, division);
+  const requestBody = serializeFormData({ values, division });
   ProgressIndicator.show();
   try {
     const res = await dataTransferApi.createDataProduct(requestBody);
@@ -65,7 +65,7 @@ export const UpdateDataProducts = createAsyncThunk('products/UpdateDataProducts'
   if (isProviderForm && values.consumer) {
     values.consumer['serializedDivision'] = serializeDivisionSubDivision(divisionList, values?.consumer);
   }
-  const requestBody = serializeFormData(values, division, type);
+  const requestBody = serializeFormData({ values, division, type });
   ProgressIndicator.show();
   try {
     let res = {};
