@@ -41,6 +41,7 @@ const AllCodeSpaces = React.lazy(() => import('components/mbc/codeSpace/AllCodeS
 const StorageComponent = React.lazy(() => import('storage-mfe/Bucket'));
 const DataProductComponent = React.lazy(() => import('data-product-mfe/DataProduct'));
 const ChronosComponent = React.lazy(() => import('chronos-mfe/Chronos'));
+// const DataikuComponent = React.lazy(() => import('dss-mfe/Dataiku'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
