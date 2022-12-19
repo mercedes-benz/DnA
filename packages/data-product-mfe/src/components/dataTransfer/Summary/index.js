@@ -150,12 +150,17 @@ const Summary = ({ history }) => {
                         {data.name?.firstName} {data.name?.lastName}
                       </div>
                       <div>
+                        <label className="input-label summary">Information Owner</label>
+                        <br />
+                        {data.informationOwner?.firstName} {data.informationOwner?.lastName}
+                      </div>
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
+                      <div>
                         <label className="input-label summary">Division</label>
                         <br />
                         {division?.name}
                       </div>
-                    </div>
-                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
                         <label className="input-label summary">Sub Division</label>
                         <br />
@@ -171,6 +176,8 @@ const Summary = ({ history }) => {
                         <br />
                         {data.planningIT || '-'}
                       </div>
+                    </div>
+                    <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
                         <label className="input-label summary">Compliance Officer / Responsible (LCO/LCR) </label>
                         <br />
