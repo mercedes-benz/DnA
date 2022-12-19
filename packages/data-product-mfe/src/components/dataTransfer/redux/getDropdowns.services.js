@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { dataTransferApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/datatransfers.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 
 export const getClassificationTypes = createAsyncThunk('dropdowns/getClassificationTypes', async () => {
