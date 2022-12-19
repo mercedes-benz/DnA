@@ -25,28 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.db.repo.datatransfer;
 
-import java.util.Date;
 import java.util.List;
 
-import com.daimler.data.db.jsonb.CreatedBy;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.entities.DataTransferNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public interface DataTransferCustomRepository extends CommonDataRepository<DataTransferNsql, String> {
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Consumer {
-	private Date createdDate;
-	private Date lastModifiedDate;
-	private CreatedBy createdBy;
-	private CreatedBy modifiedBy;
-	private ConsumerContactInformation contactInformation;
-	private ConsumerPersonalRelatedData personalRelatedData;
-	private List<String> openSegments;
+	List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit, String sortBy,
+			String sortOrder, String recordStatus);
+
+	Long getCountUsingNativeQuery(Boolean published, String recordStatus);
+
+	List<DataTransferNsql> getExistingDataTransfer(String uniqueTransferName, String status);
+
 }

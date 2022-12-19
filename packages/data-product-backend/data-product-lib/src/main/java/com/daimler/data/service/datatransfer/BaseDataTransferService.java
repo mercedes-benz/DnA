@@ -25,7 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.dataproduct;
+package com.daimler.data.service.datatransfer;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,22 +45,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import com.daimler.data.application.auth.UserStore;
-import com.daimler.data.assembler.DataProductAssembler;
+import com.daimler.data.assembler.DataTransferAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.db.entities.DataProductNsql;
-import com.daimler.data.db.repo.dataproduct.DataProductCustomRepository;
-import com.daimler.data.db.repo.dataproduct.DataProductRepository;
+import com.daimler.data.db.entities.DataTransferNsql;
+import com.daimler.data.db.repo.datatransfer.DataTransferCustomRepository;
+import com.daimler.data.db.repo.datatransfer.DataTransferRepository;
 import com.daimler.data.dto.datacompliance.CreatedByVO;
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
-import com.daimler.data.dto.dataproduct.ConsumerResponseVO;
-import com.daimler.data.dto.dataproduct.ConsumerVO;
-import com.daimler.data.dto.dataproduct.DataProductConsumerResponseVO;
-import com.daimler.data.dto.dataproduct.DataProductProviderResponseVO;
-import com.daimler.data.dto.dataproduct.DataProductTeamMemberVO;
-import com.daimler.data.dto.dataproduct.DataProductVO;
-import com.daimler.data.dto.dataproduct.ProviderResponseVO;
-import com.daimler.data.dto.dataproduct.ProviderVO;
+import com.daimler.data.dto.datatransfer.*;
 import com.daimler.data.dto.department.DepartmentVO;
 import com.daimler.data.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.service.common.BaseCommonService;
@@ -70,19 +62,19 @@ import com.daimler.data.util.ConstantsUtility;
 import io.jsonwebtoken.lang.Strings;
 
 @Service
-public class BaseDataProductService extends BaseCommonService<DataProductVO, DataProductNsql, String>
-		implements DataProductService {
+public class BaseDataTransferService extends BaseCommonService<DataTransferVO, DataTransferNsql, String>
+		implements DataTransferService {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(BaseDataProductService.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(BaseDataTransferService.class);
 
-	@Value(value = "${dataproduct.base.url}")
-	private String dataProductBaseUrl;
+	@Value(value = "${datatransfer.base.url}")
+	private String dataTransferBaseUrl;
 
 	@Autowired
 	private UserStore userStore;
 
 	@Autowired
-	private DataProductAssembler dataProductAssembler;
+	private DataTransferAssembler dataTransferAssembler;
 
 	@Autowired
 	private DepartmentService departmentService;
@@ -91,21 +83,21 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	private KafkaProducerService kafkaProducer;
 
 	@Autowired
-	private DataProductCustomRepository dataProductCustomRepository;
+	private DataTransferCustomRepository dataTransferCustomRepository;
 
 	@Autowired
-	private DataProductRepository dataProductRepository;
+	private DataTransferRepository dataTransferRepository;
 
-	public BaseDataProductService() {
+	public BaseDataTransferService() {
 		super();
 	}
 
 	@Override
 	@Transactional
-	public DataProductVO getById(String id) {
+	public DataTransferVO getById(String id) {
 		if (StringUtils.hasText(id)) {
-			DataProductVO existingVO = super.getByUniqueliteral("dataProductId", id);
-			if (existingVO != null && existingVO.getDataProductId() != null) {
+			DataTransferVO existingVO = super.getByUniqueliteral("dataTransferId", id);
+			if (existingVO != null && existingVO.getDataTransferId() != null) {
 				return existingVO;
 			} else {
 				return super.getById(id);
@@ -115,19 +107,19 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	}
 
 	@Override
-	public List<DataProductVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
+	public List<DataTransferVO> getAllWithFilters(Boolean published, int offset, int limit, String sortBy,
 			String sortOrder, String recordStatus) {
-		List<DataProductNsql> dataProductEntities = dataProductCustomRepository
+		List<DataTransferNsql> dataTransferEntities = dataTransferCustomRepository
 				.getAllWithFiltersUsingNativeQuery(published, offset, limit, sortBy, sortOrder, recordStatus);
-		if (!ObjectUtils.isEmpty(dataProductEntities))
-			return dataProductEntities.stream().map(n -> dataProductAssembler.toVo(n)).collect(Collectors.toList());
+		if (!ObjectUtils.isEmpty(dataTransferEntities))
+			return dataTransferEntities.stream().map(n -> dataTransferAssembler.toVo(n)).collect(Collectors.toList());
 		else
 			return new ArrayList<>();
 	}
 
 	@Override
 	public Long getCount(Boolean published, String recordStatus) {
-		return dataProductCustomRepository.getCountUsingNativeQuery(published, recordStatus);
+		return dataTransferCustomRepository.getCountUsingNativeQuery(published, recordStatus);
 	}
 
 	private void updateDepartments(String department) {
@@ -147,14 +139,14 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	@Override
 	@Transactional
-	public ResponseEntity<DataProductProviderResponseVO> createDataProductProvider(ProviderVO requestVO) {
-		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
-		DataProductVO dataProductVO = new DataProductVO();
+	public ResponseEntity<DataTransferProviderResponseVO> createDataTransferProvider(ProviderVO requestVO) {
+		DataTransferProviderResponseVO responseVO = new DataTransferProviderResponseVO();
+		DataTransferVO dataTransferVO = new DataTransferVO();
 		try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
-			String uniqueProductName = requestVO.getDataProductName();
+			String uniqueTransferName = requestVO.getDataTransferName();
 			if (!ObjectUtils.isEmpty(providerResponseVO.getUsers())) {
 				if (providerResponseVO.getUsers().stream().anyMatch(n -> userId.equalsIgnoreCase(n.getShortId()))) {
 					List<MessageDescription> messages = new ArrayList<>();
@@ -163,19 +155,19 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					messages.add(message);
 					responseVO.setData(requestVO);
 					responseVO.setErrors(messages);
-					LOGGER.error("DataProduct {} , failed to create", uniqueProductName);
+					LOGGER.error("DataTransfer {} , failed to create", uniqueTransferName);
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				}
 			}	
-			List<DataProductVO> dataProductVOs = getExistingDataProduct(uniqueProductName, ConstantsUtility.OPEN);
-			if (!ObjectUtils.isEmpty(dataProductVOs) && (dataProductVOs.size()>0)) {
-				responseVO.setData(getProviderVOFromDataProductVO(dataProductVOs.get(0)));
+			List<DataTransferVO> dataTransferVOs = getExistingDataTransfer(uniqueTransferName, ConstantsUtility.OPEN);
+			if (!ObjectUtils.isEmpty(dataTransferVOs) && (dataTransferVOs.size()>0)) {
+				responseVO.setData(getProviderVOFromDataTransferVO(dataTransferVOs.get(0)));
 				List<MessageDescription> messages = new ArrayList<>();
 				MessageDescription message = new MessageDescription();
-				message.setMessage("DataProduct already exists.");
+				message.setMessage("DataTransfer already exists.");
 				messages.add(message);
 				responseVO.setErrors(messages);
-				LOGGER.debug("DataProduct {} already exists, returning as CONFLICT", uniqueProductName);
+				LOGGER.debug("DataTransfer {} already exists, returning as CONFLICT", uniqueTransferName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
 			}
 			providerResponseVO.setCreatedBy(this.userStore.getVO());
@@ -183,19 +175,19 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 			if (providerResponseVO.isProviderFormSubmitted() == null) {
 				providerResponseVO.setProviderFormSubmitted(false);
 			}
-			dataProductVO.setProviderInformation(providerResponseVO);
-			dataProductVO.setDataProductName(uniqueProductName);
-			dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
-			dataProductVO.setPublish(false);
-			dataProductVO.setDataProductId("DTF-" + String.format("%05d", dataProductRepository.getNextSeqId()));
-			dataProductVO.setRecordStatus(ConstantsUtility.OPEN);
-			dataProductVO.setId(null);
+			dataTransferVO.setProviderInformation(providerResponseVO);
+			dataTransferVO.setDataTransferName(uniqueTransferName);
+			dataTransferVO.setNotifyUsers(requestVO.isNotifyUsers());
+			dataTransferVO.setPublish(false);
+			dataTransferVO.setDataTransferId("DTF-" + String.format("%05d", dataTransferRepository.getNextSeqId()));
+			dataTransferVO.setRecordStatus(ConstantsUtility.OPEN);
+			dataTransferVO.setId(null);
 			updateDepartments(providerResponseVO.getContactInformation().getDepartment());
 
-			DataProductVO vo = this.create(dataProductVO);
+			DataTransferVO vo = this.create(dataTransferVO);
 			if (vo != null && vo.getId() != null) {
-				responseVO.setData(getProviderVOFromDataProductVO(vo));
-				LOGGER.info("DataProduct {} created successfully", uniqueProductName);
+				responseVO.setData(getProviderVOFromDataTransferVO(vo));
+				LOGGER.info("DataTransfer {} created successfully", uniqueTransferName);
 				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
 			} else {
 				List<MessageDescription> messages = new ArrayList<>();
@@ -204,12 +196,12 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				messages.add(message);
 				responseVO.setData(requestVO);
 				responseVO.setErrors(messages);
-				LOGGER.error("DataProduct {} , failed to create", uniqueProductName);
+				LOGGER.error("DataTransfer {} , failed to create", uniqueTransferName);
 				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		} catch (Exception e) {
-			LOGGER.error("Exception occurred:{} while creating dataProduct {} ", e.getMessage(),
-					requestVO.getDataProductName());
+			LOGGER.error("Exception occurred:{} while creating dataTransfer {} ", e.getMessage(),
+					requestVO.getDataTransferName());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
 			message.setMessage(e.getMessage());
@@ -238,16 +230,16 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	@Override
 	@Transactional
-	public ResponseEntity<DataProductProviderResponseVO> updateDataProductProvider(ProviderVO requestVO) {
-		DataProductProviderResponseVO responseVO = new DataProductProviderResponseVO();
-		DataProductVO dataProductVO = new DataProductVO();
+	public ResponseEntity<DataTransferProviderResponseVO> updateDataTransferProvider(ProviderVO requestVO) {
+		DataTransferProviderResponseVO responseVO = new DataTransferProviderResponseVO();
+		DataTransferVO dataTransferVO = new DataTransferVO();
 		try {
 			CreatedByVO currentUser = this.userStore.getVO();
 			String userId = currentUser != null ? currentUser.getId() : "";
 			ProviderResponseVO providerResponseVO = requestVO.getProviderInformation();
 			String id = requestVO.getId();
-			DataProductVO existingVO = super.getById(id);
-			DataProductVO mergedVO = null;
+			DataTransferVO existingVO = super.getById(id);
+			DataTransferVO mergedVO = null;
 			if (providerResponseVO.isProviderFormSubmitted() == null) {
 				providerResponseVO.setProviderFormSubmitted(false);
 			}
@@ -264,7 +256,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 							messages.add(message);
 							responseVO.setData(requestVO);
 							responseVO.setErrors(messages);
-							LOGGER.error("DataProduct with id {} , failed to update", id);
+							LOGGER.error("DataTransfer with id {} , failed to update", id);
 							return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 						}
 					}
@@ -272,20 +264,20 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					providerResponseVO.setCreatedDate(existingVO.getProviderInformation().getCreatedDate());
 					providerResponseVO.lastModifiedDate(new Date());
 					providerResponseVO.setModifiedBy(currentUser);
-					dataProductVO.setProviderInformation(providerResponseVO);
-					dataProductVO.setDataProductId(existingVO.getDataProductId());
-					dataProductVO.setDataProductName(requestVO.getDataProductName());
-					dataProductVO.setPublish(existingVO.isPublish());
-					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
-					dataProductVO.setRecordStatus(existingVO.getRecordStatus());
-					dataProductVO.setId(id);
-					dataProductVO.setConsumerInformation(existingVO.getConsumerInformation());
+					dataTransferVO.setProviderInformation(providerResponseVO);
+					dataTransferVO.setDataTransferId(existingVO.getDataTransferId());
+					dataTransferVO.setDataTransferName(requestVO.getDataTransferName());
+					dataTransferVO.setPublish(existingVO.isPublish());
+					dataTransferVO.setNotifyUsers(requestVO.isNotifyUsers());
+					dataTransferVO.setRecordStatus(existingVO.getRecordStatus());
+					dataTransferVO.setId(id);
+					dataTransferVO.setConsumerInformation(existingVO.getConsumerInformation());
 
 					updateDepartments(providerResponseVO.getContactInformation().getDepartment());
-					mergedVO = this.create(dataProductVO);
+					mergedVO = this.create(dataTransferVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
-						responseVO.setData(getProviderVOFromDataProductVO(mergedVO));
-						LOGGER.info("DataProduct with id {} updated successfully", id);
+						responseVO.setData(getProviderVOFromDataTransferVO(mergedVO));
+						LOGGER.info("DataTransfer with id {} updated successfully", id);
 						this.publishEventMessages(existingVO, mergedVO);
 						return new ResponseEntity<>(responseVO, HttpStatus.OK);
 					} else {
@@ -295,29 +287,29 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						messages.add(message);
 						responseVO.setData(requestVO);
 						responseVO.setErrors(messages);
-						LOGGER.debug("DataProduct with id {} cannot be edited. Failed with unknown internal error", id);
+						LOGGER.debug("DataTransfer with id {} cannot be edited. Failed with unknown internal error", id);
 						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				} else {
 					List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage("Not authorized to edit dataProduct provider form.");
+					notAuthorizedMsg.setMessage("Not authorized to edit dataTransfer provider form.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					responseVO.setErrors(notAuthorizedMsgs);
-					LOGGER.debug("DataProduct provider form with id {} cannot be edited. User not authorized", id);
+					LOGGER.debug("DataTransfer provider form with id {} cannot be edited. User not authorized", id);
 					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}
 			} else {
 				List<MessageDescription> notFoundmessages = new ArrayList<>();
 				MessageDescription notFoundmessage = new MessageDescription();
-				notFoundmessage.setMessage("No dataProduct found for given id. Update cannot happen");
+				notFoundmessage.setMessage("No dataTransfer found for given id. Update cannot happen");
 				notFoundmessages.add(notFoundmessage);
 				responseVO.setErrors(notFoundmessages);
-				LOGGER.debug("No dataProduct found for given id {} , update cannot happen.", id);
+				LOGGER.debug("No dataTransfer found for given id {} , update cannot happen.", id);
 				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
-			LOGGER.error("DataProduct with id {} cannot be edited. Failed due to internal error {} ", requestVO.getId(),
+			LOGGER.error("DataTransfer with id {} cannot be edited. Failed due to internal error {} ", requestVO.getId(),
 					e.getMessage());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
@@ -334,14 +326,14 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	 * To check if user has access to proceed with consume of the provider form.
 	 * 
 	 */
-	private boolean hasConsumeAccess(DataProductVO existingVO) {
+	private boolean hasConsumeAccess(DataTransferVO existingVO) {
 		CreatedByVO currentUser = this.userStore.getVO();
 		String userId = currentUser != null ? currentUser.getId() : "";
 		boolean canProceed = false;
 		CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
-		List<DataProductTeamMemberVO> users = existingVO.getProviderInformation().getUsers();
+		List<DataTransferTeamMemberVO> users = existingVO.getProviderInformation().getUsers();
 		if (StringUtils.hasText(userId) && !userId.equalsIgnoreCase(createdBy.getId())) {
-			DataProductTeamMemberVO vo = new DataProductTeamMemberVO();
+			DataTransferTeamMemberVO vo = new DataTransferTeamMemberVO();
 			BeanUtils.copyProperties(currentUser, vo);
 			vo.setAddedByProvider(false);
 			vo.setShortId(userId);
@@ -352,7 +344,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				canProceed = true;
 			} else {
 				boolean isAddedByProvider = false;
-				for (DataProductTeamMemberVO member : users) {
+				for (DataTransferTeamMemberVO member : users) {
 					if (userId.equalsIgnoreCase(member.getShortId())) {
 						canProceed = true;
 						break;
@@ -372,21 +364,21 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	@Override
 	@Transactional
-	public ResponseEntity<DataProductConsumerResponseVO> updateDataProductConsumer(ConsumerVO requestVO) {
-		DataProductConsumerResponseVO responseVO = new DataProductConsumerResponseVO();
-		DataProductVO dataProductVO = new DataProductVO();
+	public ResponseEntity<DataTransferConsumerResponseVO> updateDataTransferConsumer(ConsumerVO requestVO) {
+		DataTransferConsumerResponseVO responseVO = new DataTransferConsumerResponseVO();
+		DataTransferVO dataTransferVO = new DataTransferVO();
 		ConsumerVO consumerVO = new ConsumerVO();
 		try {
 			ConsumerResponseVO consumerResponseVO = requestVO.getConsumerInformation();
 			String id = requestVO.getId();
-			DataProductVO existingVO = super.getById(id);
-			DataProductVO mergedVO = null;
+			DataTransferVO existingVO = super.getById(id);
+			DataTransferVO mergedVO = null;
 			if (requestVO.isPublish() == null) {
 				requestVO.setPublish(false);
 			}
 			if (existingVO != null && existingVO.getRecordStatus() != null
 					&& !existingVO.getRecordStatus().equalsIgnoreCase(ConstantsUtility.DELETED)) {
-				List<DataProductTeamMemberVO> existingUsers = null;
+				List<DataTransferTeamMemberVO> existingUsers = null;
 				if (existingVO.getProviderInformation().getUsers() != null) {
 					existingUsers = existingVO.getProviderInformation().getUsers().stream()
 							.collect(Collectors.toList());
@@ -402,26 +394,26 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						consumerResponseVO.lastModifiedDate(new Date());
 						consumerResponseVO.setModifiedBy(this.userStore.getVO());
 					}
-					dataProductVO.setConsumerInformation(consumerResponseVO);
-					dataProductVO.setDataProductName(existingVO.getDataProductName());
-					dataProductVO.setPublish(requestVO.isPublish());
-					dataProductVO.setRecordStatus(existingVO.getRecordStatus());
-					dataProductVO.setDataProductId(existingVO.getDataProductId());
-					dataProductVO.setId(id);
-					dataProductVO.setNotifyUsers(requestVO.isNotifyUsers());
-					dataProductVO.setProviderInformation(existingVO.getProviderInformation());
+					dataTransferVO.setConsumerInformation(consumerResponseVO);
+					dataTransferVO.setDataTransferName(existingVO.getDataTransferName());
+					dataTransferVO.setPublish(requestVO.isPublish());
+					dataTransferVO.setRecordStatus(existingVO.getRecordStatus());
+					dataTransferVO.setDataTransferId(existingVO.getDataTransferId());
+					dataTransferVO.setId(id);
+					dataTransferVO.setNotifyUsers(requestVO.isNotifyUsers());
+					dataTransferVO.setProviderInformation(existingVO.getProviderInformation());
 					updateDepartments(consumerResponseVO.getContactInformation().getDepartment());
-					mergedVO = this.create(dataProductVO);
+					mergedVO = this.create(dataTransferVO);
 					if (mergedVO != null && mergedVO.getId() != null) {
 						consumerVO.setConsumerInformation(mergedVO.getConsumerInformation());
 						consumerVO.setId(mergedVO.getId());
-						consumerVO.setDataProductId(mergedVO.getDataProductId());
+						consumerVO.setDataTransferId(mergedVO.getDataTransferId());
 						consumerVO.setPublish(mergedVO.isPublish());
 						consumerVO.setNotifyUsers(mergedVO.isNotifyUsers());
-						consumerVO.setDataProductName(mergedVO.getDataProductName());
+						consumerVO.setDataTransferName(mergedVO.getDataTransferName());
 						consumerVO.setRecordStatus(mergedVO.getRecordStatus());
 						responseVO.setData(consumerVO);
-						LOGGER.info("DataProduct with id {} updated successfully", id);
+						LOGGER.info("DataTransfer with id {} updated successfully", id);
 						existingVO.getProviderInformation().setUsers(existingUsers);
 						this.publishEventMessages(existingVO, mergedVO);
 						return new ResponseEntity<>(responseVO, HttpStatus.OK);
@@ -432,29 +424,29 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 						messages.add(message);
 						responseVO.setData(requestVO);
 						responseVO.setErrors(messages);
-						LOGGER.debug("DataProduct with id {} cannot be edited. Failed with unknown internal error", id);
+						LOGGER.debug("DataTransfer with id {} cannot be edited. Failed with unknown internal error", id);
 						return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				} else {
 					List<MessageDescription> notAuthorizedMsgs = new ArrayList<>();
 					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage("Not authorized to consume dataProduct.");
+					notAuthorizedMsg.setMessage("Not authorized to consume dataTransfer.");
 					notAuthorizedMsgs.add(notAuthorizedMsg);
 					responseVO.setErrors(notAuthorizedMsgs);
-					LOGGER.debug("User not authorized to consume data product with id {}", id);
+					LOGGER.debug("User not authorized to consume data transfer with id {}", id);
 					return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 				}
 			} else {
 				List<MessageDescription> notFoundmessages = new ArrayList<>();
 				MessageDescription notFoundmessage = new MessageDescription();
-				notFoundmessage.setMessage("No dataProduct found for given id. Update cannot happen");
+				notFoundmessage.setMessage("No dataTransfer found for given id. Update cannot happen");
 				notFoundmessages.add(notFoundmessage);
 				responseVO.setErrors(notFoundmessages);
-				LOGGER.debug("No dataProduct found for given id {} , update cannot happen.", id);
+				LOGGER.debug("No dataTransfer found for given id {} , update cannot happen.", id);
 				return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
-			LOGGER.error("DataProduct with id {} cannot be edited. Failed due to internal error {} ", requestVO.getId(),
+			LOGGER.error("DataTransfer with id {} cannot be edited. Failed due to internal error {} ", requestVO.getId(),
 					e.getMessage());
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
@@ -467,14 +459,14 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 
 	}
 
-	private void publishEventMessages(DataProductVO prevDataProductVO, DataProductVO currDataProductVO) {
+	private void publishEventMessages(DataTransferVO prevDataTransferVO, DataTransferVO currDataTransferVO) {
 		try {
-			ProviderResponseVO currProviderVO = currDataProductVO.getProviderInformation();
-			if (currDataProductVO.isNotifyUsers()) {
+			ProviderResponseVO currProviderVO = currDataTransferVO.getProviderInformation();
+			if (currDataTransferVO.isNotifyUsers()) {
 				CreatedByVO currentUser = this.userStore.getVO();
-				String resourceID = currDataProductVO.getDataProductId();
-				String existingDataProductName = prevDataProductVO.getDataProductName();
-				String currentDataProductName = currDataProductVO.getDataProductName();
+				String resourceID = currDataTransferVO.getDataTransferId();
+				String existingDataTransferName = prevDataTransferVO.getDataTransferName();
+				String currentDataTransferName = currDataTransferVO.getDataTransferName();
 				String eventType = "";
 				String eventMessage = "";
 				String userName = super.currentUserName(currentUser);
@@ -484,7 +476,7 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 				List<String> teamMembers = new ArrayList<>();
 				List<String> teamMembersEmails = new ArrayList<>();
 				if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
-					for (DataProductTeamMemberVO user : currProviderVO.getUsers()) {
+					for (DataTransferTeamMemberVO user : currProviderVO.getUsers()) {
 						if (user != null) {
 							String shortId = user.getShortId();
 							if (StringUtils.hasText(shortId) && !teamMembers.contains(shortId)
@@ -515,45 +507,45 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					}
 				}
 
-				if (!prevDataProductVO.isPublish() && currDataProductVO.isPublish()) {
-					eventType = "DataProduct - Consumer form Published";
+				if (!prevDataTransferVO.isPublish() && currDataTransferVO.isPublish()) {
+					eventType = "DataTransfer - Consumer form Published";
 					eventMessage = "A Minimum Information Documentation data transfer is complete. [view]("
-							+ dataProductBaseUrl + "summary/" + resourceID + ")";
-					LOGGER.info("Publishing message on consumer form submission for dataProduct {} by userId {}",
-							currentDataProductName, userId);
+							+ dataTransferBaseUrl + "summary/" + resourceID + ")";
+					LOGGER.info("Publishing message on consumer form submission for dataTransfer {} by userId {}",
+							currentDataTransferName, userId);
 
-				} else if (prevDataProductVO.isPublish() && currDataProductVO.isPublish()) {
-					eventType = "DataProduct_Update";
-					eventMessage = "DataProduct " + existingDataProductName + " is updated by user " + userName;
-					changeLogs = dataProductAssembler.jsonObjectCompare(currDataProductVO, prevDataProductVO,
+				} else if (prevDataTransferVO.isPublish() && currDataTransferVO.isPublish()) {
+					eventType = "DataTransfer_Update";
+					eventMessage = "DataTransfer " + existingDataTransferName + " is updated by user " + userName;
+					changeLogs = dataTransferAssembler.jsonObjectCompare(currDataTransferVO, prevDataTransferVO,
 							currentUser);
-					LOGGER.info("Publishing message on update for dataProduct {} by userId {}", existingDataProductName,
+					LOGGER.info("Publishing message on update for dataTransfer {} by userId {}", existingDataTransferName,
 							userId);
 				} else if (!ObjectUtils.isEmpty(currProviderVO.getUsers())) {
-					eventType = "DataProduct - Provider Form Submitted";
+					eventType = "DataTransfer - Provider Form Submitted";
 					eventMessage = "A Minimum Information Documentation is ready for you. Please [provide information]("
-							+ dataProductBaseUrl + "consume/" + resourceID + ")"
+							+ dataTransferBaseUrl + "consume/" + resourceID + ")"
 							+ " about the receiving side to finalise the Data Transfer.";
-					LOGGER.info("Publishing message on provider form submission for dataProduct {} by userId {}",
-							currentDataProductName, userId);
+					LOGGER.info("Publishing message on provider form submission for dataTransfer {} by userId {}",
+							currentDataTransferName, userId);
 				}
 				if (StringUtils.hasText(eventType)) {
 					kafkaProducer.send(eventType, resourceID, "", userId, eventMessage, true, teamMembers,
 							teamMembersEmails, changeLogs);
-					LOGGER.info("Published successfully event {} for data product with id {}", eventType, resourceID);
+					LOGGER.info("Published successfully event {} for data transfer with id {}", eventType, resourceID);
 				}
 			}
 		} catch (Exception e) {
-			LOGGER.error("Failed while publishing dataProduct event msg {} ", e.getMessage());
+			LOGGER.error("Failed while publishing dataTransfer event msg {} ", e.getMessage());
 		}
 	}
 
 	@Override
 	@Transactional
-	public ResponseEntity<GenericMessage> deleteDataProduct(String id) {
+	public ResponseEntity<GenericMessage> deleteDataTransfer(String id) {
 		try {
-			DataProductVO existingVO = super.getById(id);
-			DataProductVO dataProductVO = null;
+			DataTransferVO existingVO = super.getById(id);
+			DataTransferVO dataTransferVO = null;
 			if (existingVO != null && existingVO.getId() != null) {
 				CreatedByVO createdBy = existingVO.getProviderInformation().getCreatedBy();
 				if (hasProviderAccess(createdBy)) {
@@ -562,52 +554,52 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 					providerResponseVO.setModifiedBy(this.userStore.getVO());
 					existingVO.setProviderInformation(providerResponseVO);
 					existingVO.setRecordStatus(ConstantsUtility.DELETED);
-					dataProductVO = super.create(existingVO);
-					if (dataProductVO != null && dataProductVO.getId() != null) {
+					dataTransferVO = super.create(existingVO);
+					if (dataTransferVO != null && dataTransferVO.getId() != null) {
 						GenericMessage successMsg = new GenericMessage();
 						successMsg.setSuccess("success");
-						LOGGER.info("DataProduct with id {} deleted successfully", id);
+						LOGGER.info("DataTransfer with id {} deleted successfully", id);
 						return new ResponseEntity<>(successMsg, HttpStatus.OK);
 					} else {
 						MessageDescription exceptionMsg = new MessageDescription(
-								"Failed to delete dataProduct due to internal error");
+								"Failed to delete dataTransfer due to internal error");
 						GenericMessage errorMessage = new GenericMessage();
 						errorMessage.addErrors(exceptionMsg);
-						LOGGER.debug("DataProduct with id {} cannot be deleted. Failed with unknown internal error",
+						LOGGER.debug("DataTransfer with id {} cannot be deleted. Failed with unknown internal error",
 								id);
 						return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 
 				} else {
 					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage("Not authorized to delete dataProduct.");
+					notAuthorizedMsg.setMessage("Not authorized to delete dataTransfer.");
 					GenericMessage errorMessage = new GenericMessage();
 					errorMessage.addErrors(notAuthorizedMsg);
-					LOGGER.debug("DataProduct with id {} cannot be deleted. User not authorized", id);
+					LOGGER.debug("DataTransfer with id {} cannot be deleted. User not authorized", id);
 					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 				}
 			} else {
-				MessageDescription invalidMsg = new MessageDescription("No dataProduct with the given id found");
+				MessageDescription invalidMsg = new MessageDescription("No dataTransfer with the given id found");
 				GenericMessage errorMessage = new GenericMessage();
 				errorMessage.addErrors(invalidMsg);
-				LOGGER.debug("No dataProduct with the given id {} found.", id);
+				LOGGER.debug("No dataTransfer with the given id {} found.", id);
 				return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.addErrors(exceptionMsg);
-			LOGGER.error("Failed to delete dataProduct with id {} , due to internal error.", id);
+			LOGGER.error("Failed to delete dataTransfer with id {} , due to internal error.", id);
 			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
-	private ProviderVO getProviderVOFromDataProductVO(DataProductVO vo) {
+	private ProviderVO getProviderVOFromDataTransferVO(DataTransferVO vo) {
 		ProviderVO providerVO = new ProviderVO();
 		providerVO.setProviderInformation(vo.getProviderInformation());
 		providerVO.setId(vo.getId());
-		providerVO.setDataProductId(vo.getDataProductId());
-		providerVO.setDataProductName(vo.getDataProductName());
+		providerVO.setDataTransferId(vo.getDataTransferId());
+		providerVO.setDataTransferName(vo.getDataTransferName());
 		providerVO.setRecordStatus(vo.getRecordStatus());
 		providerVO.setNotifyUsers(vo.isNotifyUsers());
 		return providerVO;
@@ -615,12 +607,12 @@ public class BaseDataProductService extends BaseCommonService<DataProductVO, Dat
 	}
 
 
-	private List<DataProductVO> getExistingDataProduct(String uniqueProductName, String status) {
-		LOGGER.info("Fetching Data product information from table for getExistingDataProduct.");
-		List<DataProductNsql> dataProductNsqls = dataProductCustomRepository.getExistingDataProduct(uniqueProductName, status);
+	private List<DataTransferVO> getExistingDataTransfer(String uniqueTransferName, String status) {
+		LOGGER.info("Fetching Data transfer information from table for getExistingDataTransfer.");
+		List<DataTransferNsql> dataTransferNsqls = dataTransferCustomRepository.getExistingDataTransfer(uniqueTransferName, status);
 		LOGGER.info("Success from get information from table.");
-		if (!ObjectUtils.isEmpty(dataProductNsqls)) {
-			return dataProductNsqls.stream().map(n -> dataProductAssembler.toVo(n)).toList();
+		if (!ObjectUtils.isEmpty(dataTransferNsqls)) {
+			return dataTransferNsqls.stream().map(n -> dataTransferAssembler.toVo(n)).toList();
 		} else {
 			return new ArrayList<>();
 		}	
