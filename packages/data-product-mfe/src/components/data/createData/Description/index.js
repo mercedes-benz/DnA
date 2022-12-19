@@ -159,7 +159,6 @@ const Description = ({ onSave, artList, carlaFunctionList, dataCatalogList }) =>
                 <Controller
                   control={control}
                   name="howToAccess"
-                  rules={{ required: '*Missing entry' }}
                   render={({ field }) => (
                     <>
                       <label id="howToAccess" className="input-label" htmlFor="howToAccess">
