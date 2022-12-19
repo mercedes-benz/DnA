@@ -16,8 +16,9 @@
             color: #99a5b3;
             /* line-height: 4; */
             // margin-right: 10px;
-            padding: 12px 20px;
+            padding: 7px 17px;
             /* word-break: break-all; */
+            font-size: var(--font-size-small);
             &:hover {
                 border-color: #00adef;
                 cursor: pointer;
@@ -28,7 +29,7 @@
         }
         .threeDots{
             color: #99a5b3;
-            padding: 14px 0px;
+            padding: 9px 0px;
             &:hover {
                 color: #00adef;
                 cursor: pointer;
