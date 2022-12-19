@@ -25,15 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.dataproduct;
+package com.daimler.data.db.jsonb.datatransfer;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.daimler.data.db.entities.DataProductNsql;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProviderTransnationalDataTransfer {
 
-public interface DataProductRepository extends JpaRepository<DataProductNsql, String> {
-
-	@Query(value = "SELECT nextval('dataproduct_seq')", nativeQuery = true)
-	Long getNextSeqId();
+	private boolean dataTransferred;
+	private boolean notWithinEU;
+	private String approved;
+	private String insiderInformation;
+	private boolean dataFromChina;
 }
