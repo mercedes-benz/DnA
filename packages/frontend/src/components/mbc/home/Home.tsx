@@ -80,6 +80,26 @@ const Home: React.FC<ILandingpageProps> = () => {
                   />
                 </div>
               </div>
+              <div className={Styles.newsSection}>
+                <div className={Styles.newsContainer}>
+                  <div className={Styles.newsItem}>
+                    <h3>V1.1 coming soon!</h3>
+                    <p>Follow our social intranet page to see pro... <a href="#" target="_blank" rel="noreferrer noopener">read more</a></p>
+                  </div>
+                </div>
+                <div className={Styles.newsContainer}>
+                  <div className={Styles.newsItem}>
+                    <h3>News Lorem</h3>
+                    <p>Follow our social intranet page to see pro... <a href="#" target="_blank" rel="noreferrer noopener">read more</a></p>
+                  </div>
+                </div>
+                <div className={Styles.newsContainer}>
+                  <div className={Styles.newsItem}>
+                    <h3>News Lorem</h3>
+                    <p>Follow our social intranet page to see pro... <a href="#" target="_blank" rel="noreferrer noopener">read more</a></p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

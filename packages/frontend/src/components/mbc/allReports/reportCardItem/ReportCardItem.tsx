@@ -144,13 +144,13 @@ const ReportCardItem = (props: IReportCardItemProps) => {
 
   return (
     <div id={'card-' + report.id} className={Styles.solCard}>
-      <div className={Styles.solHead} onClick={goToSummary(report.id)}>
+      <div className={Styles.solHead} onClick={goToSummary(report?.id)}>
         {/* <LogoImage displayType={SOLUTION_LOGO_IMAGE_TYPES.TILE} logoDetails={report.logoDetails} /> */}
         {/* <div className={Styles.solHeadInfo}>
           <div className={Styles.solTitle}>{report.productName}</div>
         </div> */}
         <div>
-          <div className={Styles.solTitle}>{report.productName}</div>
+          <div className={Styles.solTitle}>{report?.productName}</div>
         </div>
         <div className={classNames(Styles.contextMenu, showContextMenu ? Styles.open : '')}>
           <span onClick={toggleContextMenu} className={classNames('trigger', Styles.contextMenuTrigger)}>
@@ -192,29 +192,29 @@ const ReportCardItem = (props: IReportCardItemProps) => {
           <div>
             <span
               className={
-                report.description.status
-                  ? report.description.status === 'Live'
+                report?.description.status
+                  ? report?.description?.status === 'Live'
                     ? classNames(Styles.active)
-                    : report.description.status === 'Closed'
+                    : report.description?.status === 'Closed'
                     ? classNames(Styles.closed)
                     : ''
                   : ''
               }
             >
-              {report.description.status}
+              {report?.description?.status}
             </span>{' '}
-            {!report.publish && <span className={Styles.draftIndicator}>DRAFT</span>}
+            {!report?.publish && <span className={Styles.draftIndicator}>DRAFT</span>}
           </div>
           
         </div>
 
         <div className={Styles.solRegin}>
-          <span>{report.description.division.name && 
-          report.description.division.name != 'Choose' ? 
-          report.description.division.name : 'N/A'}</span>
-          <span>{report.description.productPhase || ''}</span>
+          <span>{report?.description.division?.name && 
+          report?.description.division?.name != 'Choose' ? 
+          report?.description.division?.name : 'N/A'}</span>
+          <span>{report.description?.productPhase || ''}</span>
         </div>
-        <div className={Styles.solInfo}>{attachEllipsis(report.description.productDescription, 125)}</div>
+        <div className={Styles.solInfo}>{attachEllipsis(report?.description?.productDescription, 125)}</div>
         <div className={Styles.solLink}></div>
       </div>
     </div>
