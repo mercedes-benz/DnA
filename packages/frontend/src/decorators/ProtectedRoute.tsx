@@ -23,6 +23,7 @@ interface IProtectedRouteState {
   loading: boolean;
   redirectPath: string;
   message: string;
+  showTermsModal: boolean;
 }
 
 const initialUserState: IUserInfo = {
@@ -39,6 +40,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
   constructor(props: IProtectedRouteProps) {
     super(props);
     this.setMessage = this.setMessage.bind(this);
+    this.setShowTermsModal = this.setShowTermsModal.bind(this);
   }
 
   public state = {
@@ -46,6 +48,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
     user: initialUserState,
     redirectPath: '',
     message: 'COMPLETE_UPDATE_NOTIFICATIONS',
+    showTermsModal: false,
   };
 
   public componentDidMount() {
@@ -89,14 +92,18 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
     this.setState({ message: msg });
   }
 
+  public setShowTermsModal(val: boolean) {
+    this.setState({ showTermsModal: val });
+  }
+
   /* tslint:disable:jsx-no-lambda */
   public render(): JSX.Element {
     const { component: Component, ...rest } = this.props;
     const roles = this.state.user.roles;
-    const { message } = this.state;
-    const { setMessage } = this;
+    const { message, showTermsModal } = this.state;
+    const { setMessage, setShowTermsModal } = this;
     return (
-      <AppContext.Provider value={{ message, setMessage }}>
+      <AppContext.Provider value={{ message, setMessage, showTermsModal, setShowTermsModal }}>
         <Route
           {...rest}
           render={(props) =>

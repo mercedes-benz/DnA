@@ -25,6 +25,7 @@
     &.appWrapper {
       display: flex;
       justify-content: flex-end;
+      margin-right: 21px;
       .headerIcons{
         padding-top: 3px;
         .notificationPanel {
@@ -189,4 +190,110 @@
 }
 .rotate {
   transform: rotate(20deg);
+}
+
+.levelTwoNav {
+  margin-top: var(--header-size);
+  margin-bottom: -5rem;
+  background-color: #1c2026;
+  padding-top: 60px;
+  padding-right: 70px;
+  padding-left: 70px;
+  padding-bottom: 60px;
+  display: flex;
+  flex-wrap: wrap;
+}
+.navItemContainer {
+  width: 16.66%;
+}
+.navItem {
+  padding-right: 50px;
+  a {
+    color: #c0c8d0;
+
+    &:hover {
+      text-decoration: none;
+      color: #00adef;
+    }
+    &.active {
+      text-decoration: none;
+      color: #00adef;
+    }
+  }
+  a i {
+    font-size: var(--font-size-icon-big);
+  }
+  a span {
+    display: block;
+    font-size: var(--font-size-sub-headline);
+    padding-top: 12px;
+    padding-bottom: 10px;
+
+    em {
+      font-style: normal;
+      font-size: var(--font-size-smallest);
+      background-color: #00adef;
+      display: inline-block;
+      border-radius: 2px;
+      padding: 0px 5px;
+      margin-left: 5px;
+      color: #ffffff;
+    }
+  }
+  p {
+    margin-bottom: 0;
+    color: #99a5b3;
+  }
+}
+.disabled {
+  pointer-events: none;
+  a {
+    color: #777d84;
+  }
+  p {
+    color: #777d84;
+  }
+}
+.touContainer {
+  .touTitle {
+    display: flex;
+
+    .touIcon i {
+      font-size: 50px;
+    }
+
+    h2 {
+      font-size: var(--font-size-headline-big);
+      margin-left: 40px;
+      margin-bottom: 0;
+      span {
+        display: block;
+        font-size: var(--font-size-small);
+        padding-top: 20px;
+        color: #c0c8d0;
+      }
+    }
+  }
+  .touContent {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 35px;
+    margin-bottom: 35px;
+    padding-right: 35px;
+
+    &::-webkit-scrollbar-thumb {
+      background: #00adef;
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #293f55;
+    }
+    &::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+  }
+  .touFooter {
+    text-align: center;
+  }
 }

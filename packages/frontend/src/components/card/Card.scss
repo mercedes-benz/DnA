@@ -1,10 +1,11 @@
 .cardWrapper{
     padding: 40px;
     background: #252a33;
-    width: calc(33% - 15px);
+    flex: 1 1 0px;
+    width: 0;
     margin: 0 15px 15px 0;
-    min-width: 250px;
-    max-width: 311px;
+    max-width: 327px;
+    min-width: calc(25% - 15px);
     position: relative;
     .cardIconSection {
         text-align: center;
@@ -174,5 +175,22 @@
     right: 20px;
 }
 
-
+:global {
+    .transparency:hover {
+        background-color: #5465D0;
+        background-image: linear-gradient(198deg, #5465D0 5%, #000000 100%);
+    }
+    .data:hover {
+        background-color: #2CB0BC;
+        background-image: linear-gradient(198deg, #2CB0BC 5%, #000000 100%);
+    }
+    .tools:hover {
+        background-color: #00ADEF;
+        background-image: linear-gradient(198deg, #00ADEF 5%, #000000 100%);
+    }
+    .trainings:hover {
+        background-color: #5465D0;
+        background-image: linear-gradient(198deg, #5465D0 5%, #000000 100%);
+    }
+}
 
