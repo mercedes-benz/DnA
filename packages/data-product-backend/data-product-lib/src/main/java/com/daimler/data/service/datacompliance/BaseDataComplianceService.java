@@ -43,7 +43,7 @@ import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.DataComplianceAssembler;
-import com.daimler.data.assembler.DataProductAssembler;
+import com.daimler.data.assembler.DataTransferAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.DataComplianceAuditNsql;
@@ -56,7 +56,7 @@ import com.daimler.data.db.repo.datacomplianceAudit.DataComplianceAuditRepositor
 import com.daimler.data.dto.datacompliance.CreatedByVO;
 import com.daimler.data.dto.datacompliance.DataComplianceResponseVO;
 import com.daimler.data.dto.datacompliance.DataComplianceVO;
-import com.daimler.data.dto.dataproduct.ChangeLogVO;
+import com.daimler.data.dto.datatransfer.ChangeLogVO;
 import com.daimler.data.dto.entityid.EntityIdVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.entityid.EntityIdService;
@@ -77,7 +77,7 @@ public class BaseDataComplianceService extends BaseCommonService<DataComplianceV
 	private EntityIdService entityIdService;
 
 	@Autowired
-	private DataProductAssembler dataProductAssembler;
+	private DataTransferAssembler dataProductAssembler;
 
 	@Autowired
 	private DataComplianceCustomRepository dataComplianceCustomRepository;

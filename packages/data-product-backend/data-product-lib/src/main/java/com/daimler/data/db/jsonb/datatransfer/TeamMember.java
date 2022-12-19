@@ -25,7 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.jsonb.dataproduct;
+package com.daimler.data.db.jsonb.datatransfer;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,9 +34,18 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Subdivision {
+public class TeamMember {
 
 	private String id;
-	private String name;
+	private String userType;
+	private String shortId;
+	private String firstName;
+	private String lastName;
+	private String department;
+	private String email;
+	private String mobileNumber;
+	private String company;
+	private String teamMemberPosition;
+	private boolean addedByProvider;
 
 }

@@ -25,7 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.dataproduct;
+package com.daimler.data.db.repo.datatransfer;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -40,32 +40,32 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.daimler.data.db.entities.DataProductNsql;
-import com.daimler.data.db.jsonb.dataproduct.DataProduct;
+import com.daimler.data.db.entities.DataTransferNsql;
+import com.daimler.data.db.jsonb.datatransfer.DataTranfer;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Repository
-public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<DataProductNsql, String>
-		implements DataProductCustomRepository {
+public class DataTransferCustomRepositoryImpl extends CommonDataRepositoryImpl<DataTransferNsql, String>
+		implements DataTransferCustomRepository {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(DataProductCustomRepositoryImpl.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(DataTransferCustomRepositoryImpl.class);
 	private static String REGEX = "[\\[+\\]+:{}^~?\\\\/()><=\"!]";
 
 	@Override
-	public List<DataProductNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
+	public List<DataTransferNsql> getAllWithFiltersUsingNativeQuery(Boolean published, int offset, int limit,
 			String sortBy, String sortOrder, String recordStatus) {
 		Query q = getNativeQueryWithFilters("", published, offset, limit, sortBy, sortOrder, recordStatus);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
-		List<DataProductNsql> convertedResults = results.stream().map(temp -> {
-			DataProductNsql entity = new DataProductNsql();
+		List<DataTransferNsql> convertedResults = results.stream().map(temp -> {
+			DataTransferNsql entity = new DataTransferNsql();
 			try {
 				String jsonData = temp[1] != null ? temp[1].toString() : "";
-				DataProduct tempDataProduct = mapper.readValue(jsonData, DataProduct.class);
-				entity.setData(tempDataProduct);
+				DataTranfer tempDataTransfer = mapper.readValue(jsonData, DataTranfer.class);
+				entity.setData(tempDataTransfer);
 			} catch (Exception e) {
-				LOGGER.error("Failed to fetch dataproducts with exception {} ", e.getMessage());
+				LOGGER.error("Failed to fetch datatransfers with exception {} ", e.getMessage());
 			}
 			String id = temp[0] != null ? temp[0].toString() : "";
 			entity.setId(id);
@@ -87,18 +87,18 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) ";
-		prefix = prefix + "from dataproduct_nsql";
+		prefix = prefix + "from datatransfer_nsql";
 		String basicpredicate = " where (id is not null)";
 		String consolidatedPredicates = buildPredicateString(published, recordStatus);
 		String query = prefix + basicpredicate + consolidatedPredicates;
 		String sortQueryString = "";
 		if (StringUtils.hasText(sortBy)) {
 			switch (sortBy) {
-			case "dataProductName":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'dataProductName')) ";
+			case "dataTransferName":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'dataTransferName')) ";
 				break;
-			case "dataProductId":
-				sortQueryString = " order by lower(jsonb_extract_path_text(data,'dataProductId')) ";
+			case "dataTransferId":
+				sortQueryString = " order by lower(jsonb_extract_path_text(data,'dataTransferId')) ";
 				break;				
 			default:
 				sortQueryString = "";
@@ -205,47 +205,47 @@ public class DataProductCustomRepositoryImpl extends CommonDataRepositoryImpl<Da
 		return "";
 	}
 	
-	public Query getNativeQueryWithFilters(String selectFieldsString, String uniqueProductName,String status) {
+	public Query getNativeQueryWithFilters(String selectFieldsString, String uniqueTransferName,String status) {
 
 		String prefix = selectFieldsString != null && !"".equalsIgnoreCase(selectFieldsString) ? selectFieldsString
 				: "select cast(id as text), cast(data as text) from";
-		prefix = prefix + " dataproduct_nsql";
+		prefix = prefix + " datatransfer_nsql";
 		String basicpredicate = " where (id is not null)";
-		String consolidatedPredicate = buildPredicateString(uniqueProductName,status);
+		String consolidatedPredicate = buildPredicateString(uniqueTransferName,status);
 		String query = prefix + basicpredicate + consolidatedPredicate;		
 		Query q = em.createNativeQuery(query);
 		return q;
 	}
 	
-	private String buildPredicateString(String uniqueProductName, String status) {;
-		if ((uniqueProductName != null && !uniqueProductName.isEmpty()) && (!status.isEmpty())) {			
-			return " and ((jsonb_extract_path_text(data,'dataProductName')) in (" +"'"+ uniqueProductName +"'"+ "))" +  
+	private String buildPredicateString(String uniqueTransferName, String status) {;
+		if ((uniqueTransferName != null && !uniqueTransferName.isEmpty()) && (!status.isEmpty())) {			
+			return " and ((jsonb_extract_path_text(data,'dataTransferName')) in (" +"'"+ uniqueTransferName +"'"+ "))" +  
 					" and ((jsonb_extract_path_text(data,'recordStatus')) in (" +"'"+ status +"'"+ "))";
 		}
 		return "";
 	}
 
 	@Override
-	public List<DataProductNsql> getExistingDataProduct(String uniqueProductName, String status) {
+	public List<DataTransferNsql> getExistingDataTransfer(String uniqueTransferName, String status) {
 
-		Query q = getNativeQueryWithFilters("select cast (data as text) from ", uniqueProductName,status);
+		Query q = getNativeQueryWithFilters("select cast (data as text) from ", uniqueTransferName,status);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();				
-		DataProductNsql entity = new DataProductNsql();
-		List<DataProductNsql> dataProductNsqls = new ArrayList<>();
+		DataTransferNsql entity = new DataTransferNsql();
+		List<DataTransferNsql> dataTransferNsqls = new ArrayList<>();
 		if(results != null && !results.isEmpty()) {
 			for(Object result : results) {
 				try {
 					String jsonData = result.toString() != null ? result.toString() : "";					
-					DataProduct dataProduct = mapper.readValue(jsonData, DataProduct.class);
-					entity.setData(dataProduct);
-					dataProductNsqls.add(entity);
+					DataTranfer dataTransfer = mapper.readValue(jsonData, DataTranfer.class);
+					entity.setData(dataTransfer);
+					dataTransferNsqls.add(entity);
 				}
 				catch(Exception e) {
 					LOGGER.error("Exception Occured: {}", e.getMessage());
 				}
 			}
 		}
-		return dataProductNsqls;				
+		return dataTransferNsqls;				
 	}
 }
