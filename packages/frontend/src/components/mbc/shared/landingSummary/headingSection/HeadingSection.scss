@@ -3,11 +3,10 @@
     display: flex;
     justify-content: space-between;
     .headingSection {
-        width: calc(30% - 7px);
+        width: calc(25% - 10px);
     }
     .imageSection {
-        width: calc(60% - 7px);
-        margin: 0 15px;
+        width: calc(75% - 4px);
         img {
             width: 100%;
             // height: 340px;
