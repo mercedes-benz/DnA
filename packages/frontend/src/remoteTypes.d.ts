@@ -12,3 +12,8 @@ declare module 'chronos-mfe/Chronos' {
   const Chronos: React.ComponentType;
   export default Chronos;
 }
+
+declare module 'dss-mfe/Dataiku' {
+  const Dataiku: React.ComponentType;
+  export default Dataiku;
+}
