@@ -288,10 +288,14 @@ const ContactInformation = ({ onSave, divisions, setSubDivisions, subDivisions, 
                   <Controller
                     control={control}
                     name="informationOwner"
-                    // rules={{ required: '*Missing entry' }}
+                    rules={{ required: '*Missing entry' }}
                     render={({ field }) => (
                       <TeamSearch
-                        label={<>Information Owner {/*<sup>*</sup> */}</>}
+                        label={
+                          <>
+                            Information Owner <sup>*</sup>
+                          </>
+                        }
                         fieldMode={true}
                         fieldValue={informationOwnerFieldValue}
                         setFieldValue={(val) => setInformationOwnerFieldValue(val)}
