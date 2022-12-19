@@ -57,6 +57,7 @@ const Data = () => {
               isSmallCard={card.isSmallCard}
               isMediumCard={card.isMediumCard}
               svgIcon={iconValue}
+              className="data"
             />
           );
         })}
