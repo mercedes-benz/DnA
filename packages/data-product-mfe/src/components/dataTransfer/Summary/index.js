@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, withRouter } from 'react-router-dom';
-import { dataTransferApi } from '../../../apis/dataproducts.api';
+import { dataTransferApi } from '../../../apis/datatransfers.api';
 import ProgressIndicator from '../../../common/modules/uilab/js/src/progress-indicator';
 import Tabs from '../../../common/modules/uilab/js/src/tabs';
 import { hostServer } from '../../../server/api';
@@ -15,7 +15,7 @@ import ShowTeamMemberList from 'dna-container/ShowTeamMemberList';
 import { regionalDateFormat } from '../../../Utility/utils';
 
 const Summary = ({ history }) => {
-  const { id: dataProductId } = useParams();
+  const { id: dataTransferId } = useParams();
   const { selectedDataProduct: data, divisionList } = useSelector((state) => state.provideDataProducts);
 
   const division = serializeDivisionSubDivision(divisionList, {
@@ -61,7 +61,7 @@ const Summary = ({ history }) => {
   }, []);
 
   const getDataProductById = () => {
-    dataTransferApi.getDataProductById(dataProductId).then((res) => {
+    dataTransferApi.getDataProductById(dataTransferId).then((res) => {
       if (res.status === 204) {
         return history.push('/NotFound');
       } else {
@@ -135,7 +135,9 @@ const Summary = ({ history }) => {
                     </div>
                     <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                       <div>
-                        <label className="input-label summary">Data Product Name</label>
+                        <label className="input-label summary">
+                          Data Product Name / Short description of data transfer
+                        </label>
                         <br />
                         {data.productName}
                       </div>
