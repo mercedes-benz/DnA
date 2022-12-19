@@ -39,6 +39,7 @@ export const tabs = {
     department: '',
     complianceOfficer: '',
     planningIT: '',
+    informationOwner: '',
   },
   'classification-confidentiality': { classificationOfTransferedData: '', confidentiality: 'Public' },
   'personal-data': {
